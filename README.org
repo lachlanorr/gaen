@@ -1,0 +1,33 @@
+* Building clean on OSX Maverick
+
+Install gcc 4.8 through homebrew
+
+Add a setcc.sh in root directory containing something like:
+export CC=/usr/local/bin/gcc-4.8
+export CXX=/usr/local/bin/g++-4.8
+
+Run bootstrap.sh
+
+Make in build/Debug
+
+** Additional notes:
+
+*** You may need to apply this patch to /usr/include/sys/cdefs.h when using gcc 4.8 on osx:
+
+--- /usr/include/sys/cdefs.h.original	2014-01-11 20:47:05.000000000 -0600
++++ /usr/include/sys/cdefs.h	2014-01-11 20:48:51.000000000 -0600
+@@ -216,7 +216,7 @@
+
+ #if __STDC_VERSION__ >= 199901L && (!defined(__GNUC__) || defined(__clang__))
+ # define __header_inline           inline
+-#elif defined(__GNUC__) && defined(__GNUC_STDC_INLINE__)
++#elif defined(__GNUC__) && defined(__GNUC_STDC_INLINE__) && !defined(__cplusplus)
+ # define __header_inline           extern __inline __attribute__((__gnu_inline__))
+ #elif defined(__GNUC__)
+ # define __header_inline           extern __inline
+
+
+
+*** gdb on Mavericks
+http://wiki.lazarus.freepascal.org/GDB_on_OS_X_Mavericks_and_Xcode_5
+

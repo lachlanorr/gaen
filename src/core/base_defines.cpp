@@ -1,0 +1,170 @@
+//------------------------------------------------------------------------------
+// base_defines.cpp - Commonly used definitions used throughout Gaen
+//
+// Gaen Concurrency Engine - http://gaen.org
+// Copyright (c) 2014 Lachlan Orr
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+//   1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+//
+//   2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+//
+//   3. This notice may not be removed or altered from any source
+//   distribution.
+//------------------------------------------------------------------------------
+
+#include "core/stdafx.h"
+
+#include <cstdio>
+#include <cstdarg>
+#include <cstring>
+#include <csignal>
+#include <cstdlib>
+
+#include "core/base_defines.h"
+
+namespace gaen
+{
+
+// max size for formatted failure message
+static const size_t kMaxMessageSize = 512;
+// max total size of failure message
+static const size_t kMaxFailureMessageSize = kMaxMessageSize + 256;
+
+// If none is set, we'll just printf
+static ReportFailureCB sReportFailureCB = nullptr;
+
+static DebugBreakFunc sDebugBreakOverride = nullptr;
+static AbortFunc sAbortOverride = nullptr;
+
+void debug_break_gaen()
+{
+    if (!sDebugBreakOverride)
+    {
+#if IS_PLATFORM_POSIX
+        raise(SIGTRAP);
+#elif IS_COMPILER_MSVC // #if IS_PLATFORM_POSIX
+        __debugbreak();
+#endif // #elif IS_COMPILER_MSVC
+    }
+    else
+        sDebugBreakOverride();
+}
+
+void abort_gaen()
+{
+    if (!sAbortOverride)
+        abort();
+    else
+        sAbortOverride();
+}
+
+void override_failure_funcs(DebugBreakFunc debugBreakFunc, AbortFunc abortFunc)
+{
+    // LORRTODO - to support unit tests, implement this so we don't abort on asserts/panics
+}
+
+void set_report_failure_cb(ReportFailureCB reportFailureCB)
+{
+    sReportFailureCB = reportFailureCB;
+}
+
+void report_failure(const char * condition,
+                    const char * file,
+                    int line,
+                    const char * format,
+                    ...)
+{
+    // Thread storage to print our message.
+    static thread_local char tMessage[kMaxMessageSize];
+    static thread_local char tFailureMessage[kMaxFailureMessageSize];
+    
+    va_list argptr;
+    va_start(argptr, format);
+
+    if (format && format[0] != '\0')
+    {
+        int ret = vsnprintf(tMessage, kMaxMessageSize-1, format, argptr);
+        
+        if (ret <= 0)
+        {
+            strncpy(tMessage, "report_failure was unable to format message", kMaxMessageSize-1);
+        }
+    }
+    else
+        tMessage[0] = '\0';
+
+    va_end(argptr);
+
+    // Ensure that we're null terminated in cases where someone sent
+    // us a stupidly long message.
+    tMessage[kMaxMessageSize-1] = '\0'; 
+    
+
+    if (tMessage[0] != '\0')
+    {
+        snprintf(tFailureMessage,
+                 kMaxFailureMessageSize-1,
+                 "Gaen Failure: %s, %s:%d - %s",
+                 condition,
+                 file,
+                 line,
+                 tMessage);
+    }
+    else
+    {
+        snprintf(tFailureMessage,
+                 kMaxFailureMessageSize-1,
+                 "Gaen Failure: %s, %s:%d",
+                 condition,
+                 file,
+                 line);
+    }
+    tFailureMessage[kMaxFailureMessageSize-1] = '\0';
+
+    if (sReportFailureCB)
+        sReportFailureCB(tFailureMessage);
+    else
+        puts(tFailureMessage);
+
+}
+
+#if IS_PLATFORM_WIN32
+int c99_snprintf(char* str, size_t size, const char* format, ...)
+{
+    int count;
+    va_list ap;
+
+    va_start(ap, format);
+    count = c99_vsnprintf(str, size, format, ap);
+    va_end(ap);
+
+    return count;
+}
+
+int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap)
+{
+    int count = -1;
+
+    if (size != 0)
+        count = _vsnprintf_s(str, size, _TRUNCATE, format, ap);
+    if (count == -1)
+        count = _vscprintf(format, ap);
+
+    return count;
+}
+#endif
+
+
+} // namespace gaen

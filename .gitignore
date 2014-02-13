@@ -1,0 +1,6 @@
+.DS_Store
+setcc.sh
+build/**
+*.pyc
+src/engine/FNV.h
+src/engine/FNV.cpp
