@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.h - precompiled headers
+// stdafx.h - Precompiled headers
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr

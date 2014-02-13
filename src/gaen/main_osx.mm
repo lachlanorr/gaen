@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// main_osx.cpp - OSX specific main function for gaen
+// main_osx.mm - OSX specific main function for gaen
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr

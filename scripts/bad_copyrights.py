@@ -31,6 +31,7 @@ Prints out source file paths that are missing copyright/license message.
 '''
 
 import os
+import posixpath
 import re
 
 
@@ -124,7 +125,7 @@ HEADERS = [(re.compile(r'^.*\.(h|c|cpp)$'),                CPP_HEADER),
 EXCLUDE_DIR_RE = re.compile(r'^.*(/external/|/build/).*$')
 
 def expected_header(path):
-    fname = os.path.split(path)[1]
+    fname = posixpath.split(path)[1]
     for pattern, header in HEADERS:
         if re.match(pattern, path):
             return header % fname
@@ -144,14 +145,14 @@ def checkfile(path):
 def checkdir(path):
     for root, dirs, files in os.walk(path):
         for f in files:
-            fullpath = os.path.join(root, f)
+            fullpath = posixpath.join(root.replace('\\', '/'), f)
             if not re.match(EXCLUDE_DIR_RE, fullpath):
                 if not checkfile(fullpath):
                     print fullpath
 
 def checkdirs():
-    scriptdir = os.path.split(os.path.abspath(__file__))[0]
-    gaendir = os.path.split(scriptdir)[0]
+    scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
+    gaendir = posixpath.split(scriptdir)[0]
     checkdir(gaendir)
 
 if __name__=='__main__':

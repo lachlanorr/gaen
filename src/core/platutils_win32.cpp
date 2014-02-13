@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// platutils_win32.cpp - winre versiosn of misc platform specific functions
+// platutils_win32.cpp - Win32 versions of misc platform specific functions
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
