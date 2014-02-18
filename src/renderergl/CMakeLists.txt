@@ -25,47 +25,15 @@
 #-------------------------------------------------------------------------------
 
 
-SET (gaen_SOURCES
-  gaen.cpp
-  gaen.h
+SET (renderergl_SOURCES
+  gaen_opengl.h
+  win32gl.cpp
+  win32gl.h
   )
 
+MSVC_PRECOMPILED_HEADER (renderergl renderergl_SOURCES)
+IDE_SOURCE_PROPERTIES( "/" "${renderergl_SOURCES}")
 
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  # OSX
-  SET (gaen_SOURCES
-    ${gaen_SOURCES}
-    main_osx.mm
-    )
-  SET(MACOSX_BUNDLE_BUNDLE_NAME Gaen)
-  ADD_EXECUTABLE(gaen MACOSX_BUNDLE
-    ${gaen_SOURCES}
-    )
-  SET_TARGET_PROPERTIES(gaen PROPERTIES MACOSX_BUNDLE TRUE)
-  # Copy bundle to package dir
-  ADD_CUSTOM_COMMAND(
-    TARGET gaen
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/gaen.app ${packaged_dir}/gaen.app
-    )
-
-ELSEIF (WIN32)
-  SET (gaen_SOURCES
-    ${gaen_SOURCES}
-    main_win32.cpp
-    )
-  IDE_SOURCE_PROPERTIES( "/" "${gaen_SOURCES}")
-  ADD_EXECUTABLE(gaen WIN32
-    ${gaen_SOURCES}
-    )
-  package (gaen)
-ENDIF ()
-
-
-TARGET_LINK_LIBRARIES (gaen
-  core
-  engine
-  renderergl
-  ${PLATFORM_LINK_LIBS}
+ADD_LIBRARY (renderergl
+  ${renderergl_SOURCES}
   )
-

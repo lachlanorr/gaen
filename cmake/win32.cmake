@@ -29,6 +29,7 @@ SET (net_platform "win32")
 
 SET(PLATFORM_LINK_LIBS
   Ws2_32
+  opengl32.lib
   )
 
 #SET(CMAKE_CXX_FLAGS                "-Wall -std=c++11 -fno-exceptions -framework Cocoa")

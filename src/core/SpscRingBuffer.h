@@ -78,35 +78,28 @@ public:
         friend class SpscRingBuffer;
     public:
         Accessor()
-          : mpSpscRingBuffer(0)
-          , mpStart(0)
+          : mpSpscRingBuffer(nullptr)
+          , mpStart(nullptr)
           , mAvailable(0)
         {}
 
-        
-        T & operator[](size_t offset)
-        {
-            ASSERT(offset < mAvailable);
-            ASSERT(mpSpscRingBuffer && mpStart);
-            return *mpSpscRingBuffer->wrapPointer(mpStart + offset);
-        }
-
-        const T & operator[](size_t offset) const
-        {
-            ASSERT(offset < mAvailable);
-            ASSERT(mpSpscRingBuffer && mpStart);
-            return *mpSpscRingBuffer->wrapPointer(mpStart + offset);
-        }
-
         size_t available() const { return mAvailable; }
 
-    private:
-        void setAvailable(size_t available)
+        T & operator[](size_t index)
         {
-            ASSERT(available <= mAvailable);
-            mAvailable = available;
+            ASSERT(index < mAvailable);
+            ASSERT(mpSpscRingBuffer && mpStart);
+            return *mpSpscRingBuffer->wrapPointer(mpStart + index);
         }
-        
+
+        const T & operator[](size_t index) const
+        {
+            ASSERT(index < mAvailable);
+            ASSERT(mpSpscRingBuffer && mpStart);
+            return *mpSpscRingBuffer->wrapPointer(mpStart + index);
+        }
+
+    private:
         SpscRingBuffer<T> * mpSpscRingBuffer;
         T* mpStart;
         size_t mAvailable;
@@ -125,17 +118,6 @@ public:
     ~SpscRingBuffer()
     {
         FREE(mpBuffer);
-    }
-
-    // Used to revise available during pop operations.
-    // By default, a pop accesssor has the entire buffer available
-    // size as its available size, but some specializations of
-    // SpscRingBuffer may be able to discern the actual available size
-    // by inspection of the first element (e.g. MessageQueue can do
-    // this).
-    void setAccessorAvailable(Accessor * pAccessor, size_t available)
-    {
-        pAccessor->setAvailable(available);
     }
 
     void pushBegin(Accessor * pAccessor, size_t elemCount)

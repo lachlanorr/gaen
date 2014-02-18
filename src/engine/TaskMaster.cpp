@@ -42,6 +42,15 @@ static const u32 kMaxMainThreadMessages = 4096;
 static const u64 kFPS = 60;
 static const u64 kNanosPerFrame = 1000000000 / kFPS;
 
+TaskMaster & task_master_for_thread(thread_id tid)
+{
+    ASSERT(is_threading_init());
+    ASSERT(tid >= 0 && tid < num_threads());
+    static Vector<TaskMaster, kMT_Engine> sTaskMasters(num_threads());
+    ASSERT(tid < sTaskMasters.size());
+    return sTaskMasters[tid];
+}
+
 void init_task_masters()
 {
     static bool sIsInit = false;
@@ -58,7 +67,7 @@ void init_task_masters()
 
 void fin_task_masters()
 {
-    message_from_main(kBroadcastThreadId, FNV::fin, to_cell(0));
+    message_from_main(kBroadcastThreadId, FNV::fin);
     join_all_threads();
 }
 
@@ -86,7 +95,34 @@ void start_game_loops()
     }
 }
 
-void message_from_main(thread_id threadId, fnv msgId, cell payload)
+inline void task_master_message_from_main(thread_id threadId,
+                                          fnv msgId,
+                                          cell payload,
+                                          const MessageBlock * pMsgBlock,
+                                          size_t msgBlockCount)
+{
+    TaskMaster & tm = task_master_for_thread(threadId);
+    MessageQueue & mq = tm.mainMessageQueue();
+    MessageQueue::MessageAccessor msgAcc;
+    mq.pushBegin(&msgAcc,
+                 msgId,
+                 kMessageFlag_TaskMaster,
+                 0,
+                 0,
+                 msgBlockCount);
+}
+
+void message_from_main(thread_id threadId,
+                       fnv msgId)
+{
+    message_from_main(threadId, msgId, to_cell(0), nullptr, 0);
+}
+
+void message_from_main(thread_id threadId,
+                       fnv msgId,
+                       cell payload,
+                       const MessageBlock * pMsgBlock,
+                       size_t msgBlockCount)
 {
     ASSERT(active_thread_id() == kMainThreadId);
     thread_id numThreads = num_threads();
@@ -96,7 +132,9 @@ void message_from_main(thread_id threadId, fnv msgId, cell payload)
     {
         task_master_message_from_main(threadId,
                                       msgId,
-                                      payload);
+                                      payload,
+                                      pMsgBlock,
+                                      msgBlockCount);
     }
     else
     {
@@ -104,7 +142,9 @@ void message_from_main(thread_id threadId, fnv msgId, cell payload)
         {
             task_master_message_from_main(tid,
                                           msgId,
-                                          payload);
+                                          payload,
+                                          pMsgBlock,
+                                          msgBlockCount);
         }
     }
 }
@@ -115,7 +155,7 @@ void TaskMaster::init(thread_id tid)
     mThreadId = tid;
     mIsPrimary = tid == 0;
 
-    // Allocate message queue main thread can use to communicate with us
+    // Allocate a message queue that the main thread can use to communicate with us
     void * tmp = ALLOC(sizeof(MessageQueue), kMT_Engine);
     mpMainThreadMessageQueue.reset(new (tmp) MessageQueue(kMaxMainThreadMessages));
 
@@ -253,11 +293,8 @@ void TaskMaster::processMessages(MessageQueue & msgQueue)
 {
     MessageQueue::MessageAccessor msgAcc;
 
-    while(true)
+    while (msgQueue.popBegin(&msgAcc))
     {
-        msgQueue.popBegin(&msgAcc);
-        if (msgAcc.available() == 0)
-            break;
         message(msgAcc);
         msgQueue.popCommit(msgAcc);
     }
@@ -267,7 +304,7 @@ void TaskMaster::processMessages(MessageQueue & msgQueue)
 
 MessageResult TaskMaster::message(const MessageQueue::MessageAccessor& msgAcc)
 {
-    const Message & msg = msgAcc[0];
+    const Message & msg = msgAcc.message();
 
     // Handle messages sent to us, the TaskMaster
     if (msg.flags & kMessageFlag_TaskMaster)
@@ -289,6 +326,7 @@ MessageResult TaskMaster::message(const MessageQueue::MessageAccessor& msgAcc)
         // Message was meant for a task, send it appropriately
     }
 
+    return MessageResult::Unhandled;
 }
 
 

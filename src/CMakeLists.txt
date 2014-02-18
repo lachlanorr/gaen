@@ -28,6 +28,7 @@
 
 # Standard include paths
 INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE_DIRECTORIES (${ext_dir}/opengl-4.3)
 
 
 # Packaging
@@ -48,6 +49,7 @@ ENDMACRO (package)
 # Subdirs
 ADD_SUBDIRECTORY (core)
 ADD_SUBDIRECTORY (engine)
+ADD_SUBDIRECTORY (renderergl)
 ADD_SUBDIRECTORY (gaen)
 
 ADD_SUBDIRECTORY (gac)

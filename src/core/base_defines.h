@@ -117,13 +117,6 @@ void override_failure_funcs(DebugBreakFunc debugBreakFunc, AbortFunc abortFunc);
 #define HALT() gaen::abort_gaen()
 #endif // #if HAS(DEV_BUILD)
 
-
-// Windows specific stuff
-#if IS_PLATFORM_WIN32
-#define WIN32_LEAN_AND_MEAN
-#endif // #ifdef _WIN32
-
-
 //------------------------------------------------------------------------------
 // Assert and Error Macros
 //------------------------------------------------------------------------------

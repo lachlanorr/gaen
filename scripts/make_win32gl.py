@@ -219,7 +219,7 @@ WIN32GL_CPP_TEMPLATE = ('//-----------------------------------------------------
                         '{\n'
                         '    HMODULE hOpenGL32 = GetModuleHandle("opengl32.dll");\n'
                         '    if (!hOpenGL32)\n'
-                        '        PANIC(!hOpenGL32, "Unable to load opengl32.dll");\n'
+                        '        PANIC("Unable to load opengl32.dll");\n'
                         '\n'
                         '    // Initialize all function pointers to OpenGL functions.\n'
                         '%s\n'

@@ -60,6 +60,8 @@ union cell
     };
 };
 
+static_assert(sizeof(cell) == 4, "cell must be 4 bytes");
+
 inline cell to_cell(i32 val)
 {
     cell c;
@@ -81,10 +83,27 @@ inline cell to_cell(f32 val)
     return c;
 }
 
+union dcell
+{
+    i64 i;
+    u64 u;
+    f64 f;
+    cell cells[2];
+};
+static_assert(sizeof(dcell) == 8, "dcell must be 8 bytes");
+
+union qcell
+{
+    cell cells[4];
+    dcell dcells[2];
+    // LORRTODO - Add Vec4 here once we implement it
+    // LORRTODO - Consider adding 128 bit simd stuff here
+};
+static_assert(sizeof(qcell) == 16, "qcell must be 16 bytes");
 
 struct Message
 {
-    fnv msgId; // fnv1 hash based on message string
+    fnv msgId;       // fnv1 hash based on message string
     u32 flags:4;     // message flags
     u32 source:28;   // source task id
     u32 size:4;      // count of additional 16 byte payload (e.g. value of 4 means an additional 64 bytes)
@@ -92,10 +111,23 @@ struct Message
     cell payload;    // optional payload for the message
 };
 
+// Messages can be cast into MessageBlocks to access
+// individual cells within.
+static const size_t kCellsPerMessageBlock = sizeof(Message) / sizeof(cell);
+static const size_t kDcellsPerMessageBlock = kCellsPerMessageBlock / 2;
+static_assert((kCellsPerMessageBlock == 4) && (sizeof(Message) % sizeof(cell) == 0), "There should be exactly 4 cells per Message");
+union MessageBlock
+{
+    cell cells[kCellsPerMessageBlock];
+    dcell dcells[kCellsPerMessageBlock / 2];
+};
+
 // 16 bytes is pretty key to the principles of the message passing system.
 // We want to maintain alignment, and to be able to quickly write messages
 // to a buffer.
+// Changing this size will propogate necessary changes... so don't.
 static_assert(sizeof(Message) == 16, "Message should be 16 bytes");
+static_assert(sizeof(MessageBlock) == sizeof(Message), "MessageBlock and Message must be the same size");
 
 // We use the 4 extra bits in various places.
 inline bool is_valid_task_id(task_id taskId)

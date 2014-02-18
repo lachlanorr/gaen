@@ -39,6 +39,7 @@ namespace gaen
 {
 
 class MessageQueue;
+class TaskMaster;
 
 // Call this from main to prep one task master per thread and
 // get them running.
@@ -54,8 +55,14 @@ void fin_task_masters();
 // stopped.
 void start_game_loops();
 
-// Send message from main thread to one or all task masters.
-void message_from_main(thread_id threadId, fnv msgId, cell payload);
+TaskMaster & task_master_for_thread(thread_id tid);
+void message_from_main(thread_id threadId,
+                       fnv msgId);
+void message_from_main(thread_id threadId,
+                       fnv msgId,
+                       cell payload,
+                       const MessageBlock * pMsgBlock,
+                       size_t msgBlockCount);
 
 class TaskMaster
 {
@@ -125,28 +132,6 @@ private:
     bool mIsInit = false;
     bool mIsRunning = false;
 };
-
-
-inline TaskMaster & task_master_for_thread(thread_id tid)
-{
-    ASSERT(is_threading_init());
-    printf("tid = %d\n", tid); // LORRTEMP
-    ASSERT(tid >= 0 && tid < num_threads());
-    static Vector<TaskMaster, kMT_Engine> sTaskMasters(num_threads());
-    ASSERT(tid < sTaskMasters.size());
-    return sTaskMasters[tid];
-}
-
-inline void task_master_message_from_main(thread_id threadId, fnv msgId, cell payload)
-{
-    TaskMaster & tm = task_master_for_thread(threadId);
-    MessageQueue & mq = tm.mainMessageQueue();
-    mq.push(msgId,
-            kMessageFlag_TaskMaster,
-            0,
-            0,
-            payload);
-}
 
 
 } // namespace gaen
