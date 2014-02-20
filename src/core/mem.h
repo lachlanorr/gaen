@@ -325,6 +325,8 @@ struct deleter
 template <class T>
 using UniquePtr = std::unique_ptr<T, deleter<T>>;
 
+static_assert(sizeof(UniquePtr<int>) == sizeof(int*), "UnqiuePtr<T> size should be size of normal pointer");
+
 
 // Returns number of memPoolInits parsed, or 0 if there was an error.
 // You can pass in null for pMemPoolInits if you just want to parse

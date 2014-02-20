@@ -31,6 +31,9 @@
 
 #include "core/logging.h"
 #include "renderergl/gaen_opengl.h"
+#include "renderergl/RendererGL.h"
+#include "engine/RendererGLAdapter.h"
+#include "gaen/gaen.h"
 
 namespace gaen
 {
@@ -253,8 +256,9 @@ void createGLWindow(const char * title, u32 screenWidth, u32 screenHeight, u32 b
     if (!(sHrc = wglCreateContext(sHdc)))
         PANIC("Cannot create GL rendering context");
 
-    if(!wglMakeCurrent(sHdc, sHrc))
-        PANIC("Cannot activate GL rendering context");
+    // LAORRNOTE - this is now done in renderer
+    //if(!wglMakeCurrent(sHdc, sHrc))
+    //    PANIC("Cannot activate GL rendering context");
 
 
     // Prepare our GL function pointers.
@@ -285,7 +289,33 @@ int CALLBACK WinMain(HINSTANCE hInstance,
                      LPSTR lpCmdLine,
                      int nCmdShow)
 {
-    gaen::sHinstance = hInstance;
+    using namespace gaen;
 
-    return 0;
+    sHinstance = hInstance;
+
+    createGLWindow("Gaen", 1280, 720, 24);
+
+    RendererGL rendererGL;
+    RendererGLAdapter rendererGLAdapter(&rendererGL);
+    
+    init_gaen(__argc, __argv);
+
+    BOOL ret;
+    MSG msg;
+    
+    while ((ret = GetMessage( &msg, NULL, 0, 0 )) != 0)
+    { 
+        if (ret != -1)
+        {
+            TranslateMessage(&msg); 
+            DispatchMessage(&msg); 
+        }
+        else
+        {
+            PANIC("Error returned from GetMessage");
+        }
+    } 
+ 
+    // Return the exit code to the system. 
+    return static_cast<int>(msg.wParam);
 }

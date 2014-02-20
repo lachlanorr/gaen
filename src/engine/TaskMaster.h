@@ -51,8 +51,8 @@ void fin_task_masters();
 
 // Call this from main loop after all other initialization
 // is complete.  It will start all threads, and their game
-// loops.  This function won't return until TaskMasters are
-// stopped.
+// loops.  This function will return immediately, main thread
+// should be used for OS tasks, or go to sleep.
 void start_game_loops();
 
 TaskMaster & task_master_for_thread(thread_id tid);
@@ -89,7 +89,15 @@ public:
 
     // Deregister a task from a mutable data dependency
     void deregisterMutableDependency(task_id taskId, fnv path);
-    
+
+    template <class RendererT>
+    void setRendererTask(RendererT * pRenderer)
+    {
+        ASSERT(mIsPrimary);
+        ASSERT(pRenderer);
+        Task::create(&mRendererTask, pRenderer);
+    }
+
 
 private:
     // Process any messages on the queue
@@ -112,6 +120,9 @@ private:
     // Maps task_id to the TaskMaster that owns it
     typedef HashMap<task_id, TaskMaster&, kMT_Engine> TaskOwnerMap;
     TaskOwnerMap mTaskOwners;
+
+    // Renderer task - See RendererGLAdapter
+    Task mRendererTask;
 
     // Maps mutable data paths to the set of task_ids that depend on it
     // We maintain a reference count the data path has to the task

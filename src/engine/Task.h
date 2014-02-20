@@ -81,6 +81,18 @@ task_id next_task_id();
 struct Task
 {
 public:
+    Task()
+    {
+        // zero out all fields
+        // Simpler than setting all or calling memset.
+        // Task is guaranteed to be 32 bytes, see static_assert further down.
+        u64 * p64 = reinterpret_cast<u64*>(this);
+        *p64 = 0; ++p64;
+        *p64 = 0; ++p64;
+        *p64 = 0; ++p64;
+        *p64 = 0; ++p64;
+    }
+
     template <class T>
     static Task create(T* pThat)
     {
@@ -147,7 +159,7 @@ public:
     MessageResult message(const MessageQueue::MessageAccessor& msgAcc)
     {
         // Since we're storing the offset of the message stub from the
-        // updat stub we do a little pointer arithmeteic to get the
+        // update stub we do a little pointer arithmetic to get the
         // actual address.
 
         std::intptr_t iptrUpdateStub = reinterpret_cast<std::intptr_t>(mpUpdateStub);
@@ -191,7 +203,7 @@ private:
 };
 
 // We make assumptions about this size, like alignment, pass by value, et al.
-// If the size needs to change in future, care must be taken to reasses these
+// If the size needs to change in future, care must be taken to re-assess these
 // assumptions as they appear throughout the code.
 static_assert(sizeof(Task)==32, "Task should be 32 bytes");
 

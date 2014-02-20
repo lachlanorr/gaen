@@ -27,6 +27,9 @@
 
 SET (renderergl_SOURCES
   gaen_opengl.h
+  RendererGL.h
+  RendererGL.cpp
+  RendererGL_${platform}.cpp
   win32gl.cpp
   win32gl.h
   )

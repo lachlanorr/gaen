@@ -26,9 +26,8 @@
 
 #include "engine/stdafx.h"
 
-#include <cstdio> // LORRTEMP
-
 #include "core/platutils.h"
+#include "core/logging.h"
 
 #include "engine/FNV.h"
 #include "engine/MessageQueue.h"
@@ -77,7 +76,7 @@ static void start_game_loop()
     thread_id tid = active_thread_id();
     ASSERT(tid >= 0 && tid < num_threads());
 
-    printf("Starting thread: %d\n", tid); // LORRTEMP
+    LOG_INFO("Starting thread: %d\n", tid);
 
     TaskMaster & tm = task_master_for_thread(active_thread_id());
 
