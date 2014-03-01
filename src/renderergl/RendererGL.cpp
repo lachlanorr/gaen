@@ -26,10 +26,20 @@
 
 #include "renderergl/stdafx.h"
 
+#include "core/base_defines.h"
+
+#include "renderergl/gaen_opengl.h"
 #include "renderergl/RendererGL.h"
 
 namespace gaen
 {
+
+RendererGL::RendererGL(DeviceContext deviceContext, RenderContext renderContext)
+{
+    // LORRTODO: Add mechanism to change this after startup.
+    // Will require a message passed to primary TaskManager.
+    setRenderDevice(deviceContext, renderContext);
+}
 
 void RendererGL::render()
 {

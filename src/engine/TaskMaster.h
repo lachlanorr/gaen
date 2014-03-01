@@ -27,6 +27,7 @@
 #ifndef GAEN_ENGINE_TASKMASTER_H
 #define GAEN_ENGINE_TASKMASTER_H
 
+#include "core/base_defines.h"
 #include "core/threading.h"
 #include "core/HashMap.h"
 #include "core/List.h"
@@ -39,36 +40,47 @@ namespace gaen
 {
 
 class MessageQueue;
-class TaskMaster;
 
 // Call this from main to prep one task master per thread and
 // get them running.
+template <class RendererT>
 void init_task_masters();
 
 // Once main TaskMaster quits (i.e. runGameLoop exits)
 // you should call this from main thread.
+template <class RendererT>
 void fin_task_masters();
 
 // Call this from main loop after all other initialization
 // is complete.  It will start all threads, and their game
 // loops.  This function will return immediately, main thread
 // should be used for OS tasks, or go to sleep.
+template <class RendererT>
 void start_game_loops();
 
-TaskMaster & task_master_for_thread(thread_id tid);
+template <class RendererT>
 void message_from_main(thread_id threadId,
                        fnv msgId);
+
+template <class RendererT>
 void message_from_main(thread_id threadId,
                        fnv msgId,
                        cell payload,
                        const MessageBlock * pMsgBlock,
                        size_t msgBlockCount);
 
+template <class RendererT>
 class TaskMaster
 {
 public:
     void init(thread_id tid);
     void fin();
+
+    static TaskMaster<RendererT> & task_master_for_thread(thread_id tid);
+    inline static TaskMaster<RendererT> & primary_task_master()
+    {
+        return task_master_for_thread(0);
+    }
 
     MessageQueue & mainMessageQueue()
     {
@@ -90,14 +102,15 @@ public:
     // Deregister a task from a mutable data dependency
     void deregisterMutableDependency(task_id taskId, fnv path);
 
-    template <class RendererT>
-    void setRendererTask(RendererT * pRenderer)
+    void setRenderer(RendererT * pRenderer)
     {
+        ASSERT(mIsInit);
         ASSERT(mIsPrimary);
         ASSERT(pRenderer);
-        Task::create(&mRendererTask, pRenderer);
+        mpRenderer = pRenderer;
     }
 
+    bool isPrimary() { return mIsPrimary; }
 
 private:
     // Process any messages on the queue
@@ -105,8 +118,6 @@ private:
 
     MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
     
-    TaskMaster & taskOwner(task_id taskId);
-
     UniquePtr<MessageQueue> mpMainThreadMessageQueue;
 
     // List of tasks owned by this TaskMaster
@@ -118,11 +129,10 @@ private:
     TaskMap mTasks;
     
     // Maps task_id to the TaskMaster that owns it
-    typedef HashMap<task_id, TaskMaster&, kMT_Engine> TaskOwnerMap;
+    typedef HashMap<task_id, TaskMaster<RendererT>&, kMT_Engine> TaskOwnerMap;
     TaskOwnerMap mTaskOwners;
 
-    // Renderer task - See RendererGLAdapter
-    Task mRendererTask;
+    RendererT * mpRenderer = nullptr;
 
     // Maps mutable data paths to the set of task_ids that depend on it
     // We maintain a reference count the data path has to the task
@@ -146,5 +156,16 @@ private:
 
 
 } // namespace gaen
+
+
+// Changing the renderer should just require changing the
+// following lines.  The renderer class used must fulfill
+// the appropriate duck type.
+#include "renderergl/RendererGL.h"
+namespace gaen
+{
+typedef RendererGL RendererType;
+}
+
 
 #endif // #ifndef GAEN_ENGINE_TASK_MASTER_H

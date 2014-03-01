@@ -31,8 +31,6 @@ SET (engine_SOURCES
   FNV.cpp
   Message.h
   MessageQueue.h
-  RendererGLAdapter.cpp
-  RendererGLAdapter.h
   Task.cpp
   Task.h
   TaskMaster.cpp

@@ -32,7 +32,6 @@
 #include "core/logging.h"
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/RendererGL.h"
-#include "engine/RendererGLAdapter.h"
 #include "gaen/gaen.h"
 
 namespace gaen
@@ -261,12 +260,6 @@ void createGLWindow(const char * title, u32 screenWidth, u32 screenHeight, u32 b
     //    PANIC("Cannot activate GL rendering context");
 
 
-    // Prepare our GL function pointers.
-    // We have to wait until here to do this since if you call it too
-    // early, the GL driver dll hasn't been loaded and
-    // wglGetProcAddress will return NULL for all functions.
-    init_win32gl();
-
     // Show and make our window have focus
     ShowWindow(sHwnd, SW_SHOW);
     SetForegroundWindow(sHwnd);
@@ -295,10 +288,12 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     createGLWindow("Gaen", 1280, 720, 24);
 
-    RendererGL rendererGL;
-    RendererGLAdapter rendererGLAdapter(&rendererGL);
-    
     init_gaen(__argc, __argv);
+
+    RendererType rendererGL(sHdc, sHrc);
+    set_renderer(&rendererGL);
+
+    start_game_loops<RendererType>();
 
     BOOL ret;
     MSG msg;
@@ -314,7 +309,9 @@ int CALLBACK WinMain(HINSTANCE hInstance,
         {
             PANIC("Error returned from GetMessage");
         }
-    } 
+    }
+
+    fin_gaen();
  
     // Return the exit code to the system. 
     return static_cast<int>(msg.wParam);

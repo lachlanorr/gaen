@@ -41,15 +41,7 @@ static const u32 kMaxMainThreadMessages = 4096;
 static const u64 kFPS = 60;
 static const u64 kNanosPerFrame = 1000000000 / kFPS;
 
-TaskMaster & task_master_for_thread(thread_id tid)
-{
-    ASSERT(is_threading_init());
-    ASSERT(tid >= 0 && tid < num_threads());
-    static Vector<TaskMaster, kMT_Engine> sTaskMasters(num_threads());
-    ASSERT(tid < sTaskMasters.size());
-    return sTaskMasters[tid];
-}
-
+template <class RendererT>
 void init_task_masters()
 {
     static bool sIsInit = false;
@@ -57,20 +49,22 @@ void init_task_masters()
 
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
-        TaskMaster & tm = task_master_for_thread(tid);
+        TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(tid);
         tm.init(tid);
     }
 
     sIsInit = true;
 }
 
+template <class RendererT>
 void fin_task_masters()
 {
-    message_from_main(kBroadcastThreadId, FNV::fin);
+    message_from_main<RendererT>(kBroadcastThreadId, FNV::fin);
     join_all_threads();
 }
 
 // Entry point of our thread
+template <class RendererT>
 static void start_game_loop()
 {
     thread_id tid = active_thread_id();
@@ -78,11 +72,12 @@ static void start_game_loop()
 
     LOG_INFO("Starting thread: %d\n", tid);
 
-    TaskMaster & tm = task_master_for_thread(active_thread_id());
+    TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(active_thread_id());
 
     tm.runGameLoop();
 }
 
+template <class RendererT>
 void start_game_loops()
 {
     thread_id numThreads = num_threads();
@@ -90,17 +85,18 @@ void start_game_loops()
     // Start a TaskMaster for every thread
     for (thread_id i = 0; i < numThreads; ++i)
     {
-        start_thread(start_game_loop);
+        start_thread(start_game_loop<RendererT>);
     }
 }
 
+template <class RendererT>
 inline void task_master_message_from_main(thread_id threadId,
                                           fnv msgId,
                                           cell payload,
                                           const MessageBlock * pMsgBlock,
                                           size_t msgBlockCount)
 {
-    TaskMaster & tm = task_master_for_thread(threadId);
+    TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(threadId);
     MessageQueue & mq = tm.mainMessageQueue();
     MessageQueue::MessageAccessor msgAcc;
     mq.pushBegin(&msgAcc,
@@ -111,12 +107,14 @@ inline void task_master_message_from_main(thread_id threadId,
                  msgBlockCount);
 }
 
+template <class RendererT>
 void message_from_main(thread_id threadId,
                        fnv msgId)
 {
-    message_from_main(threadId, msgId, to_cell(0), nullptr, 0);
+    message_from_main<RendererT>(threadId, msgId, to_cell(0), nullptr, 0);
 }
 
+template <class RendererT>
 void message_from_main(thread_id threadId,
                        fnv msgId,
                        cell payload,
@@ -129,26 +127,27 @@ void message_from_main(thread_id threadId,
            threadId == kBroadcastThreadId);
     if (threadId != kBroadcastThreadId)
     {
-        task_master_message_from_main(threadId,
-                                      msgId,
-                                      payload,
-                                      pMsgBlock,
-                                      msgBlockCount);
+        task_master_message_from_main<RendererT>(threadId,
+                                                 msgId,
+                                                 payload,
+                                                 pMsgBlock,
+                                                 msgBlockCount);
     }
     else
     {
         for (thread_id tid = 0; tid < numThreads; ++tid)
         {
-            task_master_message_from_main(tid,
-                                          msgId,
-                                          payload,
-                                          pMsgBlock,
-                                          msgBlockCount);
+            task_master_message_from_main<RendererT>(tid,
+                                                     msgId,
+                                                     payload,
+                                                     pMsgBlock,
+                                                     msgBlockCount);
         }
     }
 }
 
-void TaskMaster::init(thread_id tid)
+template <class RendererT>
+void TaskMaster<RendererT>::init(thread_id tid)
 {
     ASSERT(!mIsInit);
     mThreadId = tid;
@@ -171,7 +170,8 @@ void TaskMaster::init(thread_id tid)
     mIsInit = true;
 }
 
-void TaskMaster::fin()
+template <class RendererT>
+void TaskMaster<RendererT>::fin()
 {
     ASSERT(mIsInit);
 
@@ -180,9 +180,21 @@ void TaskMaster::fin()
     mIsInit = false;
 }
 
-void TaskMaster::runGameLoop()
+template <class RendererT>
+TaskMaster<RendererT> & TaskMaster<RendererT>::task_master_for_thread(thread_id tid)
+{
+    ASSERT(is_threading_init());
+    ASSERT(tid >= 0 && tid < num_threads());
+    static Vector<TaskMaster<RendererT>,kMT_Engine> sTaskMasters(num_threads());
+    ASSERT(tid < sTaskMasters.size());
+    return sTaskMasters[tid];
+}
+
+template <class RendererT>
+void TaskMaster<RendererT>::runGameLoop()
 {
     ASSERT(mIsInit);
+    ASSERT(mpRenderer);
     ASSERT(!mIsRunning);
     
     mIsRunning = true;
@@ -198,19 +210,19 @@ void TaskMaster::runGameLoop()
         }
     }
 
+    f32 deltaSecs = 0.0f;
+
     while(mIsRunning)
     {
-        f32 deltaSecs = 0.0f;
-
-
         if (mIsPrimary)
         {
+            // Render through the render adapter
+            mpRenderer->render();
+
             // Get delta since the last time we ran
             f32 startFrameTime = now();
             f32 deltaSecs = startFrameTime - lastFrameTime;
             lastFrameTime = startFrameTime;
-
-
         }
 
 
@@ -234,13 +246,13 @@ void TaskMaster::runGameLoop()
 
         if (mIsPrimary)
         {
-            // LORRTODO - Do rendering
-            
+            mpRenderer->endFrame();
         }
     };
 }
 
-void TaskMaster::registerMutableDependency(task_id taskId, fnv path)
+template <class RendererT>
+void TaskMaster<RendererT>::registerMutableDependency(task_id taskId, fnv path)
 {
     ASSERT(mIsInit);
 /*
@@ -283,12 +295,14 @@ void TaskMaster::registerMutableDependency(task_id taskId, fnv path)
 */  
 }
 
-void TaskMaster::deregisterMutableDependency(task_id taskId, fnv path)
+template <class RendererT>
+void TaskMaster<RendererT>::deregisterMutableDependency(task_id taskId, fnv path)
 {
     ASSERT(mIsInit);
 }
 
-void TaskMaster::processMessages(MessageQueue & msgQueue)
+template <class RendererT>
+void TaskMaster<RendererT>::processMessages(MessageQueue & msgQueue)
 {
     MessageQueue::MessageAccessor msgAcc;
 
@@ -301,7 +315,8 @@ void TaskMaster::processMessages(MessageQueue & msgQueue)
         
 
 
-MessageResult TaskMaster::message(const MessageQueue::MessageAccessor& msgAcc)
+template <class RendererT>
+MessageResult TaskMaster<RendererT>::message(const MessageQueue::MessageAccessor& msgAcc)
 {
     const Message & msg = msgAcc.message();
 
@@ -314,7 +329,6 @@ MessageResult TaskMaster::message(const MessageQueue::MessageAccessor& msgAcc)
             ASSERT(mIsRunning);
             mIsRunning = false;
             return MessageResult::Consumed;
-        case FNV::fin2:
         default:
             ERR("Unhandled message type, fnv: %d", msg.msgId);
             return MessageResult::Unhandled;
@@ -328,5 +342,20 @@ MessageResult TaskMaster::message(const MessageQueue::MessageAccessor& msgAcc)
     return MessageResult::Unhandled;
 }
 
+// Instantiate TaskMaster and helper funcs with our renderer class.
+template class TaskMaster<RendererType>;
+template void init_task_masters<RendererType>();
+template void fin_task_masters<RendererType>();
+template void start_game_loops<RendererType>();
+template void message_from_main<RendererType>(thread_id threadId,
+                                              fnv msgId);
+template void message_from_main<RendererType>(thread_id threadId,
+                                              fnv msgId,
+                                              cell payload,
+                                              const MessageBlock * pMsgBlock,
+                                              size_t msgBlockCount);
 
 } // namespace gaen
+
+
+

@@ -26,14 +26,32 @@
 
 #include "renderergl/stdafx.h"
 
+#include "core/base_defines.h"
+
+#include "renderergl/gaen_opengl.h"
 #include "renderergl/RendererGL.h"
 
 namespace gaen
 {
 
-void RendererGL::setRenderDevice(RenderDevice renderDevice, RenderGLDevice renderGLDevice)
+void RendererGL::setRenderDevice(DeviceContext deviceContext, RenderContext renderContext)
 {
+    mDeviceContext = deviceContext;
+    mRenderContext = renderContext;
 
+    if(!wglMakeCurrent(mDeviceContext, mRenderContext))
+        PANIC("Cannot activate GL rendering context");
+
+    // Prepare our GL function pointers.
+    // We have to wait until here to do this since if you call it too
+    // early, the GL driver dll hasn't been loaded and
+    // wglGetProcAddress will return NULL for all functions.
+    init_win32gl();
+}
+
+void RendererGL::endFrame()
+{
+    SwapBuffers(mDeviceContext);
 }
 
 } // namespace gaen

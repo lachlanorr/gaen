@@ -187,14 +187,12 @@ void init_gaen(int argc, char ** argv)
 
     init_memory_manager(sMemInitStr);
 
-    init_task_masters();
-
-    start_game_loops();
+    init_task_masters<RendererType>();
 }
 
 void fin_gaen()
 {
-    fin_task_masters();
+    fin_task_masters<RendererType>();
 
     fin_memory_manager();
 

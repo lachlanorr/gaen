@@ -34,8 +34,8 @@
 #include <windows.h>
 namespace gaen
 {
-typedef HDC RenderDevice;
-typedef HGLRC RenderGLDevice;
+typedef HDC DeviceContext;
+typedef HGLRC RenderContext;
 }
 #else
 #error Need to implement a similar concept on other platforms
@@ -48,11 +48,17 @@ namespace gaen
 class RendererGL
 {
 public:
-    void render();
+    RendererGL(DeviceContext deviceContext, RenderContext renderContext);
 
     // Set some OS specific device values
-    void setRenderDevice(RenderDevice renderDevice, RenderGLDevice renderGLDevice);
+    void setRenderDevice(DeviceContext deviceContext, RenderContext renderContext);
 
+    void render();
+    void endFrame();
+
+private:
+    DeviceContext mDeviceContext;
+    RenderContext mRenderContext;
 };
 
 

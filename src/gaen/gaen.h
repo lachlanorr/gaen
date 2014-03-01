@@ -27,6 +27,8 @@
 #ifndef GAEN_GAEN_GAEN_H
 #define GAEN_GAEN_GAEN_H
 
+#include "engine/TaskMaster.h"
+
 namespace gaen
 {
 
@@ -34,6 +36,15 @@ namespace gaen
 // fully initialized.  It will start the TaskMaster threads.  Main thread
 // is reserved for OS specific stuff, like event handling.
 void init_gaen(int argc, char ** argv);
+
+// Set the renderer for the primary taskmaster
+template <class RendererT>
+void set_renderer(RendererT * pRenderer)
+{
+    TaskMaster<RendererT> & tm = TaskMaster<RendererT>::primary_task_master();
+    tm.setRenderer(pRenderer);
+}
+
 
 // Call this to shutdown TaskMasters when app wants to close
 void fin_gaen();
