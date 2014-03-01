@@ -105,6 +105,11 @@ inline void task_master_message_from_main(thread_id threadId,
                  0,
                  0,
                  msgBlockCount);
+    for (size_t i = 0; i < msgBlockCount; ++i)
+    {
+        msgAcc.qcellAt(i) = pMsgBlock[i].qcells[0];
+    }
+    mq.pushCommit(msgAcc);
 }
 
 template <class RendererT>
@@ -202,14 +207,6 @@ void TaskMaster<RendererT>::runGameLoop()
     f32 lastFrameTime = 0.0f;
     thread_id numThreads = num_threads();
     
-    if (mIsPrimary)
-    {
-        for (size_t i = 0; i < kMaxThreads; ++i)
-        {
-//            sUpdateFlags[i].clear;
-        }
-    }
-
     f32 deltaSecs = 0.0f;
 
     while(mIsRunning)

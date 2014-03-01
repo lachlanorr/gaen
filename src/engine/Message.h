@@ -120,6 +120,7 @@ union MessageBlock
 {
     cell cells[kCellsPerMessageBlock];
     dcell dcells[kCellsPerMessageBlock / 2];
+    qcell qcells[kCellsPerMessageBlock / 4];
 };
 
 // 16 bytes is pretty key to the principles of the message passing system.

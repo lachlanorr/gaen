@@ -87,10 +87,10 @@ public:
         // Simpler than setting all or calling memset.
         // Task is guaranteed to be 32 bytes, see static_assert further down.
         u64 * p64 = reinterpret_cast<u64*>(this);
-        *p64 = 0; ++p64;
-        *p64 = 0; ++p64;
-        *p64 = 0; ++p64;
-        *p64 = 0; ++p64;
+        *p64++ = 0;
+        *p64++ = 0;
+        *p64++ = 0;
+        *p64 = 0;
     }
 
     template <class T>
