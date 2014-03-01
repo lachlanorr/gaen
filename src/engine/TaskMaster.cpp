@@ -70,7 +70,7 @@ static void start_game_loop()
     thread_id tid = active_thread_id();
     ASSERT(tid >= 0 && tid < num_threads());
 
-    LOG_INFO("Starting thread: %d\n", tid);
+    LOG_INFO("Starting thread: %d", tid);
 
     TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(active_thread_id());
 
@@ -199,7 +199,7 @@ template <class RendererT>
 void TaskMaster<RendererT>::runGameLoop()
 {
     ASSERT(mIsInit);
-    ASSERT(mpRenderer);
+    ASSERT(!mIsPrimary || mpRenderer);
     ASSERT(!mIsRunning);
     
     mIsRunning = true;

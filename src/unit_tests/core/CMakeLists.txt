@@ -42,6 +42,7 @@ ADD_EXECUTABLE (testcore
 
 TARGET_LINK_LIBRARIES (testcore
   core
+  ${PLATFORM_LINK_LIBS}
 )
 
 package (testcore)

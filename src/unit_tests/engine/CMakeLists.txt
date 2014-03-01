@@ -39,6 +39,7 @@ ADD_EXECUTABLE (testengine
 TARGET_LINK_LIBRARIES (testengine
   core
   engine
+  ${PLATFORM_LINK_LIBS}
 )
 
 package (testengine)

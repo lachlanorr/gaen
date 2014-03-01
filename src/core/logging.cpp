@@ -87,12 +87,12 @@ void Logger::log(LogSeverity severity, const char * message)
     ASSERT(mIsInit);
     ASSERT(message);
 
-    thread_local LogMessage tLogMessage;
+    static thread_local LogMessage tLogMessage;
 
     tLogMessage.header.time = now();
     tLogMessage.header.sev = severity;
 
-    size_t msgLen = std::max(kMaxLogMessageSize-1, strlen(message) + 1);
+    size_t msgLen = maxval(kMaxLogMessageSize-1, strlen(message) + 1);
     strncpy(tLogMessage.msg, message, msgLen-1);
     tLogMessage.msg[msgLen-1] = '\0';
 
@@ -112,7 +112,7 @@ void logf(LogSeverity severity, const char * format, ...)
         return;
     }
 
-    thread_local char tMessage[kMaxLogMessageSize];
+    static thread_local char tMessage[kMaxLogMessageSize];
 
     va_list argptr;
     va_start(argptr, format);

@@ -94,6 +94,18 @@ namespace gaen
 // Determines if memory allocs/deallocs are tracked for reporting.
 #define TRACK_MEM WHEN(HAS(DEV_BUILD))
 
+template <typename T>
+T minval(const T& lhs, const T& rhs)
+{
+    return lhs < rhs ? lhs : rhs;
+}
+
+template <typename T>
+T maxval(const T& lhs, const T& rhs)
+{
+    return lhs > rhs ? lhs : rhs;
+}
+
 #if IS_PLATFORM_WIN32
 #define thread_local __declspec(thread)
 #define noexcept 

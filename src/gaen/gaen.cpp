@@ -198,10 +198,10 @@ void fin_gaen()
 
     fin_threading();
 
+    LOG_INFO("vvvvvvvvvvvvvvvvvvvv GAEN STOPPED vvvvvvvvvvvvvvvvvvvv");
+
     if (sIsLoggingEnabled)
         fin_logging();
-    
-    LOG_INFO("vvvvvvvvvvvvvvvvvvvv GAEN STOPPED vvvvvvvvvvvvvvvvvvvv");
 }
 //------------------------------------------------------------------------------
 // Systems Initialization (END)

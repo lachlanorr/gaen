@@ -220,8 +220,6 @@ private:
                     task_id target,
                     size_t msgBlockCount)
     {
-        ASSERT(pMsgAcc->mAccessor.available() > 0);
-
         mRingBuffer.pushBegin(&pMsgAcc->mAccessor, msgBlockCount+1); // + 1 for header
         
         Message & msg = pMsgAcc->mAccessor[0];
