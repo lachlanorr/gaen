@@ -49,6 +49,8 @@ static bool sFullScreen = false;
 static const size_t kKeyCount = 256;
 static bool sKeys[kKeyCount];
 
+RendererType sRenderer;
+
 LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch(msg)
@@ -112,6 +114,7 @@ LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_SIZE:
         // LoWord=Width, HiWord=Height
+        // LORRTODO - send message for resize, yet to be defined
         //RendererS::inst().resizeScene(LOWORD(lParam),HIWORD(lParam)); 
         return 0;
     }
@@ -255,24 +258,12 @@ void createGLWindow(const char * title, u32 screenWidth, u32 screenHeight, u32 b
     if (!(sHrc = wglCreateContext(sHdc)))
         PANIC("Cannot create GL rendering context");
 
-    // LAORRNOTE - this is now done in renderer
-    //if(!wglMakeCurrent(sHdc, sHrc))
-    //    PANIC("Cannot activate GL rendering context");
-
-
     // Show and make our window have focus
     ShowWindow(sHwnd, SW_SHOW);
     SetForegroundWindow(sHwnd);
     SetFocus(sHwnd);
 
-    // Set Up Our Perspective GL Screen
-    // TODO: LORR 2011-06-28 - resizeScene gets called twice at startup.  Once here and once during WM_SIZE handler.
-    // This extra call may only be necessary in full screen mode, or may not be necessary at all.
-    //RendererS::inst().resizeScene(screenWidth, screenHeight);
-
-    // Initialize newly created GL window
-    //RendererS::inst().initGL();
-
+    sRenderer.init(sHdc, sHrc, screenWidth, screenHeight);
 }
 
 } // namespace gaen
@@ -289,9 +280,11 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     createGLWindow("Gaen", 1280, 720, 24);
 
     init_gaen(__argc, __argv);
+    set_renderer(&sRenderer);
 
-    RendererType rendererGL(sHdc, sHrc);
-    set_renderer(&rendererGL);
+    // NOTE: From this point forward, methods on sRenderer should not
+    // be called directly.  Interaction with the renderer should only
+    // be made with messages sent to the primary TaskMaster.
 
     start_game_loops<RendererType>();
 

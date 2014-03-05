@@ -204,6 +204,12 @@ void TaskMaster<RendererT>::runGameLoop()
     
     mIsRunning = true;
 
+    if (mIsPrimary)
+    {
+        mpRenderer->initRenderDevice();
+        mpRenderer->initViewport();
+    }
+
     f32 lastFrameTime = 0.0f;
     thread_id numThreads = num_threads();
     

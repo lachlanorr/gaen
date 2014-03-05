@@ -34,17 +34,59 @@
 namespace gaen
 {
 
-RendererGL::RendererGL(DeviceContext deviceContext, RenderContext renderContext)
+void RendererGL::init(DeviceContext deviceContext,
+                      RenderContext renderContext,
+                      u32 screenWidth,
+                      u32 screenHeight)
 {
-    // LORRTODO: Add mechanism to change this after startup.
-    // Will require a message passed to primary TaskManager.
-    setRenderDevice(deviceContext, renderContext);
+    mDeviceContext = deviceContext;
+    mRenderContext = renderContext;
+    mScreenWidth = screenWidth;
+    mScreenHeight = screenHeight;
+    mIsInit = true;
 }
 
 void RendererGL::render()
 {
+    ASSERT(mIsInit);
 
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
+
+void RendererGL::initViewport()
+{
+    ASSERT(mIsInit);
+
+    // Make sure we don't divide by zero
+    if (mScreenHeight==0)
+    {
+        mScreenHeight=1;
+    }
+
+    // reset viewport
+    glViewport(0, 0, mScreenWidth, mScreenHeight);
+
+/*    // setup projection with current width/height
+    projection_.setDiag(1.0f);
+    projection_.perspective(60.0f, width / static_cast<f32>(height), 0.1f, 100.0f);
+
+    // setup gui projection, which is orthographic
+    guiProjection_.setDiag(1.0f);
+    guiProjection_.orthographic(0.0f,
+                                static_cast<f32>(width),
+                                -static_cast<f32>(height),
+                                0.0f,
+                                0.0f,
+                                100.0f);
+    guiProjection_.orthographic(static_cast<float>(width) / -2.0f,
+                                static_cast<float>(width) / 2.0f,
+                                static_cast<float>(height) / -2.0f,
+                                static_cast<float>(height) / 2.0f,
+                                0.0f,
+                                100.0f);*/
+}
+
 
 } // namespace gaen
 

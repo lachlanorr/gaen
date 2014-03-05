@@ -34,12 +34,11 @@
 namespace gaen
 {
 
-void RendererGL::setRenderDevice(DeviceContext deviceContext, RenderContext renderContext)
+void RendererGL::initRenderDevice()
 {
-    mDeviceContext = deviceContext;
-    mRenderContext = renderContext;
+    ASSERT(mIsInit);
 
-    if(!wglMakeCurrent(mDeviceContext, mRenderContext))
+    if (!wglMakeCurrent(mDeviceContext, mRenderContext))
         PANIC("Cannot activate GL rendering context");
 
     // Prepare our GL function pointers.
@@ -51,6 +50,8 @@ void RendererGL::setRenderDevice(DeviceContext deviceContext, RenderContext rend
 
 void RendererGL::endFrame()
 {
+    ASSERT(mIsInit);
+
     SwapBuffers(mDeviceContext);
 }
 

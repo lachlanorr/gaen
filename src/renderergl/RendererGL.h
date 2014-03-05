@@ -48,17 +48,24 @@ namespace gaen
 class RendererGL
 {
 public:
-    RendererGL(DeviceContext deviceContext, RenderContext renderContext);
+    void init(DeviceContext deviceContext,
+              RenderContext renderContext,
+              u32 screenWidth,
+              u32 screenHeight);
 
-    // Set some OS specific device values
-    void setRenderDevice(DeviceContext deviceContext, RenderContext renderContext);
+    void initRenderDevice();
+    void initViewport();
 
     void render();
     void endFrame();
 
 private:
-    DeviceContext mDeviceContext;
-    RenderContext mRenderContext;
+    bool mIsInit = false;
+    
+    DeviceContext mDeviceContext = 0;
+    RenderContext mRenderContext = 0;
+    u32 mScreenWidth = 0;
+    u32 mScreenHeight = 0;
 };
 
 
