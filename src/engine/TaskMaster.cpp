@@ -68,8 +68,11 @@ template <class RendererT>
 static void start_game_loop()
 {
     init_time();
+
     thread_id tid = active_thread_id();
     ASSERT(tid >= 0 && tid < num_threads());
+
+    set_thread_affinity(tid);
 
     LOG_INFO("Starting thread: %d", tid);
 

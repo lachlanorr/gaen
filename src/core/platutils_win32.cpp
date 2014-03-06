@@ -26,6 +26,8 @@
 
 #include "core/stdafx.h"
 
+#include "core/logging.h"
+
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -89,9 +91,18 @@ void set_thread_affinity(u32 coreId)
     // LORRTODO - Handle case where processor affinity is set to a subset of the cores
     ASSERT(coreId < 64 && coreId < platform_core_count());
 
-    ThreadInfo & ti = active_thread_info();
-    DWORD_PTR ret = SetThreadAffinityMask(ti.thread.native_handle(), 1 << coreId);
-    ASSERT(ret != 0);
+    HANDLE hThread = GetCurrentThread(); // can't use ti.thread.native_handle() since it may not be set yet
+
+    DWORD_PTR affinityMask = 1 << coreId;
+    DWORD_PTR ret = SetThreadAffinityMask(hThread, affinityMask);
+
+    if (ret == 0)
+    {
+        DWORD err = GetLastError();
+        PANIC("Failed to SetThreadAffinityMask for coreId %d, err %d", coreId, err);
+    }
+
+    ASSERT_MSG(ret == (1 << platform_core_count()) - 1, "Gaen process doesn't have access to all cores, this is not currently supported");
 }
 
 // LORRTODO - Move these to their platform files when necessary

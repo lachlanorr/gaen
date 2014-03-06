@@ -127,8 +127,6 @@ ThreadInfo & init_thread()
 
     thread_id tid = next_available_thread_id();
 
-    LOG_INFO("Initializing thread %d", tid);
-
     ThreadInfo & ti = sThreadInfos[tid];
     ASSERT(ti.threadId == kInvalidThreadId &&
            !ti.isRunning);
