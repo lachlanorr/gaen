@@ -119,7 +119,7 @@ LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
     }
 
-    return DefWindowProcW(hWnd,msg,wParam,lParam);
+    return DefWindowProc(hWnd,msg,wParam,lParam);
 }
 
 void killGLWindow()
@@ -145,7 +145,7 @@ void killGLWindow()
     if (sHwnd && !DestroyWindow(sHwnd))
         PANIC("Failed to destroy window");
 
-    if (!UnregisterClassA(kClassName, sHinstance))
+    if (!UnregisterClass(kClassName, sHinstance))
         PANIC("Failed to unregister window class");
 
 }
@@ -153,7 +153,7 @@ void killGLWindow()
 void createGLWindow(const char * title, u32 screenWidth, u32 screenHeight, u32 bitsPerPixel)
 {
     GLuint pixelFormat;
-    WNDCLASSA wc;
+    WNDCLASS wc;
     DWORD exStyle;
     DWORD style;
 
@@ -176,13 +176,13 @@ void createGLWindow(const char * title, u32 screenWidth, u32 screenHeight, u32 b
     wc.lpszClassName        = kClassName;
 
     // Register windows class
-    if (!RegisterClassA(&wc))
+    if (!RegisterClass(&wc))
         PANIC("Failed to register WNDCLASS");
         
 
     if (sFullScreen)
     {
-        DEVMODEA screenSettings;
+        DEVMODE screenSettings;
         memset(&screenSettings, 0, sizeof(screenSettings));
         screenSettings.dmSize = sizeof(screenSettings);
         screenSettings.dmPelsWidth = screenWidth;
@@ -215,17 +215,17 @@ void createGLWindow(const char * title, u32 screenWidth, u32 screenHeight, u32 b
     AdjustWindowRectEx(&windowRect, style, FALSE, exStyle);
 
     // Create The Window
-    sHwnd = CreateWindowExA(exStyle,
-                            kClassName,
-                            title,
-                            style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-                            0, 0,
-                            windowRect.right - windowRect.left,
-                            windowRect.bottom - windowRect.top,
-                            NULL,
-                            NULL,
-                            sHinstance,
-                            NULL);
+    sHwnd = CreateWindowEx(exStyle,
+                           kClassName,
+                           title,
+                           style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+                           0, 0,
+                           windowRect.right - windowRect.left,
+                           windowRect.bottom - windowRect.top,
+                           NULL,
+                           NULL,
+                           sHinstance,
+                           NULL);
     if (!sHwnd)
     {
         killGLWindow();

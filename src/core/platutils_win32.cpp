@@ -37,8 +37,8 @@
 namespace gaen
 {
 
-static i64 sStartTimeTicks = 0;
-static f32 sFrequencyRatio = 0.0f;
+static thread_local i64 sStartTimeTicks = 0;
+static thread_local f32 sFrequencyRatio = 0.0f;
 
 void init_time()
 {

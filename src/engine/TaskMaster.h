@@ -91,7 +91,8 @@ public:
 
     // Start the game loop.  This function won't return
     // until the TaskMaster gets shut down.
-    void runGameLoop();
+    void runPrimaryGameLoop();
+    void runAuxiliaryGameLoop();
 
     // Register a path as a mutable data dependency,
     // i.e. the task can modify this data.
@@ -115,6 +116,9 @@ public:
 private:
     // Process any messages on the queue
     void processMessages(MessageQueue & msgQueue);
+
+    // Process all messages from tasks, directed to one of our tasks
+    void processTaskMessages();
 
     MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
     

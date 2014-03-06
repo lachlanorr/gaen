@@ -67,6 +67,7 @@ void fin_task_masters()
 template <class RendererT>
 static void start_game_loop()
 {
+    init_time();
     thread_id tid = active_thread_id();
     ASSERT(tid >= 0 && tid < num_threads());
 
@@ -74,7 +75,10 @@ static void start_game_loop()
 
     TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(active_thread_id());
 
-    tm.runGameLoop();
+    if (tm.isPrimary())
+        tm.runPrimaryGameLoop();
+    else
+        tm.runAuxiliaryGameLoop();
 }
 
 template <class RendererT>
@@ -196,19 +200,16 @@ TaskMaster<RendererT> & TaskMaster<RendererT>::task_master_for_thread(thread_id 
 }
 
 template <class RendererT>
-void TaskMaster<RendererT>::runGameLoop()
+void TaskMaster<RendererT>::runPrimaryGameLoop()
 {
     ASSERT(mIsInit);
-    ASSERT(!mIsPrimary || mpRenderer);
+    ASSERT(mIsPrimary && mpRenderer);
     ASSERT(!mIsRunning);
     
     mIsRunning = true;
 
-    if (mIsPrimary)
-    {
-        mpRenderer->initRenderDevice();
-        mpRenderer->initViewport();
-    }
+    mpRenderer->initRenderDevice();
+    mpRenderer->initViewport();
 
     f32 lastFrameTime = 0.0f;
     thread_id numThreads = num_threads();
@@ -217,16 +218,13 @@ void TaskMaster<RendererT>::runGameLoop()
 
     while(mIsRunning)
     {
-        if (mIsPrimary)
-        {
-            // Render through the render adapter
-            mpRenderer->render();
+        // Render through the render adapter
+        mpRenderer->render();
 
-            // Get delta since the last time we ran
-            f32 startFrameTime = now();
-            f32 deltaSecs = startFrameTime - lastFrameTime;
-            lastFrameTime = startFrameTime;
-        }
+        // Get delta since the last time we ran
+        f32 startFrameTime = now();
+        f32 deltaSecs = startFrameTime - lastFrameTime;
+        lastFrameTime = startFrameTime;
 
 
         // process messages accumulated since last frame
@@ -234,12 +232,8 @@ void TaskMaster<RendererT>::runGameLoop()
         //processMessages(); // messages from tasks, directed to our tasks
 
         
-        if (!mIsPrimary)
-        {
-            // LORRTODO - Do physics
+        // LORRTODO - Do physics
 
-            // LORRTODO - read inputs and update other TaskMasters
-        }
 
         // call update on each task owned by this TaskMaster
         for (Task & task : mOwnedTasks)
@@ -247,9 +241,31 @@ void TaskMaster<RendererT>::runGameLoop()
             task.update(deltaSecs);
         }
 
-        if (mIsPrimary)
+        mpRenderer->endFrame();
+    };
+}
+
+template <class RendererT>
+void TaskMaster<RendererT>::runAuxiliaryGameLoop()
+{
+    ASSERT(mIsInit);
+    ASSERT(!mIsPrimary && !mpRenderer);
+    ASSERT(!mIsRunning);
+
+    mIsRunning = true;
+
+    while(mIsRunning)
+    {
+        f32 deltaSecs = 0.0f;
+
+        // process messages accumulated since last frame
+        processMessages(*mpMainThreadMessageQueue); // messages from main thread
+        //processMessages(); // messages from tasks, directed to our tasks
+
+        // call update on each task owned by this TaskMaster
+        for(Task & task : mOwnedTasks)
         {
-            mpRenderer->endFrame();
+            task.update(deltaSecs);
         }
     };
 }
@@ -315,7 +331,13 @@ void TaskMaster<RendererT>::processMessages(MessageQueue & msgQueue)
         msgQueue.popCommit(msgAcc);
     }
 }
-        
+
+
+template <class RendererT>
+void TaskMaster<RendererT>::processTaskMessages()
+{
+    
+}
 
 
 template <class RendererT>
