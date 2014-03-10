@@ -37,6 +37,8 @@ SET (core_SOURCES
   logging.cpp
   logging.h
   Map.h
+  math.h
+  math.cpp
   mem.cpp
   mem.h
   platutils.cpp
