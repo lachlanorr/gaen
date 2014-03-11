@@ -27,7 +27,7 @@
 #ifndef GAEN_CORE_SHAPES_H
 #define GAEN_CORE_SHAPES_H
 
-#include "core/geometry.h"
+#include "engine/Mesh.h"
 
 namespace gaen
 {

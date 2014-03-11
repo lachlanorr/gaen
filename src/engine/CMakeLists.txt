@@ -26,11 +26,17 @@
 
 
 SET (engine_SOURCES
+  Color.h
   Entity.h
   FNV.h
   FNV.cpp
+  math.cpp
+  math.h
+  Mesh.h
   Message.h
   MessageQueue.h
+  shapes.cpp
+  shapes.h
   Task.cpp
   Task.h
   TaskMaster.cpp

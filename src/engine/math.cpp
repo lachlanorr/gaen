@@ -24,9 +24,9 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "core/stdafx.h"
+#include "engine/stdafx.h"
 
-#include "core/math.h"
+#include "engine/math.h"
 
 namespace gaen
 {

@@ -27,7 +27,7 @@
 #ifndef GAEN_CORE_COLOR_H
 #define GAEN_CORE_COLOR_H
 
-#include "core/math.h"
+#include "engine/math.h"
 
 namespace gaen
 {

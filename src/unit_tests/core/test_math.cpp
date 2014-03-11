@@ -26,7 +26,7 @@
 
 #include <gtest/gtest.h>
 
-#include "core/math.h"
+#include "engine/math.h"
 
 using namespace gaen;
 
