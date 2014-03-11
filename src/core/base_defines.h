@@ -212,6 +212,8 @@ typedef float           f32;
 typedef double          f64;
 
 
+
+
 // Align a value to specified alignment.  Useful to ensure memory
 // alignment in custom allocators and things like that.
 template <typename T>
@@ -233,6 +235,17 @@ T & singleton()
     static T obj;
     return obj;
 }
+
+
+inline f32 clamp(f32 val, f32 min, f32 max)
+{
+    if (val < min)
+        return min;
+    else if (val > max)
+        return max;
+    return val;
+}
+
 
 } // namespace gaen
 

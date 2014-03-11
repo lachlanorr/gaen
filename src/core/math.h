@@ -36,7 +36,7 @@ static const f32 kPi = 3.1415926535897932384626433832795f;
 inline f32 deg2rad(f32 deg) { return deg * kPi * (1.0f / 180.0f); }
 
 static const f32 kFpErrThreshold = 0.00000001f;
-inline bool is_fp_eq(f32 val, f32 expected) { return (val >= expected - kFpErrThreshold) && (val <= expected + kFpErrThreshold); }
+inline bool is_fp_eq(f32 actual, f32 expected) { return (actual >= expected - kFpErrThreshold) && (actual <= expected + kFpErrThreshold); }
 
 f32 invSqrt(const f32 x);
 f32 fastSqrt(const f32 x);
@@ -61,6 +61,9 @@ struct Vec3
     f32 z;
 };
 
+Vec3 operator-(const Vec3 & lhs, const Vec3& rhs);
+Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2);
+
 struct Vec4
 {
     Vec4();
@@ -72,6 +75,7 @@ struct Vec4
     void normalizeIfNecessary();
 
     static f32 dot(const Vec3 &lhs, const Vec3 &rhs);
+    static Vec4 cross(const Vec4 &lhs, const Vec4 &rhs);
 
     f32 x;
     f32 y;
@@ -120,7 +124,7 @@ struct Mat34
                                 f32 scaleFactor);
 
 
-    // Convenience functions supporting vecto rparams
+    // Convenience functions supporting vecto params
     static Mat34 buildTranslation(Vec3 &vec);
     static Mat34 buildRotation(Vec3 &vec);
     static Mat34 buildTransform(Vec3 translateVec, Vec3 rotationVec, f32 scaleFactor);
@@ -153,7 +157,7 @@ struct Mat4
                                f32 scaleFactor);
 
 
-    // Convenience functions supporting vector rparams
+    // Convenience functions supporting vector params
     static Mat4 buildTranslation(Vec3 &vec);
     static Mat4 buildRotation(Vec3 &vec);
     static Mat4 buildTransform(Vec3 translateVec, Vec3 rotationVec, f32 scaleFactor);
@@ -167,62 +171,6 @@ struct Mat4
     const f32 & operator[](size_t idx) const;
 
     f32 elems[16];
-};
-
-
-
-//------------------------------------------------------------------------------
-// Vertex structs
-//------------------------------------------------------------------------------
-struct VertexCOLR
-{
-    Vec3 position;
-    Vec3 normal;
-    Vec3 color;
-};
-
-struct VertexTXTR
-{
-    Vec3 position;
-    Vec3 normal;
-    f32 u;
-    f32 v;
-};
-
-struct VertexNRML
-{
-    Vec3 position;
-    Vec3 normal;
-    f32 u;
-    f32 v;
-    Vec4 tangent;
-};
-
-const unsigned int kOffsetPosition = 0;
-const unsigned int kOffsetNormal   = kOffsetPosition + sizeof(Vec3);
-const unsigned int kOffsetUV       = kOffsetNormal + sizeof(Vec3);
-const unsigned int kOffsetTangent  = kOffsetUV + sizeof(f32) + sizeof(f32);
-
-
-struct Triangle
-{
-    // a triangle is composed of 3 indices into point array
-    Triangle(u16 p0, u16 p1, u16 p2)
-      : p0(p0), p1(p1), p2(p2) {}
-
-    u16 p0;
-    u16 p1;
-    u16 p2;
-};
-
-struct Line
-{
-    Line(u16 p0, u16 p1)
-      : p0(p0), p1(p1) {}
-
-    // a line is composed of 2 indices into point array
-    u16 p0;
-    u16 p1;
 };
 
 
@@ -270,16 +218,16 @@ inline Vec3::Vec3(const Vec4 &vec4)
 
 inline f32 Vec3::length() const
 {
-    return fastSqrt(x*x + y*y + z*z);
+    return sqrt(x*x + y*y + z*z);
 }
 
 inline void Vec3::normalize()
 {
     //float inv_mag = invSqrt(x*x + y*y + z*z);
     f32 inv_mag = 1.0f / sqrt(x*x + y*y + z*z);
-    x = x * inv_mag;
-    y = y * inv_mag;
-    z = z * inv_mag;
+    x *= inv_mag;
+    y *= inv_mag;
+    z *= inv_mag;
 }
 
 inline void Vec3::normalizeIfNecessary()
@@ -288,9 +236,9 @@ inline void Vec3::normalizeIfNecessary()
     if (!is_fp_eq(sumSquares, 1.0f))
     {
         f32 inv_mag = 1.0f / sqrt(sumSquares);
-        x = x * inv_mag;
-        y = y * inv_mag;
-        z = z * inv_mag;
+        x *= inv_mag;
+        y *= inv_mag;
+        z *= inv_mag;
     }
 }
 
@@ -307,6 +255,19 @@ inline Vec3 Vec3::cross(const Vec3 &lhs, const Vec3 &rhs)
     return vec;
 }
 
+inline Vec3 operator-(const Vec3 & lhs, const Vec3& rhs)
+{
+    return Vec3(lhs.x - rhs.x,
+                lhs.y - rhs.y,
+                lhs.z - rhs.z);
+}
+
+inline Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2)
+{
+    Vec3 vecA = p1 - p0;
+    Vec3 vecB = p2 - p0;
+    return Vec3::cross(vecA, vecB);
+}
 
 
 //--------------------------------------
@@ -326,17 +287,16 @@ inline Vec4::Vec4(const Vec3 &vec3, f32 w)
 
 inline f32 Vec4::length() const 
 { 
-    return fastSqrt(x*x + y*y + z*z + w*w);
+    return sqrt(x*x + y*y + z*z + w*w);
 }
 
 inline void Vec4::normalize()
 {
     //float inv_mag = invSqrt(x*x + y*y + z*z);
     f32 inv_mag = 1.0f / sqrt(x*x + y*y + z*z);
-    x = x * inv_mag;
-    y = y * inv_mag;
-    z = z * inv_mag;
-    w = 1.0f;
+    x *= inv_mag;
+    y *= inv_mag;
+    z *= inv_mag;
 }
 
 inline void Vec4::normalizeIfNecessary()
@@ -345,16 +305,24 @@ inline void Vec4::normalizeIfNecessary()
     if (!is_fp_eq(sumSquares, 1.0f))
     {
         f32 inv_mag = 1.0f / sqrt(sumSquares);
-        x = x * inv_mag;
-        y = y * inv_mag;
-        z = z * inv_mag;
-        w = 1.0f;
+        x *= inv_mag;
+        y *= inv_mag;
+        z *= inv_mag;
     }
 }
 
 inline f32 Vec4::dot(const Vec3 &lhs, const Vec3 &rhs)
 {
     return lhs.x*rhs.x + lhs.y*rhs.y + lhs.z*rhs.z;
+}
+
+inline Vec4 Vec4::cross(const Vec4 &lhs, const Vec4 &rhs)
+{
+    Vec4 vec(lhs.y*rhs.z - lhs.z*rhs.y,
+             lhs.z*rhs.x - lhs.x*rhs.z,
+             lhs.x*rhs.y - lhs.y*rhs.x,
+             0.0f);
+    return vec;
 }
 
 
@@ -385,13 +353,13 @@ inline Mat3 Mat3::identity()
     return mat3;
 }
 
-f32 & Mat3::operator[](size_t idx)
+inline f32 & Mat3::operator[](size_t idx)
 {
     ASSERT(idx < 9);
     return elems[idx];
 }
 
-const f32 & Mat3::operator[](size_t idx) const
+inline const f32 & Mat3::operator[](size_t idx) const
 {
     ASSERT(idx < 9);
     return elems[idx];
@@ -471,13 +439,13 @@ inline Mat34 Mat34::buildTransform(Vec3 translateVec, Vec3 rotationVec, f32 scal
                           scaleFactor);
 }
 
-f32 & Mat34::operator[](size_t idx)
+inline f32 & Mat34::operator[](size_t idx)
 {
     ASSERT(idx < 12);
     return elems[idx];
 }
 
-const f32 & Mat34::operator[](size_t idx) const
+inline const f32 & Mat34::operator[](size_t idx) const
 {
     ASSERT(idx < 12);
     return elems[idx];
@@ -560,111 +528,16 @@ inline Mat4 Mat4::buildTransform(Vec3 translateVec, Vec3 rotationVec, f32 scaleF
                           scaleFactor);
 }
 
-f32 & Mat4::operator[](size_t idx)
+inline f32 & Mat4::operator[](size_t idx)
 {
     ASSERT(idx < 16);
     return elems[idx];
 }
 
-const f32 & Mat4::operator[](size_t idx) const
+inline const f32 & Mat4::operator[](size_t idx) const
 {
     ASSERT(idx < 16);
     return elems[idx];
-}
-
-
-//-------------------------------------------
-// Comparison operators for Polygon and Line
-//-------------------------------------------
-inline bool operator== (const Triangle & lhs, const Triangle & rhs)
-{
-    return lhs.p0 == rhs.p0 &&
-           lhs.p1 == rhs.p1 &&
-           lhs.p2 == rhs.p2;
-}
-
-inline bool operator< (const Triangle & lhs, const Triangle & rhs)
-{
-    if (lhs.p0 != rhs.p0)
-        return lhs.p0 < rhs.p0;
-    else if (lhs.p1 != rhs.p1)
-        return lhs.p1 < rhs.p1;
-    else if (lhs.p2 != rhs.p2)
-        return lhs.p2 < rhs.p2;
-
-    // if we get here, all elements match
-    return false;
-}
-
-inline bool operator== (const Line & lhs, const Line & rhs)
-{
-    // do a simple sort of points to consider two lines equal even if
-    // their points are in different order
-    u16 line0p0, line0p1, line1p0, line1p1;
-
-    if (lhs.p0 < lhs.p1)
-    {
-        line0p0 = lhs.p0;
-        line0p1 = lhs.p1;
-    }
-    else
-    {
-        line0p0 = lhs.p1;
-        line0p1 = lhs.p0;
-    }
-
-    if (rhs.p0 <= rhs.p1)
-    {
-        line1p0 = rhs.p0;
-        line1p1 = rhs.p1;
-    }
-    else
-    {
-        line1p0 = rhs.p1;
-        line1p1 = rhs.p0;
-    }
-    
-
-    return line0p0 == line1p0 &&
-           line0p1 == line1p1;
-}
-
-inline bool operator< (const Line & lhs, const Line & rhs)
-{
-    // do a simple sort of points to consider two lines equal even if
-    // their points are in different order
-    u16 line0p0, line0p1, line1p0, line1p1;
-
-    if (lhs.p0 < lhs.p1)
-    {
-        line0p0 = lhs.p0;
-        line0p1 = lhs.p1;
-    }
-    else
-    {
-        line0p0 = lhs.p1;
-        line0p1 = lhs.p0;
-    }
-
-    if (rhs.p0 <= rhs.p1)
-    {
-        line1p0 = rhs.p0;
-        line1p1 = rhs.p1;
-    }
-    else
-    {
-        line1p0 = rhs.p1;
-        line1p1 = rhs.p0;
-    }
-    
-
-    if (line0p0 != line1p0)
-        return line0p0 < line1p0;
-    else if (line0p1 != line1p1)
-        return line0p1 < line1p1;
-
-    // if we get here, all elements match
-    return false;
 }
 
 
@@ -675,28 +548,18 @@ inline bool operator< (const Line & lhs, const Line & rhs)
 
 
 // Sanity checks for sizeof our structs.  Just in case a different compiler/platform pads stuff unexpectedly.
-static_assert(sizeof(Vec3) == 12,            "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Vec3[10]) == 120,       "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Vec4) == 16,            "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Vec4[10]) == 160,       "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Mat3) == 36,            "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Mat3[10]) == 360,       "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Mat34) == 48,           "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Mat34[10]) == 480,      "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Mat4) == 64,            "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Mat4[10]) == 640,       "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(VertexCOLR) == 36,      "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(VertexCOLR[10]) == 360, "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(VertexTXTR) == 32,      "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(VertexTXTR[10]) == 320, "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(VertexNRML) == 48,      "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(VertexNRML[10]) == 480, "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Triangle) == 6,         "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Triangle[10]) == 60,    "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Line) == 4,             "sanity check for sizeof geometry struct failed... might need padding pragma");
-static_assert(sizeof(Line[10]) == 40,        "sanity check for sizeof geometry struct failed... might need padding pragma");
+static_assert(sizeof(Vec3) == 12,      "geometry struct has unexpected size");
+static_assert(sizeof(Vec3[10]) == 120, "geometry struct has unexpected size");
+static_assert(sizeof(Vec4) == 16,      "geometry struct has unexpected size");
+static_assert(sizeof(Vec4[10]) == 160, "geometry struct has unexpected size");
+static_assert(sizeof(Mat3) == 36,      "geometry struct has unexpected size");
+static_assert(sizeof(Mat3[10]) == 360, "geometry struct has unexpected size");
+static_assert(sizeof(Mat34) == 48,     "geometry struct has unexpected size");
+static_assert(sizeof(Mat34[10]) == 480,"geometry struct has unexpected size");
+static_assert(sizeof(Mat4) == 64,      "geometry struct has unexpected size");
+static_assert(sizeof(Mat4[10]) == 640, "geometry struct has unexpected size");
 
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CORE_GEOMETRY_H
+#endif // #ifndef GAEN_CORE_MATH_H

@@ -28,8 +28,10 @@
 SET (core_SOURCES
   base_defines.cpp
   base_defines.h
+  Color.h
   gamevars.cpp
   gamevars.h
+  geometry.h
   HashMap.h
   HashSet.h
   List.h
@@ -37,13 +39,15 @@ SET (core_SOURCES
   logging.cpp
   logging.h
   Map.h
-  math.h
   math.cpp
+  math.h
   mem.cpp
   mem.h
   platutils.cpp
   platutils.h
   platutils_${platform}.cpp
+  shapes.cpp
+  shapes.h
   sockets.cpp
   sockets.h
   sockets_${net_platform}.cpp
