@@ -30,11 +30,19 @@ SET (engine_SOURCES
   Entity.h
   FNV.h
   FNV.cpp
+  Material.cpp
+  Material.h
   math.cpp
   math.h
+  Mesh.cpp
   Mesh.h
   Message.h
   MessageQueue.h
+  Model.cpp
+  Model.h
+  ModelMgr.cpp
+  ModelMgr.h
+  renderer_type.h
   shapes.cpp
   shapes.h
   Task.cpp

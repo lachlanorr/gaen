@@ -31,6 +31,7 @@
 
 #include "engine/FNV.h"
 #include "engine/MessageQueue.h"
+#include "engine/renderer_type.h"
 #include "engine/TaskMaster.h"
 
 namespace gaen
@@ -166,7 +167,7 @@ void TaskMaster<RendererT>::init(thread_id tid)
     mIsPrimary = tid == 0;
 
     // Allocate a message queue that the main thread can use to communicate with us
-    void * tmp = ALLOC(sizeof(MessageQueue), kMT_Engine);
+    void * tmp = ALLOC(sizeof(MessageQueue), kMEM_Engine);
     mpMainThreadMessageQueue.reset(new (tmp) MessageQueue(kMaxMainThreadMessages));
 
     // Pre-allocate reasonable sizes for hash tables
@@ -197,7 +198,7 @@ TaskMaster<RendererT> & TaskMaster<RendererT>::task_master_for_thread(thread_id 
 {
     ASSERT(is_threading_init());
     ASSERT(tid >= 0 && tid < num_threads());
-    static Vector<TaskMaster<RendererT>,kMT_Engine> sTaskMasters(num_threads());
+    static Vector<TaskMaster<RendererT>,kMEM_Engine> sTaskMasters(num_threads());
     ASSERT(tid < sTaskMasters.size());
     return sTaskMasters[tid];
 }
@@ -371,13 +372,13 @@ MessageResult TaskMaster<RendererT>::message(const MessageQueue::MessageAccessor
 }
 
 // Instantiate TaskMaster and helper funcs with our renderer class.
-template class TaskMaster<RendererType>;
-template void init_task_masters<RendererType>();
-template void fin_task_masters<RendererType>();
-template void start_game_loops<RendererType>();
-template void message_from_main<RendererType>(thread_id threadId,
+template class TaskMaster<renderer_type>;
+template void init_task_masters<renderer_type>();
+template void fin_task_masters<renderer_type>();
+template void start_game_loops<renderer_type>();
+template void message_from_main<renderer_type>(thread_id threadId,
                                               fnv msgId);
-template void message_from_main<RendererType>(thread_id threadId,
+template void message_from_main<renderer_type>(thread_id threadId,
                                               fnv msgId,
                                               cell payload,
                                               const MessageBlock * pMsgBlock,

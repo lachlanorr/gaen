@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// geometry.h - Geometry structs
+// Mesh.h - Geometry structs
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CORE_GEOMETRY_H
-#define GAEN_CORE_GEOMETRY_H
+#ifndef GAEN_ENGINE_MESH_H
+#define GAEN_ENGINE_MESH_H
 
 #include "core/base_defines.h"
 #include "core/mem.h"
@@ -34,28 +34,56 @@
 namespace gaen
 {
 
+typedef u16 index;
+
+enum VertexType
+{
+    kVERT_Pos          = 'VTXA',
+    kVERT_PosNorm      = 'VTXB',
+    kVERT_PosNormUv    = 'VTXC',
+    kVERT_PosNormUvTan = 'VTXD',
+
+    kVERT_END
+};
+
+enum IndexType
+{
+    kIND_Point    = 'IDXA',
+    kIND_Line     = 'IDXB',
+    kIND_Triangle = 'IDXC',
+
+    kIND_END
+};
+
+
 //------------------------------------------------------------------------------
 // Vertex structs
 //------------------------------------------------------------------------------
-struct VertexSMPL
+struct VertexPos
 {
-    static const u32 kVertexType = 'SMPL';
+    static const VertexType kVertexType = kVERT_Pos;
+    Vec3 position;
+};
+
+struct VertexPosNorm
+{
+    static const VertexType kVertexType = kVERT_PosNorm;
     Vec3 position;
     Vec3 normal;
 };
 
-struct VertexTXTR
+struct VertexPosNormUv
 {
-    static const u32 kVertexType = 'TXTR';
+    static const VertexType kVertexType = kVERT_PosNormUv;
     Vec3 position;
     Vec3 normal;
     f32 u;
     f32 v;
 };
 
-struct VertexNRML
+struct VertexPosNormUvTan
 {
-    static const u32 kVertexType = 'NRML';
+    static const VertexType kVertexType = kVERT_PosNormUvTan;
     Vec3 position;
     Vec3 normal;
     f32 u;
@@ -63,44 +91,122 @@ struct VertexNRML
     Vec4 tangent;
 };
 
-const unsigned int kOffsetPosition = 0;
-const unsigned int kOffsetNormal   = kOffsetPosition + sizeof(Vec3);
-const unsigned int kOffsetUV       = kOffsetNormal + sizeof(Vec3);
-const unsigned int kOffsetTangent  = kOffsetUV + sizeof(f32) + sizeof(f32);
+const u32 kOffsetPosition = 0;
+const u32 kOffsetNormal   = kOffsetPosition + sizeof(Vec3);
+const u32 kOffsetUV       = kOffsetNormal + sizeof(Vec3);
+const u32 kOffsetTangent  = kOffsetUV + sizeof(f32) + sizeof(f32);
 
-
-struct Triangle
+inline bool is_valid_vertex_type(u32 vertexType)
 {
-    // a triangle is composed of 3 indices into point array
-    Triangle(u16 p0, u16 p1, u16 p2)
-      : p0(p0), p1(p1), p2(p2) {}
+    return vertexType >= kVERT_PosNorm && vertexType < kVERT_END;
+}
 
-    u16 p0;
-    u16 p1;
-    u16 p2;
+inline bool is_valid_index_type(u32 indexType)
+{
+    return indexType >= kIND_Point && indexType < kIND_END;
+}
+
+inline u8 vertex_type_zero_based_id(VertexType vertexType)
+{
+    ASSERT(is_valid_vertex_type(vertexType));
+    return static_cast<u8>(static_cast<u32>(vertexType) - static_cast<u32>(kVERT_Pos));
+}
+
+inline u8 vertex_type_zero_based_id_end()
+{
+    return static_cast<u8>(static_cast<u32>(kVERT_END) - static_cast<u32>(kVERT_Pos));
+}
+
+
+inline u8 index_type_zero_based_id(IndexType indexType)
+{
+    ASSERT(is_valid_index_type(indexType));
+    return static_cast<u8>(static_cast<u32>(indexType) - static_cast<u32>(kIND_Point));
+}
+
+inline u8 index_type_zero_based_id_end()
+{
+    return static_cast<u8>(static_cast<u32>(kIND_END) - static_cast<u32>(kIND_Point));
+}
+
+struct IndexPoint
+{
+    IndexPoint(index p0)
+      : p0(p0) {}
+
+    // a line is composed of 2 indices into point array
+    index p0;
 };
 
-struct Line
+struct IndexLine
 {
-    Line(u16 p0, u16 p1)
+    IndexLine(index p0, index p1)
       : p0(p0), p1(p1) {}
 
     // a line is composed of 2 indices into point array
-    u16 p0;
-    u16 p1;
+    index p0;
+    index p1;
 };
+
+
+struct IndexTriangle
+{
+    // a triangle is composed of 3 indices into point array
+    IndexTriangle(index p0, index p1, index p2)
+      : p0(p0), p1(p1), p2(p2) {}
+
+    index p0;
+    index p1;
+    index p2;
+};
+
+
+inline u32 vertex_stride(VertexType vertexType)
+{
+    switch(vertexType)
+    {
+    case kVERT_Pos:
+        return sizeof(VertexPos);
+    case kVERT_PosNorm:
+        return sizeof(VertexPosNorm);
+    case kVERT_PosNormUv:
+        return sizeof(VertexPosNormUv);
+    case kVERT_PosNormUvTan:
+        return sizeof(VertexPosNormUvTan);
+    default:
+        PANIC("Invalid VertexType: %d", vertexType);
+        return 0;
+    }
+}
+
+inline u32 index_stride(IndexType indexType)
+{
+    switch(indexType)
+    {
+    case kIND_Point:
+        return sizeof(index);
+    case kIND_Line:
+        return sizeof(IndexLine);
+    case kIND_Triangle:
+        return sizeof(IndexTriangle);
+    default:
+        PANIC("Invalid IndexType: %d", indexType);
+        return 0;
+    }
+}
+
 
 //-------------------------------------------
 // Comparison operators for Polygon and Line
 //-------------------------------------------
-inline bool operator==(const Triangle & lhs, const Triangle & rhs)
+inline bool operator==(const IndexTriangle & lhs, const IndexTriangle & rhs)
 {
     return lhs.p0 == rhs.p0 &&
         lhs.p1 == rhs.p1 &&
         lhs.p2 == rhs.p2;
 }
 
-inline bool operator<(const Triangle & lhs, const Triangle & rhs)
+inline bool operator<(const IndexTriangle & lhs, const IndexTriangle & rhs)
 {
     if(lhs.p0 != rhs.p0)
         return lhs.p0 < rhs.p0;
@@ -113,11 +219,11 @@ inline bool operator<(const Triangle & lhs, const Triangle & rhs)
     return false;
 }
 
-inline bool operator==(const Line & lhs, const Line & rhs)
+inline bool operator==(const IndexLine & lhs, const IndexLine & rhs)
 {
     // do a simple sort of points to consider two lines equal even if
     // their points are in different order
-    u16 line0p0,line0p1,line1p0,line1p1;
+    index line0p0,line0p1,line1p0,line1p1;
 
     if(lhs.p0 < lhs.p1)
     {
@@ -146,11 +252,11 @@ inline bool operator==(const Line & lhs, const Line & rhs)
         line0p1 == line1p1;
 }
 
-inline bool operator<(const Line & lhs, const Line & rhs)
+inline bool operator<(const IndexLine & lhs, const IndexLine & rhs)
 {
     // do a simple sort of points to consider two lines equal even if
     // their points are in different order
-    u16 line0p0,line0p1,line1p0,line1p1;
+    index line0p0,line0p1,line1p0,line1p1;
 
     if(lhs.p0 < lhs.p1)
     {
@@ -184,77 +290,123 @@ inline bool operator<(const Line & lhs, const Line & rhs)
     return false;
 }
 
-template <class VertexT, class IndexT>
 class Mesh
 {
 public:
-    typedef VertexT vertex_type;
-    typedef IndexT index_type;
+    VertexType vertexType() const { return mVertexType; }
+    IndexType indexType() const { return mIndexType; }
 
-    vertex_type * vertices()
+    f32 * vertices()
     {
-        return reinterpret_cast<vertex_type*>(reinterpret_cast<u8*>(this) + mVertexOffset);
+        return reinterpret_cast<f32*>(reinterpret_cast<u8*>(this) + mVertexOffset);
     }
 
-    const vertex_type * vertices() const
+    const f32 * vertices() const
     {
-        return reinterpret_cast<const vertex_type*>(reinterpret_cast<const u8*>(this) + mVertexOffset);
+        return reinterpret_cast<const f32*>(reinterpret_cast<const u8*>(this) + mVertexOffset);
     }
 
-    index_type * indices()
+    index * indices()
     {
-        return reinterpret_cast<index_type*>(reinterpret_cast<u8*>(this) + mIndexOffset);
+        return reinterpret_cast<index*>(reinterpret_cast<u8*>(this) + mIndexOffset);
     }
 
-    const index_type * indices() const
+    const index * indices() const
     {
-        return reinterpret_cast<const index_type*>(reinterpret_cast<const u8*>(this) + mIndexOffset);
+        return reinterpret_cast<const index*>(reinterpret_cast<const u8*>(this) + mIndexOffset);
     }
+
+    //--------------------------------------------------------------------------
+    // Cast operators which provide a convenient way to get to vertices
+    // and indices without a lot of explicit reinterpret casts.
+    // E.g. Rather than:
+    //    VertexPosNorm * pVerts = reinterpret_cast<VertexPosNorm*>(mesh.indices);
+    // use instead:
+    //    VertexPosNorm * pVerts = mesh
+    // 
+    // The second form will call one of the cast operators below
+    //--------------------------------------------------------------------------
+    operator VertexPos*()
+    {
+        ASSERT(mVertexType == kVERT_Pos);
+        return reinterpret_cast<VertexPos*>(vertices());
+    }
+    operator const VertexPos*() const
+    {
+        ASSERT(mVertexType == kVERT_Pos);
+        return reinterpret_cast<const VertexPos*>(vertices());
+    }
+    operator VertexPosNorm*()
+    {
+        ASSERT(mVertexType == kVERT_PosNorm);
+        return reinterpret_cast<VertexPosNorm*>(vertices());
+    }
+    operator const VertexPosNorm*() const
+    {
+        ASSERT(mVertexType == kVERT_PosNorm);
+        return reinterpret_cast<const VertexPosNorm*>(vertices());
+    }
+    operator VertexPosNormUv*()
+    {
+        ASSERT(mVertexType == kVERT_PosNormUv);
+        return reinterpret_cast<VertexPosNormUv*>(vertices());
+    }
+    operator const VertexPosNormUv*() const
+    {
+        ASSERT(mVertexType == kVERT_PosNormUv);
+        return reinterpret_cast<const VertexPosNormUv*>(vertices());
+    }
+    operator VertexPosNormUvTan*()
+    {
+        ASSERT(mVertexType == kVERT_PosNormUvTan);
+        return reinterpret_cast<VertexPosNormUvTan*>(vertices());
+    }
+    operator const VertexPosNormUvTan*() const
+    {
+        ASSERT(mVertexType == kVERT_PosNormUvTan);
+        return reinterpret_cast<const VertexPosNormUvTan*>(vertices());
+    }
+
+    operator IndexPoint*()
+    {
+        ASSERT(mIndexType == kIND_Point);
+        return reinterpret_cast<IndexPoint*>(indices());
+    }
+    operator const IndexPoint*() const
+    {
+        ASSERT(mIndexType == kIND_Point);
+        return reinterpret_cast<const IndexPoint*>(indices());
+    }
+    operator IndexLine*()
+    {
+        ASSERT(mIndexType == kIND_Line);
+        return reinterpret_cast<IndexLine*>(indices());
+    }
+    operator const IndexLine*() const
+    {
+        ASSERT(mIndexType == kIND_Line);
+        return reinterpret_cast<const IndexLine*>(indices());
+    }
+    operator IndexTriangle*()
+    {
+        ASSERT(mIndexType == kIND_Triangle);
+        return reinterpret_cast<IndexTriangle*>(indices());
+    }
+    operator const IndexTriangle*() const
+    {
+        ASSERT(mIndexType == kIND_Triangle);
+        return reinterpret_cast<const IndexTriangle*>(indices());
+    }
+    //--------------------------------------------------------------------------
+    // Cast operators (END)
+    //--------------------------------------------------------------------------
+
 
     u32 vertexCount() const { return mVertexCount; }
     u32 indexCount() const { return mIndexCount; }
 
-    static Mesh * cast(u8 * pData, size_t dataSize)
-    {
-        Mesh * pMesh = reinterpret_cast<Mesh*>(pData);
-        if (pMesh->mVertexType != vertex_type::kVertexType)
-            PANIC("Mesh wrong VertexType");
-
-        if (dataSize <= sizeof(Mesh))
-            PANIC("Mesh data too small");
-
-        if (dataSize != calc_size(pMesh->mVertexCount, pMesh->mIndexCount))
-            PANIC("Mesh data wrong size");
-
-        if (pMesh->mVertexOffset != sizeof(Mesh))
-            PANIC("Mesh wrong vertexOffset");
-
-        if (pMesh->mIndexOffset != (pData + sizeof(Mesh) + pMesh->mVertexCount * sizeof(vertex_type)))
-            PANIC("Wrong lineOffset or vertexCount");
-
-        return pMesh;
-    }
-
-    static Mesh * create(u32 vertexCount, u32 indexCount)
-    {
-        size_t dataSize = sizeof(Mesh) + vertexCount * sizeof(vertex_type) + indexCount * sizeof(index_type);
-        u8 * pData = ALLOC(dataSize, kMT_Model);
-        Mesh * pMesh = reinterpret_cast<Mesh*>(pData);
-        pMesh->mVertexType = vertex_type::kVertexType;
-        pMesh->mColor.setValue(0);
-        pMesh->mVertexCount = vertexCount;
-        pMesh->mIndexCount = indexCount;
-        pMesh->mVertexOffset = pData + sizeof(Mesh);
-        pMesh->mIndexOffset = mVertexOffset + vertexCount * sizeof(vertex_type);
-
-        // Return result of cast, since it will sanity check our struct is built properly
-        return cast(pData, dataSize);
-    }
-
-    static size_t calc_size(u32 vertexCount, u32 indexCount)
-    {
-        return (sizeof(Mesh) + vertexCount * sizeof(vertex_type) + indexCount * sizeof(index_type));
-    }
+    static Mesh * cast(u8 * pData, size_t dataSize);
+    static Mesh * create(VertexType vertexType, u32 vertexCount, IndexType indexType, u32 indexCount);
 
 private:
     // Class should not be constructed directly.  Use cast and create static methods.
@@ -262,27 +414,30 @@ private:
     Mesh(const Mesh&) = delete;
     Mesh & operator=(const Mesh&) = delete;
 
-    u32 mVertexType;
-    Color mColor;
-    u32 mVertexCount;
-    u32 mIndexCount;
+    VertexType mVertexType;
+    IndexType mIndexType;
     u32 mVertexOffset;
     u32 mIndexOffset;
+    index mVertexCount;
+    index mIndexCount;
 };
 
 
 // Sanity checks for sizeof our structs.  Just in case a different compiler/platform pads stuff unexpectedly.
-static_assert(sizeof(VertexSMPL) == 24,      "geometry struct has unexpected size");
-static_assert(sizeof(VertexSMPL[10]) == 240, "geometry struct has unexpected size");
-static_assert(sizeof(VertexTXTR) == 32,      "geometry struct has unexpected size");
-static_assert(sizeof(VertexTXTR[10]) == 320, "geometry struct has unexpected size");
-static_assert(sizeof(VertexNRML) == 48,      "geometry struct has unexpected size");
-static_assert(sizeof(VertexNRML[10]) == 480, "geometry struct has unexpected size");
-static_assert(sizeof(Triangle) == 6,         "geometry struct has unexpected size");
-static_assert(sizeof(Triangle[10]) == 60,    "geometry struct has unexpected size");
-static_assert(sizeof(Line) == 4,             "geometry struct has unexpected size");
-static_assert(sizeof(Line[10]) == 40,        "geometry struct has unexpected size");
+static_assert(sizeof(VertexPos) == 12,               "geometry struct has unexpected size");
+static_assert(sizeof(VertexPos[10]) == 120,          "geometry struct has unexpected size");
+static_assert(sizeof(VertexPosNorm) == 24,           "geometry struct has unexpected size");
+static_assert(sizeof(VertexPosNorm[10]) == 240,      "geometry struct has unexpected size");
+static_assert(sizeof(VertexPosNormUv) == 32,         "geometry struct has unexpected size");
+static_assert(sizeof(VertexPosNormUv[10]) == 320,    "geometry struct has unexpected size");
+static_assert(sizeof(VertexPosNormUvTan) == 48,      "geometry struct has unexpected size");
+static_assert(sizeof(VertexPosNormUvTan[10]) == 480, "geometry struct has unexpected size");
+static_assert(sizeof(IndexTriangle) == 6,            "geometry struct has unexpected size");
+static_assert(sizeof(IndexTriangle[10]) == 60,       "geometry struct has unexpected size");
+static_assert(sizeof(IndexLine) == 4,                "geometry struct has unexpected size");
+static_assert(sizeof(IndexLine[10]) == 40,           "geometry struct has unexpected size");
+static_assert(sizeof(Mesh) % sizeof(f32) == 0,       "Mesh struct size not aligned. Must be multiple of sizeof(f32)");
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CORE_GEOMETRY_H
+#endif // #ifndef GAEN_ENGINE_MESH_H

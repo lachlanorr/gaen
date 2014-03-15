@@ -24,21 +24,18 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CORE_SHAPES_H
-#define GAEN_CORE_SHAPES_H
+#ifndef GAEN_ENGINE_SHAPES_H
+#define GAEN_ENGINE_SHAPES_H
 
 #include "engine/Mesh.h"
 
 namespace gaen
 {
 
-typedef Mesh<VertexSMPL, Triangle> ShapeMesh;
-
-class MeshBuilder
+class ShapeBuilder
 {
 public:
-    MeshBuilder(ShapeMesh & mesh)
-      : mMesh(mesh) {}
+    ShapeBuilder(Mesh * pMesh);
 
     void pushTri(const Vec3 & p0,
                  const Vec3 & p1,
@@ -51,14 +48,14 @@ public:
                   const Vec3 & p3);
     void pushQuad(const Vec3 * pPoints);
 
-    void pushMesh(const ShapeMesh & mesh);
+    void pushMesh(const Mesh & mesh);
 
-    ShapeMesh & mesh() { return mMesh; }
+    Mesh & mesh() { return mMesh; }
     u32 currVertex() { return mCurrVertex; }
     u32 currIndex() { return mCurrIndex; }
 
 private:
-    ShapeMesh & mMesh;
+    Mesh & mMesh;
     u32 mCurrVertex = 0;
     u32 mCurrIndex = 0;
 };
@@ -67,5 +64,5 @@ private:
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CORE_SHAPES_H
+#endif // #ifndef GAEN_ENGINE_SHAPES_H
 

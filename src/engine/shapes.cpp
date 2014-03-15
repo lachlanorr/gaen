@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// shapes.h - Routines to create various geometrical shapes
+// shapes.cpp - Routines to create various geometrical shapes
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -31,17 +31,31 @@
 namespace gaen
 {
 
-void MeshBuilder::pushTri(const Vec3 & p0,
-                          const Vec3 & p1,
-                          const Vec3 & p2)
+ShapeBuilder::ShapeBuilder(Mesh * pMesh)
+  : mMesh(*pMesh)
+{
+    if (mMesh.vertexType() != kVERT_PosNorm)
+        PANIC("ShapeBuilder only builds meshes with vertices of type kVERT_PosNorm");
+
+    if (mMesh.indexType() != kIND_Triangle)
+        PANIC("ShapeBuilder only builds meshes with indices of type kIND_Triangle");
+}
+
+
+void ShapeBuilder::pushTri(const Vec3 & p0,
+                           const Vec3 & p1,
+                           const Vec3 & p2)
 {
     if (mCurrVertex + 3 >= mMesh.vertexCount())
         PANIC("Vertex array overrun during pushTri");
     if (mCurrIndex + 1 >= mMesh.indexCount())
         PANIC("Index array overrun during pushTri");
 
-    ShapeMesh::vertex_type * pVert = mMesh.vertices() + mCurrVertex;
-    ShapeMesh::index_type & idx = mMesh.indices()[mCurrIndex];
+    VertexPosNorm * pVert = mMesh;
+    pVert += mCurrVertex;
+
+    IndexTriangle * pInd = mMesh;
+    IndexTriangle & ind = pInd[mCurrIndex];
 
     Vec3 vecNorm = triNormal(p0, p1, p2);
 
@@ -53,25 +67,25 @@ void MeshBuilder::pushTri(const Vec3 & p0,
     pVert[1].normal = vecNorm;
     pVert[2].normal = vecNorm;
     
-    idx.p0 = mCurrVertex;
-    idx.p1 = mCurrVertex + 1;
-    idx.p2 = mCurrVertex + 2;
+    ind.p0 = mCurrVertex;
+    ind.p1 = mCurrVertex + 1;
+    ind.p2 = mCurrVertex + 2;
 
     mCurrVertex += 3;
     mCurrIndex += 1;
 }
 
-void MeshBuilder::pushTri(const Vec3 * pPoints)
+void ShapeBuilder::pushTri(const Vec3 * pPoints)
 {
     pushTri(pPoints[0],
             pPoints[1],
             pPoints[2]);
 }
         
-void MeshBuilder::pushQuad(const Vec3 & p0,
-                           const Vec3 & p1,
-                           const Vec3 & p2,
-                           const Vec3 & p3)
+void ShapeBuilder::pushQuad(const Vec3 & p0,
+                            const Vec3 & p1,
+                            const Vec3 & p2,
+                            const Vec3 & p3)
 {
     if (mCurrVertex + 4 >= mMesh.vertexCount())
         PANIC("Vertex array overrun during pushQuad");
@@ -82,7 +96,7 @@ void MeshBuilder::pushQuad(const Vec3 & p0,
     pushTri(p3, p0, p2);
 }
 
-void MeshBuilder::pushQuad(const Vec3 * pPoints)
+void ShapeBuilder::pushQuad(const Vec3 * pPoints)
 {
     pushQuad(pPoints[0],
              pPoints[1],
@@ -91,30 +105,38 @@ void MeshBuilder::pushQuad(const Vec3 * pPoints)
 }
 
 
-void MeshBuilder::pushMesh(const ShapeMesh & mesh)
+void ShapeBuilder::pushMesh(const Mesh & mesh)
 {
+    if (mesh.vertexType() != kVERT_PosNorm)
+        PANIC("ShapeBuilder only appends meshes with vertices of type kVERT_PosNorm");
+    if (mesh.indexType() != kIND_Triangle)
+        PANIC("ShapeBuilder only appends meshes with indices of type kIND_Triangle");
+
     if (mCurrVertex + mesh.vertexCount() >= mMesh.vertexCount())
         PANIC("Vertex array overrun during pushMesh");
     if (mCurrIndex + mesh.indexCount() >= mMesh.indexCount())
         PANIC("Index array overrun during pushMesh");
 
-    ShapeMesh::vertex_type * pVert = mMesh.vertices() + mCurrVertex;
-    const ShapeMesh::vertex_type * pMeshVert = mesh.vertices();
+    VertexPosNorm * pVert = mMesh;
+    pVert += mCurrVertex;
+    
+    const VertexPosNorm * pMeshVert = mesh;
     for (u32 i = 0; i < mesh.vertexCount(); ++i)
     {
         *pVert++ = *pMeshVert++;
     }
 
+    IndexTriangle * pInd = mMesh;
+    pInd += mCurrIndex;
 
-    ShapeMesh::index_type * pIdx = mMesh.indices() + mCurrIndex;
-    const ShapeMesh::index_type * pMeshIdx = mesh.indices();
+    const IndexTriangle * pMeshInd = mesh;
     for (u32 i = 0; i < mesh.indexCount(); ++i)
     {
-        pIdx[0].p0 = pMeshIdx[0].p0 + mCurrIndex;
-        pIdx[0].p1 = pMeshIdx[0].p1 + mCurrIndex;
-        pIdx[0].p2 = pMeshIdx[0].p2 + mCurrIndex;
-        pIdx++;
-        pMeshIdx++;
+        pInd[0].p0 = pMeshInd[0].p0 + mCurrIndex;
+        pInd[0].p1 = pMeshInd[0].p1 + mCurrIndex;
+        pInd[0].p2 = pMeshInd[0].p2 + mCurrIndex;
+        pInd++;
+        pMeshInd++;
     }
 
     mCurrVertex += mesh.vertexCount();

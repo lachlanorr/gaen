@@ -125,31 +125,31 @@ private:
     UniquePtr<MessageQueue> mpMainThreadMessageQueue;
 
     // List of tasks owned by this TaskMaster
-    typedef Vector<Task, kMT_Engine> TaskVec;
+    typedef Vector<Task, kMEM_Engine> TaskVec;
     TaskVec mOwnedTasks;
 
     // Maps task_id to its Task
-    typedef HashMap<task_id, Task&, kMT_Engine> TaskMap;
+    typedef HashMap<task_id, Task&, kMEM_Engine> TaskMap;
     TaskMap mTasks;
     
     // Maps task_id to the TaskMaster that owns it
-    typedef HashMap<task_id, TaskMaster<RendererT>&, kMT_Engine> TaskOwnerMap;
+    typedef HashMap<task_id, TaskMaster<RendererT>&, kMEM_Engine> TaskOwnerMap;
     TaskOwnerMap mTaskOwners;
 
     RendererT * mpRenderer = nullptr;
 
     // Maps mutable data paths to the set of task_ids that depend on it
     // We maintain a reference count the data path has to the task
-    typedef HashMap<task_id, u32, kMT_Engine> DataToTaskRefs;
+    typedef HashMap<task_id, u32, kMEM_Engine> DataToTaskRefs;
     typedef UniquePtr<DataToTaskRefs> DataToTaskRefsUP;
-    typedef HashMap<fnv, DataToTaskRefsUP, kMT_Engine> MutableDataUsersMap;
+    typedef HashMap<fnv, DataToTaskRefsUP, kMEM_Engine> MutableDataUsersMap;
     MutableDataUsersMap mMutableDataUsers;
 
     // Maps root task_id to the set of mutable data paths that it depends on
     // We maintain a reference count the root task_id has towards the data path
-    typedef HashMap<fnv, u32, kMT_Engine> TaskToDataRefs;
+    typedef HashMap<fnv, u32, kMEM_Engine> TaskToDataRefs;
     typedef UniquePtr<TaskToDataRefs> TaskToDataRefsUP;
-    typedef HashMap<task_id, TaskToDataRefsUP, kMT_Engine> MutableDataMap;
+    typedef HashMap<task_id, TaskToDataRefsUP, kMEM_Engine> MutableDataMap;
     MutableDataMap mMutableData;
 
     thread_id mThreadId = kInvalidThreadId;
@@ -162,14 +162,5 @@ private:
 } // namespace gaen
 
 
-// Changing the renderer should just require changing the
-// following lines.  The renderer class used must fulfill
-// the appropriate duck type.
-#include "renderergl/RendererGL.h"
-namespace gaen
-{
-typedef RendererGL RendererType;
-}
 
-
-#endif // #ifndef GAEN_ENGINE_TASK_MASTER_H
+#endif // #ifndef GAEN_ENGINE_TASKMASTER_H

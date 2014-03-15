@@ -35,6 +35,7 @@
 #include "core/threading.h"
 #include "core/mem.h"
 
+#include "engine/renderer_type.h"
 #include "engine/TaskMaster.h"
 
 namespace gaen
@@ -187,12 +188,12 @@ void init_gaen(int argc, char ** argv)
 
     init_memory_manager(sMemInitStr);
 
-    init_task_masters<RendererType>();
+    init_task_masters<renderer_type>();
 }
 
 void fin_gaen()
 {
-    fin_task_masters<RendererType>();
+    fin_task_masters<renderer_type>();
 
     fin_memory_manager();
 

@@ -33,6 +33,28 @@
 
 #include "unit_tests/core/BaseFixture.h"
 
+class TestClass
+{
+public:
+    TestClass()
+    {
+        printf("Constructor called");
+    }
+    ~TestClass()
+    {
+        printf("Destructor called");
+    }
+};
+
+TEST(MemoryManagementTest, NewDelete)
+{
+    size_t testClassSize = sizeof(TestClass);
+    TestClass * pX = new (ALLOC(sizeof(TestClass),gaen::kMEM_Model)) TestClass;
+    TestClass * pXarr = new (ALLOC(sizeof(TestClass)*5,gaen::kMEM_Engine)) TestClass[5];
+
+    DELETE(pX);
+    DELETE(pXarr);
+}
 
 TEST(MemoryManagementTest, InitAndFin)
 {

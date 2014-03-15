@@ -34,8 +34,8 @@
 namespace gaen
 {
 
-void RendererGL::init(DeviceContext deviceContext,
-                      RenderContext renderContext,
+void RendererGL::init(device_context deviceContext,
+                      render_context renderContext,
                       u32 screenWidth,
                       u32 screenHeight)
 {
@@ -67,24 +67,25 @@ void RendererGL::initViewport()
     // reset viewport
     glViewport(0, 0, mScreenWidth, mScreenHeight);
 
-/*    // setup projection with current width/height
-    projection_.setDiag(1.0f);
-    projection_.perspective(60.0f, width / static_cast<f32>(height), 0.1f, 100.0f);
+    // setup projection with current width/height
+    mProjection = Mat4::perspective(60.0f,
+                                    mScreenWidth / static_cast<f32>(mScreenHeight),
+                                    0.1f,
+                                    100.0f);
 
     // setup gui projection, which is orthographic
-    guiProjection_.setDiag(1.0f);
-    guiProjection_.orthographic(0.0f,
-                                static_cast<f32>(width),
-                                -static_cast<f32>(height),
-                                0.0f,
-                                0.0f,
-                                100.0f);
-    guiProjection_.orthographic(static_cast<float>(width) / -2.0f,
-                                static_cast<float>(width) / 2.0f,
-                                static_cast<float>(height) / -2.0f,
-                                static_cast<float>(height) / 2.0f,
-                                0.0f,
-                                100.0f);*/
+    //guiProjection_.orthographic(0.0f,
+//                                static_cast<f32>(width),
+//                                -static_cast<f32>(height),
+//                                0.0f,
+//                                0.0f,
+//                                100.0f);
+    mGuiProjection = Mat4::orthographic(static_cast<float>(mScreenWidth) * -0.5f,
+                                        static_cast<float>(mScreenWidth) * 0.5f,
+                                        static_cast<float>(mScreenHeight) * -0.5f,
+                                        static_cast<float>(mScreenHeight) * 0.5f,
+                                        0.0f,
+                                        100.0f);
 }
 
 

@@ -28,6 +28,10 @@
 
 #include <cstring>
 
+#if IS_PLATFORM_WIN32
+#include <malloc.h>
+#endif
+
 #include "core/threading.h"
 #include "core/mem.h"
 
@@ -53,7 +57,7 @@ static const char * sMemTypeText[] = {"Unspecified",
                                       "Sound",
                                       "Network"};
 
-static_assert(sizeof(sMemTypeText) / sizeof(char*) == kMT_COUNT,
+static_assert(sizeof(sMemTypeText) / sizeof(char*) == kMEM_COUNT,
               "sMemTypeText should have the same number of entries as MemType enum");
 
 
@@ -135,13 +139,26 @@ void MemMgr::fin()
 void * MemMgr::allocate(size_t count)
 {
     // LORRTODO
-    return malloc(count);
+
+#if IS_PLATFORM_WIN32
+    void * pMem = _aligned_malloc(count, 16);
+#else
+    void * pMem = malloc(count);
+#endif
+
+    ASSERT(pMem);
+    return pMem;
 }
 
 void MemMgr::deallocate(void * ptr)
 {
     // LORRTODO
-    return free(ptr);
+    ASSERT(ptr);
+#if IS_PLATFORM_WIN32
+    _aligned_free(ptr);
+#else
+    free(ptr);
+#endif
 }
 
 #if HAS(TRACK_MEM)
@@ -174,6 +191,8 @@ void MemMgr::trackDeallocation(void * ptr,
 //------------------------------------------------------------------------------
 // MemMgr (END)
 //------------------------------------------------------------------------------
+
+
 
 size_t parse_mem_init_str(const char * memInitStr,
                           MemPoolInit * pMemPoolInits,

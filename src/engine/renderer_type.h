@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// RendererGL.h - OpenGL Renderer
+// renderer_type.h - Declaration of renderer type
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,58 +24,17 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_RENDERERGL_RENDERERGL_H
-#define GAEN_RENDERERGL_RENDERERGL_H
+#ifndef GAEN_ENGINE_RENDERER_TYPE_H
+#define GAEN_ENGINE_RENDERER_TYPE_H
 
-#include "engine/Model.h"
-#include "engine/math.h"
-
-#if IS_PLATFORM_WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
+// Changing the renderer should just require changing the following
+// include and typedef.  The renderer class used must fulfill the
+// appropriate duck type.
+#include "renderergl/RendererGL.h"
 namespace gaen
 {
-typedef HDC device_context;
-typedef HGLRC render_context;
+typedef RendererGL renderer_type;
 }
-#else
-#error Need to implement a similar concept on other platforms
-#endif
-
-namespace gaen
-{
-
-class RendererGL
-{
-public:
-    void init(device_context deviceContext,
-              render_context renderContext,
-              u32 screenWidth,
-              u32 screenHeight);
-
-    void initRenderDevice();
-    void initViewport();
-
-    void render();
-    void endFrame();
-
-private:
-    bool mIsInit = false;
-    
-    device_context mDeviceContext = 0;
-    render_context mRenderContext = 0;
-    u32 mScreenWidth = 0;
-    u32 mScreenHeight = 0;
-
-    Mat4 mProjection;
-    Mat4 mGuiProjection;
-};
 
 
-} // namespace gaen
-
-#endif // #ifndef GAEN_RENDERERGL_RENDERERGL_H
-
-
+#endif // #ifndef GAEN_ENGINE_RENDERER_TYPE_H

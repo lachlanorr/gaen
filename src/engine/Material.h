@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// RendererGL.h - OpenGL Renderer
+// Material.h - Materials used with models
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,58 +24,45 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_RENDERERGL_RENDERERGL_H
-#define GAEN_RENDERERGL_RENDERERGL_H
+#ifndef GAEN_ENGINE_MATERIAL_H
+#define GAEN_ENGINE_MATERIAL_H
 
-#include "engine/Model.h"
-#include "engine/math.h"
-
-#if IS_PLATFORM_WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-namespace gaen
-{
-typedef HDC device_context;
-typedef HGLRC render_context;
-}
-#else
-#error Need to implement a similar concept on other platforms
-#endif
+#include "engine/Color.h"
 
 namespace gaen
 {
 
-class RendererGL
+// Define these in the order of rendering.
+// Higher MaterialTypes get rendered later.
+// i.e., transparent stuff should be highest.
+enum MaterialType
+{
+    kMAT_Colored = 0,
+
+    // LORRTODO - Add additional shaders
+
+    kMAT_END
+};
+
+typedef u32 material_id;
+
+class Material
 {
 public:
-    void init(device_context deviceContext,
-              render_context renderContext,
-              u32 screenWidth,
-              u32 screenHeight);
+    Material(Color color);
 
-    void initRenderDevice();
-    void initViewport();
+    material_id id() const { return mId; }
 
-    void render();
-    void endFrame();
+    MaterialType type() const { return mType; }
+    Color color() const { return mColor; }
 
 private:
-    bool mIsInit = false;
-    
-    device_context mDeviceContext = 0;
-    render_context mRenderContext = 0;
-    u32 mScreenWidth = 0;
-    u32 mScreenHeight = 0;
-
-    Mat4 mProjection;
-    Mat4 mGuiProjection;
+    material_id mId;
+    MaterialType mType;
+    Color mColor;
 };
 
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_RENDERERGL_RENDERERGL_H
-
-
+#endif // #ifndef GAEN_ENGINE_MATERIAL_H

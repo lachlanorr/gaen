@@ -30,8 +30,8 @@
 #include <windows.h>
 
 #include "core/logging.h"
+#include "engine/renderer_type.h"
 #include "renderergl/gaen_opengl.h"
-#include "renderergl/RendererGL.h"
 #include "gaen/gaen.h"
 
 namespace gaen
@@ -49,7 +49,7 @@ static bool sFullScreen = false;
 static const size_t kKeyCount = 256;
 static bool sKeys[kKeyCount];
 
-RendererType sRenderer;
+renderer_type sRenderer;
 
 LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -286,7 +286,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     // be called directly.  Interaction with the renderer should only
     // be made with messages sent to the primary TaskMaster.
 
-    start_game_loops<RendererType>();
+    start_game_loops<renderer_type>();
 
     BOOL ret;
     MSG msg;

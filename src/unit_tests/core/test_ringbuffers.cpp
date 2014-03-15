@@ -44,7 +44,7 @@ TEST(RingBuffers, SpscRingBuffer)
 
     const size_t kQSize = 4;
 
-    SpscRingBuffer<Data> q(kQSize, kMT_Unspecified);
+    SpscRingBuffer<Data> q(kQSize, kMEM_Unspecified);
 
     // Try to pop... should be nothing
     SpscRingBuffer<Data>::Accessor accPop1;

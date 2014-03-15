@@ -167,11 +167,8 @@ class GameVarMgr
 public:
     class Iterator
     {
-
         friend class GameVarMgr;
-
     public:
-        
         Iterator(GameVarMgr & gameVarMgr, size_t initIdx)
         {
             mpGameVar = gameVarMgr.getByIndex(initIdx);
@@ -194,9 +191,7 @@ public:
         }
     private:
         GameVar * mpGameVar;
-        
     };
-    
     friend class Iterator;
 
     GameVarMgr();

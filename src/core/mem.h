@@ -41,15 +41,15 @@ namespace gaen
 
 enum MemType
 {
-    kMT_Unspecified = 0,
-    kMT_Debug       = 1,
-    kMT_Engine      = 2,  // datastructures used in the engine to manage tasks, entities, etc
-    kMT_Texture     = 3,
-    kMT_Model       = 4,
-    kMT_Sound       = 5,
-    kMT_Network     = 6,
+    kMEM_Unspecified = 0,
+    kMEM_Debug       = 1,
+    kMEM_Engine      = 2,  // data structures used in the engine to manage tasks, entities, etc
+    kMEM_Texture     = 3,
+    kMEM_Model       = 4,
+    kMEM_Sound       = 5,
+    kMEM_Network     = 6,
 
-    kMT_COUNT
+    kMEM_COUNT
 };
 
 //------------------------------------------------------------------------------
@@ -71,6 +71,7 @@ enum MemType
 #define FREE(ptr)             gaen::tracked_free(ptr, __FILE__, __LINE__)
 #define DELETE(ptr)           gaen::tracked_delete(ptr, __FILE__, __LINE__)
 #endif // #if !HAS(DEV_BUILD)
+#define NEW(memType, type, ...) new (ALLOC(sizeof(type), memType)) type(##__VA_ARGS__)
 
 
 // A pool contains various sizes of pre-allocated buffers.

@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CORE_MATH_H
-#define GAEN_CORE_MATH_H
+#ifndef GAEN_ENGINE_MATH_H
+#define GAEN_ENGINE_MATH_H
 
 #include "core/base_defines.h"
 
@@ -62,6 +62,7 @@ struct Vec3
 };
 
 Vec3 operator-(const Vec3 & lhs, const Vec3& rhs);
+bool operator==(const Vec3 & lhs,const Vec3 & rhs);
 Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2);
 
 struct Vec4
@@ -82,6 +83,8 @@ struct Vec4
     f32 z;
     f32 w;
 };
+
+bool operator==(const Vec4 & lhs,const Vec4 & rhs);
 
 struct Mat4;
 struct Mat3
@@ -206,6 +209,9 @@ inline f32 fastSqrt(const f32 x)
 //--------------------------------------
 // Vec3 inlined methods
 //--------------------------------------
+inline Vec3::Vec3()
+{}
+
 inline Vec3::Vec3(f32 x, f32 y, f32 z)
   : x(x)
   , y(y)
@@ -255,11 +261,18 @@ inline Vec3 Vec3::cross(const Vec3 &lhs, const Vec3 &rhs)
     return vec;
 }
 
-inline Vec3 operator-(const Vec3 & lhs, const Vec3& rhs)
+inline Vec3 operator-(const Vec3 & lhs, const Vec3 & rhs)
 {
     return Vec3(lhs.x - rhs.x,
                 lhs.y - rhs.y,
                 lhs.z - rhs.z);
+}
+
+inline bool operator==(const Vec3 & lhs, const Vec3 & rhs)
+{
+    return lhs.x == rhs.x &&
+           lhs.y == rhs.y &&
+           lhs.z == rhs.z;
 }
 
 inline Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2)
@@ -273,6 +286,9 @@ inline Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2)
 //--------------------------------------
 // Vec4 inlined methods
 //--------------------------------------
+inline Vec4::Vec4()
+{}
+
 inline Vec4::Vec4(f32 x, f32 y, f32 z, f32 w) 
   : x(x)
   , y(y)
@@ -323,6 +339,14 @@ inline Vec4 Vec4::cross(const Vec4 &lhs, const Vec4 &rhs)
              lhs.x*rhs.y - lhs.y*rhs.x,
              0.0f);
     return vec;
+}
+
+inline bool operator==(const Vec4 & lhs,const Vec4 & rhs)
+{
+    return lhs.x == rhs.x &&
+        lhs.y == rhs.y &&
+        lhs.z == rhs.z &&
+        lhs.w == rhs.w;
 }
 
 
@@ -562,4 +586,4 @@ static_assert(sizeof(Mat4[10]) == 640, "geometry struct has unexpected size");
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CORE_MATH_H
+#endif // #ifndef GAEN_ENGINE_MATH_H

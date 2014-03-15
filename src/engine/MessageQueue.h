@@ -150,7 +150,7 @@ public:
 
 
     MessageQueue(size_t messageCount)
-      : mRingBuffer(messageCount, kMT_Engine)
+      : mRingBuffer(messageCount, kMEM_Engine)
     {}
     
     // Convenience functions for single Message 16 byte messages

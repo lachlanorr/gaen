@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CORE_COLOR_H
-#define GAEN_CORE_COLOR_H
+#ifndef GAEN_ENGINE_COLOR_H
+#define GAEN_ENGINE_COLOR_H
 
 #include "engine/math.h"
 
@@ -100,4 +100,4 @@ static_assert(sizeof(Color)==4,"");
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CORE_COLOR_H
+#endif // #ifndef GAEN_ENGINE_COLOR_H

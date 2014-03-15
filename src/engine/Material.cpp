@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// RendererGL.h - OpenGL Renderer
+// Material.cpp - Materials used with models
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,58 +24,22 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_RENDERERGL_RENDERERGL_H
-#define GAEN_RENDERERGL_RENDERERGL_H
+#include "engine/stdafx.h"
 
-#include "engine/Model.h"
-#include "engine/math.h"
+#include <atomic>
 
-#if IS_PLATFORM_WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
+#include "engine/Material.h"
+
 namespace gaen
 {
-typedef HDC device_context;
-typedef HGLRC render_context;
+
+static std::atomic<material_id> sNextMaterialId(0);
+
+Material::Material(Color color)
+  : mType(kMAT_Colored)
+  , mColor(color)
+{
+    mId = sNextMaterialId.fetch_add(1,std::memory_order_relaxed);
 }
-#else
-#error Need to implement a similar concept on other platforms
-#endif
-
-namespace gaen
-{
-
-class RendererGL
-{
-public:
-    void init(device_context deviceContext,
-              render_context renderContext,
-              u32 screenWidth,
-              u32 screenHeight);
-
-    void initRenderDevice();
-    void initViewport();
-
-    void render();
-    void endFrame();
-
-private:
-    bool mIsInit = false;
-    
-    device_context mDeviceContext = 0;
-    render_context mRenderContext = 0;
-    u32 mScreenWidth = 0;
-    u32 mScreenHeight = 0;
-
-    Mat4 mProjection;
-    Mat4 mGuiProjection;
-};
-
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_RENDERERGL_RENDERERGL_H
-
-
