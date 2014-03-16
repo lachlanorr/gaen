@@ -34,6 +34,7 @@
 
 class Entity1
 {
+    friend struct gaen::Task;
 public:
     void update(gaen::f32 deltaSecs)
     {
@@ -46,10 +47,15 @@ public:
         return gaen::MessageResult::Propogate;
     }
 
+private:
+    void setTaskId(gaen::task_id taskId) { mTaskId = taskId; }
+
+    gaen::task_id mTaskId;
 };
 
 class Entity2
 {
+    friend struct gaen::Task;
 public:
     void update(gaen::f32 deltaSecs)
     {
@@ -62,6 +68,11 @@ public:
         return gaen::MessageResult::Propogate;
     }
 
+    
+private:
+    void setTaskId(gaen::task_id taskId) { mTaskId = taskId; }
+
+    gaen::task_id mTaskId;
 };
 
 
@@ -72,8 +83,8 @@ TEST(TaskTest, CreateTasks)
 
     std::vector<gaen::Task> vec(2);
 
-    gaen::Task::create(&vec[0], &e1);
-    gaen::Task::create(&vec[1], &e2);
+    vec[0] = gaen::Task::create(&e1);
+    vec[1] = gaen::Task::create(&e2);
 
     gaen::MessageQueue::MessageAccessor msgAcc;
 

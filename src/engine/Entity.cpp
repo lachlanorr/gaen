@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Entity.h - A game entity which contains a collection of Components
+// Entity.cpp - A game entity which contains a collection of Components
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,47 +24,47 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_ENTITY_H
-#define GAEN_ENGINE_ENTITY_H
+#include "engine/stdafx.h"
 
-#include "core/Vector.h"
-#include "core/List.h"
-
-#include "engine/Task.h"
-#include "engine/MessageQueue.h"
-#include "engine/math.h"
+#include "core/mem.h"
+#include "engine/Entity.h"
 
 namespace gaen
 {
 
-class Entity
+Entity::Entity(u32 propertyBufferSize,
+               u8 * pPropertyBuffer,
+               const Mat34 & transform)
+  : mPropertyBufferSize(propertyBufferSize)
+  , mPropertyBufferHWM(0)
 {
-    friend struct Task;
-public:
-    Entity(u32 propertyBufferSize,
-           u8 * pPropertyBuffer = nullptr,
-           const Mat34 & transform = Mat34::identity());
-
-    void update(f32 deltaSecs);
-    MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
-
-    task_id taskId() { return mTaskId; }
-
-private:
-    void setTaskId(task_id taskId) { mTaskId = taskId; }
-    task_id mTaskId = -1;
+    if (!pPropertyBuffer)
+        pPropertyBuffer = static_cast<u8*>(ALLOC(mPropertyBufferSize, kMEM_Engine));
     
-    Mat34 mLocalTransform;
-    Mat34 mGlobalTransform;
+    mLocalTransform = transform;
+    mGlobalTransform = transform;
+}
 
-    u8 * mpPropertyBuffer;
-    u32 mPropertyBufferSize;
-    u32 mPropertyBufferHWM;
+void Entity::update(f32 deltaSecs)
+{
+    // Update all components
+    for (Task & task : mComponents)
+        task.update(deltaSecs);
 
-    Vector<Task, kMEM_Engine> mComponents;
-    List<Entity*, kMEM_Engine> mChildren;
-};
+    // Update all children
+    for (Entity * pChild : mChildren)
+        pChild->update(deltaSecs);
+}
 
-} // namespcae gaen
+MessageResult Entity::message(const MessageQueue::MessageAccessor& msgAcc)
+{
+    switch (msgAcc.message().msgId)
+    {
+    case FNV::fin:
+        break;
+    }
 
-#endif // #ifndef GAEN_ENGINE_ENTITY_H
+    return MessageResult::Unhandled;
+}
+
+} // namespace gaen

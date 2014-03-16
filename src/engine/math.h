@@ -89,8 +89,13 @@ bool operator==(const Vec4 & lhs,const Vec4 & rhs);
 struct Mat4;
 struct Mat3
 {
-    static Mat3 zero();
-    static Mat3 identity();
+    Mat3();
+    Mat3(f32 e0, f32 e1, f32 e2,
+         f32 e3, f32 e4, f32 e5,
+         f32 e6, f32 e7, f32 e8);
+
+    static const Mat3 & zero();
+    static const Mat3 & identity();
 
     static f32 determinant(const Mat3 & mat3);
     static Mat3 inverse(const Mat3 & mat3);
@@ -109,9 +114,14 @@ struct Mat34
 {
     Mat34();
     Mat34(const Mat4 & mat4);
+    Mat34(f32 e0, f32 e1,  f32 e2,
+          f32 e3, f32 e4,  f32 e5,
+          f32 e6, f32 e7,  f32 e8,
+          f32 e9, f32 e10, f32 e11);
 
-    static Mat34 zero();
-    static Mat34 identity();
+
+    static const Mat34 & zero();
+    static const Mat34 & identity();
 
     static Vec4 multiply(const Mat34 & mat34, const Vec4 & vec4);
     static Mat34 multiply(const Mat34 & lhs, const Mat34 & rhs);
@@ -141,10 +151,14 @@ struct Mat34
 struct Mat4
 {
     Mat4();
+    Mat4(f32 e0,  f32 e1,  f32 e2,  f32 e3,
+         f32 e4,  f32 e5,  f32 e6,  f32 e7,
+         f32 e8,  f32 e9,  f32 e10, f32 e11,
+         f32 e12, f32 e13, f32 e14, f32 e15);
     Mat4(const Mat34 & mat34);
 
-    static Mat4 zero();
-    static Mat4 identity();
+    static const Mat4 & zero();
+    static const Mat4 & identity();
 
     static Vec4 multiply(const Mat4 & mat4, const Vec4 & vec4);
     static Mat4 multiply(const Mat4 & lhs, const Mat4 & rhs);
@@ -353,28 +367,38 @@ inline bool operator==(const Vec4 & lhs,const Vec4 & rhs)
 //--------------------------------------
 // Mat3 inlined methods
 //--------------------------------------
-inline Mat3 Mat3::zero()
+inline Mat3::Mat3() {}
+inline Mat3::Mat3(f32 e0, f32 e1, f32 e2,
+                  f32 e3, f32 e4, f32 e5,
+                  f32 e6, f32 e7, f32 e8)
 {
-    Mat3 mat3;
-    memset(&mat3, 0, sizeof(Mat3));
-    return mat3;
+    elems[0] = e0;
+    elems[1] = e1;
+    elems[2] = e2;
+
+    elems[3] = e3;
+    elems[4] = e4;
+    elems[5] = e5;
+
+    elems[6] = e6;
+    elems[7] = e7;
+    elems[8] = e8;
 }
 
-inline Mat3 Mat3::identity()
+inline const Mat3 & Mat3::zero()
 {
-    Mat3 mat3;
-    mat3[0] = 1.0f;
-    mat3[1] = 0.0f;
-    mat3[2] = 0.0f;
+    static Mat3 zero3{0.0f, 0.0f, 0.0f,
+                      0.0f, 0.0f, 0.0f,
+                      0.0f, 0.0f, 0.0f};
+    return zero3;
+}
 
-    mat3[3] = 0.0f;
-    mat3[4] = 1.0f;
-    mat3[5] = 0.0f;
-
-    mat3[6] = 0.0f;
-    mat3[7] = 0.0f;
-    mat3[8] = 1.0f;
-    return mat3;
+inline const Mat3 & Mat3::identity()
+{
+    static Mat3 ident3{1.0f, 0.0f, 0.0f,
+                       0.0f, 1.0f, 0.0f,
+                       0.0f, 0.0f, 1.0f};
+    return ident3;
 }
 
 inline f32 & Mat3::operator[](size_t idx)
@@ -393,6 +417,27 @@ inline const f32 & Mat3::operator[](size_t idx) const
 // Mat34 inlined methods
 //--------------------------------------
 inline Mat34::Mat34() {}
+inline Mat34::Mat34(f32 e0, f32 e1,  f32 e2,
+                    f32 e3, f32 e4,  f32 e5,
+                    f32 e6, f32 e7,  f32 e8,
+                    f32 e9, f32 e10, f32 e11)
+{
+    elems[0]  = e0;
+    elems[1]  = e1;
+    elems[2]  = e2;
+
+    elems[3]  = e3;
+    elems[4]  = e4;
+    elems[5]  = e5;
+
+    elems[6]  = e6;
+    elems[7]  = e7;
+    elems[8]  = e8;
+
+    elems[9]  = e9;
+    elems[10] = e10;
+    elems[11] = e11;
+}
 inline Mat34::Mat34(const Mat4 & mat4)
 {
     ASSERT_MSG(mat4[3]  == 0.0f &&
@@ -418,32 +463,22 @@ inline Mat34::Mat34(const Mat4 & mat4)
     elems[11] = mat4[14];
 }
 
-inline Mat34 Mat34::zero()
+inline const Mat34 & Mat34::zero()
 {
-    Mat34 mat34;
-    memset(&mat34, 0, sizeof(Mat34));
-    return mat34;
+    static Mat34 zero34{0.0f, 0.0f, 0.0f,
+                        0.0f, 0.0f, 0.0f,
+                        0.0f, 0.0f, 0.0f,
+                        0.0f, 0.0f, 0.0f};
+    return zero34;
 }
 
-inline Mat34 Mat34::identity()
+inline const Mat34 & Mat34::identity()
 {
-    Mat34 mat34;
-    mat34[0]  = 1.0f;
-    mat34[1]  = 0.0f;
-    mat34[2]  = 0.0f;
-
-    mat34[3]  = 0.0f;
-    mat34[4]  = 1.0f;
-    mat34[5]  = 0.0f;
-
-    mat34[6]  = 0.0f;
-    mat34[7]  = 0.0f;
-    mat34[8]  = 1.0f;
-
-    mat34[9]  = 0.0f;
-    mat34[10] = 0.0f;
-    mat34[11] = 0.0f;
-    return mat34;
+    static Mat34 ident34{1.0f, 0.0f, 0.0f,
+                         0.0f, 1.0f, 0.0f,
+                         0.0f, 0.0f, 1.0f,
+                         0.0f, 0.0f, 0.0f};
+    return ident34;
 }
 
 inline Mat34 Mat34::buildTranslation(Vec3 &vec)
@@ -480,6 +515,31 @@ inline const f32 & Mat34::operator[](size_t idx) const
 // Mat4 inlined methods
 //--------------------------------------
 inline Mat4::Mat4() {}
+inline Mat4::Mat4(f32 e0,  f32 e1,  f32 e2,  f32 e3,
+                  f32 e4,  f32 e5,  f32 e6,  f32 e7,
+                  f32 e8,  f32 e9,  f32 e10, f32 e11,
+                  f32 e12, f32 e13, f32 e14, f32 e15)
+{
+    elems[0]  = e0;
+    elems[1]  = e1;
+    elems[2]  = e2;
+    elems[3]  = e3;
+
+    elems[4]  = e4;
+    elems[5]  = e5;
+    elems[6]  = e6;
+    elems[7]  = e7;
+
+    elems[8]  = e8;
+    elems[9]  = e9;
+    elems[10] = e10;
+    elems[11] = e11;
+
+    elems[12] = e12;
+    elems[13] = e13;
+    elems[14] = e14;
+    elems[15] = e15;
+}
 inline Mat4::Mat4(const Mat34 & mat34)
 {
     elems[0]  = mat34[0];
@@ -503,36 +563,22 @@ inline Mat4::Mat4(const Mat34 & mat34)
     elems[15] = 1.0f;
 }
 
-inline Mat4 Mat4::zero()
+inline const Mat4 & Mat4::zero()
 {
-    Mat4 mat4;
-    memset(&mat4, 0, sizeof(Mat4));
-    return mat4;
+    static Mat4 zero4{0.0f, 0.0f, 0.0f, 0.0f,
+                      0.0f, 0.0f, 0.0f, 0.0f,
+                      0.0f, 0.0f, 0.0f, 0.0f,
+                      0.0f, 0.0f, 0.0f, 0.0f};
+    return zero4;
 }
 
-inline Mat4 Mat4::identity()
+inline const Mat4 & Mat4::identity()
 {
-    Mat4 mat4;
-    mat4[0]  = 1.0f;
-    mat4[1]  = 0.0f;
-    mat4[2]  = 0.0f;
-    mat4[3]  = 0.0f;
-
-    mat4[4]  = 0.0f;
-    mat4[5]  = 1.0f;
-    mat4[6]  = 0.0f;
-    mat4[7]  = 0.0f;
-
-    mat4[8]  = 0.0f;
-    mat4[9]  = 0.0f;
-    mat4[10] = 1.0f;
-    mat4[11] = 0.0f;
-
-    mat4[12] = 0.0f;
-    mat4[13] = 0.0f;
-    mat4[14] = 0.0f;
-    mat4[15] = 1.0f;
-    return mat4;
+    static Mat4 ident4{1.0f, 0.0f, 0.0f, 0.0f,
+                       0.0f, 1.0f, 0.0f, 0.0f,
+                       0.0f, 0.0f, 1.0f, 0.0f,
+                       0.0f, 0.0f, 0.0f, 1.0f};
+    return ident4;
 }
 
 inline Mat4 Mat4::buildTranslation(Vec3 &vec)

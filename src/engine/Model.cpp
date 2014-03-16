@@ -87,20 +87,31 @@ shader_hash Model::MaterialMesh::calcShaderHash()
 }
 
 
-Model::Model(MaterialMesh * pInitialMaterialMesh)
+Model::Model(Material * pMaterial, Mesh * pMesh, size_t meshCount)
 {
     mId = sNextModelId.fetch_add(1, std::memory_order_relaxed);
 
-    insertMaterialMesh(pInitialMaterialMesh);
+    if (meshCount > 1)
+        reserveMeshCapacity(meshCount);
+    insertMaterialMesh(pMaterial, pMesh);
 }
 
 Model::~Model()
 {
-    for (MaterialMesh * pMatMesh : mMaterialMeshes)
-    {
-        delete pMatMesh;
-    }
     mMaterialMeshes.clear();
 }
+
+void Model::reserveMeshCapacity(size_t meshCount)
+{
+    mMaterialMeshes.reserve(meshCount);
+}
+
+void Model::insertMaterialMesh(Material * pMaterial, Mesh * pMesh)
+{
+    if (mIsReadOnly)
+        PANIC("Mesh being added to read only model");
+    mMaterialMeshes.emplace_back(this, pMaterial, pMesh);
+}
+
 
 } // namespace gaen

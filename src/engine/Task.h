@@ -60,17 +60,18 @@ task_id next_task_id();
 // them in a cache friendly fashion.
 //
 // Usage:
-//   // pObj must implement methods:
-//   //   void update(f32 deltaSecs);
-//   //   MessageResult message(const Message * pMsg);
-//   Task t;
-//   Task::create(&t, pObj);
+//   pObj must implement methods:
+//     void update(f32 deltaSecs);
+//     MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
+//     void setTaskId(task_id taskId);
 //
+// E.g.
+//   Task t = Task::create(pObj);
 //   
 //
 // Instead of an object hierarchy with virtual methods for
 // update and message functions, we opt for this delegate'ish
-// approach.  It eliminates at least one dereference on each, and the
+// approach.  It eliminates the It eliminates at least one dereference on each, and the
 // compiler can completely inline the delegate call in some cases.
 //
 // This can be thought of as a special case delegate with two methods,
@@ -96,36 +97,33 @@ public:
     template <class T>
     static Task create(T* pThat)
     {
-        Task d;
-        create(&d, pThat);
-        return d;
-    }
+        Task task;
 
-    template <class T>
-    static void create(Task * pTask, T* pThat)
-    {
-        pTask->mStatus = static_cast<u8>(TaskStatus::Initializing);
-        pTask->mPermissions = 0;
-        pTask->mTaskId = next_task_id();
+        task.mStatus = static_cast<u8>(TaskStatus::Initializing);
+        task.mPermissions = 0;
+        task.mTaskId = next_task_id();
 
-        pTask->mIndex = 0;
-        pTask->mParent = 0;
-        pTask->mFirstSibling = 0;
-        pTask->mFirstChild = 0;
+        pThat->setTaskId(task.mTaskId);
+
+        task.mIndex = 0;
+        task.mParent = 0;
+        task.mFirstSibling = 0;
+        task.mFirstChild = 0;
         
-        pTask->mpThat = pThat;
+        task.mpThat = pThat;
 
-        pTask->mpUpdateStub = &updateStub<T>;
+        task.mpUpdateStub = &updateStub<T>;
         MessageStub messageStub_ = &messageStub<T>;
 
-        std::intptr_t iptrUpdateStub = reinterpret_cast<std::intptr_t>(pTask->mpUpdateStub);
+        std::intptr_t iptrUpdateStub = reinterpret_cast<std::intptr_t>(task.mpUpdateStub);
         std::intptr_t iptrMessageStub = reinterpret_cast<std::intptr_t>(messageStub_);
-
 
         // We don't store the address of the messageStub, but the offset from the updateStub.
         // In this way we save 4 bytes.  It is a reasonable assumption that the two stubs
         // will be within 2^31 bytes of each other, and we need those 4 bytes for other stuff.
-        pTask->mpMessageStubOffset = static_cast<i32>(iptrMessageStub - iptrUpdateStub);
+        task.mpMessageStubOffset = static_cast<i32>(iptrMessageStub - iptrUpdateStub);
+
+        return task;
     }
 
     task_id id() { return mTaskId; }

@@ -121,7 +121,6 @@ void ModelMgr::insertModelInstance(model_instance_id instanceId,
     ModelMap::iterator modelIt = mModelMap.find(pModel->id());
     if (modelIt == mModelMap.end())
     {
-        //mModelMap.emplace(pModel->id(), make_ref_counted(pModel, ModelDeleter(isAssetManaged)));
         mModelMap.emplace(pModel->id(), make_ref_counted(pModel, ModelDeleter(isAssetManaged)));
     }
     else
@@ -137,12 +136,12 @@ void ModelMgr::insertModelInstance(model_instance_id instanceId,
     auto modelInstanceIt = empResult.first;
 
     // Insert materials
-    for (Model::MaterialMesh * pMatMesh : *pModel)
+    for (Model::MaterialMesh & matMesh : *pModel)
     {
-        insertMaterial(&pMatMesh->material(), isAssetManaged);
+        insertMaterial(&matMesh.material(), isAssetManaged);
 
         // Insert meshes into mShaderModelMap
-        mShaderModelMap[pMatMesh->shaderHash()][instanceId].push_back(MaterialMeshInstance(&modelInstanceIt->second, pMatMesh));
+        mShaderModelMap[matMesh.shaderHash()][instanceId].push_back(MaterialMeshInstance(&modelInstanceIt->second, &matMesh));
     }
     
 }
@@ -160,12 +159,12 @@ void ModelMgr::removeModelInstance(model_instance_id instanceId)
     Model * pModel = modelInstanceIt->second.pModel;
 
     // Remove materials
-    for (Model::MaterialMesh * pMatMesh : *pModel)
+    for (Model::MaterialMesh & matMesh : *pModel)
     {
         // Delete all meshes from mShaderModelMap for this instanceId
-        mShaderModelMap[pMatMesh->shaderHash()].erase(instanceId);
+        mShaderModelMap[matMesh.shaderHash()].erase(instanceId);
 
-        removeMaterial(&pMatMesh->material());
+        removeMaterial(&matMesh.material());
     }
 
     // Remove the modelInstanceIt

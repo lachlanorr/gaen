@@ -31,6 +31,9 @@
 namespace gaen
 {
 
+//------------------------------------------------------------------------------
+// ShapeBuilder
+//------------------------------------------------------------------------------
 ShapeBuilder::ShapeBuilder(Mesh * pMesh)
   : mMesh(*pMesh)
 {
@@ -141,6 +144,37 @@ void ShapeBuilder::pushMesh(const Mesh & mesh)
 
     mCurrVertex += mesh.vertexCount();
     mCurrIndex += mesh.indexCount();
+}
+//------------------------------------------------------------------------------
+// ShapeBuilder (END)
+//------------------------------------------------------------------------------
+
+Mesh * buildTriMesh(f32 width, f32 height)
+{
+    Mesh * pMesh = Mesh::create(kVERT_PosNorm, 3, kIND_Triangle, 1);
+    ShapeBuilder sb(pMesh);
+    
+    f32 widthHalf = width * 0.5f;
+    f32 heightHalf = height * 0.5f;
+
+    Vec3 p0(0.0f, 0.0f, heightHalf);
+    Vec3 p1(-widthHalf, 0.0f, -heightHalf);
+    Vec3 p2(widthHalf, 0.0f, -heightHalf);
+    
+
+    sb.pushTri(p0, p1, p2);
+    
+    return pMesh;
+}
+
+Model * buildTriModel(f32 width, f32 height, Color color)
+{
+    Material * pMat = NEW(kMEM_Texture, Material, color);
+    Mesh * pMesh = buildTriMesh(width, height);
+
+    Model * pModel = NEW(kMEM_Model, Model, pMat, pMesh);
+
+    return pModel;
 }
 
 

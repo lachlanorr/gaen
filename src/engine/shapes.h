@@ -28,6 +28,7 @@
 #define GAEN_ENGINE_SHAPES_H
 
 #include "engine/Mesh.h"
+#include "engine/Model.h"
 
 namespace gaen
 {
@@ -60,6 +61,10 @@ private:
     u32 mCurrIndex = 0;
 };
 
+
+Mesh * buildTriMesh(f32 width, f32 height);
+
+Model * buildTriModel(f32 width, f32 height, Color color);
 
 
 } // namespace gaen

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Entity.h - A game entity which contains a collection of Components
+// ModelComponent.h - Component that encapsulate a static model
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,47 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_ENTITY_H
-#define GAEN_ENGINE_ENTITY_H
+#ifndef GAEN_ENGINE_MODEL_COMPONENT_H
+#define GAEN_ENGINE_MODEL_COMPONENT_H
 
-#include "core/Vector.h"
-#include "core/List.h"
-
-#include "engine/Task.h"
-#include "engine/MessageQueue.h"
-#include "engine/math.h"
+#include "engine/Component.h"
 
 namespace gaen
 {
 
-class Entity
+class ModelComponent : public Component
 {
-    friend struct Task;
+    friend struct task;
 public:
-    Entity(u32 propertyBufferSize,
-           u8 * pPropertyBuffer = nullptr,
-           const Mat34 & transform = Mat34::identity());
-
+    
     void update(f32 deltaSecs);
     MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
 
-    task_id taskId() { return mTaskId; }
-
 private:
-    void setTaskId(task_id taskId) { mTaskId = taskId; }
-    task_id mTaskId = -1;
-    
-    Mat34 mLocalTransform;
-    Mat34 mGlobalTransform;
 
-    u8 * mpPropertyBuffer;
-    u32 mPropertyBufferSize;
-    u32 mPropertyBufferHWM;
 
-    Vector<Task, kMEM_Engine> mComponents;
-    List<Entity*, kMEM_Engine> mChildren;
 };
 
-} // namespcae gaen
+} // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_ENTITY_H
+#endif // #ifndef GAEN_ENGINE_MODEL_COMPONENT_H

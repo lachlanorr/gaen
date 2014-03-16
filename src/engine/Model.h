@@ -70,21 +70,17 @@ public:
         Mesh * mpMesh;
     };
 
-    Model(MaterialMesh * pInitialMaterialMesh);
+    Model(Material * pMaterial, Mesh * pMesh, size_t meshCount=1);
     ~Model();
 
     model_id id() const { return mId; }
     
-    typedef Vector<MaterialMesh*, kMEM_Model> MaterialMeshVector;
+    typedef Vector<MaterialMesh, kMEM_Model> MaterialMeshVector;
     MaterialMeshVector::iterator begin() { return mMaterialMeshes.begin(); }
     MaterialMeshVector::iterator end() { return mMaterialMeshes.end(); }
 
-    void insertMaterialMesh(MaterialMesh * pMaterialMesh)
-    {
-        if (mIsReadOnly)
-            PANIC("Mesh being added to read only model");
-        mMaterialMeshes.push_back(pMaterialMesh);
-    }
+    void reserveMeshCapacity(size_t meshCount);
+    void insertMaterialMesh(Material * pMaterial, Mesh * pMesh);
 
     // Call this once all meshes have been pushed.  After that
     // the Model should not be modified.
