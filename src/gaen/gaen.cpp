@@ -37,6 +37,7 @@
 
 #include "engine/renderer_type.h"
 #include "engine/TaskMaster.h"
+#include "engine/Entity.h"
 
 namespace gaen
 {
@@ -204,6 +205,7 @@ void fin_gaen()
     if (sIsLoggingEnabled)
         fin_logging();
 }
+
 //------------------------------------------------------------------------------
 // Systems Initialization (END)
 //------------------------------------------------------------------------------

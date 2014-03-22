@@ -52,26 +52,16 @@ enum MemType
     kMEM_COUNT
 };
 
-//------------------------------------------------------------------------------
-// Allocation Macros
-//
-// Use of these macros is preferred since it will automatically
-// track file/line numbers in dev builds.
-//------------------------------------------------------------------------------
-#ifdef DELETE
-#undef DELETE
-#endif
-
 #if !HAS(TRACK_MEM)
-#define ALLOC(count, memType) gaen::fast_alloc(count)
-#define FREE(ptr)             gaen::fast_free(ptr)
-#define DELETE(ptr)           gaen::fast_delete(ptr)
+#define GALLOC(count, memType) gaen::fast_alloc(count)
+#define GFREE(ptr)             gaen::fast_free(ptr)
+#define GDELETE(ptr)           gaen::fast_delete(ptr)
 #else  // #if !HAS(DEV_BUILD)
-#define ALLOC(count, memType) gaen::tracked_alloc(count, memType, __FILE__, __LINE__)
-#define FREE(ptr)             gaen::tracked_free(ptr, __FILE__, __LINE__)
-#define DELETE(ptr)           gaen::tracked_delete(ptr, __FILE__, __LINE__)
+#define GALLOC(count, memType) gaen::tracked_alloc(count, memType, __FILE__, __LINE__)
+#define GFREE(ptr)             gaen::tracked_free(ptr, __FILE__, __LINE__)
+#define GDELETE(ptr)           gaen::tracked_delete(ptr, __FILE__, __LINE__)
 #endif // #if !HAS(DEV_BUILD)
-#define NEW(memType, type, ...) new (ALLOC(sizeof(type), memType)) type(##__VA_ARGS__)
+#define GNEW(memType, type, ...) new (GALLOC(sizeof(type), memType)) type(##__VA_ARGS__)
 
 
 // A pool contains various sizes of pre-allocated buffers.
@@ -295,7 +285,7 @@ public:
     pointer allocate(size_type n, const void * hint=0)
     {
         size_t byteCount = n * sizeof(T);
-        pointer p = static_cast<pointer>(ALLOC(byteCount, memType));
+        pointer p = static_cast<pointer>(GALLOC(byteCount, memType));
         printf("Custom allocator, allocating %lu bytes\n", byteCount);
         ASSERT_MSG(p, "Unable to allocate with Allocator, %lu bytes", byteCount);
         return p;
@@ -304,7 +294,7 @@ public:
     {
         ASSERT(p);
         printf("Custom deallocator\n");
-        FREE(p);
+        GFREE(p);
     }
     bool operator==(const Allocator& rhs) const { return true; }
 };
@@ -318,7 +308,7 @@ struct deleter
 {
     inline void operator() (T * ptr)
     {
-        DELETE(ptr);
+        GDELETE(ptr);
     }
 };
 

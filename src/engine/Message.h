@@ -30,6 +30,7 @@
 #include "core/base_defines.h"
 
 #include "engine/FNV.h"
+#include "engine/math.h"
 
 namespace gaen
 {
@@ -42,8 +43,7 @@ static const u32 kMessageFlag_TaskMaster = 1 << 0;  // This message is intended 
 enum class MessageResult
 {
     Propogate,
-    Consumed,
-    Unhandled
+    Consumed
 };
 
 union cell
@@ -88,18 +88,27 @@ union dcell
     i64 i;
     u64 u;
     f64 f;
+    void * p;
     cell cells[2];
+    // LORRTODO - Add Vec2 here once we implement it
 };
 static_assert(sizeof(dcell) == 8, "dcell must be 8 bytes");
 
 union qcell
 {
+    Vec4 vec4;
     cell cells[4];
-    dcell dcells[2];
-    // LORRTODO - Add Vec4 here once we implement it
-    // LORRTODO - Consider adding 128 bit simd stuff here
+    dcell dCells[2];
 };
 static_assert(sizeof(qcell) == 16, "qcell must be 16 bytes");
+
+union ocell
+{
+    cell cells[8];
+    dcell dCells[4];
+    qcell qCells[2];
+};
+static_assert(sizeof(ocell) == 32, "ocell must be 32 bytes");
 
 struct Message
 {
@@ -118,9 +127,9 @@ static const size_t kDcellsPerMessageBlock = kCellsPerMessageBlock / 2;
 static_assert((kCellsPerMessageBlock == 4) && (sizeof(Message) % sizeof(cell) == 0), "There should be exactly 4 cells per Message");
 union MessageBlock
 {
-    cell cells[kCellsPerMessageBlock];
-    dcell dcells[kCellsPerMessageBlock / 2];
-    qcell qcells[kCellsPerMessageBlock / 4];
+    cell cells[4];
+    dcell dCells[2];
+    qcell qCell;
 };
 
 // 16 bytes is pretty key to the principles of the message passing system.

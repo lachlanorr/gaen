@@ -40,6 +40,7 @@ namespace gaen
 {
 
 class MessageQueue;
+class Entity;
 
 // Call this from main to prep one task master per thread and
 // get them running.
@@ -56,7 +57,7 @@ void fin_task_masters();
 // loops.  This function will return immediately, main thread
 // should be used for OS tasks, or go to sleep.
 template <class RendererT>
-void start_game_loops();
+void start_game_loops(Entity * pInitEntity);
 
 template <class RendererT>
 void message_from_main(thread_id threadId,
@@ -111,6 +112,7 @@ public:
         mpRenderer = pRenderer;
     }
 
+    thread_id threadId() { return mThreadId; }
     bool isPrimary() { return mIsPrimary; }
 
 private:
@@ -122,19 +124,21 @@ private:
 
     MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
     
+    void addTask(thread_id threadOwner, const Task & task);
+
     UniquePtr<MessageQueue> mpMainThreadMessageQueue;
 
     // List of tasks owned by this TaskMaster
     typedef Vector<Task, kMEM_Engine> TaskVec;
     TaskVec mOwnedTasks;
 
-    // Maps task_id to its Task
-    typedef HashMap<task_id, Task&, kMEM_Engine> TaskMap;
-    TaskMap mTasks;
+    // Maps task_id to its index in mOwnedTasks
+    typedef HashMap<task_id, size_t, kMEM_Engine> TaskMap;
+    TaskMap mOwnedTaskMap;
     
-    // Maps task_id to the TaskMaster that owns it
-    typedef HashMap<task_id, TaskMaster<RendererT>&, kMEM_Engine> TaskOwnerMap;
-    TaskOwnerMap mTaskOwners;
+    // Maps task_id to the TaskMaster's thread_id that owns it
+    typedef HashMap<task_id, thread_id, kMEM_Engine> TaskOwnerMap;
+    TaskOwnerMap mTaskOwnerMap;
 
     RendererT * mpRenderer = nullptr;
 

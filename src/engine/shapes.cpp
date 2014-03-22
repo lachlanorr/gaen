@@ -169,10 +169,10 @@ Mesh * buildTriMesh(f32 width, f32 height)
 
 Model * buildTriModel(f32 width, f32 height, Color color)
 {
-    Material * pMat = NEW(kMEM_Texture, Material, color);
+    Material * pMat = GNEW(kMEM_Texture, Material, color);
     Mesh * pMesh = buildTriMesh(width, height);
 
-    Model * pModel = NEW(kMEM_Model, Model, pMat, pMesh);
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
 
     return pModel;
 }

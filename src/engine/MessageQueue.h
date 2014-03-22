@@ -104,6 +104,27 @@ public:
             return qcellFromIndex(index);
         }
 
+
+        // ocells (8 cell chunks, 32 bytes) are larger than our msgq
+        // itemsize (4 cells).  So, we can't use the nice reference
+        // operator accessors above (which server both getting and
+        // setting).  This is because the two 4 cell chunks of an
+        // ocell may wrap around the edge of the ring buffer.
+        ocell ocellAt(size_t index)
+        {
+            ASSERT(mAccessor.available() > 1);
+            ocell oCell;
+            oCell.qCells[0] = qcellAt(index);
+            oCell.qCells[1] = qcellAt(index+1);
+            return oCell;
+        }
+
+        void setOcellAt(size_t index, const ocell & oCell)
+        {
+            qcellFromIndex(index) = oCell.qCells[0];
+            qcellFromIndex(index+1) = oCell.qCells[1];
+        }
+
     private:
         cell & cellFromIndex(size_t index) const
         {
@@ -125,7 +146,7 @@ public:
             size_t dcellIndexIntoMessageBlock = index % kDcellsPerMessageBlock;
             
             MessageBlock * pMsgBlock = reinterpret_cast<MessageBlock*>(&mAccessor[indexIntoQueue]);
-            return pMsgBlock->dcells[dcellIndexIntoMessageBlock];
+            return pMsgBlock->dCells[dcellIndexIntoMessageBlock];
         }
 
         qcell & qcellFromIndex(size_t index) const

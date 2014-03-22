@@ -65,6 +65,10 @@ static const thread_id kBroadcastThreadId = kInvalidThreadId-1;
 // we know when it is calling various functions.
 static const thread_id kMainThreadId = kInvalidThreadId-2;
 
+// The primary thread is special. It runs the renderer and input
+// routines.  In many places we need to identify it by its thread_id.
+static const thread_id kPrimaryThreadId = 0;
+
 static const thread_id kMinThreads = 1;   // includes main
 static const thread_id kMaxThreads = 64;  // includes main
 

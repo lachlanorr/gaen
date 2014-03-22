@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// ModelComponent.h - Component that encapsulate a static model
+// stdafx.h - Precompiled headers
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,31 +24,31 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_MODEL_COMPONENT_H
-#define GAEN_ENGINE_MODEL_COMPONENT_H
+#ifndef GAEN_SAMPLES_STDAFX_H
+#define GAEN_SAMPLES_STDAFX_H
 
-#include "engine/Model.h"
-#include "engine/Component.h"
+#include <cfloat>
+#include <csignal>
+#include <cstdarg>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
-namespace gaen
-{
+#include <algorithm>
+#include <atomic>
+#include <list>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <new>
+#include <string>
+#include <thread>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-class ModelComponent : public Component
-{
-public:
-    ModelComponent(Entity * pEntity, Model * pModel);
-    
-    void update(f32 deltaSecs);
-    MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
-
-private:
-    void init();
-    void fin();
-    
-    Model * mpModel;
-
-};
-
-} // namespace gaen
-
-#endif // #ifndef GAEN_ENGINE_MODEL_COMPONENT_H
+#endif // #ifndef GAEN_SAMPLES_STDAFX_H

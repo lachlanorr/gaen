@@ -109,7 +109,7 @@ public:
     SpscRingBuffer(size_t elemCount, MemType memType)
       : mElemCount(elemCount)
     {
-        mpBuffer = static_cast<T*>(ALLOC(sizeof(T) * elemCount, memType));
+        mpBuffer = static_cast<T*>(GALLOC(sizeof(T) * elemCount, memType));
         mpBufferEnd = mpBuffer + elemCount;
         mpHead.store(mpBuffer);
         mpTail.store(mpBuffer);
@@ -117,7 +117,7 @@ public:
 
     ~SpscRingBuffer()
     {
-        FREE(mpBuffer);
+        GFREE(mpBuffer);
     }
 
     void pushBegin(Accessor * pAccessor, size_t elemCount)

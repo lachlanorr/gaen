@@ -50,6 +50,8 @@ public:
 
     task_id taskId() { return mTaskId; }
 
+    void addComponent(Task & componentTask);
+
 private:
     void setTaskId(task_id taskId) { mTaskId = taskId; }
     task_id mTaskId = -1;

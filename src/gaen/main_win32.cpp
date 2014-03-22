@@ -34,6 +34,9 @@
 #include "renderergl/gaen_opengl.h"
 #include "gaen/gaen.h"
 
+// LORRTEMP - make the loaded initial entity data driven
+#include "samples/model_viewer/model_viewer.h"
+
 namespace gaen
 {
 
@@ -286,7 +289,11 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     // be called directly.  Interaction with the renderer should only
     // be made with messages sent to the primary TaskMaster.
 
-    start_game_loops<renderer_type>();
+    // LORRTEMP - make the loaded initial entity data driven
+    Entity * pEntity = gaen::model_viewer_init_entity();
+
+
+    start_game_loops<renderer_type>(pEntity);
 
     BOOL ret;
     MSG msg;

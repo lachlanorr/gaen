@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// ModelComponent.h - Component that encapsulate a static model
+// model_viewer.cpp - Load some models and allow mouse based interaction
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,31 +24,19 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_MODEL_COMPONENT_H
-#define GAEN_ENGINE_MODEL_COMPONENT_H
+#include "samples/stdafx.h"
 
-#include "engine/Model.h"
-#include "engine/Component.h"
+#include "engine/Entity.h"
+#include "samples/model_viewer/model_viewer.h"
 
 namespace gaen
 {
 
-class ModelComponent : public Component
+Entity * model_viewer_init_entity()
 {
-public:
-    ModelComponent(Entity * pEntity, Model * pModel);
-    
-    void update(f32 deltaSecs);
-    MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
+    Entity * pEntity = GNEW(kMEM_Engine, Entity, 256);
 
-private:
-    void init();
-    void fin();
-    
-    Model * mpModel;
-
-};
+    return pEntity;
+}
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_ENGINE_MODEL_COMPONENT_H

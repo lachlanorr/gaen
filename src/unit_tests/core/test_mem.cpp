@@ -49,11 +49,11 @@ public:
 TEST(MemoryManagementTest, NewDelete)
 {
     size_t testClassSize = sizeof(TestClass);
-    TestClass * pX = new (ALLOC(sizeof(TestClass),gaen::kMEM_Model)) TestClass;
-    TestClass * pXarr = new (ALLOC(sizeof(TestClass)*5,gaen::kMEM_Engine)) TestClass[5];
+    TestClass * pX = new (GALLOC(sizeof(TestClass),gaen::kMEM_Model)) TestClass;
+    TestClass * pXarr = new (GALLOC(sizeof(TestClass)*5,gaen::kMEM_Engine)) TestClass[5];
 
-    DELETE(pX);
-    DELETE(pXarr);
+    GDELETE(pX);
+    GDELETE(pXarr);
 }
 
 TEST(MemoryManagementTest, InitAndFin)

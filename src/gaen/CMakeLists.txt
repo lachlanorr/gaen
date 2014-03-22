@@ -61,11 +61,12 @@ ELSEIF (WIN32)
   package (gaen)
 ENDIF ()
 
-
+# LORRTODO - Make samples project only get added with a command switch. Don't add it by default.
 TARGET_LINK_LIBRARIES (gaen
   core
   engine
   renderergl
+  samples
   ${PLATFORM_LINK_LIBS}
   )
 

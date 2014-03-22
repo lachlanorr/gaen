@@ -31,6 +31,7 @@ SET (engine_component_SOURCES
 
 SET (engine_SOURCES
   Color.h
+  Component.h
   Entity.cpp
   Entity.h
   FNV.h
@@ -59,12 +60,12 @@ SET (engine_SOURCES
 
 MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${engine_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/Components" "${engine_component_SOURCES}")
 
 ADD_LIBRARY (engine
   ${engine_SOURCES}
   )
 
-SOURCE_GROUP ("Components" FILES ${engine_component_SOURCES})
 
 SET (update_fnv_script ${scripts_dir}/update_fnv_hashes.py)
 

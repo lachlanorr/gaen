@@ -26,11 +26,40 @@
 
 #include "engine/stdafx.h"
 
+#include "core/logging.h"
+
 #include "engine/components/ModelComponent.h"
 
 namespace gaen
 {
 
+ModelComponent::ModelComponent(Entity * pEntity, Model * pModel)
+  : Component(pEntity)
+  , mpModel(pModel)
+{
+}
+
+void ModelComponent::update(f32 deltaSecs)
+{
+    // LORRTODO - account for tasks that need no updating. We shouldn't even call this in those cases
+}
+
+
+MessageResult ModelComponent::message(const MessageQueue::MessageAccessor& msgAcc)
+{
+    switch (msgAcc.message().msgId)
+    {
+    case FNV::init_properties:
+        //initProperties();
+        break;
+    case FNV::fin:
+        init();
+        break;
+    }
+
+    LOG_WARNING("Unhandled message to component - taskid: %d, msgId: %d", taskId(), msgAcc.message().msgId);
+    return MessageResult::Propogate;
+}
 
 
 } // namespace gaen

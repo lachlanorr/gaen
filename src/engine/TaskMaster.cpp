@@ -31,6 +31,7 @@
 
 #include "engine/FNV.h"
 #include "engine/MessageQueue.h"
+#include "engine/Entity.h"
 #include "engine/renderer_type.h"
 #include "engine/TaskMaster.h"
 
@@ -42,10 +43,11 @@ static const u32 kMaxMainThreadMessages = 4096;
 static const u64 kFPS = 60;
 static const u64 kNanosPerFrame = 1000000000 / kFPS;
 
+static bool sIsInit = false;
+
 template <class RendererT>
 void init_task_masters()
 {
-    static bool sIsInit = false;
     ASSERT(!sIsInit);
 
     for (thread_id tid = 0; tid < num_threads(); ++tid)
@@ -60,6 +62,7 @@ void init_task_masters()
 template <class RendererT>
 void fin_task_masters()
 {
+    ASSERT(sIsInit);
     message_from_main<RendererT>(kBroadcastThreadId, FNV::fin);
     join_all_threads();
 }
@@ -68,6 +71,7 @@ void fin_task_masters()
 template <class RendererT>
 static void start_game_loop()
 {
+    ASSERT(sIsInit);
     init_time();
 
     thread_id tid = active_thread_id();
@@ -86,8 +90,9 @@ static void start_game_loop()
 }
 
 template <class RendererT>
-void start_game_loops()
+void start_game_loops(Entity * pInitEntity)
 {
+    ASSERT(sIsInit);
     thread_id numThreads = num_threads();
 
     // Start a TaskMaster for every thread
@@ -95,6 +100,11 @@ void start_game_loops()
     {
         start_thread(start_game_loop<RendererT>);
     }
+
+    // Create a task out of the entity and start it up
+    Task t = Task::create(pInitEntity);
+    MessageBlock * pMb = reinterpret_cast<MessageBlock*>(&t);
+    message_from_main<RendererT>(kPrimaryThreadId, FNV::add_task, to_cell(0), pMb, sizeof(Task)/sizeof(MessageBlock));
 }
 
 template <class RendererT>
@@ -115,7 +125,7 @@ inline void task_master_message_from_main(thread_id threadId,
                  msgBlockCount);
     for (size_t i = 0; i < msgBlockCount; ++i)
     {
-        msgAcc.qcellAt(i) = pMsgBlock[i].qcells[0];
+        msgAcc.qcellAt(i) = pMsgBlock[i].qCell;
     }
     mq.pushCommit(msgAcc);
 }
@@ -134,6 +144,7 @@ void message_from_main(thread_id threadId,
                        const MessageBlock * pMsgBlock,
                        size_t msgBlockCount)
 {
+    ASSERT(sIsInit);
     ASSERT(active_thread_id() == kMainThreadId);
     thread_id numThreads = num_threads();
     ASSERT((threadId >= 0 && threadId < numThreads) ||
@@ -164,10 +175,10 @@ void TaskMaster<RendererT>::init(thread_id tid)
 {
     ASSERT(!mIsInit);
     mThreadId = tid;
-    mIsPrimary = tid == 0;
+    mIsPrimary = tid == kPrimaryThreadId;
 
     // Allocate a message queue that the main thread can use to communicate with us
-    void * tmp = ALLOC(sizeof(MessageQueue), kMEM_Engine);
+    void * tmp = GALLOC(sizeof(MessageQueue), kMEM_Engine);
     mpMainThreadMessageQueue.reset(new (tmp) MessageQueue(kMaxMainThreadMessages));
 
     // Pre-allocate reasonable sizes for hash tables
@@ -175,8 +186,8 @@ void TaskMaster<RendererT>::init(thread_id tid)
     const u32 kEstimatedTaskCount = 65536;
     const u32 kEstimatedMutableDataCount = 128;
     mOwnedTasks.reserve(kEstimatedTaskCount);
-    mTasks.reserve(kEstimatedTaskCount);
-    mTaskOwners.reserve(kEstimatedTaskCount);
+    mOwnedTaskMap.reserve(kEstimatedTaskCount);
+    mTaskOwnerMap.reserve(kEstimatedTaskCount);
     mMutableDataUsers.reserve(kEstimatedMutableDataCount);
     mMutableData.reserve(kEstimatedTaskCount);
 
@@ -354,28 +365,51 @@ MessageResult TaskMaster<RendererT>::message(const MessageQueue::MessageAccessor
     {
         switch(msg.msgId)
         {
+        case FNV::add_task:
+            
+            break;
         case FNV::fin:
             ASSERT(mIsRunning);
             mIsRunning = false;
             return MessageResult::Consumed;
         default:
             ERR("Unhandled message type, fnv: %d", msg.msgId);
-            return MessageResult::Unhandled;
+            return MessageResult::Propogate;
         }
     }
     else
     {
         // Message was meant for a task, send it appropriately
+ //       switch(msg.msgId)
+//        {
+//        }
     }
 
-    return MessageResult::Unhandled;
+    return MessageResult::Consumed;
 }
+
+
+template <class RendererT>
+void TaskMaster<RendererT>::addTask(thread_id threadOwner, const Task & task)
+{
+    ASSERT(mTaskOwnerMap.find(task.id()) == mTaskOwnerMap.end());
+
+    mTaskOwnerMap[task.id()] = threadOwner;
+
+    if (threadOwner == threadId())
+    {
+        ASSERT(mOwnedTaskMap.find(task.id()) == mOwnedTaskMap.end());
+        mOwnedTasks.push_back(task);
+        mOwnedTaskMap[task.id()] = mOwnedTasks.size() - 1;
+    }
+}
+
 
 // Instantiate TaskMaster and helper funcs with our renderer class.
 template class TaskMaster<renderer_type>;
 template void init_task_masters<renderer_type>();
 template void fin_task_masters<renderer_type>();
-template void start_game_loops<renderer_type>();
+template void start_game_loops<renderer_type>(Entity * pInitEntity);
 template void message_from_main<renderer_type>(thread_id threadId,
                                               fnv msgId);
 template void message_from_main<renderer_type>(thread_id threadId,

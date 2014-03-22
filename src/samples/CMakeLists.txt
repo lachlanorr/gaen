@@ -24,35 +24,26 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
+SET (model_viewer_SOURCES
+  model_viewer/model_viewer.cpp
+  model_viewer/model_viewer.h
+  )
 
 
-# Standard include paths
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR})
-INCLUDE_DIRECTORIES (${ext_dir}/opengl-4.3)
+SET (samples_SOURCES
+  ${model_viewer_SOURCES}
+  )
 
+MSVC_PRECOMPILED_HEADER (samples samples_SOURCES)
+IDE_SOURCE_PROPERTIES ("/" "${samples_SOURCES}")
+IDE_SOURCE_PROPERTIES ("/model_viewer" "${model_viewer_SOURCES}")
 
-# Packaging
-SET (packaged_dir ${CMAKE_BINARY_DIR}/packaged)
+ADD_LIBRARY (samples
+  ${samples_SOURCES}
+  )
 
-EXECUTE_PROCESS (COMMAND ${CMAKE_COMMAND} -E make_directory ${packaged_dir})
-
-MACRO (package target)
-  GET_PROPERTY(target_location TARGET ${target} PROPERTY LOCATION)
-  ADD_CUSTOM_COMMAND(
-    TARGET ${target}
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${target_location} ${packaged_dir}/
-    )
-ENDMACRO (package)
-
-
-# Subdirs
-ADD_SUBDIRECTORY (core)
-ADD_SUBDIRECTORY (engine)
-ADD_SUBDIRECTORY (renderergl)
-ADD_SUBDIRECTORY (samples)
-ADD_SUBDIRECTORY (gaen)
-
-ADD_SUBDIRECTORY (gac)
-ADD_SUBDIRECTORY (unit_tests)
+ADD_DEPENDENCIES(samples
+  engine
+  core
+  )
 

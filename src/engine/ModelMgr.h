@@ -129,7 +129,7 @@ private:
             }
             else
             {
-                DELETE(pObj);
+                GDELETE(pObj);
             }
         }
     private:
@@ -150,7 +150,7 @@ private:
             }
             else
             {
-                DELETE(pObj);
+                GDELETE(pObj);
             }
         }
     private:

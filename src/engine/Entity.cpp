@@ -27,6 +27,7 @@
 #include "engine/stdafx.h"
 
 #include "core/mem.h"
+#include "core/logging.h"
 #include "engine/Entity.h"
 
 namespace gaen
@@ -39,7 +40,7 @@ Entity::Entity(u32 propertyBufferSize,
   , mPropertyBufferHWM(0)
 {
     if (!pPropertyBuffer)
-        pPropertyBuffer = static_cast<u8*>(ALLOC(mPropertyBufferSize, kMEM_Engine));
+        pPropertyBuffer = static_cast<u8*>(GALLOC(mPropertyBufferSize, kMEM_Engine));
     
     mLocalTransform = transform;
     mGlobalTransform = transform;
@@ -64,7 +65,27 @@ MessageResult Entity::message(const MessageQueue::MessageAccessor& msgAcc)
         break;
     }
 
-    return MessageResult::Unhandled;
+
+    MessageResult res;
+
+    // Send the message to all components
+    for (Task & task : mComponents)
+    {
+        res = task.message(msgAcc);
+        if (res == MessageResult::Consumed)
+            return MessageResult::Consumed;
+    }
+
+    // Send the message to all children
+    for (Entity * pChild : mChildren)
+    {
+        res = pChild->message(msgAcc);
+        if (res == MessageResult::Consumed)
+            return MessageResult::Consumed;
+    }
+
+    LOG_WARNING("Unhandled message to entity - taskid: %d, msgId: %d", taskId(), msgAcc.message().msgId);
+    return MessageResult::Propogate;
 }
 
 } // namespace gaen

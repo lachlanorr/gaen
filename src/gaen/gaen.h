@@ -49,7 +49,6 @@ void set_renderer(RendererT * pRenderer)
 // Call this to shutdown TaskMasters when app wants to close
 void fin_gaen();
 
-
 } // namespace gaen
 
 #endif // #ifndef GAEN_GAEN_GAEN_H

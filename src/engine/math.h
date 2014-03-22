@@ -45,7 +45,7 @@ f32 fastSqrt(const f32 x);
 struct Vec3
 {
     // constructors
-    Vec3();
+    Vec3() = default;
     Vec3(f32 x, f32 y, f32 z);
     Vec3(const struct Vec4 &rhs);
 
@@ -67,7 +67,7 @@ Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2);
 
 struct Vec4
 {
-    Vec4();
+    Vec4() = default;
     Vec4(f32 x, f32 y, f32 z, f32 w);
     Vec4(const Vec3 &vec3, f32 w);
 
@@ -223,9 +223,6 @@ inline f32 fastSqrt(const f32 x)
 //--------------------------------------
 // Vec3 inlined methods
 //--------------------------------------
-inline Vec3::Vec3()
-{}
-
 inline Vec3::Vec3(f32 x, f32 y, f32 z)
   : x(x)
   , y(y)
@@ -300,9 +297,6 @@ inline Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2)
 //--------------------------------------
 // Vec4 inlined methods
 //--------------------------------------
-inline Vec4::Vec4()
-{}
-
 inline Vec4::Vec4(f32 x, f32 y, f32 z, f32 w) 
   : x(x)
   , y(y)

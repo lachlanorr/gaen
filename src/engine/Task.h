@@ -82,16 +82,16 @@ task_id next_task_id();
 struct Task
 {
 public:
-    Task()
+    Task() = default;
+
+    static Task & from_ocell(ocell & oCell)
     {
-        // zero out all fields
-        // Simpler than setting all or calling memset.
-        // Task is guaranteed to be 32 bytes, see static_assert further down.
-        u64 * p64 = reinterpret_cast<u64*>(this);
-        *p64++ = 0;
-        *p64++ = 0;
-        *p64++ = 0;
-        *p64 = 0;
+        return *(reinterpret_cast<Task*>(&oCell));
+    }
+
+    static const Task & from_ocell(const ocell & oCell)
+    {
+        return *(reinterpret_cast<const Task*>(&oCell));
     }
 
     template <class T>
@@ -126,27 +126,28 @@ public:
         return task;
     }
 
-    task_id id() { return mTaskId; }
+    task_id id() const { return mTaskId; }
 
-    TaskStatus status() { return static_cast<TaskStatus>(mStatus); }
+    TaskStatus status() const { return static_cast<TaskStatus>(mStatus); }
     void setStatus(TaskStatus newStatus) { mStatus = static_cast<u8>(newStatus); }
 
-    TaskPermissions permissions() { return static_cast<TaskPermissions>(mPermissions); }
+    TaskPermissions permissions() const { return static_cast<TaskPermissions>(mPermissions); }
     void setPermissions(TaskPermissions newPermissions) { mPermissions = static_cast<u8>(newPermissions); }
 
-    u16 index() { return mIndex; }
+    u16 index() const { return mIndex; }
     void setIndex(u16 index) { mIndex = index; }
 
-    u16 parent() { return mParent; }
+    u16 parent() const { return mParent; }
     void setParent(u16 parent) { mParent = parent; }
     
-    u16 firstSibling() { return mFirstSibling; }
+    u16 firstSibling() const { return mFirstSibling; }
     void setFirstSibling(u16 firstSibling) { mFirstSibling = firstSibling; }
 
-    u16 firstChild() { return mFirstChild; }
+    u16 firstChild() const { return mFirstChild; }
     void setFirstChild(u16 firstChild) { mFirstChild = firstChild; }
 
     void * that() { return mpThat; }
+    const void * that() const { return mpThat; }
 
 
     void update(f32 deltaSecs)
