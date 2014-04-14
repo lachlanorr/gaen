@@ -28,11 +28,16 @@
 
 #include "core/base_defines.h"
 
+#include "engine/MessageQueue.h"
+#include "engine/message_helpers/ModelInstanceMsg.h"
+
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/RendererGL.h"
 
 namespace gaen
 {
+
+static const size_t kExpectedMaxModelCount = 4096;
 
 void RendererGL::init(device_context deviceContext,
                       render_context renderContext,
@@ -43,7 +48,13 @@ void RendererGL::init(device_context deviceContext,
     mRenderContext = renderContext;
     mScreenWidth = screenWidth;
     mScreenHeight = screenHeight;
+
     mIsInit = true;
+}
+
+void RendererGL::fin()
+{
+    mModelMgr.fin();
 }
 
 void RendererGL::render()
@@ -74,18 +85,40 @@ void RendererGL::initViewport()
                                     100.0f);
 
     // setup gui projection, which is orthographic
-    //guiProjection_.orthographic(0.0f,
-//                                static_cast<f32>(width),
-//                                -static_cast<f32>(height),
-//                                0.0f,
-//                                0.0f,
-//                                100.0f);
     mGuiProjection = Mat4::orthographic(static_cast<float>(mScreenWidth) * -0.5f,
                                         static_cast<float>(mScreenWidth) * 0.5f,
                                         static_cast<float>(mScreenHeight) * -0.5f,
                                         static_cast<float>(mScreenHeight) * 0.5f,
                                         0.0f,
                                         100.0f);
+}
+
+MessageResult RendererGL::message(const MessageQueue::MessageAccessor& msgAcc)
+{
+    const Message & msg = msgAcc.message();
+
+    switch(msg.msgId)
+    {
+    case FNV::renderer_insert_model_instance:
+    {
+        ModelInstanceMsgReader rdr(msgAcc);
+        mModelMgr.insertModelInstance(rdr.instanceId(),
+                                      rdr.model(),
+                                      rdr.worldTransform(),
+                                      rdr.isAssetManaged());
+        break;
+    }
+    case FNV::renderer_remove_model_instance:
+    {
+        model_instance_id instanceId = msg.payload.u;
+        mModelMgr.removeModelInstance(instanceId);
+        break;
+    }
+    default:
+        PANIC("Unknown renderer message: %d", msg.msgId);
+    }
+
+    return MessageResult::Consumed;
 }
 
 

@@ -111,10 +111,14 @@ ModelMgr::ModelMgr()
     mShaderModelMap[-1][-1] = MeshList();
 }
 
+void ModelMgr::fin()
+{
+    // LORRTODO - delete all models and materials not managed by asset mgr
+}
 
 void ModelMgr::insertModelInstance(model_instance_id instanceId,
                                    Model * pModel,
-                                   const Mat4 & worldTransform,
+                                   const Mat34 & worldTransform,
                                    bool isAssetManaged)
 {
     // Insert into mModelMap if necessary

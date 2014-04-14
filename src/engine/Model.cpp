@@ -52,8 +52,8 @@ Model::MaterialMesh::MaterialMesh(Model * pModel, Material * pMaterial, Mesh * p
 
 Model::MaterialMesh::~MaterialMesh()
 {
-    delete mpMaterial;
-    delete mpMesh;
+    GDELETE(mpMaterial);
+    GDELETE(mpMesh);
 }
 
 shader_hash Model::MaterialMesh::calcShaderHash()

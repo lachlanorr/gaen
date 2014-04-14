@@ -27,6 +27,9 @@
 #include "samples/stdafx.h"
 
 #include "engine/Entity.h"
+#include "engine/Components/ModelComponent.h"
+#include "engine/shapes.h"
+
 #include "samples/model_viewer/model_viewer.h"
 
 namespace gaen
@@ -34,9 +37,15 @@ namespace gaen
 
 Entity * model_viewer_init_entity()
 {
-    Entity * pEntity = GNEW(kMEM_Engine, Entity, 256);
+    Model * pModel = buildTriModel(20.0f, 20.0f, Color(255, 255, 0, 255));
 
-    return pEntity;
+    // LORRTODO
+    //Entity * pEntity = GNEW(kMEM_Engine, Entity, 256);
+    //pEntity->addComponent(GNEW(kMEM_Engine, ModelComponent, pModel));
+
+    //return pEntity;
+
+    return nullptr;
 }
 
 } // namespace gaen

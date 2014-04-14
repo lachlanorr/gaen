@@ -60,22 +60,40 @@ template <class RendererT>
 void start_game_loops(Entity * pInitEntity);
 
 template <class RendererT>
-void message_from_main(thread_id threadId,
-                       fnv msgId);
+MessageQueue & message_queue_for_target(task_id target);
 
 template <class RendererT>
-void message_from_main(thread_id threadId,
-                       fnv msgId,
-                       cell payload,
-                       const MessageBlock * pMsgBlock,
-                       size_t msgBlockCount);
+void queue_message_from_main(thread_id threadId,
+                             fnv msgId);
+
+template <class RendererT>
+void queue_message_from_main(thread_id threadId,
+                             fnv msgId,
+                             cell payload,
+                             const MessageBlock * pMsgBlock,
+                             size_t msgBlockCount);
+
+
+template <class RendererT>
+void queue_message(fnv msgId,
+                   task_id source,
+                   task_id target,
+                   cell payload,
+                   const MessageBlock * pMsgBlock,
+                   size_t msgBlockCount);
+
+// Convenience macros to avoid repeated template param render_type in
+// all calls.  It will always be render_type.
+#define MESSAGE_QUEUE_FOR_TARGET message_queue_for_target<renderer_type>
+#define QUEUE_MESSAGE_FROM_MAIN queue_message_from_main<renderer_type>
+#define QUEUE_MESSAGE queue_message<renderer_type>
 
 template <class RendererT>
 class TaskMaster
 {
 public:
     void init(thread_id tid);
-    void fin();
+    void fin(const MessageQueue::MessageAccessor& msgAcc);
 
     static TaskMaster<RendererT> & task_master_for_thread(thread_id tid);
     inline static TaskMaster<RendererT> & primary_task_master()
@@ -83,17 +101,36 @@ public:
         return task_master_for_thread(0);
     }
 
+    // Get message queue for messages from main thread
     MessageQueue & mainMessageQueue()
     {
         ASSERT(mIsInit);
         ASSERT(active_thread_id() == kMainThreadId);
-        return *mpMainThreadMessageQueue;
+        return *mpMainMessageQueue;
     }
+
+    // Get message queue for messages from another task master
+    MessageQueue & taskMasterMessageQueue()
+    {
+        ASSERT(mIsInit);
+        ASSERT(active_thread_id() < num_threads());
+        return *mTaskMasterMessageQueues[active_thread_id()];
+    }
+
+    MessageQueue & messageQueueForTarget(task_id target);
 
     // Start the game loop.  This function won't return
     // until the TaskMaster gets shut down.
     void runPrimaryGameLoop();
     void runAuxiliaryGameLoop();
+
+    void queueMessage(fnv msgId,
+                      task_id source,
+                      task_id target,
+                      cell payload,
+                      const MessageBlock * pMsgBlock,
+                      size_t msgBlockCount);
+
 
     // Register a path as a mutable data dependency,
     // i.e. the task can modify this data.
@@ -119,14 +156,12 @@ private:
     // Process any messages on the queue
     void processMessages(MessageQueue & msgQueue);
 
-    // Process all messages from tasks, directed to one of our tasks
-    void processTaskMessages();
-
     MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
     
-    void addTask(thread_id threadOwner, const Task & task);
+    void insertTask(thread_id threadOwner, const Task & task);
 
-    UniquePtr<MessageQueue> mpMainThreadMessageQueue;
+    MessageQueue * mpMainMessageQueue; // messages from main queue here
+    Vector<MessageQueue*, kMEM_Engine> mTaskMasterMessageQueues; // message from other task masters queue here
 
     // List of tasks owned by this TaskMaster
     typedef Vector<Task, kMEM_Engine> TaskVec;
@@ -161,7 +196,6 @@ private:
     bool mIsInit = false;
     bool mIsRunning = false;
 };
-
 
 } // namespace gaen
 

@@ -105,58 +105,40 @@ public:
         }
 
 
-        // ocells (8 cell chunks, 32 bytes) are larger than our msgq
-        // itemsize (4 cells).  So, we can't use the nice reference
-        // operator accessors above (which server both getting and
-        // setting).  This is because the two 4 cell chunks of an
-        // ocell may wrap around the edge of the ring buffer.
-        ocell ocellAt(size_t index)
-        {
-            ASSERT(mAccessor.available() > 1);
-            ocell oCell;
-            oCell.qCells[0] = qcellAt(index);
-            oCell.qCells[1] = qcellAt(index+1);
-            return oCell;
-        }
-
-        void setOcellAt(size_t index, const ocell & oCell)
-        {
-            qcellFromIndex(index) = oCell.qCells[0];
-            qcellFromIndex(index+1) = oCell.qCells[1];
-        }
-
     private:
         cell & cellFromIndex(size_t index) const
         {
             ASSERT(index < availableCells());
-            size_t factoredIndex = index + 3; // since first available cell is last 4 bytes of header
+            size_t factoredIndex = index + 4;
+            // Access to the payload cell should be done explicitly through payload member.
+            // This method starts at the first cell after the message header block.
             
-            size_t indexIntoQueue = factoredIndex / kCellsPerMessageBlock;
-            size_t cellIndexIntoMessageBlock = factoredIndex % kCellsPerMessageBlock;
+            size_t blockIndexIntoQueue = factoredIndex / kCellsPerMessageBlock;
+            size_t cellIndexIntoBlock = factoredIndex % kCellsPerMessageBlock;
             
-            MessageBlock * pMsgBlock = reinterpret_cast<MessageBlock*>(&mAccessor[indexIntoQueue]);
-            return pMsgBlock->cells[cellIndexIntoMessageBlock];
+            MessageBlock * pMsgBlock = reinterpret_cast<MessageBlock*>(&mAccessor[blockIndexIntoQueue]);
+            return pMsgBlock->cells[cellIndexIntoBlock];
         }
 
         dcell & dcellFromIndex(size_t index) const
         {
             ASSERT(index < availableDcells());
 
-            size_t indexIntoQueue = 1 + index / kDcellsPerMessageBlock;
-            size_t dcellIndexIntoMessageBlock = index % kDcellsPerMessageBlock;
+            size_t blockIndexIntoQueue = 1 + index / kDcellsPerMessageBlock;
+            size_t dcellIndexIntoBlock = index % kDcellsPerMessageBlock;
             
-            MessageBlock * pMsgBlock = reinterpret_cast<MessageBlock*>(&mAccessor[indexIntoQueue]);
-            return pMsgBlock->dCells[dcellIndexIntoMessageBlock];
+            MessageBlock * pMsgBlock = reinterpret_cast<MessageBlock*>(&mAccessor[blockIndexIntoQueue]);
+            return pMsgBlock->dCells[dcellIndexIntoBlock];
         }
 
         qcell & qcellFromIndex(size_t index) const
         {
             ASSERT(index < availableQcells());
 
-            size_t indexIntoQueue = 1 + index;
-            size_t qcellIndexIntoMessageBlock = index;
+            size_t blockIndexIntoQueue = 1 + index;
+            // size_t qcellIndexIntoBlock = 0; - since we have qcell (16 byte) blocks, no need to index into block
             
-            qcell * pqcell = reinterpret_cast<qcell*>(&mAccessor[indexIntoQueue]);
+            qcell * pqcell = reinterpret_cast<qcell*>(&mAccessor[blockIndexIntoQueue]);
             return *pqcell;
         }
 
@@ -190,8 +172,7 @@ public:
               cell payload)
     {
         MessageAccessor msgAcc;
-        pushHeader(&msgAcc, msgId, flags, source, target, 0);
-        msgAcc.mAccessor[0].payload = payload;
+        pushHeader(&msgAcc, msgId, flags, source, target, payload, 0);
         mRingBuffer.pushCommit(1);
     }
 
@@ -200,9 +181,10 @@ public:
                    u32 flags,
                    task_id source,
                    task_id target,
+                   cell payload,
                    size_t msgBlockCount)
     {
-        pushHeader(pMsgAcc, msgId, flags, source, target, msgBlockCount);
+        pushHeader(pMsgAcc, msgId, flags, source, target, payload, msgBlockCount);
     }
 
     void pushCommit(const MessageAccessor & msgAcc)
@@ -239,6 +221,7 @@ private:
                     u32 flags,
                     task_id source,
                     task_id target,
+                    cell payload,
                     size_t msgBlockCount)
     {
         mRingBuffer.pushBegin(&pMsgAcc->mAccessor, msgBlockCount+1); // + 1 for header
@@ -248,11 +231,13 @@ private:
         msg.flags = flags;
         msg.source = source;
         msg.target = target;
+        msg.payload = payload;
         msg.size = msgBlockCount;
     }
 
     SpscRingBuffer<Message> mRingBuffer;
 };
+
 
 } // namesapce gaen
 

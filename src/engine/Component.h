@@ -32,21 +32,33 @@
 namespace gaen
 {
 
+// Base component for common stuff for all Components.
 class Component
 {
-    friend struct task;
+    friend struct Task;
+    friend class Entity;
 public:
-    Component(Entity * pEntity)
-      : mpEntity(pEntity) {}
-    
-    task_id taskId() { return mTaskId; }
-    Entity & entity() { ASSERT(mpEntity); return *mpEntity; }
+    task_id taskId() { ASSERT(mIsInit); return mTaskId; }
+    task_id entityTaskId() { ASSERT(mIsInit); return mEntityTaskId; }
+
+    MessageResult message(const MessageQueue::MessageAccessor& msgAcc)
+    {
+        MessageResult msgRes = MessageResult::Propogate;
+        const Message & msg = msgAcc.message();
+        switch (msg.msgId)
+        {
+        case FNV::init:
+            mEntityTaskId = msg.source;
+            mTaskId = msg.target;
+            msgRes = MessageResult::Consumed;
+        }
+        return msgRes;
+    }
 
 protected:
-    void setTaskId(task_id taskId) { mTaskId = taskId; }
-    task_id mTaskId = -1;
-    
-    Entity * mpEntity;
+    task_id mTaskId = kInvalidTaskId;
+    task_id mEntityTaskId = kInvalidTaskId;
+    bool mIsInit = false;
 };
 
 } // namespace gaen

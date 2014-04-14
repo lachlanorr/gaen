@@ -25,9 +25,15 @@
 #-------------------------------------------------------------------------------
 
 SET (engine_component_SOURCES
-  Components/ModelComponent.cpp
-  Components/ModelComponent.h
+  components/ModelComponent.cpp
+  components/ModelComponent.h
   )
+
+SET (engine_message_helpers_SOURCES
+  message_helpers/BaseMsg.h
+  message_helpers/ModelInstanceMsg.h
+  message_helpers/TaskMsg.h
+)  
 
 SET (engine_SOURCES
   Color.h
@@ -56,11 +62,13 @@ SET (engine_SOURCES
   TaskMaster.cpp
   TaskMaster.h
   ${engine_component_SOURCES}
+  ${engine_message_helpers_SOURCES}
   )
 
 MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${engine_SOURCES}")
-IDE_SOURCE_PROPERTIES( "/Components" "${engine_component_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/components" "${engine_component_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/message_helpers" "${engine_message_helpers_SOURCES}")
 
 ADD_LIBRARY (engine
   ${engine_SOURCES}

@@ -33,18 +33,19 @@
 namespace gaen
 {
 
+// Base component that handles some generic stuff all components must
+// abide by
+
 class ModelComponent : public Component
 {
 public:
-    ModelComponent(Entity * pEntity, Model * pModel);
+    ModelComponent(Model * pModel)
+      : mpModel(pModel) {}
     
     void update(f32 deltaSecs);
     MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
 
 private:
-    void init();
-    void fin();
-    
     Model * mpModel;
 
 };

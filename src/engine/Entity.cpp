@@ -37,6 +37,7 @@ Entity::Entity(u32 propertyBufferSize,
                u8 * pPropertyBuffer,
                const Mat34 & transform)
   : mPropertyBufferSize(propertyBufferSize)
+  , mpPropertyBuffer(pPropertyBuffer)
   , mPropertyBufferHWM(0)
 {
     if (!pPropertyBuffer)
@@ -59,10 +60,24 @@ void Entity::update(f32 deltaSecs)
 
 MessageResult Entity::message(const MessageQueue::MessageAccessor& msgAcc)
 {
-    switch (msgAcc.message().msgId)
+    const Message & msg = msgAcc.message();
+
+    switch (msg.msgId)
     {
     case FNV::fin:
-        break;
+        // fin messages are like destructors and should be handled specially.
+        // fin method will propogate fin to all tasks/entity children
+        // and delete this entity.
+        fin(msgAcc);
+        return MessageResult::Propogate;
+    case FNV::init:
+        // We consume this message. New init messages will be generated and
+        // passed to Components when they are added to us.
+        init(msgAcc);
+        return MessageResult::Consumed;
+    case FNV::insert_component:
+        //insertComponent(msgAcc); // LORRTODO
+        return MessageResult::Consumed;
     }
 
 
@@ -87,5 +102,26 @@ MessageResult Entity::message(const MessageQueue::MessageAccessor& msgAcc)
     LOG_WARNING("Unhandled message to entity - taskid: %d, msgId: %d", taskId(), msgAcc.message().msgId);
     return MessageResult::Propogate;
 }
+
+void Entity::fin(const MessageQueue::MessageAccessor& msgAcc)
+{
+    ASSERT(msgAcc.message().msgId == FNV::fin);
+
+    // Send the message to all components
+    for (Task & task : mComponents)
+    {
+        task.message(msgAcc);
+    }
+
+    // Send the message to all children
+    for (Entity * pChild : mChildren)
+    {
+        pChild->message(msgAcc);
+    }
+
+    GFREE(mpPropertyBuffer);
+    GDELETE(this);
+}
+
 
 } // namespace gaen

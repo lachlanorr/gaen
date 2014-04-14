@@ -33,32 +33,38 @@
 namespace gaen
 {
 
-ModelComponent::ModelComponent(Entity * pEntity, Model * pModel)
-  : Component(pEntity)
-  , mpModel(pModel)
-{
-}
-
 void ModelComponent::update(f32 deltaSecs)
 {
     // LORRTODO - account for tasks that need no updating. We shouldn't even call this in those cases
+    return;
 }
 
 
 MessageResult ModelComponent::message(const MessageQueue::MessageAccessor& msgAcc)
 {
+    MessageResult msgRes = MessageResult::Propogate;
+    
     switch (msgAcc.message().msgId)
     {
-    case FNV::init_properties:
+    case FNV::init:
         //initProperties();
         break;
     case FNV::fin:
-        init();
+    {
+        if (mpModel)
+        {
+            GDELETE(mpModel);
+        }
         break;
     }
+    }
 
-    LOG_WARNING("Unhandled message to component - taskid: %d, msgId: %d", taskId(), msgAcc.message().msgId);
-    return MessageResult::Propogate;
+    msgRes = Component::message(msgAcc);
+
+    if (msgRes == MessageResult::Propogate)
+        LOG_WARNING("Unhandled message to component - taskid: %d, msgId: %d", taskId(), msgAcc.message().msgId);
+
+    return msgRes;
 }
 
 

@@ -35,6 +35,14 @@ namespace gaen
 
 static const task_id kRootTaskId = 0; // A task with this as their parent is a top level, root task
 
+static const task_id kInvalidTaskId = static_cast<task_id>(-1);
+
+// Some tasks are kind of like singletons. They have unique task ids
+// so they can be easily referenced by other tasks that want to send
+// them messages.
+static const task_id kRendererTaskId     = kInvalidTaskId - 1;
+static const task_id kInputManagerTaskId = kInvalidTaskId - 2;
+
 enum class TaskStatus : u8
 {
     Initializing = 0,
@@ -83,16 +91,6 @@ struct Task
 {
 public:
     Task() = default;
-
-    static Task & from_ocell(ocell & oCell)
-    {
-        return *(reinterpret_cast<Task*>(&oCell));
-    }
-
-    static const Task & from_ocell(const ocell & oCell)
-    {
-        return *(reinterpret_cast<const Task*>(&oCell));
-    }
 
     template <class T>
     static Task create(T* pThat)

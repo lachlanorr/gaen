@@ -1,0 +1,6 @@
+* init message
+** Should be syncronous
+* fin message
+** Should be syncronous - it will get called on all entities/components owned by the TaskMaster, and should be syncronous.
+In other words, processing the message should completely clean the entities/components, including deleteing themselves
+

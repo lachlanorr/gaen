@@ -27,7 +27,7 @@
 #ifndef GAEN_RENDERERGL_RENDERERGL_H
 #define GAEN_RENDERERGL_RENDERERGL_H
 
-#include "engine/Model.h"
+#include "engine/ModelMgr.h"
 #include "engine/math.h"
 
 #if IS_PLATFORM_WIN32
@@ -47,6 +47,9 @@ typedef HGLRC render_context;
 namespace gaen
 {
 
+class MessageQueue;
+class MessageQueue::MessageAccessor;
+
 class RendererGL
 {
 public:
@@ -55,11 +58,15 @@ public:
               u32 screenWidth,
               u32 screenHeight);
 
+    void fin();
+
     void initRenderDevice();
     void initViewport();
 
     void render();
     void endFrame();
+
+    MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
 
 private:
     bool mIsInit = false;
@@ -71,6 +78,8 @@ private:
 
     Mat4 mProjection;
     Mat4 mGuiProjection;
+
+    ModelMgr mModelMgr;
 };
 
 

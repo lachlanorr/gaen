@@ -81,7 +81,7 @@ Mat3 Mat3::inverse(const Mat3 & mat3)
     return inv;
 }
 
-Mat3 Mat3::modelViewToNormalTransform(const Mat4 & mv)
+Mat3 Mat3::model_view_to_normal_transform(const Mat4 & mv)
 {
     // Calculate the transpose of the inverse of the top 3x3 of
     // modelView.  This 3x3 can be used to transform normals without
@@ -291,7 +291,7 @@ Mat34 Mat34::inverse(const Mat34 & mat34)
 }
 
 
-Mat34 Mat34::buildTranslation(f32 x, f32 y, f32 z)
+Mat34 Mat34::build_translation(f32 x, f32 y, f32 z)
 {
     Mat34 mat34;
 
@@ -314,7 +314,7 @@ Mat34 Mat34::buildTranslation(f32 x, f32 y, f32 z)
     return mat34;
 }
 
-Mat34 Mat34::buildRotation(f32 x, f32 y, f32 z)
+Mat34 Mat34::build_rotation(f32 x, f32 y, f32 z)
 {
     f32 cosX = cos(x);
     f32 sinX = sin(x);
@@ -346,7 +346,7 @@ Mat34 Mat34::buildRotation(f32 x, f32 y, f32 z)
     return mat4;
 }
 
-Mat34 Mat34::buildScale(f32 factor)
+Mat34 Mat34::build_scale(f32 factor)
 {
     Mat34 mat34;
     mat34[0]  = factor;
@@ -368,13 +368,13 @@ Mat34 Mat34::buildScale(f32 factor)
 }
 
 
-Mat34 Mat34::buildTransform(f32 translateX, f32 translateY, f32 translateZ,
+Mat34 Mat34::build_transform(f32 translateX, f32 translateY, f32 translateZ,
                             f32 rotationX, f32 rotationY, f32 rotationZ,
                             f32 scaleFactor)
 {
-    Mat34 trans = buildTranslation(translateX, translateY, translateZ);
-    Mat34 rot = buildRotation(rotationX, rotationY, rotationZ);
-    Mat34 scale = buildScale(scaleFactor);
+    Mat34 trans = build_translation(translateX, translateY, translateZ);
+    Mat34 rot = build_rotation(rotationX, rotationY, rotationZ);
+    Mat34 scale = build_scale(scaleFactor);
 
     Mat34 transRot = multiply(trans, rot);
     Mat34 transRotScale = multiply(transRot, scale);
@@ -572,7 +572,7 @@ Mat4 Mat4::inverse(const Mat4 & mat4)
 }
 
 
-Mat4 Mat4::buildTranslation(f32 x, f32 y, f32 z)
+Mat4 Mat4::build_translation(f32 x, f32 y, f32 z)
 {
     Mat4 mat4;
     mat4[0]  = 1.0f;
@@ -598,7 +598,7 @@ Mat4 Mat4::buildTranslation(f32 x, f32 y, f32 z)
     return mat4;
 }
 
-Mat4 Mat4::buildRotation(f32 x, f32 y, f32 z)
+Mat4 Mat4::build_rotation(f32 x, f32 y, f32 z)
 {
     f32 cosX = cos(x);
     f32 sinX = sin(x);
@@ -634,7 +634,7 @@ Mat4 Mat4::buildRotation(f32 x, f32 y, f32 z)
     return mat4;
 }
 
-Mat4 Mat4::buildScale(f32 factor)
+Mat4 Mat4::build_scale(f32 factor)
 {
     Mat4 mat4;
     mat4[0]  = factor;
@@ -659,13 +659,13 @@ Mat4 Mat4::buildScale(f32 factor)
     return mat4;
 }
 
-Mat4 Mat4::buildTransform(f32 translateX, f32 translateY, f32 translateZ,
+Mat4 Mat4::build_transform(f32 translateX, f32 translateY, f32 translateZ,
                           f32 rotationX, f32 rotationY, f32 rotationZ,
                           f32 scaleFactor)
 {
-    Mat4 trans = buildTranslation(translateX, translateY, translateZ);
-    Mat4 rot = buildRotation(rotationX, rotationY, rotationZ);
-    Mat4 scale = buildScale(scaleFactor);
+    Mat4 trans = build_translation(translateX, translateY, translateZ);
+    Mat4 rot = build_rotation(rotationX, rotationY, rotationZ);
+    Mat4 scale = build_scale(scaleFactor);
 
     Mat4 transRot = multiply(trans,rot);
     Mat4 transRotScale = multiply(transRot,scale);

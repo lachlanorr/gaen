@@ -32,6 +32,7 @@
 #include "core/RefCounted.h"
 
 #include "engine/Model.h"
+#include "engine/MessageQueue.h"
 
 namespace gaen
 {
@@ -101,6 +102,8 @@ public:
 
     ModelMgr::ModelMgr();
 
+    void fin();
+
     // Iterate meshes sorted by material/vertex type
     MeshIterator begin();
     MeshIterator end();
@@ -109,11 +112,10 @@ public:
     // appropriate delete message to renderer.
     void insertModelInstance(model_instance_id instanceId,
                              Model * pModel,
-                             const Mat4 & worldTransform,
+                             const Mat34 & worldTransform,
                              bool isAssetManaged);
     void removeModelInstance(model_instance_id instanceId);
 
-    
 private:
     class ModelDeleter
     {
@@ -189,6 +191,7 @@ private:
     // Meshes sorted by material. Iterate this with begin and end.
     ShaderModelMap mShaderModelMap;
 };
+
 
 
 } // namespace gaen

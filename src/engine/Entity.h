@@ -50,18 +50,28 @@ public:
 
     task_id taskId() { return mTaskId; }
 
-    void addComponent(Task & componentTask);
+    void insertComponent(Task & task)
+    {
+        // LORRTODO
+        //nASSERT(!pComp->mpEntity);
+        //pComp->mpEntity = this;
+        //mComponents.push_back(Task::create(pComp));
+    }
 
 private:
     void setTaskId(task_id taskId) { mTaskId = taskId; }
+
+    void init(const MessageQueue::MessageAccessor& msgAcc) { mTaskId = msgAcc.message().payload.u; }
+    void fin(const MessageQueue::MessageAccessor& msgAcc);
+
     task_id mTaskId = -1;
     
     Mat34 mLocalTransform;
     Mat34 mGlobalTransform;
 
-    u8 * mpPropertyBuffer;
     u32 mPropertyBufferSize;
     u32 mPropertyBufferHWM;
+    u8 * mpPropertyBuffer;
 
     Vector<Task, kMEM_Engine> mComponents;
     List<Entity*, kMEM_Engine> mChildren;

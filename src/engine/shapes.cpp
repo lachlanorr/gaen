@@ -49,9 +49,9 @@ void ShapeBuilder::pushTri(const Vec3 & p0,
                            const Vec3 & p1,
                            const Vec3 & p2)
 {
-    if (mCurrVertex + 3 >= mMesh.vertexCount())
+    if (mCurrVertex + 3 > mMesh.vertexCount())
         PANIC("Vertex array overrun during pushTri");
-    if (mCurrIndex + 1 >= mMesh.indexCount())
+    if (mCurrIndex + 1 > mMesh.indexCount())
         PANIC("Index array overrun during pushTri");
 
     VertexPosNorm * pVert = mMesh;
@@ -90,9 +90,9 @@ void ShapeBuilder::pushQuad(const Vec3 & p0,
                             const Vec3 & p2,
                             const Vec3 & p3)
 {
-    if (mCurrVertex + 4 >= mMesh.vertexCount())
+    if (mCurrVertex + 4 > mMesh.vertexCount())
         PANIC("Vertex array overrun during pushQuad");
-    if (mCurrIndex + 2 >= mMesh.indexCount())
+    if (mCurrIndex + 2 > mMesh.indexCount())
         PANIC("Index array overrun during pushQuad");
 
     pushTri(p0, p1, p2);

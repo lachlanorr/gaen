@@ -37,6 +37,7 @@ namespace gaen
 
 typedef u32 task_id; // defined here since we are the root of the includes, and we need this
 
+static const u32 kMessageFlag_None       = 0;
 static const u32 kMessageFlag_TaskMaster = 1 << 0;  // This message is intended for the TaskMaster.
 
 
@@ -51,6 +52,7 @@ union cell
     i32 i;
     u32 u;
     f32 f;
+    bool b;
     struct color
     {
         u8 r;
@@ -102,13 +104,17 @@ union qcell
 };
 static_assert(sizeof(qcell) == 16, "qcell must be 16 bytes");
 
-union ocell
+// Returns a qcell indexed off of start.
+// Useful when copying data in and out of MessageQueue in
+// qcell (16 byte) blocks.
+inline qcell & qcell_at(void * start, size_t offset)
 {
-    cell cells[8];
-    dcell dCells[4];
-    qcell qCells[2];
-};
-static_assert(sizeof(ocell) == 32, "ocell must be 32 bytes");
+    return *(reinterpret_cast<qcell*>(start) + offset);
+}
+inline const qcell & qcell_at(const void * start, size_t offset)
+{
+    return *(reinterpret_cast<const qcell*>(start) + offset);
+}
 
 struct Message
 {
