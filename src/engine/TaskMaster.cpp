@@ -113,10 +113,10 @@ void start_game_loops(Entity * pInitEntity)
 
 template <class RendererT>
 inline void task_master_queue_message_from_main(thread_id threadId,
-                                          fnv msgId,
-                                          cell payload,
-                                          const MessageBlock * pMsgBlock,
-                                          size_t msgBlockCount)
+                                                fnv msgId,
+                                                cell payload,
+                                                const MessageBlock * pMsgBlock,
+                                                size_t msgBlockCount)
 {
     TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(threadId);
     MessageQueue & mq = tm.mainMessageQueue();
@@ -137,17 +137,17 @@ inline void task_master_queue_message_from_main(thread_id threadId,
 
 template <class RendererT>
 void queue_message_from_main(thread_id threadId,
-                       fnv msgId)
+                             fnv msgId)
 {
     queue_message_from_main<RendererT>(threadId, msgId, to_cell(0), nullptr, 0);
 }
 
 template <class RendererT>
 void queue_message_from_main(thread_id threadId,
-                       fnv msgId,
-                       cell payload,
-                       const MessageBlock * pMsgBlock,
-                       size_t msgBlockCount)
+                             fnv msgId,
+                             cell payload,
+                             const MessageBlock * pMsgBlock,
+                             size_t msgBlockCount)
 {
     ASSERT(sIsInit);
     ASSERT(active_thread_id() == kMainThreadId);
@@ -157,31 +157,31 @@ void queue_message_from_main(thread_id threadId,
     if (threadId != kBroadcastThreadId)
     {
         task_master_queue_message_from_main<RendererT>(threadId,
-                                                 msgId,
-                                                 payload,
-                                                 pMsgBlock,
-                                                 msgBlockCount);
+                                                       msgId,
+                                                       payload,
+                                                       pMsgBlock,
+                                                       msgBlockCount);
     }
     else
     {
         for (thread_id tid = 0; tid < numThreads; ++tid)
         {
             task_master_queue_message_from_main<RendererT>(tid,
-                                                     msgId,
-                                                     payload,
-                                                     pMsgBlock,
-                                                     msgBlockCount);
+                                                           msgId,
+                                                           payload,
+                                                           pMsgBlock,
+                                                           msgBlockCount);
         }
     }
 }
 
 template <class RendererT>
 void queue_message(fnv msgId,
-                  task_id source,
-                  task_id target,
-                  cell payload,
-                  const MessageBlock * pMsgBlock,
-                  size_t msgBlockCount)
+                   task_id source,
+                   task_id target,
+                   cell payload,
+                   const MessageBlock * pMsgBlock,
+                   size_t msgBlockCount)
 {
     ASSERT(sIsInit);
 
