@@ -130,7 +130,7 @@ inline void task_master_queue_message_from_main(thread_id threadId,
                  msgBlockCount);
     for (size_t i = 0; i < msgBlockCount; ++i)
     {
-        msgAcc.qcellAt(i) = pMsgBlock[i].qCell;
+        msgAcc[i] = pMsgBlock[i];
     }
     mq.pushCommit(msgAcc);
 }
@@ -235,14 +235,14 @@ void TaskMaster<RendererT>::init(thread_id tid)
 }
 
 template <class RendererT>
-void TaskMaster<RendererT>::fin(const MessageQueue::MessageAccessor& msgAcc)
+void TaskMaster<RendererT>::fin(const Message & msg, const MessageQueue::MessageAccessor& msgAcc)
 {
     ASSERT(mIsInit);
-    ASSERT(msgAcc.message().msgId == FNV::fin);
+    ASSERT(msg.msgId == FNV::fin);
 
     for (Task & task : mOwnedTasks)
     {
-        task.message(msgAcc);
+        task.message(msg, msgAcc);
     }
 
     // Fin our renderer
@@ -398,7 +398,7 @@ void TaskMaster<RendererT>::queueMessage(fnv msgId,
                  msgBlockCount);
     for (size_t i = 0; i < msgBlockCount; ++i)
     {
-        msgAcc.qcellAt(i) = pMsgBlock[i].qCell;
+        msgAcc[i] = pMsgBlock[i];
     }
     mq.pushCommit(msgAcc);
 }
@@ -462,17 +462,15 @@ void TaskMaster<RendererT>::processMessages(MessageQueue & msgQueue)
 
     while (msgQueue.popBegin(&msgAcc))
     {
-        message(msgAcc);
+        message(msgAcc.message(), msgAcc);
         msgQueue.popCommit(msgAcc);
     }
 }
 
 
 template <class RendererT>
-MessageResult TaskMaster<RendererT>::message(const MessageQueue::MessageAccessor& msgAcc)
+MessageResult TaskMaster<RendererT>::message(const Message & msg, const MessageQueue::MessageAccessor& msgAcc)
 {
-    const Message & msg = msgAcc.message();
-
     // Handle messages sent to us, the TaskMaster
     if (msg.flags & kMessageFlag_TaskMaster)
     {
@@ -480,7 +478,7 @@ MessageResult TaskMaster<RendererT>::message(const MessageQueue::MessageAccessor
         {
         case FNV::fin:
             ASSERT(mIsRunning);
-            fin(msgAcc);
+            fin(msg, msgAcc);
             return MessageResult::Consumed;
         case FNV::insert_task:
         {

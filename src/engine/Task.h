@@ -103,15 +103,13 @@ public:
 
         pThat->setTaskId(task.mTaskId);
 
-        task.mIndex = 0;
-        task.mParent = 0;
-        task.mFirstSibling = 0;
-        task.mFirstChild = 0;
-        
+        task.mUNUSED = 0xDEADbeef;
+
         task.mpThat = pThat;
 
-        task.mpUpdateStub = &updateStub<T>;
-        MessageStub messageStub_ = &messageStub<T>;
+        task.mpUpdateStub = &update_stub<T>;
+        MessageStub messageStub_ = &message_stub<T>;
+        MessageImmediateStub messageImmediateStub = &message_immediate_stub<T>;
 
         std::intptr_t iptrUpdateStub = reinterpret_cast<std::intptr_t>(task.mpUpdateStub);
         std::intptr_t iptrMessageStub = reinterpret_cast<std::intptr_t>(messageStub_);
@@ -132,28 +130,16 @@ public:
     TaskPermissions permissions() const { return static_cast<TaskPermissions>(mPermissions); }
     void setPermissions(TaskPermissions newPermissions) { mPermissions = static_cast<u8>(newPermissions); }
 
-    u16 index() const { return mIndex; }
-    void setIndex(u16 index) { mIndex = index; }
-
-    u16 parent() const { return mParent; }
-    void setParent(u16 parent) { mParent = parent; }
-    
-    u16 firstSibling() const { return mFirstSibling; }
-    void setFirstSibling(u16 firstSibling) { mFirstSibling = firstSibling; }
-
-    u16 firstChild() const { return mFirstChild; }
-    void setFirstChild(u16 firstChild) { mFirstChild = firstChild; }
-
     void * that() { return mpThat; }
     const void * that() const { return mpThat; }
-
 
     void update(f32 deltaSecs)
     {
         (*mpUpdateStub)(mpThat, deltaSecs);
     }
 
-    MessageResult message(const MessageQueue::MessageAccessor& msgAcc)
+    // Queued message
+    MessageResult message(const Message & msg, const MessageQueue::MessageAccessor& msgAcc)
     {
         // Since we're storing the offset of the message stub from the
         // update stub we do a little pointer arithmetic to get the
@@ -163,39 +149,64 @@ public:
         std::intptr_t iptrMessageStub = iptrUpdateStub + mpMessageStubOffset;
         
         MessageStub pMessageStub = reinterpret_cast<MessageStub>(iptrMessageStub);
-        return (*pMessageStub)(mpThat, msgAcc);
+        return (*pMessageStub)(mpThat, msg, msgAcc);
+    }
+
+    // Immediate message
+    MessageResult message(const Message & msg, const MessageBlock * pMsgBlocks)
+    {
+        // Since we're storing the offset of the message stub from the
+        // update stub we do a little pointer arithmetic to get the
+        // actual address.
+
+        std::intptr_t iptrUpdateStub = reinterpret_cast<std::intptr_t>(mpUpdateStub);
+        std::intptr_t iptrMessageImmediateStub = iptrUpdateStub + mpMessageImmediateStubOffset;
+
+        MessageImmediateStub pMessageImmediateStub = reinterpret_cast<MessageImmediateStub>(iptrMessageImmediateStub);
+        return (*pMessageImmediateStub)(mpThat, msg, pMsgBlocks);
     }
 
 
 private:
     typedef void (*UpdateStub)(void*, f32);
-    typedef MessageResult (*MessageStub)(void*, const MessageQueue::MessageAccessor&);
+
+    // Message coming from the processing of a MessageQueue
+    typedef MessageResult (*MessageStub)(void*, const Message&, const MessageQueue::MessageAccessor&);
+
+    // Message coming from someone for immediate processing (no MessageQueue access)
+    typedef MessageResult (*MessageImmediateStub)(void*, const Message&, const MessageBlock*);
+
 
     u32 mStatus:2;           // current running state
     u32 mPermissions:2;      // permissions for others to send messages
     u32 mTaskId:28;          // our task id
 
-    u16 mIndex;              // 0 based index to of task... used in TaskTree for fast tree traversal
-    u16 mParent;             // 0 based index to parent... used in TaskTree for fast tree traversal
-    u16 mFirstSibling;       // 0 based index to first sibling... used in TaskTree for fast tree traversal
-    u16 mFirstChild;         // 0 based index to first child... used in TaskTree for fast tree traversal
+    u32 mUNUSED;             // FIND SOMETHING BADASS TO DO WITH THIS 32 BITS
 
-    i32 mpMessageStubOffset; // offset in bytes from UpdateStub pointer to MessageStub pointer
-    UpdateStub mpUpdateStub; // address of update method
-    void* mpThat;            // pointer to class instance that has the real update/message methods
+    i32 mpMessageStubOffset;          // offset in bytes from UpdateStub pointer to MessageStub pointer
+    i32 mpMessageImmediateStubOffset; // offset in bytes from UpdateStub pointer to MessageImmediateStub pointer
+    UpdateStub mpUpdateStub;          // address of update method
+    void* mpThat;                     // pointer to class instance that has the real update/message methods
 
     template <class T>
-    static void updateStub(void* pThat, f32 deltaSecs)
+    static void update_stub(void* pThat, f32 deltaSecs)
     {
         T* p = static_cast<T*>(pThat);
         p->update(deltaSecs);
     }
 
     template <class T>
-    static MessageResult messageStub(void* pThat, const MessageQueue::MessageAccessor& msgAcc)
+    static MessageResult message_stub(void* pThat, const Message& msg, const MessageQueue::MessageAccessor& msgAcc)
     {
         T* p = static_cast<T*>(pThat);
-        return p->message(msgAcc);
+        return p->message(msg, msgAcc);
+    }
+
+    template <class T>
+    static MessageResult message_immediate_stub(void* pThat, const Message& msg, const MessageBlock* pMsgBlocks)
+    {
+        T* p = static_cast<T*>(pThat);
+        return p->message(msg, pMsgBlocks);
     }
 };
 

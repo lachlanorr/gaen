@@ -48,8 +48,8 @@ public:
     TaskMsgReader(const MessageQueue::MessageAccessor & msgAcc)
       : mMsgAcc(msgAcc)
     {
-        const qcell & task_0 = msgAcc.qcellAt(0);
-        const qcell & task_1 = msgAcc.qcellAt(1);
+        const qcell & task_0 = msgAcc[0].q;
+        const qcell & task_1 = msgAcc[1].q;
         if (&task_1 > &task_0)
             mpTask = reinterpret_cast<const Task*>(&task_0);
         else
@@ -90,8 +90,8 @@ public:
 
     void setTask(Task & task)
     {
-        mMsgAcc.qcellAt(0) = qcell_at(&task, 0);
-        mMsgAcc.qcellAt(1) = qcell_at(&task, 1);
+        mMsgAcc[0].q = qcell_at(&task, 0);
+        mMsgAcc[1].q = qcell_at(&task, 1);
     }
 };
 

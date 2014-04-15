@@ -118,24 +118,25 @@ inline const qcell & qcell_at(const void * start, size_t offset)
 
 struct Message
 {
-    fnv msgId;       // fnv1 hash based on message string
-    u32 flags:4;     // message flags
-    u32 source:28;   // source task id
-    u32 size:4;      // count of additional 16 byte payload (e.g. value of 4 means an additional 64 bytes)
-    u32 target:28;   // target task id
-    cell payload;    // optional payload for the message
+    fnv msgId;        // fnv1 hash based on message string
+    u32 flags:4;      // message flags
+    u32 source:28;    // source task id
+    u32 blockCount:4; // count of additional 16 byte payload (e.g. value of 4 means an additional 64 bytes)
+    u32 target:28;    // target task id
+    cell payload;     // optional payload for the message
 };
 
 // Messages can be cast into MessageBlocks to access
 // individual cells within.
-static const size_t kCellsPerMessageBlock = sizeof(Message) / sizeof(cell);
-static const size_t kDcellsPerMessageBlock = kCellsPerMessageBlock / 2;
+static const size_t kCellsPerMessageBlock = sizeof(Message) / sizeof(cell);   // 4
+static const size_t kDCellsPerMessageBlock = sizeof(Message) / sizeof(dcell); // 2
+static const size_t kQCellsPerMessageBlock = sizeof(Message) / sizeof(qcell); // 1
 static_assert((kCellsPerMessageBlock == 4) && (sizeof(Message) % sizeof(cell) == 0), "There should be exactly 4 cells per Message");
 union MessageBlock
 {
-    cell cells[4];
-    dcell dCells[2];
-    qcell qCell;
+    cell c[4];
+    dcell d[2];
+    qcell q;
 };
 
 // 16 bytes is pretty key to the principles of the message passing system.

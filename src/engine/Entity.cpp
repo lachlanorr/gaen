@@ -58,22 +58,21 @@ void Entity::update(f32 deltaSecs)
         pChild->update(deltaSecs);
 }
 
-MessageResult Entity::message(const MessageQueue::MessageAccessor& msgAcc)
+template <typename T>
+MessageResult Entity::message(const Message & msg, T msgAcc)
 {
-    const Message & msg = msgAcc.message();
-
     switch (msg.msgId)
     {
     case FNV::fin:
         // fin messages are like destructors and should be handled specially.
         // fin method will propogate fin to all tasks/entity children
         // and delete this entity.
-        fin(msgAcc);
+        fin(msg, msgAcc);
         return MessageResult::Propogate;
     case FNV::init:
         // We consume this message. New init messages will be generated and
         // passed to Components when they are added to us.
-        init(msgAcc);
+        init(msg, msgAcc);
         return MessageResult::Consumed;
     case FNV::insert_component:
         //insertComponent(msgAcc); // LORRTODO
@@ -86,7 +85,7 @@ MessageResult Entity::message(const MessageQueue::MessageAccessor& msgAcc)
     // Send the message to all components
     for (Task & task : mComponents)
     {
-        res = task.message(msgAcc);
+        res = task.message(msg, msgAcc);
         if (res == MessageResult::Consumed)
             return MessageResult::Consumed;
     }
@@ -94,34 +93,42 @@ MessageResult Entity::message(const MessageQueue::MessageAccessor& msgAcc)
     // Send the message to all children
     for (Entity * pChild : mChildren)
     {
-        res = pChild->message(msgAcc);
+        res = pChild->message(msg, msgAcc);
         if (res == MessageResult::Consumed)
             return MessageResult::Consumed;
     }
 
-    LOG_WARNING("Unhandled message to entity - taskid: %d, msgId: %d", taskId(), msgAcc.message().msgId);
+    LOG_WARNING("Unhandled message to entity - taskid: %d, msgId: %d", taskId(), msg.msgId);
     return MessageResult::Propogate;
 }
 
-void Entity::fin(const MessageQueue::MessageAccessor& msgAcc)
+template <typename T>
+void Entity::fin(const Message & msg, T msgAcc)
 {
-    ASSERT(msgAcc.message().msgId == FNV::fin);
+    ASSERT(msg.msgId == FNV::fin);
 
     // Send the message to all components
     for (Task & task : mComponents)
     {
-        task.message(msgAcc);
+        task.message(msg, msgAcc);
     }
 
     // Send the message to all children
     for (Entity * pChild : mChildren)
     {
-        pChild->message(msgAcc);
+        pChild->message(msg, msgAcc);
     }
 
     GFREE(mpPropertyBuffer);
     GDELETE(this);
 }
+
+// Template instantiations
+template MessageResult Entity::message<const MessageQueue::MessageAccessor&>(const Message&, const MessageQueue::MessageAccessor&);
+template MessageResult Entity::message<const MessageBlock*>(const Message&, const MessageBlock*);
+
+template void Entity::fin<const MessageQueue::MessageAccessor&>(const Message&, const MessageQueue::MessageAccessor&);
+template void Entity::fin<const MessageBlock*>(const Message&, const MessageBlock*);
 
 
 } // namespace gaen

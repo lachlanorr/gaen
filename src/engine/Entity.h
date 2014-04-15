@@ -46,7 +46,9 @@ public:
            const Mat34 & transform = Mat34::identity());
 
     void update(f32 deltaSecs);
-    MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
+
+    template <typename T>
+    MessageResult message(const Message & msg, T msgAcc);
 
     task_id taskId() { return mTaskId; }
 
@@ -61,8 +63,11 @@ public:
 private:
     void setTaskId(task_id taskId) { mTaskId = taskId; }
 
-    void init(const MessageQueue::MessageAccessor& msgAcc) { mTaskId = msgAcc.message().payload.u; }
-    void fin(const MessageQueue::MessageAccessor& msgAcc);
+    template <typename T>
+    void init(const Message & msg, T) { mTaskId = msg.payload.u; }
+
+    template <typename T>
+    void fin(const Message & msg, T msgAcc);
 
     task_id mTaskId = -1;
     

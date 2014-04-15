@@ -51,7 +51,7 @@ public:
         friend MessageQueue;
     public:
         size_t availableCells() const { return messageBlockCount() * kCellsPerMessageBlock + 1; }
-        size_t availableDcells() const { return messageBlockCount() * kDcellsPerMessageBlock; }
+        size_t availableDcells() const { return messageBlockCount() * kDCellsPerMessageBlock; }
         size_t availableQcells() const { return messageBlockCount(); }
 
         Message & message()
@@ -66,86 +66,33 @@ public:
             return mAccessor[0];
         }
 
-        // Access cells of message
-        cell & cellAt(size_t index)
+        // Access blocks of message
+        MessageBlock & operator[] (size_t index)
         {
-            ASSERT(mAccessor.available() > 0);
-            return cellFromIndex(index);
+            return messageBlockFromIndex(index);
         }
 
-        // Access cells of message
-        const cell & cellAt(size_t index) const
+        const MessageBlock & operator[] (size_t index) const
         {
-            ASSERT(mAccessor.available() > 0);
-            return cellFromIndex(index);
+            return messageBlockFromIndex(index);
         }
-
-        dcell & dcellAt(size_t index)
-        {
-            ASSERT(mAccessor.available() > 0);
-            return dcellFromIndex(index);
-        }
-
-        const dcell & dcellAt(size_t index) const
-        {
-            ASSERT(mAccessor.available() > 0);
-            return dcellFromIndex(index);
-        }
-
-        qcell & qcellAt(size_t index)
-        {
-            ASSERT(mAccessor.available() > 0);
-            return qcellFromIndex(index);
-        }
-
-        const qcell & qcellAt(size_t index) const
-        {
-            ASSERT(mAccessor.available() > 0);
-            return qcellFromIndex(index);
-        }
-
 
     private:
-        cell & cellFromIndex(size_t index) const
+        MessageBlock & messageBlockFromIndex(size_t index) const
         {
-            ASSERT(index < availableCells());
-            size_t factoredIndex = index + 4;
-            // Access to the payload cell should be done explicitly through payload member.
-            // This method starts at the first cell after the message header block.
-            
-            size_t blockIndexIntoQueue = factoredIndex / kCellsPerMessageBlock;
-            size_t cellIndexIntoBlock = factoredIndex % kCellsPerMessageBlock;
-            
-            MessageBlock * pMsgBlock = reinterpret_cast<MessageBlock*>(&mAccessor[blockIndexIntoQueue]);
-            return pMsgBlock->cells[cellIndexIntoBlock];
-        }
+            ASSERT(index < mAccessor.available()-1); // -1 since Message header is always present
+            ASSERT(index < messageBlockCount());
 
-        dcell & dcellFromIndex(size_t index) const
-        {
-            ASSERT(index < availableDcells());
+             // +1 since Message header is always present
+            MessageBlock * pMsgBlock = reinterpret_cast<MessageBlock*>(&mAccessor[1+index]);
 
-            size_t blockIndexIntoQueue = 1 + index / kDcellsPerMessageBlock;
-            size_t dcellIndexIntoBlock = index % kDcellsPerMessageBlock;
-            
-            MessageBlock * pMsgBlock = reinterpret_cast<MessageBlock*>(&mAccessor[blockIndexIntoQueue]);
-            return pMsgBlock->dCells[dcellIndexIntoBlock];
-        }
-
-        qcell & qcellFromIndex(size_t index) const
-        {
-            ASSERT(index < availableQcells());
-
-            size_t blockIndexIntoQueue = 1 + index;
-            // size_t qcellIndexIntoBlock = 0; - since we have qcell (16 byte) blocks, no need to index into block
-            
-            qcell * pqcell = reinterpret_cast<qcell*>(&mAccessor[blockIndexIntoQueue]);
-            return *pqcell;
+            return *pMsgBlock;
         }
 
         size_t messageBlockCount() const
         {
             ASSERT(mAccessor.available() > 0);
-            return mAccessor[0].size;
+            return mAccessor[0].blockCount;
         }
 
         mutable SpscRingBuffer<Message>::Accessor mAccessor;
@@ -190,7 +137,7 @@ public:
     void pushCommit(const MessageAccessor & msgAcc)
     {
         // We always commit the Message Header, plus any additional MessageBlocks
-        mRingBuffer.pushCommit(msgAcc.mAccessor[0].size + 1);
+        mRingBuffer.pushCommit(msgAcc.mAccessor[0].blockCount + 1);
     }
 
     bool popBegin(MessageAccessor * pMsgAcc)
@@ -201,7 +148,7 @@ public:
             return false;
 
         // By inspecting the message, we know how many are actually available.
-        u32 msgSize = pMsgAcc->mAccessor[0].size;
+        u32 msgSize = pMsgAcc->mAccessor[0].blockCount;
 
         ASSERT(pMsgAcc->mAccessor.available() == msgSize + 1);
         ASSERT(msgSize < pMsgAcc->mAccessor.available());
@@ -211,8 +158,8 @@ public:
 
     void popCommit(const MessageAccessor & msgAcc)
     {
-        ASSERT(msgAcc.mAccessor.available() >= msgAcc.mAccessor[0].size + 1);
-        mRingBuffer.popCommit(msgAcc.mAccessor[0].size + 1);
+        ASSERT(msgAcc.mAccessor.available() >= msgAcc.mAccessor[0].blockCount + 1);
+        mRingBuffer.popCommit(msgAcc.mAccessor[0].blockCount + 1);
     }
 
 private:
@@ -224,6 +171,11 @@ private:
                     cell payload,
                     size_t msgBlockCount)
     {
+        ASSERT(flags         < (2 << 4)  &&
+               msgBlockCount < (2 << 4)  &&
+               source        < (2 << 28) &&
+               target        < (2 << 28));
+        
         mRingBuffer.pushBegin(&pMsgAcc->mAccessor, msgBlockCount+1); // + 1 for header
         
         Message & msg = pMsgAcc->mAccessor[0];
@@ -232,7 +184,7 @@ private:
         msg.source = source;
         msg.target = target;
         msg.payload = payload;
-        msg.size = msgBlockCount;
+        msg.blockCount = msgBlockCount;
     }
 
     SpscRingBuffer<Message> mRingBuffer;

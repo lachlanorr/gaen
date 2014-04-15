@@ -59,14 +59,14 @@ public:
         // - If it doesn't, we can simply return a pointer to the matrix inside the queue
         // - If it does wrap, we need to copy it into our mWorldTransform data member
         //   so that we can make it contiguous for the caller.
-        const qcell & matVec4_0 = msgAcc.qcellAt(1);
-        const qcell & matVec4_2 = msgAcc.qcellAt(3);
+        const qcell & matVec4_0 = msgAcc[1].q;
+        const qcell & matVec4_2 = msgAcc[3].q;
         if (&matVec4_2 > &matVec4_0)
             mpWorldTransform = reinterpret_cast<const Mat34*>(&matVec4_0); // matrix is contiguous in ring buffer
         else
         {
             // matrix wraps ring buffer
-            const qcell & matVec4_1 = msgAcc.qcellAt(2);
+            const qcell & matVec4_1 = msgAcc[2].q;
             mWorldTransform = Mat34::build_from_vec4(matVec4_0.vec4,
                                               matVec4_1.vec4,
                                               matVec4_2.vec4);
@@ -74,8 +74,8 @@ public:
         }
     }
     model_instance_id instanceId() const { return mMsgAcc.message().payload.u; }
-    Model * model() const { return static_cast<Model*>(mMsgAcc.dcellAt(0).p); }
-    bool isAssetManaged() const { return mMsgAcc.cellAt(8).b; }
+    Model * model() const { return static_cast<Model*>(mMsgAcc[0].d[0].p); }
+    bool isAssetManaged() const { return mMsgAcc[0].c[2].b; }
     const Mat34 & worldTransform() const { return * mpWorldTransform; }
         
 private:
@@ -100,13 +100,13 @@ public:
                       4) {}
     
     void setInstanceId(model_instance_id instanceId) { mMsgAcc.message().payload.u = instanceId; }
-    void setModel(Model * pModel) { mMsgAcc.dcellAt(0).p = pModel; }
-    void setIsAssetManaged(bool val) { mMsgAcc.cellAt(8).b = val; }
+    void setModel(Model * pModel) { mMsgAcc[0].d[0].p = pModel; }
+    void setIsAssetManaged(bool val) { mMsgAcc[0].c[2].b = val; }
     void setWorldTransform(Mat34 & worldTransform)
     {
-        mMsgAcc.qcellAt(1).vec4 = worldTransform.vec4(0);
-        mMsgAcc.qcellAt(2).vec4 = worldTransform.vec4(1);
-        mMsgAcc.qcellAt(3).vec4 = worldTransform.vec4(2);
+        mMsgAcc[1].q.vec4 = worldTransform.vec4(0);
+        mMsgAcc[2].q.vec4 = worldTransform.vec4(1);
+        mMsgAcc[3].q.vec4 = worldTransform.vec4(2);
     }
 };
 

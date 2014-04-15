@@ -41,7 +41,8 @@ public:
         printf("Entity1::update, deltaSecs = %f\n", deltaSecs);
     }
 
-    gaen::MessageResult message(const gaen::MessageQueue::MessageAccessor& msgAcc)
+    template <typename T>
+    gaen::MessageResult message(const gaen::Message & msg, T msgAcc)
     {
         printf("Entity1::message\n");
         return gaen::MessageResult::Propogate;
@@ -62,7 +63,8 @@ public:
         printf("Entity2::update, deltaSecs = %f\n", deltaSecs);
     }
 
-    gaen::MessageResult message(const gaen::MessageQueue::MessageAccessor& msgAcc)
+    template <typename T>
+    gaen::MessageResult message(const gaen::Message & msg, T msgAcc)
     {
         printf("Entity2::message\n");
         return gaen::MessageResult::Propogate;
@@ -91,7 +93,7 @@ TEST(TaskTest, CreateTasks)
     for(gaen::Task & t : vec)
     {
         t.update(1.23);
-        t.message(msgAcc);
+        t.message(msgAcc.message(), msgAcc);
     }
 }
 
