@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// ModelInstanceMsg.h - Helper for data in renderer model instance messages
+// ModelInstanceMessage.h - Helper for data in renderer model instance messages
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,11 +24,11 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_MESSAGE_HELPERS_MODELINSTANCEMSG_H
-#define GAEN_ENGINE_MESSAGE_HELPERS_MODELINSTANCEMSG_H
+#ifndef GAEN_ENGINE_MESSAGES_MODELINSTANCEMESSAGE_H
+#define GAEN_ENGINE_MESSAGES_MODELINSTANCEMESSAGE_H
 
 #include "engine/Model.h"
-#include "engine/message_helpers/BaseMsg.h"
+#include "engine/messages/MessageWriter.h"
 
 namespace gaen
 {
@@ -48,10 +48,10 @@ namespace gaen
 // * Block 4 (64-95)
 //   Floats 8-11 of Transform Mat34
 
-class ModelInstanceMsgReader
+class ModelInstanceMessageReader
 {
 public:
-    ModelInstanceMsgReader(const MessageQueue::MessageAccessor & msgAcc)
+    ModelInstanceMessageReader(const MessageQueue::MessageAccessor & msgAcc)
       : mMsgAcc(msgAcc)
     {
         // Mat34 has 3 qcells (each qcell is 16 bytes, i.e. 4 floats)
@@ -86,20 +86,21 @@ private:
 
 
 
-class ModelInstanceMsgWriter : protected BaseMsgWriter
+class ModelInstanceMessageWriter : protected MessageWriter
 {
 public:
-    ModelInstanceMsgWriter(fnv msgId,
-                           u32 flags,
-                           task_id source,
-                           task_id target)
-      : BaseMsgWriter(msgId,
+    ModelInstanceMessageWriter(fnv msgId,
+                               u32 flags,
+                               task_id source,
+                               task_id target,
+                               model_instance_id instanceId)
+      : MessageWriter(msgId,
                       flags,
                       source,
                       target,
+                      to_cell(instanceId),
                       4) {}
     
-    void setInstanceId(model_instance_id instanceId) { mMsgAcc.message().payload.u = instanceId; }
     void setModel(Model * pModel) { mMsgAcc[0].d[0].p = pModel; }
     void setIsAssetManaged(bool val) { mMsgAcc[0].c[2].b = val; }
     void setWorldTransform(Mat34 & worldTransform)
@@ -112,4 +113,4 @@ public:
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_MESSAGE_HELPERS_MODELINSTANCE_H
+#endif // #ifndef GAEN_ENGINE_MESSAGES_MODELINSTANCEMESSAGE_H

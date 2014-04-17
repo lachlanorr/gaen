@@ -47,7 +47,6 @@ MessageResult ModelComponent::message(const MessageQueue::MessageAccessor& msgAc
     switch (msgAcc.message().msgId)
     {
     case FNV::init:
-        //initProperties();
         break;
     case FNV::fin:
     {

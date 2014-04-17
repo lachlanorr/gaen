@@ -29,7 +29,7 @@
 #include "core/base_defines.h"
 
 #include "engine/MessageQueue.h"
-#include "engine/message_helpers/ModelInstanceMsg.h"
+#include "engine/messages/ModelInstanceMessage.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/RendererGL.h"
@@ -101,7 +101,7 @@ MessageResult RendererGL::message(const MessageQueue::MessageAccessor& msgAcc)
     {
     case FNV::renderer_insert_model_instance:
     {
-        ModelInstanceMsgReader rdr(msgAcc);
+        ModelInstanceMessageReader rdr(msgAcc);
         mModelMgr.insertModelInstance(rdr.instanceId(),
                                       rdr.model(),
                                       rdr.worldTransform(),

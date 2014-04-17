@@ -37,8 +37,8 @@ namespace gaen
 
 typedef u32 task_id; // defined here since we are the root of the includes, and we need this
 
+// LORRTODO - do we need flags?  Haven't found a good use yet
 static const u32 kMessageFlag_None       = 0;
-static const u32 kMessageFlag_TaskMaster = 1 << 0;  // This message is intended for the TaskMaster.
 
 
 enum class MessageResult
@@ -120,10 +120,31 @@ struct Message
 {
     fnv msgId;        // fnv1 hash based on message string
     u32 flags:4;      // message flags
-    u32 source:28;    // source task id
+    u32 source:28;    // source task id - NOTE Changeing this size requires changing kMaxTaskId in Task.h
     u32 blockCount:4; // count of additional 16 byte payload (e.g. value of 4 means an additional 64 bytes)
-    u32 target:28;    // target task id
+    u32 target:28;    // target task id - NOTE Changeing this size requires changing kMaxTaskId in Task.h
     cell payload;     // optional payload for the message
+
+    Message() = default;
+
+    Message(fnv msgId,
+            u32 flags,
+            task_id source,
+            task_id target,
+            cell payload = to_cell(0),
+            u32 blockCount = 0)
+      : msgId(msgId)
+      , flags(flags)
+      , source(source)
+      , blockCount(blockCount)
+      , target(target)
+      , payload(payload)
+    {
+        ASSERT(flags         < (2 << 4)  &&
+               blockCount    < (2 << 4)  &&
+               source        < (2 << 28) &&
+               target        < (2 << 28));
+    }
 };
 
 // Messages can be cast into MessageBlocks to access

@@ -41,7 +41,7 @@ task_id next_task_id()
     // for example.  When they run out of these they can request more.
     // The central server will manage dolling out these chunks and make
     // sure there is no overlap in the ranges.
-    static std::atomic<u32> nextId{1}; // 0 is reserved for null parents
+    static std::atomic<u32> nextId{kMaxThreads}; // 0-kMaxThreads are reserved for TaskManagers
     task_id taskId = nextId++;
     ASSERT(is_valid_task_id(taskId));
     return taskId;

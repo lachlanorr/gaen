@@ -54,23 +54,24 @@ namespace gaen
 
 typedef u32 thread_id;
 
+// The primary thread is special. It runs the renderer and input
+// routines.  In many places we need to identify it by its thread_id.
+static const thread_id kPrimaryThreadId   =  0;
+
 // By default, each thread starts with this as its thread_id
-static const thread_id kInvalidThreadId = static_cast<u32>(-1);
+static const thread_id kInvalidThreadId   = -1;
 
 // When we want to broadcast a message to all TaskMasters, we use
 // this.
-static const thread_id kBroadcastThreadId = kInvalidThreadId-1;
+static const thread_id kBroadcastThreadId = -2;
 
 // Main thread isn't running a TaskMaster, but we identify it to make
 // we know when it is calling various functions.
-static const thread_id kMainThreadId = kInvalidThreadId-2;
+static const thread_id kMainThreadId      = -3;
 
-// The primary thread is special. It runs the renderer and input
-// routines.  In many places we need to identify it by its thread_id.
-static const thread_id kPrimaryThreadId = 0;
 
-static const thread_id kMinThreads = 1;   // includes main
-static const thread_id kMaxThreads = 64;  // includes main
+static const thread_id kMinThreads = 1;   // doesn't include main, main has its own thread
+static const thread_id kMaxThreads = 16;  // doesn't include main, main has its own thread
 
 struct ThreadInfo
 {

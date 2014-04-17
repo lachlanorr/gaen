@@ -33,15 +33,18 @@
 namespace gaen
 {
 
-static const task_id kRootTaskId = 0; // A task with this as their parent is a top level, root task
+// We only have 28 bits per task_id inside of the Task and Message structures.
+// If you change the size in either of those structs, all of them must change.
+static const task_id kMaxTaskId = (2 << 28) - 1;
 
-static const task_id kInvalidTaskId = static_cast<task_id>(-1);
+// LORRTODO - do we still need this kRootTaskId?  We're no longer doing the tree thing
+static const task_id kRootTaskId         = 0; // A task with this as their parent is a top level, root task
+static const task_id kInvalidTaskId      = kMaxTaskId - 0; // 536870911
 
-// Some tasks are kind of like singletons. They have unique task ids
-// so they can be easily referenced by other tasks that want to send
-// them messages.
-static const task_id kRendererTaskId     = kInvalidTaskId - 1;
-static const task_id kInputManagerTaskId = kInvalidTaskId - 2;
+static const task_id kMainThreadTaskId   = kMaxTaskId - 1; // 536870910, special task id used to refer to the main thread as a task
+
+static const task_id kRendererTaskId     = kMaxTaskId - 3; // 536870908
+static const task_id kInputManagerTaskId = kMaxTaskId - 4;  // 536870907
 
 enum class TaskStatus : u8
 {
@@ -70,19 +73,24 @@ task_id next_task_id();
 // Usage:
 //   pObj must implement methods:
 //     void update(f32 deltaSecs);
-//     MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
+//     // Queue Message
+//     MessageResult message(const Message & msg, const MessageQueue::MessageAccessor& msgAcc);
+//     // Immediate Message
+//     MessageResult message(const Message & msg, const MessageBlock* pBlocks);
 //     void setTaskId(task_id taskId);
 //
 // E.g.
 //   Task t = Task::create(pObj);
 //   
 //
-// Instead of an object hierarchy with virtual methods for
-// update and message functions, we opt for this delegate'ish
-// approach.  It eliminates the It eliminates at least one dereference on each, and the
-// compiler can completely inline the delegate call in some cases.
+// Instead of an object hierarchy with virtual methods for update and
+// message functions, we opt for this delegate'ish approach. It
+// eliminates at a dereference on each, call to update() and message()
+// methods. It also alows us to aggregate tasks in data structures
+// even though they don't share any type similarities except for the
+// loose duck typing of the required methods.
 //
-// This can be thought of as a special case delegate with two methods,
+// This can be thought of as a special case delegate with three methods,
 // modeled after Sergey Ryazanov's Impossibly Fast C++ Delegates
 // article at:
 // http://www.codeproject.com/Articles/11015/The-Impossibly-Fast-C-Delegates
@@ -153,7 +161,7 @@ public:
     }
 
     // Immediate message
-    MessageResult message(const Message & msg, const MessageBlock * pMsgBlocks)
+    MessageResult message(const Message & msg, const MessageBlock * pBlocks)
     {
         // Since we're storing the offset of the message stub from the
         // update stub we do a little pointer arithmetic to get the
@@ -163,7 +171,7 @@ public:
         std::intptr_t iptrMessageImmediateStub = iptrUpdateStub + mpMessageImmediateStubOffset;
 
         MessageImmediateStub pMessageImmediateStub = reinterpret_cast<MessageImmediateStub>(iptrMessageImmediateStub);
-        return (*pMessageImmediateStub)(mpThat, msg, pMsgBlocks);
+        return (*pMessageImmediateStub)(mpThat, msg, pBlocks);
     }
 
 
@@ -179,7 +187,7 @@ private:
 
     u32 mStatus:2;           // current running state
     u32 mPermissions:2;      // permissions for others to send messages
-    u32 mTaskId:28;          // our task id
+    u32 mTaskId:28;          // our task id - NOTE Changeing this size requires changing kMaxTaskId in Task.h
 
     u32 mUNUSED;             // FIND SOMETHING BADASS TO DO WITH THIS 32 BITS
 
@@ -203,10 +211,10 @@ private:
     }
 
     template <class T>
-    static MessageResult message_immediate_stub(void* pThat, const Message& msg, const MessageBlock* pMsgBlocks)
+    static MessageResult message_immediate_stub(void* pThat, const Message& msg, const MessageBlock* pBlocks)
     {
         T* p = static_cast<T*>(pThat);
-        return p->message(msg, pMsgBlocks);
+        return p->message(msg, pBlocks);
     }
 };
 

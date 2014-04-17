@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// BaseMsg.h - Base message queue writer to handle book keeping
+// MessageWriter.h - Generic message queue writer class for simple messages
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_MESSAGE_HELPERS_BASEMSG_H
-#define GAEN_ENGINE_MESSAGE_HELPERS_BASEMSG_H
+#ifndef GAEN_ENGINE_MESSAGES_MESSAGEWRITER_H
+#define GAEN_ENGINE_MESSAGES_MESSAGEWRITER_H
 
 #include "engine/renderer_type.h"
 #include "engine/MessageQueue.h"
@@ -36,30 +36,29 @@ namespace gaen
 
 // Base class that wll writers should inherit from.
 // Handles the message queue book keeping.
-class BaseMsgWriter
+class MessageWriter
 {
-    // protected because we don't want the destructor ever called on this class.
-    // That would be improper use, and break stuff potentially since we don't have
-    // a virtual destructor.
-protected:
-    BaseMsgWriter(fnv msgId,
+public:
+    MessageWriter(fnv msgId,
                   u32 flags,
                   task_id source,
                   task_id target,
-                  size_t msgBlockCount)
+                  cell payload = to_cell(0),
+                  u32 blockCount = 0)
     {
-        mpMsgQueue = &MESSAGE_QUEUE_FOR_TARGET(target);
+        mpMsgQueue = &GET_MESSAGE_QUEUE(msgId, flags, source, target);
         mpMsgQueue->pushBegin(&mMsgAcc,
                               msgId,
                               flags,
                               source,
                               target,
-                              to_cell(0),
-                              msgBlockCount);
+                              payload,
+                              blockCount);
     }
 
-    ~BaseMsgWriter()
+    ~MessageWriter()
     {
+        // RAII commit the thing if not already committed
         if (!mIsCommitted)
             commit();
     }
@@ -70,6 +69,9 @@ protected:
         mIsCommitted = true;
     }
 
+    MessageQueue::MessageAccessor & accessor() { return mMsgAcc; }
+
+protected:
     MessageQueue * mpMsgQueue;
     MessageQueue::MessageAccessor mMsgAcc;
     bool mIsCommitted = false;
@@ -77,4 +79,4 @@ protected:
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_MESSAGE_HELPERS_BASEMSG_H
+#endif // #ifndef GAEN_ENGINE_MESSAGES_MESSAGEWRITER_H

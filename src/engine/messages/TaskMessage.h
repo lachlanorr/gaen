@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// TaskMsg.h - Helper for data in insert task meessages
+// TaskMessage.h - Helper for data in insert task meessages
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,10 +24,10 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_MESSAGE_HELPERS_TASKMSG_H
-#define GAEN_ENGINE_MESSAGE_HELPERS_TASKMSG_H
+#ifndef GAEN_ENGINE_MESSAGES_TASKMESSAGE_H
+#define GAEN_ENGINE_MESSAGES_TASKMESSAGE_H
 
-#include "engine/message_helpers/BaseMsg.h"
+#include "engine/messages/MessageWriter.h"
 
 namespace gaen
 {
@@ -42,10 +42,10 @@ namespace gaen
 // * Block 2 (32-47)
 //   Task bytes 16-31
 
-class TaskMsgReader
+class TaskMessageReader
 {
 public:
-    TaskMsgReader(const MessageQueue::MessageAccessor & msgAcc)
+    TaskMessageReader(const MessageQueue::MessageAccessor & msgAcc)
       : mMsgAcc(msgAcc)
     {
         const qcell & task_0 = msgAcc[0].q;
@@ -73,17 +73,18 @@ private:
 
 
 
-class TaskMsgWriter : protected BaseMsgWriter
+class TaskMessageWriter : protected MessageWriter
 {
 public:
-    TaskMsgWriter(fnv msgId,
-                  u32 flags,
-                  task_id source,
-                  task_id target)
-      : BaseMsgWriter(msgId,
+    TaskMessageWriter(fnv msgId,
+                      u32 flags,
+                      task_id source,
+                      task_id target)
+      : MessageWriter(msgId,
                       flags,
                       source,
                       target,
+                      to_cell(0),
                       2) {}
 
     void setOwner(thread_id owner) { mMsgAcc.message().payload.u = owner; }
@@ -97,4 +98,4 @@ public:
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_MESSAGE_HELPERS_TASKMSG_H
+#endif // #ifndef GAEN_ENGINE_MESSAGES_TASKMESSAGE_H

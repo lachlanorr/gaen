@@ -59,34 +59,26 @@ void fin_task_masters();
 template <class RendererT>
 void start_game_loops(Entity * pInitEntity);
 
+// Get the correct message queue against which you should queue
 template <class RendererT>
-MessageQueue & message_queue_for_target(task_id target);
+MessageQueue & get_message_queue(fnv msgId,
+                                 u32 flags,
+                                 task_id source,
+                                 task_id target);
 
+// Broadcast a message to all TaskMasters
 template <class RendererT>
-void queue_message_from_main(thread_id threadId,
-                             fnv msgId);
-
-template <class RendererT>
-void queue_message_from_main(thread_id threadId,
-                             fnv msgId,
-                             cell payload,
-                             const MessageBlock * pMsgBlock,
-                             size_t msgBlockCount);
-
-
-template <class RendererT>
-void queue_message(fnv msgId,
-                   task_id source,
-                   task_id target,
-                   cell payload,
-                   const MessageBlock * pMsgBlock,
-                   size_t msgBlockCount);
+void broadcast_message(fnv msgId,
+                       u32 flags,
+                       task_id source,
+                       cell payload = to_cell(0),
+                       u32 blockCount = 0,
+                       const MessageBlock * pBlocks = nullptr);
 
 // Convenience macros to avoid repeated template param render_type in
 // all calls.  It will always be render_type.
-#define MESSAGE_QUEUE_FOR_TARGET message_queue_for_target<renderer_type>
-#define QUEUE_MESSAGE_FROM_MAIN queue_message_from_main<renderer_type>
-#define QUEUE_MESSAGE queue_message<renderer_type>
+#define GET_MESSAGE_QUEUE get_message_queue<renderer_type>
+#define BROADCAST_MESSAGE broadcast_message<renderer_type>
 
 template <class RendererT>
 class TaskMaster
@@ -94,6 +86,7 @@ class TaskMaster
 public:
     void init(thread_id tid);
     void fin(const Message & msg, const MessageQueue::MessageAccessor& msgAcc);
+    void cleanup();
 
     static TaskMaster<RendererT> & task_master_for_thread(thread_id tid);
     inline static TaskMaster<RendererT> & primary_task_master()
@@ -123,14 +116,6 @@ public:
     // until the TaskMaster gets shut down.
     void runPrimaryGameLoop();
     void runAuxiliaryGameLoop();
-
-    void queueMessage(fnv msgId,
-                      task_id source,
-                      task_id target,
-                      cell payload,
-                      const MessageBlock * pMsgBlock,
-                      size_t msgBlockCount);
-
 
     // Register a path as a mutable data dependency,
     // i.e. the task can modify this data.

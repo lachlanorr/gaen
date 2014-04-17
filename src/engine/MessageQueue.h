@@ -50,10 +50,6 @@ public:
     {
         friend MessageQueue;
     public:
-        size_t availableCells() const { return messageBlockCount() * kCellsPerMessageBlock + 1; }
-        size_t availableDcells() const { return messageBlockCount() * kDCellsPerMessageBlock; }
-        size_t availableQcells() const { return messageBlockCount(); }
-
         Message & message()
         {
             ASSERT(mAccessor.available() > 0);
@@ -69,27 +65,27 @@ public:
         // Access blocks of message
         MessageBlock & operator[] (size_t index)
         {
-            return messageBlockFromIndex(index);
+            return blockFromIndex(index);
         }
 
         const MessageBlock & operator[] (size_t index) const
         {
-            return messageBlockFromIndex(index);
+            return blockFromIndex(index);
         }
 
     private:
-        MessageBlock & messageBlockFromIndex(size_t index) const
+        MessageBlock & blockFromIndex(size_t index) const
         {
             ASSERT(index < mAccessor.available()-1); // -1 since Message header is always present
-            ASSERT(index < messageBlockCount());
+            ASSERT(index < blockCount());
 
              // +1 since Message header is always present
-            MessageBlock * pMsgBlock = reinterpret_cast<MessageBlock*>(&mAccessor[1+index]);
+            MessageBlock * pBlock = reinterpret_cast<MessageBlock*>(&mAccessor[1+index]);
 
-            return *pMsgBlock;
+            return *pBlock;
         }
 
-        size_t messageBlockCount() const
+        size_t blockCount() const
         {
             ASSERT(mAccessor.available() > 0);
             return mAccessor[0].blockCount;
@@ -128,10 +124,10 @@ public:
                    u32 flags,
                    task_id source,
                    task_id target,
-                   cell payload,
-                   size_t msgBlockCount)
+                   cell payload = to_cell(0),
+                   u32 blockCount = 0)
     {
-        pushHeader(pMsgAcc, msgId, flags, source, target, payload, msgBlockCount);
+        pushHeader(pMsgAcc, msgId, flags, source, target, payload, blockCount);
     }
 
     void pushCommit(const MessageAccessor & msgAcc)
@@ -169,7 +165,7 @@ private:
                     task_id source,
                     task_id target,
                     cell payload,
-                    size_t msgBlockCount)
+                    u32 msgBlockCount)
     {
         ASSERT(flags         < (2 << 4)  &&
                msgBlockCount < (2 << 4)  &&
