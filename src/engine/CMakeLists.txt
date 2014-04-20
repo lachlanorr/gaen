@@ -24,16 +24,12 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
+INCLUDE (message_defs/messages.cmake)
+
 SET (engine_component_SOURCES
   components/ModelComponent.cpp
   components/ModelComponent.h
   )
-
-SET (engine_messages_SOURCES
-  messages/MessageWriter.h
-  messages/ModelInstanceMessage.h
-  messages/TaskMessage.h
-)  
 
 SET (engine_SOURCES
   Color.h
@@ -50,6 +46,7 @@ SET (engine_SOURCES
   Mesh.h
   Message.h
   MessageQueue.h
+  MessageWriter.h
   Model.cpp
   Model.h
   ModelMgr.cpp
@@ -62,20 +59,18 @@ SET (engine_SOURCES
   TaskMaster.cpp
   TaskMaster.h
   ${engine_component_SOURCES}
-  ${engine_messages_SOURCES}
+  ${engine_message_defs_SOURCES}
   )
 
 MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${engine_SOURCES}")
 IDE_SOURCE_PROPERTIES( "/components" "${engine_component_SOURCES}")
-IDE_SOURCE_PROPERTIES( "/messages" "${engine_messages_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/message_defs" "${engine_message_defs_SOURCES}")
 
 ADD_LIBRARY (engine
   ${engine_SOURCES}
   )
 
-
-SET (update_fnv_script ${scripts_dir}/update_fnv_hashes.py)
 
 
 # Run during configure so we have FNV.h/cpp existing for .sln creation
@@ -88,13 +83,24 @@ ADD_CUSTOM_TARGET (
   fnv_hashes_precalc
   COMMAND python ${scripts_dir}/update_fnv_hashes.py
   )
-#ADD_CUSTOM_COMMAND (
-#  OUTPUT FNV.h FNV.cpp
-#  COMMAND python ${scripts_dir}/update_fnv_hashes.py
-#  )
+
+
+
+# Run during configure.
+EXECUTE_PROCESS (
+  COMMAND python ${scripts_dir}/make_message_classes.py
+  )
+
+# Run each time we build.
+ADD_CUSTOM_TARGET (
+  message_classes_gen
+  COMMAND python ${scripts_dir}/make_message_classes.py
+  )
+
   
 ADD_DEPENDENCIES(engine
   core
   fnv_hashes_precalc
+  message_classes_gen
   )
 

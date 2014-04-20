@@ -33,7 +33,7 @@
 #include "engine/MessageQueue.h"
 #include "engine/Entity.h"
 #include "engine/renderer_type.h"
-#include "engine/messages/TaskMessage.h"
+#include "engine/message_defs/TaskMessage.h"
 
 #include "engine/TaskMaster.h"
 
@@ -117,6 +117,7 @@ void start_game_loops(Entity * pInitEntity)
             TaskMessageWriter twrtr(FNV::add_task,
                                     kMessageFlag_None,
                                     kMainThreadTaskId,
+                                    kPrimaryThreadId,
                                     kPrimaryThreadId);
             twrtr.setTask(t);
         }

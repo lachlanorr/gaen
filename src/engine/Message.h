@@ -104,18 +104,6 @@ union qcell
 };
 static_assert(sizeof(qcell) == 16, "qcell must be 16 bytes");
 
-// Returns a qcell indexed off of start.
-// Useful when copying data in and out of MessageQueue in
-// qcell (16 byte) blocks.
-inline qcell & qcell_at(void * start, size_t offset)
-{
-    return *(reinterpret_cast<qcell*>(start) + offset);
-}
-inline const qcell & qcell_at(const void * start, size_t offset)
-{
-    return *(reinterpret_cast<const qcell*>(start) + offset);
-}
-
 struct Message
 {
     fnv msgId;        // fnv1 hash based on message string
@@ -166,6 +154,18 @@ union MessageBlock
 // Changing this size will propogate necessary changes... so don't.
 static_assert(sizeof(Message) == 16, "Message should be 16 bytes");
 static_assert(sizeof(MessageBlock) == sizeof(Message), "MessageBlock and Message must be the same size");
+
+// Returns a MessageBlock indexed off of start.
+// Useful when copying data in and out of MessageQueue in
+// block sized (16 byte) chunks.
+inline MessageBlock & block_at(void * start, size_t index)
+{
+    return *(reinterpret_cast<MessageBlock*>(start) + index);
+}
+inline const MessageBlock & block_at(const void * start, size_t index)
+{
+    return *(reinterpret_cast<const MessageBlock*>(start) + index);
+}
 
 // We use the 4 extra bits in various places.
 inline bool is_valid_task_id(task_id taskId)

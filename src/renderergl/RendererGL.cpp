@@ -29,7 +29,7 @@
 #include "core/base_defines.h"
 
 #include "engine/MessageQueue.h"
-#include "engine/messages/ModelInstanceMessage.h"
+#include "engine/message_defs/ModelInstanceMessage.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/RendererGL.h"

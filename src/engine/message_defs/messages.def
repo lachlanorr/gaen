@@ -1,0 +1,22 @@
+'''
+Message definitions used to generate cpp Reader and Writer classes.
+
+This is a python file, but shouldn't be used directly, it will be
+consumed when build_messages.py is run.
+'''
+
+# A single, 32 byte task
+class Task(FieldHandler):
+    owner = u32Field(payload=True,
+                     type_name='thread_id',
+                     includes=['core/threading.h'])
+    task  = TaskField()
+
+class ModelInstance(FieldHandler):
+    instanceId     = u32Field(payload=True,
+                              type_name='model_instance_id',
+                              includes=['engine/Model.h'])
+    pModel         = PointerField(type_name='Model *')
+    isAssetManaged = boolField()
+    worldTransform = Mat34Field()
+    
