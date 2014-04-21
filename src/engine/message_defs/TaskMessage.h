@@ -34,10 +34,10 @@
 namespace gaen
 {
 
-class TaskMessageReader
+class TaskReader
 {
 public:
-    TaskMessageReader(const MessageQueue::MessageAccessor & msgAcc)
+    TaskReader(const MessageQueue::MessageAccessor & msgAcc)
       : mMsgAcc(msgAcc)
     {
         if (&msgAcc[1] > &msgAcc[0])
@@ -70,14 +70,14 @@ private:
 
 
 
-class TaskMessageWriter : protected MessageWriter
+class TaskWriter : protected MessageWriter
 {
 public:
-    TaskMessageWriter(fnv msgId,
-                      u32 flags,
-                      task_id source,
-                      task_id target,
-                      thread_id owner)
+    TaskWriter(fnv msgId,
+               u32 flags,
+               task_id source,
+               task_id target,
+               thread_id owner)
       : MessageWriter(msgId,
                       flags,
                       source,

@@ -101,7 +101,7 @@ MessageResult RendererGL::message(const MessageQueue::MessageAccessor& msgAcc)
     {
     case FNV::renderer_insert_model_instance:
     {
-        ModelInstanceMessageReader rdr(msgAcc);
+        ModelInstanceReader rdr(msgAcc);
         mModelMgr.insertModelInstance(rdr.instanceId(),
                                       rdr.model(),
                                       rdr.worldTransform(),

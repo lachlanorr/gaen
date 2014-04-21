@@ -112,13 +112,13 @@ void start_game_loops(Entity * pInitEntity)
     if (pInitEntity)
     {
         // Create a task out of the entity and start it up
-        Task t = Task::create(pInitEntity);
+        Task t = Task::createUpdatable(pInitEntity);
         {
-            TaskMessageWriter twrtr(FNV::add_task,
-                                    kMessageFlag_None,
-                                    kMainThreadTaskId,
-                                    kPrimaryThreadId,
-                                    kPrimaryThreadId);
+            TaskWriter twrtr(FNV::add_task,
+                             kMessageFlag_None,
+                             kMainThreadTaskId,
+                             kPrimaryThreadId,
+                             kPrimaryThreadId);
             twrtr.setTask(t);
         }
     }
@@ -443,7 +443,7 @@ MessageResult TaskMaster<RendererT>::message(const Message & msg, const MessageQ
         }
         case FNV::insert_task:
         {
-            TaskMessageReader tmr(msgAcc);
+            TaskReader tmr(msgAcc);
             insertTask(tmr.owner(), tmr.task());
             return MessageResult::Consumed;
         }

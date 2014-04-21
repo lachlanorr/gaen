@@ -85,8 +85,8 @@ TEST(TaskTest, CreateTasks)
 
     std::vector<gaen::Task> vec(2);
 
-    vec[0] = gaen::Task::create(&e1);
-    vec[1] = gaen::Task::create(&e2);
+    vec[0] = gaen::Task::createUpdatable(&e1);
+    vec[1] = gaen::Task::createUpdatable(&e2);
 
     gaen::MessageQueue::MessageAccessor msgAcc;
 

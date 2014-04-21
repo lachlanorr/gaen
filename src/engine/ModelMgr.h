@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// ModelMgr.cpp - Provides material ordered mesh iteration and model/material release semantics
+// ModelMgr.h - Provides material ordered mesh iteration and model/material release semantics
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #-------------------------------------------------------------------------------
-# field_meta.py - Convert field meta definitions in c++ code
+# make_message_classes.py - Generate c++ property classes from defs
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014 Lachlan Orr
@@ -26,13 +26,8 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-'''
-Convert field meta definitions into C++ classes.
-'''
-
 import os
 import posixpath
-import inspect
 
 MESSAGE_CLASS_TEMPLATE = '''\
 //------------------------------------------------------------------------------
@@ -68,10 +63,10 @@ MESSAGE_CLASS_TEMPLATE = '''\
 namespace gaen
 {
 
-class <<message_name>>MessageReader
+class <<message_name>>Reader
 {
 public:
-    <<message_name>>MessageReader(const MessageQueue::MessageAccessor & msgAcc)
+    <<message_name>>Reader(const MessageQueue::MessageAccessor & msgAcc)
       : mMsgAcc(msgAcc)
     {
 <<reader_data_member_init>>
@@ -87,13 +82,13 @@ private:
 
 
 
-class <<message_name>>MessageWriter : protected MessageWriter
+class <<message_name>>Writer : protected MessageWriter
 {
 public:
-    <<message_name>>MessageWriter(fnv msgId,
-    <<message_name_indent>>              u32 flags,
-    <<message_name_indent>>              task_id source,
-    <<message_name_indent>>              task_id target<<payload_decl>>)
+    <<message_name>>Writer(fnv msgId,
+    <<message_name_indent>>       u32 flags,
+    <<message_name_indent>>       task_id source,
+    <<message_name_indent>>       task_id target<<payload_decl>>)
       : MessageWriter(msgId,
                       flags,
                       source,
@@ -108,9 +103,6 @@ public:
 
 #endif // #ifndef GAEN_ENGINE_MESSAGES_<<message_name_caps>>MESSAGE_H
 '''
-
-
-
 
 MESSAGES_CMAKE_TEMPLATE = '''\
 #-------------------------------------------------------------------------------
@@ -144,213 +136,28 @@ SET (engine_message_defs_SOURCES
 )  
 '''
 
-
-
-
-class GenericField(object):
-    def __init__(self, *args, **kwargs):
-        for k, v in kwargs.iteritems():
-            if type(v) == list: # append to list
-                if hasattr(self, k):
-                    l = getattr(self, k)
-                    l += v
-            else: # all other values just set as attributes
-                setattr(self, k, v)
-
-    def __str__(self):
-        return self.name + ' : ' + repr(self.__dict__)
-            
-    payload = False
-    includes = ['engine/MessageWriter.h']
-
-
-# cell fields
-class cellField(GenericField):
-    cell_count = 1
-
-class i32Field(cellField):
-    pass
-
-class u32Field(cellField):
-    pass
-
-class f32Field(cellField):
-    pass
-    
-class boolField(cellField):
-    pass
-    
-class colorField(cellField):
-    pass
-    
-
-
-# dcell fields
-class dcellField(GenericField):
-    cell_count = 2
-
-class i64Field(dcellField):
-    pass
-    
-class u64Field(dcellField):
-    pass
-    
-class f64Field(dcellField):
-    pass
-    
-class PointerField(dcellField):
-    type_name = 'void *'
-
-
-
-# qcell fields
-class Vec4Field(GenericField):
-    cell_count = 4
-    includes = GenericField.includes + ['engine/math.h']
-
-
-
-# multi-block fields
-class TaskField(GenericField):
-    cell_count = 8
-    includes = GenericField.includes + ['engine/Task.h']
-
-class Mat34Field(GenericField):
-    cell_count = 12
-    includes = GenericField.includes + ['engine/math.h']
-
-
-def print_message(msg):
-    s = '%s:\n  %s\n Fields:\n  ' % (msg.object_name, repr(msg.__dict__))
-    s += '\n  '.join([str(f) for f in msg.fields])
-    print s
-
-
-def upper_first(s):
-    return s[0].upper() + s[1:]
-
-def lower_first(s):
-    return s[0].lower() + s[1:]
-
-BLOCK_CELL_COUNT = 4 # cells per block, blocks are 16 bytes
-class FieldHandlerType(type):
-    '''
-    Metaclass to build FieldHandler classes.
-    '''
-    def __new__(cls, name, bases, attrs):
-
-        if name.startswith('None'):
-            return None
-
-        # Go over attributes looking for fields
-        has_payload = False
-        curr_block = 0
-        curr_byte = 0
-        fields = []
-        includes = []
-        newattrs = {'object_name': name,
-                    'fields': fields,
-                    'includes': includes,
-                    'payload_field': None}
-
-        for attrname, attrvalue in attrs.iteritems():
-            if isinstance(attrvalue, GenericField):
-                fieldname, field = attrname, attrvalue
-                field_class_name = field.__class__.__name__
-                if not field_class_name.endswith('Field'):
-                    raise Exception('Field class must end in "Field"')
-                
-                field.name = fieldname
-
-                if not hasattr(field, 'type_name'):
-                    field.type_name = field_class_name[:-5]
-                
-                for inc in field.includes:
-                    if inc not in includes:
-                        includes.append(inc)
-
-                field.block_count = field.cell_count / BLOCK_CELL_COUNT
-                
-                # handle payload
-                if field.payload:
-                    if has_payload:
-                        raise Exception('Only one payload field permitted')
-                    if field.cell_count > 4:
-                        raise Exception('Payload must be 4 bytes or less')
-                    has_payload = True
-                    newattrs['payload_field'] = field
-                # handle block sizing
-                else:
-                    remaining = BLOCK_CELL_COUNT - curr_byte
-                    if field.cell_count > remaining and curr_byte > 0:
-                        curr_block += 1
-                        curr_byte = 0
-                    field.block_start = curr_block
-                    field.block_cell_start = curr_byte
-                    curr_byte += field.cell_count % BLOCK_CELL_COUNT
-                    curr_block += field.cell_count / BLOCK_CELL_COUNT
-
-                    if (field.cell_count > BLOCK_CELL_COUNT and field.cell_count % BLOCK_CELL_COUNT != 0):
-                        raise Exception("We don't currently support multi block fields that aren't a multiple of 16 bytes")
-
-                    # We'll need some data members for the class for larger than block size
-                    # fields.  This is so we can have a place to copy them into if they
-                    # happen to wrap the message ring.
-                    if (field.block_count > 1):
-                        field.member_var  = 'm'  + upper_first(field.name)
-                        field.member_pvar = 'mp' + upper_first(field.name)
-
-                fields.append(field)
-
-        newattrs['block_count'] = curr_block + (0 if curr_byte == 0 else 1)
-        return super(FieldHandlerType, cls).__new__(cls, name, bases, newattrs)
-
-    def __init__(self, name, bases, attrs):
-        super(FieldHandlerType, self).__init__(name, bases, attrs)
-        
-        if len(self.fields) > 0:
-            MESSAGES.append(self)
-
-
-class FieldHandler(object):
-    __metaclass__ = FieldHandlerType
+def scripts_path():
+    scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
+    return scriptdir
 
 def messages_def_path():
-    scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
-    gaendir = posixpath.split(scriptdir)[0]
+    gaendir = posixpath.split(scripts_path())[0]
     return posixpath.join(gaendir, 'src/engine/message_defs')
 
 def parse_messages_def():
     context = globals()
-    context['MESSAGES'] = []
-    path = posixpath.join(messages_def_path(), 'messages.def')
-    with open(path) as f:
+    context['FIELD_HANDLERS'] = []
+    with open(posixpath.join(scripts_path(), 'field_handler.py')) as f:
         exec f in context
-    return context['MESSAGES']
+    def_path = posixpath.join(messages_def_path(), 'messages.def')
+    with open(def_path) as f:
+        exec f in context
+    return context['FIELD_HANDLERS']
 
 def template_subst(template, replacements):
     for k, v in replacements.iteritems():
         template = template.replace('<<%s>>' % k, v)
     return template
-
-UNION_TYPES = {u32Field:  'u',
-               i32Field:  'i',
-               f32Field:  'f',
-               boolField: 'b'}
-
-def union_type(field):
-    return UNION_TYPES[type(field)]
-
-
-def block_accessor(field):
-    if field.cell_count == 1:
-        return 'c[%d]' % field.block_cell_start
-    elif field.cell_count == 2:
-        return 'd[%d]' % (field.block_cell_start / 2,)
-    elif field.cell_count == 4:
-        return 'q'
-    else:
-        raise Exception('Invalid field size for block accessor')
 
 def gen_includes(includes):
     inc = []
@@ -358,9 +165,9 @@ def gen_includes(includes):
         inc.append('#include "%s"\n' % i)
     return ''.join(inc)
 
-def gen_reader_member_init(msg_meta):
+def gen_reader_member_init(field_handler):
     lines = []
-    for f in msg_meta.fields:
+    for f in field_handler.fields:
         if f.block_count > 1:
             lines.append('        if (&msgAcc[%d] > &msgAcc[%d])' % (f.block_start + f.block_count - 1, f.block_start))
             lines.append('        {')
@@ -380,25 +187,22 @@ def gen_reader_member_init(msg_meta):
             
     return '\n'.join(lines)
 
-def gen_reader_getters(msg_meta):
+def gen_reader_getters(field_handler):
     lines = []
-    for f in msg_meta.fields:
+    for f in field_handler.fields:
         if f.payload:
-            lines.append('    %s %s() const { return mMsgAcc.message().payload.%s; }' % (f.type_name, f.name, union_type(f)))
+            lines.append('    %s %s() const { return mMsgAcc.message().payload.%s; }' % (f.type_name, f.name, f.union_type))
         elif type(f) == PointerField:
-            n = f.name
-            if n.startswith('p'):
-                n = n[1:]
-            lines.append('    %s %s() const { return static_cast<%s>(mMsgAcc[%d].%s.p); }' % (f.type_name, lower_first(n), f.type_name, f.block_start, block_accessor(f)))
+            lines.append('    %s %s() const { return static_cast<%s>(mMsgAcc[%d].%s.p); }' % (f.type_name, f.getter_name, f.type_name, f.block_start, f.block_accessor))
         elif f.block_count <= 1:
-            lines.append('    %s %s() const { return mMsgAcc[%d].%s.%s; }' % (f.type_name, f.name, f.block_start, block_accessor(f), union_type(f)))
+            lines.append('    %s %s() const { return mMsgAcc[%d].%s.%s; }' % (f.type_name, f.name, f.block_start, f.block_accessor, f.union_type))
         else:
             lines.append('    const %s & %s() const { return *%s; }' % (f.type_name, f.name, f.member_pvar))
     return '\n'.join(lines)
     
-def gen_reader_data_members(msg_meta):
+def gen_reader_data_members(field_handler):
     lines = []
-    for f in msg_meta.fields:
+    for f in field_handler.fields:
         if f.block_count > 1:
             lines.append('    %s %s;' % (f.type_name, f.member_var))
             lines.append('    const %s * %s;' % (f.type_name, f.member_pvar))
@@ -408,33 +212,30 @@ def gen_reader_data_members(msg_meta):
 
     return '\n'.join(lines)
 
-def gen_payload_decl(msg_meta):
-    for f in msg_meta.fields:
+def gen_payload_decl(field_handler):
+    for f in field_handler.fields:
         if f.payload:
-            return ',\n%s                  %s %s' % (' ' * len(msg_meta.object_name), f.type_name, f.name)
+            return ',\n%s           %s %s' % (' ' * len(field_handler.object_name), f.type_name, f.name)
     return ''
 
-def gen_payload_value(msg_meta):
-    for f in msg_meta.fields:
+def gen_payload_value(field_handler):
+    for f in field_handler.fields:
         if f.payload:
             return f.name
     return '0'
     
 
-def gen_writer_setters(msg_meta):
+def gen_writer_setters(field_handler):
     lines = []
-    for f in msg_meta.fields:
+    for f in field_handler.fields:
         if f.payload:
-            lines.append('    void set%s(%s val) { mMsgAcc.message().payload.%s = val; }' % (upper_first(f.name), f.type_name, union_type(f)))
+            lines.append('    void %s(%s val) { mMsgAcc.message().payload.%s = val; }' % (f.setter_name, f.type_name, f.union_type))
         elif type(f) == PointerField:
-            n = f.name
-            if n.startswith('p'):
-                n = n[1:]
-            lines.append('    void set%s(%s pVal) { mMsgAcc[%d].%s.p = pVal; }' % (n, f.type_name, f.block_start, block_accessor(f)))
+            lines.append('    void %s(%s pVal) { mMsgAcc[%d].%s.p = pVal; }' % (f.setter_name, f.type_name, f.block_start, f.block_accessor))
         elif f.block_count <= 1:
-            lines.append('    void set%s(%s val) { mMsgAcc[%d].%s.%s = val; }' % (upper_first(f.name), f.type_name, f.block_start, block_accessor(f), union_type(f)))
+            lines.append('    void %s(%s val) { mMsgAcc[%d].%s.%s = val; }' % (f.setter_name, f.type_name, f.block_start, f.block_accessor, f.union_type))
         else:
-            lines.append('    void set%s(const %s & val)' % (upper_first(f.name), f.type_name))
+            lines.append('    void %s(const %s & val)' % (f.setter_name, f.type_name))
             lines.append('    {')
             lines.append('        for (u32 i = 0; i < %d; ++i)' % f.block_count)
             lines.append('        {')
@@ -443,26 +244,26 @@ def gen_writer_setters(msg_meta):
             lines.append('    }')
     return '\n'.join(lines)
     
-def gen_message_class(msg_meta):
-    repl = {'message_name_caps'      : msg_meta.object_name.upper(),
-            'message_name'           : msg_meta.object_name,
-            'message_name_indent'    : ' ' * len(msg_meta.object_name),
-            'includes'               : gen_includes(msg_meta.includes),
-            'reader_data_member_init': gen_reader_member_init(msg_meta),
-            'reader_getters'         : gen_reader_getters(msg_meta),
-            'reader_data_members'    : gen_reader_data_members(msg_meta),
-            'payload_decl'           : gen_payload_decl(msg_meta),
-            'payload_value'          : gen_payload_value(msg_meta),
-            'block_count'            : str(msg_meta.block_count),
-            'writer_setters'         : gen_writer_setters(msg_meta),
+def gen_message_class(field_handler):
+    repl = {'message_name_caps'      : field_handler.object_name.upper(),
+            'message_name'           : field_handler.object_name,
+            'message_name_indent'    : ' ' * len(field_handler.object_name),
+            'includes'               : gen_includes(field_handler.includes),
+            'reader_data_member_init': gen_reader_member_init(field_handler),
+            'reader_getters'         : gen_reader_getters(field_handler),
+            'reader_data_members'    : gen_reader_data_members(field_handler),
+            'payload_decl'           : gen_payload_decl(field_handler),
+            'payload_value'          : gen_payload_value(field_handler),
+            'block_count'            : str(field_handler.block_count),
+            'writer_setters'         : gen_writer_setters(field_handler),
     }
 
     return template_subst(MESSAGE_CLASS_TEMPLATE, repl)
 
-def gen_message_cmake(msg_metas):
+def gen_message_cmake(field_handlers):
     lines = []
-    for msg_meta in msg_metas:
-        lines.append('  message_defs/%sMessage.h' % msg_meta.object_name)
+    for field_handler in field_handlers:
+        lines.append('  message_defs/%sMessage.h' % field_handler.object_name)
     lines.sort()
     return MESSAGES_CMAKE_TEMPLATE.replace('<<message_header_files>>', '\n'.join(lines))
 
@@ -478,12 +279,12 @@ def replace_file_if_different(path, data):
             out_f.write(data)
 
 def gen_message_classes():
-    msg_metas = parse_messages_def()
-    for msg_meta in msg_metas:
-        cpp_data = gen_message_class(msg_meta)
-        cpp_path = posixpath.join(messages_def_path(), msg_meta.object_name + 'Message.h')
+    field_handlers = parse_messages_def()
+    for field_handler in field_handlers:
+        cpp_data = gen_message_class(field_handler)
+        cpp_path = posixpath.join(messages_def_path(), field_handler.object_name + 'Message.h')
         replace_file_if_different(cpp_path, cpp_data)
-    cmake_data = gen_message_cmake(msg_metas)
+    cmake_data = gen_message_cmake(field_handlers)
     cmake_path = posixpath.join(messages_def_path(), 'messages.cmake')
     replace_file_if_different(cmake_path, cmake_data)
         

@@ -12,11 +12,19 @@ class Task(FieldHandler):
                      includes=['core/threading.h'])
     task  = TaskField()
 
+
+class ModelInstanceId(FieldHandler):
+    instanceId = u32Field(payload=True,
+                          type_name='model_instance_id',
+                          includes=['engine/Model.h'])
+
+
 class ModelInstance(FieldHandler):
-    instanceId     = u32Field(payload=True,
-                              type_name='model_instance_id',
-                              includes=['engine/Model.h'])
-    pModel         = PointerField(type_name='Model *')
-    isAssetManaged = boolField()
-    worldTransform = Mat34Field()
+    instanceId      = u32Field(payload=True,
+                               type_name='model_instance_id',
+                               includes=['engine/Model.h'])
+    pModel          = PointerField(type_name='Model *',
+                                   includes=['engine/Model.h'])
+    isAssetManaged  = boolField()
+    worldTransform  = Mat34Field()
     

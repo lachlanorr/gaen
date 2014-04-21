@@ -25,6 +25,7 @@
 #-------------------------------------------------------------------------------
 
 INCLUDE (message_defs/messages.cmake)
+INCLUDE (property_defs/properties.cmake)
 
 SET (engine_component_SOURCES
   components/ModelComponent.cpp
@@ -60,28 +61,17 @@ SET (engine_SOURCES
   TaskMaster.h
   ${engine_component_SOURCES}
   ${engine_message_defs_SOURCES}
+  ${engine_property_defs_SOURCES}
   )
 
 MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${engine_SOURCES}")
 IDE_SOURCE_PROPERTIES( "/components" "${engine_component_SOURCES}")
 IDE_SOURCE_PROPERTIES( "/message_defs" "${engine_message_defs_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/property_defs" "${engine_property_defs_SOURCES}")
 
 ADD_LIBRARY (engine
   ${engine_SOURCES}
-  )
-
-
-
-# Run during configure so we have FNV.h/cpp existing for .sln creation
-EXECUTE_PROCESS (
-  COMMAND python ${scripts_dir}/update_fnv_hashes.py
-  )
-
-# Run each time we build. FNV.h/cpp will only get replaced if they change.
-ADD_CUSTOM_TARGET (
-  fnv_hashes_precalc
-  COMMAND python ${scripts_dir}/update_fnv_hashes.py
   )
 
 
@@ -98,9 +88,37 @@ ADD_CUSTOM_TARGET (
   )
 
   
+
+# Run during configure.
+EXECUTE_PROCESS (
+  COMMAND python ${scripts_dir}/make_property_classes.py
+  )
+
+# Run each time we build.
+ADD_CUSTOM_TARGET (
+  property_classes_gen
+  COMMAND python ${scripts_dir}/make_property_classes.py
+  )
+
+  
+
+# Run during configure so we have FNV.h/cpp existing for .sln creation
+EXECUTE_PROCESS (
+  COMMAND python ${scripts_dir}/update_fnv_hashes.py
+  )
+
+# Run each time we build. FNV.h/cpp will only get replaced if they change.
+ADD_CUSTOM_TARGET (
+  fnv_hashes_precalc
+  COMMAND python ${scripts_dir}/update_fnv_hashes.py
+  )
+
+
+
 ADD_DEPENDENCIES(engine
   core
-  fnv_hashes_precalc
   message_classes_gen
+  property_classes_gen
+  fnv_hashes_precalc
   )
 

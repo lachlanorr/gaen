@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// ModelComponent.h - Component that encapsulate a static model
+// ModelComponent.cpp - Component that encapsulate a static model
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr

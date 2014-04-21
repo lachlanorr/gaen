@@ -1,0 +1,12 @@
+'''
+Message definitions used to generate cpp Reader and Writer classes.
+
+This is a python file, but shouldn't be used directly, it will be
+consumed when build_messages.py is run.
+'''
+
+class Model(FieldHandler):
+    pModel = PointerField(type_name='Model *',
+                          includes=['engine/Model.h'])
+
+

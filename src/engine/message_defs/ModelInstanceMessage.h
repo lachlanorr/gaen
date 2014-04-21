@@ -35,10 +35,10 @@
 namespace gaen
 {
 
-class ModelInstanceMessageReader
+class ModelInstanceReader
 {
 public:
-    ModelInstanceMessageReader(const MessageQueue::MessageAccessor & msgAcc)
+    ModelInstanceReader(const MessageQueue::MessageAccessor & msgAcc)
       : mMsgAcc(msgAcc)
     {
         if (&msgAcc[3] > &msgAcc[1])
@@ -73,14 +73,14 @@ private:
 
 
 
-class ModelInstanceMessageWriter : protected MessageWriter
+class ModelInstanceWriter : protected MessageWriter
 {
 public:
-    ModelInstanceMessageWriter(fnv msgId,
-                               u32 flags,
-                               task_id source,
-                               task_id target,
-                               model_instance_id instanceId)
+    ModelInstanceWriter(fnv msgId,
+                        u32 flags,
+                        task_id source,
+                        task_id target,
+                        model_instance_id instanceId)
       : MessageWriter(msgId,
                       flags,
                       source,

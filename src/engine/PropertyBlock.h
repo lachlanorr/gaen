@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Component.h - Core functionality all components must have
+// PropertyBlock.h - Base class for property blocks
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,41 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_COMPONENT_H
-#define GAEN_ENGINE_COMPONENT_H
-
-#include "engine/Entity.h"
+#ifndef GAEN_ENGINE_PROPERTYBLOCK_H
+#define GAEN_ENGINE_PROPERTYBLOCK_H
 
 namespace gaen
 {
 
-// Base component for common stuff for all Components.
-class Component
+class PropertyBlock
 {
-public:
-    task_id taskId() { ASSERT(mIsInit); return mTaskId; }
-    task_id entityTaskId() { ASSERT(mIsInit); return mEntityTaskId; }
-
-    MessageResult message(const MessageQueue::MessageAccessor& msgAcc)
+    void update(void* pThat, f32 deltaSecs)
     {
-        MessageResult msgRes = MessageResult::Propogate;
-        const Message & msg = msgAcc.message();
-        switch (msg.msgId)
-        {
-        case FNV::init:
-            mEntityTaskId = msg.source;
-            mTaskId = msg.target;
-            msgRes = MessageResult::Consumed;
-        }
-        return msgRes;
+        // Noop, we just need this method so we can be a task
     }
 
-protected:
-    task_id mTaskId = kInvalidTaskId;
-    task_id mEntityTaskId = kInvalidTaskId;
-    bool mIsInit = false;
+    template <typename T>
+    MessageResult message(const Message& msg, const T msgAcc)
+    {
+        
+    }
+
 };
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_COMPONENT_H
+#endif // #ifndef GAEN_ENGINE_PROPERTYBLOCK_H

@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_MESSAGES_MESSAGEWRITER_H
-#define GAEN_ENGINE_MESSAGES_MESSAGEWRITER_H
+#ifndef GAEN_ENGINE_MESSAGEWRITER_H
+#define GAEN_ENGINE_MESSAGEWRITER_H
 
 #include "engine/renderer_type.h"
 #include "engine/MessageQueue.h"
@@ -79,4 +79,4 @@ protected:
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_MESSAGES_MESSAGEWRITER_H
+#endif // #ifndef GAEN_ENGINE_MESSAGEWRITER_H
