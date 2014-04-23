@@ -33,7 +33,7 @@
 #include "engine/MessageQueue.h"
 #include "engine/Entity.h"
 #include "engine/renderer_type.h"
-#include "engine/message_defs/TaskMessage.h"
+#include "engine/messages/InsertTaskMessage.h"
 
 #include "engine/TaskMaster.h"
 
@@ -114,11 +114,11 @@ void start_game_loops(Entity * pInitEntity)
         // Create a task out of the entity and start it up
         Task t = Task::createUpdatable(pInitEntity);
         {
-            TaskWriter twrtr(FNV::add_task,
-                             kMessageFlag_None,
-                             kMainThreadTaskId,
-                             kPrimaryThreadId,
-                             kPrimaryThreadId);
+            InsertTaskWriter twrtr(FNV::add_task,
+                                   kMessageFlag_None,
+                                   kMainThreadTaskId,
+                                   kPrimaryThreadId,
+                                   kPrimaryThreadId);
             twrtr.setTask(t);
         }
     }
@@ -443,7 +443,7 @@ MessageResult TaskMaster<RendererT>::message(const Message & msg, const MessageQ
         }
         case FNV::insert_task:
         {
-            TaskReader tmr(msgAcc);
+            InsertTaskReader tmr(msgAcc);
             insertTask(tmr.owner(), tmr.task());
             return MessageResult::Consumed;
         }

@@ -6,20 +6,20 @@ consumed when build_messages.py is run.
 '''
 
 # A single, 32 byte task
-class Task(FieldHandler):
+class InsertTask(FieldHandler):
     owner = u32Field(payload=True,
                      type_name='thread_id',
                      includes=['core/threading.h'])
     task  = TaskField()
 
 
-class ModelInstanceId(FieldHandler):
+class RemoveModelInstance(FieldHandler):
     instanceId = u32Field(payload=True,
                           type_name='model_instance_id',
                           includes=['engine/Model.h'])
 
 
-class ModelInstance(FieldHandler):
+class InsertModelInstance(FieldHandler):
     instanceId      = u32Field(payload=True,
                                type_name='model_instance_id',
                                includes=['engine/Model.h'])

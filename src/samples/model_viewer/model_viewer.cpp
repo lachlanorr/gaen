@@ -27,7 +27,7 @@
 #include "samples/stdafx.h"
 
 #include "engine/Entity.h"
-#include "engine/Components/ModelComponent.h"
+//#include "engine/Components/ModelComponent.h"
 #include "engine/shapes.h"
 
 #include "samples/model_viewer/model_viewer.h"

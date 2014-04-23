@@ -77,6 +77,13 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
     case FNV::insert_component:
         //insertComponent(msgAcc); // LORRTODO
         return MessageResult::Consumed;
+    case FNV::register_watcher:
+        // register a property watcher for some combination of:
+        // - component type
+        // - compenent id
+        // - property id
+        PANIC("TODO");
+        break;
     }
 
 

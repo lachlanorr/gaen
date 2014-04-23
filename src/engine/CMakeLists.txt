@@ -24,13 +24,8 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-INCLUDE (message_defs/messages.cmake)
-INCLUDE (property_defs/properties.cmake)
-
-SET (engine_component_SOURCES
-  components/ModelComponent.cpp
-  components/ModelComponent.h
-  )
+INCLUDE (messages/messages.cmake)
+INCLUDE (components/components.cmake)
 
 SET (engine_SOURCES
   Color.h
@@ -59,16 +54,14 @@ SET (engine_SOURCES
   Task.h
   TaskMaster.cpp
   TaskMaster.h
-  ${engine_component_SOURCES}
-  ${engine_message_defs_SOURCES}
-  ${engine_property_defs_SOURCES}
+  ${engine_messages_SOURCES}
+#  ${engine_components_SOURCES}
   )
 
 MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${engine_SOURCES}")
-IDE_SOURCE_PROPERTIES( "/components" "${engine_component_SOURCES}")
-IDE_SOURCE_PROPERTIES( "/message_defs" "${engine_message_defs_SOURCES}")
-IDE_SOURCE_PROPERTIES( "/property_defs" "${engine_property_defs_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/messages" "${engine_messages_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/components" "${engine_components_SOURCES}")
 
 ADD_LIBRARY (engine
   ${engine_SOURCES}
@@ -78,26 +71,26 @@ ADD_LIBRARY (engine
 
 # Run during configure.
 EXECUTE_PROCESS (
-  COMMAND python ${scripts_dir}/make_message_classes.py
+  COMMAND python ${scripts_dir}/codegen_messages.py
   )
 
 # Run each time we build.
 ADD_CUSTOM_TARGET (
-  message_classes_gen
-  COMMAND python ${scripts_dir}/make_message_classes.py
+  messages_gen
+  COMMAND python ${scripts_dir}/codegen_messages.py
   )
 
   
 
 # Run during configure.
 EXECUTE_PROCESS (
-  COMMAND python ${scripts_dir}/make_property_classes.py
+  COMMAND python ${scripts_dir}/codegen_components.py
   )
 
 # Run each time we build.
 ADD_CUSTOM_TARGET (
-  property_classes_gen
-  COMMAND python ${scripts_dir}/make_property_classes.py
+  components_gen
+  COMMAND python ${scripts_dir}/codegen_components.py
   )
 
   
@@ -117,8 +110,8 @@ ADD_CUSTOM_TARGET (
 
 ADD_DEPENDENCIES(engine
   core
-  message_classes_gen
-  property_classes_gen
+  messages_gen
+  #components_gen
   fnv_hashes_precalc
   )
 

@@ -27,12 +27,25 @@
 #ifndef GAEN_ENGINE_COMPONENT_H
 #define GAEN_ENGINE_COMPONENT_H
 
+#include "engine/Message.h"
 #include "engine/Entity.h"
 
 namespace gaen
 {
 
+// Properties use the same type of Blocks as messages.
+// Alias it here for readability.
+typedef MessageBlock PropertyBlock;
+
+enum class PropertyGroup
+{
+    Current,
+    Initial
+};
+
 // Base component for common stuff for all Components.
+// In particular, this handles property get/sets which is a lot of the 
+// boiler plate of components.
 class Component
 {
 public:
