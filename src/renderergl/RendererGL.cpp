@@ -101,11 +101,11 @@ MessageResult RendererGL::message(const MessageQueue::MessageAccessor& msgAcc)
     {
     case FNV::renderer_insert_model_instance:
     {
-        InsertModelInstanceReader rdr(msgAcc);
-        mModelMgr.insertModelInstance(rdr.instanceId(),
-                                      rdr.model(),
-                                      rdr.worldTransform(),
-                                      rdr.isAssetManaged());
+        InsertModelInstanceMsgR msgr(msgAcc);
+        mModelMgr.insertModelInstance(msgr.instanceId(),
+                                      msgr.model(),
+                                      msgr.worldTransform(),
+                                      msgr.isAssetManaged());
         break;
     }
     case FNV::renderer_remove_model_instance:

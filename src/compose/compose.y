@@ -24,6 +24,47 @@ freely, subject to the following restrictions:
   distribution.
 ------------------------------------------------------------------------------*/
 
+
+ /* Parser to convert "C" assignments to lisp. */
+%{
+/* Pass the argument to yyparse through to yylex. */
+#define YYPARSE_PARAM scanner
+#define YYLEX_PARAM   scanner
+
+#include <stdio.h>
+
+void yyerror(void * scanner, const char * msg);
+/*void yyerror(const char * msg);*/
+    
+%}
+
+%define api.pure full
+%locations
+%output  "parser.c"
+%defines "parser.h"
+
+%union {
+    int num;
+    char* str;
+}
+
+%token <str> STRING
+%token <num> NUMBER
+
+%%
+assignment:
+    STRING '=' NUMBER ';'      { printf( "(setf %s %d)", $1, $3 ); }
+;
+
+%%
+
+void yyerror(void * scanner, const char * msg)
+{
+    fprintf(stderr, "%s\n", msg);
+}
+
+
+/*
 %{
 
 // To generate this file, run: "bison compose.y"
@@ -404,3 +445,4 @@ int yyerror(void * scanner, const char * msg)
     return 0;
 }
 
+*/

@@ -26,6 +26,8 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
+import new
+
 class BaseField(object):
     def __init__(self, *args, **kwargs):
         for k, v in kwargs.iteritems():
@@ -59,9 +61,13 @@ class f32Field(cellField):
 class boolField(cellField):
     union_type = 'b'
     
-class colorField(cellField):
+class ColorField(cellField):
     union_type = 'c'
+    includes = cellField.includes + ['engine/Color.h']
 
+class EnumField(cellField):
+    union_type = 'i'
+    members = []
 
 # dcell fields
 class dcellField(BaseField):
@@ -80,7 +86,9 @@ class PointerField(dcellField):
     union_type = 'p'
     type_name = 'void *'
 
-
+class Vec3Field(BaseField):
+    cell_count = 3
+    includes = BaseField.includes + ['engine/math.h']
 
 # qcell fields
 class Vec4Field(BaseField):
@@ -99,10 +107,16 @@ class Mat34Field(BaseField):
     includes = BaseField.includes + ['engine/math.h']
 
 
-def print_message(msg):
+def fields_string(self):
+    lines = []
+    lines.append(msg.object_name + ':')
+    
+    lines.append('block_count: ' + str(self.block_count))
+    lines.append('attrs: ' + str(self.attrs.__dict__))
+    
     s = '%s:\n  %s\n Fields:\n  ' % (msg.object_name, repr(msg.__dict__))
     s += '\n  '.join([str(f) for f in msg.fields])
-    print s
+    return s
 
 
 def upper_first(s):
@@ -122,6 +136,8 @@ def block_accessor(field):
         raise Exception('Invalid field size for block accessor')
 
 
+
+
 BLOCK_CELL_COUNT = 4 # cells per block, blocks are 16 bytes
 class FieldHandlerType(type):
     '''
@@ -132,6 +148,10 @@ class FieldHandlerType(type):
         if name.startswith('None'):
             return None
 
+        class Attributes:
+            def __init__(self):
+                self.update = True
+
         # Go over attributes looking for fields
         has_payload = False
         curr_block = 0
@@ -141,7 +161,8 @@ class FieldHandlerType(type):
         newattrs = {'object_name': name,
                     'fields': fields,
                     'includes': includes,
-                    'payload_field': None}
+                    'payload_field': None,
+                    'attrs': Attributes()}
 
         for attrname, attrvalue in attrs.iteritems():
             if isinstance(attrvalue, BaseField):
@@ -204,12 +225,16 @@ class FieldHandlerType(type):
                         field.block_accessor = block_accessor(field)
 
                 fields.append(field)
-
+            elif not attrname.startswith('_'):
+                setattr(newattrs['attrs'], attrname, attrvalue)
+                
         newattrs['block_count'] = curr_block + (0 if curr_byte == 0 else 1)
         return super(FieldHandlerType, cls).__new__(cls, name, bases, newattrs)
 
     def __init__(self, name, bases, attrs):
         super(FieldHandlerType, self).__init__(name, bases, attrs)
+
+        setattr(self.__class__, '__str__', fields_string)
         
         if len(self.fields) > 0:
             FIELD_HANDLERS.append(self)
@@ -217,4 +242,9 @@ class FieldHandlerType(type):
 
 class FieldHandler(object):
     __metaclass__ = FieldHandlerType
+
+
+class Component(object):
+    __metaclass__ = FieldHandlerType
+
 

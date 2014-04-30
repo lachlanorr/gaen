@@ -34,10 +34,10 @@
 namespace gaen
 {
 
-class InsertTaskReader
+class InsertTaskMsgR
 {
 public:
-    InsertTaskReader(const MessageQueue::MessageAccessor & msgAcc)
+    InsertTaskMsgR(const MessageQueue::MessageAccessor & msgAcc)
       : mMsgAcc(msgAcc)
     {
         if (&msgAcc[1] > &msgAcc[0])
@@ -70,13 +70,13 @@ private:
 
 
 
-class InsertTaskWriter : protected MessageWriter
+class InsertTaskMsgW : protected MessageWriter
 {
 public:
-    InsertTaskWriter(fnv msgId,
-                     u32 flags,
-                     task_id source,
-                     task_id target,
+    InsertTaskMsgW(fnv msgId,
+                   u32 flags,
+                   task_id source,
+                   task_id target,
                      thread_id owner)
       : MessageWriter(msgId,
                       flags,

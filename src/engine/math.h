@@ -123,8 +123,8 @@ struct Mat34
     static const Mat34 & identity();
 
     static Mat34 build_from_vec4(const Vec4 & vec4_0,
-                               const Vec4 & vec4_1,
-                               const Vec4 & vec4_2);
+                                 const Vec4 & vec4_1,
+                                 const Vec4 & vec4_2);
 
     static Vec4 multiply(const Mat34 & mat34, const Vec4 & vec4);
     static Mat34 multiply(const Mat34 & lhs, const Mat34 & rhs);
@@ -132,21 +132,18 @@ struct Mat34
     static f32 determinant(const Mat34 & mat34);
     static Mat34 inverse(const Mat34 & mat34);
 
-    static Mat34 build_translation(f32 x, f32 y, f32 z);
-    static Mat34 build_rotation(f32 x, f32 y, f32 z);
-    static Mat34 build_scale(f32 factor);
-    static Mat34 build_transform(f32 translateX, f32 translateY, f32 translateZ,
-                                f32 rotationX, f32 rotationY, f32 rotationZ,
-                                f32 scaleFactor);
-
-
-    // Convenience functions supporting vector params
-    static Mat34 build_translation(Vec3 &vec);
-    static Mat34 build_rotation(Vec3 &vec);
-    static Mat34 build_transform(Vec3 translateVec, Vec3 rotationVec, f32 scaleFactor);
+    static Mat34 build_translation(const Vec3 & pos);
+    static Mat34 build_rotation(const Vec3 & rot);
+    static Mat34 build_scale(f32 scale);
+    static Mat34 build_transform(const Vec3 & pos,
+                                 const Vec3 & rot,
+                                 f32 scale);
 
     f32 & operator[](size_t idx);
     const f32 & operator[](size_t idx) const;
+
+    Vec4  operator* (const Vec4 & rhs) const;
+    Mat34 operator* (const Mat34 & rhs) const;
 
     Vec4 & vec4(size_t idx);
     const Vec4 & vec4(size_t idx) const;
@@ -172,19 +169,12 @@ struct Mat4
     static f32 determinant(const Mat4 & mat4);
     static Mat4 inverse(const Mat4 & mat4);
 
-    static Mat4 build_translation(f32 x, f32 y, f32 z);
-    static Mat4 build_rotation(f32 x, f32 y, f32 z);
-    static Mat4 build_scale(f32 factor);
-    static Mat4 build_transform(f32 translateX, f32 translateY, f32 translateZ,
-                               f32 rotationX, f32 rotationY, f32 rotationZ,
-                               f32 scaleFactor);
-
-
-    // Convenience functions supporting vector params
-    static Mat4 build_translation(Vec3 &vec);
-    static Mat4 build_rotation(Vec3 &vec);
-    static Mat4 build_transform(Vec3 translateVec, Vec3 rotationVec, f32 scaleFactor);
-
+    static Mat4 build_translation(const Vec3 & pos);
+    static Mat4 build_rotation(const Vec3 & rot);
+    static Mat4 build_scale(f32 scale);
+    static Mat4 build_transform(const Vec3 & pos,
+                                const Vec3 & rot,
+                                f32 scale);
 
     static Mat4 frustum(f32 left, f32 right, f32 bottom, f32 top, f32 nearZ, f32 farZ);
     static Mat4 perspective(f32 fovy, f32 aspect, f32 nearZ, f32 farZ);
@@ -192,6 +182,9 @@ struct Mat4
 
     f32 & operator[](size_t idx);
     const f32 & operator[](size_t idx) const;
+
+    Vec4 operator* (const Vec4 & rhs) const;
+    Mat4 operator* (const Mat4 & rhs) const;
 
     f32 elems[16];
 };
@@ -492,21 +485,11 @@ inline Mat34 Mat34::build_from_vec4(const Vec4 & vec4_0,
     return mat34;
 }
 
-inline Mat34 Mat34::build_translation(Vec3 &vec)
+inline Mat34 Mat34::build_transform(const Vec3 & pos,
+                                    const Vec3 & rot,
+                                    f32 scale)
 {
-    return build_translation(vec.x, vec.y, vec.z);
-}
-
-inline Mat34 Mat34::build_rotation(Vec3 &vec)
-{
-    return build_rotation(vec.x, vec.y, vec.z);
-}
-
-inline Mat34 Mat34::build_transform(Vec3 translateVec, Vec3 rotationVec, f32 scaleFactor)
-{
-    return build_transform(translateVec.x, translateVec.y, translateVec.z,
-                          rotationVec.x, rotationVec.y, rotationVec.z,
-                          scaleFactor);
+    return build_translation(pos) * build_rotation(rot) * build_scale(scale);
 }
 
 inline f32 & Mat34::operator[](size_t idx)
@@ -520,6 +503,17 @@ inline const f32 & Mat34::operator[](size_t idx) const
     ASSERT(idx < 12);
     return elems[idx];
 }
+
+inline Vec4 Mat34::operator* (const Vec4 & rhs) const
+{
+    return multiply(*this, rhs);
+}
+
+inline Mat34 Mat34::operator* (const Mat34 & rhs) const
+{
+    return multiply(*this, rhs);
+}
+
 
 inline Vec4 & Mat34::vec4(size_t idx)
 {
@@ -604,21 +598,11 @@ inline const Mat4 & Mat4::identity()
     return ident4;
 }
 
-inline Mat4 Mat4::build_translation(Vec3 &vec)
+inline Mat4 Mat4::build_transform(const Vec3 & pos,
+                                  const Vec3 & rot,
+                                  f32 scale)
 {
-    return build_translation(vec.x, vec.y, vec.z);
-}
-
-inline Mat4 Mat4::build_rotation(Vec3 &vec)
-{
-    return build_rotation(vec.x, vec.y, vec.z);
-}
-
-inline Mat4 Mat4::build_transform(Vec3 translateVec, Vec3 rotationVec, f32 scaleFactor)
-{
-    return build_transform(translateVec.x, translateVec.y, translateVec.z,
-                          rotationVec.x, rotationVec.y, rotationVec.z,
-                          scaleFactor);
+    return build_translation(pos) * build_rotation(rot) * build_scale(scale);
 }
 
 inline f32 & Mat4::operator[](size_t idx)
@@ -631,6 +615,16 @@ inline const f32 & Mat4::operator[](size_t idx) const
 {
     ASSERT(idx < 16);
     return elems[idx];
+}
+
+inline Vec4 Mat4::operator* (const Vec4 & rhs) const
+{
+    return multiply(*this, rhs);
+}
+
+inline Mat4 Mat4::operator* (const Mat4 & rhs) const
+{
+    return multiply(*this, rhs);
 }
 
 

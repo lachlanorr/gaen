@@ -5,8 +5,19 @@ This is a python file, but shouldn't be used directly, it will be
 consumed when build_messages.py is run.
 '''
 
-class Model(FieldHandler):
+class Shape(Component):
+    update = False
+    type_  = EnumField(name='type', members=['cube', 'cone', 'pyramid'])
+    color  = ColorField(default=0x888888ff)
+
+class BoxShape(Component):
+    update = False
+    category = 'Shapes'
+    width = f32Field()
+    height = f32Field()
+    depth = f32Field()
+    color  = ColorField(default=0x888888ff)
+
+class Model(Component):
     pModel = PointerField(type_name='Model *',
                           includes=['engine/Model.h'])
-
-

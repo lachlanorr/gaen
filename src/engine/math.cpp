@@ -141,7 +141,7 @@ Vec4 Mat34::multiply(const Mat34 & mat34, const Vec4 & vec4)
 
     newVec.z = mat34[6]  * vec4.x +
                mat34[7]  * vec4.y +
-               mat34[8 ] * vec4.z;
+               mat34[8]  * vec4.z;
 
     newVec.w = mat34[9]  * vec4.x +
                mat34[10] * vec4.y +
@@ -291,7 +291,7 @@ Mat34 Mat34::inverse(const Mat34 & mat34)
 }
 
 
-Mat34 Mat34::build_translation(f32 x, f32 y, f32 z)
+Mat34 Mat34::build_translation(const Vec3 & pos)
 {
     Mat34 mat34;
 
@@ -307,21 +307,21 @@ Mat34 Mat34::build_translation(f32 x, f32 y, f32 z)
     mat34[7]  = 0.0f;
     mat34[8]  = 1.0f;
 
-    mat34[9]  = x;
-    mat34[10] = y;
-    mat34[11] = z;
+    mat34[9]  = pos.x;
+    mat34[10] = pos.y;
+    mat34[11] = pos.z;
 
     return mat34;
 }
 
-Mat34 Mat34::build_rotation(f32 x, f32 y, f32 z)
+Mat34 Mat34::build_rotation(const Vec3 & rot)
 {
-    f32 cosX = cos(x);
-    f32 sinX = sin(x);
-    f32 cosY = cos(y);
-    f32 sinY = sin(y);
-    f32 cosZ = cos(z);
-    f32 sinZ = sin(z);
+    f32 cosX = cos(rot.x);
+    f32 sinX = sin(rot.x);
+    f32 cosY = cos(rot.y);
+    f32 sinY = sin(rot.y);
+    f32 cosZ = cos(rot.z);
+    f32 sinZ = sin(rot.z);
     f32 cosXsinY = cosX * sinY;
     f32 sinXsinY = sinX * sinY;
 
@@ -346,20 +346,20 @@ Mat34 Mat34::build_rotation(f32 x, f32 y, f32 z)
     return mat4;
 }
 
-Mat34 Mat34::build_scale(f32 factor)
+Mat34 Mat34::build_scale(f32 scale)
 {
     Mat34 mat34;
-    mat34[0]  = factor;
+    mat34[0]  = scale;
     mat34[1]  = 0.0f;
     mat34[2]  = 0.0f;
 
     mat34[3]  = 0.0f;
-    mat34[4]  = factor;
+    mat34[4]  = scale;
     mat34[5]  = 0.0f;
 
     mat34[6]  = 0.0f;
     mat34[7]  = 0.0f;
-    mat34[8]  = factor;
+    mat34[8]  = scale;
 
     mat34[9]  = 0.0f;
     mat34[10] = 0.0f;
@@ -367,19 +367,6 @@ Mat34 Mat34::build_scale(f32 factor)
     return mat34;
 }
 
-
-Mat34 Mat34::build_transform(f32 translateX, f32 translateY, f32 translateZ,
-                            f32 rotationX, f32 rotationY, f32 rotationZ,
-                            f32 scaleFactor)
-{
-    Mat34 trans = build_translation(translateX, translateY, translateZ);
-    Mat34 rot = build_rotation(rotationX, rotationY, rotationZ);
-    Mat34 scale = build_scale(scaleFactor);
-
-    Mat34 transRot = multiply(trans, rot);
-    Mat34 transRotScale = multiply(transRot, scale);
-    return transRotScale;
-}
 //------------------------------------------------------------------------------
 // Mat34 methods (END)
 //------------------------------------------------------------------------------
@@ -572,7 +559,7 @@ Mat4 Mat4::inverse(const Mat4 & mat4)
 }
 
 
-Mat4 Mat4::build_translation(f32 x, f32 y, f32 z)
+Mat4 Mat4::build_translation(const Vec3 & pos)
 {
     Mat4 mat4;
     mat4[0]  = 1.0f;
@@ -590,22 +577,22 @@ Mat4 Mat4::build_translation(f32 x, f32 y, f32 z)
     mat4[10] = 1.0f;
     mat4[11] = 0.0f;
 
-    mat4[12] = x;
-    mat4[13] = y;
-    mat4[14] = z;
+    mat4[12] = pos.x;
+    mat4[13] = pos.y;
+    mat4[14] = pos.z;
     mat4[15] = 1.0f;
 
     return mat4;
 }
 
-Mat4 Mat4::build_rotation(f32 x, f32 y, f32 z)
+Mat4 Mat4::build_rotation(const Vec3 & rot)
 {
-    f32 cosX = cos(x);
-    f32 sinX = sin(x);
-    f32 cosY = cos(y);
-    f32 sinY = sin(y);
-    f32 cosZ = cos(z);
-    f32 sinZ = sin(z);
+    f32 cosX = cos(rot.x);
+    f32 sinX = sin(rot.x);
+    f32 cosY = cos(rot.y);
+    f32 sinY = sin(rot.y);
+    f32 cosZ = cos(rot.z);
+    f32 sinZ = sin(rot.z);
     f32 cosXsinY = cosX * sinY;
     f32 sinXsinY = sinX * sinY;
 
@@ -634,22 +621,22 @@ Mat4 Mat4::build_rotation(f32 x, f32 y, f32 z)
     return mat4;
 }
 
-Mat4 Mat4::build_scale(f32 factor)
+Mat4 Mat4::build_scale(f32 scale)
 {
     Mat4 mat4;
-    mat4[0]  = factor;
+    mat4[0]  = scale;
     mat4[1]  = 0.0f;
     mat4[2]  = 0.0f;
     mat4[3]  = 0.0f;
 
     mat4[4]  = 0.0f;
-    mat4[5]  = factor;
+    mat4[5]  = scale;
     mat4[6]  = 0.0f;
     mat4[7]  = 0.0f;
 
     mat4[8]  = 0.0f;
     mat4[9]  = 0.0f;
-    mat4[10] = factor;
+    mat4[10] = scale;
     mat4[11] = 0.0f;
 
     mat4[12] = 0.0f;
@@ -658,20 +645,6 @@ Mat4 Mat4::build_scale(f32 factor)
     mat4[15] = 1.0f;
     return mat4;
 }
-
-Mat4 Mat4::build_transform(f32 translateX, f32 translateY, f32 translateZ,
-                          f32 rotationX, f32 rotationY, f32 rotationZ,
-                          f32 scaleFactor)
-{
-    Mat4 trans = build_translation(translateX, translateY, translateZ);
-    Mat4 rot = build_rotation(rotationX, rotationY, rotationZ);
-    Mat4 scale = build_scale(scaleFactor);
-
-    Mat4 transRot = multiply(trans,rot);
-    Mat4 transRotScale = multiply(transRot,scale);
-    return transRotScale;
-}
-
 
 
 Mat4 Mat4::frustum(f32 left, f32 right, f32 bottom, f32 top, f32 nearZ, f32 farZ)

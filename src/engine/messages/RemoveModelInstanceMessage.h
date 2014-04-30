@@ -34,10 +34,10 @@
 namespace gaen
 {
 
-class RemoveModelInstanceReader
+class RemoveModelInstanceMsgR
 {
 public:
-    RemoveModelInstanceReader(const MessageQueue::MessageAccessor & msgAcc)
+    RemoveModelInstanceMsgR(const MessageQueue::MessageAccessor & msgAcc)
       : mMsgAcc(msgAcc)
     {
 
@@ -53,13 +53,13 @@ private:
 
 
 
-class RemoveModelInstanceWriter : protected MessageWriter
+class RemoveModelInstanceMsgW : protected MessageWriter
 {
 public:
-    RemoveModelInstanceWriter(fnv msgId,
-                              u32 flags,
-                              task_id source,
-                              task_id target,
+    RemoveModelInstanceMsgW(fnv msgId,
+                            u32 flags,
+                            task_id source,
+                            task_id target,
                               model_instance_id instanceId)
       : MessageWriter(msgId,
                       flags,

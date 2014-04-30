@@ -49,12 +49,17 @@ public:
         seta(a);
     }
 
-    void setChannelsF(f32 r, f32 g, f32 b, f32 a)
+    void setChannels(f32 r, f32 g, f32 b, f32 a)
     {
         setrf(r);
         setgf(g);
         setbf(b);
         setaf(a);
+    }
+
+    void setChannels(Vec4 vec)
+    {
+        setChannels(vec.x, vec.y, vec.z, vec.w);
     }
 
     u32 value() { return mColorValue.value; }

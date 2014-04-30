@@ -114,12 +114,12 @@ void start_game_loops(Entity * pInitEntity)
         // Create a task out of the entity and start it up
         Task t = Task::createUpdatable(pInitEntity);
         {
-            InsertTaskWriter twrtr(FNV::add_task,
-                                   kMessageFlag_None,
-                                   kMainThreadTaskId,
-                                   kPrimaryThreadId,
-                                   kPrimaryThreadId);
-            twrtr.setTask(t);
+            InsertTaskMsgW msgw(FNV::add_task,
+                                 kMessageFlag_None,
+                                 kMainThreadTaskId,
+                                 kPrimaryThreadId,
+                                 kPrimaryThreadId);
+            msgw.setTask(t);
         }
     }
 }
@@ -165,13 +165,13 @@ void broadcast_message(fnv msgId,
 
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
-        MessageWriter wrtr(msgId,
+        MessageWriter msgw(msgId,
                            flags,
                            source,
                            tid, // in this special case, thread_id is used in place of task_id to indicate the message is for a TaskMaster
                            payload,
                            blockCount);
-        MessageQueue::MessageAccessor & msgAcc = wrtr.accessor();
+        MessageQueue::MessageAccessor & msgAcc = msgw.accessor();
         for (u32 i = 0; i < blockCount; ++i)
         {
             msgAcc[i] = pBlocks[i];
@@ -443,8 +443,8 @@ MessageResult TaskMaster<RendererT>::message(const Message & msg, const MessageQ
         }
         case FNV::insert_task:
         {
-            InsertTaskReader tmr(msgAcc);
-            insertTask(tmr.owner(), tmr.task());
+            InsertTaskMsgR msgr(msgAcc);
+            insertTask(msgr.owner(), msgr.task());
             return MessageResult::Consumed;
         }
         default:

@@ -31,14 +31,17 @@
 
 #include "engine/FNV.h"
 #include "engine/math.h"
+#include "engine/Color.h"
 
 namespace gaen
 {
 
 typedef u32 task_id; // defined here since we are the root of the includes, and we need this
 
-// LORRTODO - do we need flags?  Haven't found a good use yet
 static const u32 kMessageFlag_None       = 0;
+
+static const u32 kMessageFlag_Recurse    = 1 << 0; // message should be sent to all children (e.g. save_state)
+static const u32 kMessageFlag_Undoable   = 1 << 1; // message originated from editor
 
 
 enum class MessageResult
@@ -53,13 +56,7 @@ union cell
     u32 u;
     f32 f;
     bool b;
-    struct color
-    {
-        u8 r;
-        u8 g;
-        u8 b;
-        u8 a;
-    };
+    Color c;
 };
 
 static_assert(sizeof(cell) == 4, "cell must be 4 bytes");

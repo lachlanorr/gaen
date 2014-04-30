@@ -24,38 +24,20 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
+SET (compc_SOURCES
+  main_compc.cpp
+  )
 
+IDE_SOURCE_PROPERTIES( "/" "${compc_SOURCES}")
 
-# Standard include paths
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR})
-INCLUDE_DIRECTORIES (${ext_dir}/opengl-4.3)
+ADD_EXECUTABLE (compc
+  ${compc_SOURCES}
+  )
 
+TARGET_LINK_LIBRARIES (compc
+  compose
+  core
+  ${PLATFORM_LINK_LIBS}
+  )
 
-# Packaging
-SET (packaged_dir ${CMAKE_BINARY_DIR}/packaged)
-
-EXECUTE_PROCESS (COMMAND ${CMAKE_COMMAND} -E make_directory ${packaged_dir})
-
-MACRO (package target)
-  GET_PROPERTY(target_location TARGET ${target} PROPERTY LOCATION)
-  ADD_CUSTOM_COMMAND(
-    TARGET ${target}
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${target_location} ${packaged_dir}/
-    )
-ENDMACRO (package)
-
-
-# Subdirs
-ADD_SUBDIRECTORY (core)
-ADD_SUBDIRECTORY (engine)
-ADD_SUBDIRECTORY (renderergl)
-ADD_SUBDIRECTORY (samples)
-ADD_SUBDIRECTORY (compose)
-ADD_SUBDIRECTORY (compc)
-
-ADD_SUBDIRECTORY (gaen)
-
-ADD_SUBDIRECTORY (gac)
-ADD_SUBDIRECTORY (unit_tests)
-
+package (compc)
