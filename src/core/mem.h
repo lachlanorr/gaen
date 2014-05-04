@@ -48,6 +48,7 @@ enum MemType
     kMEM_Model       = 4,
     kMEM_Sound       = 5,
     kMEM_Network     = 6,
+    kMEM_Compose     = 7,
 
     kMEM_COUNT
 };

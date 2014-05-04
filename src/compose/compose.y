@@ -27,15 +27,7 @@ freely, subject to the following restrictions:
 
  /* Parser to convert "C" assignments to lisp. */
 %{
-/* Pass the argument to yyparse through to yylex. */
-#define YYPARSE_PARAM scanner
-#define YYLEX_PARAM   scanner
-
-#include <stdio.h>
-
-void yyerror(void * scanner, const char * msg);
-/*void yyerror(const char * msg);*/
-    
+typedef struct ast_node ast_node;
 %}
 
 %define api.pure full
@@ -43,18 +35,77 @@ void yyerror(void * scanner, const char * msg);
 %output  "parser.c"
 %defines "parser.h"
 
-%union {
-    int num;
-    char* str;
+
+%union
+{
+    int       numi;
+    double    numf;
+    char*     str;
+    ast_node* node;
 }
 
-%token <str> STRING
-%token <num> NUMBER
+
+%{
+#define YY_NO_UNISTD_H
+#include "compose/scanner.h"
+#include "compose/compiler_utils.h"
+/* Pass the argument to yyparse through to yylex. */
+#define YYPARSE_PARAM scanner
+#define YYLEX_PARAM   scanner
+
+void yyerror(void * scanner, const char * msg);
+/*void yyerror(const char * msg);*/
+%}
+    
+
+
+%token <str> IDENTIFIER
+%token <numi> INT_LITERAL
+%token <numf> FLOAT_LITERAL
+
+%token INT FLOAT BOOL VEC3
+%token <ast_node*> MESSAGE
 
 %%
-assignment:
-    STRING '=' NUMBER ';'      { printf( "(setf %s %d)", $1, $3 ); }
-;
+
+decl_list
+    : decl
+    | decl_list decl
+    ;
+
+decl
+    : message_decl
+    ;
+
+message_decl
+    : MESSAGE IDENTIFIER '<' param_decl_list '>' block
+    ;
+
+param_decl_list
+    : param_decl
+    | param_decl_list ',' param_decl
+    ;
+
+param_decl
+    : /* empty */
+    | type IDENTIFIER
+    ;
+
+block
+    : '{' '}'
+    ;
+/*    | '{' statement_list '}'
+    | '{' declaration_list '}'
+    | '{' declaration_list statement_list '}'
+    ;
+*/
+
+type
+    : INT
+    | FLOAT
+    | BOOL
+    | VEC3
+    ;
 
 %%
 

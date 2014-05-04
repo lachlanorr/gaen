@@ -27,14 +27,68 @@
 #ifndef GAEN_COMPOSE_COMPILER_H
 #define GAEN_COMPOSE_COMPILER_H
 
-#include <string>
+#include "core/base_defines.h"
+#include "compose/compiler_utils.h"
 
-namespace ga
+extern "C" {
+#include "compose/parser.h"
+}
+
+typedef enum yytokentype TokenType;
+
+struct ast_node{};
+struct sym_record {};
+struct sym_table {};
+
+namespace gaen
 {
 
-class Program;
+// C++ Declarations
 
-Program * compile(const std::string & source);
+class AstNode : public ast_node
+{
+public:
+    static AstNode * convert(ast_node * pAstNode) { return static_cast<AstNode*>(pAstNode); }
+
+    AstNode(TokenType tokenType) {};
+};
+
+class SymRecord : public sym_record
+{
+public:
+    static SymRecord * convert(sym_record * pSymRec) { return static_cast<SymRecord*>(pSymRec); }
+
+    SymRecord(const char * name);
+};
+
+
+class SymTable : public sym_table
+{
+public:
+    static SymTable * convert(sym_table * pSymTab) { return static_cast<SymTable*>(pSymTab); }
+
+
+    void pushScope();
+    void popScope();
+    void addEntry(SymRecord * pSymRecord);
+};
+
+
+class Program
+{
+public:
+    Program(AstNode * pRoot, SymTable * pSymTable);
+    ~Program();
+
+    const AstNode & rootNode() { return *mpRoot; }
+    const SymTable & symTable() { return *mpSymTable; }
+
+private:
+    AstNode  * mpRoot;
+    SymTable * mpSymTable;
+};
+
+Program * compile(const u8 * source, size_t length);
 
 
 }

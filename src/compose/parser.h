@@ -46,8 +46,14 @@ extern int yydebug;
    /* Put the tokens into the symbol table, so that GDB and other debuggers
       know about them.  */
    enum yytokentype {
-     STRING = 258,
-     NUMBER = 259
+     IDENTIFIER = 258,
+     INT_LITERAL = 259,
+     FLOAT_LITERAL = 260,
+     INT = 261,
+     FLOAT = 262,
+     BOOL = 263,
+     VEC3 = 264,
+     MESSAGE = 265
    };
 #endif
 
@@ -56,14 +62,16 @@ extern int yydebug;
 typedef union YYSTYPE
 {
 /* Line 2053 of yacc.c  */
-#line 46 "compose.y"
+#line 40 "compose.y"
 
-    int num;
-    char* str;
+    int       numi;
+    double    numf;
+    char*     str;
+    ast_node* node;
 
 
 /* Line 2053 of yacc.c  */
-#line 67 "parser.h"
+#line 75 "parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

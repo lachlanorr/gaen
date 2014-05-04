@@ -25,6 +25,9 @@
 #-------------------------------------------------------------------------------
 
 SET (compose_SOURCES
+  compiler.h
+  compiler.cpp
+  compiler_utils.h
   compose.l
   compose.y
   parser.c

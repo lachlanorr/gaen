@@ -55,7 +55,8 @@ static const char * sMemTypeText[] = {"Unspecified",
                                       "Texture",
                                       "Model",
                                       "Sound",
-                                      "Network"};
+                                      "Network",
+                                      "Compose"};
 
 static_assert(sizeof(sMemTypeText) / sizeof(char*) == kMEM_COUNT,
               "sMemTypeText should have the same number of entries as MemType enum");

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// main_gac.cpp - Gaen console program for logging and sending commands
+// compiler_utils.h - C utils for use in Bison/Flex parser (wraps C++)
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,61 +24,39 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include <cstdio>
+#ifndef GAEN_COMPOSE_COMPILER_UTILS_H
+#define GAEN_COMPOSE_COMPILER_UTILS_H
 
-//#include "compose/compiler_utils.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-extern "C"
-{
+//#define YYPARSE_PARAM
+//#include "compose/parser.h"
 
-#include "compose/compiler_utils.h"
-#define YYPARSE_PARAM
-#include "compose/parser.h"
-#define YY_NO_UNISTD_H
-#include "compose/scanner.h"
+// C Declarations, to be used from Bison
 
-//int yylex_init(void* pScanner);
-
-}
-
-/*extern "C" 
-{
-YY_BUFFER_STATE yy_scan_string(yyconst char *yy_str, yyscan_t yyscanner);
-int yylex_init(yyscan_t* scanner);
-int yyparse(void *scanner);
-}
-*/
-namespace gaen
-{
+typedef struct ast_node ast_node;
+typedef struct sym_record sym_record;
+typedef struct sym_table sym_table;
 
 
+ast_node * ast_new(int tokenType);
+void ast_delete(ast_node * pAstNode);
 
-} // namespace gaen
+sym_record * sr_new(const char * name);
+void sr_delete(sym_record* pSymRec);
 
-int main(int argc, char ** argv)
-{
-    int ret;
-    void * scanner;
-    ret = yylex_init(&scanner);
-    YY_BUFFER_STATE state;
-    state = yy_scan_string("abc = 5;", scanner);
-    ret = yyparse(scanner);
-    
-/*    bool shouldLogListen = false;
-    
-    // parse args
-    for (int i = 1; i < argc; ++i)
-    {
-        if (0 == strcmp(argv[i], "-l"))
-        {
-            shouldLogListen = true;
-        }
-    }
+sym_table* st_new();
+void st_delete(sym_table* pSymTab);
+void st_add_entry(sym_table* pSymTab, sym_record * pSymRec);
+void st_push_scope(sym_table* pSymTab);
+void st_pop_scope(sym_table* pSymTab);
 
 
-    if (shouldLogListen)
-        log_listen_and_print();
-*/
+#ifdef __cplusplus
+} // #ifdef __cplusplus
 
-    printf("compc running\n");
-}
+#endif
+
+#endif // #ifndef GAEN_COMPOSE_COMPILER_UTILS_H

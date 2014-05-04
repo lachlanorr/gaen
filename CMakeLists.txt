@@ -36,6 +36,7 @@ PROJECT (gaen)
 SET (cmake_dir ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 SET (ext_dir ${CMAKE_CURRENT_SOURCE_DIR}/external)
 SET (scripts_dir ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
+SET (src_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 
 # Include a compiler specific .cmake file.  This weirdness is required
