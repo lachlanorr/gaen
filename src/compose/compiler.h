@@ -30,12 +30,7 @@
 #include "core/base_defines.h"
 #include "compose/compiler_utils.h"
 
-extern "C" {
-#include "compose/parser.h"
-}
-
-typedef enum yytokentype TokenType;
-
+struct program{};
 struct ast_node{};
 struct sym_record {};
 struct sym_table {};
@@ -43,53 +38,53 @@ struct sym_table {};
 namespace gaen
 {
 
-// C++ Declarations
 
-class AstNode : public ast_node
+//------------------------------------------------------------------------------
+
+struct AstNode : public ast_node
 {
-public:
     static AstNode * convert(ast_node * pAstNode) { return static_cast<AstNode*>(pAstNode); }
 
-    AstNode(TokenType tokenType) {};
+    AstNode(AstNodeType nodeType) {};
 };
 
-class SymRecord : public sym_record
+
+//------------------------------------------------------------------------------
+
+struct SymRecord : public sym_record
 {
-public:
     static SymRecord * convert(sym_record * pSymRec) { return static_cast<SymRecord*>(pSymRec); }
 
     SymRecord(const char * name);
 };
 
 
-class SymTable : public sym_table
-{
-public:
-    static SymTable * convert(sym_table * pSymTab) { return static_cast<SymTable*>(pSymTab); }
+//------------------------------------------------------------------------------
 
+struct SymTable : public sym_table
+{
+    static SymTable * convert(sym_table * pSymTab) { return static_cast<SymTable*>(pSymTab); }
 
     void pushScope();
     void popScope();
     void addEntry(SymRecord * pSymRecord);
 };
 
+//------------------------------------------------------------------------------
 
-class Program
+struct Program : public program
 {
-public:
-    Program(AstNode * pRoot, SymTable * pSymTable);
+    static Program * convert(program * pProg) { return static_cast<Program*>(pProg); }
+    static Program * compile(const u8 * source, size_t length);
+    
     ~Program();
 
-    const AstNode & rootNode() { return *mpRoot; }
-    const SymTable & symTable() { return *mpSymTable; }
-
-private:
-    AstNode  * mpRoot;
-    SymTable * mpSymTable;
+    AstNode  * pRoot     = nullptr;
+    SymTable * pSymTable = nullptr;
+    void     * pScanner  = nullptr;
 };
 
-Program * compile(const u8 * source, size_t length);
-
+//------------------------------------------------------------------------------
 
 }
 

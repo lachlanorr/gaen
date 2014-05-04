@@ -31,17 +31,27 @@
 extern "C" {
 #endif
 
-//#define YYPARSE_PARAM
-//#include "compose/parser.h"
-
 // C Declarations, to be used from Bison
 
+typedef enum
+{
+    ANT_Plus       = '+',
+    ANT_Minus      = '-',
+    ANT_Times      = '*',
+    ANT_Divide     = '/',
+    ANT_MessageDef = 256
+} AstNodeType;
+
+typedef struct program program;
 typedef struct ast_node ast_node;
 typedef struct sym_record sym_record;
 typedef struct sym_table sym_table;
 
+program * prog_new();
+void prog_delete(program * pProg);
+void * prog_scanner(program * pProg);
 
-ast_node * ast_new(int tokenType);
+ast_node * ast_new(AstNodeType nodeType, const char * strVal, sym_record * pSymRec);
 void ast_delete(ast_node * pAstNode);
 
 sym_record * sr_new(const char * name);
@@ -53,6 +63,8 @@ void st_add_entry(sym_table* pSymTab, sym_record * pSymRec);
 void st_push_scope(sym_table* pSymTab);
 void st_pop_scope(sym_table* pSymTab);
 
+typedef struct YYLTYPE YYLTYPE;
+void yyerror(YYLTYPE * pLoc, program * pProg, const char * msg);
 
 #ifdef __cplusplus
 } // #ifdef __cplusplus

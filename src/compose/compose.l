@@ -24,15 +24,15 @@ freely, subject to the following restrictions:
   distribution.
 ------------------------------------------------------------------------------*/
 
-/* Scanner for "C" assignment statements... sort of. */
 %option reentrant
 %option bison-bridge bison-locations
 %option 8bit
 %option warn nodefault
 %option yylineno
 %option never-interactive nounistd
-%option outfile="scanner.c" header-file="scanner.h"
 %option noyywrap
+%option outfile="scanner.c" header-file="scanner.h"
+%option extra-type="program*"
 
 %{
 #include "compose/compiler_utils.h"
@@ -44,6 +44,9 @@ H  [a-fA-F0-9]
 L  [a-zA-Z_]
 
 %%
+%{
+program * pProg = yyextra;    
+%}
      
 "message" { return MESSAGE; }
 
@@ -69,48 +72,3 @@ L  [a-zA-Z_]
 
 %%
 
-
-
-/*
-%option noyywrap
-
-%{
-int chars = 0;
-int words = 0;
-int lines = 0;
-%}
-
-%%
-
-"int"     { return(INT); }
-"uint"    { return(UINT); }
-"float"   { return(FLOAT); }
-"bool"    { return(BOOL); }
-"addr"    { return(ADDR); }
-"vec3"    { return(VEC3); }
-"vec4"    { return(VEC4); }
-"mat3"    { return(MAT3); }
-"mat34"   { return(MAT34); }
-"mat4"    { return(MAT4); }
-
-[a-zA-Z]+    { words++; chars += strlen(yytext); }
-\n           { chars++; lines++; }
-.            { chars++; }
-
-%%
-
-int main(int argc, char ** argv)
-{
-    if (argc > 1)
-    {
-        if (!(yyin = fopen(argv[1]), "r"))
-        {
-            perror(argv[1]);
-            return(1);
-        }
-    }
-
-    yylex();
-    printf("%8d%8d%8d\n", lines, words, chars);
-}
-*/

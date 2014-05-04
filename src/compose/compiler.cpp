@@ -29,15 +29,37 @@
 
 #include "compose/compiler.h"
 
+#include "compose/parser.h"
+#define YY_NO_UNISTD_H
+#include "compose/scanner.h"
+
+
 
 using namespace gaen;
 
 //------------------------------------------------------------------------------
-// C Fuctions, used by Bison/Flex code
+// C Functions, used by Bison/Flex code
 //------------------------------------------------------------------------------
-ast_node * ast_new(int tokenType)
+
+program * prog_new()
 {
-    return GNEW(kMEM_Compose, AstNode, static_cast<TokenType>(tokenType));
+    return GNEW(kMEM_Compose, Program);
+}
+
+void prog_delete(program * pProg)
+{
+    GDELETE(Program::convert(pProg));
+}
+
+void * prog_scanner(program * pProg)
+{
+    return Program::convert(pProg)->pScanner;
+}
+
+
+ast_node * ast_new(AstNodeType nodeType)
+{
+    return GNEW(kMEM_Compose, AstNode, nodeType);
 }
 
 void ast_delete(ast_node * pAstNode)
@@ -81,8 +103,15 @@ void st_pop_scope(sym_table* pSymTab)
 {
     SymTable::convert(pSymTab)->popScope();
 }
+
+
+void yyerror(YYLTYPE * pLoc, program * pProg, const char * msg)
+{
+    fprintf(stderr, "%s\n", msg);
+}
+
 //------------------------------------------------------------------------------
-// C Fuctions (END)
+// C Functions (END)
 //------------------------------------------------------------------------------
 
 
@@ -114,20 +143,40 @@ void SymTable::addEntry(SymRecord * pSymRecord)
 //------------------------------------------------------------------------------
 // Program
 //------------------------------------------------------------------------------
-Program::Program(AstNode * pRoot, SymTable * pSymTable)
-  : mpRoot(pRoot)
-  , mpSymTable(pSymTable)
-{
-}
-
 Program::~Program()
 {
-    GDELETE(mpRoot);
-    GDELETE(mpSymTable);
+    if (pRoot) GDELETE(pRoot);
+    if (pSymTable) GDELETE(pSymTable);
+    if (pScanner) yylex_destroy(pScanner);
 }
 //------------------------------------------------------------------------------
 // Program (END)
 //------------------------------------------------------------------------------
+
+Program * Program::compile(const u8 * source, size_t length)
+{
+    int ret;
+    Program * pProg = GNEW(kMEM_Compose, Program);
+
+    ret = yylex_init(&pProg->pScanner);
+    if (ret != 0)
+    {
+        GDELETE(pProg);
+        return nullptr;
+    }
+
+    yy_scan_bytes(reinterpret_cast<const char*>(source), length, pProg->pScanner);
+
+    ret = yyparse(pProg);
+    if (ret != 0)
+    {
+        GDELETE(pProg);
+        return nullptr;
+    }
+
+    return pProg;
+}   
+
 
 } // namespace gaen
 

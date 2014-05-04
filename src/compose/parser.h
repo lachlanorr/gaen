@@ -62,16 +62,17 @@ extern int yydebug;
 typedef union YYSTYPE
 {
 /* Line 2053 of yacc.c  */
-#line 40 "compose.y"
+#line 42 "compose.y"
 
-    int       numi;
-    double    numf;
-    char*     str;
-    ast_node* node;
+    int          numi;
+    double       numf;
+    char*        str;
+    ast_node*    pAstNode;
+    sym_record*  pSymRec;
 
 
 /* Line 2053 of yacc.c  */
-#line 75 "parser.h"
+#line 76 "parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -100,7 +101,7 @@ int yyparse ();
 #endif
 #else /* ! YYPARSE_PARAM */
 #if defined __STDC__ || defined __cplusplus
-int yyparse (void);
+int yyparse (program * pProg);
 #else
 int yyparse ();
 #endif

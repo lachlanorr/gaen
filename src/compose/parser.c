@@ -63,9 +63,9 @@
 
 /* Copy the first part of user declarations.  */
 /* Line 371 of yacc.c  */
-#line 29 "compose.y"
+#line 27 "compose.y"
 
-typedef struct ast_node ast_node;
+#include "compose/compiler_utils.h"
 
 /* Line 371 of yacc.c  */
 #line 72 "parser.c"
@@ -83,7 +83,7 @@ typedef struct ast_node ast_node;
 # undef YYERROR_VERBOSE
 # define YYERROR_VERBOSE 1
 #else
-# define YYERROR_VERBOSE 0
+# define YYERROR_VERBOSE 1
 #endif
 
 /* In a future release of Bison, this section will be replaced
@@ -120,16 +120,17 @@ extern int yydebug;
 typedef union YYSTYPE
 {
 /* Line 387 of yacc.c  */
-#line 40 "compose.y"
+#line 42 "compose.y"
 
-    int       numi;
-    double    numf;
-    char*     str;
-    ast_node* node;
+    int          numi;
+    double       numf;
+    char*        str;
+    ast_node*    pAstNode;
+    sym_record*  pSymRec;
 
 
 /* Line 387 of yacc.c  */
-#line 133 "parser.c"
+#line 134 "parser.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -158,7 +159,7 @@ int yyparse ();
 #endif
 #else /* ! YYPARSE_PARAM */
 #if defined __STDC__ || defined __cplusplus
-int yyparse (void);
+int yyparse (program * pProg);
 #else
 int yyparse ();
 #endif
@@ -168,20 +169,14 @@ int yyparse ();
 
 /* Copy the second part of user declarations.  */
 /* Line 390 of yacc.c  */
-#line 48 "compose.y"
+#line 50 "compose.y"
 
 #define YY_NO_UNISTD_H
 #include "compose/scanner.h"
-#include "compose/compiler_utils.h"
-/* Pass the argument to yyparse through to yylex. */
-#define YYPARSE_PARAM scanner
-#define YYLEX_PARAM   scanner
-
-void yyerror(void * scanner, const char * msg);
-/*void yyerror(const char * msg);*/
+#define YYLEX_PARAM prog_scanner(pProg)
 
 /* Line 390 of yacc.c  */
-#line 185 "parser.c"
+#line 180 "parser.c"
 
 #ifdef short
 # undef short
@@ -483,12 +478,12 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    72,    72,    73,    77,    81,    85,    86,    89,    91,
-      95,   104,   105,   106,   107
+       0,    66,    66,    67,    71,    75,    79,    80,    83,    85,
+      89,    98,    99,   100,   101
 };
 #endif
 
-#if YYDEBUG || YYERROR_VERBOSE || 0
+#if YYDEBUG || YYERROR_VERBOSE || 1
 /* YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
@@ -626,7 +621,7 @@ do                                                              \
     }                                                           \
   else                                                          \
     {                                                           \
-      yyerror (&yylloc, YY_("syntax error: cannot back up")); \
+      yyerror (&yylloc, pProg, YY_("syntax error: cannot back up")); \
       YYERROR;							\
     }								\
 while (YYID (0))
@@ -719,7 +714,7 @@ yy_location_print_ (yyo, yylocp)
 #ifdef YYLEX_PARAM
 # define YYLEX yylex (&yylval, &yylloc, YYLEX_PARAM)
 #else
-# define YYLEX yylex (&yylval, &yylloc)
+# define YYLEX yylex (&yylval, &yylloc, pProg)
 #endif
 
 /* Enable debugging if requested.  */
@@ -742,7 +737,7 @@ do {									  \
     {									  \
       YYFPRINTF (stderr, "%s ", Title);					  \
       yy_symbol_print (stderr,						  \
-		  Type, Value, Location); \
+		  Type, Value, Location, pProg); \
       YYFPRINTF (stderr, "\n");						  \
     }									  \
 } while (YYID (0))
@@ -756,14 +751,15 @@ do {									  \
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp)
+yy_symbol_value_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, program * pProg)
 #else
 static void
-yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp)
+yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp, pProg)
     FILE *yyoutput;
     int yytype;
     YYSTYPE const * const yyvaluep;
     YYLTYPE const * const yylocationp;
+    program * pProg;
 #endif
 {
   FILE *yyo = yyoutput;
@@ -771,6 +767,7 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp)
   if (!yyvaluep)
     return;
   YYUSE (yylocationp);
+  YYUSE (pProg);
 # ifdef YYPRINT
   if (yytype < YYNTOKENS)
     YYPRINT (yyoutput, yytoknum[yytype], *yyvaluep);
@@ -788,14 +785,15 @@ yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp)
+yy_symbol_print (FILE *yyoutput, int yytype, YYSTYPE const * const yyvaluep, YYLTYPE const * const yylocationp, program * pProg)
 #else
 static void
-yy_symbol_print (yyoutput, yytype, yyvaluep, yylocationp)
+yy_symbol_print (yyoutput, yytype, yyvaluep, yylocationp, pProg)
     FILE *yyoutput;
     int yytype;
     YYSTYPE const * const yyvaluep;
     YYLTYPE const * const yylocationp;
+    program * pProg;
 #endif
 {
   if (yytype < YYNTOKENS)
@@ -805,7 +803,7 @@ yy_symbol_print (yyoutput, yytype, yyvaluep, yylocationp)
 
   YY_LOCATION_PRINT (yyoutput, *yylocationp);
   YYFPRINTF (yyoutput, ": ");
-  yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp);
+  yy_symbol_value_print (yyoutput, yytype, yyvaluep, yylocationp, pProg);
   YYFPRINTF (yyoutput, ")");
 }
 
@@ -848,13 +846,14 @@ do {								\
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yy_reduce_print (YYSTYPE *yyvsp, YYLTYPE *yylsp, int yyrule)
+yy_reduce_print (YYSTYPE *yyvsp, YYLTYPE *yylsp, int yyrule, program * pProg)
 #else
 static void
-yy_reduce_print (yyvsp, yylsp, yyrule)
+yy_reduce_print (yyvsp, yylsp, yyrule, pProg)
     YYSTYPE *yyvsp;
     YYLTYPE *yylsp;
     int yyrule;
+    program * pProg;
 #endif
 {
   int yynrhs = yyr2[yyrule];
@@ -868,7 +867,7 @@ yy_reduce_print (yyvsp, yylsp, yyrule)
       YYFPRINTF (stderr, "   $%d = ", yyi + 1);
       yy_symbol_print (stderr, yyrhs[yyprhs[yyrule] + yyi],
 		       &(yyvsp[(yyi + 1) - (yynrhs)])
-		       , &(yylsp[(yyi + 1) - (yynrhs)])		       );
+		       , &(yylsp[(yyi + 1) - (yynrhs)])		       , pProg);
       YYFPRINTF (stderr, "\n");
     }
 }
@@ -876,7 +875,7 @@ yy_reduce_print (yyvsp, yylsp, yyrule)
 # define YY_REDUCE_PRINT(Rule)		\
 do {					\
   if (yydebug)				\
-    yy_reduce_print (yyvsp, yylsp, Rule); \
+    yy_reduce_print (yyvsp, yylsp, Rule, pProg); \
 } while (YYID (0))
 
 /* Nonzero means print parse trace.  It is left uninitialized so that
@@ -1156,18 +1155,20 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 static void
-yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocationp)
+yydestruct (const char *yymsg, int yytype, YYSTYPE *yyvaluep, YYLTYPE *yylocationp, program * pProg)
 #else
 static void
-yydestruct (yymsg, yytype, yyvaluep, yylocationp)
+yydestruct (yymsg, yytype, yyvaluep, yylocationp, pProg)
     const char *yymsg;
     int yytype;
     YYSTYPE *yyvaluep;
     YYLTYPE *yylocationp;
+    program * pProg;
 #endif
 {
   YYUSE (yyvaluep);
   YYUSE (yylocationp);
+  YYUSE (pProg);
 
   if (!yymsg)
     yymsg = "Deleting";
@@ -1197,11 +1198,11 @@ yyparse (YYPARSE_PARAM)
 #if (defined __STDC__ || defined __C99__FUNC__ \
      || defined __cplusplus || defined _MSC_VER)
 int
-yyparse (void)
+yyparse (program * pProg)
 #else
 int
-yyparse ()
-
+yyparse (pProg)
+    program * pProg;
 #endif
 #endif
 {
@@ -1498,7 +1499,7 @@ yyreduce:
     {
       
 /* Line 1787 of yacc.c  */
-#line 1502 "parser.c"
+#line 1503 "parser.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1549,7 +1550,7 @@ yyerrlab:
     {
       ++yynerrs;
 #if ! YYERROR_VERBOSE
-      yyerror (&yylloc, YY_("syntax error"));
+      yyerror (&yylloc, pProg, YY_("syntax error"));
 #else
 # define YYSYNTAX_ERROR yysyntax_error (&yymsg_alloc, &yymsg, \
                                         yyssp, yytoken)
@@ -1576,7 +1577,7 @@ yyerrlab:
                 yymsgp = yymsg;
               }
           }
-        yyerror (&yylloc, yymsgp);
+        yyerror (&yylloc, pProg, yymsgp);
         if (yysyntax_error_status == 2)
           goto yyexhaustedlab;
       }
@@ -1600,7 +1601,7 @@ yyerrlab:
       else
 	{
 	  yydestruct ("Error: discarding",
-		      yytoken, &yylval, &yylloc);
+		      yytoken, &yylval, &yylloc, pProg);
 	  yychar = YYEMPTY;
 	}
     }
@@ -1657,7 +1658,7 @@ yyerrlab1:
 
       yyerror_range[1] = *yylsp;
       yydestruct ("Error: popping",
-		  yystos[yystate], yyvsp, yylsp);
+		  yystos[yystate], yyvsp, yylsp, pProg);
       YYPOPSTACK (1);
       yystate = *yyssp;
       YY_STACK_PRINT (yyss, yyssp);
@@ -1699,7 +1700,7 @@ yyabortlab:
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
 yyexhaustedlab:
-  yyerror (&yylloc, YY_("memory exhausted"));
+  yyerror (&yylloc, pProg, YY_("memory exhausted"));
   yyresult = 2;
   /* Fall through.  */
 #endif
@@ -1711,7 +1712,7 @@ yyreturn:
          user semantic actions for why this is necessary.  */
       yytoken = YYTRANSLATE (yychar);
       yydestruct ("Cleanup: discarding lookahead",
-                  yytoken, &yylval, &yylloc);
+                  yytoken, &yylval, &yylloc, pProg);
     }
   /* Do not reclaim the symbols of the rule which action triggered
      this YYABORT or YYACCEPT.  */
@@ -1720,7 +1721,7 @@ yyreturn:
   while (yyssp != yyss)
     {
       yydestruct ("Cleanup: popping",
-		  yystos[*yyssp], yyvsp, yylsp);
+		  yystos[*yyssp], yyvsp, yylsp, pProg);
       YYPOPSTACK (1);
     }
 #ifndef yyoverflow
@@ -1737,394 +1738,7 @@ yyreturn:
 
 
 /* Line 2050 of yacc.c  */
-#line 110 "compose.y"
+#line 104 "compose.y"
 
 
-void yyerror(void * scanner, const char * msg)
-{
-    fprintf(stderr, "%s\n", msg);
-}
 
-
-/*
-%{
-
-// To generate this file, run: "bison compose.y"
-
-#define YY_NO_UNISTD_H 1
-#include "compose/parser.h"
-#include "compose/scanner.h"
-
-
-int yyerror(void * scanner, const char * msg);
-
-%}
-
-%pure-parser
-%lex-param {void * scanner}
-%parse-param {void * scanner}
-
-
-%output  "parser.c"
-%defines "parser.h"
-
-%token IDENTIFIER CONSTANT STRING_LITERAL
-%token INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
-%token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
-%token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
-%token XOR_ASSIGN OR_ASSIGN TYPE_NAME
-
-%token INT FLOAT COLOR VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 VOID
-%token CONST PROPERTY MESSAGE EVENT
-
-%token STRUCT ENUM
-
-%token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR CONTINUE BREAK RETURN
-
-%start translation_unit
-%%
-
-primary_expression
-    : IDENTIFIER
-    | CONSTANT
-    | STRING_LITERAL
-    | '(' expression ')'
-    ;
-
-postfix_expression
-    : primary_expression
-    | postfix_expression '[' expression ']'
-    | postfix_expression '(' ')'
-    | postfix_expression '(' argument_expression_list ')'
-    | postfix_expression '.' IDENTIFIER
-    | postfix_expression INC_OP
-    | postfix_expression DEC_OP
-    ;
-
-argument_expression_list
-    : assignment_expression
-    | argument_expression_list ',' assignment_expression
-    ;
-
-unary_expression
-    : postfix_expression
-    | INC_OP unary_expression
-    | DEC_OP unary_expression
-    | unary_operator cast_expression
-    ;
-
-unary_operator
-    : '+'
-    | '-'
-    | '~'
-    | '!'
-    ;
-
-cast_expression
-    : unary_expression
-    | '(' type_name ')' cast_expression
-    ;
-
-multiplicative_expression
-    : cast_expression
-    | multiplicative_expression '*' cast_expression
-    | multiplicative_expression '/' cast_expression
-    | multiplicative_expression '%' cast_expression
-    ;
-
-additive_expression
-    : multiplicative_expression
-    | additive_expression '+' multiplicative_expression
-    | additive_expression '-' multiplicative_expression
-    ;
-
-shift_expression
-    : additive_expression
-    | shift_expression LEFT_OP additive_expression
-    | shift_expression RIGHT_OP additive_expression
-    ;
-
-relational_expression
-    : shift_expression
-    | relational_expression '<' shift_expression
-    | relational_expression '>' shift_expression
-    | relational_expression LE_OP shift_expression
-    | relational_expression GE_OP shift_expression
-    ;
-
-equality_expression
-    : relational_expression
-    | equality_expression EQ_OP relational_expression
-    | equality_expression NE_OP relational_expression
-    ;
-
-and_expression
-    : equality_expression
-    | and_expression '&' equality_expression
-    ;
-
-exclusive_or_expression
-    : and_expression
-    | exclusive_or_expression '^' and_expression
-    ;
-
-inclusive_or_expression
-    : exclusive_or_expression
-    | inclusive_or_expression '|' exclusive_or_expression
-    ;
-
-logical_and_expression
-    : inclusive_or_expression
-    | logical_and_expression AND_OP inclusive_or_expression
-    ;
-
-logical_or_expression
-    : logical_and_expression
-    | logical_or_expression OR_OP logical_and_expression
-    ;
-
-conditional_expression
-    : logical_or_expression
-    | logical_or_expression '?' expression ':' conditional_expression
-    ;
-
-assignment_expression
-    : conditional_expression
-    | unary_expression assignment_operator assignment_expression
-    ;
-
-assignment_operator
-    : '='
-    | MUL_ASSIGN
-    | DIV_ASSIGN
-    | MOD_ASSIGN
-    | ADD_ASSIGN
-    | SUB_ASSIGN
-    | LEFT_ASSIGN
-    | RIGHT_ASSIGN
-    | AND_ASSIGN
-    | XOR_ASSIGN
-    | OR_ASSIGN
-    ;
-
-expression
-    : assignment_expression
-    | expression ',' assignment_expression
-    ;
-
-constant_expression
-    : conditional_expression
-    ;
-
-declaration
-    : declaration_specifiers ';'
-    | declaration_specifiers init_declarator_list ';'
-    ;
-
-const_declaration
-    : CONST type_specifier IDENTIFIER '=' constant_expression ';'
-    ;
-
-declaration_specifiers
-    : type_specifier
-    | type_specifier declaration_specifiers
-    | type_qualifier
-    | type_qualifier declaration_specifiers
-    ;
-
-init_declarator_list
-    : init_declarator
-    | init_declarator_list ',' init_declarator
-    ;
-
-init_declarator
-    : declarator
-    | declarator '=' initializer
-    ;
-
-type_specifier
-    : VOID
-    | INT
-    | FLOAT
-    | TYPE_NAME
-    | COLOR
-    | VEC2
-    | VEC3
-    | VEC4
-    | MAT3
-    | MAT34
-    | MAT4
-    | EVENT
-    | struct_specifier
-    | enum_specifier
-    ;
-
-struct_specifier
-    : STRUCT IDENTIFIER '{' struct_declaration_list '}'
-    ;
-
-struct_declaration_list
-    : struct_declaration
-    | struct_declaration_list struct_declaration
-    ;
-
-struct_declaration
-    : type_specifier declarator ';'
-    ;
-
-enum_specifier
-    : ENUM IDENTIFIER '{' enumerator_list '}'
-    ;
-
-enumerator_list
-    : enumerator
-    | enumerator_list ',' enumerator
-    ;
-
-enumerator
-    : IDENTIFIER
-    | IDENTIFIER '=' constant_expression
-    ;
-
-type_qualifier
-    : PROPERTY
-    | MESSAGE
-	;
-
-declarator
-    : IDENTIFIER
-    | '(' declarator ')'
-    | declarator '[' constant_expression ']'
-    | declarator '[' ']'
-    | declarator '(' parameter_list ')'
-    | declarator '(' identifier_list ')'
-    | declarator '(' ')'
-    ;
-
-parameter_list
-    : parameter_declaration
-    | parameter_list ',' parameter_declaration
-    ;
-
-parameter_declaration
-    : declaration_specifiers declarator
-    | declaration_specifiers direct_abstract_declarator
-    | declaration_specifiers
-    ;
-
-identifier_list
-    : IDENTIFIER
-    | identifier_list ',' IDENTIFIER
-    ;
-
-type_name
-    : declaration_specifiers
-    | declaration_specifiers direct_abstract_declarator
-    ;
-
-direct_abstract_declarator
-    : '(' direct_abstract_declarator ')'
-    | '[' ']'
-    | '[' constant_expression ']'
-    | direct_abstract_declarator '[' ']'
-    | direct_abstract_declarator '[' constant_expression ']'
-    | '(' ')'
-    | '(' parameter_list ')'
-    | direct_abstract_declarator '(' ')'
-    | direct_abstract_declarator '(' parameter_list ')'
-    ;
-
-initializer
-    : assignment_expression
-    | '{' initializer_list '}'
-    | '{' initializer_list ',' '}'
-    ;
-
-initializer_list
-    : initializer
-    | initializer_list ',' initializer
-    ;
-
-statement
-    : labeled_statement
-    | compound_statement
-    | expression_statement
-    | selection_statement
-    | iteration_statement
-    | jump_statement
-    | const_declaration
-    ;
-
-labeled_statement
-    : CASE constant_expression ':' statement
-    | DEFAULT ':' statement
-    ;
-
-compound_statement
-    : '{' '}'
-    | '{' statement_list '}'
-    | '{' declaration_list '}'
-    | '{' declaration_list statement_list '}'
-    ;
-
-declaration_list
-    : declaration
-    | declaration_list declaration
-    ;
-
-statement_list
-    : statement
-    | statement_list statement
-    ;
-
-expression_statement
-    : ';'
-    | expression ';'
-    ;
-
-selection_statement
-    : IF '(' expression ')' statement
-    | IF '(' expression ')' statement ELSE statement
-    | SWITCH '(' expression ')' statement
-    ;
-
-iteration_statement
-    : WHILE '(' expression ')' statement
-    | DO statement WHILE '(' expression ')' ';'
-    | FOR '(' expression_statement expression_statement ')' statement
-    | FOR '(' expression_statement expression_statement expression ')' statement
-    ;
-
-jump_statement
-    : CONTINUE ';'
-    | BREAK ';'
-    | RETURN ';'
-    | RETURN expression ';'
-    ;
-
-translation_unit
-    : external_declaration
-    | translation_unit external_declaration
-    ;
-
-external_declaration
-    : function_definition
-    | declaration
-    ;
-
-function_definition
-    : declaration_specifiers declarator declaration_list compound_statement
-    | declaration_specifiers declarator compound_statement
-    | declarator declaration_list compound_statement
-    | declarator compound_statement
-    ;
-
-%%
-
-int yyerror(void * scanner, const char * msg)
-{
-    //throw GA_EXCEPTION(msg);
-    return 0;
-}
-
-*/

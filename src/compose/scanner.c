@@ -506,12 +506,11 @@ freely, subject to the following restrictions:
   3. This notice may not be removed or altered from any source
   distribution.
 ------------------------------------------------------------------------------*/
-/* Scanner for "C" assignment statements... sort of. */
 #define YY_NO_UNISTD_H 1
 #line 38 "compose.l"
 #include "compose/compiler_utils.h"
 #include "compose/parser.h"
-#line 515 "scanner.c"
+#line 514 "scanner.c"
 
 #define INITIAL 0
 
@@ -523,9 +522,7 @@ freely, subject to the following restrictions:
 #include <unistd.h>
 #endif
 
-#ifndef YY_EXTRA_TYPE
-#define YY_EXTRA_TYPE void *
-#endif
+#define YY_EXTRA_TYPE program*
 
 /* Holds the entire state of the reentrant scanner. */
 struct yyguts_t
@@ -758,6 +755,9 @@ YY_DECL
 
 #line 46 "compose.l"
 
+
+program * pProg = yyextra;    
+
      
 #line 763 "scanner.c"
 
@@ -856,73 +856,73 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 48 "compose.l"
+#line 51 "compose.l"
 { return MESSAGE; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 50 "compose.l"
+#line 53 "compose.l"
 { return INT; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 51 "compose.l"
+#line 54 "compose.l"
 { return FLOAT; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 52 "compose.l"
+#line 55 "compose.l"
 { return BOOL; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 53 "compose.l"
+#line 56 "compose.l"
 { return VEC3; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 56 "compose.l"
+#line 59 "compose.l"
 { return IDENTIFIER; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 58 "compose.l"
+#line 61 "compose.l"
 { return INT_LITERAL; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 59 "compose.l"
+#line 62 "compose.l"
 { return INT_LITERAL; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 60 "compose.l"
+#line 63 "compose.l"
 { return INT_LITERAL; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 62 "compose.l"
+#line 65 "compose.l"
 { return FLOAT_LITERAL; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 63 "compose.l"
+#line 66 "compose.l"
 { return FLOAT_LITERAL; }
 	YY_BREAK
 case 12:
 /* rule 12 can match eol */
 YY_RULE_SETUP
-#line 66 "compose.l"
+#line 69 "compose.l"
 { }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 67 "compose.l"
+#line 70 "compose.l"
 { /* ignore bad characters */ }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 70 "compose.l"
+#line 73 "compose.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
 #line 929 "scanner.c"
@@ -2113,53 +2113,8 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 70 "compose.l"
+#line 73 "compose.l"
 
 
 
-
-
-/*
-%option noyywrap
-
-%{
-int chars = 0;
-int words = 0;
-int lines = 0;
-%}
-
-%%
-
-"int"     { return(INT); }
-"uint"    { return(UINT); }
-"float"   { return(FLOAT); }
-"bool"    { return(BOOL); }
-"addr"    { return(ADDR); }
-"vec3"    { return(VEC3); }
-"vec4"    { return(VEC4); }
-"mat3"    { return(MAT3); }
-"mat34"   { return(MAT34); }
-"mat4"    { return(MAT4); }
-
-[a-zA-Z]+    { words++; chars += strlen(yytext); }
-\n           { chars++; lines++; }
-.            { chars++; }
-
-%%
-
-int main(int argc, char ** argv)
-{
-    if (argc > 1)
-    {
-        if (!(yyin = fopen(argv[1]), "r"))
-        {
-            perror(argv[1]);
-            return(1);
-        }
-    }
-
-    yylex();
-    printf("%8d%8d%8d\n", lines, words, chars);
-}
-*/
 

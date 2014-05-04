@@ -26,28 +26,6 @@
 
 #include <cstdio>
 
-//#include "compose/compiler_utils.h"
-
-extern "C"
-{
-
-#include "compose/compiler_utils.h"
-#define YYPARSE_PARAM
-#include "compose/parser.h"
-#define YY_NO_UNISTD_H
-#include "compose/scanner.h"
-
-//int yylex_init(void* pScanner);
-
-}
-
-/*extern "C" 
-{
-YY_BUFFER_STATE yy_scan_string(yyconst char *yy_str, yyscan_t yyscanner);
-int yylex_init(yyscan_t* scanner);
-int yyparse(void *scanner);
-}
-*/
 namespace gaen
 {
 
@@ -57,13 +35,6 @@ namespace gaen
 
 int main(int argc, char ** argv)
 {
-    int ret;
-    void * scanner;
-    ret = yylex_init(&scanner);
-    YY_BUFFER_STATE state;
-    state = yy_scan_string("abc = 5;", scanner);
-    ret = yyparse(scanner);
-    
 /*    bool shouldLogListen = false;
     
     // parse args
