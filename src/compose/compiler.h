@@ -35,11 +35,13 @@ extern "C" {
 
 typedef enum
 {
-    kAST_Plus       = '+',
-    kAST_Minus      = '-',
-    kAST_Times      = '*',
-    kAST_Divide     = '/',
-    kAST_MessageDef = 256
+    kAST_Root,
+    kAST_MessageDef,
+
+    kAST_Plus,
+    kAST_Minus,
+    kAST_Times,
+    kAST_Divide
 } AstType;
 
 typedef enum
@@ -52,10 +54,10 @@ typedef enum
 
 typedef enum
 {
-    kTYPE_Int,
-    kTYPE_Float,
-    kTYPE_Bool,
-    kTYPE_Vec3
+    kDT_Int,
+    kDT_Float,
+    kDT_Bool,
+    kDT_Vec3
 } DataType;
 
 typedef struct SymRec SymRec;

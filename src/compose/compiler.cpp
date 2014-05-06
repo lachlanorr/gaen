@@ -38,43 +38,26 @@
 
 using namespace gaen;
 
+
+//------------------------------------------------------------------------------
+// SymRec
+//------------------------------------------------------------------------------
 struct SymRec
 {
     String<kMEM_Compose> name;
     SymbolScope scope;
 };
 
-struct SymTab
-{
-//    HashMap<kMEM_Compose, 
-};
-
-struct Ast
-{
-
-};
-
-struct ParseData
-{
-    Ast * pRoot;
-    SymTab * pSymTab;
-    void * pScanner;
-};
-
-
-//------------------------------------------------------------------------------
-// SymRec
-//------------------------------------------------------------------------------
 SymRec * symrec_create(const char * name)
 {
-    SymRec * pSymRec = static_cast<SymRec*>(GALLOC(kMEM_Compose, sizeof(SymRec)));
+    SymRec * pSymRec = GNEW(kMEM_Compose, SymRec);
     return pSymRec;
 }
 
 void symrec_destroy(SymRec* pSymRec)
 {
     ASSERT(pSymRec);
-    GFREE(pSymRec);
+    GDELETE(pSymRec);
 }
 //------------------------------------------------------------------------------
 // SymRec (END)
@@ -85,16 +68,21 @@ void symrec_destroy(SymRec* pSymRec)
 //------------------------------------------------------------------------------
 // SymTab
 //------------------------------------------------------------------------------
+struct SymTab
+{
+    HashMap<kMEM_Compose, String<kMEM_Compose>, SymRec> dict;
+};
+
 SymTab* symtab_create()
 {
-    SymTab * pSymTab = static_cast<SymTab*>(GALLOC(kMEM_Compose, sizeof(SymTab)));
+    SymTab * pSymTab = GNEW(kMEM_Compose, SymTab);
     return pSymTab;
 }
 
 void symtab_destroy(SymTab* pSymTab)
 {
     ASSERT(pSymTab);
-    GFREE(pSymTab);
+    GDELETE(pSymTab);
 }
 
 void symtab_add_entry(SymTab* pSymTab, SymRec * pSymRec)
@@ -117,16 +105,24 @@ void symtab_pop_scope(SymTab* pSymTab)
 //------------------------------------------------------------------------------
 // Ast
 //------------------------------------------------------------------------------
+struct Ast
+{
+    AstType type;
+};
+
 Ast * ast_create(AstType astType)
 {
-    Ast * pAst = static_cast<Ast*>(GALLOC(kMEM_Compose, sizeof(Ast)));
+    Ast * pAst = GNEW(kMEM_Compose, Ast);
+    memset(pAst, 0, sizeof(Ast));
+    
+    pAst->type = astType;
     return pAst;
 }
 
 void ast_destroy(Ast * pAst)
 {
     ASSERT(pAst);
-    GFREE(pAst);
+    GDELETE(pAst);
 }
 //------------------------------------------------------------------------------
 // Ast (END)
@@ -137,16 +133,28 @@ void ast_destroy(Ast * pAst)
 //------------------------------------------------------------------------------
 // ParseData
 //------------------------------------------------------------------------------
+struct ParseData
+{
+    Ast * pAst;
+    SymTab * pSymTab;
+    void * pScanner;
+};
+
 ParseData * parsedata_create()
 {
-    ParseData * pParseData = static_cast<ParseData*>(GALLOC(kMEM_Compose, sizeof(ParseData)));
+    ParseData * pParseData = GNEW(kMEM_Compose, ParseData);
+
+    pParseData->pAst = ast_create(kAST_Root);
+    pParseData->pSymTab = symtab_create();
+    pParseData->pScanner = nullptr;
+    
     return pParseData;
 }
 
 void parsedata_destroy(ParseData * pParseData)
 {
     ASSERT(pParseData);
-    GFREE(pParseData);
+    GDELETE(pParseData);
 }
 
 void * parsedata_scanner(ParseData * pParseData)
