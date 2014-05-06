@@ -33,16 +33,20 @@
 #define YY_NO_UNISTD_H
 #include "compose/scanner.h"
 
+#include "core/String.h"
+#include "core/HashMap.h"
+
 using namespace gaen;
 
 struct SymRec
 {
-
+    String<kMEM_Compose> name;
+    SymbolScope scope;
 };
 
 struct SymTab
 {
-
+//    HashMap<kMEM_Compose, 
 };
 
 struct Ast
@@ -63,11 +67,14 @@ struct ParseData
 //------------------------------------------------------------------------------
 SymRec * symrec_create(const char * name)
 {
-    return nullptr;
+    SymRec * pSymRec = static_cast<SymRec*>(GALLOC(kMEM_Compose, sizeof(SymRec)));
+    return pSymRec;
 }
 
 void symrec_destroy(SymRec* pSymRec)
 {
+    ASSERT(pSymRec);
+    GFREE(pSymRec);
 }
 //------------------------------------------------------------------------------
 // SymRec (END)
@@ -80,11 +87,14 @@ void symrec_destroy(SymRec* pSymRec)
 //------------------------------------------------------------------------------
 SymTab* symtab_create()
 {
-    return nullptr;
+    SymTab * pSymTab = static_cast<SymTab*>(GALLOC(kMEM_Compose, sizeof(SymTab)));
+    return pSymTab;
 }
 
 void symtab_destroy(SymTab* pSymTab)
 {
+    ASSERT(pSymTab);
+    GFREE(pSymTab);
 }
 
 void symtab_add_entry(SymTab* pSymTab, SymRec * pSymRec)
@@ -109,11 +119,14 @@ void symtab_pop_scope(SymTab* pSymTab)
 //------------------------------------------------------------------------------
 Ast * ast_create(AstType astType)
 {
-    return nullptr;
+    Ast * pAst = static_cast<Ast*>(GALLOC(kMEM_Compose, sizeof(Ast)));
+    return pAst;
 }
 
 void ast_destroy(Ast * pAst)
 {
+    ASSERT(pAst);
+    GFREE(pAst);
 }
 //------------------------------------------------------------------------------
 // Ast (END)
@@ -126,15 +139,19 @@ void ast_destroy(Ast * pAst)
 //------------------------------------------------------------------------------
 ParseData * parsedata_create()
 {
-    return nullptr;
+    ParseData * pParseData = static_cast<ParseData*>(GALLOC(kMEM_Compose, sizeof(ParseData)));
+    return pParseData;
 }
 
 void parsedata_destroy(ParseData * pParseData)
 {
+    ASSERT(pParseData);
+    GFREE(pParseData);
 }
 
 void * parsedata_scanner(ParseData * pParseData)
 {
+    ASSERT(pParseData);
     return pParseData->pScanner;
 }
 //------------------------------------------------------------------------------

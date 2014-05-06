@@ -42,6 +42,22 @@ typedef enum
     kAST_MessageDef = 256
 } AstType;
 
+typedef enum
+{
+    kSCOPE_Param,
+    kSCOPE_Function,
+    kSCOPE_Property,
+    kSCOPE_Local
+} SymbolScope;
+
+typedef enum
+{
+    kTYPE_Int,
+    kTYPE_Float,
+    kTYPE_Bool,
+    kTYPE_Vec3
+} DataType;
+
 typedef struct SymRec SymRec;
 typedef struct SymTab SymTab;
 typedef struct Ast Ast;

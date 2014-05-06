@@ -36,9 +36,8 @@ namespace gaen
 
 // Declare lists with the aditional MemType enum parameter, E.g.:
 //   List<int, kMT_Texture> myList;
-template <class T,
-          MemType memType>
-using List = std::list<T, gaen::Allocator<T, memType>>;
+template <MemType memType, class T>
+using List = std::list<T, gaen::Allocator<memType, T>>;
 
 
 } // namespace gaen

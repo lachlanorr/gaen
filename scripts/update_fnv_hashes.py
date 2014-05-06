@@ -233,7 +233,7 @@ FNV_CPP_TEMPLATE = ('//---------------------------------------------------------
                     '// Insert all our precalculated hashes into sTrackMap so we will know\n'
                     '// if we encounter conflicts in dynamically calculated hashes.  Also,\n'
                     '// verify the precalculted hashes match what our C++ version returns.\n'
-                    'typedef HashMap<fnv,String<kMEM_Debug>,kMEM_Debug> TrackMap;\n'
+                    'typedef HashMap<kMEM_Debug, fnv, String<kMEM_Debug>> TrackMap;\n'
                     'TrackMap build_initial_track_map()\n'
                     '{\n'
                     '    TrackMap tm;\n'

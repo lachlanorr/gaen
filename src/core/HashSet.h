@@ -36,14 +36,14 @@ namespace gaen
 
 // Declare sets with the aditional MemType enum parameter, E.g.:
 //   HashSet<int, void*, kMT_Engine> mySet;
-template <class Key,
-          MemType memType,
+template <MemType memType,
+          class Key,
           class Hash = std::hash<Key>,
           class KeyEqual = std::equal_to<Key>>
 using HashSet = std::unordered_set<Key,
                                    Hash,
                                    KeyEqual,
-                                   gaen::Allocator<Key, memType>>;
+                                   gaen::Allocator<memType, Key>>;
 
 } // namespace gaen
 

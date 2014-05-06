@@ -248,7 +248,7 @@ TaskMaster<RendererT> & TaskMaster<RendererT>::task_master_for_thread(thread_id 
 {
     ASSERT(is_threading_init());
     ASSERT(tid >= 0 && tid < num_threads());
-    static Vector<TaskMaster<RendererT>,kMEM_Engine> sTaskMasters(num_threads());
+    static Vector<kMEM_Engine, TaskMaster<RendererT>> sTaskMasters(num_threads());
     ASSERT(tid < sTaskMasters.size());
     return sTaskMasters[tid];
 }

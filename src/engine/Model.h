@@ -75,7 +75,7 @@ public:
 
     model_id id() const { return mId; }
     
-    typedef Vector<MaterialMesh, kMEM_Model> MaterialMeshVector;
+    typedef Vector<kMEM_Model, MaterialMesh> MaterialMeshVector;
     MaterialMeshVector::iterator begin() { return mMaterialMeshes.begin(); }
     MaterialMeshVector::iterator end() { return mMaterialMeshes.end(); }
 

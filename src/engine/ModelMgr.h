@@ -68,14 +68,14 @@ public:
     };
 
 
-    typedef List<MaterialMeshInstance,
-                 kMEM_Model> MeshList;
-    typedef Map<model_instance_id,
-                MeshList,
-                kMEM_Model> ModelMeshMap;
-    typedef Map<shader_hash,
-                ModelMeshMap,
-                kMEM_Model> ShaderModelMap;
+    typedef List<kMEM_Model,
+                 MaterialMeshInstance> MeshList;
+    typedef Map<kMEM_Model,
+                model_instance_id,
+                MeshList> ModelMeshMap;
+    typedef Map<kMEM_Model,
+                shader_hash,
+                ModelMeshMap> ShaderModelMap;
 
 
     //--------------------------------------------------------------------------
@@ -162,20 +162,20 @@ private:
 
     // Store materials based on material_id.
     // This struct controls deletion of materials using ref counting.
-    typedef Map<material_id,
-                RefCounted<Material, MaterialDeleter>,
-                kMEM_Model> MaterialMap;
+    typedef Map<kMEM_Model,
+                material_id,
+                RefCounted<Material, MaterialDeleter>> MaterialMap;
 
     // Store models based on model_id.
     // This struct controls deletion of models using ref counting.
-    typedef Map<model_id,
-                RefCounted<Model, ModelDeleter>,
-                kMEM_Model> ModelMap;
+    typedef Map<kMEM_Model,
+                model_id,
+                RefCounted<Model, ModelDeleter>> ModelMap;
 
     // Instances of models (a model and transform)
-    typedef Map<model_instance_id,
-                ModelInstance,
-                kMEM_Model> ModelInstanceMap;
+    typedef Map<kMEM_Model,
+                model_instance_id,
+                ModelInstance> ModelInstanceMap;
 
 
     void insertMaterial(Material * pMaterial,

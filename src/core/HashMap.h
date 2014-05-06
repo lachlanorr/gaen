@@ -36,16 +36,16 @@ namespace gaen
 
 // Declare maps with the aditional MemType enum parameter, E.g.:
 //   HashMap<int, void*, kMT_Engine> myMap;
-template <class Key,
+template <MemType memType,
+          class Key,
           class T,
-          MemType memType,
           class Hash = std::hash<Key>,
           class KeyEqual = std::equal_to<Key>>
 using HashMap = std::unordered_map<Key,
                                    T,
                                    Hash,
                                    KeyEqual,
-                                   gaen::Allocator<std::pair<const Key,T>, memType>>;
+                                   gaen::Allocator<memType, std::pair<const Key,T>>>;
 
 } // namespace gaen
 

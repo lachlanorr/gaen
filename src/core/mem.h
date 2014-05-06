@@ -252,7 +252,7 @@ inline void tracked_delete(T * ptr, const char * file, int line)
 //   GAEN_VECTOR(int)
 //------------------------------------------------------------------------------
 //template<class T,int memType>
-template<class T,MemType memType>
+template<MemType memType, class T>
 class Allocator
 {
 public:
@@ -264,12 +264,12 @@ public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
     template<class U>
-    struct rebind { typedef Allocator<U, memType> other; };
+    struct rebind { typedef Allocator<memType, U> other; };
     typedef std::true_type propagate_on_container_move_assignment;
     Allocator() noexcept {}
     Allocator (const Allocator& alloc) noexcept {}
     template <class U>
-    Allocator (const Allocator<U, memType>& alloc) noexcept {}
+    Allocator (const Allocator<memType, U>& alloc) noexcept {}
     pointer address(reference x) const noexcept             { return &x; }
     const_pointer address(const_reference x) const noexcept { return &x; }
     size_type max_size() const noexcept                     { return size_t(-1) / sizeof(T); }

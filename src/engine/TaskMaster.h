@@ -146,34 +146,34 @@ private:
     void insertTask(thread_id threadOwner, const Task & task);
 
     MessageQueue * mpMainMessageQueue; // messages from main queue here
-    Vector<MessageQueue*, kMEM_Engine> mTaskMasterMessageQueues; // message from other task masters queue here
+    Vector<kMEM_Engine, MessageQueue*> mTaskMasterMessageQueues; // message from other task masters queue here
 
     // List of tasks owned by this TaskMaster
-    typedef Vector<Task, kMEM_Engine> TaskVec;
+    typedef Vector<kMEM_Engine, Task> TaskVec;
     TaskVec mOwnedTasks;
 
     // Maps task_id to its index in mOwnedTasks
-    typedef HashMap<task_id, size_t, kMEM_Engine> TaskMap;
+    typedef HashMap<kMEM_Engine, task_id, size_t> TaskMap;
     TaskMap mOwnedTaskMap;
     
     // Maps task_id to the TaskMaster's thread_id that owns it
-    typedef HashMap<task_id, thread_id, kMEM_Engine> TaskOwnerMap;
+    typedef HashMap<kMEM_Engine, task_id, thread_id> TaskOwnerMap;
     TaskOwnerMap mTaskOwnerMap;
 
     RendererT * mpRenderer = nullptr;
 
     // Maps mutable data paths to the set of task_ids that depend on it
     // We maintain a reference count the data path has to the task
-    typedef HashMap<task_id, u32, kMEM_Engine> DataToTaskRefs;
+    typedef HashMap<kMEM_Engine, task_id, u32> DataToTaskRefs;
     typedef UniquePtr<DataToTaskRefs> DataToTaskRefsUP;
-    typedef HashMap<fnv, DataToTaskRefsUP, kMEM_Engine> MutableDataUsersMap;
+    typedef HashMap<kMEM_Engine, fnv, DataToTaskRefsUP> MutableDataUsersMap;
     MutableDataUsersMap mMutableDataUsers;
 
     // Maps root task_id to the set of mutable data paths that it depends on
     // We maintain a reference count the root task_id has towards the data path
-    typedef HashMap<fnv, u32, kMEM_Engine> TaskToDataRefs;
+    typedef HashMap<kMEM_Engine, fnv, u32> TaskToDataRefs;
     typedef UniquePtr<TaskToDataRefs> TaskToDataRefsUP;
-    typedef HashMap<task_id, TaskToDataRefsUP, kMEM_Engine> MutableDataMap;
+    typedef HashMap<kMEM_Engine, task_id, TaskToDataRefsUP> MutableDataMap;
     MutableDataMap mMutableData;
 
     thread_id mThreadId = kInvalidThreadId;

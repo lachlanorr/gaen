@@ -78,8 +78,8 @@ private:
     u32 mPropertyBufferHWM;
     u8 * mpPropertyBuffer;
 
-    Vector<Task, kMEM_Engine> mComponents;
-    List<Entity*, kMEM_Engine> mChildren;
+    Vector<kMEM_Engine, Task> mComponents;
+    List<kMEM_Engine, Entity*> mChildren;
 };
 
 } // namespcae gaen

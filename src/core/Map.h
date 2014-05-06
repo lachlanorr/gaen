@@ -36,14 +36,14 @@ namespace gaen
 
 // Declare maps with the aditional MemType enum parameter, E.g.:
 //   Map<int, void*, kMT_Engine> myMap;
-template <class Key,
+template <MemType memType,
+          class Key,
           class T,
-          MemType memType,
           class Compare = std::less<Key>>
 using Map = std::map<Key,
                      T,
                      Compare,
-                     gaen::Allocator<std::pair<const Key,T>, memType>>;
+                     gaen::Allocator<memType, std::pair<const Key,T>>>;
 
 } // namespace gaen
 

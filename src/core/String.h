@@ -39,7 +39,7 @@ namespace gaen
 template <MemType memType>
 using String = std::basic_string<char,
                                  std::char_traits<char>,
-                                 gaen::Allocator<char, memType>>;
+                                 gaen::Allocator<memType, char>>;
 
 } // namespace gaen
 
