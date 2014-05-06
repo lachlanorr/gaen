@@ -27,67 +27,50 @@
 #ifndef GAEN_COMPOSE_COMPILER_H
 #define GAEN_COMPOSE_COMPILER_H
 
-#include "core/base_defines.h"
-#include "compose/compiler_utils.h"
-
-struct program{};
-struct ast_node{};
-struct sym_record {};
-struct sym_table {};
-
-namespace gaen
-{
-
-
-//------------------------------------------------------------------------------
-
-struct AstNode : public ast_node
-{
-    static AstNode * convert(ast_node * pAstNode) { return static_cast<AstNode*>(pAstNode); }
-
-    AstNode(AstNodeType nodeType) {};
-};
-
-
-//------------------------------------------------------------------------------
-
-struct SymRecord : public sym_record
-{
-    static SymRecord * convert(sym_record * pSymRec) { return static_cast<SymRecord*>(pSymRec); }
-
-    SymRecord(const char * name);
-};
-
-
-//------------------------------------------------------------------------------
-
-struct SymTable : public sym_table
-{
-    static SymTable * convert(sym_table * pSymTab) { return static_cast<SymTable*>(pSymTab); }
-
-    void pushScope();
-    void popScope();
-    void addEntry(SymRecord * pSymRecord);
-};
-
-//------------------------------------------------------------------------------
-
-struct Program : public program
-{
-    static Program * convert(program * pProg) { return static_cast<Program*>(pProg); }
-    static Program * compile(const u8 * source, size_t length);
-    
-    ~Program();
-
-    AstNode  * pRoot     = nullptr;
-    SymTable * pSymTable = nullptr;
-    void     * pScanner  = nullptr;
-};
-
-//------------------------------------------------------------------------------
-
-}
-
-
-
+#ifdef __cplusplus
+extern "C" {
 #endif
+
+// C Declarations, to be used from Bison
+
+typedef enum
+{
+    kAST_Plus       = '+',
+    kAST_Minus      = '-',
+    kAST_Times      = '*',
+    kAST_Divide     = '/',
+    kAST_MessageDef = 256
+} AstType;
+
+typedef struct SymRec SymRec;
+typedef struct SymTab SymTab;
+typedef struct Ast Ast;
+typedef struct ParseData ParseData;
+
+SymRec * symrec_create(const char * name);
+void symrec_destroy(SymRec* pSymRec);
+
+SymTab* symtab_create();
+void symtab_destroy(SymTab* pSymTab);
+void symtab_add_entry(SymTab* pSymTab, SymRec * pSymRec);
+void symtab_push_scope(SymTab* pSymTab);
+void symtab_pop_scope(SymTab* pSymTab);
+
+Ast * ast_create(AstType astType, const char * strVal, SymRec * pSymRec);
+void ast_destroy(Ast * pAstNode);
+
+ParseData * parsedata_create();
+void parsedata_destroy(ParseData * pParseData);
+void * parsedata_scanner(ParseData * pParseData);
+
+ParseData * parse(const char * source, size_t length);
+
+typedef struct YYLTYPE YYLTYPE;
+void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * msg);
+
+#ifdef __cplusplus
+} // #ifdef __cplusplus
+#endif
+
+#endif // #ifndef GAEN_COMPOSE_COMPILER_H
+

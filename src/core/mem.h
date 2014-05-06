@@ -54,15 +54,15 @@ enum MemType
 };
 
 #if !HAS(TRACK_MEM)
-#define GALLOC(count, memType) gaen::fast_alloc(count)
+#define GALLOC(memType, count) gaen::fast_alloc(count)
 #define GFREE(ptr)             gaen::fast_free(ptr)
 #define GDELETE(ptr)           gaen::fast_delete(ptr)
 #else  // #if !HAS(DEV_BUILD)
-#define GALLOC(count, memType) gaen::tracked_alloc(count, memType, __FILE__, __LINE__)
+#define GALLOC(memType, count) gaen::tracked_alloc(memType, count, __FILE__, __LINE__)
 #define GFREE(ptr)             gaen::tracked_free(ptr, __FILE__, __LINE__)
 #define GDELETE(ptr)           gaen::tracked_delete(ptr, __FILE__, __LINE__)
 #endif // #if !HAS(DEV_BUILD)
-#define GNEW(memType, type, ...) new (GALLOC(sizeof(type), memType)) type(##__VA_ARGS__)
+#define GNEW(memType, type, ...) new (GALLOC(memType, sizeof(type))) type(##__VA_ARGS__)
 
 
 // A pool contains various sizes of pre-allocated buffers.
@@ -155,8 +155,8 @@ public:
     void deallocate(void * ptr);
 
 #if HAS(TRACK_MEM)
-    void trackAllocation(size_t count,
-                         MemType memType,
+    void trackAllocation(MemType memType,
+                         size_t count,
                          const char * file,
                          int line);
     
@@ -208,14 +208,14 @@ inline void fast_delete(T * ptr)
 }
     
 #if HAS(TRACK_MEM)
-inline void * tracked_alloc(size_t count,
-                            MemType memType,
+inline void * tracked_alloc(MemType memType,
+                            size_t count,
                             const char * file,
                             int line)
 {
     void * p = fast_alloc(count);
-    singleton<MemMgr>().trackAllocation(count,
-                                        memType,
+    singleton<MemMgr>().trackAllocation(memType,
+                                        count,
                                         file,
                                         line);
     return p;
@@ -286,7 +286,7 @@ public:
     pointer allocate(size_type n, const void * hint=0)
     {
         size_t byteCount = n * sizeof(T);
-        pointer p = static_cast<pointer>(GALLOC(byteCount, memType));
+        pointer p = static_cast<pointer>(GALLOC(memType, byteCount));
         printf("Custom allocator, allocating %lu bytes\n", byteCount);
         ASSERT_MSG(p, "Unable to allocate with Allocator, %lu bytes", byteCount);
         return p;

@@ -25,14 +25,14 @@ freely, subject to the following restrictions:
 ------------------------------------------------------------------------------*/
 
 %{
-#include "compose/compiler_utils.h"
+#include "compose/compiler.h"
 %}
 
 %define api.pure full
 %error-verbose
 
-%lex-param { program * pProg }
-%parse-param { program * pProg }
+%lex-param { ParseData * pParseData }
+%parse-param { ParseData * pParseData }
 
 %locations
 %output  "parser.c"
@@ -40,17 +40,17 @@ freely, subject to the following restrictions:
 
 %union
 {
-    int          numi;
-    double       numf;
-    char*        str;
-    ast_node*    pAstNode;
-    sym_record*  pSymRec;
+    int      numi;
+    double   numf;
+    char*    str;
+    Ast*     pAst;
+    SymRec*  pSymRec;
 }
 
 %{
 #define YY_NO_UNISTD_H
 #include "compose/scanner.h"
-#define YYLEX_PARAM prog_scanner(pProg)
+#define YYLEX_PARAM parsedata_scanner(pParseData)
 %}
 
 %token <str> IDENTIFIER
@@ -58,31 +58,58 @@ freely, subject to the following restrictions:
 %token <numf> FLOAT_LITERAL
 
 %token INT FLOAT BOOL VEC3
-%token <ast_node*> MESSAGE
+
+%right <pAstNode> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
+
+%left <pAstNode> OR
+%left <pAstNode> AND
+%left <pAstNode> '|'
+%left <pAstNode> '^'
+%left <pAstNode> '&'
+
+%nonassoc <pAstNode> EQ NEQ
+%nonassoc <pAstNode> LT GT LTE GTE
+
+%left <pAstNode> LSHIFT RSHIFT
+
+%left <pAstNode> '+' '-'
+%left <pAstNode> '*' '/' '%'
+
+%right <pAstNode> INC DEC '!' '~'
+%right <pAstNode> UMINUS
+
+%left <pAstNode> '.'
+
+%left <pAstNode> SCOPE
+
 
 %%
 
-decl_list
-    : decl
-    | decl_list decl
+def_list
+    : def
+    | def_list def
     ;
 
-decl
-    : message_decl
+def
+    : message_def
+    | function_def
     ;
 
-message_decl
-    : MESSAGE IDENTIFIER '<' param_decl_list '>' block
+message_def
+    : '#' IDENTIFIER '(' param_list ')' block
     ;
 
-param_decl_list
+function_def
+    : type IDENTIFIER '(' param_list ')' block
+    ;
+
+param_list
     : param_decl
-    | param_decl_list ',' param_decl
+    | param_decl ',' param_list
     ;
 
 param_decl
-    : /* empty */
-    | type IDENTIFIER
+    : type IDENTIFIER
     ;
 
 block

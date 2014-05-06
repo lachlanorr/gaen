@@ -163,8 +163,8 @@ void MemMgr::deallocate(void * ptr)
 }
 
 #if HAS(TRACK_MEM)
-void MemMgr::trackAllocation(size_t count,
-                             MemType memType,
+void MemMgr::trackAllocation(MemType memType,
+                             size_t count,
                              const char * file,
                              int line)
 {

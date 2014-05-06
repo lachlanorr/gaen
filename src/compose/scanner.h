@@ -232,7 +232,7 @@ void yyfree (void * ,yyscan_t yyscanner );
 #include <unistd.h>
 #endif
 
-#define YY_EXTRA_TYPE program*
+#define YY_EXTRA_TYPE ParseData*
 
 int yylex_init (yyscan_t* scanner);
 
@@ -340,7 +340,7 @@ extern int yylex \
 #undef YY_DECL
 #endif
 
-#line 73 "compose.l"
+#line 120 "compose.l"
 
 
 #line 347 "scanner.h"

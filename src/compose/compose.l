@@ -32,10 +32,10 @@ freely, subject to the following restrictions:
 %option never-interactive nounistd
 %option noyywrap
 %option outfile="scanner.c" header-file="scanner.h"
-%option extra-type="program*"
+%option extra-type="ParseData*"
 
 %{
-#include "compose/compiler_utils.h"
+#include "compose/compiler.h"
 #include "compose/parser.h"
 %}
 
@@ -45,18 +45,64 @@ L  [a-zA-Z_]
 
 %%
 %{
-program * pProg = yyextra;    
+ParseData * pParseData = yyextra;    
 %}
      
-"message" { return MESSAGE; }
-
 "int"    { return INT; }
 "float"  { return FLOAT; }
 "bool"   { return BOOL; }
 "vec3"   { return VEC3; }
 
+"::"   { return SCOPE; }
 
-{L}({L}|{D})*  { return IDENTIFIER; }
+"=="   { return EQ; }
+"!="   { return NEQ; }
+"<="   { return LTE; }
+">="   { return GTE; }
+
+"++"   { return INC; }
+"--"   { return DEC; }
+
+"<<"   { return LSHIFT; }
+">>"   { return RSHIFT; }
+
+"&&"   { return AND; }
+"||"   { return OR; }
+
+"+="   { ADD_ASSIGN; }
+"-="   { SUB_ASSIGN; }
+"*="   { MUL_ASSIGN; }
+"/="   { DIV_ASSIGN; }
+"%="   { MOD_ASSIGN; }
+"<<="  { LSHIFT_ASSIGN; }
+">>="  { RSHIFT_ASSIGN; }
+"&="   { AND_ASSIGN; }
+"^="   { XOR_ASSIGN; }
+"|="   { OR_ASSIGN; }
+
+"#" |
+"@" |
+"+" |
+"-" |
+"*" |
+"/" |
+"%" |
+"!" |
+"~" |
+"=" |
+"," |
+";" |
+":" |
+"." |
+"&" |
+"^" |
+"|" |
+"(" |
+")" |
+"[" |
+"]" |
+"<" |
+">"    { return yytext[0]; }
 
 0[xX]{H}+      { return INT_LITERAL; }
 0{D}           { return INT_LITERAL; }
@@ -65,6 +111,7 @@ program * pProg = yyextra;
 {D}*"."{D}+    { return FLOAT_LITERAL; }
 {D}+"."{D}*    { return FLOAT_LITERAL; }
 
+{L}({L}|{D})*  { return IDENTIFIER; }
 
 [ \t\v\n\f]     { }
 .               { /* ignore bad characters */ }

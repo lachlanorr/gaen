@@ -70,7 +70,7 @@ Mesh * Mesh::create(VertexType vertexType, u32 vertexCount, IndexType indexType,
     u32 indexStride = index_stride(indexType);
 
     u32 dataSize = calc_size(vertexStride, vertexCount, indexStride, indexCount);
-    u8 * pData = static_cast<u8*>(GALLOC(dataSize, kMEM_Model));
+    u8 * pData = static_cast<u8*>(GALLOC(kMEM_Model, dataSize));
 
     Mesh * pMesh = reinterpret_cast<Mesh*>(pData);
     pMesh->mVertexType = vertexType;

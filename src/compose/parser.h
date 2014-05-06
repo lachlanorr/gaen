@@ -53,7 +53,30 @@ extern int yydebug;
      FLOAT = 262,
      BOOL = 263,
      VEC3 = 264,
-     MESSAGE = 265
+     OR_ASSIGN = 265,
+     XOR_ASSIGN = 266,
+     AND_ASSIGN = 267,
+     RSHIFT_ASSIGN = 268,
+     LSHIFT_ASSIGN = 269,
+     MOD_ASSIGN = 270,
+     DIV_ASSIGN = 271,
+     MUL_ASSIGN = 272,
+     SUB_ASSIGN = 273,
+     ADD_ASSIGN = 274,
+     OR = 275,
+     AND = 276,
+     NEQ = 277,
+     EQ = 278,
+     GTE = 279,
+     LTE = 280,
+     GT = 281,
+     LT = 282,
+     RSHIFT = 283,
+     LSHIFT = 284,
+     DEC = 285,
+     INC = 286,
+     UMINUS = 287,
+     SCOPE = 288
    };
 #endif
 
@@ -64,15 +87,15 @@ typedef union YYSTYPE
 /* Line 2053 of yacc.c  */
 #line 42 "compose.y"
 
-    int          numi;
-    double       numf;
-    char*        str;
-    ast_node*    pAstNode;
-    sym_record*  pSymRec;
+    int      numi;
+    double   numf;
+    char*    str;
+    Ast*     pAst;
+    SymRec*  pSymRec;
 
 
 /* Line 2053 of yacc.c  */
-#line 76 "parser.h"
+#line 99 "parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -101,7 +124,7 @@ int yyparse ();
 #endif
 #else /* ! YYPARSE_PARAM */
 #if defined __STDC__ || defined __cplusplus
-int yyparse (program * pProg);
+int yyparse (ParseData * pParseData);
 #else
 int yyparse ();
 #endif

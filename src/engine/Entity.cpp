@@ -41,7 +41,7 @@ Entity::Entity(u32 propertyBufferSize,
   , mPropertyBufferHWM(0)
 {
     if (!pPropertyBuffer)
-        pPropertyBuffer = static_cast<u8*>(GALLOC(mPropertyBufferSize, kMEM_Engine));
+        pPropertyBuffer = static_cast<u8*>(GALLOC(kMEM_Engine, mPropertyBufferSize));
     
     mLocalTransform = transform;
     mGlobalTransform = transform;

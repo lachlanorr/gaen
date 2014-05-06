@@ -33,150 +33,143 @@
 #define YY_NO_UNISTD_H
 #include "compose/scanner.h"
 
-
-
 using namespace gaen;
 
+struct SymRec
+{
+
+};
+
+struct SymTab
+{
+
+};
+
+struct Ast
+{
+
+};
+
+struct ParseData
+{
+    Ast * pRoot;
+    SymTab * pSymTab;
+    void * pScanner;
+};
+
+
 //------------------------------------------------------------------------------
-// C Functions, used by Bison/Flex code
+// SymRec
+//------------------------------------------------------------------------------
+SymRec * symrec_create(const char * name)
+{
+    return nullptr;
+}
+
+void symrec_destroy(SymRec* pSymRec)
+{
+}
+//------------------------------------------------------------------------------
+// SymRec (END)
 //------------------------------------------------------------------------------
 
-program * prog_new()
+
+
+//------------------------------------------------------------------------------
+// SymTab
+//------------------------------------------------------------------------------
+SymTab* symtab_create()
 {
-    return GNEW(kMEM_Compose, Program);
+    return nullptr;
 }
 
-void prog_delete(program * pProg)
+void symtab_destroy(SymTab* pSymTab)
 {
-    GDELETE(Program::convert(pProg));
 }
 
-void * prog_scanner(program * pProg)
+void symtab_add_entry(SymTab* pSymTab, SymRec * pSymRec)
 {
-    return Program::convert(pProg)->pScanner;
 }
 
-
-ast_node * ast_new(AstNodeType nodeType)
+void symtab_push_scope(SymTab* pSymTab)
 {
-    return GNEW(kMEM_Compose, AstNode, nodeType);
 }
 
-void ast_delete(ast_node * pAstNode)
+void symtab_pop_scope(SymTab* pSymTab)
 {
-    GDELETE(AstNode::convert(pAstNode));
+}
+//------------------------------------------------------------------------------
+// SymTab (END)
+//------------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------------
+// Ast
+//------------------------------------------------------------------------------
+Ast * ast_create(AstType astType)
+{
+    return nullptr;
 }
 
-
-sym_record * sr_new(const char * name)
+void ast_destroy(Ast * pAst)
 {
-    return GNEW(kMEM_Compose, SymRecord, name);
+}
+//------------------------------------------------------------------------------
+// Ast (END)
+//------------------------------------------------------------------------------
+
+
+
+//------------------------------------------------------------------------------
+// ParseData
+//------------------------------------------------------------------------------
+ParseData * parsedata_create()
+{
+    return nullptr;
 }
 
-void sr_delete(sym_record* pSymRec)
+void parsedata_destroy(ParseData * pParseData)
 {
-    GDELETE(SymRecord::convert(pSymRec));;
 }
 
-
-sym_table* st_new()
+void * parsedata_scanner(ParseData * pParseData)
 {
-    return GNEW(kMEM_Compose, SymTable);
+    return pParseData->pScanner;
 }
+//------------------------------------------------------------------------------
+// ParseData (END)
+//------------------------------------------------------------------------------
 
-void st_delete(sym_table* pSymTab)
+
+
+ParseData * parse(const char * source, size_t length)
 {
-    GDELETE(SymTable::convert(pSymTab));
-}
+    int ret;
+    ParseData * pParseData = parsedata_create();
 
-void st_add_entry(sym_table* pSymTab, sym_record * pSymRec)
-{
-    SymTable::convert(pSymTab)->addEntry(SymRecord::convert(pSymRec));
-}
+    ret = yylex_init_extra(pParseData, &pParseData->pScanner);
+    if (ret != 0)
+    {
+        GFREE(pParseData);
+        return nullptr;
+    }
 
-void st_push_scope(sym_table* pSymTab)
-{
-    SymTable::convert(pSymTab)->pushScope();
-}
+    yy_scan_bytes(source, length, pParseData->pScanner);
 
-void st_pop_scope(sym_table* pSymTab)
-{
-    SymTable::convert(pSymTab)->popScope();
-}
+    ret = yyparse(pParseData);
+    if (ret != 0)
+    {
+        GFREE(pParseData);
+        return nullptr;
+    }
 
+    return pParseData;
+}   
 
-void yyerror(YYLTYPE * pLoc, program * pProg, const char * msg)
+void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * msg)
 {
     fprintf(stderr, "%s\n", msg);
 }
 
-//------------------------------------------------------------------------------
-// C Functions (END)
-//------------------------------------------------------------------------------
-
-
-namespace gaen
-{
-
-//------------------------------------------------------------------------------
-// SymTable
-//------------------------------------------------------------------------------
-void SymTable::pushScope()
-{
-
-}
-
-void SymTable::popScope()
-{
-
-}
-
-void SymTable::addEntry(SymRecord * pSymRecord)
-{
-
-}
-//------------------------------------------------------------------------------
-// SymTable (END)
-//------------------------------------------------------------------------------
-
-
-//------------------------------------------------------------------------------
-// Program
-//------------------------------------------------------------------------------
-Program::~Program()
-{
-    if (pRoot) GDELETE(pRoot);
-    if (pSymTable) GDELETE(pSymTable);
-    if (pScanner) yylex_destroy(pScanner);
-}
-//------------------------------------------------------------------------------
-// Program (END)
-//------------------------------------------------------------------------------
-
-Program * Program::compile(const u8 * source, size_t length)
-{
-    int ret;
-    Program * pProg = GNEW(kMEM_Compose, Program);
-
-    ret = yylex_init(&pProg->pScanner);
-    if (ret != 0)
-    {
-        GDELETE(pProg);
-        return nullptr;
-    }
-
-    yy_scan_bytes(reinterpret_cast<const char*>(source), length, pProg->pScanner);
-
-    ret = yyparse(pProg);
-    if (ret != 0)
-    {
-        GDELETE(pProg);
-        return nullptr;
-    }
-
-    return pProg;
-}   
-
-
-} // namespace gaen
 
