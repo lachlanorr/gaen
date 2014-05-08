@@ -1,0 +1,33 @@
+
+component Comp1
+{
+    int propInt;
+    float propFloat;
+    int propOtherEntity;
+
+    #message1(int i, float f)
+    {
+        propInt = i;
+        propFloat = f;
+
+        @:Comp1#message2(false);
+    }
+
+    #message2(bool b)
+    {
+        if (b)
+        {
+            @:#message1(20, 30.0);
+        }
+        else
+        {
+            @propOtherEntity:#testMessage(10, 20);
+        }
+    }
+
+    void update(float deltaSecs)
+    {
+        propFloat = deltaSecs;
+    }
+}
+

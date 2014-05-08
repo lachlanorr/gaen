@@ -31,12 +31,13 @@ freely, subject to the following restrictions:
 %option yylineno
 %option never-interactive nounistd
 %option noyywrap
-%option outfile="scanner.c" header-file="scanner.h"
+%option noyyalloc noyyrealloc noyyfree
+%option outfile="compose_scanner.c" header-file="compose_scanner.h"
 %option extra-type="ParseData*"
 
 %{
 #include "compose/compiler.h"
-#include "compose/parser.h"
+#include "compose/compose_parser.h"
 %}
 
 D  [0-9]
@@ -101,6 +102,8 @@ ParseData * pParseData = yyextra;
 ")" |
 "[" |
 "]" |
+"{" |
+"}" |
 "<" |
 ">"    { return yytext[0]; }
 
@@ -111,10 +114,10 @@ ParseData * pParseData = yyextra;
 {D}*"."{D}+    { return FLOAT_LITERAL; }
 {D}+"."{D}*    { return FLOAT_LITERAL; }
 
-{L}({L}|{D})*  { return IDENTIFIER; }
+{L}({L}|{D})*  { yylval->str = parsedata_add_string(pParseData, yytext); return IDENTIFIER; }
 
-[ \t\v\n\f]     { }
-.               { /* ignore bad characters */ }
+[ \t\v\r\n\f]   { }
+.               { yyerror(yylloc, pParseData, "Invalid character '%c'", *yytext); return 0; }
 
 
 %%

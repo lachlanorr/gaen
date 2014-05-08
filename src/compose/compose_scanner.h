@@ -2,9 +2,9 @@
 #define yyHEADER_H 1
 #define yyIN_HEADER 1
 
-#line 6 "scanner.h"
+#line 6 "compose_scanner.h"
 
-#line 8 "scanner.h"
+#line 8 "compose_scanner.h"
 
 #define  YY_INT_ALIGNED short int
 
@@ -340,9 +340,9 @@ extern int yylex \
 #undef YY_DECL
 #endif
 
-#line 120 "compose.l"
+#line 123 "compose.l"
 
 
-#line 347 "scanner.h"
+#line 347 "compose_scanner.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */

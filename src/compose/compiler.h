@@ -33,6 +33,21 @@ extern "C" {
 
 // C Declarations, to be used from Bison
 
+#ifndef NULL
+#define NULL 0    
+#endif
+
+// Macro so we can call YYABORT if any of our funcs fail.
+#define CHECK(val) \
+do \
+{ \
+    if (!(val)) \
+    { \
+        YYABORT; \
+    } \
+} while (0)
+
+
 typedef enum
 {
     kAST_Root,
@@ -62,32 +77,39 @@ typedef enum
 
 typedef struct SymRec SymRec;
 typedef struct SymTab SymTab;
+typedef struct AstList AstList;
 typedef struct Ast Ast;
 typedef struct ParseData ParseData;
 
-SymRec * symrec_create(const char * name);
-void symrec_destroy(SymRec* pSymRec);
+SymRec * symrec_create(const char * name, SymbolScope scope);
 
 SymTab* symtab_create();
-void symtab_destroy(SymTab* pSymTab);
-void symtab_add_entry(SymTab* pSymTab, SymRec * pSymRec);
-void symtab_push_scope(SymTab* pSymTab);
-void symtab_pop_scope(SymTab* pSymTab);
+SymTab* symtab_add_record(SymTab* pSymTab, SymRec * pSymRec);
 
-Ast * ast_create(AstType astType, const char * strVal, SymRec * pSymRec);
-void ast_destroy(Ast * pAstNode);
+AstList * astlist_create();
+AstList * astlist_append(AstList * pAstList, Ast * pAst);
+
+Ast * ast_create(AstType astType);
+Ast * ast_add_list(Ast * pAst, AstList * pAstList);
+Ast * ast_add_child(Ast * pAst, Ast * pChild);
+Ast * ast_add_children(Ast * pAst, AstList * pChildren);
 
 ParseData * parsedata_create();
-void parsedata_destroy(ParseData * pParseData);
-void * parsedata_scanner(ParseData * pParseData);
+void *  parsedata_scanner(ParseData * pParseData);
+Ast*    parsedata_add_def(ParseData *pParseData, Ast * pAst);
+SymTab* parsedata_add_symbol(ParseData * pParseData, SymTab* pSymTab, SymRec * pSymRec);
+SymTab* parsedata_push_scope(ParseData * pParseData, SymTab * pSymTab);
+SymTab* parsedata_pop_scope(ParseData * pParseData);
+const char * parsedata_add_string(ParseData * pParseData, const char * str);
 
+void parse_init();
 ParseData * parse(const char * source, size_t length);
 
 typedef struct YYLTYPE YYLTYPE;
-void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * msg);
+void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...);
 
 #ifdef __cplusplus
-} // #ifdef __cplusplus
+} // extern "C"
 #endif
 
 #endif // #ifndef GAEN_COMPOSE_COMPILER_H

@@ -25,7 +25,13 @@ freely, subject to the following restrictions:
 ------------------------------------------------------------------------------*/
 
 %{
+#include <stdio.h> // LORRTEMP
+
 #include "compose/compiler.h"
+
+#include "compose/comp_mem.h"
+#define YYMALLOC COMP_ALLOC
+#define YYFREE COMP_FREE
 %}
 
 %define api.pure full
@@ -35,21 +41,23 @@ freely, subject to the following restrictions:
 %parse-param { ParseData * pParseData }
 
 %locations
-%output  "parser.c"
-%defines "parser.h"
+%output  "compose_parser.c"
+%defines "compose_parser.h"
 
 %union
 {
-    int      numi;
-    double   numf;
-    char*    str;
-    Ast*     pAst;
-    SymRec*  pSymRec;
+    int         numi;
+    double      numf;
+    const char* str;
+    Ast*        pAst;
+    AstList*    pAstList;
+    SymRec*     pSymRec;
+    SymTab*     pSymTab;
 }
 
 %{
 #define YY_NO_UNISTD_H
-#include "compose/scanner.h"
+#include "compose/compose_scanner.h"
 #define YYLEX_PARAM parsedata_scanner(pParseData)
 %}
 
@@ -59,29 +67,32 @@ freely, subject to the following restrictions:
 
 %token INT FLOAT BOOL VEC3
 
-%right <pAstNode> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
+%right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
 
-%left <pAstNode> OR
-%left <pAstNode> AND
-%left <pAstNode> '|'
-%left <pAstNode> '^'
-%left <pAstNode> '&'
+%left <pAst> OR
+%left <pAst> AND
+%left <pAst> '|'
+%left <pAst> '^'
+%left <pAst> '&'
 
-%nonassoc <pAstNode> EQ NEQ
-%nonassoc <pAstNode> LT GT LTE GTE
+%nonassoc <pAst> EQ NEQ
+%nonassoc <pAst> LT GT LTE GTE
 
-%left <pAstNode> LSHIFT RSHIFT
+%left <pAst> LSHIFT RSHIFT
 
-%left <pAstNode> '+' '-'
-%left <pAstNode> '*' '/' '%'
+%left <pAst> '+' '-'
+%left <pAst> '*' '/' '%'
 
-%right <pAstNode> INC DEC '!' '~'
-%right <pAstNode> UMINUS
+%right <pAst> INC DEC '!' '~'
+%right <pAst> UMINUS
 
-%left <pAstNode> '.'
+%left <pAst> '.'
 
-%left <pAstNode> SCOPE
+%left <pAst> SCOPE
 
+%type <pAst>     def message_def stmt exp
+%type <pAstList> block stmt_list
+%type <pSymTab>  param_list
 
 %%
 
@@ -91,12 +102,18 @@ def_list
     ;
 
 def
-    : message_def
+    : message_def   { printf("def:message_def\n"); }
     | function_def
     ;
 
 message_def
     : '#' IDENTIFIER '(' param_list ')' block
+       {
+           Ast * pAst = ast_create(kAST_MessageDef);
+           ast_add_children(pAst, $6);
+           $$ = pAst;
+           printf("message_def:'#' IDENTIFIER '(' param_list ')' block\n");
+       }
     ;
 
 function_def
@@ -104,22 +121,33 @@ function_def
     ;
 
 param_list
-    : param_decl
-    | param_decl ',' param_list
-    ;
-
-param_decl
-    : type IDENTIFIER
+    : /* empty */                       { $$ = parsedata_add_symbol(pParseData, NULL, NULL);                             printf("param_list:/* empty */\n"); }
+    | type IDENTIFIER                   { $$ = parsedata_add_symbol(pParseData, NULL, symrec_create($2, kSCOPE_Param));  printf("param_list:type IDENTIFIER\n"); }
+    | param_list ',' type IDENTIFIER    { $$ = parsedata_add_symbol(pParseData, $1, symrec_create($4, kSCOPE_Param));    printf("param_list:type IDENTIFIER ',' param_list\n"); }
     ;
 
 block
-    : '{' '}'
+    : '{' '}'              { $$ = astlist_append(NULL, NULL); printf("block:'{' '}'\n"); }
+    | '{' stmt_list '}'    { $$ = $2; printf("block:'{' stmt_list '}'\n"); }
     ;
-/*    | '{' statement_list '}'
-    | '{' declaration_list '}'
-    | '{' declaration_list statement_list '}'
+
+stmt_list
+    : stmt            { $$ = astlist_append(NULL, $1); printf("stmt_list:stmt\n"); }
+    | stmt_list stmt  { $$ = astlist_append($1, $2); printf("stmt_list:stmt stmt_list\n"); }
     ;
-*/
+ 
+stmt
+    : type IDENTIFIER ';'  { printf("stmt:type IDENTIFIER\n"); printf("stmt:type IDENTIFIER ';'\n"); }
+    | exp ';'              { printf("stmt:exp\n"); printf("stmt:exp ';'\n"); }
+    ;
+
+exp
+    : exp '+' exp { printf("exp:exp '+' exp\n"); }
+    | exp '-' exp { printf("exp '-' exp\n"); }
+    | INT_LITERAL { printf("INT_LITERAL\n"); }
+    | FLOAT_LITERAL { printf("FLOAT_LITERAL\n"); }
+    | IDENTIFIER { printf("IDENTIFIER\n"); }
+    ;
 
 type
     : INT

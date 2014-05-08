@@ -30,8 +30,8 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_PARSER_H_INCLUDED
-# define YY_YY_PARSER_H_INCLUDED
+#ifndef YY_YY_COMPOSE_PARSER_H_INCLUDED
+# define YY_YY_COMPOSE_PARSER_H_INCLUDED
 /* Enabling traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -85,17 +85,19 @@ extern int yydebug;
 typedef union YYSTYPE
 {
 /* Line 2053 of yacc.c  */
-#line 42 "compose.y"
+#line 48 "compose.y"
 
-    int      numi;
-    double   numf;
-    char*    str;
-    Ast*     pAst;
-    SymRec*  pSymRec;
+    int         numi;
+    double      numf;
+    const char* str;
+    Ast*        pAst;
+    AstList*    pAstList;
+    SymRec*     pSymRec;
+    SymTab*     pSymTab;
 
 
 /* Line 2053 of yacc.c  */
-#line 99 "parser.h"
+#line 101 "compose_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -130,4 +132,4 @@ int yyparse ();
 #endif
 #endif /* ! YYPARSE_PARAM */
 
-#endif /* !YY_YY_PARSER_H_INCLUDED  */
+#endif /* !YY_YY_COMPOSE_PARSER_H_INCLUDED  */

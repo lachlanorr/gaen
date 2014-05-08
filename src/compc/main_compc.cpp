@@ -26,15 +26,83 @@
 
 #include <cstdio>
 
+#include "core/base_defines.h"
+#include "core/mem.h"
+
+#include "compose/compiler.h"
+
 namespace gaen
 {
 
+i32 read_file(const char * path, char ** output)
+{
+    *output = nullptr;
+    i32 length = 0;
+    char * source = nullptr;
+    FILE *fp = fopen(path, "r");
 
+    if (!fp)
+    {
+        ERR("Failed to read file: %s", path);
+        return -1;
+    }
+
+    // go to end of file
+    if (fseek(fp, 0L, SEEK_END) == 0)
+    {
+        // get sizeof file
+        long bufsize = ftell(fp);
+        if (bufsize == -1)
+        {
+            ERR("Invalid file size: %s", path);
+            fclose(fp);
+            return -1;
+        }
+
+        source = static_cast<char*>(GALLOC(kMEM_Unspecified, (bufsize + 1)));
+
+        // seek backto start
+        if (fseek(fp, 0L, SEEK_SET) != 0)
+        {
+            ERR("Unable to seek back to start: %s", path);
+            GFREE(source);
+            fclose(fp);
+            return -1;
+        }
+
+        length = static_cast<i32>(fread(source, sizeof(char), bufsize, fp));
+        if (length == 0)
+        {
+            ERR("Error reading file: %s", path);
+            GFREE(source);
+            fclose(fp);
+            return -1;
+        }
+        else
+        {
+            source[length+1] = '\0';
+        }
+    }
+    fclose(fp);
+
+    *output = source;
+    return length;
+}
 
 } // namespace gaen
 
 int main(int argc, char ** argv)
 {
+    using namespace gaen;
+
+    char * source = nullptr;
+    i32 length = gaen::read_file("C:/code/gaen/src/compc/test_programs/prog0.cmp", &source);
+    ASSERT(length > 0);
+
+    parse_init();
+    ParseData * pParseData = parse(source, length);
+
+
 /*    bool shouldLogListen = false;
     
     // parse args

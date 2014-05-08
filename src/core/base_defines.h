@@ -180,7 +180,7 @@ void report_failure(const char * condition,
 do \
 { \
     gaen::report_failure("PANIC", __FILE__, __LINE__, format, ##__VA_ARGS__); \
-    gaen::abort_gaen();                                                 \
+    gaen::abort_gaen(); \
 } while(0)
 
 #define ERR(format, ...) \

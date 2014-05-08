@@ -25,15 +25,16 @@
 #-------------------------------------------------------------------------------
 
 SET (compose_SOURCES
+  comp_mem.cpp
+  comp_mem.h
   compiler.h
   compiler.cpp
-  compiler_utils.h
   compose.l
   compose.y
-  parser.c
-  parser.h
-  scanner.c
-  scanner.h
+  compose_parser.c
+  compose_parser.h
+  compose_scanner.c
+  compose_scanner.h
   )
 
 IDE_SOURCE_PROPERTIES( "/" "${compose_SOURCES}")

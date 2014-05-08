@@ -186,7 +186,6 @@ inline void fin_memory_manager()
 
 
 
-
 //------------------------------------------------------------------------------
 // MemMgr convenience functions
 //------------------------------------------------------------------------------
@@ -246,12 +245,7 @@ inline void tracked_delete(T * ptr, const char * file, int line)
 //
 // E.g.:
 //   std::vector<int, gaen::Allocator<int>> vecOfInts;
-//
-// There are macros defined below to shorten the template typing.
-// Example above would be:
-//   GAEN_VECTOR(int)
 //------------------------------------------------------------------------------
-//template<class T,int memType>
 template<MemType memType, class T>
 class Allocator
 {
@@ -287,14 +281,14 @@ public:
     {
         size_t byteCount = n * sizeof(T);
         pointer p = static_cast<pointer>(GALLOC(memType, byteCount));
-        printf("Custom allocator, allocating %lu bytes\n", byteCount);
+//        printf("Custom allocator, allocating %lu bytes\n", byteCount);
         ASSERT_MSG(p, "Unable to allocate with Allocator, %lu bytes", byteCount);
         return p;
     }
     void deallocate (pointer p, size_type n)
     {
         ASSERT(p);
-        printf("Custom deallocator\n");
+//        printf("Custom deallocator\n");
         GFREE(p);
     }
     bool operator==(const Allocator& rhs) const { return true; }
