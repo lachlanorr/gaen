@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// main_gac.cpp - Gaen console program for logging and sending commands
+// main_compc.cpp - Compose command line compiler
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr

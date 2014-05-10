@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #-------------------------------------------------------------------------------
-# make_component_classes.py - Generate c++ component classes from defs
+# codegen_components.py - Generate c++ component classes from defs
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014 Lachlan Orr
