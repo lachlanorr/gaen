@@ -23,7 +23,7 @@ written and tested.
 ** Platforms
 Active development is for Windows, but the engine is designed to run
 on OSX and Linux as well. Development started on OSX, so support is
-pretty well established there. Linux will require some porting work of
+pretty well established there. Linux will require some porting of
 small chunks of isolated code. AMD64 is assumed, but it should not be
 too hard to move to another 64 bit architecture.
 
