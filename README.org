@@ -1,12 +1,13 @@
 * Gaen Concurrency Engine
-A cross platform, [component based game engine](http://en.wikipedia.org/wiki/Entity_component_system)
-tht automates CPU concurrency.
+A cross platform, [[http://en.wikipedia.org/wiki/Entity_component_system][component based game engine]] that automates CPU
+concurrency.
 
 Game designers create components and entities and designate data
 dependencies. The engine load balances these entities across all
 available cores. Running on a machine with more cores will
 automatically improve performance without any code modifications.
-Gaen is licensed under the terms of the [[zlib License][http://en.wikipedia.org/wiki/Zlib_License]].
+
+Gaen is licensed under the terms of the [[http://en.wikipedia.org/wiki/Zlib_License][zlib License]].
 
 **  Compose Scripting Language
 To enable rapid prototyping and empower non-C++ programmers to create
@@ -26,9 +27,9 @@ pretty well established there. Linux will require some porting work of
 small chunks of isolated code. AMD64 is assumed, but it should not be
 too hard to move to another 64 bit architecture.
 
-[[C++11][http://en.wikipedia.org/wiki/C++11]] features are used
-extensively, so you must have a recent compiler.  On Windows this
-means VC 2013 or above. On OSX and Linux, GCC 4.8 is recommended.
+[[http://en.wikipedia.org/wiki/C++11][C++11]] features are used extensively, so you must have a recent
+compiler.  On Windows this means VC 2013 or above. On OSX and Linux,
+GCC 4.8 is recommended.
 
 ** Building
 The build system is CMake based, which makes possible the generation
@@ -58,7 +59,7 @@ have to be solved.
 
 You may need to apply this patch to /usr/include/sys/cdefs.h:
 
-#+BEGIN_SRC sh
+#+BEGIN_SRC shell
 --- /usr/include/sys/cdefs.h.original	2014-01-11 20:47:05.000000000 -0600
 +++ /usr/include/sys/cdefs.h	2014-01-11 20:48:51.000000000 -0600
 @@ -216,7 +216,7 @@
@@ -72,6 +73,6 @@ You may need to apply this patch to /usr/include/sys/cdefs.h:
  # define __header_inline           extern __inline
 #+END_SRC
 
-***** To use gdb on Mavericks:
+***** To use gdb on Mavericks, read this. What a pain, Apple:
 http://wiki.lazarus.freepascal.org/GDB_on_OS_X_Mavericks_and_Xcode_5
 
