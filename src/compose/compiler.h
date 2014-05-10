@@ -53,26 +53,36 @@ typedef enum
     kAST_Root,
     kAST_MessageDef,
 
-    kAST_Plus,
-    kAST_Minus,
-    kAST_Times,
-    kAST_Divide
+    kAST_Add,
+    kAST_Subtract,
+    kAST_Multiply,
+    kAST_Divide,
+    kAST_Modulus,
+
+    kAST_Not,
+    kAST_Complement,
+    kAST_Negate,
+
+    kAST_IntLiteral,
+    kAST_FloatLiteral,
+    kAST_StringLiteral
 } AstType;
 
 typedef enum
 {
-    kSCOPE_Param,
     kSCOPE_Function,
-    kSCOPE_Property,
-    kSCOPE_Local
+    kSCOPE_Param,
+    kSCOPE_Local,
+    kSCOPE_Property
 } SymbolScope;
 
 typedef enum
 {
-    kDT_Int,
-    kDT_Float,
-    kDT_Bool,
-    kDT_Vec3
+    kDT_int,
+    kDT_uint,
+    kDT_float,
+    kDT_bool,
+    kDT_vec3
 } DataType;
 
 typedef struct SymRec SymRec;
@@ -81,7 +91,14 @@ typedef struct AstList AstList;
 typedef struct Ast Ast;
 typedef struct ParseData ParseData;
 
-SymRec * symrec_create(const char * name, SymbolScope scope);
+
+int parse_int(const char * pStr, int base);
+float parse_float(const char * pStr);
+
+SymRec * symrec_create(SymbolScope scope,
+                       enum yytokentype type,
+                       const char * name,
+                       Ast * pValue);
 
 SymTab* symtab_create();
 SymTab* symtab_add_record(SymTab* pSymTab, SymRec * pSymRec);
@@ -89,7 +106,11 @@ SymTab* symtab_add_record(SymTab* pSymTab, SymRec * pSymRec);
 AstList * astlist_create();
 AstList * astlist_append(AstList * pAstList, Ast * pAst);
 
-Ast * ast_create(AstType astType);
+Ast * ast_create(AstType astType, ParseData * pParseData);
+Ast * ast_create_message_def(AstList * pStmtList, ParseData * pParseData);
+Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData);
+Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * pParseData);
+
 Ast * ast_add_list(Ast * pAst, AstList * pAstList);
 Ast * ast_add_child(Ast * pAst, Ast * pChild);
 Ast * ast_add_children(Ast * pAst, AstList * pChildren);
@@ -97,7 +118,17 @@ Ast * ast_add_children(Ast * pAst, AstList * pChildren);
 ParseData * parsedata_create();
 void *  parsedata_scanner(ParseData * pParseData);
 Ast*    parsedata_add_def(ParseData *pParseData, Ast * pAst);
+
+// Adds to a specific symbol table, or to a new one if you send NULL
+// This is used for parameters of functions, or complex statements
+// (like a for loop with variable initialization)
 SymTab* parsedata_add_symbol(ParseData * pParseData, SymTab* pSymTab, SymRec * pSymRec);
+
+// Adds to the symbol table on top of the stack currently.
+// A new symbol table should already have been added to the stack.
+SymTab* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec);
+
+SymTab* parsedata_current_scope(ParseData * pParseData);
 SymTab* parsedata_push_scope(ParseData * pParseData, SymTab * pSymTab);
 SymTab* parsedata_pop_scope(ParseData * pParseData);
 const char * parsedata_add_string(ParseData * pParseData, const char * str);

@@ -25,6 +25,7 @@
 //------------------------------------------------------------------------------
 
 #include <cstdarg>
+#include <cstdlib>
 
 #include "compose/comp_mem.h"
 
@@ -38,22 +39,79 @@ extern "C" {
 
 using namespace gaen;
 
+struct SymRec
+{
+    SymbolScope scope;
+    yytokentype type;
+    const char * name;
+    Ast * pValue;
+    SymTab * pSymTab;
+};
+
+struct SymTab
+{
+    SymTab * pParent;
+    Ast * pAst;
+    CompHashMap<CompString, SymRec*> dict;
+    CompList<SymTab*> children;
+};
+
+struct AstList
+{
+    CompList<Ast*> nodes;
+};
+
+struct Ast
+{
+    AstType type;
+    Ast* pParent;
+    SymTab* pSymTab;
+
+    Ast* pLhs;
+    Ast* pRhs;
+
+    AstList* pChildren;
+};
+
+struct ParseData
+{
+    Ast* pRootAst;
+    SymTab* pRootSymTab;
+    void * pScanner;
+    CompList<SymTab*> symTabStack;
+    CompHashSet<CompString> strings;
+};
+
+
+int parse_int(const char * pStr, int base)
+{
+    i64 val = strtol(pStr, nullptr, base);
+    // LORRTODO - check for over/underflow
+    return static_cast<i32>(val);
+}
+
+float parse_float(const char * pStr)
+{
+    f32 val = strtof(pStr, nullptr);
+    // LORRTODO - check for over/underflow
+    return val;
+}
 
 //------------------------------------------------------------------------------
 // SymRec
 //------------------------------------------------------------------------------
-struct SymRec
-{
-    const char * name;
-    SymbolScope scope;
-    SymTab * pSymTab;
-};
-
-SymRec * symrec_create(const char * name, SymbolScope scope)
+SymRec * symrec_create(SymbolScope scope,
+                       enum yytokentype type,
+                       const char * name,
+                       Ast * pValue)
 {
     SymRec * pSymRec = COMP_NEW(SymRec);
-    pSymRec->name = name;
+
     pSymRec->scope = scope;
+    pSymRec->type = type;
+    pSymRec->name = name;
+    pSymRec->pValue = pValue;
+
     pSymRec->pSymTab = nullptr;
     return pSymRec;
 }
@@ -66,14 +124,6 @@ SymRec * symrec_create(const char * name, SymbolScope scope)
 //------------------------------------------------------------------------------
 // SymTab
 //------------------------------------------------------------------------------
-struct SymTab
-{
-    SymTab * pParent;
-    Ast * pAst;
-    CompHashMap<CompString, SymRec*> dict;
-    CompList<SymTab*> children;
-};
-
 SymTab* symtab_create()
 {
     SymTab* pSymTab = COMP_NEW(SymTab);
@@ -100,11 +150,6 @@ SymTab* symtab_add_record(SymTab* pSymTab, SymRec * pSymRec)
 //------------------------------------------------------------------------------
 // AstList
 //------------------------------------------------------------------------------
-struct AstList
-{
-    CompList<Ast*> nodes;
-};
-
 AstList * astlist_create()
 {
     AstList * pAstList = COMP_NEW(AstList);
@@ -131,41 +176,71 @@ AstList * astlist_append(AstList * pAstList, Ast * pAst)
 //------------------------------------------------------------------------------
 // Ast
 //------------------------------------------------------------------------------
-struct Ast
+Ast * ast_create(AstType astType, ParseData * pParseData)
 {
-    AstType type;
-    Ast* pParent;
-    SymTab* pSymTab;
+    ASSERT(pParseData);
 
-    Ast* pLhs;
-    Ast* pRhs;
-
-    AstList* pChildren;
-};
-
-Ast * ast_create(AstType astType)
-{
     Ast * pAst = COMP_NEW(Ast);
 
     pAst->type = astType;
     pAst->pParent = nullptr;
-    pAst->pSymTab = nullptr;
+    pAst->pSymTab = parsedata_current_scope(pParseData);
+    return pAst;
+}
+
+Ast * ast_create_message_def(AstList * pStmtList, ParseData * pParseData)
+{
+    ASSERT(pStmtList);
+    ASSERT(pParseData);
+
+    Ast * pAst = ast_create(kAST_MessageDef, pParseData);
+    ast_add_child(pParseData->pRootAst, pAst);
+
+    parsedata_pop_scope(pParseData);
+
+    return pAst;
+}
+
+Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(astType, pParseData);
+
+    pAst->pRhs = pRhs;
+    pRhs->pParent = pAst;
+
+    return pAst;
+}
+
+Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(astType, pParseData);
+
+    pAst->pLhs = pLhs;
+    pLhs->pParent = pAst;
+
+    pAst->pRhs = pRhs;
+    pRhs->pParent = pAst;
+
     return pAst;
 }
 
 Ast * ast_add_child(Ast * pAst, Ast * pChild)
 {
     ASSERT(pAst);
-    astlist_append(pAst->pChildren, pAst);
+    ASSERT(pChild);
+    pAst->pChildren = astlist_append(pAst->pChildren, pAst);
+    pChild->pParent = pAst;
     return pAst;
 }
 
 Ast * ast_add_children(Ast * pAst, AstList * pChildren)
 {
+    ASSERT(pAst);
     ASSERT(pChildren);
-    for (auto it = pChildren->nodes.begin(); it != pChildren->nodes.end(); ++it)
+    //for (auto it = pChildren->nodes.begin(); it != pChildren->nodes.end(); ++it)
+    for (Ast * pAstIt : pChildren->nodes)
     {
-        (*it)->pParent = pAst;
+        pAstIt->pParent = pAst;
     }
     pAst->pChildren = pChildren;
     return pAst;
@@ -180,26 +255,16 @@ Ast * ast_add_children(Ast * pAst, AstList * pChildren)
 //------------------------------------------------------------------------------
 // ParseData
 //------------------------------------------------------------------------------
-struct ParseData
-{
-    Ast* pRootAst;
-    SymTab* pRootSymTab;
-    void * pScanner;
-    CompList<SymTab*> symTabStack;
-    CompHashSet<CompString> strings;
-};
-
 ParseData * parsedata_create()
 {
     ParseData * pParseData = COMP_NEW(ParseData);
 
-    pParseData->pRootAst = ast_create(kAST_Root);
     pParseData->pRootSymTab = symtab_create();
-
     pParseData->symTabStack.push_back(pParseData->pRootSymTab);
 
-    pParseData->pScanner = nullptr;
+    pParseData->pRootAst = ast_create(kAST_Root, pParseData);
 
+    pParseData->pScanner = nullptr;
 
     return pParseData;
 }
@@ -247,6 +312,31 @@ SymTab* parsedata_add_symbol(ParseData * pParseData, SymTab* pSymTab, SymRec * p
     }
     return pSymTab;
 }
+
+SymTab* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
+{
+    ASSERT(pParseData);
+    ASSERT(pParseData->symTabStack.size() >= 1);
+    ASSERT(pSymRec);
+
+    SymTab * pSymTab = pParseData->symTabStack.back();
+
+    if (!symtab_add_record(pSymTab, pSymRec))
+    {
+        PANIC("Failed to symtab_add_record");
+    }
+
+    return pSymTab;
+}
+
+SymTab* parsedata_current_scope(ParseData * pParseData)
+{
+    ASSERT(pParseData);
+    ASSERT(pParseData->symTabStack.size() >= 1);
+
+    return pParseData->symTabStack.back();
+}
+
 
 SymTab* parsedata_push_scope(ParseData * pParseData, SymTab * pSymTab)
 {

@@ -1,6 +1,8 @@
 
 #message2(int intVar, float floatVar)
 {
+    int intLocal;
+    
 }
 
 #message0()

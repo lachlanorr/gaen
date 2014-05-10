@@ -49,6 +49,7 @@ freely, subject to the following restrictions:
     int         numi;
     double      numf;
     const char* str;
+    DataType    dataType;
     Ast*        pAst;
     AstList*    pAstList;
     SymRec*     pSymRec;
@@ -65,7 +66,7 @@ freely, subject to the following restrictions:
 %token <numi> INT_LITERAL
 %token <numf> FLOAT_LITERAL
 
-%token INT FLOAT BOOL VEC3
+%token <dataType> INT UINT FLOAT BOOL VEC3
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
 
@@ -90,7 +91,8 @@ freely, subject to the following restrictions:
 
 %left <pAst> SCOPE
 
-%type <pAst>     def message_def stmt exp
+%type <dataType> type
+%type <pAst>     message_def stmt exp
 %type <pAstList> block stmt_list
 %type <pSymTab>  param_list
 
@@ -103,27 +105,28 @@ def_list
 
 def
     : message_def   { printf("def:message_def\n"); }
-    | function_def
+    | function_def  { }
     ;
 
 message_def
     : '#' IDENTIFIER '(' param_list ')' block
        {
-           Ast * pAst = ast_create(kAST_MessageDef);
-           ast_add_children(pAst, $6);
-           $$ = pAst;
+           $$ = ast_create_message_def($6, pParseData);
            printf("message_def:'#' IDENTIFIER '(' param_list ')' block\n");
        }
     ;
 
 function_def
     : type IDENTIFIER '(' param_list ')' block
+      {
+          /*$$ = ast_create_function_def($2*/
+      }
     ;
 
 param_list
     : /* empty */                       { $$ = parsedata_add_symbol(pParseData, NULL, NULL);                             printf("param_list:/* empty */\n"); }
-    | type IDENTIFIER                   { $$ = parsedata_add_symbol(pParseData, NULL, symrec_create($2, kSCOPE_Param));  printf("param_list:type IDENTIFIER\n"); }
-    | param_list ',' type IDENTIFIER    { $$ = parsedata_add_symbol(pParseData, $1, symrec_create($4, kSCOPE_Param));    printf("param_list:type IDENTIFIER ',' param_list\n"); }
+    | type IDENTIFIER                   { $$ = parsedata_add_symbol(pParseData, NULL, symrec_create(kSCOPE_Param, $1, $2, NULL));  printf("param_list:type IDENTIFIER\n"); }
+    | param_list ',' type IDENTIFIER    { $$ = parsedata_add_symbol(pParseData, $1, symrec_create(kSCOPE_Param, $3, $4, NULL));    printf("param_list:type IDENTIFIER ',' param_list\n"); }
     ;
 
 block
@@ -137,20 +140,29 @@ stmt_list
     ;
  
 stmt
-    : type IDENTIFIER ';'  { printf("stmt:type IDENTIFIER\n"); printf("stmt:type IDENTIFIER ';'\n"); }
-    | exp ';'              { printf("stmt:exp\n"); printf("stmt:exp ';'\n"); }
+    : type IDENTIFIER ';'  { $$ = NULL; parsedata_add_local_symbol(pParseData, symrec_create(kSCOPE_Local, $1, $2, NULL)); printf("stmt:type IDENTIFIER\n"); printf("stmt:type IDENTIFIER ';'\n"); }
+    | exp ';'              { $$ = $1; printf("stmt:exp\n"); printf("stmt:exp ';'\n"); }
     ;
 
 exp
-    : exp '+' exp { printf("exp:exp '+' exp\n"); }
-    | exp '-' exp { printf("exp '-' exp\n"); }
-    | INT_LITERAL { printf("INT_LITERAL\n"); }
+    : exp '+' exp   { $$ = ast_create_binary_op(kAST_Add,      $1, $3, pParseData); }
+    | exp '-' exp   { $$ = ast_create_binary_op(kAST_Subtract, $1, $3, pParseData); }
+    | exp '*' exp   { $$ = ast_create_binary_op(kAST_Multiply, $1, $3, pParseData); }
+    | exp '/' exp   { $$ = ast_create_binary_op(kAST_Divide,   $1, $3, pParseData); }
+    | exp '%' exp   { $$ = ast_create_binary_op(kAST_Modulus,  $1, $3, pParseData); }
+
+    | '!' exp              { $$ = ast_create_unary_op(kAST_Not,        $1, pParseData); }
+    | '~' exp              { $$ = ast_create_unary_op(kAST_Complement, $1, pParseData); }
+    | '-' exp %prec UMINUS { $$ = ast_create_unary_op(kAST_Complement, $1, pParseData); }
+
+    | INT_LITERAL   { printf("INT_LITERAL\n"); }
     | FLOAT_LITERAL { printf("FLOAT_LITERAL\n"); }
-    | IDENTIFIER { printf("IDENTIFIER\n"); }
+    | IDENTIFIER    { printf("IDENTIFIER\n"); }
     ;
 
 type
     : INT
+    | UINT
     | FLOAT
     | BOOL
     | VEC3

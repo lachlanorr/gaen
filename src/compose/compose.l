@@ -49,10 +49,11 @@ L  [a-zA-Z_]
 ParseData * pParseData = yyextra;    
 %}
      
-"int"    { return INT; }
-"float"  { return FLOAT; }
-"bool"   { return BOOL; }
-"vec3"   { return VEC3; }
+"int"    { yylval->dataType = kDT_int;   return INT; }
+"uint"   { yylval->dataType = kDT_uint;  return UINT; }
+"float"  { yylval->dataType = kDT_float; return FLOAT; }
+"bool"   { yylval->dataType = kDT_bool;  return BOOL; }
+"vec3"   { yylval->dataType = kDT_vec3;  return VEC3; }
 
 "::"   { return SCOPE; }
 
@@ -107,12 +108,12 @@ ParseData * pParseData = yyextra;
 "<" |
 ">"    { return yytext[0]; }
 
-0[xX]{H}+      { return INT_LITERAL; }
-0{D}           { return INT_LITERAL; }
-{D}            { return INT_LITERAL; }
+0[xX]{H}+      { yylval->numi = parse_int(yytext, 16); return INT_LITERAL; }
+0{D}           { yylval->numi = parse_int(yytext, 8);  return INT_LITERAL; }
+{D}            { yylval->numi = parse_int(yytext, 10); return INT_LITERAL; }
 
-{D}*"."{D}+    { return FLOAT_LITERAL; }
-{D}+"."{D}*    { return FLOAT_LITERAL; }
+{D}*"."{D}+    { yylval->numf = parse_float(yytext); return FLOAT_LITERAL; }
+{D}+"."{D}*    { yylval->numf = parse_float(yytext); return FLOAT_LITERAL; }
 
 {L}({L}|{D})*  { yylval->str = parsedata_add_string(pParseData, yytext); return IDENTIFIER; }
 
