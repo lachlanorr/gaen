@@ -58,6 +58,10 @@ u32 platform_core_count();
 // Set affinity of the calling thread to the core Id specified.
 void set_thread_affinity(u32 coreId);
 
+// Read entire contents of file and place in allocated output buffer.
+// Caller must GFREE output buffer.
+i32 read_file(const char * path, char ** output);
+
 } // namespace gaen
 
 

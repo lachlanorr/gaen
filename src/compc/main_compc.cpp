@@ -34,59 +34,25 @@
 namespace gaen
 {
 
-i32 read_file(const char * path, char ** output)
+void messageHandler(MessageType messageType,
+                    const char * message,
+                    const char * filename,
+                    int line,
+                    int column)
 {
-    *output = nullptr;
-    i32 length = 0;
-    char * source = nullptr;
-    FILE *fp = fopen(path, "r");
-
-    if (!fp)
+    switch (messageType)
     {
-        ERR("Failed to read file: %s", path);
-        return -1;
+    case kMSGT_Info:
+        printf(message);
+        printf("\n");
+        break;
+    case kMSGT_Warning:
+        printf("%s(%d:%d): WARNING - %s\n", filename, line, column, message);
+        break;
+    case kMSGT_Error:
+        printf("%s(%d:%d): ERROR - %s\n", filename, line, column, message);
+        break;
     }
-
-    // go to end of file
-    if (fseek(fp, 0L, SEEK_END) == 0)
-    {
-        // get sizeof file
-        long bufsize = ftell(fp);
-        if (bufsize == -1)
-        {
-            ERR("Invalid file size: %s", path);
-            fclose(fp);
-            return -1;
-        }
-
-        source = static_cast<char*>(GALLOC(kMEM_Unspecified, (bufsize + 1)));
-
-        // seek backto start
-        if (fseek(fp, 0L, SEEK_SET) != 0)
-        {
-            ERR("Unable to seek back to start: %s", path);
-            GFREE(source);
-            fclose(fp);
-            return -1;
-        }
-
-        length = static_cast<i32>(fread(source, sizeof(char), bufsize, fp));
-        if (length == 0)
-        {
-            ERR("Error reading file: %s", path);
-            GFREE(source);
-            fclose(fp);
-            return -1;
-        }
-        else
-        {
-            source[length+1] = '\0';
-        }
-    }
-    fclose(fp);
-
-    *output = source;
-    return length;
 }
 
 } // namespace gaen
@@ -95,13 +61,10 @@ int main(int argc, char ** argv)
 {
     using namespace gaen;
 
-    char * source = nullptr;
-    i32 length = gaen::read_file("C:/code/gaen/src/compc/test_programs/prog0.cmp", &source);
-    ASSERT(length > 0);
-
     parse_init();
-    ParseData * pParseData = parse(source, length);
-
+    ParseData * pParseData = parse_file(nullptr,
+                                        "C:/code/gaen/src/compc/test_programs/prog0.cmp",
+                                        &messageHandler);
 
 /*    bool shouldLogListen = false;
     
@@ -118,6 +81,5 @@ int main(int argc, char ** argv)
     if (shouldLogListen)
         log_listen_and_print();
 */
-
-    printf("compc running\n");
+    char c = getchar();
 }

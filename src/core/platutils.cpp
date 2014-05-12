@@ -28,6 +28,7 @@
 
 #include <cstdio>
 
+#include "core/mem.h"
 #include "core/platutils.h"
 
 namespace gaen
@@ -60,6 +61,63 @@ bool time_to_str(char * str, size_t strLen, f32 timeSecs)
     // snprintf tells us if we could insert the whole string
     return ret > 0 && ret < static_cast<int>(strLen-1);
 }
+
+
+i32 read_file(const char * path, char ** output)
+{
+    *output = nullptr;
+    i32 length = 0;
+    char * source = nullptr;
+    FILE *fp = fopen(path, "r");
+
+    if (!fp)
+    {
+        ERR("Failed to read file: %s", path);
+        return -1;
+    }
+
+    // go to end of file
+    if (fseek(fp, 0L, SEEK_END) == 0)
+    {
+        // get sizeof file
+        long bufsize = ftell(fp);
+        if (bufsize == -1)
+        {
+            ERR("Invalid file size: %s", path);
+            fclose(fp);
+            return -1;
+        }
+
+        source = static_cast<char*>(GALLOC(kMEM_Unspecified, (bufsize + 1)));
+
+        // seek backto start
+        if (fseek(fp, 0L, SEEK_SET) != 0)
+        {
+            ERR("Unable to seek back to start: %s", path);
+            GFREE(source);
+            fclose(fp);
+            return -1;
+        }
+
+        length = static_cast<i32>(fread(source, sizeof(char), bufsize, fp));
+        if (length == 0)
+        {
+            ERR("Error reading file: %s", path);
+            GFREE(source);
+            fclose(fp);
+            return -1;
+        }
+        else
+        {
+            source[length+1] = '\0';
+        }
+    }
+    fclose(fp);
+
+    *output = source;
+    return length;
+}
+
 
 } // namespace gaen
 

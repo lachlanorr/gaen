@@ -54,30 +54,31 @@ extern int yydebug;
      FLOAT = 263,
      BOOL = 264,
      VEC3 = 265,
-     OR_ASSIGN = 266,
-     XOR_ASSIGN = 267,
-     AND_ASSIGN = 268,
-     RSHIFT_ASSIGN = 269,
-     LSHIFT_ASSIGN = 270,
-     MOD_ASSIGN = 271,
-     DIV_ASSIGN = 272,
-     MUL_ASSIGN = 273,
-     SUB_ASSIGN = 274,
-     ADD_ASSIGN = 275,
-     OR = 276,
-     AND = 277,
-     NEQ = 278,
-     EQ = 279,
-     GTE = 280,
-     LTE = 281,
-     GT = 282,
-     LT = 283,
-     RSHIFT = 284,
-     LSHIFT = 285,
-     DEC = 286,
-     INC = 287,
-     UMINUS = 288,
-     SCOPE = 289
+     VOID = 266,
+     OR_ASSIGN = 267,
+     XOR_ASSIGN = 268,
+     AND_ASSIGN = 269,
+     RSHIFT_ASSIGN = 270,
+     LSHIFT_ASSIGN = 271,
+     MOD_ASSIGN = 272,
+     DIV_ASSIGN = 273,
+     MUL_ASSIGN = 274,
+     SUB_ASSIGN = 275,
+     ADD_ASSIGN = 276,
+     OR = 277,
+     AND = 278,
+     NEQ = 279,
+     EQ = 280,
+     GTE = 281,
+     LTE = 282,
+     GT = 283,
+     LT = 284,
+     RSHIFT = 285,
+     LSHIFT = 286,
+     DEC = 287,
+     INC = 288,
+     UMINUS = 289,
+     SCOPE = 290
    };
 #endif
 
@@ -86,10 +87,10 @@ extern int yydebug;
 typedef union YYSTYPE
 {
 /* Line 2053 of yacc.c  */
-#line 48 "compose.y"
+#line 49 "compose.y"
 
     int         numi;
-    double      numf;
+    float       numf;
     const char* str;
     DataType    dataType;
     Ast*        pAst;
@@ -99,7 +100,7 @@ typedef union YYSTYPE
 
 
 /* Line 2053 of yacc.c  */
-#line 103 "compose_parser.h"
+#line 104 "compose_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

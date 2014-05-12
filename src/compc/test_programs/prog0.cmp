@@ -1,8 +1,19 @@
 
+void func1()
+{
+        
+}
+
+int func2(int foo, float bar)
+{
+    func3();
+}
+
 #message2(int intVar, float floatVar)
 {
     int intLocal;
-    
+    int intLocalInit = intLocal * 5;
+        
 }
 
 #message0()

@@ -54,6 +54,7 @@ ParseData * pParseData = yyextra;
 "float"  { yylval->dataType = kDT_float; return FLOAT; }
 "bool"   { yylval->dataType = kDT_bool;  return BOOL; }
 "vec3"   { yylval->dataType = kDT_vec3;  return VEC3; }
+"void"   { yylval->dataType = kDT_void;  return VOID; }
 
 "::"   { return SCOPE; }
 

@@ -27,11 +27,13 @@
 #include <cstdarg>
 #include <cstdlib>
 
-#include "compose/comp_mem.h"
+#include "core/platutils.h"
 
+#include "compose/comp_mem.h"
 #include "compose/compiler.h"
 
 extern "C" {
+//#define YYDEBUG 1
 #include "compose/compose_parser.h"
 #define YY_NO_UNISTD_H
 #include "compose/compose_scanner.h"
@@ -41,10 +43,10 @@ using namespace gaen;
 
 struct SymRec
 {
-    SymbolScope scope;
-    yytokentype type;
+    SymType symType;
+    DataType type;
     const char * name;
-    Ast * pValue;
+    Ast * pAst;
     SymTab * pSymTab;
 };
 
@@ -52,7 +54,7 @@ struct SymTab
 {
     SymTab * pParent;
     Ast * pAst;
-    CompHashMap<CompString, SymRec*> dict;
+    CompHashMap<const char*, SymRec*> dict;
     CompList<SymTab*> children;
 };
 
@@ -66,9 +68,14 @@ struct Ast
     AstType type;
     Ast* pParent;
     SymTab* pSymTab;
+    SymRec* pSymRec;
 
     Ast* pLhs;
     Ast* pRhs;
+
+    int numi;
+    float numf;
+    const char * str;
 
     AstList* pChildren;
 };
@@ -80,6 +87,9 @@ struct ParseData
     void * pScanner;
     CompList<SymTab*> symTabStack;
     CompHashSet<CompString> strings;
+
+    const char * filename;
+    MessageHandler messageHandler;
 };
 
 
@@ -100,17 +110,17 @@ float parse_float(const char * pStr)
 //------------------------------------------------------------------------------
 // SymRec
 //------------------------------------------------------------------------------
-SymRec * symrec_create(SymbolScope scope,
-                       enum yytokentype type,
+SymRec * symrec_create(SymType symType,
+                       DataType type,
                        const char * name,
-                       Ast * pValue)
+                       Ast * pAst)
 {
     SymRec * pSymRec = COMP_NEW(SymRec);
 
-    pSymRec->scope = scope;
+    pSymRec->symType = symType;
     pSymRec->type = type;
     pSymRec->name = name;
-    pSymRec->pValue = pValue;
+    pSymRec->pAst = pAst;
 
     pSymRec->pSymTab = nullptr;
     return pSymRec;
@@ -132,14 +142,42 @@ SymTab* symtab_create()
     return pSymTab;
 }
 
-SymTab* symtab_add_record(SymTab* pSymTab, SymRec * pSymRec)
+SymTab* symtab_add_symbol(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseData)
 {
     ASSERT(pSymTab && pSymRec);
     ASSERT(pSymRec->pSymTab == nullptr);
+    ASSERT(pSymRec->name);
+
+    SymRec * pSymRecSearch = symtab_find_symbol(pSymTab, pSymRec->name);
+
+    if (pSymRecSearch)
+    {
+        COMP_ERROR("Symbol already defined: %s", pSymRec->name);
+        return nullptr;
+    }
 
     pSymRec->pSymTab = pSymTab;
     pSymTab->dict[pSymRec->name] = pSymRec;
     return pSymTab;
+}
+
+SymRec* symtab_find_symbol(SymTab* pSymTab, const char * name)
+{
+    ASSERT(pSymTab);
+    ASSERT(name);
+
+    auto it = pSymTab->dict.find(name);
+
+    if (it != pSymTab->dict.end())
+    {
+        return it->second;
+    }
+    else if (pSymTab->pParent)
+    {
+        return symtab_find_symbol(pSymTab->pParent, name);
+    }
+
+    return nullptr;
 }
 
 //------------------------------------------------------------------------------
@@ -158,7 +196,7 @@ AstList * astlist_create()
 
 AstList * astlist_append(AstList * pAstList, Ast * pAst)
 {
-    if (pAstList == nullptr)
+    if (!pAstList)
     {
         pAstList = astlist_create();
     }
@@ -185,18 +223,64 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
     pAst->type = astType;
     pAst->pParent = nullptr;
     pAst->pSymTab = parsedata_current_scope(pParseData);
+    pAst->pSymRec = nullptr;
+
+    pAst->pLhs = nullptr;
+    pAst->pRhs = nullptr;
+
+    pAst->numi = 0;
+    pAst->numf = 0;
+    pAst->str = nullptr;
+
+    pAst->pChildren = nullptr;
+    
     return pAst;
 }
 
-Ast * ast_create_message_def(AstList * pStmtList, ParseData * pParseData)
+Ast * ast_create_message_def(const char * name, AstList * pStmtList, ParseData * pParseData)
 {
     ASSERT(pStmtList);
     ASSERT(pParseData);
 
     Ast * pAst = ast_create(kAST_MessageDef, pParseData);
+    ast_add_children(pAst, pStmtList);
+    
     ast_add_child(pParseData->pRootAst, pAst);
 
-    parsedata_pop_scope(pParseData);
+    SymTab * pSymTab = parsedata_pop_scope(pParseData);
+    ASSERT(pSymTab->pAst == nullptr);
+    pSymTab->pAst = pAst;
+
+    SymRec * pSymRec = symrec_create(kSYMT_Message,
+                                     kDT_Undefined,
+                                     name,
+                                     pAst);
+    
+    parsedata_add_local_symbol(pParseData, pSymRec);
+
+    return pAst;
+}
+
+Ast * ast_create_function_def(const char * name, DataType returnType, AstList * pStmtList, ParseData * pParseData)
+{
+    ASSERT(pStmtList);
+    ASSERT(pParseData);
+
+    Ast * pAst = ast_create(kAST_FunctionDef, pParseData);
+    ast_add_children(pAst, pStmtList);
+    
+    ast_add_child(pParseData->pRootAst, pAst);
+
+    SymTab * pSymTab = parsedata_pop_scope(pParseData);
+    ASSERT(pSymTab->pAst == nullptr);
+    pSymTab->pAst = pAst;
+
+    SymRec * pSymRec = symrec_create(kSYMT_Function,
+                                     returnType,
+                                     name,
+                                     pAst);
+    
+    parsedata_add_local_symbol(pParseData, pSymRec);
 
     return pAst;
 }
@@ -224,26 +308,87 @@ Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * 
     return pAst;
 }
 
-Ast * ast_add_child(Ast * pAst, Ast * pChild)
+Ast * ast_create_int_literal(int numi, ParseData * pParseData)
 {
-    ASSERT(pAst);
-    ASSERT(pChild);
-    pAst->pChildren = astlist_append(pAst->pChildren, pAst);
-    pChild->pParent = pAst;
+    Ast * pAst = ast_create(kAST_IntLiteral, pParseData);
+    pAst->numi = numi;
     return pAst;
 }
 
-Ast * ast_add_children(Ast * pAst, AstList * pChildren)
+Ast * ast_create_float_literal(float numf, ParseData * pParseData)
 {
-    ASSERT(pAst);
+    Ast * pAst = ast_create(kAST_FloatLiteral, pParseData);
+    pAst->numf = numf;
+    return pAst;
+}
+
+Ast * ast_create_function_call(const char * name, AstList * pExpList, ParseData * pParseData)
+{
+    SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
+
+    if (!pSymRec)
+    {
+        COMP_ERROR("Unknown symbol reference: %s", name);
+        return nullptr;
+    }
+
+    if (pSymRec->symType != kSYMT_Function)
+    {
+        COMP_ERROR("Call to non-function symbol: %s", name);
+        return nullptr;
+    }   
+
+    Ast * pAst = ast_create(kAST_FunctionCall, pParseData);
+    pAst->pSymRec = pSymRec;
+    ast_add_children(pAst, pExpList);
+    
+    return pAst;
+}
+
+Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData)
+{
+    SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
+
+    if (!pSymRec)
+    {
+        COMP_ERROR("Unknown symbol reference: %s", name);
+        return nullptr;
+    }
+
+    if (pSymRec->symType != kSYMT_Param &&
+        pSymRec->symType != kSYMT_Local)
+    {
+        COMP_ERROR("Invalid use of symbol: %s", name);
+        return nullptr;
+    }   
+
+    Ast * pAst = ast_create(kAST_SymbolRef, pParseData);
+    pAst->pSymRec = pSymRec;
+    
+    return pAst;
+}
+
+Ast * ast_add_child(Ast * pParent, Ast * pChild)
+{
+    ASSERT(pParent);
+    ASSERT(pChild);
+    pParent->pChildren = astlist_append(pParent->pChildren, pChild);
+    pChild->pParent = pParent;
+    return pParent;
+}
+
+Ast * ast_add_children(Ast * pParent, AstList * pChildren)
+{
+    ASSERT(pParent);
     ASSERT(pChildren);
-    //for (auto it = pChildren->nodes.begin(); it != pChildren->nodes.end(); ++it)
+    ASSERT(pParent->pChildren == nullptr);
+
     for (Ast * pAstIt : pChildren->nodes)
     {
-        pAstIt->pParent = pAst;
+        pAstIt->pParent = pParent;
     }
-    pAst->pChildren = pChildren;
-    return pAst;
+    pParent->pChildren = pChildren;
+    return pParent;
 }
 
 //------------------------------------------------------------------------------
@@ -255,7 +400,7 @@ Ast * ast_add_children(Ast * pAst, AstList * pChildren)
 //------------------------------------------------------------------------------
 // ParseData
 //------------------------------------------------------------------------------
-ParseData * parsedata_create()
+ParseData * parsedata_create(const char * filename, MessageHandler messageHandler)
 {
     ParseData * pParseData = COMP_NEW(ParseData);
 
@@ -264,7 +409,12 @@ ParseData * parsedata_create()
 
     pParseData->pRootAst = ast_create(kAST_Root, pParseData);
 
+    pParseData->pRootSymTab->pAst = pParseData->pRootAst;
+
     pParseData->pScanner = nullptr;
+
+    pParseData->filename = filename;
+    pParseData->messageHandler = messageHandler;
 
     return pParseData;
 }
@@ -299,18 +449,25 @@ SymTab* parsedata_add_symbol(ParseData * pParseData, SymTab* pSymTab, SymRec * p
         pSymTab = symtab_create();
         if (!parsedata_push_scope(pParseData, pSymTab))
         {
-            PANIC("Failed to parsedata_push_scope");
+            COMP_ERROR("Failed to parsedata_push_scope");
             return nullptr;
         }
     }
     if (pSymRec)
     {
-        if (!symtab_add_record(pSymTab, pSymRec))
+        if (!symtab_add_symbol(pSymTab, pSymRec, pParseData))
         {
-            PANIC("Failed to symtab_add_record");
+            COMP_ERROR("Failed to symtab_add_symbol: %s", pSymRec->name);
         }
     }
     return pSymTab;
+}
+
+SymRec* parsedata_find_symbol(ParseData * pParseData, const char * name)
+{
+    ASSERT(pParseData);
+    ASSERT(name);
+    return symtab_find_symbol(pParseData->symTabStack.back(), name);
 }
 
 SymTab* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
@@ -321,9 +478,9 @@ SymTab* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
 
     SymTab * pSymTab = pParseData->symTabStack.back();
 
-    if (!symtab_add_record(pSymTab, pSymRec))
+    if (!symtab_add_symbol(pSymTab, pSymRec, pParseData))
     {
-        PANIC("Failed to symtab_add_record");
+        COMP_ERROR("Failed to symtab_add_symbol: %s", pSymRec->name);
     }
 
     return pSymTab;
@@ -345,7 +502,7 @@ SymTab* parsedata_push_scope(ParseData * pParseData, SymTab * pSymTab)
 
     if (pParseData->symTabStack.size() < 1)
     {
-        PANIC("Empty symbol scope stack");
+        COMP_ERROR("Empty symbol scope stack");
         return nullptr;
     }
 
@@ -362,7 +519,7 @@ SymTab * parsedata_pop_scope(ParseData * pParseData)
     ASSERT(pParseData->symTabStack.size() >= 1);
     if (pParseData->symTabStack.size() <= 1)
     {
-        PANIC("parsedata_pop_scope of empty stack");
+        COMP_ERROR("parsedata_pop_scope of empty stack");
         return nullptr;
     }
     SymTab * pSymTab = pParseData->symTabStack.back();
@@ -376,38 +533,9 @@ const char * parsedata_add_string(ParseData * pParseData, const char * str)
     return pParseData->strings.emplace(str).first->c_str();
 }
 
-//------------------------------------------------------------------------------
-// ParseData (END)
-//------------------------------------------------------------------------------
-
-void parse_init()
-{
-    comp_reset_mem();
-}
-
-ParseData * parse(const char * source, size_t length)
-{
-    int ret;
-    ParseData * pParseData = parsedata_create();
-
-    ret = yylex_init_extra(pParseData, &pParseData->pScanner);
-    if (ret != 0)
-    {
-        return nullptr;
-    }
-
-    yy_scan_bytes(source, length, pParseData->pScanner);
-
-    ret = yyparse(pParseData);
-    if (ret != 0)
-    {
-        return nullptr;
-    }
-
-    return pParseData;
-}   
-
-void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...)
+void parsedata_formatted_message(ParseData * pParseData,
+                                 MessageType messageType,
+                                 const char * format, ...)
 {
     static const size_t kMessageMax = 1024;
     static thread_local char tMessage[kMessageMax];
@@ -431,7 +559,72 @@ void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...)
 
     tMessage[kMessageMax-1] = '\0';
 
-    fprintf(stderr, "%s\n", tMessage);
+    pParseData->messageHandler(messageType, tMessage, pParseData->filename, 10, 11);
+}
+
+//------------------------------------------------------------------------------
+// ParseData (END)
+//------------------------------------------------------------------------------
+
+void parse_init()
+{
+    comp_reset_mem();
+
+//    yydebug = 1;
+}
+
+ParseData * parse(ParseData * pParseData,
+                  const char * source,
+                  size_t length,
+                  const char * filename,
+                  MessageHandler messageHandler)
+{
+    int ret;
+
+    if (!pParseData)
+        pParseData = parsedata_create(filename, messageHandler);
+
+    ret = yylex_init_extra(pParseData, &pParseData->pScanner);
+    if (ret != 0)
+    {
+        return nullptr;
+    }
+
+    yy_scan_bytes(source, length, pParseData->pScanner);
+
+    ret = yyparse(pParseData);
+    if (ret != 0)
+    {
+        return nullptr;
+    }
+
+    return pParseData;
+}   
+
+ParseData * parse_file(ParseData * pParseData,
+                       const char * filename,
+                       MessageHandler messageHandler)
+{
+    char * source = nullptr;
+    i32 length = read_file(filename, &source);
+    if (length <= 0)
+    {
+        PANIC("Unable to read file");
+        return nullptr;
+    }    
+
+    return parse(nullptr, source, length, filename, messageHandler);
+}
+
+void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...)
+{
+    static const size_t kMessageMax = 1024;
+    static thread_local char tMessage[kMessageMax];
+
+    va_list argptr;
+    va_start(argptr, format);
+    parsedata_formatted_message(pParseData, kMSGT_Error, format, argptr);
+    va_end(argptr);
 }
 
 
