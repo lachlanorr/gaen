@@ -88,6 +88,10 @@ struct ParseData
     CompList<SymTab*> symTabStack;
     CompHashSet<CompString> strings;
 
+    // location info
+    int line;
+    int column;
+
     const char * filename;
     MessageHandler messageHandler;
 };
@@ -153,7 +157,7 @@ SymTab* symtab_add_symbol(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseD
     if (pSymRecSearch)
     {
         COMP_ERROR("Symbol already defined: %s", pSymRec->name);
-        return nullptr;
+        return pSymTab;
     }
 
     pSymRec->pSymTab = pSymTab;
@@ -326,19 +330,20 @@ Ast * ast_create_function_call(const char * name, AstList * pExpList, ParseData 
 {
     SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
 
+    Ast * pAst = ast_create(kAST_FunctionCall, pParseData);
+
     if (!pSymRec)
     {
         COMP_ERROR("Unknown symbol reference: %s", name);
-        return nullptr;
+        return pAst;
     }
 
     if (pSymRec->symType != kSYMT_Function)
     {
         COMP_ERROR("Call to non-function symbol: %s", name);
-        return nullptr;
+        return pAst;
     }   
 
-    Ast * pAst = ast_create(kAST_FunctionCall, pParseData);
     pAst->pSymRec = pSymRec;
     ast_add_children(pAst, pExpList);
     
@@ -349,20 +354,21 @@ Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData)
 {
     SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
 
+    Ast * pAst = ast_create(kAST_SymbolRef, pParseData);
+
     if (!pSymRec)
     {
         COMP_ERROR("Unknown symbol reference: %s", name);
-        return nullptr;
+        return pAst;
     }
 
     if (pSymRec->symType != kSYMT_Param &&
         pSymRec->symType != kSYMT_Local)
     {
         COMP_ERROR("Invalid use of symbol: %s", name);
-        return nullptr;
+        return pAst;
     }   
 
-    Ast * pAst = ast_create(kAST_SymbolRef, pParseData);
     pAst->pSymRec = pSymRec;
     
     return pAst;
@@ -450,7 +456,7 @@ SymTab* parsedata_add_symbol(ParseData * pParseData, SymTab* pSymTab, SymRec * p
         if (!parsedata_push_scope(pParseData, pSymTab))
         {
             COMP_ERROR("Failed to parsedata_push_scope");
-            return nullptr;
+            return pSymTab;
         }
     }
     if (pSymRec)
@@ -458,6 +464,7 @@ SymTab* parsedata_add_symbol(ParseData * pParseData, SymTab* pSymTab, SymRec * p
         if (!symtab_add_symbol(pSymTab, pSymRec, pParseData))
         {
             COMP_ERROR("Failed to symtab_add_symbol: %s", pSymRec->name);
+            return pSymTab;
         }
     }
     return pSymTab;
@@ -481,6 +488,7 @@ SymTab* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
     if (!symtab_add_symbol(pSymTab, pSymRec, pParseData))
     {
         COMP_ERROR("Failed to symtab_add_symbol: %s", pSymRec->name);
+        pSymTab;
     }
 
     return pSymTab;
@@ -503,7 +511,7 @@ SymTab* parsedata_push_scope(ParseData * pParseData, SymTab * pSymTab)
     if (pParseData->symTabStack.size() < 1)
     {
         COMP_ERROR("Empty symbol scope stack");
-        return nullptr;
+        return pSymTab;
     }
 
     // make pParseData a child of the top of the stack
@@ -517,11 +525,7 @@ SymTab* parsedata_push_scope(ParseData * pParseData, SymTab * pSymTab)
 SymTab * parsedata_pop_scope(ParseData * pParseData)
 {
     ASSERT(pParseData->symTabStack.size() >= 1);
-    if (pParseData->symTabStack.size() <= 1)
-    {
-        COMP_ERROR("parsedata_pop_scope of empty stack");
-        return nullptr;
-    }
+
     SymTab * pSymTab = pParseData->symTabStack.back();
     pParseData->symTabStack.pop_back();
     return pSymTab;
@@ -559,7 +563,19 @@ void parsedata_formatted_message(ParseData * pParseData,
 
     tMessage[kMessageMax-1] = '\0';
 
-    pParseData->messageHandler(messageType, tMessage, pParseData->filename, 10, 11);
+    pParseData->messageHandler(messageType,
+                               tMessage,
+                               pParseData->filename,
+                               pParseData->line,
+                               pParseData->column);
+}
+
+void parsedata_set_location(ParseData * pParseData,
+                            int line,
+                            int column)
+{
+    pParseData->line = line;
+    pParseData->column = column;
 }
 
 //------------------------------------------------------------------------------

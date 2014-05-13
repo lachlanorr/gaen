@@ -37,15 +37,33 @@ extern "C" {
 #define NULL 0    
 #endif
 
-// Macro so we can call YYABORT if any of our funcs fail.
-#define CHECK(val) \
-do \
-{ \
-    if (!(val)) \
-    { \
-        YYABORT; \
-    } \
-} while (0)
+#include <stdio.h> // LORRTEMP
+
+// Define our own YYLLOC_DEFAULT so we can crab the location info
+// to use in error reporting.
+#define YYLLOC_DEFAULT(Current, Rhs, N)                                 \
+    do                                                                  \
+      {                                                                 \
+      if (YYID (N))                                                     \
+        {                                                               \
+          (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
+          (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
+          (Current).last_line    = YYRHSLOC (Rhs, N).last_line;         \
+          (Current).last_column  = YYRHSLOC (Rhs, N).last_column;       \
+        }                                                               \
+      else                                                              \
+        {                                                               \
+          (Current).first_line   = (Current).last_line   =              \
+            YYRHSLOC (Rhs, 0).last_line;                                \
+          (Current).first_column = (Current).last_column =              \
+            YYRHSLOC (Rhs, 0).last_column;                              \
+        }                                                               \
+       parsedata_set_location(pParseData,                               \
+                              (Current).first_line,                     \
+                              (Current).first_column);                  \
+       }                                                                \
+    while (YYID (0))
+
 
 #define COMP_ERROR(format, ...)   parsedata_formatted_message(pParseData,kMSGT_Error,format,##__VA_ARGS__)
 #define COMP_WARNING(format, ...) parsedata_formatted_message(pParseData,kMSGT_Warning,format,##__VA_ARGS__)
@@ -171,6 +189,10 @@ SymTab* parsedata_current_scope(ParseData * pParseData);
 SymTab* parsedata_push_scope(ParseData * pParseData, SymTab * pSymTab);
 SymTab* parsedata_pop_scope(ParseData * pParseData);
 const char * parsedata_add_string(ParseData * pParseData, const char * str);
+
+void parsedata_set_location(ParseData * pParseData,
+                            int line,
+                            int column);
 
 void parse_init();
 ParseData * parse(ParseData * pParseData,

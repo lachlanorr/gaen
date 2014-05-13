@@ -38,6 +38,20 @@ freely, subject to the following restrictions:
 %{
 #include "compose/compiler.h"
 #include "compose/compose_parser.h"
+
+#define YY_USER_ACTION                   \
+  do {                                   \
+    yylloc->first_column = yycolumn + 1; \
+    yylloc->first_line = yylineno;       \
+    yycolumn += yyleng;                  \
+  } while(0);                             
+
+#define YY_USER_INIT    \
+  do {                  \
+    yylineno = 1;       \
+    yycolumn = 1;       \
+  } while(0)
+
 %}
 
 D  [0-9]
