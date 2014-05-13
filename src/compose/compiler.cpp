@@ -33,7 +33,7 @@
 #include "compose/compiler.h"
 
 extern "C" {
-//#define YYDEBUG 1
+#define YYDEBUG 1
 #include "compose/compose_parser.h"
 #define YY_NO_UNISTD_H
 #include "compose/compose_scanner.h"
@@ -241,13 +241,14 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_message_def(const char * name, AstList * pStmtList, ParseData * pParseData)
+Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParseData)
 {
-    ASSERT(pStmtList);
+    ASSERT(pBlock);
+    ASSERT(pBlock->pChildren);
     ASSERT(pParseData);
 
     Ast * pAst = ast_create(kAST_MessageDef, pParseData);
-    ast_add_children(pAst, pStmtList);
+    ast_add_children(pAst, pBlock->pChildren);
     
     ast_add_child(pParseData->pRootAst, pAst);
 
@@ -265,13 +266,14 @@ Ast * ast_create_message_def(const char * name, AstList * pStmtList, ParseData *
     return pAst;
 }
 
-Ast * ast_create_function_def(const char * name, DataType returnType, AstList * pStmtList, ParseData * pParseData)
+Ast * ast_create_function_def(const char * name, DataType returnType, Ast * pBlock, ParseData * pParseData)
 {
-    ASSERT(pStmtList);
+    ASSERT(pBlock);
+    ASSERT(pBlock->pChildren);
     ASSERT(pParseData);
 
     Ast * pAst = ast_create(kAST_FunctionDef, pParseData);
-    ast_add_children(pAst, pStmtList);
+    ast_add_children(pAst, pBlock->pChildren);
     
     ast_add_child(pParseData->pRootAst, pAst);
 
@@ -312,6 +314,30 @@ Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * 
     return pAst;
 }
 
+Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, ParseData * pParseData)
+{
+    SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
+
+    Ast * pAst = ast_create(astType, pParseData);
+
+    if (!pSymRec)
+    {
+        COMP_ERROR("Unknown symbol reference in assignment: %s", name);
+        return pAst;
+    }
+
+    if (pSymRec->symType != kSYMT_Param &&
+        pSymRec->symType != kSYMT_Local)
+    {
+        COMP_ERROR("Invalid use of symbol in assignment: %s", name);
+        return pAst;
+    }   
+
+    pAst->pSymRec = pSymRec;
+    pAst->pRhs = pRhs;
+    return pAst;
+}
+
 Ast * ast_create_int_literal(int numi, ParseData * pParseData)
 {
     Ast * pAst = ast_create(kAST_IntLiteral, pParseData);
@@ -326,7 +352,7 @@ Ast * ast_create_float_literal(float numf, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_function_call(const char * name, AstList * pExpList, ParseData * pParseData)
+Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pParseData)
 {
     SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
 
@@ -345,7 +371,7 @@ Ast * ast_create_function_call(const char * name, AstList * pExpList, ParseData 
     }   
 
     pAst->pSymRec = pSymRec;
-    ast_add_children(pAst, pExpList);
+    ast_add_children(pAst, pParams->pChildren);
     
     return pAst;
 }
@@ -371,6 +397,16 @@ Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData)
 
     pAst->pSymRec = pSymRec;
     
+    return pAst;
+}
+
+Ast * ast_append(Ast * pAst, Ast * pAstNew, ParseData * pParseData)
+{
+    if (!pAst)
+    {
+        pAst = ast_create(kAST_Block, pParseData);
+    }
+    pAst->pChildren = astlist_append(pAst->pChildren, pAstNew);
     return pAst;
 }
 
@@ -586,7 +622,7 @@ void parse_init()
 {
     comp_reset_mem();
 
-//    yydebug = 1;
+    //yydebug = 1;
 }
 
 ParseData * parse(ParseData * pParseData,

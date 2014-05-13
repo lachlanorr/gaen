@@ -7,6 +7,8 @@ void func1()
 int func2(int foo, float bar)
 {
     func1();
+    int i;
+    int j = 10;
 }
 
 #message2(int intVar, float floatVar)

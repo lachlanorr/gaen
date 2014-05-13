@@ -43,7 +43,7 @@ freely, subject to the following restrictions:
   do {                                   \
     yylloc->first_column = yycolumn + 1; \
     yylloc->first_line = yylineno;       \
-    yycolumn += yyleng;                  \
+    yycolumn += (int)yyleng;             \
   } while(0);                             
 
 #define YY_USER_INIT    \
@@ -63,12 +63,29 @@ L  [a-zA-Z_]
 ParseData * pParseData = yyextra;    
 %}
      
-"int"    { yylval->dataType = kDT_int;   return INT; }
-"uint"   { yylval->dataType = kDT_uint;  return UINT; }
+"int"    { yylval->dataType = kDT_int;   return INT;   }
+"uint"   { yylval->dataType = kDT_uint;  return UINT;  }
 "float"  { yylval->dataType = kDT_float; return FLOAT; }
-"bool"   { yylval->dataType = kDT_bool;  return BOOL; }
-"vec3"   { yylval->dataType = kDT_vec3;  return VEC3; }
+"bool"   { yylval->dataType = kDT_bool;  return BOOL;  }
+"char"   { yylval->dataType = kDT_char;  return CHAR;  }
+"vec3"   { yylval->dataType = kDT_vec3;  return VEC3;  }
+"vec4"   { yylval->dataType = kDT_vec4;  return VEC4;  }
+"mat3"   { yylval->dataType = kDT_mat3;  return MAT3;  }
+"mat34"  { yylval->dataType = kDT_mat34; return MAT34; }
+"mat4"   { yylval->dataType = kDT_mat4;  return MAT4;  }
 "void"   { yylval->dataType = kDT_void;  return VOID; }
+
+"if"       { return IF;      }
+"else"     { return ELSE;    }
+"switch"   { return SWITCH;  }
+"case"     { return CASE;    }
+"default"  { return DEFAULT; }
+"for"      { return FOR;     }
+"while"    { return WHILE;   }
+"do"       { return DO;      }
+
+"break"    { return BREAK;   }
+"return"   { return RETURN;  }
 
 "::"   { return SCOPE; }
 
@@ -114,18 +131,18 @@ ParseData * pParseData = yyextra;
 "&" |
 "^" |
 "|" |
+"<" |
+">" |
 "(" |
 ")" |
 "[" |
 "]" |
 "{" |
-"}" |
-"<" |
-">"    { return yytext[0]; }
+"}"    { return yytext[0]; }
 
 0[xX]{H}+      { yylval->numi = parse_int(yytext, 16); return INT_LITERAL; }
-0{D}           { yylval->numi = parse_int(yytext, 8);  return INT_LITERAL; }
-{D}            { yylval->numi = parse_int(yytext, 10); return INT_LITERAL; }
+0{D}+          { yylval->numi = parse_int(yytext, 8);  return INT_LITERAL; }
+{D}*           { yylval->numi = parse_int(yytext, 10); return INT_LITERAL; }
 
 {D}*"."{D}+    { yylval->numf = parse_float(yytext); return FLOAT_LITERAL; }
 {D}+"."{D}*    { yylval->numf = parse_float(yytext); return FLOAT_LITERAL; }

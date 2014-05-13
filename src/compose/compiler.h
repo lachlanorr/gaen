@@ -77,18 +77,48 @@ typedef enum
     kAST_MessageDef,
     kAST_FunctionDef,
 
+    kAST_Block,
     kAST_FunctionCall,
     kAST_SymbolRef,
     
     kAST_Add,
-    kAST_Subtract,
-    kAST_Multiply,
-    kAST_Divide,
-    kAST_Modulus,
+    kAST_Sub,
+    kAST_Mul,
+    kAST_Div,
+    kAST_Mod,
+    kAST_LShift,
+    kAST_RShift,
+    kAST_And,
+    kAST_Or,
+    kAST_XOr,
+
+    kAST_Eq,
+    kAST_NEq,
+    kAST_LT,
+    kAST_LTE,
+    kAST_GT,
+    kAST_GTE,
+
+    kAST_Assign,
+    kAST_AddAssign,
+    kAST_SubAssign,
+    kAST_MulAssign,
+    kAST_DivAssign,
+    kAST_ModAssign,
+    kAST_LShiftAssign,
+    kAST_RShiftAssign,
+    kAST_AndAssign,
+    kAST_XorAssign,
+    kAST_OrAssign,
 
     kAST_Not,
     kAST_Complement,
     kAST_Negate,
+
+    kAST_PreInc,
+    kAST_PreDec,
+    kAST_PostInc,
+    kAST_PostDec,
 
     kAST_IntLiteral,
     kAST_FloatLiteral,
@@ -113,7 +143,12 @@ typedef enum
     kDT_uint,
     kDT_float,
     kDT_bool,
+    kDT_char,
     kDT_vec3,
+    kDT_vec4,
+    kDT_mat3,
+    kDT_mat34,
+    kDT_mat4,
     kDT_void
 } DataType;
 
@@ -150,19 +185,22 @@ AstList * astlist_append(AstList * pAstList, Ast * pAst);
 
 Ast * ast_create(AstType astType, ParseData * pParseData);
 
-Ast * ast_create_message_def(const char * name, AstList * pStmtList, ParseData * pParseData);
-Ast * ast_create_function_def(const char * name, DataType returnType, AstList * pStmtList, ParseData * pParseData);
+Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_function_def(const char * name, DataType returnType, Ast * pBlock, ParseData * pParseData);
 
 Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData);
 Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * pParseData);
 
+Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, ParseData * pParseData);
+
 Ast * ast_create_int_literal(int numi, ParseData * pParseData);
 Ast * ast_create_float_literal(float numf, ParseData * pParseData);
 
-Ast * ast_create_function_call(const char * str, AstList * pExpList, ParseData * pParseData);
-Ast * ast_create_symbol_ref(const char * str, ParseData * pParseData);
+Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pParseData);
+Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData);
 
 
+Ast * ast_append(Ast * pAst, Ast * pAstNew, ParseData * pParseData);
 Ast * ast_add_child(Ast * pParent, Ast * pChild);
 Ast * ast_add_children(Ast * pParent, AstList * pChildren);
 
