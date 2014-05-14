@@ -71,6 +71,7 @@ struct Ast
     SymRec* pSymRec;
 
     Ast* pLhs;
+    Ast* pMid;
     Ast* pRhs;
 
     int numi;
@@ -230,6 +231,7 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
     pAst->pSymRec = nullptr;
 
     pAst->pLhs = nullptr;
+    pAst->pMid = nullptr;
     pAst->pRhs = nullptr;
 
     pAst->numi = 0;
@@ -256,12 +258,12 @@ Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParse
     ASSERT(pSymTab->pAst == nullptr);
     pSymTab->pAst = pAst;
 
-    SymRec * pSymRec = symrec_create(kSYMT_Message,
-                                     kDT_Undefined,
-                                     name,
-                                     pAst);
+    pAst->pSymRec = symrec_create(kSYMT_Message,
+                                  kDT_Undefined,
+                                  name,
+                                  pAst);
     
-    parsedata_add_local_symbol(pParseData, pSymRec);
+    parsedata_add_local_symbol(pParseData, pAst->pSymRec);
 
     return pAst;
 }
@@ -281,12 +283,12 @@ Ast * ast_create_function_def(const char * name, DataType returnType, Ast * pBlo
     ASSERT(pSymTab->pAst == nullptr);
     pSymTab->pAst = pAst;
 
-    SymRec * pSymRec = symrec_create(kSYMT_Function,
-                                     returnType,
-                                     name,
-                                     pAst);
-    
-    parsedata_add_local_symbol(pParseData, pSymRec);
+    pAst->pSymRec = symrec_create(kSYMT_Function,
+                                  returnType,
+                                  name,
+                                  pAst);
+
+    parsedata_add_local_symbol(pParseData, pAst->pSymRec);
 
     return pAst;
 }
@@ -400,11 +402,55 @@ Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_append(Ast * pAst, Ast * pAstNew, ParseData * pParseData)
+Ast * ast_create_if(Ast * pCondition, Ast * pIfBlock, Ast * pElseBlock, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_If, pParseData);
+
+    pAst->pLhs = pCondition;
+    pAst->pMid = pIfBlock;
+    pAst->pRhs = pElseBlock;
+    
+    return pAst;
+}
+
+Ast * ast_create_while(Ast * pCondition, Ast * pBlock, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_While, pParseData);
+
+    pAst->pLhs = pCondition;
+    ast_add_children(pAst, pBlock->pChildren);
+    
+    return pAst;
+}
+
+Ast * ast_create_dowhile(Ast * pCondition, Ast * pBlock, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_DoWhile, pParseData);
+
+    pAst->pLhs = pCondition;
+    ast_add_children(pAst, pBlock->pChildren);
+    
+    return pAst;
+}
+
+Ast * ast_create_for(Ast * pInit, Ast * pCondition, Ast * pFin, Ast * pBlock, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_For, pParseData);
+
+    pAst->pLhs = pInit;
+    pAst->pMid = pCondition;
+    pAst->pRhs = pFin;
+
+    ast_add_children(pAst, pBlock->pChildren);
+    
+    return pAst;
+}
+
+Ast * ast_append(AstType astType, Ast * pAst, Ast * pAstNew, ParseData * pParseData)
 {
     if (!pAst)
     {
-        pAst = ast_create(kAST_Block, pParseData);
+        pAst = ast_create(astType, pParseData);
     }
     pAst->pChildren = astlist_append(pAst->pChildren, pAstNew);
     return pAst;
@@ -513,11 +559,14 @@ SymRec* parsedata_find_symbol(ParseData * pParseData, const char * name)
     return symtab_find_symbol(pParseData->symTabStack.back(), name);
 }
 
-SymTab* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
+Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
 {
     ASSERT(pParseData);
     ASSERT(pParseData->symTabStack.size() >= 1);
     ASSERT(pSymRec);
+
+    Ast * pAst = ast_create(kAST_SymbolDecl, pParseData);
+    pAst->pSymRec = pSymRec;
 
     SymTab * pSymTab = pParseData->symTabStack.back();
 
@@ -527,7 +576,7 @@ SymTab* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
         pSymTab;
     }
 
-    return pSymTab;
+    return pAst;
 }
 
 SymTab* parsedata_current_scope(ParseData * pParseData)
@@ -543,6 +592,9 @@ SymTab* parsedata_push_scope(ParseData * pParseData, SymTab * pSymTab)
 {
     ASSERT(pSymTab);
     ASSERT(pParseData->symTabStack.size() >= 1);
+
+    if (!pSymTab)
+        pSymTab = symtab_create();
 
     if (pParseData->symTabStack.size() < 1)
     {

@@ -381,14 +381,14 @@ static yyconst flex_int16_t yy_accept[138] =
        73,   73,   66,   59,   67,   51,   24,   37,   31,   40,
        35,   27,   33,   28,   34,   71,   36,   72,   69,    0,
        70,   22,   29,   25,   23,   26,   30,   73,   41,   73,
-       73,   73,   73,   73,   19,   73,   73,   73,   12,   73,
+       73,   73,   73,   73,   18,   73,   73,   73,   12,   73,
        73,   73,   73,   73,   73,   73,   73,   42,   32,   71,
        68,   38,   39,   73,   73,   73,   73,   73,   73,   73,
 
-       17,    1,   73,   73,   73,   73,   73,   73,   73,    4,
+       19,    1,   73,   73,   73,   73,   73,   73,   73,    4,
        73,   15,    5,   73,   13,   73,    8,   10,   73,   73,
         2,    6,    7,   11,   73,   20,   73,    3,    9,   73,
-       73,   18,   73,   21,   14,   16,    0
+       73,   17,   73,   21,   14,   16,    0
     } ;
 
 static yyconst flex_int32_t yy_ec[256] =
@@ -1017,17 +1017,17 @@ YY_RULE_SETUP
 case 17:
 YY_RULE_SETUP
 #line 83 "compose.l"
-{ return FOR;     }
+{ return WHILE;   }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 84 "compose.l"
-{ return WHILE;   }
+{ return DO;      }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 85 "compose.l"
-{ return DO;      }
+{ parsedata_push_scope(pParseData, NULL); return FOR; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP

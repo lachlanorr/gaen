@@ -78,8 +78,15 @@ typedef enum
     kAST_FunctionDef,
 
     kAST_Block,
+    kAST_FunctionParams,
     kAST_FunctionCall,
     kAST_SymbolRef,
+    kAST_SymbolDecl,
+
+    kAST_If,
+    kAST_While,
+    kAST_DoWhile,
+    kAST_For,
     
     kAST_Add,
     kAST_Sub,
@@ -199,8 +206,12 @@ Ast * ast_create_float_literal(float numf, ParseData * pParseData);
 Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pParseData);
 Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData);
 
+Ast * ast_create_if(Ast * pCondition, Ast * pIfBlock, Ast * pElseBlock, ParseData * pParseData);
+Ast * ast_create_while(Ast * pCondition, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_dowhile(Ast * pCondition, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_for(Ast * pInit, Ast * pCondition, Ast * pFin, Ast * pBlock, ParseData * pParseData);
 
-Ast * ast_append(Ast * pAst, Ast * pAstNew, ParseData * pParseData);
+Ast * ast_append(AstType astType, Ast * pAst, Ast * pAstNew, ParseData * pParseData);
 Ast * ast_add_child(Ast * pParent, Ast * pChild);
 Ast * ast_add_children(Ast * pParent, AstList * pChildren);
 
@@ -219,7 +230,7 @@ SymTab* parsedata_add_symbol(ParseData * pParseData, SymTab* pSymTab, SymRec * p
 
 // Adds to the symbol table on top of the stack currently.
 // A new symbol table should already have been added to the stack.
-SymTab* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec);
+Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec);
 
 SymRec* parsedata_find_symbol(ParseData * pParseData, const char * name);
 

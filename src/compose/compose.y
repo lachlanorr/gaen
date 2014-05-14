@@ -96,13 +96,13 @@ void yyprint(FILE * file, int type, YYSTYPE value);
 
 %left <pAst> '.'
 %left POSTINC POSTDEC
-%right '('
-%right '['
+%right '(' '[' '{'
+%left  ')' ']' '}'
 
 %left <pAst> SCOPE
 
 %type <dataType> type
-%type <pAst>     def stmt expr block stmt_list expr_list
+%type <pAst>     def stmt block block_or_stmt stmt_list fun_params expr expr_or_empty
 %type <pSymTab>  param_list
 
 %%
@@ -124,38 +124,38 @@ param_list
     ;
 
 block
-    : '{' '}'              { $$ = ast_append(NULL, NULL, pParseData); }
+    : '{' '}'              { $$ = ast_append(kAST_Block, NULL, NULL, pParseData); }
     | '{' stmt_list '}'    { $$ = $2; }
     ;
 
 stmt_list
-    : stmt            { $$ = ast_append(NULL, $1, pParseData); }
-    | stmt_list stmt  { $$ = ast_append($1, $2, pParseData); }
+    : stmt            { $$ = ast_append(kAST_Block, NULL, $1, pParseData); }
+    | stmt_list stmt  { $$ = ast_append(kAST_Block, $1, $2, pParseData); }
     ;
  
 stmt
-    : type IDENTIFIER ';'          { $$ = NULL; parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL)); }
-    | type IDENTIFIER '=' expr ';' { $$ = NULL; parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, $4)); }
+    : IF '(' expr ')' block_or_stmt %prec THEN         { $$ = ast_create_if($3, $5, NULL, pParseData); }
+    | IF '(' expr ')' block_or_stmt ELSE block_or_stmt { $$ = ast_create_if($3, $5, $7,   pParseData); }
 
-    | IF '(' expr ')' block_or_stmt %prec THEN         { $$ = NULL; }
-    | IF '(' expr ')' block_or_stmt ELSE block_or_stmt { $$ = NULL; }
+    | WHILE '(' expr ')' block_or_stmt         { $$ = ast_create_while($3, $5, pParseData); }
+    | DO block_or_stmt WHILE '(' expr ')' ';'  { $$ = ast_create_dowhile($5, $2, pParseData); }
 
+    | FOR '(' expr_or_empty ';' expr_or_empty ';' expr_or_empty ')' block_or_stmt { $$ = ast_create_for($3, $5, $7, $9, pParseData); }
+
+    
     | expr ';'                     { $$ = $1; }
     ;
 
 block_or_stmt
-    : block
-    | stmt
-    ;
-
-expr_list
-    : /* empty */         { $$ = ast_append(NULL, NULL, pParseData); }
-    | expr                { $$ = ast_append(NULL, $1,   pParseData); }
-    | expr_list ',' expr  { $$ = ast_append($1,   $3,   pParseData); }
+    : block    { $$ = $1; }
+    | stmt     { $$ = ast_append(kAST_Block, NULL, $1, pParseData); }
     ;
 
 expr
     : '(' expr ')'   { $$ = $2; }
+
+    | type IDENTIFIER          { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL)); }
+    | type IDENTIFIER '=' expr { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, $4)); }
     
     | expr '+' expr    { $$ = ast_create_binary_op(kAST_Add,    $1, $3, pParseData); }
     | expr '-' expr    { $$ = ast_create_binary_op(kAST_Sub,    $1, $3, pParseData); }
@@ -199,8 +199,20 @@ expr
     | INT_LITERAL   { $$ = ast_create_int_literal($1, pParseData); }
     | FLOAT_LITERAL { $$ = ast_create_float_literal($1, pParseData); }
 
-    | IDENTIFIER '(' expr_list ')'  { $$ = ast_create_function_call($1, $3, pParseData); }
+    | IDENTIFIER '(' fun_params ')'  { $$ = ast_create_function_call($1, $3, pParseData); }
     | IDENTIFIER                    { $$ = ast_create_symbol_ref($1, pParseData); }
+    
+    ;
+
+expr_or_empty
+    : /* empty */  { $$ = NULL; }
+    | expr         { $$ = $1; }
+    ;
+
+fun_params
+    : /* empty */          { $$ = ast_append(kAST_FunctionParams, NULL, NULL, pParseData); }
+    | expr                 { $$ = ast_append(kAST_FunctionParams, NULL, $1,   pParseData); }
+    | fun_params ',' expr  { $$ = ast_append(kAST_FunctionParams, $1,   $3,   pParseData); }
     ;
 
 type

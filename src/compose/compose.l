@@ -80,9 +80,9 @@ ParseData * pParseData = yyextra;
 "switch"   { return SWITCH;  }
 "case"     { return CASE;    }
 "default"  { return DEFAULT; }
-"for"      { return FOR;     }
 "while"    { return WHILE;   }
 "do"       { return DO;      }
+"for"      { parsedata_push_scope(pParseData, NULL); return FOR; }
 
 "break"    { return BREAK;   }
 "return"   { return RETURN;  }
