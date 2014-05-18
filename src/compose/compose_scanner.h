@@ -221,6 +221,7 @@ void yyfree (void * ,yyscan_t yyscanner );
 
 #ifdef YY_HEADER_EXPORT_START_CONDITIONS
 #define INITIAL 0
+#define COMMENT 1
 
 #endif
 
@@ -340,9 +341,9 @@ extern int yylex \
 #undef YY_DECL
 #endif
 
-#line 156 "compose.l"
+#line 172 "compose.l"
 
 
-#line 347 "compose_scanner.h"
+#line 348 "compose_scanner.h"
 #undef yyIN_HEADER
 #endif /* yyHEADER_H */

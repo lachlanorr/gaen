@@ -4,6 +4,7 @@ void func1()
         
 }
 
+
 int func2(int foo, float bar)
 {
     func1();
@@ -11,18 +12,25 @@ int func2(int foo, float bar)
     int j = 10;
 }
 
-#message2(int intVar, float floatVar)
+entity Entity1
 {
-    int intLocal;
-    int intLocalInit = intLocal * 5;
-        
-}
+    int #prop1 = 5;
+    int #prop3;
 
-#message0()
-{
-}
+    #message2(int intVar, float floatVar)
+    {
+        int intLocal;
+        int intLocalInit = intLocal * 5;
+        func2(intLocal, 2.4);        
+    }
 
-#message1(int i)
-{
-}
+    #message0()
+    {
+    }
 
+    #message1(int i)
+    {
+    }
+
+    float #prop2 = 1.5;
+}

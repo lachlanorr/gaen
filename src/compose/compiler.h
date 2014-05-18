@@ -33,10 +33,7 @@ extern "C" {
 
 // C Declarations, to be used from Bison
 
-#ifndef NULL
-#define NULL 0    
-#endif
-
+#include <stddef.h>
 #include <stdio.h> // LORRTEMP
 
 // Define our own YYLLOC_DEFAULT so we can crab the location info
@@ -74,8 +71,12 @@ typedef enum
     kAST_Undefined = 0,
 
     kAST_Root,
-    kAST_MessageDef,
+
     kAST_FunctionDef,
+    kAST_EntityDef,
+    kAST_ComponentDef,
+    kAST_MessageDef,
+    kAST_PropertyDef,
 
     kAST_Block,
     kAST_FunctionParams,
@@ -129,18 +130,24 @@ typedef enum
 
     kAST_IntLiteral,
     kAST_FloatLiteral,
-    kAST_StringLiteral
+    kAST_StringLiteral,
+
+    kAST_Identifier,
+    kAST_PropertySet,
+    kAST_MessageSend
 
 } AstType;
 
 typedef enum
 {
     kSYMT_Undefined = 0,
-    kSYMT_Message,
     kSYMT_Function,
+    kSYMT_Entity,
+    kSYMT_Component,
+    kSYMT_Message,
+    kSYMT_Property,
     kSYMT_Param,
-    kSYMT_Local,
-    kSYMT_Property
+    kSYMT_Local
 } SymType;
 
 typedef enum
@@ -172,19 +179,22 @@ typedef struct SymRec SymRec;
 typedef struct SymTab SymTab;
 typedef struct AstList AstList;
 typedef struct Ast Ast;
+typedef struct Scope Scope;
 typedef struct ParseData ParseData;
 
 int parse_int(const char * pStr, int base);
 float parse_float(const char * pStr);
 
 SymRec * symrec_create(SymType symType,
-                       DataType type,
+                       DataType dataType,
                        const char * name,
                        Ast * pAst);
 
-SymTab* symtab_create();
+SymTab* symtab_create(ParseData * pParseData);
 SymTab* symtab_add_symbol(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseData);
 SymRec* symtab_find_symbol(SymTab* pSymTab, const char * name);
+SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name);
+SymTab* symtab_transfer(SymTab* pDest, SymTab* pSrc);
 
 AstList * astlist_create();
 AstList * astlist_append(AstList * pAstList, Ast * pAst);
@@ -192,8 +202,12 @@ AstList * astlist_append(AstList * pAstList, Ast * pAst);
 
 Ast * ast_create(AstType astType, ParseData * pParseData);
 
-Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_function_def(const char * name, DataType returnType, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
+
+Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_property_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData);
 
 Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData);
 Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * pParseData);
@@ -206,18 +220,27 @@ Ast * ast_create_float_literal(float numf, ParseData * pParseData);
 Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pParseData);
 Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData);
 
-Ast * ast_create_if(Ast * pCondition, Ast * pIfBlock, Ast * pElseBlock, ParseData * pParseData);
-Ast * ast_create_while(Ast * pCondition, Ast * pBlock, ParseData * pParseData);
-Ast * ast_create_dowhile(Ast * pCondition, Ast * pBlock, ParseData * pParseData);
-Ast * ast_create_for(Ast * pInit, Ast * pCondition, Ast * pFin, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_if(Ast * pCondition, Ast * pIfBody, Ast * pElseBody, ParseData * pParseData);
+Ast * ast_create_while(Ast * pCondition, Ast * pBody, ParseData * pParseData);
+Ast * ast_create_dowhile(Ast * pCondition, Ast * pBody, ParseData * pParseData);
+Ast * ast_create_for(Ast * pInit, Ast * pCondition, Ast * pUpdate, Ast * pBody, ParseData * pParseData);
 
+Ast * ast_create_block(Ast* pBlock, ParseData * pParseData);
+
+Ast * ast_create_identifier(const char * name, ParseData * pParseData);
+Ast * ast_create_property_set(Ast *pTarget, Ast *pComponent, const char * propertyStr, Ast *pRhs, ParseData *pParseData);
+Ast * ast_create_message_send(Ast *pTarget, Ast *pComponent, const char * messageStr, Ast *pParams, ParseData *pParseData);
+    
 Ast * ast_append(AstType astType, Ast * pAst, Ast * pAstNew, ParseData * pParseData);
 Ast * ast_add_child(Ast * pParent, Ast * pChild);
 Ast * ast_add_children(Ast * pParent, AstList * pChildren);
 
+void ast_set_lhs(Ast * pParent, Ast * pLhs);
+void ast_set_mid(Ast * pParent, Ast * pMid);
+void ast_set_rhs(Ast * pParent, Ast * pRhs);
+
 ParseData * parsedata_create(const char * filename, MessageHandler messageHandler);
 void *  parsedata_scanner(ParseData * pParseData);
-Ast*    parsedata_add_def(ParseData *pParseData, Ast * pAst);
 
 void parsedata_formatted_message(ParseData * pParseData,
                                  MessageType messageType,
@@ -226,7 +249,7 @@ void parsedata_formatted_message(ParseData * pParseData,
 // Adds to a specific symbol table, or to a new one if you send NULL
 // This is used for parameters of functions, or complex statements
 // (like a for loop with variable initialization)
-SymTab* parsedata_add_symbol(ParseData * pParseData, SymTab* pSymTab, SymRec * pSymRec);
+SymTab* parsedata_add_param(ParseData * pParseData, SymTab* pSymTab, SymRec * pSymRec);
 
 // Adds to the symbol table on top of the stack currently.
 // A new symbol table should already have been added to the stack.
@@ -234,9 +257,11 @@ Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec);
 
 SymRec* parsedata_find_symbol(ParseData * pParseData, const char * name);
 
-SymTab* parsedata_current_scope(ParseData * pParseData);
-SymTab* parsedata_push_scope(ParseData * pParseData, SymTab * pSymTab);
-SymTab* parsedata_pop_scope(ParseData * pParseData);
+Scope* parsedata_current_scope(ParseData * pParseData);
+Scope* parsedata_push_scope(ParseData * pParseData);
+Scope* parsedata_push_stmt_scope(ParseData * pParseData);
+Scope* parsedata_pop_scope(ParseData * pParseData);
+
 const char * parsedata_add_string(ParseData * pParseData, const char * str);
 
 void parsedata_set_location(ParseData * pParseData,

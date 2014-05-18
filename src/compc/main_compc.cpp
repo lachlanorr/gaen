@@ -63,23 +63,8 @@ int main(int argc, char ** argv)
 
     parse_init();
     ParseData * pParseData = parse_file(nullptr,
-                                        "C:/code/gaen/src/compc/test_programs/prog2.cmp",
+                                        "C:/code/gaen/src/compc/test_programs/prog0.cmp",
                                         &messageHandler);
 
-/*    bool shouldLogListen = false;
-    
-    // parse args
-    for (int i = 1; i < argc; ++i)
-    {
-        if (0 == strcmp(argv[i], "-l"))
-        {
-            shouldLogListen = true;
-        }
-    }
-
-
-    if (shouldLogListen)
-        log_listen_and_print();
-*/
     char c = getchar();
 }

@@ -1,0 +1,4197 @@
+Terminals unused in grammar
+
+   CHAR
+   VEC4
+   MAT3
+   MAT34
+   MAT4
+   SWITCH
+   CASE
+   DEFAULT
+   BREAK
+   RETURN
+   '|'
+   '&'
+   '.'
+   '['
+   ']'
+   SCOPE
+
+
+Grammar
+
+    0 $accept: def_list $end
+
+    1 def_list: def
+    2         | def_list def
+
+    3 def: ENTITY IDENTIFIER message_block
+    4    | COMPONENT IDENTIFIER message_block
+    5    | type IDENTIFIER '(' param_list ')' block
+
+    6 message_block: '{' '}'
+    7              | '{' message_list '}'
+
+    8 message_list: message_prop
+    9             | message_list message_prop
+
+   10 message_prop: '#' IDENTIFIER '(' param_list ')' block
+   11             | type '#' IDENTIFIER ';'
+   12             | type '#' IDENTIFIER '=' expr ';'
+
+   13 param_list: /* empty */
+   14           | type IDENTIFIER
+   15           | param_list ',' type IDENTIFIER
+
+   16 block: '{' '}'
+   17      | '{' stmt_list '}'
+
+   18 stmt_list: stmt
+   19          | stmt_list stmt
+
+   20 stmt: IF '(' expr ')' stmt
+   21     | IF '(' expr ')' stmt ELSE stmt
+   22     | WHILE '(' expr ')' stmt
+   23     | DO stmt WHILE '(' expr ')' ';'
+   24     | FOR '(' expr_or_empty ';' expr_or_empty ';' expr_or_empty ')' stmt
+   25     | '@' target_expr ':' component_expr '#' IDENTIFIER '=' expr ';'
+   26     | '@' target_expr ':' component_expr '#' IDENTIFIER '(' fun_params ')' ';'
+   27     | block
+   28     | expr ';'
+
+   29 target_expr: /* empty */
+   30            | IDENTIFIER
+   31            | INT_LITERAL
+
+   32 component_expr: /* empty */
+   33               | IDENTIFIER
+
+   34 expr: '(' expr ')'
+   35     | type IDENTIFIER
+   36     | type IDENTIFIER '=' expr
+   37     | expr '+' expr
+   38     | expr '-' expr
+   39     | expr '*' expr
+   40     | expr '/' expr
+   41     | expr '%' expr
+   42     | expr LSHIFT expr
+   43     | expr RSHIFT expr
+   44     | expr AND expr
+   45     | expr OR expr
+   46     | expr '^' expr
+   47     | expr EQ expr
+   48     | expr NEQ expr
+   49     | expr LTE expr
+   50     | expr GTE expr
+   51     | expr '<' expr
+   52     | expr '>' expr
+   53     | IDENTIFIER '=' expr
+   54     | IDENTIFIER ADD_ASSIGN expr
+   55     | IDENTIFIER SUB_ASSIGN expr
+   56     | IDENTIFIER MUL_ASSIGN expr
+   57     | IDENTIFIER DIV_ASSIGN expr
+   58     | IDENTIFIER MOD_ASSIGN expr
+   59     | IDENTIFIER LSHIFT_ASSIGN expr
+   60     | IDENTIFIER RSHIFT_ASSIGN expr
+   61     | IDENTIFIER AND_ASSIGN expr
+   62     | IDENTIFIER XOR_ASSIGN expr
+   63     | IDENTIFIER OR_ASSIGN expr
+   64     | '!' expr
+   65     | '~' expr
+   66     | '-' expr
+   67     | INC expr
+   68     | DEC expr
+   69     | expr INC
+   70     | expr DEC
+   71     | literal
+   72     | IDENTIFIER '(' fun_params ')'
+   73     | IDENTIFIER
+
+   74 literal: INT_LITERAL
+   75        | FLOAT_LITERAL
+   76        | TRUE
+   77        | FALSE
+
+   78 expr_or_empty: /* empty */
+   79              | expr
+
+   80 fun_params: /* empty */
+   81           | expr
+   82           | fun_params ',' expr
+
+   83 type: INT
+   84     | UINT
+   85     | FLOAT
+   86     | BOOL
+   87     | VEC3
+   88     | VOID
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'!' (33) 64
+'#' (35) 10 11 12 25 26
+'%' (37) 41
+'&' (38)
+'(' (40) 5 10 20 21 22 23 24 26 34 72
+')' (41) 5 10 20 21 22 23 24 26 34 72
+'*' (42) 39
+'+' (43) 37
+',' (44) 15 82
+'-' (45) 38 66
+'.' (46)
+'/' (47) 40
+':' (58) 25 26
+';' (59) 11 12 23 24 25 26 28
+'<' (60) 51
+'=' (61) 12 25 36 53
+'>' (62) 52
+'@' (64) 25 26
+'[' (91)
+']' (93)
+'^' (94) 46
+'{' (123) 6 7 16 17
+'|' (124)
+'}' (125) 6 7 16 17
+'~' (126) 65
+error (256)
+IDENTIFIER (258) 3 4 5 10 11 12 14 15 25 26 30 33 35 36 53 54 55 56
+    57 58 59 60 61 62 63 72 73
+INT_LITERAL (259) 31 74
+TRUE (260) 76
+FALSE (261) 77
+FLOAT_LITERAL (262) 75
+INT (263) 83
+UINT (264) 84
+FLOAT (265) 85
+BOOL (266) 86
+CHAR (267)
+VEC3 (268) 87
+VEC4 (269)
+MAT3 (270)
+MAT34 (271)
+MAT4 (272)
+VOID (273) 88
+IF (274) 20 21
+SWITCH (275)
+CASE (276)
+DEFAULT (277)
+FOR (278) 24
+WHILE (279) 22 23
+DO (280) 23
+BREAK (281)
+RETURN (282)
+ENTITY (283) 3
+COMPONENT (284) 4
+THEN (285)
+ELSE (286) 21
+OR_ASSIGN (287) 63
+XOR_ASSIGN (288) 62
+AND_ASSIGN (289) 61
+RSHIFT_ASSIGN (290) 60
+LSHIFT_ASSIGN (291) 59
+MOD_ASSIGN (292) 58
+DIV_ASSIGN (293) 57
+MUL_ASSIGN (294) 56
+SUB_ASSIGN (295) 55
+ADD_ASSIGN (296) 54
+OR (297) 45
+AND (298) 44
+NEQ (299) 48
+EQ (300) 47
+GTE (301) 50
+LTE (302) 49
+RSHIFT (303) 43
+LSHIFT (304) 42
+DEC (305) 68 70
+INC (306) 67 69
+UMINUS (307)
+POSTDEC (308)
+POSTINC (309)
+SCOPE (310)
+
+
+Nonterminals, with rules where they appear
+
+$accept (81)
+    on left: 0
+def_list (82)
+    on left: 1 2, on right: 0 2
+def (83)
+    on left: 3 4 5, on right: 1 2
+message_block (84)
+    on left: 6 7, on right: 3 4
+message_list (85)
+    on left: 8 9, on right: 7 9
+message_prop (86)
+    on left: 10 11 12, on right: 8 9
+param_list (87)
+    on left: 13 14 15, on right: 5 10 15
+block (88)
+    on left: 16 17, on right: 5 10 27
+stmt_list (89)
+    on left: 18 19, on right: 17 19
+stmt (90)
+    on left: 20 21 22 23 24 25 26 27 28, on right: 18 19 20 21 22 23
+    24
+target_expr (91)
+    on left: 29 30 31, on right: 25 26
+component_expr (92)
+    on left: 32 33, on right: 25 26
+expr (93)
+    on left: 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51
+    52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72
+    73, on right: 12 20 21 22 23 25 28 34 36 37 38 39 40 41 42 43 44
+    45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65
+    66 67 68 69 70 79 81 82
+literal (94)
+    on left: 74 75 76 77, on right: 71
+expr_or_empty (95)
+    on left: 78 79, on right: 24
+fun_params (96)
+    on left: 80 81 82, on right: 26 72 82
+type (97)
+    on left: 83 84 85 86 87 88, on right: 5 11 12 14 15 35 36
+
+
+State 0
+
+    0 $accept: . def_list $end
+
+    INT        shift, and go to state 1
+    UINT       shift, and go to state 2
+    FLOAT      shift, and go to state 3
+    BOOL       shift, and go to state 4
+    VEC3       shift, and go to state 5
+    VOID       shift, and go to state 6
+    ENTITY     shift, and go to state 7
+    COMPONENT  shift, and go to state 8
+
+    def_list  go to state 9
+    def       go to state 10
+    type      go to state 11
+
+
+State 1
+
+   83 type: INT .
+
+    $default  reduce using rule 83 (type)
+
+
+State 2
+
+   84 type: UINT .
+
+    $default  reduce using rule 84 (type)
+
+
+State 3
+
+   85 type: FLOAT .
+
+    $default  reduce using rule 85 (type)
+
+
+State 4
+
+   86 type: BOOL .
+
+    $default  reduce using rule 86 (type)
+
+
+State 5
+
+   87 type: VEC3 .
+
+    $default  reduce using rule 87 (type)
+
+
+State 6
+
+   88 type: VOID .
+
+    $default  reduce using rule 88 (type)
+
+
+State 7
+
+    3 def: ENTITY . IDENTIFIER message_block
+
+    IDENTIFIER  shift, and go to state 12
+
+
+State 8
+
+    4 def: COMPONENT . IDENTIFIER message_block
+
+    IDENTIFIER  shift, and go to state 13
+
+
+State 9
+
+    0 $accept: def_list . $end
+    2 def_list: def_list . def
+
+    $end       shift, and go to state 14
+    INT        shift, and go to state 1
+    UINT       shift, and go to state 2
+    FLOAT      shift, and go to state 3
+    BOOL       shift, and go to state 4
+    VEC3       shift, and go to state 5
+    VOID       shift, and go to state 6
+    ENTITY     shift, and go to state 7
+    COMPONENT  shift, and go to state 8
+
+    def   go to state 15
+    type  go to state 11
+
+
+State 10
+
+    1 def_list: def .
+
+    $default  reduce using rule 1 (def_list)
+
+
+State 11
+
+    5 def: type . IDENTIFIER '(' param_list ')' block
+
+    IDENTIFIER  shift, and go to state 16
+
+
+State 12
+
+    3 def: ENTITY IDENTIFIER . message_block
+
+    '{'  shift, and go to state 17
+
+    message_block  go to state 18
+
+
+State 13
+
+    4 def: COMPONENT IDENTIFIER . message_block
+
+    '{'  shift, and go to state 17
+
+    message_block  go to state 19
+
+
+State 14
+
+    0 $accept: def_list $end .
+
+    $default  accept
+
+
+State 15
+
+    2 def_list: def_list def .
+
+    $default  reduce using rule 2 (def_list)
+
+
+State 16
+
+    5 def: type IDENTIFIER . '(' param_list ')' block
+
+    '('  shift, and go to state 20
+
+
+State 17
+
+    6 message_block: '{' . '}'
+    7              | '{' . message_list '}'
+
+    INT    shift, and go to state 1
+    UINT   shift, and go to state 2
+    FLOAT  shift, and go to state 3
+    BOOL   shift, and go to state 4
+    VEC3   shift, and go to state 5
+    VOID   shift, and go to state 6
+    '}'    shift, and go to state 21
+    '#'    shift, and go to state 22
+
+    message_list  go to state 23
+    message_prop  go to state 24
+    type          go to state 25
+
+
+State 18
+
+    3 def: ENTITY IDENTIFIER message_block .
+
+    $default  reduce using rule 3 (def)
+
+
+State 19
+
+    4 def: COMPONENT IDENTIFIER message_block .
+
+    $default  reduce using rule 4 (def)
+
+
+State 20
+
+    5 def: type IDENTIFIER '(' . param_list ')' block
+
+    INT    shift, and go to state 1
+    UINT   shift, and go to state 2
+    FLOAT  shift, and go to state 3
+    BOOL   shift, and go to state 4
+    VEC3   shift, and go to state 5
+    VOID   shift, and go to state 6
+
+    $default  reduce using rule 13 (param_list)
+
+    param_list  go to state 26
+    type        go to state 27
+
+
+State 21
+
+    6 message_block: '{' '}' .
+
+    $default  reduce using rule 6 (message_block)
+
+
+State 22
+
+   10 message_prop: '#' . IDENTIFIER '(' param_list ')' block
+
+    IDENTIFIER  shift, and go to state 28
+
+
+State 23
+
+    7 message_block: '{' message_list . '}'
+    9 message_list: message_list . message_prop
+
+    INT    shift, and go to state 1
+    UINT   shift, and go to state 2
+    FLOAT  shift, and go to state 3
+    BOOL   shift, and go to state 4
+    VEC3   shift, and go to state 5
+    VOID   shift, and go to state 6
+    '}'    shift, and go to state 29
+    '#'    shift, and go to state 22
+
+    message_prop  go to state 30
+    type          go to state 25
+
+
+State 24
+
+    8 message_list: message_prop .
+
+    $default  reduce using rule 8 (message_list)
+
+
+State 25
+
+   11 message_prop: type . '#' IDENTIFIER ';'
+   12             | type . '#' IDENTIFIER '=' expr ';'
+
+    '#'  shift, and go to state 31
+
+
+State 26
+
+    5 def: type IDENTIFIER '(' param_list . ')' block
+   15 param_list: param_list . ',' type IDENTIFIER
+
+    ')'  shift, and go to state 32
+    ','  shift, and go to state 33
+
+
+State 27
+
+   14 param_list: type . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 34
+
+
+State 28
+
+   10 message_prop: '#' IDENTIFIER . '(' param_list ')' block
+
+    '('  shift, and go to state 35
+
+
+State 29
+
+    7 message_block: '{' message_list '}' .
+
+    $default  reduce using rule 7 (message_block)
+
+
+State 30
+
+    9 message_list: message_list message_prop .
+
+    $default  reduce using rule 9 (message_list)
+
+
+State 31
+
+   11 message_prop: type '#' . IDENTIFIER ';'
+   12             | type '#' . IDENTIFIER '=' expr ';'
+
+    IDENTIFIER  shift, and go to state 36
+
+
+State 32
+
+    5 def: type IDENTIFIER '(' param_list ')' . block
+
+    '{'  shift, and go to state 37
+
+    block  go to state 38
+
+
+State 33
+
+   15 param_list: param_list ',' . type IDENTIFIER
+
+    INT    shift, and go to state 1
+    UINT   shift, and go to state 2
+    FLOAT  shift, and go to state 3
+    BOOL   shift, and go to state 4
+    VEC3   shift, and go to state 5
+    VOID   shift, and go to state 6
+
+    type  go to state 39
+
+
+State 34
+
+   14 param_list: type IDENTIFIER .
+
+    $default  reduce using rule 14 (param_list)
+
+
+State 35
+
+   10 message_prop: '#' IDENTIFIER '(' . param_list ')' block
+
+    INT    shift, and go to state 1
+    UINT   shift, and go to state 2
+    FLOAT  shift, and go to state 3
+    BOOL   shift, and go to state 4
+    VEC3   shift, and go to state 5
+    VOID   shift, and go to state 6
+
+    $default  reduce using rule 13 (param_list)
+
+    param_list  go to state 40
+    type        go to state 27
+
+
+State 36
+
+   11 message_prop: type '#' IDENTIFIER . ';'
+   12             | type '#' IDENTIFIER . '=' expr ';'
+
+    '='  shift, and go to state 41
+    ';'  shift, and go to state 42
+
+
+State 37
+
+   16 block: '{' . '}'
+   17      | '{' . stmt_list '}'
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    IF             shift, and go to state 48
+    FOR            shift, and go to state 49
+    WHILE          shift, and go to state 50
+    DO             shift, and go to state 51
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+    '{'            shift, and go to state 37
+    '}'            shift, and go to state 58
+    '@'            shift, and go to state 59
+
+    block      go to state 60
+    stmt_list  go to state 61
+    stmt       go to state 62
+    expr       go to state 63
+    literal    go to state 64
+    type       go to state 65
+
+
+State 38
+
+    5 def: type IDENTIFIER '(' param_list ')' block .
+
+    $default  reduce using rule 5 (def)
+
+
+State 39
+
+   15 param_list: param_list ',' type . IDENTIFIER
+
+    IDENTIFIER  shift, and go to state 66
+
+
+State 40
+
+   10 message_prop: '#' IDENTIFIER '(' param_list . ')' block
+   15 param_list: param_list . ',' type IDENTIFIER
+
+    ')'  shift, and go to state 67
+    ','  shift, and go to state 33
+
+
+State 41
+
+   12 message_prop: type '#' IDENTIFIER '=' . expr ';'
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 68
+    literal  go to state 64
+    type     go to state 65
+
+
+State 42
+
+   11 message_prop: type '#' IDENTIFIER ';' .
+
+    $default  reduce using rule 11 (message_prop)
+
+
+State 43
+
+   53 expr: IDENTIFIER . '=' expr
+   54     | IDENTIFIER . ADD_ASSIGN expr
+   55     | IDENTIFIER . SUB_ASSIGN expr
+   56     | IDENTIFIER . MUL_ASSIGN expr
+   57     | IDENTIFIER . DIV_ASSIGN expr
+   58     | IDENTIFIER . MOD_ASSIGN expr
+   59     | IDENTIFIER . LSHIFT_ASSIGN expr
+   60     | IDENTIFIER . RSHIFT_ASSIGN expr
+   61     | IDENTIFIER . AND_ASSIGN expr
+   62     | IDENTIFIER . XOR_ASSIGN expr
+   63     | IDENTIFIER . OR_ASSIGN expr
+   72     | IDENTIFIER . '(' fun_params ')'
+   73     | IDENTIFIER .
+
+    '='            shift, and go to state 69
+    OR_ASSIGN      shift, and go to state 70
+    XOR_ASSIGN     shift, and go to state 71
+    AND_ASSIGN     shift, and go to state 72
+    RSHIFT_ASSIGN  shift, and go to state 73
+    LSHIFT_ASSIGN  shift, and go to state 74
+    MOD_ASSIGN     shift, and go to state 75
+    DIV_ASSIGN     shift, and go to state 76
+    MUL_ASSIGN     shift, and go to state 77
+    SUB_ASSIGN     shift, and go to state 78
+    ADD_ASSIGN     shift, and go to state 79
+    '('            shift, and go to state 80
+
+    $default  reduce using rule 73 (expr)
+
+
+State 44
+
+   74 literal: INT_LITERAL .
+
+    $default  reduce using rule 74 (literal)
+
+
+State 45
+
+   76 literal: TRUE .
+
+    $default  reduce using rule 76 (literal)
+
+
+State 46
+
+   77 literal: FALSE .
+
+    $default  reduce using rule 77 (literal)
+
+
+State 47
+
+   75 literal: FLOAT_LITERAL .
+
+    $default  reduce using rule 75 (literal)
+
+
+State 48
+
+   20 stmt: IF . '(' expr ')' stmt
+   21     | IF . '(' expr ')' stmt ELSE stmt
+
+    '('  shift, and go to state 81
+
+
+State 49
+
+   24 stmt: FOR . '(' expr_or_empty ';' expr_or_empty ';' expr_or_empty ')' stmt
+
+    '('  shift, and go to state 82
+
+
+State 50
+
+   22 stmt: WHILE . '(' expr ')' stmt
+
+    '('  shift, and go to state 83
+
+
+State 51
+
+   23 stmt: DO . stmt WHILE '(' expr ')' ';'
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    IF             shift, and go to state 48
+    FOR            shift, and go to state 49
+    WHILE          shift, and go to state 50
+    DO             shift, and go to state 51
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+    '{'            shift, and go to state 37
+    '@'            shift, and go to state 59
+
+    block    go to state 60
+    stmt     go to state 84
+    expr     go to state 63
+    literal  go to state 64
+    type     go to state 65
+
+
+State 52
+
+   66 expr: '-' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 85
+    literal  go to state 64
+    type     go to state 65
+
+
+State 53
+
+   64 expr: '!' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 86
+    literal  go to state 64
+    type     go to state 65
+
+
+State 54
+
+   65 expr: '~' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 87
+    literal  go to state 64
+    type     go to state 65
+
+
+State 55
+
+   68 expr: DEC . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 88
+    literal  go to state 64
+    type     go to state 65
+
+
+State 56
+
+   67 expr: INC . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 89
+    literal  go to state 64
+    type     go to state 65
+
+
+State 57
+
+   34 expr: '(' . expr ')'
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 90
+    literal  go to state 64
+    type     go to state 65
+
+
+State 58
+
+   16 block: '{' '}' .
+
+    $default  reduce using rule 16 (block)
+
+
+State 59
+
+   25 stmt: '@' . target_expr ':' component_expr '#' IDENTIFIER '=' expr ';'
+   26     | '@' . target_expr ':' component_expr '#' IDENTIFIER '(' fun_params ')' ';'
+
+    IDENTIFIER   shift, and go to state 91
+    INT_LITERAL  shift, and go to state 92
+
+    $default  reduce using rule 29 (target_expr)
+
+    target_expr  go to state 93
+
+
+State 60
+
+   27 stmt: block .
+
+    $default  reduce using rule 27 (stmt)
+
+
+State 61
+
+   17 block: '{' stmt_list . '}'
+   19 stmt_list: stmt_list . stmt
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    IF             shift, and go to state 48
+    FOR            shift, and go to state 49
+    WHILE          shift, and go to state 50
+    DO             shift, and go to state 51
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+    '{'            shift, and go to state 37
+    '}'            shift, and go to state 94
+    '@'            shift, and go to state 59
+
+    block    go to state 60
+    stmt     go to state 95
+    expr     go to state 63
+    literal  go to state 64
+    type     go to state 65
+
+
+State 62
+
+   18 stmt_list: stmt .
+
+    $default  reduce using rule 18 (stmt_list)
+
+
+State 63
+
+   28 stmt: expr . ';'
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+    ';'     shift, and go to state 114
+
+
+State 64
+
+   71 expr: literal .
+
+    $default  reduce using rule 71 (expr)
+
+
+State 65
+
+   35 expr: type . IDENTIFIER
+   36     | type . IDENTIFIER '=' expr
+
+    IDENTIFIER  shift, and go to state 115
+
+
+State 66
+
+   15 param_list: param_list ',' type IDENTIFIER .
+
+    $default  reduce using rule 15 (param_list)
+
+
+State 67
+
+   10 message_prop: '#' IDENTIFIER '(' param_list ')' . block
+
+    '{'  shift, and go to state 37
+
+    block  go to state 116
+
+
+State 68
+
+   12 message_prop: type '#' IDENTIFIER '=' expr . ';'
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+    ';'     shift, and go to state 117
+
+
+State 69
+
+   53 expr: IDENTIFIER '=' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 118
+    literal  go to state 64
+    type     go to state 65
+
+
+State 70
+
+   63 expr: IDENTIFIER OR_ASSIGN . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 119
+    literal  go to state 64
+    type     go to state 65
+
+
+State 71
+
+   62 expr: IDENTIFIER XOR_ASSIGN . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 120
+    literal  go to state 64
+    type     go to state 65
+
+
+State 72
+
+   61 expr: IDENTIFIER AND_ASSIGN . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 121
+    literal  go to state 64
+    type     go to state 65
+
+
+State 73
+
+   60 expr: IDENTIFIER RSHIFT_ASSIGN . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 122
+    literal  go to state 64
+    type     go to state 65
+
+
+State 74
+
+   59 expr: IDENTIFIER LSHIFT_ASSIGN . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 123
+    literal  go to state 64
+    type     go to state 65
+
+
+State 75
+
+   58 expr: IDENTIFIER MOD_ASSIGN . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 124
+    literal  go to state 64
+    type     go to state 65
+
+
+State 76
+
+   57 expr: IDENTIFIER DIV_ASSIGN . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 125
+    literal  go to state 64
+    type     go to state 65
+
+
+State 77
+
+   56 expr: IDENTIFIER MUL_ASSIGN . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 126
+    literal  go to state 64
+    type     go to state 65
+
+
+State 78
+
+   55 expr: IDENTIFIER SUB_ASSIGN . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 127
+    literal  go to state 64
+    type     go to state 65
+
+
+State 79
+
+   54 expr: IDENTIFIER ADD_ASSIGN . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 128
+    literal  go to state 64
+    type     go to state 65
+
+
+State 80
+
+   72 expr: IDENTIFIER '(' . fun_params ')'
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    $default  reduce using rule 80 (fun_params)
+
+    expr        go to state 129
+    literal     go to state 64
+    fun_params  go to state 130
+    type        go to state 65
+
+
+State 81
+
+   20 stmt: IF '(' . expr ')' stmt
+   21     | IF '(' . expr ')' stmt ELSE stmt
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 131
+    literal  go to state 64
+    type     go to state 65
+
+
+State 82
+
+   24 stmt: FOR '(' . expr_or_empty ';' expr_or_empty ';' expr_or_empty ')' stmt
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    $default  reduce using rule 78 (expr_or_empty)
+
+    expr           go to state 132
+    literal        go to state 64
+    expr_or_empty  go to state 133
+    type           go to state 65
+
+
+State 83
+
+   22 stmt: WHILE '(' . expr ')' stmt
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 134
+    literal  go to state 64
+    type     go to state 65
+
+
+State 84
+
+   23 stmt: DO stmt . WHILE '(' expr ')' ';'
+
+    WHILE  shift, and go to state 135
+
+
+State 85
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   66     | '-' expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    $default  reduce using rule 66 (expr)
+
+
+State 86
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   64     | '!' expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    DEC  shift, and go to state 112
+    INC  shift, and go to state 113
+
+    $default  reduce using rule 64 (expr)
+
+
+State 87
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   65     | '~' expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    DEC  shift, and go to state 112
+    INC  shift, and go to state 113
+
+    $default  reduce using rule 65 (expr)
+
+
+State 88
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   68     | DEC expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    DEC  shift, and go to state 112
+    INC  shift, and go to state 113
+
+    $default  reduce using rule 68 (expr)
+
+
+State 89
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   67     | INC expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    DEC  shift, and go to state 112
+    INC  shift, and go to state 113
+
+    $default  reduce using rule 67 (expr)
+
+
+State 90
+
+   34 expr: '(' expr . ')'
+   37     | expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+    ')'     shift, and go to state 136
+
+
+State 91
+
+   30 target_expr: IDENTIFIER .
+
+    $default  reduce using rule 30 (target_expr)
+
+
+State 92
+
+   31 target_expr: INT_LITERAL .
+
+    $default  reduce using rule 31 (target_expr)
+
+
+State 93
+
+   25 stmt: '@' target_expr . ':' component_expr '#' IDENTIFIER '=' expr ';'
+   26     | '@' target_expr . ':' component_expr '#' IDENTIFIER '(' fun_params ')' ';'
+
+    ':'  shift, and go to state 137
+
+
+State 94
+
+   17 block: '{' stmt_list '}' .
+
+    $default  reduce using rule 17 (block)
+
+
+State 95
+
+   19 stmt_list: stmt_list stmt .
+
+    $default  reduce using rule 19 (stmt_list)
+
+
+State 96
+
+   45 expr: expr OR . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 138
+    literal  go to state 64
+    type     go to state 65
+
+
+State 97
+
+   44 expr: expr AND . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 139
+    literal  go to state 64
+    type     go to state 65
+
+
+State 98
+
+   46 expr: expr '^' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 140
+    literal  go to state 64
+    type     go to state 65
+
+
+State 99
+
+   48 expr: expr NEQ . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 141
+    literal  go to state 64
+    type     go to state 65
+
+
+State 100
+
+   47 expr: expr EQ . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 142
+    literal  go to state 64
+    type     go to state 65
+
+
+State 101
+
+   51 expr: expr '<' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 143
+    literal  go to state 64
+    type     go to state 65
+
+
+State 102
+
+   52 expr: expr '>' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 144
+    literal  go to state 64
+    type     go to state 65
+
+
+State 103
+
+   50 expr: expr GTE . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 145
+    literal  go to state 64
+    type     go to state 65
+
+
+State 104
+
+   49 expr: expr LTE . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 146
+    literal  go to state 64
+    type     go to state 65
+
+
+State 105
+
+   43 expr: expr RSHIFT . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 147
+    literal  go to state 64
+    type     go to state 65
+
+
+State 106
+
+   42 expr: expr LSHIFT . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 148
+    literal  go to state 64
+    type     go to state 65
+
+
+State 107
+
+   37 expr: expr '+' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 149
+    literal  go to state 64
+    type     go to state 65
+
+
+State 108
+
+   38 expr: expr '-' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 150
+    literal  go to state 64
+    type     go to state 65
+
+
+State 109
+
+   39 expr: expr '*' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 151
+    literal  go to state 64
+    type     go to state 65
+
+
+State 110
+
+   40 expr: expr '/' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 152
+    literal  go to state 64
+    type     go to state 65
+
+
+State 111
+
+   41 expr: expr '%' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 153
+    literal  go to state 64
+    type     go to state 65
+
+
+State 112
+
+   70 expr: expr DEC .
+
+    $default  reduce using rule 70 (expr)
+
+
+State 113
+
+   69 expr: expr INC .
+
+    $default  reduce using rule 69 (expr)
+
+
+State 114
+
+   28 stmt: expr ';' .
+
+    $default  reduce using rule 28 (stmt)
+
+
+State 115
+
+   35 expr: type IDENTIFIER .
+   36     | type IDENTIFIER . '=' expr
+
+    '='  shift, and go to state 154
+
+    $default  reduce using rule 35 (expr)
+
+
+State 116
+
+   10 message_prop: '#' IDENTIFIER '(' param_list ')' block .
+
+    $default  reduce using rule 10 (message_prop)
+
+
+State 117
+
+   12 message_prop: type '#' IDENTIFIER '=' expr ';' .
+
+    $default  reduce using rule 12 (message_prop)
+
+
+State 118
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   53     | IDENTIFIER '=' expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 53 (expr)
+
+
+State 119
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   63     | IDENTIFIER OR_ASSIGN expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 63 (expr)
+
+
+State 120
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   62     | IDENTIFIER XOR_ASSIGN expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 62 (expr)
+
+
+State 121
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   61     | IDENTIFIER AND_ASSIGN expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 61 (expr)
+
+
+State 122
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   60     | IDENTIFIER RSHIFT_ASSIGN expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 60 (expr)
+
+
+State 123
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   59     | IDENTIFIER LSHIFT_ASSIGN expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 59 (expr)
+
+
+State 124
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   58     | IDENTIFIER MOD_ASSIGN expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 58 (expr)
+
+
+State 125
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   57     | IDENTIFIER DIV_ASSIGN expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 57 (expr)
+
+
+State 126
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   56     | IDENTIFIER MUL_ASSIGN expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 56 (expr)
+
+
+State 127
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   55     | IDENTIFIER SUB_ASSIGN expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 55 (expr)
+
+
+State 128
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   54     | IDENTIFIER ADD_ASSIGN expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 54 (expr)
+
+
+State 129
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+   81 fun_params: expr .
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 81 (fun_params)
+
+
+State 130
+
+   72 expr: IDENTIFIER '(' fun_params . ')'
+   82 fun_params: fun_params . ',' expr
+
+    ')'  shift, and go to state 155
+    ','  shift, and go to state 156
+
+
+State 131
+
+   20 stmt: IF '(' expr . ')' stmt
+   21     | IF '(' expr . ')' stmt ELSE stmt
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+    ')'     shift, and go to state 157
+
+
+State 132
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+   79 expr_or_empty: expr .
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 79 (expr_or_empty)
+
+
+State 133
+
+   24 stmt: FOR '(' expr_or_empty . ';' expr_or_empty ';' expr_or_empty ')' stmt
+
+    ';'  shift, and go to state 158
+
+
+State 134
+
+   22 stmt: WHILE '(' expr . ')' stmt
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+    ')'     shift, and go to state 159
+
+
+State 135
+
+   23 stmt: DO stmt WHILE . '(' expr ')' ';'
+
+    '('  shift, and go to state 160
+
+
+State 136
+
+   34 expr: '(' expr ')' .
+
+    $default  reduce using rule 34 (expr)
+
+
+State 137
+
+   25 stmt: '@' target_expr ':' . component_expr '#' IDENTIFIER '=' expr ';'
+   26     | '@' target_expr ':' . component_expr '#' IDENTIFIER '(' fun_params ')' ';'
+
+    IDENTIFIER  shift, and go to state 161
+
+    $default  reduce using rule 32 (component_expr)
+
+    component_expr  go to state 162
+
+
+State 138
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   45     | expr OR expr .
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 45 (expr)
+
+
+State 139
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   44     | expr AND expr .
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 44 (expr)
+
+
+State 140
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   46     | expr '^' expr .
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 46 (expr)
+
+
+State 141
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   48     | expr NEQ expr .
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    NEQ  error (nonassociative)
+    EQ   error (nonassociative)
+
+    $default  reduce using rule 48 (expr)
+
+
+State 142
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   47     | expr EQ expr .
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    NEQ  error (nonassociative)
+    EQ   error (nonassociative)
+
+    $default  reduce using rule 47 (expr)
+
+
+State 143
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   51     | expr '<' expr .
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    '<'  error (nonassociative)
+    '>'  error (nonassociative)
+    GTE  error (nonassociative)
+    LTE  error (nonassociative)
+
+    $default  reduce using rule 51 (expr)
+
+
+State 144
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   52     | expr '>' expr .
+   69     | expr . INC
+   70     | expr . DEC
+
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    '<'  error (nonassociative)
+    '>'  error (nonassociative)
+    GTE  error (nonassociative)
+    LTE  error (nonassociative)
+
+    $default  reduce using rule 52 (expr)
+
+
+State 145
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   50     | expr GTE expr .
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    '<'  error (nonassociative)
+    '>'  error (nonassociative)
+    GTE  error (nonassociative)
+    LTE  error (nonassociative)
+
+    $default  reduce using rule 50 (expr)
+
+
+State 146
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   49     | expr LTE expr .
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    '<'  error (nonassociative)
+    '>'  error (nonassociative)
+    GTE  error (nonassociative)
+    LTE  error (nonassociative)
+
+    $default  reduce using rule 49 (expr)
+
+
+State 147
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   43     | expr RSHIFT expr .
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    '+'  shift, and go to state 107
+    '-'  shift, and go to state 108
+    '*'  shift, and go to state 109
+    '/'  shift, and go to state 110
+    '%'  shift, and go to state 111
+    DEC  shift, and go to state 112
+    INC  shift, and go to state 113
+
+    $default  reduce using rule 43 (expr)
+
+
+State 148
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   42     | expr LSHIFT expr .
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    '+'  shift, and go to state 107
+    '-'  shift, and go to state 108
+    '*'  shift, and go to state 109
+    '/'  shift, and go to state 110
+    '%'  shift, and go to state 111
+    DEC  shift, and go to state 112
+    INC  shift, and go to state 113
+
+    $default  reduce using rule 42 (expr)
+
+
+State 149
+
+   37 expr: expr . '+' expr
+   37     | expr '+' expr .
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    '*'  shift, and go to state 109
+    '/'  shift, and go to state 110
+    '%'  shift, and go to state 111
+    DEC  shift, and go to state 112
+    INC  shift, and go to state 113
+
+    $default  reduce using rule 37 (expr)
+
+
+State 150
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   38     | expr '-' expr .
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    '*'  shift, and go to state 109
+    '/'  shift, and go to state 110
+    '%'  shift, and go to state 111
+    DEC  shift, and go to state 112
+    INC  shift, and go to state 113
+
+    $default  reduce using rule 38 (expr)
+
+
+State 151
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   39     | expr '*' expr .
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    DEC  shift, and go to state 112
+    INC  shift, and go to state 113
+
+    $default  reduce using rule 39 (expr)
+
+
+State 152
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   40     | expr '/' expr .
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    DEC  shift, and go to state 112
+    INC  shift, and go to state 113
+
+    $default  reduce using rule 40 (expr)
+
+
+State 153
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   41     | expr '%' expr .
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    DEC  shift, and go to state 112
+    INC  shift, and go to state 113
+
+    $default  reduce using rule 41 (expr)
+
+
+State 154
+
+   36 expr: type IDENTIFIER '=' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 163
+    literal  go to state 64
+    type     go to state 65
+
+
+State 155
+
+   72 expr: IDENTIFIER '(' fun_params ')' .
+
+    $default  reduce using rule 72 (expr)
+
+
+State 156
+
+   82 fun_params: fun_params ',' . expr
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 164
+    literal  go to state 64
+    type     go to state 65
+
+
+State 157
+
+   20 stmt: IF '(' expr ')' . stmt
+   21     | IF '(' expr ')' . stmt ELSE stmt
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    IF             shift, and go to state 48
+    FOR            shift, and go to state 49
+    WHILE          shift, and go to state 50
+    DO             shift, and go to state 51
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+    '{'            shift, and go to state 37
+    '@'            shift, and go to state 59
+
+    block    go to state 60
+    stmt     go to state 165
+    expr     go to state 63
+    literal  go to state 64
+    type     go to state 65
+
+
+State 158
+
+   24 stmt: FOR '(' expr_or_empty ';' . expr_or_empty ';' expr_or_empty ')' stmt
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    $default  reduce using rule 78 (expr_or_empty)
+
+    expr           go to state 132
+    literal        go to state 64
+    expr_or_empty  go to state 166
+    type           go to state 65
+
+
+State 159
+
+   22 stmt: WHILE '(' expr ')' . stmt
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    IF             shift, and go to state 48
+    FOR            shift, and go to state 49
+    WHILE          shift, and go to state 50
+    DO             shift, and go to state 51
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+    '{'            shift, and go to state 37
+    '@'            shift, and go to state 59
+
+    block    go to state 60
+    stmt     go to state 167
+    expr     go to state 63
+    literal  go to state 64
+    type     go to state 65
+
+
+State 160
+
+   23 stmt: DO stmt WHILE '(' . expr ')' ';'
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 168
+    literal  go to state 64
+    type     go to state 65
+
+
+State 161
+
+   33 component_expr: IDENTIFIER .
+
+    $default  reduce using rule 33 (component_expr)
+
+
+State 162
+
+   25 stmt: '@' target_expr ':' component_expr . '#' IDENTIFIER '=' expr ';'
+   26     | '@' target_expr ':' component_expr . '#' IDENTIFIER '(' fun_params ')' ';'
+
+    '#'  shift, and go to state 169
+
+
+State 163
+
+   36 expr: type IDENTIFIER '=' expr .
+   37     | expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 36 (expr)
+
+
+State 164
+
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+   82 fun_params: fun_params ',' expr .
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+
+    $default  reduce using rule 82 (fun_params)
+
+
+State 165
+
+   20 stmt: IF '(' expr ')' stmt .
+   21     | IF '(' expr ')' stmt . ELSE stmt
+
+    ELSE  shift, and go to state 170
+
+    $default  reduce using rule 20 (stmt)
+
+
+State 166
+
+   24 stmt: FOR '(' expr_or_empty ';' expr_or_empty . ';' expr_or_empty ')' stmt
+
+    ';'  shift, and go to state 171
+
+
+State 167
+
+   22 stmt: WHILE '(' expr ')' stmt .
+
+    $default  reduce using rule 22 (stmt)
+
+
+State 168
+
+   23 stmt: DO stmt WHILE '(' expr . ')' ';'
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+    ')'     shift, and go to state 172
+
+
+State 169
+
+   25 stmt: '@' target_expr ':' component_expr '#' . IDENTIFIER '=' expr ';'
+   26     | '@' target_expr ':' component_expr '#' . IDENTIFIER '(' fun_params ')' ';'
+
+    IDENTIFIER  shift, and go to state 173
+
+
+State 170
+
+   21 stmt: IF '(' expr ')' stmt ELSE . stmt
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    IF             shift, and go to state 48
+    FOR            shift, and go to state 49
+    WHILE          shift, and go to state 50
+    DO             shift, and go to state 51
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+    '{'            shift, and go to state 37
+    '@'            shift, and go to state 59
+
+    block    go to state 60
+    stmt     go to state 174
+    expr     go to state 63
+    literal  go to state 64
+    type     go to state 65
+
+
+State 171
+
+   24 stmt: FOR '(' expr_or_empty ';' expr_or_empty ';' . expr_or_empty ')' stmt
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    $default  reduce using rule 78 (expr_or_empty)
+
+    expr           go to state 132
+    literal        go to state 64
+    expr_or_empty  go to state 175
+    type           go to state 65
+
+
+State 172
+
+   23 stmt: DO stmt WHILE '(' expr ')' . ';'
+
+    ';'  shift, and go to state 176
+
+
+State 173
+
+   25 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER . '=' expr ';'
+   26     | '@' target_expr ':' component_expr '#' IDENTIFIER . '(' fun_params ')' ';'
+
+    '='  shift, and go to state 177
+    '('  shift, and go to state 178
+
+
+State 174
+
+   21 stmt: IF '(' expr ')' stmt ELSE stmt .
+
+    $default  reduce using rule 21 (stmt)
+
+
+State 175
+
+   24 stmt: FOR '(' expr_or_empty ';' expr_or_empty ';' expr_or_empty . ')' stmt
+
+    ')'  shift, and go to state 179
+
+
+State 176
+
+   23 stmt: DO stmt WHILE '(' expr ')' ';' .
+
+    $default  reduce using rule 23 (stmt)
+
+
+State 177
+
+   25 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '=' . expr ';'
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    expr     go to state 180
+    literal  go to state 64
+    type     go to state 65
+
+
+State 178
+
+   26 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '(' . fun_params ')' ';'
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+
+    $default  reduce using rule 80 (fun_params)
+
+    expr        go to state 129
+    literal     go to state 64
+    fun_params  go to state 181
+    type        go to state 65
+
+
+State 179
+
+   24 stmt: FOR '(' expr_or_empty ';' expr_or_empty ';' expr_or_empty ')' . stmt
+
+    IDENTIFIER     shift, and go to state 43
+    INT_LITERAL    shift, and go to state 44
+    TRUE           shift, and go to state 45
+    FALSE          shift, and go to state 46
+    FLOAT_LITERAL  shift, and go to state 47
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    IF             shift, and go to state 48
+    FOR            shift, and go to state 49
+    WHILE          shift, and go to state 50
+    DO             shift, and go to state 51
+    '-'            shift, and go to state 52
+    '!'            shift, and go to state 53
+    '~'            shift, and go to state 54
+    DEC            shift, and go to state 55
+    INC            shift, and go to state 56
+    '('            shift, and go to state 57
+    '{'            shift, and go to state 37
+    '@'            shift, and go to state 59
+
+    block    go to state 60
+    stmt     go to state 182
+    expr     go to state 63
+    literal  go to state 64
+    type     go to state 65
+
+
+State 180
+
+   25 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '=' expr . ';'
+   37 expr: expr . '+' expr
+   38     | expr . '-' expr
+   39     | expr . '*' expr
+   40     | expr . '/' expr
+   41     | expr . '%' expr
+   42     | expr . LSHIFT expr
+   43     | expr . RSHIFT expr
+   44     | expr . AND expr
+   45     | expr . OR expr
+   46     | expr . '^' expr
+   47     | expr . EQ expr
+   48     | expr . NEQ expr
+   49     | expr . LTE expr
+   50     | expr . GTE expr
+   51     | expr . '<' expr
+   52     | expr . '>' expr
+   69     | expr . INC
+   70     | expr . DEC
+
+    OR      shift, and go to state 96
+    AND     shift, and go to state 97
+    '^'     shift, and go to state 98
+    NEQ     shift, and go to state 99
+    EQ      shift, and go to state 100
+    '<'     shift, and go to state 101
+    '>'     shift, and go to state 102
+    GTE     shift, and go to state 103
+    LTE     shift, and go to state 104
+    RSHIFT  shift, and go to state 105
+    LSHIFT  shift, and go to state 106
+    '+'     shift, and go to state 107
+    '-'     shift, and go to state 108
+    '*'     shift, and go to state 109
+    '/'     shift, and go to state 110
+    '%'     shift, and go to state 111
+    DEC     shift, and go to state 112
+    INC     shift, and go to state 113
+    ';'     shift, and go to state 183
+
+
+State 181
+
+   26 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '(' fun_params . ')' ';'
+   82 fun_params: fun_params . ',' expr
+
+    ')'  shift, and go to state 184
+    ','  shift, and go to state 156
+
+
+State 182
+
+   24 stmt: FOR '(' expr_or_empty ';' expr_or_empty ';' expr_or_empty ')' stmt .
+
+    $default  reduce using rule 24 (stmt)
+
+
+State 183
+
+   25 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '=' expr ';' .
+
+    $default  reduce using rule 25 (stmt)
+
+
+State 184
+
+   26 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '(' fun_params ')' . ';'
+
+    ';'  shift, and go to state 185
+
+
+State 185
+
+   26 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '(' fun_params ')' ';' .
+
+    $default  reduce using rule 26 (stmt)

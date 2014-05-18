@@ -1,7 +1,36 @@
-int func2()
+int func2(int j)
 {
-    int j = 10;
-    j = 5 + 6 * 8;
-    j = (5 + 6) * 8;
-    j = 8 * (5 + 6);
+    int t;
+    {
+        int t = 2;
+    }
+
+
+    do { int t = 50; t *= 100; } while (int j = 1);
+
+    while (j > 100)
+       j -= 10;
+       
+/*
+    while (j < 100)
+    {
+       int t = 20;
+       j &= 1;
+
+       do t = 5; while (j == 20);
+
+       do { int t = 50; t * 100; } while (1);
+    }
+    
+    for(j = 4; j < 10; j++)
+    {
+        {
+            int j = 5;
+            j = 10;
+        }
+        int j = 6;
+        j += 1;
+        //j *= 10 + i;
+    }
+    */
 }
