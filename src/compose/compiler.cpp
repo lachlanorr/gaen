@@ -815,8 +815,15 @@ Scope * parsedata_pop_scope(ParseData * pParseData)
     {
         COMP_ERROR("No more scopes to pop");
     }
-       
+
+    pParseData->skipNextScope = false;
+
     return pScope;
+}
+
+void parsedata_handle_do_scope(ParseData * pParseData)
+{
+    pParseData->skipNextScope = false;
 }
 
 const char * parsedata_add_string(ParseData * pParseData, const char * str)

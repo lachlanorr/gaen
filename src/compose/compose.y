@@ -101,7 +101,7 @@ void yyprint(FILE * file, int type, YYSTYPE value);
 
 %type <dataType> type
 
-%type <pAst> def stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
+%type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> message_block message_list message_prop target_expr component_expr
 
 %type <pSymTab> param_list
@@ -156,7 +156,7 @@ stmt
     | IF '(' cond_expr ')' stmt ELSE stmt { $$ = ast_create_if($3, $5, $7,   pParseData); }
 
     | WHILE '(' cond_expr ')' stmt         { $$ = ast_create_while($3, $5, pParseData); }
-    | DO stmt WHILE '(' cond_expr ')' ';'  { $$ = ast_create_dowhile($5, $2, pParseData); }
+    | DO do_stmt WHILE '(' cond_expr ')' ';'  { $$ = ast_create_dowhile($5, $2, pParseData); }
 
     | FOR '(' expr_or_empty ';' cond_expr_or_empty ';' expr_or_empty ')' stmt { $$ = ast_create_for($3, $5, $7, $9, pParseData); }
 
@@ -167,6 +167,9 @@ stmt
     
     | expr ';'  { $$ = $1; }
     ;
+
+do_stmt
+    : stmt { parsedata_handle_do_scope(pParseData); $$ = $1; }
 
 target_expr
     : /* empty */  { $$ = NULL; }

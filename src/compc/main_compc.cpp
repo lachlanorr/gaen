@@ -63,7 +63,7 @@ int main(int argc, char ** argv)
 
     parse_init();
     ParseData * pParseData = parse_file(nullptr,
-                                        "C:/code/gaen/src/compc/test_programs/prog0.cmp",
+                                        "C:/code/gaen/src/compc/test_programs/prog2.cmp",
                                         &messageHandler);
 
     char c = getchar();
