@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// main_compc.cpp - Compose command line compiler
+// codegen_cpp.h - C++ code generation
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,56 +24,29 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include <cstdio>
+#ifndef GAEN_COMPOSE_CODEGEN_CPP_H
+#define GAEN_COMPOSE_CODEGEN_CPP_H
 
-#include "core/base_defines.h"
-#include "core/mem.h"
+#include "core/String.h"
 
 #include "compose/compiler.h"
-#include "compose/codegen_cpp.h"
 
 namespace gaen
 {
 
-void messageHandler(MessageType messageType,
-                    const char * message,
-                    const char * filename,
-                    int line,
-                    int column)
+struct CodeCpp
 {
-    switch (messageType)
-    {
-    case kMSGT_Info:
-        printf(message);
-        printf("\n");
-        break;
-    case kMSGT_Warning:
-        printf("%s(%d:%d): WARNING - %s\n", filename, line, column, message);
-        break;
-    case kMSGT_Error:
-        printf("%s(%d:%d): ERROR - %s\n", filename, line, column, message);
-        break;
-    }
-}
+    String<kMEM_Compose> cmpFilename;
+    String<kMEM_Compose> cmpRelPath;
+    String<kMEM_Compose> cmpFullPath;
+    String<kMEM_Compose> cppFilename;
+    String<kMEM_Compose> cppRelPath;
+    String<kMEM_Compose> cppFullPath;
+    String<kMEM_Compose> code;
+};
+
+CodeCpp codegen_cpp(const ParseData * pParseData);
 
 } // namespace gaen
 
-int main(int argc, char ** argv)
-{
-    using namespace gaen;
-
-    parse_init();
-    ParseData * pParseData = parse_file(nullptr,
-                                        "c:/code/gaen/src/scripts/compose/",
-                                        "utils/Timer.cmp",
-                                        &messageHandler);
-
-    CodeCpp codeCpp;
-    if (pParseData)
-    {
-        codeCpp = codegen_cpp(pParseData);
-    }
-
-    printf(codeCpp.code.c_str());
-    char c = getchar();
-}
+#endif // #ifndef GAEN_COMPOSE_CODEGEN_CPP_H

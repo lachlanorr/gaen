@@ -1,0 +1,22 @@
+//------------------------------------------------------------------------------
+// Timer.cmp - send message to owning entity on interval
+//------------------------------------------------------------------------------
+
+component Timer
+{
+    float #interval = 0.0;
+    float last_notification = 0.0;
+
+    #update(float deltaSecs)
+    {
+        if (interval > 0.0)
+        {
+            last_notification += deltaSecs;
+            if (last_notification >= interval)
+            {
+                @:#timer_tick();
+                last_notification = 0.0;
+            }
+        }
+    }
+}

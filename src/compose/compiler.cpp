@@ -29,8 +29,9 @@
 
 #include "core/platutils.h"
 
-#include "compose/comp_mem.h"
 #include "compose/compiler.h"
+#include "compose/compiler_structs.h"
+#include "compose/utils.h"
 
 extern "C" {
 #define YYDEBUG 1
@@ -39,72 +40,8 @@ extern "C" {
 #include "compose/compose_scanner.h"
 }
 
+
 using namespace gaen;
-
-struct SymRec
-{
-    SymType type;
-    DataType dataType;
-    const char * name;
-    Ast * pAst;
-    SymTab * pSymTab;
-    u32 order;
-};
-
-struct SymTab
-{
-    SymTab * pParent;
-    Ast * pAst;
-    CompHashMap<const char*, SymRec*> dict;
-    CompList<SymTab*> children;
-};
-
-struct AstList
-{
-    CompList<Ast*> nodes;
-};
-
-struct Ast
-{
-    AstType type;
-    Ast* pParent;
-    Scope* pScope;
-    SymRec* pSymRec;
-
-    Ast* pLhs;
-    Ast* pMid;
-    Ast* pRhs;
-
-    int numi;
-    float numf;
-    const char * str;
-
-    AstList* pChildren;
-};
-
-struct Scope
-{
-    AstList * pAstList;
-    SymTab * pSymTab;
-};
-
-struct ParseData
-{
-    Ast* pRootAst;
-    void * pScanner;
-    Scope* pRootScope;
-    CompList<Scope*> scopeStack;
-    CompHashSet<CompString> strings;
-
-    // location info
-    int line;
-    int column;
-
-    const char * filename;
-    MessageHandler messageHandler;
-
-    bool skipNextScope;
-};
 
 
 int parse_int(const char * pStr, int base)
@@ -276,7 +213,8 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
     pAst->str = nullptr;
 
     pAst->pChildren = nullptr;
-    
+    pAst->fullPath = pParseData->fullPath;
+
     return pAst;
 }
 
@@ -367,6 +305,18 @@ Ast * ast_create_property_def(const char * name, DataType dataType, Ast * pInitV
 
     Ast * pAst = ast_create(kAST_PropertyDef, pParseData);
     pAst->pSymRec = symrec_create(kSYMT_Property,
+                                  dataType,
+                                  name,
+                                  pInitVal);
+    return pAst;
+}
+
+Ast * ast_create_field_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData)
+{
+    ASSERT(pParseData);
+
+    Ast * pAst = ast_create(kAST_FieldDef, pParseData);
+    pAst->pSymRec = symrec_create(kSYMT_Field,
                                   dataType,
                                   name,
                                   pInitVal);
@@ -690,13 +640,19 @@ Scope * scope_create()
 //------------------------------------------------------------------------------
 // ParseData
 //------------------------------------------------------------------------------
-ParseData * parsedata_create(const char * filename, MessageHandler messageHandler)
+ParseData * parsedata_create(const char * rootDir,
+                             const char * filename,
+                             MessageHandler messageHandler)
 {
     ParseData * pParseData = COMP_NEW(ParseData);
 
     pParseData->skipNextScope = false;
     pParseData->pScanner = nullptr;
-    pParseData->filename = filename;
+
+    pParseData->filename = parsedata_add_string(pParseData, filename);
+    pParseData->rootDir = parsedata_add_string(pParseData, rootDir);
+    pParseData->fullPath = gaen::path_join(pParseData->rootDir, pParseData->filename, pParseData);
+    
     pParseData->messageHandler = messageHandler;
 
     pParseData->pRootScope = scope_create();
@@ -887,13 +843,26 @@ void parse_init()
 ParseData * parse(ParseData * pParseData,
                   const char * source,
                   size_t length,
+                  const char * rootDir,
                   const char * filename,
                   MessageHandler messageHandler)
 {
     int ret;
 
     if (!pParseData)
-        pParseData = parsedata_create(filename, messageHandler);
+        pParseData = parsedata_create(rootDir, filename, messageHandler);
+
+    if (!source)
+    {
+        char * newSource = nullptr;
+        length = read_file(pParseData->fullPath, &newSource);
+        if (length <= 0)
+        {
+            PANIC("Unable to read file");
+            return nullptr;
+        }
+        source = newSource;
+    }
 
     ret = yylex_init_extra(pParseData, &pParseData->pScanner);
     if (ret != 0)
@@ -913,18 +882,11 @@ ParseData * parse(ParseData * pParseData,
 }   
 
 ParseData * parse_file(ParseData * pParseData,
+                       const char * rootDir,
                        const char * filename,
                        MessageHandler messageHandler)
 {
-    char * source = nullptr;
-    i32 length = read_file(filename, &source);
-    if (length <= 0)
-    {
-        PANIC("Unable to read file");
-        return nullptr;
-    }    
-
-    return parse(nullptr, source, length, filename, messageHandler);
+    return parse(nullptr, nullptr, 0, rootDir, filename, messageHandler);
 }
 
 void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...)

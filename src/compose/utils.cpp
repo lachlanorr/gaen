@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// main_compc.cpp - Compose command line compiler
+// utils.cpp - Compiler utility functions
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -27,53 +27,44 @@
 #include <cstdio>
 
 #include "core/base_defines.h"
-#include "core/mem.h"
 
 #include "compose/compiler.h"
-#include "compose/codegen_cpp.h"
 
 namespace gaen
 {
 
-void messageHandler(MessageType messageType,
-                    const char * message,
-                    const char * filename,
-                    int line,
-                    int column)
+
+const char * path_join(const char * rootDir,
+                       const char * filename,
+                       ParseData *pParseData)
 {
-    switch (messageType)
+    ASSERT(rootDir);
+    ASSERT(filename);
+    
+    static thread_local char fullPath[FILENAME_MAX];
+
+    size_t rootLen = strlen(rootDir);
+    size_t filenameLen = strlen(filename);
+
+    if (rootLen + filenameLen + 2 >= FILENAME_MAX)
+        PANIC("Filename too long");
+
+    char * dest = fullPath;
+
+    strcpy(dest, rootDir);
+    dest += rootLen;
+
+    if (*(dest-1) != '/')
     {
-    case kMSGT_Info:
-        printf(message);
-        printf("\n");
-        break;
-    case kMSGT_Warning:
-        printf("%s(%d:%d): WARNING - %s\n", filename, line, column, message);
-        break;
-    case kMSGT_Error:
-        printf("%s(%d:%d): ERROR - %s\n", filename, line, column, message);
-        break;
+        *dest = '/';
+        dest++;
     }
+
+    strcpy(dest, filename);
+    dest += rootLen;
+    *dest = '\0';
+
+    return parsedata_add_string(pParseData, fullPath);
 }
 
-} // namespace gaen
-
-int main(int argc, char ** argv)
-{
-    using namespace gaen;
-
-    parse_init();
-    ParseData * pParseData = parse_file(nullptr,
-                                        "c:/code/gaen/src/scripts/compose/",
-                                        "utils/Timer.cmp",
-                                        &messageHandler);
-
-    CodeCpp codeCpp;
-    if (pParseData)
-    {
-        codeCpp = codegen_cpp(pParseData);
-    }
-
-    printf(codeCpp.code.c_str());
-    char c = getchar();
 }

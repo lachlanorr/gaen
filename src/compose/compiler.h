@@ -77,6 +77,7 @@ typedef enum
     kAST_ComponentDef,
     kAST_MessageDef,
     kAST_PropertyDef,
+    kAST_FieldDef,
 
     kAST_Block,
     kAST_FunctionParams,
@@ -146,6 +147,7 @@ typedef enum
     kSYMT_Component,
     kSYMT_Message,
     kSYMT_Property,
+    kSYMT_Field,
     kSYMT_Param,
     kSYMT_Local
 } SymType;
@@ -208,6 +210,7 @@ Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pPar
 
 Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_property_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData);
+Ast * ast_create_field_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData);
 
 Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData);
 Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * pParseData);
@@ -239,7 +242,9 @@ void ast_set_lhs(Ast * pParent, Ast * pLhs);
 void ast_set_mid(Ast * pParent, Ast * pMid);
 void ast_set_rhs(Ast * pParent, Ast * pRhs);
 
-ParseData * parsedata_create(const char * filename, MessageHandler messageHandler);
+ParseData * parsedata_create(const char * rootDir,
+                             const char * filename,
+                             MessageHandler messageHandler);
 void *  parsedata_scanner(ParseData * pParseData);
 
 void parsedata_formatted_message(ParseData * pParseData,
@@ -277,6 +282,7 @@ ParseData * parse(ParseData * pParseData,
                   MessageHandler messageHandler);
 
 ParseData * parse_file(ParseData * pParseData,
+                       const char * rootDir,
                        const char * filename,
                        MessageHandler messageHandler);
 

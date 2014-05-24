@@ -169,11 +169,13 @@ void MemMgr::trackAllocation(MemType memType,
                              int line)
 {
     // LORRTODO
+    /*
     printf("ALLOC %lu bytes, %s category, %s:%d\n",
            count,
            sMemTypeText[memType],
            file,
            line);
+    */
     return;
 }
     
@@ -182,9 +184,11 @@ void MemMgr::trackDeallocation(void * ptr,
                                int line)
 {
     // LORRTODO
+    /*
     printf("FREE %s:%d\n",
            file,
            line);
+    */
     return;
 }
 #endif // #if HAS(TRACK_MEM)
