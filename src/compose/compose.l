@@ -43,7 +43,7 @@ freely, subject to the following restrictions:
   do {                                   \
     yylloc->first_column = yycolumn + 1; \
     yylloc->first_line = yylineno;       \
-    yycolumn += yyleng;                  \
+    yycolumn += (int)yyleng;             \
   } while(0);                             
 
 #define YY_USER_INIT    \
@@ -54,21 +54,53 @@ freely, subject to the following restrictions:
 
 %}
 
+%x COMMENT
+
 D  [0-9]
 H  [a-fA-F0-9]
 L  [a-zA-Z_]
+CRLF (\r\n|\r|\n)
 
 %%
 %{
 ParseData * pParseData = yyextra;    
 %}
+
+"/*"                       { BEGIN(COMMENT); }
+<COMMENT>"*/"              { BEGIN(INITIAL); }
+<COMMENT>([^*]|{CRLF})+|.
+<COMMENT><<EOF>>           { yyerror(yylloc, pParseData, "Unterminated comment"); return 0; }
+"//".*{CRLF}
      
-"int"    { yylval->dataType = kDT_int;   return INT; }
-"uint"   { yylval->dataType = kDT_uint;  return UINT; }
+"int"    { yylval->dataType = kDT_int;   return INT;   }
+"uint"   { yylval->dataType = kDT_uint;  return UINT;  }
 "float"  { yylval->dataType = kDT_float; return FLOAT; }
-"bool"   { yylval->dataType = kDT_bool;  return BOOL; }
-"vec3"   { yylval->dataType = kDT_vec3;  return VEC3; }
-"void"   { yylval->dataType = kDT_void;  return VOID; }
+"bool"   { yylval->dataType = kDT_bool;  return BOOL;  }
+"char"   { yylval->dataType = kDT_char;  return CHAR;  }
+"vec3"   { yylval->dataType = kDT_vec3;  return VEC3;  }
+"vec4"   { yylval->dataType = kDT_vec4;  return VEC4;  }
+"mat3"   { yylval->dataType = kDT_mat3;  return MAT3;  }
+"mat34"  { yylval->dataType = kDT_mat34; return MAT34; }
+"mat4"   { yylval->dataType = kDT_mat4;  return MAT4;  }
+"void"   { yylval->dataType = kDT_void;  return VOID;  }
+
+"if"       { parsedata_push_stmt_scope(pParseData); return IF;     }
+"else"     { parsedata_push_stmt_scope(pParseData); return ELSE;   }
+"while"    { parsedata_push_stmt_scope(pParseData); return WHILE;  }
+"do"       { parsedata_push_stmt_scope(pParseData); return DO;     }
+"for"      { parsedata_push_stmt_scope(pParseData); return FOR;    }
+"switch"   { parsedata_push_stmt_scope(pParseData); return SWITCH; }
+"case"     { return CASE;    }
+"default"  { return DEFAULT; }
+
+"break"    { return BREAK;   }
+"return"   { return RETURN;  }
+
+"entity"    { parsedata_push_stmt_scope(pParseData); return ENTITY; }
+"component" { parsedata_push_stmt_scope(pParseData); return COMPONENT; }
+
+"true"   { return TRUE; }
+"false"  { return FALSE; }
 
 "::"   { return SCOPE; }
 
@@ -86,16 +118,16 @@ ParseData * pParseData = yyextra;
 "&&"   { return AND; }
 "||"   { return OR; }
 
-"+="   { ADD_ASSIGN; }
-"-="   { SUB_ASSIGN; }
-"*="   { MUL_ASSIGN; }
-"/="   { DIV_ASSIGN; }
-"%="   { MOD_ASSIGN; }
-"<<="  { LSHIFT_ASSIGN; }
-">>="  { RSHIFT_ASSIGN; }
-"&="   { AND_ASSIGN; }
-"^="   { XOR_ASSIGN; }
-"|="   { OR_ASSIGN; }
+"+="   { return ADD_ASSIGN; }
+"-="   { return SUB_ASSIGN; }
+"*="   { return MUL_ASSIGN; }
+"/="   { return DIV_ASSIGN; }
+"%="   { return MOD_ASSIGN; }
+"<<="  { return LSHIFT_ASSIGN; }
+">>="  { return RSHIFT_ASSIGN; }
+"&="   { return AND_ASSIGN; }
+"^="   { return XOR_ASSIGN; }
+"|="   { return OR_ASSIGN; }
 
 "#" |
 "@" |
@@ -114,18 +146,19 @@ ParseData * pParseData = yyextra;
 "&" |
 "^" |
 "|" |
+"<" |
+">" |
 "(" |
 ")" |
 "[" |
-"]" |
-"{" |
-"}" |
-"<" |
-">"    { return yytext[0]; }
+"]"    { return yytext[0]; }
+
+"{"    { parsedata_push_scope(pParseData); return yytext[0]; }
+"}"    { return yytext[0]; }
 
 0[xX]{H}+      { yylval->numi = parse_int(yytext, 16); return INT_LITERAL; }
-0{D}           { yylval->numi = parse_int(yytext, 8);  return INT_LITERAL; }
-{D}            { yylval->numi = parse_int(yytext, 10); return INT_LITERAL; }
+0{D}+          { yylval->numi = parse_int(yytext, 8);  return INT_LITERAL; }
+{D}+           { yylval->numi = parse_int(yytext, 10); return INT_LITERAL; }
 
 {D}*"."{D}+    { yylval->numf = parse_float(yytext); return FLOAT_LITERAL; }
 {D}+"."{D}*    { yylval->numf = parse_float(yytext); return FLOAT_LITERAL; }

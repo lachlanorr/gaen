@@ -48,37 +48,57 @@ extern int yydebug;
    enum yytokentype {
      IDENTIFIER = 258,
      INT_LITERAL = 259,
-     FLOAT_LITERAL = 260,
-     INT = 261,
-     UINT = 262,
-     FLOAT = 263,
-     BOOL = 264,
-     VEC3 = 265,
-     VOID = 266,
-     OR_ASSIGN = 267,
-     XOR_ASSIGN = 268,
-     AND_ASSIGN = 269,
-     RSHIFT_ASSIGN = 270,
-     LSHIFT_ASSIGN = 271,
-     MOD_ASSIGN = 272,
-     DIV_ASSIGN = 273,
-     MUL_ASSIGN = 274,
-     SUB_ASSIGN = 275,
-     ADD_ASSIGN = 276,
-     OR = 277,
-     AND = 278,
-     NEQ = 279,
-     EQ = 280,
-     GTE = 281,
-     LTE = 282,
-     GT = 283,
-     LT = 284,
-     RSHIFT = 285,
-     LSHIFT = 286,
-     DEC = 287,
-     INC = 288,
-     UMINUS = 289,
-     SCOPE = 290
+     TRUE = 260,
+     FALSE = 261,
+     FLOAT_LITERAL = 262,
+     INT = 263,
+     UINT = 264,
+     FLOAT = 265,
+     BOOL = 266,
+     CHAR = 267,
+     VEC3 = 268,
+     VEC4 = 269,
+     MAT3 = 270,
+     MAT34 = 271,
+     MAT4 = 272,
+     VOID = 273,
+     IF = 274,
+     SWITCH = 275,
+     CASE = 276,
+     DEFAULT = 277,
+     FOR = 278,
+     WHILE = 279,
+     DO = 280,
+     BREAK = 281,
+     RETURN = 282,
+     ENTITY = 283,
+     COMPONENT = 284,
+     THEN = 285,
+     ELSE = 286,
+     OR_ASSIGN = 287,
+     XOR_ASSIGN = 288,
+     AND_ASSIGN = 289,
+     RSHIFT_ASSIGN = 290,
+     LSHIFT_ASSIGN = 291,
+     MOD_ASSIGN = 292,
+     DIV_ASSIGN = 293,
+     MUL_ASSIGN = 294,
+     SUB_ASSIGN = 295,
+     ADD_ASSIGN = 296,
+     OR = 297,
+     AND = 298,
+     NEQ = 299,
+     EQ = 300,
+     GTE = 301,
+     LTE = 302,
+     RSHIFT = 303,
+     LSHIFT = 304,
+     DEC = 305,
+     INC = 306,
+     UMINUS = 307,
+     POSTDEC = 308,
+     POSTINC = 309,
+     SCOPE = 310
    };
 #endif
 
@@ -94,13 +114,11 @@ typedef union YYSTYPE
     const char* str;
     DataType    dataType;
     Ast*        pAst;
-    AstList*    pAstList;
-    SymRec*     pSymRec;
     SymTab*     pSymTab;
 
 
 /* Line 2053 of yacc.c  */
-#line 104 "compose_parser.h"
+#line 122 "compose_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

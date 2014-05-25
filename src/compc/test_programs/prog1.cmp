@@ -1,14 +1,14 @@
 
 component Comp1
 {
-    int propInt;
-    float propFloat;
-    int propOtherEntity;
+    int #propInt;
+    float #propFloat;
+    int #propOtherEntity;
 
     #message1(int i, float f)
     {
-        propInt = i;
-        propFloat = f;
+        @:Comp1#propInt = i;
+        @:Comp1#propFloat = f;
 
         @:Comp1#message2(false);
     }
@@ -22,12 +22,13 @@ component Comp1
         else
         {
             @propOtherEntity:#testMessage(10, 20);
+            @1234:#testMessage(10, 20);
         }
     }
 
-    void update(float deltaSecs)
+    #update(float deltaSecs)
     {
-        propFloat = deltaSecs;
+        @:Comp1#propFloat = deltaSecs;
     }
 }
 
