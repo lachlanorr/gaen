@@ -29,7 +29,7 @@
 
 #include "core/base_defines.h"
 
-#include "engine/FNV.h"
+#include "engine/hashes.h"
 #include "engine/math.h"
 #include "engine/Color.h"
 
@@ -103,7 +103,7 @@ static_assert(sizeof(qcell) == 16, "qcell must be 16 bytes");
 
 struct Message
 {
-    fnv msgId;        // fnv1 hash based on message string
+    u32 msgId;        // hash based on message string
     u32 flags:4;      // message flags
     u32 source:28;    // source task id - NOTE Changeing this size requires changing kMaxTaskId in Task.h
     u32 blockCount:4; // count of additional 16 byte payload (e.g. value of 4 means an additional 64 bytes)
@@ -112,7 +112,7 @@ struct Message
 
     Message() = default;
 
-    Message(fnv msgId,
+    Message(u32 msgId,
             u32 flags,
             task_id source,
             task_id target,

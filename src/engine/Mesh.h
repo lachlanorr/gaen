@@ -38,19 +38,19 @@ typedef u16 index;
 
 enum VertexType
 {
-    kVERT_Pos          = 'VTXA',
-    kVERT_PosNorm      = 'VTXB',
-    kVERT_PosNormUv    = 'VTXC',
-    kVERT_PosNormUvTan = 'VTXD',
+    kVERT_Pos          = fourcc('V','T','X','A'),
+    kVERT_PosNorm      = fourcc('V','T','X','B'),
+    kVERT_PosNormUv    = fourcc('V','T','X','C'),
+    kVERT_PosNormUvTan = fourcc('V','T','X','D'),
 
     kVERT_END
 };
 
 enum IndexType
 {
-    kIND_Point    = 'IDXA',
-    kIND_Line     = 'IDXB',
-    kIND_Triangle = 'IDXC',
+    kIND_Point    = fourcc('I','D','X','A'),
+    kIND_Line     = fourcc('I','D','X','B'),
+    kIND_Triangle = fourcc('I','D','X','C'),
 
     kIND_END
 };

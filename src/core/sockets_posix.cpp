@@ -33,12 +33,18 @@
 namespace gaen
 {
 
+bool init_sockets()
+{
+    // Unecessary to initialize, as it is on Win32
+    return true;
+}
+
 bool sock_create(Sock * pSock)
 {
     *pSock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (*pSock == -1)
     {
-        ERROR_MSG("Unable to create socket, errno: %d, 0x%x", errno, errno);
+        ERR("Unable to create socket, errno: %d, 0x%x", errno, errno);
         return false;
     }
     return true;
@@ -50,7 +56,7 @@ bool sock_close(Sock sock)
 
     if (retval == -1)
     {
-        ERROR_MSG("Unable to bind socket, errno: %d, 0x%x", errno, errno);
+        ERR("Unable to bind socket, errno: %d, 0x%x", errno, errno);
         return false;
     }
     return true;
@@ -75,7 +81,7 @@ bool sock_bind(Sock sock, u16 port)
 
     if (retval == -1)
     {
-        ERROR_MSG("Unable to bind socket, errno: %d, 0x%x", errno, errno);
+        ERR("Unable to bind socket, errno: %d, 0x%x", errno, errno);
         return false;
     }
     return true;
@@ -99,12 +105,12 @@ bool sock_sendto(Sock sock,
     
     if (sendSize == -1)
     {
-        ERROR_MSG("Unable to send on socket, errno: %d, %x", errno, errno);
+        ERR("Unable to send on socket, errno: %d, %x", errno, errno);
         return false;
     }
     if (static_cast<size_t>(sendSize) != dataSize)
     {
-        ERROR_MSG("Unable to send entire packet on socket, sent/attempted = %d/%d", sendSize, dataSize);
+        ERR("Unable to send entire packet on socket, sent/attempted = %d/%d", sendSize, dataSize);
         return false;
     }
     return true;
@@ -129,7 +135,7 @@ bool sock_recvfrom(Sock sock,
 
     if (recvSize == -1)
     {
-        ERROR_MSG("Failure during recv, errno: %d, %x", errno, errno);
+        ERR("Failure during recv, errno: %d, %x", errno, errno);
         return false;
     }
 

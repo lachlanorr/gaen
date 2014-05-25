@@ -30,9 +30,14 @@ SET (renderergl_SOURCES
   RendererGL.h
   RendererGL.cpp
   RendererGL_${platform}.cpp
-  win32gl.cpp
-  win32gl.h
   )
+
+IF (WIN32)
+  SET(renderergl_SOURCES ${renderergl_SOURCES}
+    win32gl.cpp
+    win32gl.h
+    )
+ENDIF (WIN32)
 
 MSVC_PRECOMPILED_HEADER (renderergl renderergl_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${renderergl_SOURCES}")

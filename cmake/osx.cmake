@@ -25,3 +25,14 @@
 #-------------------------------------------------------------------------------
 
 SET (platform "osx")
+
+find_package(OpenGL REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIR})
+
+find_package(GLUT REQUIRED)
+include_directories(${GLUT_INCLUDE_DIR})
+
+SET(PLATFORM_LINK_LIBS
+  ${OPENGL_LIBRARIES}
+  ${GLUT_LIBRARIES}
+  )

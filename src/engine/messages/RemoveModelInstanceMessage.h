@@ -56,7 +56,7 @@ private:
 class RemoveModelInstanceMsgW : protected MessageWriter
 {
 public:
-    RemoveModelInstanceMsgW(fnv msgId,
+    RemoveModelInstanceMsgW(u32 msgId,
                             u32 flags,
                             task_id source,
                             task_id target,

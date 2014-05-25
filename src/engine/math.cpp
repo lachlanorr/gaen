@@ -234,14 +234,14 @@ f32 Mat34::determinant(const Mat34 & mat34)
 {
     f32 a0 = mat34[0]  * mat34[4]  - mat34[3]  * mat34[1];
     f32 a1 = mat34[0]  * mat34[7]  - mat34[6]  * mat34[1];
-    f32 a2 = mat34[0]  * mat34[10] - mat34[9] * mat34[1];
+    //f32 a2 = mat34[0]  * mat34[10] - mat34[9] * mat34[1];
     f32 a3 = mat34[3]  * mat34[7]  - mat34[6]  * mat34[4];
-    f32 a4 = mat34[3]  * mat34[10] - mat34[9] * mat34[4];
-    f32 a5 = mat34[6]  * mat34[10] - mat34[9] * mat34[7];
-    f32 b0 = 0.0f;
-    f32 b1 = 0.0f;
+    //f32 a4 = mat34[3]  * mat34[10] - mat34[9] * mat34[4];
+    //f32 a5 = mat34[6]  * mat34[10] - mat34[9] * mat34[7];
+    //f32 b0 = 0.0f;
+    //f32 b1 = 0.0f;
     f32 b2 = mat34[2];
-    f32 b3 = 0.0f;
+    //f32 b3 = 0.0f;
     f32 b4 = mat34[5];
     f32 b5 = mat34[8];
 
@@ -258,10 +258,10 @@ Mat34 Mat34::inverse(const Mat34 & mat34)
     f32 a3 = mat34[3]  * mat34[7]  - mat34[6] * mat34[4];
     f32 a4 = mat34[3]  * mat34[10] - mat34[9] * mat34[4];
     f32 a5 = mat34[6]  * mat34[10] - mat34[9] * mat34[7];
-    f32 b0 = 0.0f;
-    f32 b1 = 0.0f;
+    //f32 b0 = 0.0f;
+    //f32 b1 = 0.0f;
     f32 b2 = mat34[2];
-    f32 b3 = 0.0f;
+    //f32 b3 = 0.0f;
     f32 b4 = mat34[5];
     f32 b5 = mat34[8];
 

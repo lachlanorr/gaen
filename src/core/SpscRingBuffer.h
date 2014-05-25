@@ -83,16 +83,16 @@ public:
           , mAvailable(0)
         {}
 
-        size_t available() const { return mAvailable; }
+        u32 available() const { return mAvailable; }
 
-        T & operator[](size_t index)
+        T & operator[](u32 index)
         {
             ASSERT(index < mAvailable);
             ASSERT(mpSpscRingBuffer && mpStart);
             return *mpSpscRingBuffer->wrapPointer(mpStart + index);
         }
 
-        const T & operator[](size_t index) const
+        const T & operator[](u32 index) const
         {
             ASSERT(index < mAvailable);
             ASSERT(mpSpscRingBuffer && mpStart);
@@ -102,11 +102,11 @@ public:
     private:
         SpscRingBuffer<T> * mpSpscRingBuffer;
         T* mpStart;
-        size_t mAvailable;
+        u32 mAvailable;
     };
 
     
-    SpscRingBuffer(size_t elemCount, MemType memType)
+    SpscRingBuffer(u32 elemCount, MemType memType)
       : mElemCount(elemCount)
     {
         mpBuffer = static_cast<T*>(GALLOC(memType, sizeof(T) * elemCount));
@@ -120,7 +120,7 @@ public:
         GFREE(mpBuffer);
     }
 
-    void pushBegin(Accessor * pAccessor, size_t elemCount)
+    void pushBegin(Accessor * pAccessor, u32 elemCount)
     {
         ASSERT_MSG(isValidProducer(), "Push from more than one thread");
         ASSERT(elemCount > 0);
@@ -129,7 +129,7 @@ public:
         T* pHead = mpHead.load(std::memory_order_acquire); // this is modified by the consumer, so acquire
 
         // Ensure we have available space
-        size_t avail = emptyCount(pHead, pTail);
+        u32 avail = emptyCount(pHead, pTail);
         
         if (elemCount > avail)
             PANIC("Out of space in ring buffer, requested=%d, available=%d", elemCount, avail);
@@ -140,7 +140,7 @@ public:
     }
 
 
-    void pushCommit(size_t elemCount)
+    void pushCommit(u32 elemCount)
     {
         ASSERT_MSG(isValidProducer(), "Push from more than one thread");
 
@@ -157,14 +157,14 @@ public:
         T* pHead = mpHead.load(std::memory_order_relaxed); // we're the only thread to modify this, so relax
         T* pTail = mpTail.load(std::memory_order_acquire); // this is modified by the producer, so acquire
 
-        size_t avail = filledCount(pHead, pTail);
+        u32 avail = filledCount(pHead, pTail);
         
         pAccessor->mpSpscRingBuffer = this;
         pAccessor->mpStart = pHead;
         pAccessor->mAvailable = avail;
     }
 
-    void popCommit(size_t elemCount)
+    void popCommit(u32 elemCount)
     {
         ASSERT_MSG(isValidConsumer(), "Pop from more than one thread");
 
@@ -175,14 +175,14 @@ public:
     }
 
 private:
-    size_t filledCount(T* pHead, T* pTail) const
+    u32 filledCount(T* pHead, T* pTail) const
     {
         if (pTail >= pHead)
             return pTail - pHead;
         return (pTail - mpBuffer) + (mpBufferEnd - mpHead);
     }
 
-    size_t emptyCount(T* pHead, T* pTail) const
+    u32 emptyCount(T* pHead, T* pTail) const
     {
         return mElemCount - filledCount(pHead, pTail);
     }
@@ -194,7 +194,7 @@ private:
         return wrappedPtr;
     }
 
-    size_t mElemCount;
+    u32 mElemCount;
     T * mpBuffer;
     T * mpBufferEnd;
 

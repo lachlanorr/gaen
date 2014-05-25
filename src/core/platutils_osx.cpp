@@ -35,9 +35,9 @@ namespace gaen
 {
 
 static const u64 kNanoPerMicro = 1000;
+static const f64 kMicrosPerSec = 1000000.0;
 
 static u64 sStartTimeAbsolute = 0;
-static mach_timebase_info_data_t sTimebaseInfoNanos = {0, 0};
 static mach_timebase_info_data_t sTimebaseInfoMicros = {0, 0};
 
 void init_time()
@@ -47,13 +47,12 @@ void init_time()
 
     sStartTimeAbsolute = mach_absolute_time();
 
-    mach_timebase_info(&sTimebaseInfoNanos);
     mach_timebase_info(&sTimebaseInfoMicros);
     // Now adjust nanos to micros... no need to do the multiply each time
     sTimebaseInfoMicros.denom *= kNanoPerMicro;
 }
 
-u64 now_in_microsecs()
+f32 now()
 {
     ASSERT_MSG(sStartTimeAbsolute != 0, "init_time_utils must be called first");
     ASSERT_MSG(sTimebaseInfoMicros.denom != 0, "init_time_utils must be called first");
@@ -63,38 +62,32 @@ u64 now_in_microsecs()
 
     u64 deltaMicros = deltaAbsolute * sTimebaseInfoMicros.numer / sTimebaseInfoMicros.denom;
 
-    return deltaMicros;
+    return static_cast<f32>(deltaMicros / kMicrosPerSec);
 }
 
-u64 now_in_nanosecs()
+void sleep(u32 milliSecs)
 {
-    ASSERT_MSG(sStartTimeAbsolute != 0, "init_time_utils must be called first");
-    ASSERT_MSG(sTimebaseInfoMicros.denom != 0, "init_time_utils must be called first");
-
-    u64 nowAbsolute = mach_absolute_time();
-    u64 deltaAbsolute = nowAbsolute - sStartTimeAbsolute;
-
-    u64 deltaNanos = deltaAbsolute * sTimebaseInfoNanos.numer / sTimebaseInfoNanos.denom;
-
-    return deltaNanos;
-}
-
-void sleep_nanosecs(u64 timeNanos)
-{
+    u64 timeNanos = milliSecs * 1000;
     timespec ts = {0};
     ts.tv_nsec = timeNanos;
     int ret = nanosleep(&ts, nullptr);
     ASSERT(ret == 0);
 }
 
-size_t platform_core_count()
+u32 platform_core_count()
 {
     int np = 1;
     size_t length = sizeof( np );
     int ret = sysctlbyname("hw.ncpu", &np, &length, NULL, 0);
     ASSERT(ret == 0);
     ASSERT(np > 0);
-    return static_cast<size_t>(np);
+    return static_cast<u32>(np);
+}
+
+void set_thread_affinity(u32 coreId)
+{
+    // LORRTODO: Don't think there's a way to do this on OSX
+    return; 
 }
 
 // LORRTODO - Move these to their platform files when necessary

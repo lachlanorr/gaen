@@ -27,7 +27,7 @@
 #import <Cocoa/Cocoa.h>
 
 #include "gaen/gaen.h"
-#include "engine/FNV.h"
+#include "engine/hashes.h"
 int main(int argc, char ** argv)
 {
 
@@ -59,7 +59,7 @@ int main(int argc, char ** argv)
 */  
     // Initialize gaen
     gaen::init_gaen(argc, argv);
-//    gaen::fnv h = gaen::FNV::fnv1a_32("abc");
+//    gaen::fnv h = gaen::HASH::fnv1a_32("abc");
 //    [NSApp activateIgnoringOtherApps:YES];
     //[NSApp run];
 

@@ -32,8 +32,8 @@ SET (engine_SOURCES
   Component.h
   Entity.cpp
   Entity.h
-  FNV.h
-  FNV.cpp
+  hashes.h
+  hashes.cpp
   Material.cpp
   Material.h
   math.cpp
@@ -97,13 +97,13 @@ ADD_CUSTOM_TARGET (
 
 # Run during configure so we have FNV.h/cpp existing for .sln creation
 EXECUTE_PROCESS (
-  COMMAND python ${scripts_dir}/update_fnv_hashes.py
+  COMMAND python ${scripts_dir}/update_hashes.py
   )
 
 # Run each time we build. FNV.h/cpp will only get replaced if they change.
 ADD_CUSTOM_TARGET (
   fnv_hashes_precalc
-  COMMAND python ${scripts_dir}/update_fnv_hashes.py
+  COMMAND python ${scripts_dir}/update_hashes.py
   )
 
 

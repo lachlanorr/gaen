@@ -37,8 +37,8 @@ Entity::Entity(u32 propertyBufferSize,
                u8 * pPropertyBuffer,
                const Mat34 & transform)
   : mPropertyBufferSize(propertyBufferSize)
-  , mpPropertyBuffer(pPropertyBuffer)
   , mPropertyBufferHWM(0)
+  , mpPropertyBuffer(pPropertyBuffer)
 {
     if (!pPropertyBuffer)
         pPropertyBuffer = static_cast<u8*>(GALLOC(kMEM_Engine, mPropertyBufferSize));
@@ -63,21 +63,21 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
 {
     switch (msg.msgId)
     {
-    case FNV::fin:
+    case HASH::fin:
         // fin messages are like destructors and should be handled specially.
         // fin method will propogate fin to all tasks/entity children
         // and delete this entity.
         fin(msg, msgAcc);
         return MessageResult::Propogate;
-    case FNV::init:
+    case HASH::init:
         // We consume this message. New init messages will be generated and
         // passed to Components when they are added to us.
         init(msg, msgAcc);
         return MessageResult::Consumed;
-    case FNV::insert_component:
+    case HASH::insert_component:
         //insertComponent(msgAcc); // LORRTODO
         return MessageResult::Consumed;
-    case FNV::register_watcher:
+    case HASH::register_watcher:
         // register a property watcher for some combination of:
         // - component type
         // - compenent id
@@ -112,7 +112,7 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
 template <typename T>
 void Entity::fin(const Message & msg, T msgAcc)
 {
-    ASSERT(msg.msgId == FNV::fin);
+    ASSERT(msg.msgId == HASH::fin);
 
     // Send the message to all components
     for (Task & task : mComponents)

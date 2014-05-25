@@ -2,5 +2,5 @@
 setcc.sh
 build/**
 *.pyc
-src/engine/FNV.h
-src/engine/FNV.cpp
+src/engine/hashes.h
+src/engine/hashes.cpp

@@ -34,9 +34,9 @@ namespace gaen
 //------------------------------------------------------------------------------
 // MeshIterator
 //------------------------------------------------------------------------------
-ModelMgr::MeshIterator::MeshIterator(ShaderModelMap::const_iterator & shaderModelIterator,
-                                     ModelMeshMap::const_iterator & modelMeshIterator,
-                                     MeshList::const_iterator & meshIterator)
+ModelMgr::MeshIterator::MeshIterator(const ShaderModelMap::const_iterator & shaderModelIterator,
+                                     const ModelMeshMap::const_iterator & modelMeshIterator,
+                                     const MeshList::const_iterator & meshIterator)
 {
     mShaderModelIterator = shaderModelIterator;
     mModelMeshIterator = modelMeshIterator;

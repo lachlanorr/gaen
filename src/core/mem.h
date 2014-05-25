@@ -62,7 +62,7 @@ enum MemType
 #define GFREE(ptr)             gaen::tracked_free(ptr, __FILE__, __LINE__)
 #define GDELETE(ptr)           gaen::tracked_delete(ptr, __FILE__, __LINE__)
 #endif // #if !HAS(DEV_BUILD)
-#define GNEW(memType, type, ...) new (GALLOC(memType, sizeof(type))) type(##__VA_ARGS__)
+#define GNEW(memType, type, ...) new (GALLOC(memType, sizeof(type))) type( __VA_ARGS__ )
 
 
 // A pool contains various sizes of pre-allocated buffers.

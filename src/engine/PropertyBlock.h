@@ -54,15 +54,15 @@ public:
         switch (msg.msgId)
         {
 
-        case FNV::get_property:
+        case HASH::get_property:
             // Get the value of a single property, which will be sent
             // as a "property" message back to source task.
             property_id = msg.payload.u;
 
             switch (property_id)
             {
-            case FNV::model:
-                MessageWriter msgwr(FNV::property,
+            case HASH::model:
+                MessageWriter msgwr(HASH::property,
                                     kMessageFlag_None,
                                     msg.target,
                                     msg.source,
@@ -75,14 +75,14 @@ public:
             ERR("Unexpected get_property for PropertyBlock, property_id = %d", property_id);
             return MessageResult::Propogate;
 
-        case FNV::set_property:
+        case HASH::set_property:
             // Set the value fo a single property. No response will
             // be sent.
             property_id = msg.payload.u;
 
             switch (property_id)
             {
-            case FNV::model:
+            case HASH::model:
                 setModel(reinterpret_cast<Model *>(msgAcc[0].d[0].p));
                 return MessageResult::Consumed;
             }
@@ -90,11 +90,11 @@ public:
             ERR("Unexpected set_property for PropertyBlock, property_id = %d", property_id);
             return MessageResult::Propogate;
 
-        case FNV::get_all_properties:
+        case HASH::get_all_properties:
             // Retrieve all properties, in as many blocks as
             // necessary.  An "all_properties" message containing all
             // property data back to source task.
-            MessageWriter msgwr(FNV::all_properties,
+            MessageWriter msgwr(HASH::all_properties,
                                 kMessageFlag_None,
                                 msg.target,
                                 msg.source,
@@ -106,7 +106,7 @@ public:
             }
             return MessageResult::Consumed;
 
-        case FNV::set_all_properties:
+        case HASH::set_all_properties:
             // Set all properties.  If versions don't match, a
             // "property_version_mismatch" message will be sent back
             // to source task, and no changes to properties will be
@@ -123,7 +123,7 @@ public:
             else
             {
                 // versions don't match, return error response
-                MessageWriter msgwr(FNV::property_version_mismatch,
+                MessageWriter msgwr(HASH::property_version_mismatch,
                                     kMessageFlag_None,
                                     msg.target,
                                     msg.source,

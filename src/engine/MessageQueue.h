@@ -38,7 +38,7 @@ namespace gaen
 // Thus 16 * 16.  First 12 bytes are used for message header.  Last 4 of
 // header can be used for payload.  And finally, we require null terminated
 // strings in messages so they are easily consumed (thus the -1).
-static const size_t kMaxMessageStringLen = 16 * 16 - 12 - 1; // 243
+static const u32 kMaxMessageStringLen = 16 * 16 - 12 - 1; // 243
 
 class MessageQueue
 {
@@ -63,18 +63,18 @@ public:
         }
 
         // Access blocks of message
-        MessageBlock & operator[] (size_t index)
+        MessageBlock & operator[] (u32 index)
         {
             return blockFromIndex(index);
         }
 
-        const MessageBlock & operator[] (size_t index) const
+        const MessageBlock & operator[] (u32 index) const
         {
             return blockFromIndex(index);
         }
 
     private:
-        MessageBlock & blockFromIndex(size_t index) const
+        MessageBlock & blockFromIndex(u32 index) const
         {
             ASSERT(index < mAccessor.available()-1); // -1 since Message header is always present
             ASSERT(index < blockCount());
@@ -85,7 +85,7 @@ public:
             return *pBlock;
         }
 
-        size_t blockCount() const
+        u32 blockCount() const
         {
             ASSERT(mAccessor.available() > 0);
             return mAccessor[0].blockCount;
@@ -95,12 +95,12 @@ public:
     };
 
 
-    MessageQueue(size_t messageCount)
+    MessageQueue(u32 messageCount)
       : mRingBuffer(messageCount, kMEM_Engine)
     {}
     
     // Convenience functions for single Message 16 byte messages
-    void push(fnv msgId,
+    void push(u32 msgId,
               u32 flags,
               task_id source,
               task_id target)
@@ -108,7 +108,7 @@ public:
         push(msgId, source, target, 0);
     }
     
-    void push(fnv msgId,
+    void push(u32 msgId,
               u32 flags,
               task_id source,
               task_id target,
@@ -120,7 +120,7 @@ public:
     }
 
     void pushBegin(MessageAccessor * pMsgAcc,
-                   fnv msgId,
+                   u32 msgId,
                    u32 flags,
                    task_id source,
                    task_id target,
@@ -154,13 +154,13 @@ public:
 
     void popCommit(const MessageAccessor & msgAcc)
     {
-        ASSERT(msgAcc.mAccessor.available() >= msgAcc.mAccessor[0].blockCount + 1);
-        mRingBuffer.popCommit(msgAcc.mAccessor[0].blockCount + 1);
+        ASSERT(msgAcc.mAccessor.available() >= msgAcc.mAccessor[0].blockCount + (u32)1);
+        mRingBuffer.popCommit(msgAcc.mAccessor[0].blockCount + (u32)1);
     }
 
 private:
     void pushHeader(MessageAccessor * pMsgAcc,
-                    fnv msgId,
+                    u32 msgId,
                     u32 flags,
                     task_id source,
                     task_id target,

@@ -27,6 +27,8 @@
 #ifndef GAEN_ENGINE_MATH_H
 #define GAEN_ENGINE_MATH_H
 
+#include <cmath>
+
 #include "core/base_defines.h"
 
 namespace gaen

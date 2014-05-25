@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #-------------------------------------------------------------------------------
-# update_fnv_hashes.py - Pulls fnv references out of code and updates hashes.h/cpp
+# update_hashes.py - Pulls fnv references out of code and updates hashes.h/cpp
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014 Lachlan Orr
@@ -27,13 +27,10 @@
 #-------------------------------------------------------------------------------
 
 '''
-Pulls fnv references out of code and updates hashes.h/cpp.
+Pulls hash references out of code and updates hashes.h/cpp.
 
-Looks for patterns of type "FNV_[a-zA-Z_][a-zA-Z0-9_]*" in the code, and
+Looks for patterns of type "HAHS::[a-zA-Z_][a-zA-Z0-9_]*" in the code, and
 inserts the corresponding fnv hashes in src/engine/hashes.h/cpp.
-
-If you want to use a new FNV_* pattern, just put it in the code and it
-will get processed with this script as a prebuild step.
 '''
 
 import os
@@ -50,22 +47,19 @@ def fnv32a(s):
  
 # These are members of FNV class, which we don't want to confuse with
 # references to precalculated FNV hashses.
-EXCLUDE_PATTERNS = ['FNV::fnv1a_32',
-                    'FNV::TrackMap',
-                    'FNV::build_initial_track_map',
-                    'FNV::sTrackMap',
-                    'FNV::sTrackMapMutex']
+EXCLUDE_PATTERNS = ['HASH::__hash_func__',
+                    ]
                     
 def process_file(path):
     with open(path) as f:
         d = f.read()
-        return [s for s in re.findall('FNV::[a-zA-Z_][a-zA-Z0-9_]*', d) if s not in EXCLUDE_PATTERNS]
+        return [s for s in re.findall('HASH::[a-zA-Z_][a-zA-Z0-9_]*', d) if s not in EXCLUDE_PATTERNS]
     
 def process_dir(path):
     hashes = []
     for root, dirs, files in os.walk(path):
         for f in files:
-            if f not in ['FNV.h', 'FNV.cpp']:
+            if f not in ['hashes.h', 'hashes.cpp']:
                 ext = os.path.splitext(f)[1]
                 if ext in ['.h', '.cpp', '.mm']:
                     fullpath = os.path.join(root, f)
@@ -79,15 +73,15 @@ def src_dir():
     srcdir = os.path.join(gaendir, 'src')
     return srcdir
 
-def fnv_h_path():
-    return os.path.join(src_dir(), 'engine/FNV.h')
+def hashes_h_path():
+    return os.path.join(src_dir(), 'engine/hashes.h')
 
-def fnv_cpp_path():
-    return os.path.join(src_dir(), 'engine/FNV.cpp')
+def hashes_cpp_path():
+    return os.path.join(src_dir(), 'engine/hashes.cpp')
 
 def build_hash_list():
     hash_list = process_dir(src_dir())
-    hash_list = [hash[len("FNV::"):] for hash in hash_list]
+    hash_list = [hash[len("HASH::"):] for hash in hash_list]
     hash_list = sorted(set(hash_list))
     hash_list = [(hash, fnv32a(hash)) for hash in hash_list]
     return hash_list
@@ -95,19 +89,19 @@ def build_hash_list():
 def max_hash_name_len(hash_list):
     return len(max([h[0] for h in hash_list]))
 
-def fnv_declarations(hash_list):
+def hashes_declarations(hash_list):
     max_len = max_hash_name_len(hash_list)
-    return ''.join(['    static const fnv %s%s = 0x%08x; // %d\n' % (h[0], ' ' * (max_len-len(h[0])), h[1], h[1]) for h in hash_list])
+    return ''.join(['    static const u32 %s%s = 0x%08x; // %d\n' % (h[0], ' ' * (max_len-len(h[0])), h[1], h[1]) for h in hash_list])
 
-def fnv_h_construct(hash_list):
-    return FNV_H_TEMPLATE.replace('<<fnv_const_declarations>>', fnv_declarations(hash_list))
+def hashes_h_construct(hash_list):
+    return HASHES_H_TEMPLATE.replace('<<hashes_const_declarations>>', hashes_declarations(hash_list))
 
-def fnv_initializations(hash_list):
+def hashes_initializations(hash_list):
     max_len = max_hash_name_len(hash_list)
-    return ''.join(['    ASSERT(FNV::fnv1a_32("%s")%s == FNV::%s);\n' % (h[0],' ' * (max_len-len(h[0])),h[0]) for h in hash_list])
+    return ''.join(['    ASSERT(HASH::__hash_func__("%s")%s == HASH::%s);\n' % (h[0],' ' * (max_len-len(h[0])),h[0]) for h in hash_list])
 
-def fnv_cpp_construct(hash_list):
-    return FNV_CPP_TEMPLATE.replace('<<fnv_map_insertions>>', fnv_initializations(hash_list))
+def hashes_cpp_construct(hash_list):
+    return HASHES_CPP_TEMPLATE.replace('<<hashes_map_insertions>>', hashes_initializations(hash_list))
 
 def is_file_different(path, data):
     if os.path.isfile(path):
@@ -123,18 +117,18 @@ def write_file_if_different(path, new_data):
         f.write(new_data)
         f.close()
 
-def update_fnv_files():
+def update_hashes_files():
     hash_list = build_hash_list()
-    write_file_if_different(fnv_h_path(), fnv_h_construct(hash_list))
-    write_file_if_different(fnv_cpp_path(), fnv_cpp_construct(hash_list))
+    write_file_if_different(hashes_h_path(), hashes_h_construct(hash_list))
+    write_file_if_different(hashes_cpp_path(), hashes_cpp_construct(hash_list))
 
 def main():
     hash_list = build_hash_list()
-    update_fnv_files()
+    update_hashes_files()
 
 
-FNV_H_TEMPLATE = ('//------------------------------------------------------------------------------\n'
-                  '// FNV.h - Precalculated fnv hashes, generated by update_fnv_hashes.py\n'
+HASHES_H_TEMPLATE = ('//------------------------------------------------------------------------------\n'
+                  '// hashes.h - Precalculated hashes, generated by update_hashes.py\n'
                   '//\n'
                   '// Gaen Concurrency Engine - http://gaen.org\n'
                   '// Copyright (c) 2014 Lachlan Orr\n'
@@ -159,39 +153,37 @@ FNV_H_TEMPLATE = ('//-----------------------------------------------------------
                   '//   distribution.\n'
                   '//------------------------------------------------------------------------------\n'
                   '\n'
-                  '#ifndef GAEN_ENGINE_FNV_H\n'
-                  '#define GAEN_ENGINE_FNV_H\n'
+                  '#ifndef GAEN_ENGINE_HASHES_H\n'
+                  '#define GAEN_ENGINE_HASHES_H\n'
                   '\n'
                   '#include "core/HashMap.h"\n'
                   '#include "core/base_defines.h"\n'
                   '\n'
-                  '// Determines if string collisions are detected in fnv hashes\n'
+                  '// Determines if string collisions are detected in hashes\n'
                   '#define TRACK_HASHES WHEN(HAS(DEV_BUILD))\n'
                   '\n'
                   'namespace gaen\n'
                   '{\n'
                   '\n'
-                  'typedef u32 fnv;\n'
-                  '\n'
-                  'class FNV\n'
+                  'class HASH\n'
                   '{\n'
                   'public:\n'
-                  '    static fnv fnv1a_32(const char * str);\n'
+                  '    static u32 __hash_func__(const char * str);\n'
                   '\n'
-                  '    // Pre calculated fnv hashes.\n'
-                  '    // Generated with update_fnv_hashes.py, which gets run\n'
+                  '    // Pre calculated hashes.\n'
+                  '    // Generated with update_hashes.py, which gets run\n'
                   '    // during the build.\n'
-                  '<<fnv_const_declarations>>'
+                  '<<hashes_const_declarations>>'
                   '};\n'
                   '\n'
                   '} // namespace gaen\n'
                   '\n'
                   '\n'
-                  '#endif // #ifndef GAEN_ENGINE_FNV_H\n'
+                  '#endif // #ifndef GAEN_ENGINE_HASHES_H\n'
                  )
 
-FNV_CPP_TEMPLATE = ('//------------------------------------------------------------------------------\n'
-                    '// FNV.cpp - Precalculated fnv hashes, generated by update_fnv_hashes.py\n'
+HASHES_CPP_TEMPLATE = ('//------------------------------------------------------------------------------\n'
+                    '// HASHES.cpp - Precalculated hashes, generated by update_hashes.py\n'
                     '//\n'
                     '// Gaen Concurrency Engine - http://gaen.org\n'
                     '// Copyright (c) 2014 Lachlan Orr\n'
@@ -218,7 +210,8 @@ FNV_CPP_TEMPLATE = ('//---------------------------------------------------------
                     '\n'
                     '#include "engine/stdafx.h"\n'
                     '\n'
-                    '#include "engine/FNV.h"\n'
+                    '#include "core/hashing.h"\n'
+                    '#include "engine/hashes.h"\n'
                     '\n'
                     '#if HAS(TRACK_HASHES)\n'
                     '#include <mutex>\n'
@@ -233,38 +226,23 @@ FNV_CPP_TEMPLATE = ('//---------------------------------------------------------
                     '// Insert all our precalculated hashes into sTrackMap so we will know\n'
                     '// if we encounter conflicts in dynamically calculated hashes.  Also,\n'
                     '// verify the precalculted hashes match what our C++ version returns.\n'
-                    'typedef HashMap<kMEM_Debug, fnv, String<kMEM_Debug>> TrackMap;\n'
+                    'typedef HashMap<kMEM_Debug, u32, String<kMEM_Debug>> TrackMap;\n'
                     'TrackMap build_initial_track_map()\n'
                     '{\n'
                     '    TrackMap tm;\n'
                     '    tm.rehash(8192);\n'
-                    '<<fnv_map_insertions>>'
+                    '<<hashes_map_insertions>>'
                     '    return tm;\n'
                     '}\n'
                     'static std::mutex sTrackMapMutex;\n'
                     'static TrackMap sTrackMap = build_initial_track_map();\n'
                     '#endif // #if HAS(TRACK_HASHES)\n'
                     '\n'
-                    'static const u32 kFnv1_32Init  = 0x811c9dc5;\n'
-                    'static const u32 kFnv1_32Prime = 0x01000193;\n'
-                    '\n'
-                    'fnv FNV::fnv1a_32(const char *str)\n'
+                    'u32 HASH::__hash_func__(const char *str)\n'
                     '{\n'
                     '    ASSERT(str);\n'
                     '\n'
-                    '    u32 hval = kFnv1_32Init;\n'
-                    '\n'
-                    '    const u8 *s = reinterpret_cast<const u8 *>(str);\n'
-                    '\n'
-                    '    // FNV-1a hash each octet in the buffer\n'
-                    '    while (*s)\n'
-                    '    {\n'
-                    '        // xor the bottom with the current octet\n'
-                    '        hval ^= static_cast<u32>(*s++);\n'
-                    '\n'
-                    '        // multiply by the 32 bit FNV magic prime mod 2^32\n'
-                    '        hval *= kFnv1_32Prime;\n'
-                    '    }\n'
+                    '    u32 hval = ::gaen::fnv1a_32(str);\n'
                     '\n'
                     '#if HAS(TRACK_HASHES)\n'
                     '    {\n'
@@ -273,11 +251,11 @@ FNV_CPP_TEMPLATE = ('//---------------------------------------------------------
                     '        if (it != sTrackMap.end())\n'
                     '        {\n'
                     '            // If this assert fires, you have two distinct strings whose\n'
-                    '            // fnv hashes clash.  This will likely break stuff in horrific\n'
+                    '            // hashes clash.  This will likely break stuff in horrific\n'
                     '            // ways.  You need to tweak one of the strings, change its\n'
                     '            // value slightly and the problem should be resolved.\n'
                     '            // Sorry... it\'s the price to be paid for runtime efficiency.\n'
-                    '            ASSERT_MSG(it->second == str, "FNV Hash Clash Detected: %s and %s", it->second.c_str(), str);\n'
+                    '            ASSERT_MSG(it->second == str, "Hash Clash Detected: %s and %s", it->second.c_str(), str);\n'
                     '        }\n'
                     '        else\n'
                     '        {\n'

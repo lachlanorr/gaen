@@ -86,7 +86,10 @@ struct ParseData
     SymTab* pRootSymTab;
     void * pScanner;
     CompList<SymTab*> symTabStack;
+
+    // LORRTODO - fix templates
     CompHashSet<CompString> strings;
+    //CompHashSet<std::string> strings;
 
     // location info
     int line;
@@ -488,7 +491,7 @@ SymTab* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
     if (!symtab_add_symbol(pSymTab, pSymRec, pParseData))
     {
         COMP_ERROR("Failed to symtab_add_symbol: %s", pSymRec->name);
-        pSymTab;
+        return pSymTab;
     }
 
     return pSymTab;
@@ -634,9 +637,6 @@ ParseData * parse_file(ParseData * pParseData,
 
 void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...)
 {
-    static const size_t kMessageMax = 1024;
-    static thread_local char tMessage[kMessageMax];
-
     va_list argptr;
     va_start(argptr, format);
     parsedata_formatted_message(pParseData, kMSGT_Error, format, argptr);

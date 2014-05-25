@@ -29,7 +29,7 @@
 #include "core/platutils.h"
 #include "core/logging.h"
 
-#include "engine/FNV.h"
+#include "engine/hashes.h"
 #include "engine/MessageQueue.h"
 #include "engine/Entity.h"
 #include "engine/renderer_type.h"
@@ -67,7 +67,7 @@ template <class RendererT>
 void fin_task_masters()
 {
     ASSERT(sIsInit);
-    broadcast_message<RendererT>(FNV::fin,
+    broadcast_message<RendererT>(HASH::fin,
                                  kMessageFlag_None,
                                  kMainThreadTaskId);
     join_all_threads();
@@ -114,7 +114,7 @@ void start_game_loops(Entity * pInitEntity)
         // Create a task out of the entity and start it up
         Task t = Task::createUpdatable(pInitEntity);
         {
-            InsertTaskMsgW msgw(FNV::add_task,
+            InsertTaskMsgW msgw(HASH::add_task,
                                  kMessageFlag_None,
                                  kMainThreadTaskId,
                                  kPrimaryThreadId,
@@ -125,7 +125,7 @@ void start_game_loops(Entity * pInitEntity)
 }
 
 template <class RendererT>
-MessageQueue & get_message_queue(fnv msgId,
+MessageQueue & get_message_queue(u32 msgId,
                                  u32 flags,
                                  task_id source,
                                  task_id target)
@@ -153,7 +153,7 @@ MessageQueue & get_message_queue(fnv msgId,
 }
 
 template <class RendererT>
-void broadcast_message(fnv msgId,
+void broadcast_message(u32 msgId,
                        u32 flags,
                        task_id source,
                        cell payload,
@@ -211,7 +211,7 @@ template <class RendererT>
 void TaskMaster<RendererT>::fin(const Message & msg, const MessageQueue::MessageAccessor& msgAcc)
 {
     ASSERT(mIsInit);
-    ASSERT(msg.msgId == FNV::fin);
+    ASSERT(msg.msgId == HASH::fin);
 
     for (Task & task : mOwnedTasks)
     {
@@ -294,10 +294,7 @@ void TaskMaster<RendererT>::runPrimaryGameLoop()
     mpRenderer->initViewport();
 
     f32 lastFrameTime = 0.0f;
-    thread_id numThreads = num_threads();
     
-    f32 deltaSecs = 0.0f;
-
     while(mIsRunning)
     {
         // Render through the render adapter
@@ -364,7 +361,7 @@ void TaskMaster<RendererT>::runAuxiliaryGameLoop()
 
 
 template <class RendererT>
-void TaskMaster<RendererT>::registerMutableDependency(task_id taskId, fnv path)
+void TaskMaster<RendererT>::registerMutableDependency(task_id taskId, u32 path)
 {
     ASSERT(mIsInit);
 /*
@@ -408,7 +405,7 @@ void TaskMaster<RendererT>::registerMutableDependency(task_id taskId, fnv path)
 }
 
 template <class RendererT>
-void TaskMaster<RendererT>::deregisterMutableDependency(task_id taskId, fnv path)
+void TaskMaster<RendererT>::deregisterMutableDependency(task_id taskId, u32 path)
 {
     ASSERT(mIsInit);
 }
@@ -435,13 +432,13 @@ MessageResult TaskMaster<RendererT>::message(const Message & msg, const MessageQ
         ASSERT_MSG(msg.target == active_thread_id(), "TaskMaster message sent to wrong TaskMaster");
         switch(msg.msgId)
         {
-        case FNV::fin:
+        case HASH::fin:
         {
             ASSERT(mIsRunning);
             fin(msg, msgAcc);
             return MessageResult::Consumed;
         }
-        case FNV::insert_task:
+        case HASH::insert_task:
         {
             InsertTaskMsgR msgr(msgAcc);
             insertTask(msgr.owner(), msgr.task());
@@ -449,7 +446,7 @@ MessageResult TaskMaster<RendererT>::message(const Message & msg, const MessageQ
         }
         default:
         {
-            ERR("Unhandled message type, fnv: %d", msg.msgId);
+            ERR("Unhandled message type, msgId: %d", msg.msgId);
             return MessageResult::Propogate;
         }
         }
@@ -499,12 +496,12 @@ template void init_task_masters<renderer_type>();
 template void fin_task_masters<renderer_type>();
 template void start_game_loops<renderer_type>(Entity * pInitEntity);
 
-template MessageQueue & get_message_queue<renderer_type>(fnv msgId,
+template MessageQueue & get_message_queue<renderer_type>(u32 msgId,
                                                          u32 flags,
                                                          task_id source,
                                                          task_id target);
 
-template void broadcast_message<renderer_type>(fnv msgId,
+template void broadcast_message<renderer_type>(u32 msgId,
                                                u32 flags,
                                                task_id source,
                                                cell payload,

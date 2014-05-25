@@ -73,7 +73,7 @@ private:
 class InsertTaskMsgW : protected MessageWriter
 {
 public:
-    InsertTaskMsgW(fnv msgId,
+    InsertTaskMsgW(u32 msgId,
                    u32 flags,
                    task_id source,
                    task_id target,

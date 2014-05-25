@@ -76,7 +76,7 @@ private:
 class InsertModelInstanceMsgW : protected MessageWriter
 {
 public:
-    InsertModelInstanceMsgW(fnv msgId,
+    InsertModelInstanceMsgW(u32 msgId,
                             u32 flags,
                             task_id source,
                             task_id target,

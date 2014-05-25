@@ -37,7 +37,7 @@ namespace gaen
 
 Entity * model_viewer_init_entity()
 {
-    Model * pModel = buildTriModel(20.0f, 20.0f, Color(255, 255, 0, 255));
+    //Model * pModel = buildTriModel(20.0f, 20.0f, Color(255, 255, 0, 255));
 
     // LORRTODO
     //Entity * pEntity = GNEW(kMEM_Engine, Entity, 256);

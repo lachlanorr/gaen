@@ -32,7 +32,7 @@
 #include "core/HashMap.h"
 #include "core/List.h"
 #include "core/Vector.h"
-#include "engine/FNV.h"
+#include "engine/hashes.h"
 #include "engine/Message.h"
 #include "engine/Task.h"
 
@@ -61,14 +61,13 @@ void start_game_loops(Entity * pInitEntity);
 
 // Get the correct message queue against which you should queue
 template <class RendererT>
-MessageQueue & get_message_queue(fnv msgId,
+MessageQueue & get_message_queue(u32 msgId,
                                  u32 flags,
                                  task_id source,
                                  task_id target);
-
 // Broadcast a message to all TaskMasters
 template <class RendererT>
-void broadcast_message(fnv msgId,
+void broadcast_message(u32 msgId,
                        u32 flags,
                        task_id source,
                        cell payload = to_cell(0),
@@ -121,10 +120,10 @@ public:
     // i.e. the task can modify this data.
     // Any other task also registered for this data
     // must run within the same TaskMaster.
-    void registerMutableDependency(task_id taskId, fnv path);
+    void registerMutableDependency(task_id taskId, u32 path);
 
     // Deregister a task from a mutable data dependency
-    void deregisterMutableDependency(task_id taskId, fnv path);
+    void deregisterMutableDependency(task_id taskId, u32 path);
 
     void setRenderer(RendererT * pRenderer)
     {
@@ -166,12 +165,12 @@ private:
     // We maintain a reference count the data path has to the task
     typedef HashMap<kMEM_Engine, task_id, u32> DataToTaskRefs;
     typedef UniquePtr<DataToTaskRefs> DataToTaskRefsUP;
-    typedef HashMap<kMEM_Engine, fnv, DataToTaskRefsUP> MutableDataUsersMap;
+    typedef HashMap<kMEM_Engine, u32, DataToTaskRefsUP> MutableDataUsersMap;
     MutableDataUsersMap mMutableDataUsers;
 
     // Maps root task_id to the set of mutable data paths that it depends on
     // We maintain a reference count the root task_id has towards the data path
-    typedef HashMap<kMEM_Engine, fnv, u32> TaskToDataRefs;
+    typedef HashMap<kMEM_Engine, u32, u32> TaskToDataRefs;
     typedef UniquePtr<TaskToDataRefs> TaskToDataRefsUP;
     typedef HashMap<kMEM_Engine, task_id, TaskToDataRefsUP> MutableDataMap;
     MutableDataMap mMutableData;

@@ -46,9 +46,9 @@ MessageResult ModelComponent::message(const MessageQueue::MessageAccessor& msgAc
     
     switch (msgAcc.message().msgId)
     {
-    case FNV::init:
+    case HASH::init:
         break;
-    case FNV::fin:
+    case HASH::fin:
     {
         if (mpModel)
         {

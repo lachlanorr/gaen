@@ -58,7 +58,7 @@ public:
         const Message & msg = msgAcc.message();
         switch (msg.msgId)
         {
-        case FNV::init:
+        case HASH::init:
             mEntityTaskId = msg.source;
             mTaskId = msg.target;
             msgRes = MessageResult::Consumed;

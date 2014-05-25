@@ -43,5 +43,4 @@ using String = std::basic_string<char,
 
 } // namespace gaen
 
-
 #endif //#ifndef GAEN_CORE_STRING_H

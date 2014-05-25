@@ -30,6 +30,8 @@ SET (core_SOURCES
   base_defines.h
   gamevars.cpp
   gamevars.h
+  hashing.cpp
+  hashing.h
   HashMap.h
   HashSet.h
   List.h

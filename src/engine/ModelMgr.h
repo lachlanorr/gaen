@@ -45,13 +45,13 @@ public:
         ModelInstance(model_instance_id instanceId,
                       Model * pModel,
                       const Mat34 & worldTransform)
-          : instanceId(instanceId)
+          : worldTransform(worldTransform)
           , pModel(pModel)
-          , worldTransform(worldTransform)
+          , instanceId(instanceId)
         {}
         
-        Model * pModel;
         Mat34 worldTransform;
+        Model * pModel;
         model_instance_id instanceId;
     };
     
@@ -88,9 +88,9 @@ public:
         const MaterialMeshInstance & operator*() const;
 
     private:
-        MeshIterator(ShaderModelMap::const_iterator & shaderModelIterator,
-                     ModelMeshMap::const_iterator & modelMeshIterator,
-                     MeshList::const_iterator & meshIterator);
+        MeshIterator(const ShaderModelMap::const_iterator & shaderModelIterator,
+                     const ModelMeshMap::const_iterator & modelMeshIterator,
+                     const MeshList::const_iterator & meshIterator);
 
         ShaderModelMap::const_iterator mShaderModelIterator;
         ModelMeshMap::const_iterator mModelMeshIterator;
@@ -100,7 +100,7 @@ public:
     friend class MeshIterator;
     //--------------------------------------------------------------------------
 
-    ModelMgr::ModelMgr();
+    ModelMgr();
 
     void fin();
 

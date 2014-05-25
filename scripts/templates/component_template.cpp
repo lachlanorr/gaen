@@ -52,7 +52,7 @@ private:
     class Properties
     {
     public:
-        static const fnv kVersion = 0xDEADbeef; // fnv hash of this version of the properties
+        static const u32 kVersion = 0xDEADbeef; // hash of this version of the properties
 
         Properties()
         {
@@ -76,17 +76,17 @@ private:
             {
 
             // get_property
-            case FNV::get_property_initial:
+            case HASH::get_property_initial:
                 group = PropertyGroup::Initial;
-            case FNV::get_property:
+            case HASH::get_property:
                 // Get the value of a single property, which will be sent
                 // as a "property" message back to source task.
                 property_id = msg.payload.u;
 
                 switch (property_id)
                 {
-                case FNV::model:
-                    MessageWriter msgwr(group == PropertyGroup::Current ? FNV::property : FNV::property_initial,
+                case HASH::model:
+                    MessageWriter msgwr(group == PropertyGroup::Current ? HASH::property : HASH::property_initial,
                                         kMessageFlag_None,
                                         msg.target,
                                         msg.source,
@@ -100,16 +100,16 @@ private:
                 return MessageResult::Propogate;
 
             // set_property
-            case FNV::set_property_initial:
+            case HASH::set_property_initial:
                 group = PropertyGroup::Initial;
-            case FNV::set_property:
+            case HASH::set_property:
                 // Set the value fo a single property. No response will
                 // be sent.
                 property_id = msg.payload.u;
 
                 switch (property_id)
                 {
-                case FNV::model:
+                case HASH::model:
                     setModel(reinterpret_cast<Model *>(msgAcc[0].d[0].p), group);
                     return MessageResult::Consumed;
                 }
@@ -118,12 +118,12 @@ private:
                 return MessageResult::Propogate;
 
             // reset_property
-            case FNV::reset_property:
+            case HASH::reset_property:
                 property_id = msg.payload.u;
 
                 switch (property_id)
                 {
-                case FNV::model:
+                case HASH::model:
                     resetModel();
                     return MessageResult::Consumed;
                 }
@@ -132,20 +132,20 @@ private:
                 return MessageResult::Propogate;
 
             // reset_properties
-            case FNV::reset_properties:
+            case HASH::reset_properties:
                 resetProperties();
                 return MessageResult::Consumed;
             }
 
             // get_properties
-            case FNV::get_properties_initial:
+            case HASH::get_properties_initial:
                 group = PropertyGroup::Initial;
-            case FNV::get_properties:
+            case HASH::get_properties:
                 // Retrieve all properties, in as many blocks as
                 // necessary.  An "current_properties" message containing all
                 // property data back to source task.
                 pBlock = block(group);
-                MessageWriter msgwr(group == PropertyGroup::Current ? FNV::properties : FNV::properties_initial,
+                MessageWriter msgwr(group == PropertyGroup::Current ? HASH::properties : HASH::properties_initial,
                                     kMessageFlag_None,
                                     msg.target,
                                     msg.source,
@@ -158,9 +158,9 @@ private:
                 return MessageResult::Consumed;
 
             // set_properties
-            case FNV::set_properties_initial:
+            case HASH::set_properties_initial:
                 group = PropertyGroup::Initial;
-            case FNV::set_properties:
+            case HASH::set_properties:
                 // Set all properties.  If versions don't match, a
                 // "property_version_mismatch" message will be sent back
                 // to source task, and no changes to properties will be
@@ -178,7 +178,7 @@ private:
                 else
                 {
                     // versions don't match, return error response
-                    MessageWriter msgwr(FNV::property_version_mismatch,
+                    MessageWriter msgwr(HASH::property_version_mismatch,
                                         kMessageFlag_None,
                                         msg.target,
                                         msg.source,

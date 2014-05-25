@@ -25,6 +25,7 @@
 //------------------------------------------------------------------------------
 
 #include <cstdio> // LORRTEMP
+#include <cstring>
 
 #include "core/base_defines.h"
 #include "core/mem.h"

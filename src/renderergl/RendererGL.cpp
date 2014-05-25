@@ -99,7 +99,7 @@ MessageResult RendererGL::message(const MessageQueue::MessageAccessor& msgAcc)
 
     switch(msg.msgId)
     {
-    case FNV::renderer_insert_model_instance:
+    case HASH::renderer_insert_model_instance:
     {
         InsertModelInstanceMsgR msgr(msgAcc);
         mModelMgr.insertModelInstance(msgr.instanceId(),
@@ -108,7 +108,7 @@ MessageResult RendererGL::message(const MessageQueue::MessageAccessor& msgAcc)
                                       msgr.isAssetManaged());
         break;
     }
-    case FNV::renderer_remove_model_instance:
+    case HASH::renderer_remove_model_instance:
     {
         model_instance_id instanceId = msg.payload.u;
         mModelMgr.removeModelInstance(instanceId);

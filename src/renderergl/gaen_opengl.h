@@ -31,6 +31,11 @@
 
 #if IS_PLATFORM_WIN32
 #include "renderergl/win32gl.h"
+#elif IS_PLATFORM_OSX
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <GLUT/glut.h>
+#else
 // LORRTODO - Include appropriate open gl header for other platforms
 #endif
 

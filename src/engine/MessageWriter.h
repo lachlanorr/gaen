@@ -39,7 +39,7 @@ namespace gaen
 class MessageWriter
 {
 public:
-    MessageWriter(fnv msgId,
+    MessageWriter(u32 msgId,
                   u32 flags,
                   task_id source,
                   task_id target,

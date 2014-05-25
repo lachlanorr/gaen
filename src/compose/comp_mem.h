@@ -66,12 +66,13 @@ size_t comp_avail_mem();
 #include <unordered_map>
 
 #include "core/base_defines.h"
+#include "core/hashing.h"
 
 #define COMP_NEW(type, ...)    new (COMP_ALLOC(sizeof(type))) type(##__VA_ARGS__)
 #define COMP_DELETE(ptr)       comp_delete(ptr)
 
 template <class T>
-inline void * comp_delete(T * ptr)
+inline void comp_delete(T * ptr)
 {
     ptr->~T();
     // we never free memory in the compiler
@@ -173,6 +174,19 @@ using CompHashMap = std::unordered_map<Key,
 //------------------------------------------------------------------------------
 
 } // namespace gaen
+
+// Overloads of std::hash so we can use our CompString class
+// as a key to unordered_map and unordered_set.
+namespace std {
+template <> struct hash<gaen::CompString>
+{
+    size_t operator()(const gaen::CompString & str) const
+    {
+        // LORRTODO - consider a 64 bit hash for here, but for now fnv1a_32 will suffice
+        return gaen::fnv1a_32(str.c_str());
+    }
+};
+}
 
 #endif // #ifdef __cplusplus
 

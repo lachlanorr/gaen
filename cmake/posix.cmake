@@ -25,3 +25,10 @@
 #-------------------------------------------------------------------------------
 
 SET (net_platform "posix")
+
+MACRO (MSVC_PRECOMPILED_HEADER target_name sources)
+ENDMACRO (MSVC_PRECOMPILED_HEADER source_path sources)
+
+MACRO (IDE_SOURCE_PROPERTIES source_path sources)
+ENDMACRO (IDE_SOURCE_PROPERTIES NAME sources)
+
