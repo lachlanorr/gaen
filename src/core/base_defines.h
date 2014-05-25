@@ -212,11 +212,7 @@ typedef float           f32;
 typedef double          f64;
 
 
-inline constexpr u32 fourcc(char a, char b, char c, char d)
-{
-    // LORRTODO - figure out how to check endianess and blow up if big endian
-    return d << 24 | c << 16 | b << 8 | a;
-}
+#define GAEN_4CC(a, b, c, d) ((d) << 24 | (c) << 16 | (b) << 8 | (a))
 
 // Align a value to specified alignment.  Useful to ensure memory
 // alignment in custom allocators and things like that.

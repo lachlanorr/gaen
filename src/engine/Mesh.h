@@ -38,19 +38,19 @@ typedef u16 index;
 
 enum VertexType
 {
-    kVERT_Pos          = fourcc('V','T','X','A'),
-    kVERT_PosNorm      = fourcc('V','T','X','B'),
-    kVERT_PosNormUv    = fourcc('V','T','X','C'),
-    kVERT_PosNormUvTan = fourcc('V','T','X','D'),
+    kVERT_Pos          = GAEN_4CC('V','T','X','A'),
+    kVERT_PosNorm      = GAEN_4CC('V','T','X','B'),
+    kVERT_PosNormUv    = GAEN_4CC('V','T','X','C'),
+    kVERT_PosNormUvTan = GAEN_4CC('V','T','X','D'),
 
     kVERT_END
 };
 
 enum IndexType
 {
-    kIND_Point    = fourcc('I','D','X','A'),
-    kIND_Line     = fourcc('I','D','X','B'),
-    kIND_Triangle = fourcc('I','D','X','C'),
+    kIND_Point    = GAEN_4CC('I','D','X','A'),
+    kIND_Line     = GAEN_4CC('I','D','X','B'),
+    kIND_Triangle = GAEN_4CC('I','D','X','C'),
 
     kIND_END
 };
@@ -108,25 +108,33 @@ inline bool is_valid_index_type(u32 indexType)
 
 inline u8 vertex_type_zero_based_id(VertexType vertexType)
 {
-    ASSERT(is_valid_vertex_type(vertexType));
-    return static_cast<u8>(static_cast<u32>(vertexType) - static_cast<u32>(kVERT_Pos));
+    PANIC("Fix 4cc endianess issue");
+    return 0;
+//    ASSERT(is_valid_vertex_type(vertexType));
+//    return static_cast<u8>(static_cast<u32>(vertexType) - static_cast<u32>(kVERT_Pos));
 }
 
 inline u8 vertex_type_zero_based_id_end()
 {
-    return static_cast<u8>(static_cast<u32>(kVERT_END) - static_cast<u32>(kVERT_Pos));
+    PANIC("Fix 4cc endianess issue");
+    return 0;
+//    return static_cast<u8>(static_cast<u32>(kVERT_END) - static_cast<u32>(kVERT_Pos));
 }
 
 
 inline u8 index_type_zero_based_id(IndexType indexType)
 {
-    ASSERT(is_valid_index_type(indexType));
-    return static_cast<u8>(static_cast<u32>(indexType) - static_cast<u32>(kIND_Point));
+    PANIC("Fix 4cc endianess issue");
+    return 0;
+//    ASSERT(is_valid_index_type(indexType));
+//    return static_cast<u8>(static_cast<u32>(indexType) - static_cast<u32>(kIND_Point));
 }
 
 inline u8 index_type_zero_based_id_end()
 {
-    return static_cast<u8>(static_cast<u32>(kIND_END) - static_cast<u32>(kIND_Point));
+    PANIC("Fix 4cc endianess issue");
+    return 0;
+//    return static_cast<u8>(static_cast<u32>(kIND_END) - static_cast<u32>(kIND_Point));
 }
 
 struct IndexPoint

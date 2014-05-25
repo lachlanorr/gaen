@@ -178,8 +178,8 @@ private:
     u32 filledCount(T* pHead, T* pTail) const
     {
         if (pTail >= pHead)
-            return pTail - pHead;
-        return (pTail - mpBuffer) + (mpBufferEnd - mpHead);
+            return static_cast<u32>(pTail - pHead);
+        return static_cast<u32>((pTail - mpBuffer) + (mpBufferEnd - mpHead));
     }
 
     u32 emptyCount(T* pHead, T* pTail) const
