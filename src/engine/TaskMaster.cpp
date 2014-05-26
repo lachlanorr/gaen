@@ -33,7 +33,7 @@
 #include "engine/MessageQueue.h"
 #include "engine/Entity.h"
 #include "engine/renderer_type.h"
-#include "engine/messages/InsertTaskMessage.h"
+#include "engine/messages/InsertTask.h"
 
 #include "engine/TaskMaster.h"
 
@@ -114,7 +114,7 @@ void start_game_loops(Entity * pInitEntity)
         // Create a task out of the entity and start it up
         Task t = Task::createUpdatable(pInitEntity);
         {
-            InsertTaskMsgW msgw(HASH::add_task,
+            msg::InsertTaskW msgw(HASH::add_task,
                                  kMessageFlag_None,
                                  kMainThreadTaskId,
                                  kPrimaryThreadId,
@@ -440,7 +440,7 @@ MessageResult TaskMaster<RendererT>::message(const Message & msg, const MessageQ
         }
         case HASH::insert_task:
         {
-            InsertTaskMsgR msgr(msgAcc);
+            msg::InsertTaskR msgr(msgAcc);
             insertTask(msgr.owner(), msgr.task());
             return MessageResult::Consumed;
         }

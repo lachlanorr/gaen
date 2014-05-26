@@ -27,8 +27,43 @@
 #-------------------------------------------------------------------------------
 
 import posixpath
+import os
 
-from codegen_utils import *
+def read_file_data(path):
+    if not os.path.exists(path):
+        return None
+    with open(path, 'rb') as f:
+        return f.read()
+
+def replace_file_if_different(path, data):
+    if read_file_data(path) != data:
+        print 'Writing ' + path
+        with open(path, 'wb') as out_f:
+            out_f.write(data)
+
+def scripts_path():
+    scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
+    return scriptdir
+
+def gaen_path():
+    return posixpath.split(scripts_path())[0]
+
+def template_subst(template, replacements):
+    for k, v in replacements.iteritems():
+        template = template.replace('<<%s>>' % k, v)
+    return template
+
+def gen_includes(includes):
+    inc = []
+    for i in includes:
+        inc.append('#include "%s"\n' % i)
+    return ''.join(inc)
+
+def camel_to_underscores(s):
+    s = re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1_\2', s)
+    s = re.sub(r'([a-z\d])([A-Z])', r'\1_\2', s)
+    s = s.strip('_')
+    return s.lower()
 
 class Templates:
     MessageClass   = read_file_data(posixpath.join(scripts_path(), 'templates/message_template.cpp'))
@@ -40,7 +75,7 @@ def messages_def_path():
 def gen_message_cmake(field_handlers):
     lines = []
     for field_handler in field_handlers:
-        lines.append('  messages/%sMessage.h' % field_handler.object_name)
+        lines.append('  messages/%s.h' % field_handler.object_name)
     lines.sort()
     return template_subst(Templates.CmakeFileList, {'files'       : '\n'.join(lines),
                                                     'autogen_type': 'messages'})
@@ -154,7 +189,7 @@ def gen_message_classes():
     field_handlers = parse_messages_def()
     for field_handler in field_handlers:
         cpp_data = gen_message_class(field_handler)
-        cpp_path = posixpath.join(messages_def_path(), field_handler.object_name + 'Message.h')
+        cpp_path = posixpath.join(messages_def_path(), field_handler.object_name + '.h')
         replace_file_if_different(cpp_path, cpp_data)
     cmake_data = gen_message_cmake(field_handlers)
     cmake_path = posixpath.join(messages_def_path(), 'messages.cmake')

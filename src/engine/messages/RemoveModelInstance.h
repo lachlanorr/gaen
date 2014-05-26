@@ -33,11 +33,13 @@
 
 namespace gaen
 {
+namespace msg
+{
 
-class RemoveModelInstanceMsgR
+class RemoveModelInstanceR
 {
 public:
-    RemoveModelInstanceMsgR(const MessageQueue::MessageAccessor & msgAcc)
+    RemoveModelInstanceR(const MessageQueue::MessageAccessor & msgAcc)
       : mMsgAcc(msgAcc)
     {
 
@@ -53,10 +55,10 @@ private:
 
 
 
-class RemoveModelInstanceMsgW : protected MessageWriter
+class RemoveModelInstanceW : protected MessageWriter
 {
 public:
-    RemoveModelInstanceMsgW(u32 msgId,
+    RemoveModelInstanceW(u32 msgId,
                             u32 flags,
                             task_id source,
                             task_id target,
@@ -71,6 +73,7 @@ public:
     void setInstanceId(model_instance_id val) { mMsgAcc.message().payload.u = val; }
 };
 
+} // namespcae msg
 } // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_MESSAGES_REMOVEMODELINSTANCEMESSAGE_H

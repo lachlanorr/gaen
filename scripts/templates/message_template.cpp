@@ -30,11 +30,13 @@
 <<includes>>
 namespace gaen
 {
+namespace msg
+{
 
-class <<message_name>>MsgR
+class <<message_name>>R
 {
 public:
-    <<message_name>>MsgR(const MessageQueue::MessageAccessor & msgAcc)
+    <<message_name>>R(const MessageQueue::MessageAccessor & msgAcc)
       : mMsgAcc(msgAcc)
     {
 <<reader_data_member_init>>
@@ -50,10 +52,10 @@ private:
 
 
 
-class <<message_name>>MsgW : protected MessageWriter
+class <<message_name>>W : protected MessageWriter
 {
 public:
-    <<message_name>>MsgW(u32 msgId,
+    <<message_name>>W(u32 msgId,
     <<message_name_indent>>     u32 flags,
     <<message_name_indent>>     task_id source,
     <<message_name_indent>>     task_id target<<payload_decl>>)
@@ -67,6 +69,7 @@ public:
 <<writer_setters>>
 };
 
+} // namespcae msg
 } // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_MESSAGES_<<message_name_caps>>MESSAGE_H

@@ -29,7 +29,7 @@
 #include "core/base_defines.h"
 
 #include "engine/MessageQueue.h"
-#include "engine/messages/InsertModelInstanceMessage.h"
+#include "engine/messages/InsertModelInstance.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/RendererGL.h"
@@ -101,7 +101,7 @@ MessageResult RendererGL::message(const MessageQueue::MessageAccessor& msgAcc)
     {
     case HASH::renderer_insert_model_instance:
     {
-        InsertModelInstanceMsgR msgr(msgAcc);
+        msg::InsertModelInstanceR msgr(msgAcc);
         mModelMgr.insertModelInstance(msgr.instanceId(),
                                       msgr.model(),
                                       msgr.worldTransform(),

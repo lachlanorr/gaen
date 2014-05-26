@@ -25,7 +25,6 @@
 #-------------------------------------------------------------------------------
 
 INCLUDE (messages/messages.cmake)
-INCLUDE (components/components.cmake)
 
 SET (engine_SOURCES
   Color.h
@@ -56,13 +55,11 @@ SET (engine_SOURCES
   TaskMaster.cpp
   TaskMaster.h
   ${engine_messages_SOURCES}
-#  ${engine_components_SOURCES}
   )
 
 MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${engine_SOURCES}")
 IDE_SOURCE_PROPERTIES( "/messages" "${engine_messages_SOURCES}")
-IDE_SOURCE_PROPERTIES( "/components" "${engine_components_SOURCES}")
 
 ADD_LIBRARY (engine
   ${engine_SOURCES}
@@ -81,21 +78,6 @@ ADD_CUSTOM_TARGET (
   COMMAND python ${scripts_dir}/codegen_messages.py
   )
 
-  
-
-# Run during configure.
-EXECUTE_PROCESS (
-  COMMAND python ${scripts_dir}/codegen_components.py
-  )
-
-# Run each time we build.
-ADD_CUSTOM_TARGET (
-  components_gen
-  COMMAND python ${scripts_dir}/codegen_components.py
-  )
-
-  
-
 # Run during configure so we have FNV.h/cpp existing for .sln creation
 EXECUTE_PROCESS (
   COMMAND python ${scripts_dir}/update_hashes.py
@@ -112,7 +94,6 @@ ADD_CUSTOM_TARGET (
 ADD_DEPENDENCIES(engine
   core
   messages_gen
-  #components_gen
   fnv_hashes_precalc
   )
 

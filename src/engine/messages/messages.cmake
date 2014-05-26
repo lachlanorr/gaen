@@ -25,7 +25,7 @@
 #-------------------------------------------------------------------------------
 
 SET (engine_messages_SOURCES
-  messages/InsertModelInstanceMessage.h
-  messages/InsertTaskMessage.h
-  messages/RemoveModelInstanceMessage.h
+  messages/InsertModelInstance.h
+  messages/InsertTask.h
+  messages/RemoveModelInstance.h
 )  
