@@ -45,14 +45,13 @@ void messageHandler(MessageType messageType,
     switch (messageType)
     {
     case kMSGT_Info:
-        printf(message);
-        printf("\n");
+        fprintf(stderr, "%s\n", message);
         break;
     case kMSGT_Warning:
-        printf("%s(%d:%d): WARNING - %s\n", filename, line, column, message);
+        fprintf(stderr, "%s(%d:%d): WARNING - %s\n", filename, line, column, message);
         break;
     case kMSGT_Error:
-        printf("%s(%d:%d): ERROR - %s\n", filename, line, column, message);
+        fprintf(stderr, "%s(%d:%d): ERROR - %s\n", filename, line, column, message);
         break;
     }
 }
@@ -76,7 +75,7 @@ int main(int argc, char ** argv)
 
     if (pParseData->hasErrors)
     {
-        printf("Compilation failed due to errors\n");
+        fprintf(stderr, "Compilation failed due to errors.\n");
         exit(1);
     }
 

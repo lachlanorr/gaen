@@ -374,11 +374,11 @@ static void extract_filenames(const S & cmpFullPath,
     if (cmpFullPath.substr(cmpFullPath.size() - 4) != S(".cmp"))
         PANIC("Compose filename doesn't have .cmp extension: %s", cmpFullPath.c_str());
 
-    S scriptsCompose("/scripts/compose/");
+    S scriptsCompose("/scripts/cmp/");
 
     size_t scriptsComposePos = cmpFullPath.rfind(scriptsCompose);
     if (scriptsComposePos == S::npos)
-        PANIC("Compose filename doesn't contain .../scripts/compose/... directory: %s", cmpFullPath.c_str());
+        PANIC("Compose filename doesn't contain .../scripts/cmp/... directory: %s", cmpFullPath.c_str());
 
     size_t lastSlashPos = cmpFullPath.rfind('/');
 

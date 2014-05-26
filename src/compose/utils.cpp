@@ -121,8 +121,8 @@ const char * full_path(const char * path,
 void make_posix_path(char * path)
 {
     ASSERT(path);
-    char * p;
-    while ((p = strchr(path, '\\')))
+    char * p = path;
+    while ((p = strchr(p, '\\')))
         *p = '/';
 }
 
