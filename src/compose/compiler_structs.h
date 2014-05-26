@@ -93,12 +93,12 @@ struct ParseData
     int line;
     int column;
 
-    const char * rootDir;
-    const char * filename;
     const char * fullPath;
+    const char * filename;
     MessageHandler messageHandler;
 
     bool skipNextScope;
+    bool hasErrors;
 };
 
 #endif // #ifndef GAEN_COMPOSE_COMPILER_STRUCTS_H

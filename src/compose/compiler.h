@@ -242,8 +242,7 @@ void ast_set_lhs(Ast * pParent, Ast * pLhs);
 void ast_set_mid(Ast * pParent, Ast * pMid);
 void ast_set_rhs(Ast * pParent, Ast * pRhs);
 
-ParseData * parsedata_create(const char * rootDir,
-                             const char * filename,
+ParseData * parsedata_create(const char * fullPath,
                              MessageHandler messageHandler);
 void *  parsedata_scanner(ParseData * pParseData);
 
@@ -278,12 +277,11 @@ void parse_init();
 ParseData * parse(ParseData * pParseData,
                   const char * source,
                   size_t length,
-                  const char * filename,
+                  const char * fullPath,
                   MessageHandler messageHandler);
 
 ParseData * parse_file(ParseData * pParseData,
-                       const char * rootDir,
-                       const char * filename,
+                       const char * fullPath,
                        MessageHandler messageHandler);
 
 typedef struct YYLTYPE YYLTYPE;

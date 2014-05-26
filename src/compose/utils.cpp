@@ -31,6 +31,12 @@
 
 #include "compose/compiler.h"
 
+#include "compose/utils.h"
+
+#if IS_PLATFORM_WIN32
+#include <windows.h>
+#endif
+
 namespace gaen
 {
 
@@ -67,5 +73,58 @@ const char * path_join(const char * rootDir,
 
     return parsedata_add_string(pParseData, fullPath);
 }
+
+
+const char * path_filename(const char * fullPath,
+                           ParseData *pParseData)
+{
+    const char * lastSlash = strrchr(fullPath,'/');
+    if (!lastSlash)
+    {
+        return parsedata_add_string(pParseData, fullPath);
+    }
+    else
+    {
+        if (strlen(lastSlash) <= 1)
+        {
+            PANIC("fullPath ends with '/', that's no bueno!");
+            return nullptr;
+        }
+        return parsedata_add_string(pParseData, lastSlash+1);
+    }
+}
+
+
+const char * full_path(const char * path,
+                       ParseData* pParseData)
+{
+    ASSERT(path);
+#if IS_PLATFORM_WIN32    
+    static thread_local char fullPath[FILENAME_MAX];
+    DWORD ret = GetFullPathNameA(path, FILENAME_MAX, fullPath, nullptr);
+
+    if (ret >= FILENAME_MAX)
+    {
+        PANIC("Path too long");
+        return nullptr;
+    }
+
+    make_posix_path(fullPath);
+
+    return parsedata_add_string(pParseData, fullPath);
+#else
+    PANIC("Not implemented on this platform");
+#endif
+        
+}
+
+void make_posix_path(char * path)
+{
+    ASSERT(path);
+    char * p;
+    while ((p = strchr(path, '\\')))
+        *p = '/';
+}
+
 
 }

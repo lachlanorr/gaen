@@ -30,6 +30,7 @@
 #include "core/mem.h"
 
 #include "compose/compiler.h"
+#include "compose/compiler_structs.h"
 #include "compose/codegen_cpp.h"
 
 namespace gaen
@@ -62,11 +63,22 @@ int main(int argc, char ** argv)
 {
     using namespace gaen;
 
+    if (argc < 2)
+    {
+        printf("Usage: compc input_cmp_file\n");
+        exit(1);
+    }
+
     parse_init();
     ParseData * pParseData = parse_file(nullptr,
-                                        "c:/code/gaen/src/scripts/compose/",
-                                        "utils/Timer.cmp",
+                                        argv[1],
                                         &messageHandler);
+
+    if (pParseData->hasErrors)
+    {
+        printf("Compilation failed due to errors\n");
+        exit(1);
+    }
 
     CodeCpp codeCpp;
     if (pParseData)
@@ -75,5 +87,4 @@ int main(int argc, char ** argv)
     }
 
     printf(codeCpp.code.c_str());
-    char c = getchar();
 }

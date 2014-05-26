@@ -34,6 +34,14 @@ const char * path_join(const char * rootDir,
                        const char * filename,
                        ParseData *pParseData);
 
+const char * path_filename(const char * fullPath,
+                           ParseData *pParseData);
+
+const char * full_path(const char * path,
+                       ParseData* pParseData);
+
+void make_posix_path(char * path);
+
 }
 
 #endif // #ifndef GAEN_COMPOSE_UTILS_H

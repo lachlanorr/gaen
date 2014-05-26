@@ -639,18 +639,17 @@ Scope * scope_create()
 //------------------------------------------------------------------------------
 // ParseData
 //------------------------------------------------------------------------------
-ParseData * parsedata_create(const char * rootDir,
-                             const char * filename,
+ParseData * parsedata_create(const char * fullPath,
                              MessageHandler messageHandler)
 {
     ParseData * pParseData = COMP_NEW(ParseData);
 
     pParseData->skipNextScope = false;
+    pParseData->hasErrors = false;
     pParseData->pScanner = nullptr;
 
-    pParseData->filename = parsedata_add_string(pParseData, filename);
-    pParseData->rootDir = parsedata_add_string(pParseData, rootDir);
-    pParseData->fullPath = gaen::path_join(pParseData->rootDir, pParseData->filename, pParseData);
+    pParseData->fullPath = gaen::full_path(fullPath, pParseData);
+    pParseData->filename = gaen::path_filename(pParseData->fullPath, pParseData);
     
     pParseData->messageHandler = messageHandler;
 
@@ -794,6 +793,8 @@ void parsedata_formatted_message(ParseData * pParseData,
     static const size_t kMessageMax = 1024;
     static thread_local char tMessage[kMessageMax];
 
+    pParseData->hasErrors = true;
+
     va_list argptr;
     va_start(argptr, format);
 
@@ -842,14 +843,13 @@ void parse_init()
 ParseData * parse(ParseData * pParseData,
                   const char * source,
                   size_t length,
-                  const char * rootDir,
-                  const char * filename,
+                  const char * fullPath,
                   MessageHandler messageHandler)
 {
     int ret;
 
     if (!pParseData)
-        pParseData = parsedata_create(rootDir, filename, messageHandler);
+        pParseData = parsedata_create(fullPath, messageHandler);
 
     if (!source)
     {
@@ -881,11 +881,10 @@ ParseData * parse(ParseData * pParseData,
 }   
 
 ParseData * parse_file(ParseData * pParseData,
-                       const char * rootDir,
-                       const char * filename,
+                       const char * fullPath,
                        MessageHandler messageHandler)
 {
-    return parse(nullptr, nullptr, 0, rootDir, filename, messageHandler);
+    return parse(nullptr, nullptr, 0, fullPath, messageHandler);
 }
 
 void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...)

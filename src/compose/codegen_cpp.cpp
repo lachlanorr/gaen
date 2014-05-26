@@ -87,7 +87,7 @@ static S type_str(DataType dt)
 }
 
 static S codegen_recurse(const Ast * pAst,
-                                            int indentLevel)
+                         int indentLevel)
 {
     switch (pAst->type)
     {
@@ -101,14 +101,42 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_ComponentDef:
     {
-        auto code = I + S("class ") + S(pAst->pSymRec->name) + S(" : public Component\n{\n");
+        S code("namespace comp\n{\n\n");
+        code += I + S("class ") + S(pAst->pSymRec->name) + S(" : public Component\n{\n");
+        
+        code += I + S("public:\n");
+        code += I + S("    static Component* construct()\n");
+        code += I + S("    {\n");
+        code += I + S("        return GNEW(kMEM_Engine, ") + S(pAst->pSymRec->name) + S(");\n");
+        code += I + S("    }\n");
+        code += I + S("    \n");
+
+        code += I + S("private:\n");
+        code += I + S("    ") + S(pAst->pSymRec->name) + S("()\n");
+        code += I + S("    {\n");
+        code += I + S("        ASSERT(sIsRegistered, \"Component not registered: 0x%08x\", HASH::") + S(pAst->pSymRec->name) + S(");\n");
+        code += I + S("    }\n");
+
+        code += I + S("    ") + S(pAst->pSymRec->name) + S("(const ") + S(pAst->pSymRec->name) + S("&)      = delete;\n");
+        code += I + S("    ") + S(pAst->pSymRec->name) + S("(const ") + S(pAst->pSymRec->name) + S("&&)     = delete;\n");
+        code += I + S("    operator=(const ") + S(pAst->pSymRec->name) + S("&)  = delete;\n");
+        code += I + S("    operator=(const ") + S(pAst->pSymRec->name) + S("&&) = delete;\n");
+        
+        code += S("\n");
+        code += I + S("    static bool sIsRegistered;\n");
         
         for (Ast * pChild : pAst->pChildren->nodes)
         {
             code += codegen_recurse(pChild, indentLevel + 1);
         }
 
-        code += I + S("}\n");
+        code += I + ("}\n\n");
+
+        code += (I + S("static bool ") + S(pAst->pSymRec->name) +
+                 S("::sIsRegistered = ComponentRegistry::register_constructor(HASH::") +
+                 S(pAst->pSymRec->name) + S(", ") + S(pAst->pSymRec->name) + S("::construct);\n"));
+        
+        code += I + S("\n} // namespace comp\n ");
         return code;
    }
     case kAST_MessageDef:
@@ -379,33 +407,7 @@ CodeCpp codegen_cpp(const ParseData * pParseData)
 
     extract_filenames(pParseData->fullPath, codeCpp);
     
-    codeCpp.code =  S("//------------------------------------------------------------------------------\n");
-
-    codeCpp.code += S("// ") + codeCpp.cppFilename + S(" - Auto-generated from ") + codeCpp.cmpRelPath + LF;
-    codeCpp.code += S("//\n");
-    codeCpp.code += S("// Gaen Concurrency Engine - http://gaen.org\n");
-    codeCpp.code += S("// Copyright (c) 2014 Lachlan Orr\n");
-    codeCpp.code += S("//\n");
-    codeCpp.code += S("// This software is provided 'as-is', without any express or implied\n");
-    codeCpp.code += S("// warranty. In no event will the authors be held liable for any damages\n");
-    codeCpp.code += S("// arising from the use of this software.\n");
-    codeCpp.code += S("//\n");
-    codeCpp.code += S("// Permission is granted to anyone to use this software for any purpose,\n");
-    codeCpp.code += S("// including commercial applications, and to alter it and redistribute it\n");
-    codeCpp.code += S("// freely, subject to the following restrictions:\n");
-    codeCpp.code += S("//\n");
-    codeCpp.code += S("//   1. The origin of this software must not be misrepresented; you must not\n");
-    codeCpp.code += S("//   claim that you wrote the original software. If you use this software\n");
-    codeCpp.code += S("//   in a product, an acknowledgment in the product documentation would be\n");
-    codeCpp.code += S("//   appreciated but is not required.\n");
-    codeCpp.code += S("//\n");
-    codeCpp.code += S("//   2. Altered source versions must be plainly marked as such, and must not be\n");
-    codeCpp.code += S("//   misrepresented as being the original software.\n");
-    codeCpp.code += S("//\n");
-    codeCpp.code += S("//   3. This notice may not be removed or altered from any source\n");
-    codeCpp.code += S("//   distribution.\n");
-    codeCpp.code += S("//------------------------------------------------------------------------------\n");
-    codeCpp.code += LF;
+    codeCpp.code = S("");
 
     codeCpp.code += S("namespace gaen\n{\n\n");
 

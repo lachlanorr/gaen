@@ -47,6 +47,7 @@ SET (engine_SOURCES
   Model.h
   ModelMgr.cpp
   ModelMgr.h
+  Registry.h
   renderer_type.h
   shapes.cpp
   shapes.h
