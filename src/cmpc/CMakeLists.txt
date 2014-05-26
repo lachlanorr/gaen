@@ -24,20 +24,20 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (compc_SOURCES
-  main_compc.cpp
+SET (cmpc_SOURCES
+  main_cmpc.cpp
   )
 
-IDE_SOURCE_PROPERTIES( "/" "${compc_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/" "${cmpc_SOURCES}")
 
-ADD_EXECUTABLE (compc
-  ${compc_SOURCES}
+ADD_EXECUTABLE (cmpc
+  ${cmpc_SOURCES}
   )
 
-TARGET_LINK_LIBRARIES (compc
+TARGET_LINK_LIBRARIES (cmpc
   compose
   core
   ${PLATFORM_LINK_LIBS}
   )
 
-package (compc)
+package (cmpc)

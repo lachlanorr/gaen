@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #-------------------------------------------------------------------------------
-# codegen.py - Run compc on all compose scripts to generate cpp files
+# codegen.py - Run cmpc on all compose scripts to generate cpp files
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014 Lachlan Orr
@@ -29,3 +29,5 @@
 import os
 import posixpath
 
+def gencpp(path):
+    

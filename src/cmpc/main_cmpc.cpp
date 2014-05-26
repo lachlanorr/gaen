@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// main_compc.cpp - Compose command line compiler
+// main_cmpc.cpp - Compose command line compiler
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -65,7 +65,7 @@ int main(int argc, char ** argv)
 
     if (argc < 2)
     {
-        printf("Usage: compc input_cmp_file\n");
+        printf("Usage: cmpc input_cmp_file\n");
         exit(1);
     }
 
