@@ -307,6 +307,10 @@ Ast * ast_create_property_def(const char * name, DataType dataType, Ast * pInitV
                                   dataType,
                                   name,
                                   pInitVal);
+
+    Scope * pScope = pParseData->scopeStack.back();
+    symtab_add_symbol(pScope->pSymTab, pAst->pSymRec, pParseData);
+
     return pAst;
 }
 
@@ -319,6 +323,10 @@ Ast * ast_create_field_def(const char * name, DataType dataType, Ast * pInitVal,
                                   dataType,
                                   name,
                                   pInitVal);
+
+    Scope * pScope = pParseData->scopeStack.back();
+    symtab_add_symbol(pScope->pSymTab, pAst->pSymRec, pParseData);
+
     return pAst;
 }
 
@@ -354,7 +362,8 @@ Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, Parse
     }
 
     if (pSymRec->type != kSYMT_Param &&
-        pSymRec->type != kSYMT_Local)
+        pSymRec->type != kSYMT_Local &&
+        pSymRec->type != kSYMT_Field)
     {
         COMP_ERROR("Invalid use of symbol in assignment: %s", name);
         return pAst;
@@ -416,7 +425,9 @@ Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData)
     }
 
     if (pSymRec->type != kSYMT_Param &&
-        pSymRec->type != kSYMT_Local)
+        pSymRec->type != kSYMT_Local &&
+        pSymRec->type != kSYMT_Field &&
+        pSymRec->type != kSYMT_Property)
     {
         COMP_ERROR("Invalid use of symbol: %s", name);
         return pAst;
