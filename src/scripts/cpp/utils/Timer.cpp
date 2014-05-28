@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: c6e2ba8706d7246795507da747deb599
+// HASH: 50079b9cf0c0b88ac392dc1dd7b4dde1
 namespace gaen
 {
 
@@ -42,7 +42,7 @@ public:
 private:
     Timer()
     {
-        ASSERT(sIsRegistered, "Component not registered: 0x24866170", HASH::Timer);
+        ASSERT(sIsRegistered, "Component not registered: 0x96126170", HASH::Timer);
     }
     Timer(const Timer&)      = delete;
     Timer(const Timer&&)     = delete;

@@ -24,6 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
+INCLUDE (codegen.cmake)
 INCLUDE (messages/messages.cmake)
 
 SET (engine_SOURCES
@@ -54,6 +55,7 @@ SET (engine_SOURCES
   Task.h
   TaskMaster.cpp
   TaskMaster.h
+  ${engine_codegen_SOURCES}
   ${engine_messages_SOURCES}
   )
 
@@ -64,7 +66,6 @@ IDE_SOURCE_PROPERTIES( "/messages" "${engine_messages_SOURCES}")
 ADD_LIBRARY (engine
   ${engine_SOURCES}
   )
-
 
 
 # Run during configure.
