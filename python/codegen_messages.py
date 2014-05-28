@@ -41,12 +41,12 @@ def replace_file_if_different(path, data):
         with open(path, 'wb') as out_f:
             out_f.write(data)
 
-def scripts_path():
+def python_path():
     scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
     return scriptdir
 
 def gaen_path():
-    return posixpath.split(scripts_path())[0]
+    return posixpath.split(python_path())[0]
 
 def template_subst(template, replacements):
     for k, v in replacements.iteritems():
@@ -66,8 +66,8 @@ def camel_to_underscores(s):
     return s.lower()
 
 class Templates:
-    MessageClass   = read_file_data(posixpath.join(scripts_path(), 'templates/message_template.cpp'))
-    CmakeFileList  = read_file_data(posixpath.join(scripts_path(), 'templates/filelist_template.cmake'))
+    MessageClass   = read_file_data(posixpath.join(python_path(), 'templates/message_template.cpp'))
+    CmakeFileList  = read_file_data(posixpath.join(python_path(), 'templates/filelist_template.cmake'))
     
 def messages_def_path():
     return posixpath.join(gaen_path(), 'src/engine/messages')
@@ -83,7 +83,7 @@ def gen_message_cmake(field_handlers):
 def parse_messages_def():
     context = globals()
     context['FIELD_HANDLERS'] = []
-    with open(posixpath.join(scripts_path(), 'field_handler.py')) as f:
+    with open(posixpath.join(python_path(), 'field_handler.py')) as f:
         exec f in context
     def_path = posixpath.join(messages_def_path(), 'messages.def')
     with open(def_path) as f:

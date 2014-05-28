@@ -69,24 +69,24 @@ ADD_LIBRARY (engine
 
 # Run during configure.
 EXECUTE_PROCESS (
-  COMMAND python ${scripts_dir}/codegen_messages.py
+  COMMAND python ${python_dir}/codegen_messages.py
   )
 
 # Run each time we build.
 ADD_CUSTOM_TARGET (
   messages_gen
-  COMMAND python ${scripts_dir}/codegen_messages.py
+  COMMAND python ${python_dir}/codegen_messages.py
   )
 
 # Run during configure so we have FNV.h/cpp existing for .sln creation
 EXECUTE_PROCESS (
-  COMMAND python ${scripts_dir}/update_hashes.py
+  COMMAND python ${python_dir}/update_hashes.py
   )
 
 # Run each time we build. FNV.h/cpp will only get replaced if they change.
 ADD_CUSTOM_TARGET (
   fnv_hashes_precalc
-  COMMAND python ${scripts_dir}/update_hashes.py
+  COMMAND python ${python_dir}/update_hashes.py
   )
 
 

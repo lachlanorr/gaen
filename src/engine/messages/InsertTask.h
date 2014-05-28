@@ -67,7 +67,7 @@ private:
 
     // These members provide storage for fields larger than a block that wrap the ring buffer
     Task mTask;
-    const Task * mpTask;    
+    const Task * mpTask;
 };
 
 

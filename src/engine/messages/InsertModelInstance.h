@@ -70,7 +70,7 @@ private:
 
     // These members provide storage for fields larger than a block that wrap the ring buffer
     Mat34 mWorldTransform;
-    const Mat34 * mpWorldTransform;    
+    const Mat34 * mpWorldTransform;
 };
 
 

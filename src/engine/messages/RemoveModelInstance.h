@@ -50,7 +50,7 @@ public:
 private:
     const MessageQueue::MessageAccessor & mMsgAcc;
 
-    
+
 };
 
 

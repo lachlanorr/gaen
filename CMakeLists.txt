@@ -35,7 +35,7 @@ PROJECT (gaen)
 
 SET (cmake_dir ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 SET (ext_dir ${CMAKE_CURRENT_SOURCE_DIR}/external)
-SET (scripts_dir ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
+SET (python_dir ${CMAKE_CURRENT_SOURCE_DIR}/python)
 SET (src_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 
