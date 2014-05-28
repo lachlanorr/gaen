@@ -219,7 +219,7 @@ def write_cmake(files):
 
 def main():
     if CMPC is None:
-        print "cmpc not found, do you need to build?"
+        print "ERROR: cmpc not found, do you need to build?"
         exit(1)
     cpp_files = []
     for root, dirs, files in os.walk(SCRIPTS_DIR):

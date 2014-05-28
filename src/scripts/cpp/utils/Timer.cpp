@@ -24,7 +24,12 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 50079b9cf0c0b88ac392dc1dd7b4dde1
+// HASH: fc31ded2e5f5539dfe3d0dfb9e6f1ee0
+#include "engine/stdafx.h"
+
+#include "engine/Registry.h"
+#include "engine/Component.h"
+
 namespace gaen
 {
 
@@ -42,18 +47,19 @@ public:
 private:
     Timer()
     {
-        ASSERT(sIsRegistered, "Component not registered: 0x96126170", HASH::Timer);
+        ASSERT_MSG(sIsRegistered, "Component not registered: 0x%08x", HASH::Timer);
     }
     Timer(const Timer&)      = delete;
     Timer(const Timer&&)     = delete;
-    operator=(const Timer&)  = delete;
-    operator=(const Timer&&) = delete;
+    Timer & operator=(const Timer&)  = delete;
+    Timer & operator=(const Timer&&) = delete;
 
     static bool sIsRegistered;
-}
+};
 
-static bool Timer::sIsRegistered = ComponentRegistry::register_constructor(HASH::Timer, Timer::construct);
+bool Timer::sIsRegistered = ComponentRegistry::register_constructor(HASH::Timer, Timer::construct);
 
 } // namespace comp
  
 } // namespace gaen
+

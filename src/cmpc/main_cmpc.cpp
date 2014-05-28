@@ -85,5 +85,5 @@ int main(int argc, char ** argv)
         codeCpp = codegen_cpp(pParseData);
     }
 
-    printf(codeCpp.code.c_str());
+    puts(codeCpp.code.c_str());
 }

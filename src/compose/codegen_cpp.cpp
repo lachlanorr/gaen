@@ -114,13 +114,13 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("private:\n");
         code += I + S("    ") + S(pAst->pSymRec->name) + S("()\n");
         code += I + S("    {\n");
-        code += I + S("        ASSERT(sIsRegistered, \"Component not registered: 0x%08x\", HASH::") + S(pAst->pSymRec->name) + S(");\n");
+        code += I + S("        ASSERT_MSG(sIsRegistered, \"Component not registered: 0x%08x\", HASH::") + S(pAst->pSymRec->name) + S(");\n");
         code += I + S("    }\n");
 
         code += I + S("    ") + S(pAst->pSymRec->name) + S("(const ") + S(pAst->pSymRec->name) + S("&)      = delete;\n");
         code += I + S("    ") + S(pAst->pSymRec->name) + S("(const ") + S(pAst->pSymRec->name) + S("&&)     = delete;\n");
-        code += I + S("    operator=(const ") + S(pAst->pSymRec->name) + S("&)  = delete;\n");
-        code += I + S("    operator=(const ") + S(pAst->pSymRec->name) + S("&&) = delete;\n");
+        code += I + S("    ") + S(pAst->pSymRec->name) + S(" & operator=(const ") + S(pAst->pSymRec->name) + S("&)  = delete;\n");
+        code += I + S("    ") + S(pAst->pSymRec->name) + S(" & operator=(const ") + S(pAst->pSymRec->name) + S("&&) = delete;\n");
         
         code += S("\n");
         code += I + S("    static bool sIsRegistered;\n");
@@ -130,9 +130,9 @@ static S codegen_recurse(const Ast * pAst,
             code += codegen_recurse(pChild, indentLevel + 1);
         }
 
-        code += I + ("}\n\n");
+        code += I + ("};\n\n");
 
-        code += (I + S("static bool ") + S(pAst->pSymRec->name) +
+        code += (I + S("bool ") + S(pAst->pSymRec->name) +
                  S("::sIsRegistered = ComponentRegistry::register_constructor(HASH::") +
                  S(pAst->pSymRec->name) + S(", ") + S(pAst->pSymRec->name) + S("::construct);\n"));
         
@@ -408,6 +408,12 @@ CodeCpp codegen_cpp(const ParseData * pParseData)
     extract_filenames(pParseData->fullPath, codeCpp);
     
     codeCpp.code = S("");
+
+    codeCpp.code += S("#include \"engine/stdafx.h\"\n");
+    codeCpp.code += LF;
+    codeCpp.code += S("#include \"engine/Registry.h\"\n");
+    codeCpp.code += S("#include \"engine/Component.h\"\n");
+    codeCpp.code += LF;
 
     codeCpp.code += S("namespace gaen\n{\n\n");
 
