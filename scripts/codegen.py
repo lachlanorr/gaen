@@ -90,7 +90,17 @@ def read_cpp_file(filename):
     hashval = d[hashloc:hashloc+32]
     source = d[hashloc+33:]
     
-    return source, hashval
+    return d, source, hashval
+
+def write_file(filename, data):
+    dirname = posixpath.split(filename)[0]
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+        
+    f = open(filename, 'wb')
+    f.write(data)
+    f.close()
+    
 
 class ScriptInfo(object):
     def __init__(self, cmpFullPath):
@@ -103,7 +113,8 @@ class ScriptInfo(object):
         self.cmpExists, self.cmpModTime = check_file(self.cmpFullPath)
 
         if (self.cppExists):
-            self.cppSourceOld, self.cppSourceHashOld = read_cpp_file(self.cppFullPath)
+            self.cppOutputOld, self.cppSourceOld, self.cppSourceOldHash = read_cpp_file(self.cppFullPath)
+            self.cppSourceOldHashActual = md5.new(self.cppSourceOld).hexdigest()
 
         self._compile()
 
@@ -121,15 +132,25 @@ class ScriptInfo(object):
         else:
             return False
 
-    def write_cpp(self):
-        dirname = posixpath.split(self.cppFullPath)[0]
-        if not os.path.exists(dirname):
-            os.makedirs(dirname)
+    def _should_write_cpp(self):
+        if not self.cppExists:
+            return True
+        if self.cppOutput == self.cppOutputOld:
+            return False
+        return True
+            
 
+    def write_cpp(self):
+        if (self.cppExists and
+            self.cppSourceOldHash != self.cppSourceOldHashActual):
+            # file already exists and has been modified
+            write_file(self.cppFullPath + ".autogen", self.cppOutput)
+            print "WARNING: %s has been modified and is not being replaced, diff with %s.autogen and manually apply the changes." % (self.cppFullPath, self.cppFullPath)
+        elif self._should_write_cpp():
+            print "Writing %s" % self.cppFullPath
+            write_file(self.cppFullPath, self.cppOutput)
+            
         
-        f = open(self.cppFullPath, 'wb')
-        f.write(self.cppOutput)
-        f.close()
 
 def find_cmpc():
     for root, dirs, files in os.walk(gaen_dir()):
@@ -140,10 +161,18 @@ def find_cmpc():
 
 CMPC = find_cmpc()
 
-if __name__=='__main__':
+def main():
     if CMPC is None:
         print "cmpc not found, do you need to build?"
         exit(1)
-
-#def gencpp(path):
+    for root, dirs, files in os.walk(default_scripts_dir()):
+        for f in files:
+            if f.endswith('.cmp'):
+                si = ScriptInfo(posixpath.join(root.replace('\\', '/'), f))
+                si.write_cpp()
+    return None
     
+
+if __name__=='__main__':
+    main()
+

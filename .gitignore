@@ -2,5 +2,6 @@
 setcc.sh
 build/**
 *.pyc
+*.autogen
 src/engine/hashes.h
 src/engine/hashes.cpp
