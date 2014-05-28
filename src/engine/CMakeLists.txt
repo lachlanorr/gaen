@@ -24,7 +24,6 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-INCLUDE (codegen.cmake)
 INCLUDE (messages/messages.cmake)
 
 SET (engine_SOURCES
