@@ -47,7 +47,7 @@ public:
 private:
     const MessageQueue::MessageAccessor & mMsgAcc;
 
-<<reader_data_members>>    
+<<reader_data_members>>
 };
 
 
