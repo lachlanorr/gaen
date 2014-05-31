@@ -27,6 +27,7 @@
 INCLUDE (messages/messages.cmake)
 
 SET (engine_SOURCES
+  Block.h
   Color.h
   Component.h
   Entity.cpp

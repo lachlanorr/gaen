@@ -112,7 +112,7 @@ void start_game_loops(Entity * pInitEntity)
     if (pInitEntity)
     {
         // Create a task out of the entity and start it up
-        Task t = Task::createUpdatable(pInitEntity);
+        Task t = Task::createUpdatable(pInitEntity, 0);
         {
             msg::InsertTaskW msgw(HASH::add_task,
                                  kMessageFlag_None,
@@ -158,7 +158,7 @@ void broadcast_message(u32 msgId,
                        task_id source,
                        cell payload,
                        u32 blockCount,
-                       const MessageBlock * pBlocks)
+                       const Block * pBlocks)
 {
     ASSERT(sIsInit);
     ASSERT(source != kMainThreadTaskId || active_thread_id() == kMainThreadId);
@@ -506,7 +506,7 @@ template void broadcast_message<renderer_type>(u32 msgId,
                                                task_id source,
                                                cell payload,
                                                u32 blockCount,
-                                               const MessageBlock * pBlocks);
+                                               const Block * pBlocks);
 
 
 } // namespace gaen

@@ -63,24 +63,24 @@ public:
         }
 
         // Access blocks of message
-        MessageBlock & operator[] (u32 index)
+        Block & operator[] (u32 index)
         {
             return blockFromIndex(index);
         }
 
-        const MessageBlock & operator[] (u32 index) const
+        const Block & operator[] (u32 index) const
         {
             return blockFromIndex(index);
         }
 
     private:
-        MessageBlock & blockFromIndex(u32 index) const
+        Block & blockFromIndex(u32 index) const
         {
             ASSERT(index < mAccessor.available()-1); // -1 since Message header is always present
             ASSERT(index < blockCount());
 
              // +1 since Message header is always present
-            MessageBlock * pBlock = reinterpret_cast<MessageBlock*>(&mAccessor[1+index]);
+            Block * pBlock = reinterpret_cast<Block*>(&mAccessor[1+index]);
 
             return *pBlock;
         }
@@ -132,7 +132,7 @@ public:
 
     void pushCommit(const MessageAccessor & msgAcc)
     {
-        // We always commit the Message Header, plus any additional MessageBlocks
+        // We always commit the Message Header, plus any additional Blocks
         mRingBuffer.pushCommit(msgAcc.mAccessor[0].blockCount + 1);
     }
 

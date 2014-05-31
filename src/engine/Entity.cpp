@@ -28,6 +28,7 @@
 
 #include "core/mem.h"
 #include "core/logging.h"
+#include "engine/hashes.h"
 #include "engine/Entity.h"
 
 namespace gaen
@@ -132,10 +133,10 @@ void Entity::fin(const Message & msg, T msgAcc)
 
 // Template instantiations
 template MessageResult Entity::message<const MessageQueue::MessageAccessor&>(const Message&, const MessageQueue::MessageAccessor&);
-template MessageResult Entity::message<const MessageBlock*>(const Message&, const MessageBlock*);
+template MessageResult Entity::message<const Block*>(const Message&, const Block*);
 
 template void Entity::fin<const MessageQueue::MessageAccessor&>(const Message&, const MessageQueue::MessageAccessor&);
-template void Entity::fin<const MessageBlock*>(const Message&, const MessageBlock*);
+template void Entity::fin<const Block*>(const Message&, const Block*);
 
 
 } // namespace gaen

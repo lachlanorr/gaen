@@ -33,44 +33,50 @@
 namespace gaen
 {
 
-// Properties use the same type of Blocks as messages.
-// Alias it here for readability.
-typedef MessageBlock PropertyBlock;
-
 enum class PropertyGroup
 {
     Current,
     Initial
 };
 
-// Base component for common stuff for all Components.
-// In particular, this handles property get/sets which is a lot of the 
-// boiler plate of components.
+struct ComponentDesc;
+
+// Base component, basically a way for all components
+// to have a pointer to their ComponentDesc.
 class Component
 {
 public:
-    task_id taskId() { ASSERT(mIsInit); return mTaskId; }
-    task_id entityTaskId() { ASSERT(mIsInit); return mEntityTaskId; }
-
-    MessageResult message(const MessageQueue::MessageAccessor& msgAcc)
-    {
-        MessageResult msgRes = MessageResult::Propogate;
-        const Message & msg = msgAcc.message();
-        switch (msg.msgId)
-        {
-        case HASH::init:
-            mEntityTaskId = msg.source;
-            mTaskId = msg.target;
-            msgRes = MessageResult::Consumed;
-        }
-        return msgRes;
-    }
+    Component(ComponentDesc * pCompDesc)
+      : mpCompDesc(pCompDesc) {}
 
 protected:
-    task_id mTaskId = kInvalidTaskId;
-    task_id mEntityTaskId = kInvalidTaskId;
-    bool mIsInit = false;
+    ComponentDesc * mpCompDesc;
 };
+
+#pragma warning(push)
+#pragma warning(disable : 4200)
+struct ComponentDesc
+{
+    Task task;
+    u32 blockCount:24;
+    u32 isInit:8;
+    u32 entityTaskId;
+    Component component;
+    Block blocks[0];
+
+    u32 size() { return sizeof(ComponentDesc)+sizeof(Block)* blockCount; }
+    ComponentDesc & next() { *reinterpret_cast<ComponentDesc*>(reinterpret_cast<u8*>(this) + size()); }
+
+
+    // Disable copy/move, etc since we have 0 byte array
+    ComponentDesc(const ComponentDesc&) = delete;
+    ComponentDesc(const ComponentDesc&&) = delete;
+    ComponentDesc & operator=(const ComponentDesc&) = delete;
+    ComponentDesc & operator=(const ComponentDesc&&) = delete;
+};
+#pragma warning(pop)
+
+static_assert(sizeof(ComponentDesc) == 48, "ComponentDesc unexpected size");
 
 } // namespace gaen
 

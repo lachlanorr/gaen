@@ -73,8 +73,48 @@ private:
     HashMap<kMEM_Engine, u32, Constructor> mConstructors;
 };
 
-typedef Registry<Component> ComponentRegistry;
+// LORRTODO - remove if explicit def works out
+//typedef Registry<Component> ComponentRegistry;
+
 typedef Registry<Entity> EntityRegistry;
+
+
+class ComponentRegistry
+{
+public:
+    typedef Component (*Constructor)(ComponentDesc * pCompDesc);
+
+    static bool register_constructor(u32 hash, Constructor constructor)
+    {
+        auto it = singleton<ComponentRegistry>().mConstructors.find(hash);
+
+        if (it != singleton<ComponentRegistry>().mConstructors.end())
+        {
+            PANIC("Hash already registered: 0x%08x", hash);
+            return false;
+        }
+    
+        singleton<ComponentRegistry>().mConstructors[hash] = constructor;
+        return true;
+    }
+    
+    static Component construct(u32 hash, ComponentDesc * pCompDesc)
+    {
+        auto it = singleton<ComponentRegistry>().mConstructors.find(hash);
+
+        if (it == singleton<ComponentRegistry>().mConstructors.end())
+        {
+            PANIC("Unknown hash, cannot construct: 0x%08x", hash);
+            return Component(pCompDesc);
+        }
+    
+        return it->second(pCompDesc);
+    }
+
+private:
+    HashMap<kMEM_Engine, u32, Constructor> mConstructors;
+};
+
 
 } // namespace gaen
 

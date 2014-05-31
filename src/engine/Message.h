@@ -28,10 +28,7 @@
 #define GAEN_ENGINE_MESSAGE_H
 
 #include "core/base_defines.h"
-
-#include "engine/hashes.h"
-#include "engine/math.h"
-#include "engine/Color.h"
+#include "engine/Block.h"
 
 namespace gaen
 {
@@ -49,57 +46,6 @@ enum class MessageResult
     Propogate,
     Consumed
 };
-
-union cell
-{
-    i32 i;
-    u32 u;
-    f32 f;
-    bool b;
-    Color c;
-};
-
-static_assert(sizeof(cell) == 4, "cell must be 4 bytes");
-
-inline cell to_cell(i32 val)
-{
-    cell c;
-    c.i = val;
-    return c;
-}
-
-inline cell to_cell(u32 val)
-{
-    cell c;
-    c.u = val;
-    return c;
-}
-
-inline cell to_cell(f32 val)
-{
-    cell c;
-    c.f = val;
-    return c;
-}
-
-union dcell
-{
-    i64 i;
-    u64 u;
-    f64 f;
-    void * p;
-    cell cells[2];
-    // LORRTODO - Add Vec2 here once we implement it
-};
-static_assert(sizeof(dcell) == 8, "dcell must be 8 bytes");
-
-union qcell
-{
-    Vec4 vec4;
-    cell cells[4];
-    dcell dCells[2];
-};
-static_assert(sizeof(qcell) == 16, "qcell must be 16 bytes");
 
 struct Message
 {
@@ -132,37 +78,12 @@ struct Message
     }
 };
 
-// Messages can be cast into MessageBlocks to access
-// individual cells within.
-static const size_t kCellsPerMessageBlock = sizeof(Message) / sizeof(cell);   // 4
-static const size_t kDCellsPerMessageBlock = sizeof(Message) / sizeof(dcell); // 2
-static const size_t kQCellsPerMessageBlock = sizeof(Message) / sizeof(qcell); // 1
-static_assert((kCellsPerMessageBlock == 4) && (sizeof(Message) % sizeof(cell) == 0), "There should be exactly 4 cells per Message");
-union MessageBlock
-{
-    cell c[4];
-    dcell d[2];
-    qcell q;
-};
-
 // 16 bytes is pretty key to the principles of the message passing system.
 // We want to maintain alignment, and to be able to quickly write messages
 // to a buffer.
 // Changing this size will propogate necessary changes... so don't.
 static_assert(sizeof(Message) == 16, "Message should be 16 bytes");
-static_assert(sizeof(MessageBlock) == sizeof(Message), "MessageBlock and Message must be the same size");
-
-// Returns a MessageBlock indexed off of start.
-// Useful when copying data in and out of MessageQueue in
-// block sized (16 byte) chunks.
-inline MessageBlock & block_at(void * start, size_t index)
-{
-    return *(reinterpret_cast<MessageBlock*>(start) + index);
-}
-inline const MessageBlock & block_at(const void * start, size_t index)
-{
-    return *(reinterpret_cast<const MessageBlock*>(start) + index);
-}
+static_assert(sizeof(Block) == sizeof(Message), "Block and Message must be the same size");
 
 // We use the 4 extra bits in various places.
 inline bool is_valid_task_id(task_id taskId)

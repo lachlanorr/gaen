@@ -76,8 +76,7 @@ task_id next_task_id();
 //     // Queue Message
 //     MessageResult message(const Message & msg, const MessageQueue::MessageAccessor& msgAcc);
 //     // Immediate Message
-//     MessageResult message(const Message & msg, const MessageBlock* pBlocks);
-//     void setTaskId(task_id taskId);
+//     MessageResult message(const Message & msg, const Block* pBlocks);
 //
 // E.g.
 //   Task t = Task::create(pObj);
@@ -101,7 +100,7 @@ public:
     Task() = default;
 
     template <class T>
-    static Task create(T* pThat)
+    static Task create(T* pThat, u32 nameHash)
     {
         Task task;
 
@@ -109,9 +108,7 @@ public:
         task.mPermissions = 0;
         task.mTaskId = next_task_id();
 
-        pThat->setTaskId(task.mTaskId);
-
-        task.mUNUSED = 0xDEADbeef;
+        task.mNameHash = nameHash;
 
         task.mpThat = pThat;
 
@@ -135,9 +132,9 @@ public:
     }
 
     template <class T>
-    static Task createUpdatable(T* pThat)
+    static Task createUpdatable(T* pThat, u32 nameHash)
     {
-        Task task = Task::create(pThat);
+        Task task = Task::create(pThat, nameHash);
 
         // This task is updatable, so calculate the offset to that method as well.
         std::intptr_t iptrMessageStub = reinterpret_cast<std::intptr_t>(task.mpMessageStub);
@@ -149,6 +146,8 @@ public:
     }
 
     task_id id() const { return mTaskId; }
+
+    u32 nameHash() const { return mNameHash; }
 
     TaskStatus status() const { return static_cast<TaskStatus>(mStatus); }
     void setStatus(TaskStatus newStatus) { mStatus = static_cast<u8>(newStatus); }
@@ -166,7 +165,7 @@ public:
     }
 
     // Immediate message
-    MessageResult message(const Message & msg, const MessageBlock * pBlocks)
+    MessageResult message(const Message & msg, const Block * pBlocks)
     {
         // Since we're storing the offset of the message stub from the
         // update stub we do a little pointer arithmetic to get the
@@ -203,16 +202,16 @@ private:
     typedef MessageResult (*MessageStub)(void*, const Message&, const MessageQueue::MessageAccessor&);
 
     // Message coming from someone for immediate processing (no MessageQueue access)
-    typedef MessageResult (*MessageImmediateStub)(void*, const Message&, const MessageBlock*);
+    typedef MessageResult (*MessageImmediateStub)(void*, const Message&, const Block*);
 
 
     u32 mStatus:2;           // current running state
     u32 mPermissions:2;      // permissions for others to send messages
     u32 mTaskId:28;          // our task id - NOTE Changeing this size requires changing kMaxTaskId in Task.h
 
-    u32 mUNUSED;             // LORRTODO FIND SOMETHING USEFUL TO DO WITH THIS 32 BITS
+    u32 mNameHash;           // storage for a name hash, typically an entity or component name
 
-    MessageStub mpMessageStub;        // address of message method
+    MessageStub mpMessageStub;       // address of message method
     i32 mMessageImmediateStubOffset; // offset in bytes from MessageStub pointer to MessageImmediateStub pointer
     i32 mUpdateStubOffset;           // offset in bytes from MessageStub pointer to UpdateStub pointer
 
@@ -233,7 +232,7 @@ private:
     }
 
     template <class T>
-    static MessageResult message_immediate_stub(void* pThat, const Message& msg, const MessageBlock* pBlocks)
+    static MessageResult message_immediate_stub(void* pThat, const Message& msg, const Block* pBlocks)
     {
         T* p = static_cast<T*>(pThat);
         return p->message(msg, pBlocks);

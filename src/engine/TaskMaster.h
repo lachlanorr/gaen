@@ -72,7 +72,7 @@ void broadcast_message(u32 msgId,
                        task_id source,
                        cell payload = to_cell(0),
                        u32 blockCount = 0,
-                       const MessageBlock * pBlocks = nullptr);
+                       const Block * pBlocks = nullptr);
 
 // Convenience macros to avoid repeated template param render_type in
 // all calls.  It will always be render_type.

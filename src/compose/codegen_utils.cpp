@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Timer.cpp - Auto-generated from Timer.cmp
+// codegen_utils.cpp - Shared utilities used during code generation
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,49 +24,59 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 67752663b8b4ecc9d4231b7037ad568d
-#include "engine/Task.h"
-#include "engine/Registry.h"
-#include "engine/Component.h"
-#include "engine/hashes.h"
+#include "compose/codegen_utils.h"
 
 namespace gaen
 {
 
-namespace comp
+bool is_update_message_def(const Ast * pAst)
 {
-
-class Timer : public Component
-{
-public:
-    static Component construct(ComponentDesc * pCompDesc)
-    {
-        Timer comp(pCompDesc);
-        return comp;
-    }
-    
-    void update(float) {} // LORRTEMP
-    template <typename T>
-    MessageResult message(const Message & msg, T msgAcc) { return MessageResult::Propogate; }
-
-private:
-    Timer(ComponentDesc * pCompDesc)
-      : Component(pCompDesc)
-    {
-        pCompDesc->task = Task::createUpdatable(this, HASH::Timer);
-    }
-    Timer(const Timer&)      = delete;
-    Timer(const Timer&&)     = delete;
-    Timer & operator=(const Timer&)  = delete;
-    Timer & operator=(const Timer&&) = delete;
-};
-
-namespace
-{
-bool isRegistered = ComponentRegistry::register_constructor(HASH::Timer, Timer::construct);
+    return (pAst->type == kAST_MessageDef &&
+            pAst->pSymRec &&
+            0 == strcmp(pAst->pSymRec->name, "update"));
 }
 
-} // namespace comp
- 
+const Ast * find_update_message_def(const Ast * pAst)
+{
+    for (Ast * pChild : pAst->pChildren->nodes)
+    {
+        if (is_update_message_def(pChild))
+        {
+            return pChild;
+        }
+    }
+    return nullptr;
+}
+
+u32 props_and_fields_count(const Ast * pAst)
+{
+    u32 count = 0;
+    for (Ast *pChild : pAst->pChildren->nodes)
+    {
+        if (pChild->type == kAST_PropertyDef || pChild->type == kAST_FieldDef)
+            count++;
+    }
+    return count;
+}
+
+PropsAndFields build_props_and_fields(const Ast *pAst)
+{
+    u32 count = props_and_fields_count(pAst);
+    PropsAndFields propsAndFields(count);
+
+    for (Ast *pChild : pAst->pChildren->nodes)
+    {
+        if (pChild->type == kAST_PropertyDef)
+        {
+            
+        }
+        else if (pChild->type == kAST_FieldDef)
+        {
+        }
+    }
+    return propsAndFields;
+}
+
 } // namespace gaen
+
 

@@ -27,6 +27,8 @@
 SET (compose_SOURCES
   codegen_cpp.cpp
   codegen_cpp.h
+  codegen_utils.cpp
+  codegen_utils.h
   comp_mem.cpp
   comp_mem.h
   compiler.cpp
@@ -38,6 +40,8 @@ SET (compose_SOURCES
   compose_parser.h
   compose_scanner.c
   compose_scanner.h
+  PropsAndFields.cpp
+  PropsAndFields.h
   utils.cpp
   utils.h
   )

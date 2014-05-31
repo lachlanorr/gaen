@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Timer.cpp - Auto-generated from Timer.cmp
+// codegen_utils.h - Shared utilities used during code generation
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,49 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 67752663b8b4ecc9d4231b7037ad568d
-#include "engine/Task.h"
-#include "engine/Registry.h"
-#include "engine/Component.h"
-#include "engine/hashes.h"
+#ifndef GAEN_COMPOSE_CODEGEN_UTILS_H
+#define GAEN_COMPOSE_CODEGEN_UTILS_H
+
+#include "compose/compiler.h"
+#include "compose/compiler_structs.h"
+#include "compose/PropsAndFields.h"
 
 namespace gaen
 {
 
-namespace comp
-{
 
-class Timer : public Component
-{
-public:
-    static Component construct(ComponentDesc * pCompDesc)
-    {
-        Timer comp(pCompDesc);
-        return comp;
-    }
-    
-    void update(float) {} // LORRTEMP
-    template <typename T>
-    MessageResult message(const Message & msg, T msgAcc) { return MessageResult::Propogate; }
+// If pAst contains a message def called "Update", return it
+// otherwise return null
+bool is_update_message_def(const Ast * pAst);
+const Ast * find_update_message_def(const Ast * pAst);
 
-private:
-    Timer(ComponentDesc * pCompDesc)
-      : Component(pCompDesc)
-    {
-        pCompDesc->task = Task::createUpdatable(this, HASH::Timer);
-    }
-    Timer(const Timer&)      = delete;
-    Timer(const Timer&&)     = delete;
-    Timer & operator=(const Timer&)  = delete;
-    Timer & operator=(const Timer&&) = delete;
-};
+u32 props_and_fields_count(const Ast * pAst);
+PropsAndFields build_props_and_fields(const Ast *pAst);
 
-namespace
-{
-bool isRegistered = ComponentRegistry::register_constructor(HASH::Timer, Timer::construct);
-}
 
-} // namespace comp
- 
 } // namespace gaen
+
+#endif // #ifndef GAEN_COMPOSE_CODEGEN_UTILS_H
 

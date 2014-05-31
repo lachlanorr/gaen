@@ -26,6 +26,7 @@
 
 #include "compose/codegen_cpp.h"
 #include "compose/compiler_structs.h"
+#include "compose/codegen_utils.h"
 
 #include "core/List.h"
 
@@ -101,51 +102,71 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_ComponentDef:
     {
+        const Ast * pUpdateDef = find_update_message_def(pAst);
+        S compName = S(pAst->pSymRec->name);
+
         S code("namespace comp\n{\n\n");
-        code += I + S("class ") + S(pAst->pSymRec->name) + S(" : public Component\n{\n");
+        code += I + S("class ") + compName + S(" : public Component\n{\n");
         
         code += I + S("public:\n");
-        code += I + S("    static Component* construct()\n");
+        code += I + S("    static Component construct(ComponentDesc * pCompDesc)\n");
         code += I + S("    {\n");
-        code += I + S("        return GNEW(kMEM_Engine, ") + S(pAst->pSymRec->name) + S(");\n");
+        code += I + S("        ") + compName + S(" comp(pCompDesc);\n");
+        code += I + S("        return comp;\n");
         code += I + S("    }\n");
         code += I + S("    \n");
 
         code += I + S("private:\n");
-        code += I + S("    ") + S(pAst->pSymRec->name) + S("()\n");
+        code += I + S("    ") + compName + S("(ComponentDesc * pCompDesc)\n");
+        code += I + S("      : Component(pCompDesc)\n");
         code += I + S("    {\n");
-        code += I + S("        ASSERT_MSG(sIsRegistered, \"Component not registered: 0x%08x\", HASH::") + S(pAst->pSymRec->name) + S(");\n");
+
+        if (pUpdateDef)
+        {
+            code += I + S("        pCompDesc->task = Task::createUpdatable(this, HASH::") + compName + S(");\n");
+        }
+        else
+        {
+            code += I + S("        pCompDesc->task = Task::create(this, HASH::") + compName + S(");\n");
+        }
+        
         code += I + S("    }\n");
 
-        code += I + S("    ") + S(pAst->pSymRec->name) + S("(const ") + S(pAst->pSymRec->name) + S("&)      = delete;\n");
-        code += I + S("    ") + S(pAst->pSymRec->name) + S("(const ") + S(pAst->pSymRec->name) + S("&&)     = delete;\n");
-        code += I + S("    ") + S(pAst->pSymRec->name) + S(" & operator=(const ") + S(pAst->pSymRec->name) + S("&)  = delete;\n");
-        code += I + S("    ") + S(pAst->pSymRec->name) + S(" & operator=(const ") + S(pAst->pSymRec->name) + S("&&) = delete;\n");
-        
-        code += S("\n");
-        code += I + S("    static bool sIsRegistered;\n");
+        code += I + S("    ") + compName + S("(const ") + compName + S("&)      = delete;\n");
+        code += I + S("    ") + compName + S("(const ") + compName + S("&&)     = delete;\n");
+        code += I + S("    ") + compName + S(" & operator=(const ") + compName + S("&)  = delete;\n");
+        code += I + S("    ") + compName + S(" & operator=(const ") + compName + S("&&) = delete;\n");
         
         for (Ast * pChild : pAst->pChildren->nodes)
         {
             code += codegen_recurse(pChild, indentLevel + 1);
         }
 
-        code += I + ("};\n\n");
+        code += I + S("};\n\n");
 
-        code += (I + S("bool ") + S(pAst->pSymRec->name) +
-                 S("::sIsRegistered = ComponentRegistry::register_constructor(HASH::") +
-                 S(pAst->pSymRec->name) + S(", ") + S(pAst->pSymRec->name) + S("::construct);\n"));
+        code += I + S("namespace\n");
+        code += I + S("{\n");
+        code += (I + S("bool isRegistered = ComponentRegistry::register_constructor(HASH::") +
+                 compName + S(", ") + compName + S("::construct);\n"));
+        code += I + S("}\n");
         
         code += I + S("\n} // namespace comp\n ");
         return code;
    }
     case kAST_MessageDef:
     {
+        S msgName = S(pAst->pSymRec->name);
+
+        if (is_update_message_def(pAst))
+        {
+            
+        }
         return S("");
     }
     case kAST_PropertyDef:
     {
-        auto code = I + type_str(pAst->pSymRec->dataType) + S(" #") + S(pAst->pSymRec->name);
+        S propName = S(pAst->pSymRec->name);
+        auto code = I + type_str(pAst->pSymRec->dataType) + S(" #") + propName;
         
         code += S(";\n");
         return S("");
@@ -409,8 +430,7 @@ CodeCpp codegen_cpp(const ParseData * pParseData)
     
     codeCpp.code = S("");
 
-    codeCpp.code += S("#include \"engine/stdafx.h\"\n");
-    codeCpp.code += LF;
+    codeCpp.code += S("#include \"engine/Task.h\"\n");
     codeCpp.code += S("#include \"engine/Registry.h\"\n");
     codeCpp.code += S("#include \"engine/Component.h\"\n");
     codeCpp.code += LF;

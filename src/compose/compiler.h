@@ -160,6 +160,7 @@ typedef enum
     kDT_float,
     kDT_bool,
     kDT_char,
+    kDT_color,
     kDT_vec3,
     kDT_vec4,
     kDT_mat3,
