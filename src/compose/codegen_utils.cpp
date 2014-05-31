@@ -24,6 +24,9 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include <algorithm>
+
+#include "engine/Block.h"
 #include "compose/codegen_utils.h"
 
 namespace gaen
@@ -48,6 +51,64 @@ const Ast * find_update_message_def(const Ast * pAst)
     return nullptr;
 }
 
+
+u32 data_type_cell_count(DataType dataType)
+{
+    switch (dataType)
+    {
+    case kDT_int:
+    case kDT_uint:
+    case kDT_float:
+    case kDT_bool:
+    case kDT_char:
+        return 1;
+    case kDT_vec3:
+        return 3;
+    case kDT_vec4:
+        return 4;
+    case kDT_mat3:
+        return 9;
+    case kDT_mat34:
+        return 12;
+    case kDT_mat4:
+        return 16;
+    default:
+        return 0;
+    }
+}
+
+
+char * property_block_accessor(char * output, u32 outputSize, DataType dataType, u32 cellIndex)
+{
+    switch (dataType)
+    {
+    case kDT_int:
+        snprintf(output, outputSize-1, "cells[%u].i", cellIndex);
+    case kDT_uint:
+        snprintf(output, outputSize-1, "cells[%u].u", cellIndex);
+    case kDT_float:
+        snprintf(output, outputSize-1, "cells[%u].f", cellIndex);
+    case kDT_bool:
+        snprintf(output, outputSize-1, "cells[%u].b", cellIndex);
+    case kDT_char:
+        snprintf(output, outputSize-1, "cells[%u].c", cellIndex);
+    case kDT_color:
+        snprintf(output, outputSize-1, "cells[%u].color", cellIndex);
+    case kDT_vec3:
+    case kDT_vec4:
+    case kDT_mat3:
+    case kDT_mat34:
+    case kDT_mat4:
+        ASSERT(cellIndex == 0);
+        strncpy(output, "qcell", outputSize);
+    default:
+        PANIC("Invalid dataType: %d", dataType);
+        return "";
+    }
+    output[outputSize-1] = '\0'; // ensure null terminated
+    return output;
+}
+
 u32 props_and_fields_count(const Ast * pAst)
 {
     u32 count = 0;
@@ -59,23 +120,100 @@ u32 props_and_fields_count(const Ast * pAst)
     return count;
 }
 
-PropsAndFields build_props_and_fields(const Ast *pAst)
+static Ast * find_next_fit(const CompVector<Ast*> & items,
+                           u32 currCell)
+{
+    ASSERT(currCell < kCellsPerBlock);
+
+    u32 cellsRemaining = kCellsPerBlock - currCell;
+    
+    for (Ast * pItem : items)
+    {
+        if (pItem->pSymRec->isAssigned)
+            continue;
+
+        if (pItem->pSymRec->cellCount > 1 && currCell != 0)
+            continue;
+
+        return pItem;
+    }
+    return nullptr;
+}
+
+
+
+void block_pack_props_and_fields(Ast *pAst)
 {
     u32 count = props_and_fields_count(pAst);
-    PropsAndFields propsAndFields(count);
+
+    if (count == 0)
+    {
+        pAst->pScope->pSymTab->blockCount = 0;
+    }
+
+    CompVector<Ast*> items;
+    items.reserve(count);
 
     for (Ast *pChild : pAst->pChildren->nodes)
     {
-        if (pChild->type == kAST_PropertyDef)
+        if (pChild->type == kAST_PropertyDef ||
+            pChild->type == kAST_FieldDef)
         {
-            
-        }
-        else if (pChild->type == kAST_FieldDef)
-        {
+            ASSERT(pChild->pSymRec->blockIndex == 0 &&
+                   pChild->pSymRec->cellIndex == 0 &&
+                   pChild->pSymRec->cellCount == data_type_cell_count(pChild->pSymRec->dataType) &&
+                   pChild->pSymRec->isAssigned == false);
+
+            items.push_back(pChild);
         }
     }
-    return propsAndFields;
+
+    // items vector now holds all props and fields Ast*'s
+
+    std::sort(items.begin(),
+              items.end(),
+              [](const Ast* a, const Ast* b)
+              { return a->pSymRec->cellCount < b->pSymRec->cellCount; });
+
+    u32 unassignedItemCount = count;
+
+    u32 currBlock = 0;
+    u32 currCell = 0;
+
+    while (unassignedItemCount > 0)
+    {
+        Ast * pItem = find_next_fit(items, currCell);
+
+        if (!pItem)
+        {
+            // no more items will fit in this block
+            currBlock++;
+            currCell = 0;
+        }
+        else
+        {
+            pItem->pSymRec->isAssigned = true;
+            unassignedItemCount--;
+            pItem->pSymRec->blockIndex = currBlock;
+            pItem->pSymRec->cellIndex = currCell;
+
+            currBlock += pItem->pSymRec->cellCount / kCellsPerBlock;
+            currCell += pItem->pSymRec->cellCount % kCellsPerBlock;
+
+            ASSERT(currCell <= kCellsPerBlock);
+            if (currCell >= kCellsPerBlock)
+            {
+                currBlock++;
+                currCell = 0;
+            }
+        }
+    }
+
+    pAst->pScope->pSymTab->blockCount = currCell == 0 ? currBlock : currBlock + 1;
+
 }
+
+
 
 } // namespace gaen
 

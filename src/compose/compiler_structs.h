@@ -41,6 +41,12 @@ struct SymRec
     Ast * pAst;
     SymTab * pSymTab;
     u32 order;
+
+    // Block storage info for properties and fields
+    u32 blockIndex;
+    u32 cellIndex;
+    u32 cellCount;
+    bool isAssigned;
 };
 
 struct SymTab
@@ -49,6 +55,7 @@ struct SymTab
     Ast * pAst;
     CompHashMap<const char*, SymRec*> dict;
     CompList<SymTab*> children;
+    u32 blockCount;
 };
 
 struct AstList

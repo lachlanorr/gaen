@@ -40,8 +40,6 @@ SET (compose_SOURCES
   compose_parser.h
   compose_scanner.c
   compose_scanner.h
-  PropsAndFields.cpp
-  PropsAndFields.h
   utils.cpp
   utils.h
   )
