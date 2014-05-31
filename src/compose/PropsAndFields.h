@@ -66,11 +66,12 @@ public:
 
     void blockPackItems();
 
-    u32 blockCount();
+    u32 blockCount() { return mBlockCount; }
 
     const Item * findItem(const char * name);
 
-    const Item & operator[](size_t i);
+    u32 itemCount() { return (u32)mItems.size(); }
+    const Item & operator[](size_t i) { ASSERT(i < mItems.size()); return mItems[i]; }
 
 private:
     Item * findNextItemToPack(u32 currCell);

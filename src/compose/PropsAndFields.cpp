@@ -26,6 +26,7 @@
 
 #include <algorithm>
 
+#include "engine/Block.h"
 #include "compose/PropsAndFields.h"
 
 namespace gaen
@@ -115,19 +116,32 @@ void PropsAndFields::addProperty(const char * name, DataType dataType)
 
 PropsAndFields::Item * PropsAndFields::findNextItemToPack(u32 currCell)
 {
-//    u32 cellsRemaining = kCellsPerBlock - currCell;
+    ASSERT(currCell < kCellsPerBlock);
+
+    u32 cellsRemaining = kCellsPerBlock - currCell;
     
     for (Item * pItem : mSortedItems)
     {
-        
+        if (pItem->isAssigned)
+            continue;
+
+        if (pItem->cellCount > 1 && currCell != 0)
+            continue;
+
+        return pItem;
     }
     return nullptr;
 }
 
 void PropsAndFields::blockPackItems()
 {
+    ASSERT(mSortedItems.size() == mItems.size() == mItemMap.size());
+
     if (mSortedItems.size() == 0)
+    {
+        mBlockCount = 0;
         return;
+    }
 
     for (Item * pItem : mSortedItems)
     {
@@ -143,27 +157,34 @@ void PropsAndFields::blockPackItems()
 
     u32 unassignedItemCount = (u32)mSortedItems.size();
 
-    mBlockCount = 1;
-
     u32 currBlock = 0;
     u32 currCell = 0;
 
     while (unassignedItemCount > 0)
     {
-        
+        Item * pItem = findNextItemToPack(currCell);
+
+        if (!pItem)
+        {
+            // no more items will fit in this block
+            currBlock++;
+            currCell = 0;
+        }
+        else
+        {
+            pItem->isAssigned = true;
+            unassignedItemCount--;
+            pItem->blockIndex = currBlock;
+            pItem->cellIndex = currCell;
+
+            currCell += pItem->cellCount;
+
+            currBlock += pItem->cellCount / kCellsPerBlock;
+            currCell += pItem->cellCount % kCellsPerBlock;
+        }
     }
-    
-}
 
-u32 PropsAndFields::blockCount()
-{
-    return mBlockCount;
-}
-
-const PropsAndFields::Item & PropsAndFields::operator[](size_t i)
-{
-    ASSERT(i < mItems.size());
-    return mItems[i];
+    mBlockCount = currBlock + 1;
 }
 
 PropsAndFields::Item::Item(const char * name, ItemType type, DataType dataType)
