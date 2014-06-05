@@ -64,6 +64,7 @@ size_t comp_avail_mem();
 #include <vector>
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
 
 #include "core/base_defines.h"
 #include "core/hashing.h"
@@ -168,6 +169,14 @@ using CompHashMap = std::unordered_map<Key,
                                        Hash,
                                        KeyEqual,
                                        gaen::CompAllocator<std::pair<const Key,T>>>;
+
+template <class Key,
+          class T,
+          class Compare = std::less<Key>>
+using CompMap = std::map<Key,
+                         T,
+                         Compare,
+                         gaen::CompAllocator<std::pair<const Key,T>>>;
 
 //------------------------------------------------------------------------------
 // STL Containers (END)

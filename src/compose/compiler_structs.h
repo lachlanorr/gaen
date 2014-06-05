@@ -53,7 +53,7 @@ struct SymTab
 {
     SymTab * pParent;
     Ast * pAst;
-    CompHashMap<const char*, SymRec*> dict;
+    CompMap<const char*, SymRec*> dict;
     CompList<SymTab*> children;
     u32 blockCount;
 };

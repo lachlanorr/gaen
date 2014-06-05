@@ -34,29 +34,50 @@
 namespace gaen
 {
 
-Entity::Entity(u32 propertyBufferSize,
-               u8 * pPropertyBuffer,
-               const Mat34 & transform)
-  : mPropertyBufferSize(propertyBufferSize)
-  , mPropertyBufferHWM(0)
-  , mpPropertyBuffer(pPropertyBuffer)
+Entity::Entity(u32 nameHash, u32 blockCount)
 {
-    if (!pPropertyBuffer)
-        pPropertyBuffer = static_cast<u8*>(GALLOC(kMEM_Engine, mPropertyBufferSize));
-    
-    mLocalTransform = transform;
-    mGlobalTransform = transform;
+    mTask = Task::create(this, nameHash);
+
+    mLocalTransform = Mat34::identity();
+    mGlobalTransform = Mat34::identity();
+
+    mComponentsMax = 16;
+    mComponentCount = 0;
+    mpComponents = (Component*)GALLOC(kMEM_Engine, sizeof(Component) * mComponentsMax);
+
+    mBlocksMax = blockCount + 4; // LORRTODO: 4 is aribtrary, we need to decide a better resizing way
+    mBlockCount = blockCount;
+    mpBlocks = (Block*)GALLOC(kMEM_Engine, sizeof(Block) * mBlocksMax);
+
+    mChildrenMax = 16;
+    mChildCount = 0;
+    mpChildren = (Entity**)GALLOC(kMEM_Engine, sizeof(Entity*) * mChildrenMax);
+}
+
+Entity::~Entity()
+{
+    GFREE(mpChildren);
+    GFREE(mpBlocks);
+    GFREE(mpComponents);
+}
+
+void Entity::insertComponent(u32 nameHash, ComponentPosition pos)
+{
+    // LORRTODO
+    //nASSERT(!pComp->mpEntity);
+    //pComp->mpEntity = this;
+    //mComponents.push_back(Task::create(pComp));
 }
 
 void Entity::update(f32 deltaSecs)
 {
-    // Update all components
-    for (Task & task : mComponents)
-        task.update(deltaSecs);
-
-    // Update all children
-    for (Entity * pChild : mChildren)
-        pChild->update(deltaSecs);
+    mTask.update(deltaSecs);
+    
+    // Now, send fin to our components
+    for (u32 i = 0; i < mComponentCount; ++i)
+    {
+        mpComponents[i].task().update(deltaSecs);
+    }
 }
 
 template <typename T>
@@ -65,20 +86,48 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
     switch (msg.msgId)
     {
     case HASH::fin:
+    {
         // fin messages are like destructors and should be handled specially.
         // fin method will propogate fin to all tasks/entity children
         // and delete this entity.
-        fin(msg, msgAcc);
+
+        // Send fin message to all children entities
+        for (u32 i = 0; i < mChildCount; ++i)
+        {
+            mpChildren[i]->message(msg, msgAcc);
+        }
+
+        // Now, send fin to our components
+        for (u32 i = 0; i < mComponentCount; ++i)
+        {
+            mpComponents[i].task().message(msg, msgAcc);
+        }
+
+        // Call our subclassed message routine
+        mTask.message(msg, msgAcc);
+
+        // And finally, delete ourselves
+        GDELETE(this);
+
         return MessageResult::Propogate;
+    }
     case HASH::init:
+    {
         // We consume this message. New init messages will be generated and
         // passed to Components when they are added to us.
-        init(msg, msgAcc);
+
+        // Call our subclassed message routine
+        mTask.message(msg, msgAcc);
+
         return MessageResult::Consumed;
+    }
     case HASH::insert_component:
+    {
         //insertComponent(msgAcc); // LORRTODO
         return MessageResult::Consumed;
+    }
     case HASH::register_watcher:
+    {
         // register a property watcher for some combination of:
         // - component type
         // - compenent id
@@ -86,57 +135,30 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
         PANIC("TODO");
         break;
     }
-
+    }
 
     MessageResult res;
 
+    // Call our subclassed message routine
+    res = mTask.message(msg, msgAcc);
+    if (res == MessageResult::Consumed)
+        return MessageResult::Consumed;
+    
+
     // Send the message to all components
-    for (Task & task : mComponents)
+    for (u32 i = 0; i < mComponentCount; ++i)
     {
-        res = task.message(msg, msgAcc);
+        res = mpComponents[i].task().message(msg, msgAcc);
         if (res == MessageResult::Consumed)
             return MessageResult::Consumed;
     }
 
-    // Send the message to all children
-    for (Entity * pChild : mChildren)
-    {
-        res = pChild->message(msg, msgAcc);
-        if (res == MessageResult::Consumed)
-            return MessageResult::Consumed;
-    }
-
-    LOG_WARNING("Unhandled message to entity - taskid: %d, msgId: %d", taskId(), msg.msgId);
     return MessageResult::Propogate;
 }
 
-template <typename T>
-void Entity::fin(const Message & msg, T msgAcc)
-{
-    ASSERT(msg.msgId == HASH::fin);
-
-    // Send the message to all components
-    for (Task & task : mComponents)
-    {
-        task.message(msg, msgAcc);
-    }
-
-    // Send the message to all children
-    for (Entity * pChild : mChildren)
-    {
-        pChild->message(msg, msgAcc);
-    }
-
-    GFREE(mpPropertyBuffer);
-    GDELETE(this);
-}
-
+// LORRTODO - do we need these, commenting out for now
 // Template instantiations
-template MessageResult Entity::message<const MessageQueue::MessageAccessor&>(const Message&, const MessageQueue::MessageAccessor&);
-template MessageResult Entity::message<const Block*>(const Message&, const Block*);
-
-template void Entity::fin<const MessageQueue::MessageAccessor&>(const Message&, const MessageQueue::MessageAccessor&);
-template void Entity::fin<const Block*>(const Message&, const Block*);
-
+//template MessageResult Entity::message<const MessageQueue::MessageAccessor&>(const Message&, const MessageQueue::MessageAccessor&);
+//template MessageResult Entity::message<const Block*>(const Message&, const Block*);
 
 } // namespace gaen

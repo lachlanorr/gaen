@@ -73,9 +73,9 @@ int main(int argc, char ** argv)
                                         argv[1],
                                         &messageHandler);
 
-    if (pParseData->hasErrors)
+    if (!pParseData || pParseData->hasErrors)
     {
-        fprintf(stderr, "Compilation failed due to errors.\n");
+        fprintf(stderr, "Compilation failed due to errors\n");
         exit(1);
     }
 

@@ -37,14 +37,19 @@ namespace gaen
 // If pAst contains a message def called "Update", return it
 // otherwise return null
 bool is_update_message_def(const Ast * pAst);
+
 const Ast * find_update_message_def(const Ast * pAst);
+
+
+inline bool is_prop_or_field(const SymRec * pSymRec)
+{
+    ASSERT(pSymRec);
+    return (pSymRec->type == kSYMT_Property || pSymRec->type == kSYMT_Field);
+}
 
 u32 data_type_cell_count(DataType dataType);
 u32 props_and_fields_count(const Ast * pAst);
 void block_pack_props_and_fields(Ast *pAst);
-
-char * property_block_accessor(char * output, u32 outputSize, const Ast * pAst);
-
 
 } // namespace gaen
 

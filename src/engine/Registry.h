@@ -36,53 +36,10 @@
 namespace gaen
 {
 
-template <class T>
-class Registry
-{
-public:
-    typedef T*(*Constructor)();
-
-    static bool register_constructor(u32 hash, Constructor constructor)
-    {
-        auto it = singleton<Registry>().mConstructors.find(hash);
-
-        if (it != singleton<Registry>().mConstructors.end())
-        {
-            PANIC("Hash already registered: 0x%08x", hash);
-            return false;
-        }
-    
-        singleton<Registry>().mConstructors[hash] = constructor;
-        return true;
-    }
-    
-    static T* construct(u32 hash)
-    {
-        auto it = singleton<Registry>().mConstructors.find(hash);
-
-        if (it == singleton<Registry>().mConstructors.end())
-        {
-            PANIC("Unknown hash, cannot construct: 0x%08x", hash);
-            return nullptr;
-        }
-    
-        return it->second();
-    }
-
-private:
-    HashMap<kMEM_Engine, u32, Constructor> mConstructors;
-};
-
-// LORRTODO - remove if explicit def works out
-//typedef Registry<Component> ComponentRegistry;
-
-typedef Registry<Entity> EntityRegistry;
-
-
 class ComponentRegistry
 {
 public:
-    typedef Component (*Constructor)(ComponentDesc * pCompDesc);
+    typedef Component * (*Constructor)(void * place);
 
     static bool register_constructor(u32 hash, Constructor constructor)
     {
@@ -98,22 +55,61 @@ public:
         return true;
     }
     
-    static Component construct(u32 hash, ComponentDesc * pCompDesc)
+    static Component * construct(u32 hash, void * place)
     {
         auto it = singleton<ComponentRegistry>().mConstructors.find(hash);
 
         if (it == singleton<ComponentRegistry>().mConstructors.end())
         {
             PANIC("Unknown hash, cannot construct: 0x%08x", hash);
-            return Component(pCompDesc);
+            return nullptr;
         }
     
-        return it->second(pCompDesc);
+        return it->second(place);
     }
 
 private:
     HashMap<kMEM_Engine, u32, Constructor> mConstructors;
 };
+
+
+class EntityRegistry
+{
+public:
+    typedef Entity * (*Constructor)();
+
+    static bool register_constructor(u32 hash, Constructor constructor)
+    {
+        auto it = singleton<EntityRegistry>().mConstructors.find(hash);
+
+        if (it != singleton<EntityRegistry>().mConstructors.end())
+        {
+            PANIC("Hash already registered: 0x%08x", hash);
+            return false;
+        }
+    
+        singleton<EntityRegistry>().mConstructors[hash] = constructor;
+        return true;
+    }
+    
+    static Entity * construct(u32 hash)
+    {
+        auto it = singleton<EntityRegistry>().mConstructors.find(hash);
+
+        if (it == singleton<EntityRegistry>().mConstructors.end())
+        {
+            PANIC("Unknown hash, cannot construct: 0x%08x", hash);
+            return nullptr;
+        }
+    
+        return it->second();
+    }
+
+private:
+    HashMap<kMEM_Engine, u32, Constructor> mConstructors;
+};
+
+
 
 
 } // namespace gaen

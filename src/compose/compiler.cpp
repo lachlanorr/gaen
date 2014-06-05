@@ -340,6 +340,16 @@ Ast * ast_create_field_def(const char * name, DataType dataType, Ast * pInitVal,
     return pAst;
 }
 
+Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData)
+{
+    ASSERT(pParseData);
+
+    Ast * pAst = ast_create(kAST_SimpleStmt, pParseData);
+    pAst->pLhs = pExpr;
+
+    return pAst;
+}
+
 Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData)
 {
     Ast * pAst = ast_create(astType, pParseData);

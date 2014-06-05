@@ -127,11 +127,11 @@ def lower_first(s):
 
 def block_accessor(field):
     if field.cell_count == 1:
-        return 'c[%d]' % field.block_cell_start
+        return 'cells[%d]' % field.block_cell_start
     elif field.cell_count == 2:
-        return 'd[%d]' % (field.block_cell_start / 2,)
+        return 'dCells[%d]' % (field.block_cell_start / 2,)
     elif field.cell_count == 4:
-        return 'q'
+        return 'qCell'
     else:
         raise Exception('Invalid field size for block accessor')
 

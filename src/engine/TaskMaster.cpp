@@ -44,9 +44,6 @@ namespace gaen
 static const u32 kMaxMainMessages = 4096;
 static const u32 kMaxTaskMasterMessages = 4096;
 
-static const u64 kFPS = 60;
-static const u64 kNanosPerFrame = 1000000000 / kFPS;
-
 static bool sIsInit = false;
 
 template <class RendererT>
@@ -115,10 +112,10 @@ void start_game_loops(Entity * pInitEntity)
         Task t = Task::createUpdatable(pInitEntity, 0);
         {
             msg::InsertTaskW msgw(HASH::add_task,
-                                 kMessageFlag_None,
-                                 kMainThreadTaskId,
-                                 kPrimaryThreadId,
-                                 kPrimaryThreadId);
+                                  kMessageFlag_None,
+                                  kMainThreadTaskId,
+                                  kPrimaryThreadId,
+                                  kPrimaryThreadId);
             msgw.setTask(t);
         }
     }

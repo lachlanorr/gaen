@@ -165,7 +165,7 @@ stmt
 
     | block     { $$ = $1; }
     
-    | expr ';'  { $$ = $1; }
+    | expr ';'  { $$ = ast_create_simple_stmt($1, pParseData); }
     ;
 
 do_stmt
@@ -197,9 +197,13 @@ expr
     | expr '%' expr    { $$ = ast_create_binary_op(kAST_Mod,    $1, $3, pParseData); }
     | expr LSHIFT expr { $$ = ast_create_binary_op(kAST_LShift, $1, $3, pParseData); }
     | expr RSHIFT expr { $$ = ast_create_binary_op(kAST_RShift, $1, $3, pParseData); }
-    | expr AND expr    { $$ = ast_create_binary_op(kAST_And,    $1, $3, pParseData); }
     | expr OR expr     { $$ = ast_create_binary_op(kAST_Or,     $1, $3, pParseData); }
-    | expr '^' expr    { $$ = ast_create_binary_op(kAST_XOr,    $1, $3, pParseData); }
+    | expr AND expr    { $$ = ast_create_binary_op(kAST_And,    $1, $3, pParseData); }
+    | expr '|' expr    { $$ = ast_create_binary_op(kAST_BitOr,  $1, $3, pParseData); }
+    | expr '^' expr    { $$ = ast_create_binary_op(kAST_BitXor, $1, $3, pParseData); }
+    | expr '&' expr    { $$ = ast_create_binary_op(kAST_BitAnd, $1, $3, pParseData); }
+
+
 
     | IDENTIFIER '=' expr           { $$ = ast_create_assign_op(kAST_Assign,       $1, $3, pParseData); }
     | IDENTIFIER ADD_ASSIGN expr    { $$ = ast_create_assign_op(kAST_AddAssign,    $1, $3, pParseData); }

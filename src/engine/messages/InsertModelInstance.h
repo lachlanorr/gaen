@@ -61,8 +61,8 @@ public:
     }
 
     model_instance_id instanceId() const { return mMsgAcc.message().payload.u; }
-    Model * model() const { return static_cast<Model *>(mMsgAcc[0].d[0].p); }
-    bool isAssetManaged() const { return mMsgAcc[0].c[2].b; }
+    Model * model() const { return static_cast<Model *>(mMsgAcc[0].dCells[0].p); }
+    bool isAssetManaged() const { return mMsgAcc[0].cells[2].b; }
     const Mat34 & worldTransform() const { return *mpWorldTransform; }
         
 private:
@@ -91,8 +91,8 @@ public:
                       4) {}
     
     void setInstanceId(model_instance_id val) { mMsgAcc.message().payload.u = val; }
-    void setModel(Model * pVal) { mMsgAcc[0].d[0].p = pVal; }
-    void setIsAssetManaged(bool val) { mMsgAcc[0].c[2].b = val; }
+    void setModel(Model * pVal) { mMsgAcc[0].dCells[0].p = pVal; }
+    void setIsAssetManaged(bool val) { mMsgAcc[0].cells[2].b = val; }
     void setWorldTransform(const Mat34 & val)
     {
         for (u32 i = 0; i < 3; ++i)

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Component.h - Core functionality all components must have
+// start.cmp - startup script, run by default if no other entity is specified
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,44 +24,15 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_COMPONENT_H
-#define GAEN_ENGINE_COMPONENT_H
-
-#include "engine/Message.h"
-
-namespace gaen
+entity start
 {
 
-enum class PropertyGroup
-{
-    Current,
-    Initial
-};
+    float #f_prop = 1.0;
+    float f_field = 2.0;
 
-struct ComponentDesc;
+    #update(float deltaSecs)
+    {
+    
+    }
 
-// Base component, basically a way for all components
-// to have a pointer to their ComponentDesc.
-class Component
-{
-    friend class Entity;
-public:
-    Component()
-      : mIsInit(0)
-      , mEntityTaskId(kInvalidTaskId){}
-
-    Task & task() { return mTask; }
-
-protected:
-    Task mTask;
-    Block *mpBlocks;
-    u32 mBlockCount:24;
-    u32 mIsInit:8;
-    u32 mEntityTaskId;
-};
-
-static_assert(sizeof(Component) == 48, "Component unexpected size");
-
-} // namespace gaen
-
-#endif // #ifndef GAEN_ENGINE_COMPONENT_H
+}

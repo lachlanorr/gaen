@@ -87,9 +87,9 @@ static_assert(sizeof(qcell) == 16, "qcell must be 16 bytes");
 
 union Block
 {
-    cell c[4];
-    dcell d[2];
-    qcell q;
+    cell cells[4];
+    dcell dCells[2];
+    qcell qCell;
 };
 
 // Messages can be cast into Blocks to access

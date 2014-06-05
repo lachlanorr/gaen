@@ -78,43 +78,12 @@ u32 data_type_cell_count(DataType dataType)
 }
 
 
-char * property_block_accessor(char * output, u32 outputSize, DataType dataType, u32 cellIndex)
-{
-    switch (dataType)
-    {
-    case kDT_int:
-        snprintf(output, outputSize-1, "cells[%u].i", cellIndex);
-    case kDT_uint:
-        snprintf(output, outputSize-1, "cells[%u].u", cellIndex);
-    case kDT_float:
-        snprintf(output, outputSize-1, "cells[%u].f", cellIndex);
-    case kDT_bool:
-        snprintf(output, outputSize-1, "cells[%u].b", cellIndex);
-    case kDT_char:
-        snprintf(output, outputSize-1, "cells[%u].c", cellIndex);
-    case kDT_color:
-        snprintf(output, outputSize-1, "cells[%u].color", cellIndex);
-    case kDT_vec3:
-    case kDT_vec4:
-    case kDT_mat3:
-    case kDT_mat34:
-    case kDT_mat4:
-        ASSERT(cellIndex == 0);
-        strncpy(output, "qcell", outputSize);
-    default:
-        PANIC("Invalid dataType: %d", dataType);
-        return "";
-    }
-    output[outputSize-1] = '\0'; // ensure null terminated
-    return output;
-}
-
 u32 props_and_fields_count(const Ast * pAst)
 {
     u32 count = 0;
     for (Ast *pChild : pAst->pChildren->nodes)
     {
-        if (pChild->type == kAST_PropertyDef || pChild->type == kAST_FieldDef)
+        if (is_prop_or_field(pChild->pSymRec))
             count++;
     }
     return count;
@@ -156,8 +125,7 @@ void block_pack_props_and_fields(Ast *pAst)
 
     for (Ast *pChild : pAst->pChildren->nodes)
     {
-        if (pChild->type == kAST_PropertyDef ||
-            pChild->type == kAST_FieldDef)
+        if (is_prop_or_field(pChild->pSymRec))
         {
             ASSERT(pChild->pSymRec->blockIndex == 0 &&
                    pChild->pSymRec->cellIndex == 0 &&

@@ -85,6 +85,8 @@ typedef enum
     kAST_SymbolRef,
     kAST_SymbolDecl,
 
+    kAST_SimpleStmt,
+
     kAST_If,
     kAST_While,
     kAST_DoWhile,
@@ -99,7 +101,10 @@ typedef enum
     kAST_RShift,
     kAST_And,
     kAST_Or,
-    kAST_XOr,
+
+    kAST_BitAnd,
+    kAST_BitOr,
+    kAST_BitXor,
 
     kAST_Eq,
     kAST_NEq,
@@ -212,6 +217,8 @@ Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pPar
 Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_property_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData);
 Ast * ast_create_field_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData);
+
+Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData);
 
 Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData);
 Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * pParseData);
