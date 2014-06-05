@@ -77,7 +77,7 @@ protected:
     u32 mBlocksMax;
     u32 mBlockCount;
 
-    Entity ** mpChildren;
+    Task * mpChildren;
     u32 mChildrenMax;
     u32 mChildCount;
 };

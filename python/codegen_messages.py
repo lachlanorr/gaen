@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #-------------------------------------------------------------------------------
-# codegen_messages.py - Generate c++ property classes from defs
+# codegen_messages.py - Generate c++ message classes
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014 Lachlan Orr
@@ -140,7 +140,7 @@ def gen_reader_data_members(field_handler):
 def gen_payload_decl(field_handler):
     for f in field_handler.fields:
         if f.payload:
-            return ',\n%s           %s %s' % (' ' * len(field_handler.object_name), f.type_name, f.name)
+            return ',\n%s      %s %s' % (' ' * len(field_handler.object_name), f.type_name, f.name)
     return ''
 
 def gen_payload_value(field_handler):

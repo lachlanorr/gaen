@@ -56,9 +56,9 @@ class <<message_name>>W : protected MessageWriter
 {
 public:
     <<message_name>>W(u32 msgId,
-    <<message_name_indent>>     u32 flags,
-    <<message_name_indent>>     task_id source,
-    <<message_name_indent>>     task_id target<<payload_decl>>)
+    <<message_name_indent>>  u32 flags,
+    <<message_name_indent>>  task_id source,
+    <<message_name_indent>>  task_id target<<payload_decl>>)
       : MessageWriter(msgId,
                       flags,
                       source,

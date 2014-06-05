@@ -79,10 +79,10 @@ class InsertModelInstanceW : protected MessageWriter
 {
 public:
     InsertModelInstanceW(u32 msgId,
-                            u32 flags,
-                            task_id source,
-                            task_id target,
-                              model_instance_id instanceId)
+                         u32 flags,
+                         task_id source,
+                         task_id target,
+                         model_instance_id instanceId)
       : MessageWriter(msgId,
                       flags,
                       source,

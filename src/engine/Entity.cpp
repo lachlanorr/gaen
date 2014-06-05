@@ -51,7 +51,7 @@ Entity::Entity(u32 nameHash, u32 blockCount)
 
     mChildrenMax = 16;
     mChildCount = 0;
-    mpChildren = (Entity**)GALLOC(kMEM_Engine, sizeof(Entity*) * mChildrenMax);
+    mpChildren = (Task*)GALLOC(kMEM_Engine, sizeof(Task) * mChildrenMax);
 }
 
 Entity::~Entity()
@@ -94,7 +94,7 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
         // Send fin message to all children entities
         for (u32 i = 0; i < mChildCount; ++i)
         {
-            mpChildren[i]->message(msg, msgAcc);
+            mpChildren[i].message(msg, msgAcc);
         }
 
         // Now, send fin to our components
@@ -121,6 +121,8 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
 
         return MessageResult::Consumed;
     }
+    case HASH::transform:
+        break;
     case HASH::insert_component:
     {
         //insertComponent(msgAcc); // LORRTODO

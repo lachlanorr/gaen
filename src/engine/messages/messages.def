@@ -12,6 +12,9 @@ class InsertTask(FieldHandler):
                      includes=['core/threading.h'])
     task  = TaskField()
 
+# Transform and entity
+class Transform(FieldHandler):
+    transform = Mat34Field()
 
 class RemoveModelInstance(FieldHandler):
     instanceId = u32Field(payload=True,
