@@ -47,7 +47,7 @@ enum ComponentPosition
 class Entity
 {
 public:
-    Entity(u32 nameHash, u32 blockCount);
+    Entity(u32 nameHash, u32 componentCount, u32 blockCount, u32 childCount);
     ~Entity();
 
     const Task & task() { return mTask; }

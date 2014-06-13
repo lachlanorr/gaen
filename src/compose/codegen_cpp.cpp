@@ -215,9 +215,9 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("class ") + entName + S(" : public Entity\n{\n");
 
         code += I + S("public:\n");
-        code += I + S("    static Entity * construct()\n");
+        code += I + S("    static Entity * construct(u32 childCount)\n");
         code += I + S("    {\n");
-        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(");\n");
+        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount);\n");
         code += I + S("    }\n");
         code += I + S("    \n");
 
@@ -236,8 +236,8 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("private:\n");
 
         // Constructor
-        code += I + S("    ") + entName + S("()\n");
-        code += I + S("      : Entity(HASH::") + entName + S(", 36)\n");
+        code += I + S("    ") + entName + S("(u32 childCount)\n");
+        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36)\n");
         code += I + S("    {\n");
         // Initialize fields and properties
         for (const auto & kv : pAst->pScope->pSymTab->dict)

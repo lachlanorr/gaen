@@ -76,7 +76,7 @@ private:
 class EntityRegistry
 {
 public:
-    typedef Entity * (*Constructor)();
+    typedef Entity * (*Constructor)(u32 childCount);
 
     static bool register_constructor(u32 nameHash, Constructor constructor)
     {
@@ -92,7 +92,7 @@ public:
         return true;
     }
     
-    static Entity * construct(u32 nameHash)
+    static Entity * construct(u32 nameHash, u32 childCount)
     {
         auto it = singleton<EntityRegistry>().mConstructors.find(nameHash);
 
@@ -102,7 +102,7 @@ public:
             return nullptr;
         }
     
-        return it->second();
+        return it->second(childCount);
     }
 
 private:

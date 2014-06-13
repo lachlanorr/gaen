@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 0faf9edb03b927334be027521a635025
+// HASH: 89e75dc1aed10253c1a2f9ac2d64ed0f
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -39,9 +39,9 @@ namespace ent
 class start : public Entity
 {
 public:
-    static Entity * construct()
+    static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, start);
+        return GNEW(kMEM_Engine, start, childCount);
     }
     
     void update(float deltaSecs)
@@ -52,8 +52,8 @@ public:
     MessageResult message(const Message & msg, T msgAcc) { return MessageResult::Propogate; }
 
 private:
-    start()
-      : Entity(HASH::start, 36)
+    start(u32 childCount)
+      : Entity(HASH::start, childCount, 36, 36)
     {
         f_prop() = 1.000000f;
         f_field() = 2.000000f;

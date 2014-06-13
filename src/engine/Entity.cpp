@@ -35,28 +35,35 @@
 namespace gaen
 {
 
-static const u32 kInitialComponentsMax = 4;
-static const u32 kInitialChildrenMax = 4;
-static const u32 kInitialBlockGrowth = 4;
-
-Entity::Entity(u32 nameHash, u32 blockCount)
+Entity::Entity(u32 nameHash, u32 childCount, u32 componentCount, u32 blockCount)
 {
     mTask = Task::create(this, nameHash);
 
     mLocalTransform = Mat34::identity();
     mGlobalTransform = Mat34::identity();
 
-    mComponentsMax = kInitialComponentsMax;
+    mComponentsMax = componentCount;
     mComponentCount = 0;
-    mpComponents = (Component*)GALLOC(kMEM_Engine, sizeof(Component) * mComponentsMax);
+    if (mComponentsMax > 0)
+        mpComponents = (Component*)GALLOC(kMEM_Engine, sizeof(Component) * mComponentsMax);
+    else
+        mpComponents = nullptr;
 
-    mBlocksMax = blockCount + kInitialBlockGrowth;
-    mBlockCount = blockCount;
-    mpBlocks = (Block*)GALLOC(kMEM_Engine, sizeof(Block) * mBlocksMax);
+    // Most entities that aren't undergoing active design should have
+    // a fixed amount of blocks.
+    mBlocksMax = blockCount;
+    mBlockCount = 0;
+    if (mBlocksMax > 0)
+        mpBlocks = (Block*)GALLOC(kMEM_Engine, sizeof(Block) * mBlocksMax);
+    else
+        mpBlocks = nullptr;
 
-    mChildrenMax = kInitialChildrenMax;
+    mChildrenMax = childCount;
     mChildCount = 0;
-    mpChildren = (Task*)GALLOC(kMEM_Engine, sizeof(Task) * mChildrenMax);
+    if (mChildrenMax > 0)
+        mpChildren = (Task*)GALLOC(kMEM_Engine, sizeof(Task) * mChildrenMax);
+    else
+        mpChildren = nullptr;
 }
 
 Entity::~Entity()
@@ -70,11 +77,13 @@ void Entity::update(f32 deltaSecs)
 {
     mTask.update(deltaSecs);
     
-    // Now, send fin to our components
+    // send update our components
     for (u32 i = 0; i < mComponentCount; ++i)
-    {
         mpComponents[i].task().update(deltaSecs);
-    }
+
+    // send update to our child entities
+    for (u32 i = 0; i < mChildCount; ++i)
+        mpChildren[i].update(deltaSecs);
 }
 
 template <typename T>
@@ -155,13 +164,16 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
 
 void Entity::growComponents()
 {
-    u32 newMax = mComponentsMax * 2;
+    u32 newMax = mpComponents ? mComponentsMax * 2 : 4;
     Component * pNewComponents = (Component*)GALLOC(kMEM_Engine, sizeof(Component) * newMax);
 
-    for (u32 i = 0; i < mComponentCount; ++i)
-        pNewComponents[i] = mpComponents[i];
+    if (mpComponents)
+    {
+        for (u32 i = 0; i < mComponentCount; ++i)
+            pNewComponents[i] = mpComponents[i];
         
-    GFREE(mpComponents);
+        GFREE(mpComponents);
+    }
 
     mComponentsMax = newMax;
     mpComponents = pNewComponents;
@@ -171,21 +183,24 @@ void Entity::growBlocks(u32 minSizeIncrease)
 {
     // double max enough times to store
     // the new blocks
-    u32 newMax = mBlocksMax * 2;
+    u32 newMax = mpBlocks ? mBlocksMax * 2 : 4;
     while (newMax < mBlockCount + minSizeIncrease)
         newMax *= 2;
 
     Block * pNewBlocks = (Block*)GALLOC(kMEM_Engine, sizeof(Block) * newMax);
 
-    // copy old blocks into new
-    for (u32 i = 0; i < mBlockCount; ++i)
-        pNewBlocks[i] = mpBlocks[i];
+    if (mpBlocks)
+    {
+        // copy old blocks into new
+        for (u32 i = 0; i < mBlockCount; ++i)
+            pNewBlocks[i] = mpBlocks[i];
 
-    // update components to use new blocks storage
-    for (u32 i = 0; i < mComponentCount; ++i)
-        mpComponents[i].mpBlocks = pNewBlocks + (mpComponents[i].mpBlocks - mpBlocks);
+        // update components to use new blocks storage
+        for (u32 i = 0; i < mComponentCount; ++i)
+            mpComponents[i].mpBlocks = pNewBlocks + (mpComponents[i].mpBlocks - mpBlocks);
 
-    GFREE(mpBlocks);
+        GFREE(mpBlocks);
+    }
 
     mBlocksMax = newMax;
     mpBlocks = pNewBlocks;
@@ -281,13 +296,17 @@ void Entity::removeComponent(u32 nameHash)
 
 void Entity::growChildren()
 {
-    u32 newMax = mChildrenMax * 2;
+    u32 newMax = mpChildren ? mChildrenMax * 2 : 4;
+    
     Task * pNewChildren = (Task*)GALLOC(kMEM_Engine, sizeof(Task) * newMax);
 
-    for (u32 i = 0; i < mChildCount; ++i)
-        pNewChildren[i] = mpChildren[i];
+    if (mpChildren)
+    {
+        for (u32 i = 0; i < mChildCount; ++i)
+            pNewChildren[i] = mpChildren[i];
         
-    GFREE(mpChildren);
+        GFREE(mpChildren);
+    }
 
     mChildrenMax = newMax;
     mpChildren = pNewChildren;
@@ -338,13 +357,5 @@ void Entity::removeChild(Task & task)
     }
     PANIC("Attempt to remove task that Entity does not have");
 }
-
-
-
-
-// LORRTODO - do we need these, commenting out for now
-// Template instantiations
-//template MessageResult Entity::message<const MessageQueue::MessageAccessor&>(const Message&, const MessageQueue::MessageAccessor&);
-//template MessageResult Entity::message<const Block*>(const Message&, const Block*);
 
 } // namespace gaen
