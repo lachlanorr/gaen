@@ -41,27 +41,27 @@ class ComponentRegistry
 public:
     typedef Component * (*Constructor)(void * place);
 
-    static bool register_constructor(u32 hash, Constructor constructor)
+    static bool register_constructor(u32 nameHash, Constructor constructor)
     {
-        auto it = singleton<ComponentRegistry>().mConstructors.find(hash);
+        auto it = singleton<ComponentRegistry>().mConstructors.find(nameHash);
 
         if (it != singleton<ComponentRegistry>().mConstructors.end())
         {
-            PANIC("Hash already registered: 0x%08x", hash);
+            PANIC("Hash already registered: 0x%08x", nameHash);
             return false;
         }
     
-        singleton<ComponentRegistry>().mConstructors[hash] = constructor;
+        singleton<ComponentRegistry>().mConstructors[nameHash] = constructor;
         return true;
     }
     
-    static Component * construct(u32 hash, void * place)
+    static Component * construct(u32 nameHash, void * place)
     {
-        auto it = singleton<ComponentRegistry>().mConstructors.find(hash);
+        auto it = singleton<ComponentRegistry>().mConstructors.find(nameHash);
 
         if (it == singleton<ComponentRegistry>().mConstructors.end())
         {
-            PANIC("Unknown hash, cannot construct: 0x%08x", hash);
+            PANIC("Unknown hash, cannot construct: 0x%08x", nameHash);
             return nullptr;
         }
     
@@ -78,27 +78,27 @@ class EntityRegistry
 public:
     typedef Entity * (*Constructor)();
 
-    static bool register_constructor(u32 hash, Constructor constructor)
+    static bool register_constructor(u32 nameHash, Constructor constructor)
     {
-        auto it = singleton<EntityRegistry>().mConstructors.find(hash);
+        auto it = singleton<EntityRegistry>().mConstructors.find(nameHash);
 
         if (it != singleton<EntityRegistry>().mConstructors.end())
         {
-            PANIC("Hash already registered: 0x%08x", hash);
+            PANIC("Hash already registered: 0x%08x", nameHash);
             return false;
         }
     
-        singleton<EntityRegistry>().mConstructors[hash] = constructor;
+        singleton<EntityRegistry>().mConstructors[nameHash] = constructor;
         return true;
     }
     
-    static Entity * construct(u32 hash)
+    static Entity * construct(u32 nameHash)
     {
-        auto it = singleton<EntityRegistry>().mConstructors.find(hash);
+        auto it = singleton<EntityRegistry>().mConstructors.find(nameHash);
 
         if (it == singleton<EntityRegistry>().mConstructors.end())
         {
-            PANIC("Unknown hash, cannot construct: 0x%08x", hash);
+            PANIC("Unknown hash, cannot construct: 0x%08x", nameHash);
             return nullptr;
         }
     

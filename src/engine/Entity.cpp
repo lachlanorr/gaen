@@ -29,10 +29,15 @@
 #include "core/mem.h"
 #include "core/logging.h"
 #include "engine/hashes.h"
+#include "engine/Registry.h"
 #include "engine/Entity.h"
 
 namespace gaen
 {
+
+static const u32 kInitialComponentsMax = 4;
+static const u32 kInitialChildrenMax = 4;
+static const u32 kInitialBlockGrowth = 4;
 
 Entity::Entity(u32 nameHash, u32 blockCount)
 {
@@ -41,15 +46,15 @@ Entity::Entity(u32 nameHash, u32 blockCount)
     mLocalTransform = Mat34::identity();
     mGlobalTransform = Mat34::identity();
 
-    mComponentsMax = 16;
+    mComponentsMax = kInitialComponentsMax;
     mComponentCount = 0;
     mpComponents = (Component*)GALLOC(kMEM_Engine, sizeof(Component) * mComponentsMax);
 
-    mBlocksMax = blockCount + 4; // LORRTODO: 4 is aribtrary, we need to decide a better resizing way
+    mBlocksMax = blockCount + kInitialBlockGrowth;
     mBlockCount = blockCount;
     mpBlocks = (Block*)GALLOC(kMEM_Engine, sizeof(Block) * mBlocksMax);
 
-    mChildrenMax = 16;
+    mChildrenMax = kInitialChildrenMax;
     mChildCount = 0;
     mpChildren = (Task*)GALLOC(kMEM_Engine, sizeof(Task) * mChildrenMax);
 }
@@ -59,14 +64,6 @@ Entity::~Entity()
     GFREE(mpChildren);
     GFREE(mpBlocks);
     GFREE(mpComponents);
-}
-
-void Entity::insertComponent(u32 nameHash, ComponentPosition pos)
-{
-    // LORRTODO
-    //nASSERT(!pComp->mpEntity);
-    //pComp->mpEntity = this;
-    //mComponents.push_back(Task::create(pComp));
 }
 
 void Entity::update(f32 deltaSecs)
@@ -121,8 +118,6 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
 
         return MessageResult::Consumed;
     }
-    case HASH::transform:
-        break;
     case HASH::insert_component:
     {
         //insertComponent(msgAcc); // LORRTODO
@@ -157,6 +152,195 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
 
     return MessageResult::Propogate;
 }
+
+void Entity::growComponents()
+{
+    u32 newMax = mComponentsMax * 2;
+    Component * pNewComponents = (Component*)GALLOC(kMEM_Engine, sizeof(Component) * newMax);
+
+    for (u32 i = 0; i < mComponentCount; ++i)
+        pNewComponents[i] = mpComponents[i];
+        
+    GFREE(mpComponents);
+
+    mComponentsMax = newMax;
+    mpComponents = pNewComponents;
+}
+
+void Entity::growBlocks(u32 minSizeIncrease)
+{
+    // double max enough times to store
+    // the new blocks
+    u32 newMax = mBlocksMax * 2;
+    while (newMax < mBlockCount + minSizeIncrease)
+        newMax *= 2;
+
+    Block * pNewBlocks = (Block*)GALLOC(kMEM_Engine, sizeof(Block) * newMax);
+
+    // copy old blocks into new
+    for (u32 i = 0; i < mBlockCount; ++i)
+        pNewBlocks[i] = mpBlocks[i];
+
+    // update components to use new blocks storage
+    for (u32 i = 0; i < mComponentCount; ++i)
+        mpComponents[i].mpBlocks = pNewBlocks + (mpComponents[i].mpBlocks - mpBlocks);
+
+    GFREE(mpBlocks);
+
+    mBlocksMax = newMax;
+    mpBlocks = pNewBlocks;
+}
+
+void Entity::insertComponent(u32 nameHash, ComponentPosition pos)
+{
+    ASSERT(mComponentCount <= mComponentsMax);
+    
+    // Resize buffer if necessary
+    if (mComponentCount == mComponentsMax)
+        growComponents();
+
+    ASSERT(mComponentCount < mComponentsMax);
+
+    Component * pLoc = &mpComponents[mComponentCount];
+
+    if (pos == kCPOS_Begin)
+    {
+        // shift all components the right
+        for (u32 i = mComponentCount-1; i > 0; --i)
+            mpComponents[i] = mpComponents[i-1];
+        pLoc = &mpComponents[0];
+    }
+
+    Component * pComp = ComponentRegistry::construct(nameHash, pLoc);
+
+    ASSERT(pComp);
+
+    // Check if we have enough blocks for this new component
+    if (mBlockCount + pComp->mBlockCount > mBlocksMax)
+        growBlocks(pComp->mBlockCount);
+
+    ASSERT(mBlockCount + pComp->mBlockCount <= mBlocksMax);
+
+    pComp->mpBlocks = &mpBlocks[mBlockCount];
+    mBlockCount += pComp->mBlockCount;
+
+    mComponentCount++;
+}
+
+void Entity::removeBlocks(Block * pStart, u32 count)
+{
+    Block * pEnd = pStart + count;
+
+    ASSERT(pStart > mpBlocks);
+    ASSERT(pEnd <= mpBlocks + mBlockCount);
+
+    if (pEnd < mpBlocks + mBlockCount)
+    {
+        // Removing blocks in the middle, we'll shift to the left to
+        // close the gap, but in doing so must also update all mpBlock
+        // pointers in the components that were pointing the moved
+        // blocks.
+        for (u32 i = 0; i < count; ++i)
+        {
+            pStart[i] = pEnd[i];
+        }
+
+        // Update any component block pointers that point to blocks
+        // after removed section.
+        for (u32 i = 0; i < mComponentCount; ++i)
+        {
+            if (mpComponents[i].mpBlocks >= pEnd)
+            {
+                mpComponents[i].mpBlocks -= count;
+            }
+        }
+    }
+    mBlockCount -= count;
+}
+
+void Entity::removeComponent(u32 nameHash)
+{
+    for (u32 i = 0; i < mComponentCount; ++i)
+    {
+        if (mpComponents[i].mTask.nameHash() == nameHash)
+        {
+            removeBlocks(mpComponents[i].mpBlocks, mpComponents[i].mBlockCount);
+            if (i < mComponentCount - 1)
+            {
+                // removing in middle, need to shift subsequent components one to left
+                for (u32 j = i; j < mComponentCount; ++j)
+                {
+                    mpComponents[j] = mpComponents[j+1];
+                }
+            }
+            mComponentCount--;
+            return;
+        }
+    }
+}
+
+void Entity::growChildren()
+{
+    u32 newMax = mChildrenMax * 2;
+    Task * pNewChildren = (Task*)GALLOC(kMEM_Engine, sizeof(Task) * newMax);
+
+    for (u32 i = 0; i < mChildCount; ++i)
+        pNewChildren[i] = mpChildren[i];
+        
+    GFREE(mpChildren);
+
+    mChildrenMax = newMax;
+    mpChildren = pNewChildren;
+}
+
+void Entity::insertChild(Task & task)
+{
+    ASSERT(mChildCount <= mChildrenMax);
+
+    // Resize buffer if necessary
+    if (mChildCount == mChildrenMax)
+    {
+        growChildren();
+    }
+
+    ASSERT(mChildCount < mChildrenMax);
+
+    mpChildren[mChildCount] = task;
+    mChildCount++;
+}
+
+void Entity::removeChild(Task & task)
+{
+    if (mChildCount == 1)
+    {
+        ASSERT_MSG(mpChildren[0].id() == task.id(), "Attempt to remove task that Entity does not have");
+        if (mpChildren[0].id() == task.id())
+        {
+            mChildCount = 0;
+            return;
+        }
+    }
+    else
+    {
+        for (u32 i = 0; i < mChildCount; ++i)
+        {
+            if (mpChildren[i].id() == task.id())
+            {
+                if (i < mChildCount - 1)
+                {
+                    // item in middle, swap with the last item
+                    mpChildren[i] = mpChildren[mChildCount-1];
+                }
+                mChildCount--;
+                return;
+            }
+        }
+    }
+    PANIC("Attempt to remove task that Entity does not have");
+}
+
+
+
 
 // LORRTODO - do we need these, commenting out for now
 // Template instantiations

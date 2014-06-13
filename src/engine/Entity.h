@@ -58,11 +58,17 @@ public:
     MessageResult message(const Message & msg, T msgAcc);
 
 protected:
-    void insertChild(Entity * pEntity);
-    void removeChild(Entity * pEntity);
-
     void insertComponent(u32 nameHash, ComponentPosition pos);
-    void removeComponent(u32 taskId);
+    void removeComponent(u32 nameHash);
+
+    void removeBlocks(Block * pStart, u32 count);
+
+    void insertChild(Task & task);
+    void removeChild(Task & task);
+
+    void growComponents();
+    void growBlocks(u32 minSizeIncrease);
+    void growChildren();
 
     Task mTask;
     

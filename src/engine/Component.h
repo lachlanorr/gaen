@@ -28,6 +28,7 @@
 #define GAEN_ENGINE_COMPONENT_H
 
 #include "engine/Message.h"
+#include "engine/Task.h"
 
 namespace gaen
 {
