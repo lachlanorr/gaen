@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 1d8e1fd02920f2202954dd92759ee442
+// HASH: 5835370b79472ddb6b541ed1e58c9ba3
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -59,7 +59,7 @@ public:
     }
 
     template <typename T>
-    MessageResult message(const Message & msg, T msgAcc) { return MessageResult::Propogate; }
+    MessageResult message(const T & msgAcc) { return MessageResult::Propogate; }
 
 private:
     Timer()

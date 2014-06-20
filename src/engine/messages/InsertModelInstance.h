@@ -37,10 +37,11 @@ namespace gaen
 namespace msg
 {
 
+template <typename T>
 class InsertModelInstanceR
 {
 public:
-    InsertModelInstanceR(const MessageQueue::MessageAccessor & msgAcc)
+    InsertModelInstanceR(const T & msgAcc)
       : mMsgAcc(msgAcc)
     {
         if (&msgAcc[3] > &msgAcc[1])
@@ -66,29 +67,31 @@ public:
     const Mat34 & worldTransform() const { return *mpWorldTransform; }
         
 private:
-    const MessageQueue::MessageAccessor & mMsgAcc;
+    const T & mMsgAcc;
 
     // These members provide storage for fields larger than a block that wrap the ring buffer
     Mat34 mWorldTransform;
     const Mat34 * mpWorldTransform;
 };
 
+typedef InsertModelInstanceR<MessageQueueAccessor> InsertModelInstanceQR;
+typedef InsertModelInstanceR<MessageBlockAccessor> InsertModelInstanceBR;
 
-
-class InsertModelInstanceW : protected MessageWriter
+class InsertModelInstanceQW : protected MessageQueueWriter
 {
 public:
-    InsertModelInstanceW(u32 msgId,
+    InsertModelInstanceQW(u32 msgId,
                          u32 flags,
                          task_id source,
                          task_id target,
                          model_instance_id instanceId)
-      : MessageWriter(msgId,
-                      flags,
-                      source,
-                      target,
-                      to_cell(instanceId),
-                      4) {}
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(instanceId),
+                           4)
+    {}
     
     void setInstanceId(model_instance_id val) { mMsgAcc.message().payload.u = val; }
     void setModel(Model * pVal) { mMsgAcc[0].dCells[0].p = pVal; }
@@ -102,7 +105,40 @@ public:
     }
 };
 
-} // namespcae msg
+class InsertModelInstanceBW : protected MessageBlockWriter
+{
+public:
+    InsertModelInstanceBW(u32 msgId,
+                         u32 flags,
+                         task_id source,
+                         task_id target,
+                         Block * pBlocks,
+                         u32 blockCount,
+                         model_instance_id instanceId)
+      : MessageBlockWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(instanceId),
+                           4,
+                           mBlocks)
+    {}
+
+    void setInstanceId(model_instance_id val) { mMsgAcc.message().payload.u = val; }
+    void setModel(Model * pVal) { mMsgAcc[0].dCells[0].p = pVal; }
+    void setIsAssetManaged(bool val) { mMsgAcc[0].cells[2].b = val; }
+    void setWorldTransform(const Mat34 & val)
+    {
+        for (u32 i = 0; i < 3; ++i)
+        {
+            mMsgAcc[i + 1] = block_at(&val, i);
+        }
+    }
+
+    Block mBlocks[4];
+};
+
+} // namespace msg
 } // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_MESSAGES_INSERTMODELINSTANCEMESSAGE_H

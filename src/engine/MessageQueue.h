@@ -28,8 +28,8 @@
 #define GAEN_ENGINE_MESSAGEQUEUE_H
 
 #include "core/SpscRingBuffer.h"
-
 #include "engine/Message.h"
+#include "engine/MessageAccessor.h"
 
 namespace gaen
 {
@@ -42,59 +42,8 @@ static const u32 kMaxMessageStringLen = 16 * 16 - 12 - 1; // 243
 
 class MessageQueue
 {
-    friend class MessageAccessor;
+    friend class MessageQueueAccessor;
 public:
-    // Provides cell access to message.  Message Header contains one 32 bit cell,
-    // each subsequent "Message Header" contains 4 more cells.
-    class MessageAccessor
-    {
-        friend MessageQueue;
-    public:
-        Message & message()
-        {
-            ASSERT(mAccessor.available() > 0);
-            return mAccessor[0];
-        }
-
-        const Message & message() const
-        {
-            ASSERT(mAccessor.available() > 0);
-            return mAccessor[0];
-        }
-
-        // Access blocks of message
-        Block & operator[] (u32 index)
-        {
-            return blockFromIndex(index);
-        }
-
-        const Block & operator[] (u32 index) const
-        {
-            return blockFromIndex(index);
-        }
-
-    private:
-        Block & blockFromIndex(u32 index) const
-        {
-            ASSERT(index < mAccessor.available()-1); // -1 since Message header is always present
-            ASSERT(index < blockCount());
-
-             // +1 since Message header is always present
-            Block * pBlock = reinterpret_cast<Block*>(&mAccessor[1+index]);
-
-            return *pBlock;
-        }
-
-        u32 blockCount() const
-        {
-            ASSERT(mAccessor.available() > 0);
-            return mAccessor[0].blockCount;
-        }
-
-        mutable SpscRingBuffer<Message>::Accessor mAccessor;
-    };
-
-
     MessageQueue(u32 messageCount)
       : mRingBuffer(messageCount, kMEM_Engine)
     {}
@@ -114,29 +63,29 @@ public:
               task_id target,
               cell payload)
     {
-        MessageAccessor msgAcc;
+        MessageQueueAccessor msgAcc;
         pushHeader(&msgAcc, msgId, flags, source, target, payload, 0);
         mRingBuffer.pushCommit(1);
     }
 
-    void pushBegin(MessageAccessor * pMsgAcc,
+    void pushBegin(MessageQueueAccessor * pMsgAcc,
                    u32 msgId,
                    u32 flags,
                    task_id source,
                    task_id target,
-                   cell payload = to_cell(0),
-                   u32 blockCount = 0)
+                   cell payload,
+                   u32 blockCount)
     {
         pushHeader(pMsgAcc, msgId, flags, source, target, payload, blockCount);
     }
 
-    void pushCommit(const MessageAccessor & msgAcc)
+    void pushCommit(const MessageQueueAccessor & msgAcc)
     {
         // We always commit the Message Header, plus any additional Blocks
         mRingBuffer.pushCommit(msgAcc.mAccessor[0].blockCount + 1);
     }
 
-    bool popBegin(MessageAccessor * pMsgAcc)
+    bool popBegin(MessageQueueAccessor * pMsgAcc)
     {
         mRingBuffer.popBegin(&pMsgAcc->mAccessor);
 
@@ -152,14 +101,14 @@ public:
         return true;
     }
 
-    void popCommit(const MessageAccessor & msgAcc)
+    void popCommit(const MessageQueueAccessor & msgAcc)
     {
         ASSERT(msgAcc.mAccessor.available() >= msgAcc.mAccessor[0].blockCount + (u32)1);
         mRingBuffer.popCommit(msgAcc.mAccessor[0].blockCount + (u32)1);
     }
 
 private:
-    void pushHeader(MessageAccessor * pMsgAcc,
+    void pushHeader(MessageQueueAccessor * pMsgAcc,
                     u32 msgId,
                     u32 flags,
                     task_id source,

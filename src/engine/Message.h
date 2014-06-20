@@ -40,6 +40,7 @@ static const u32 kMessageFlag_None       = 0;
 static const u32 kMessageFlag_Recurse    = 1 << 0; // message should be sent to all children (e.g. save_state)
 static const u32 kMessageFlag_Undoable   = 1 << 1; // message originated from editor
 
+static const u32 kMaxBlockCount = 2 << 4;
 
 enum class MessageResult
 {
@@ -72,7 +73,7 @@ struct Message
       , payload(payload)
     {
         ASSERT(flags         < (2 << 4)  &&
-               blockCount    < (2 << 4)  &&
+               blockCount    < kMaxBlockCount &&
                source        < (2 << 28) &&
                target        < (2 << 28));
     }
@@ -91,6 +92,25 @@ inline bool is_valid_task_id(task_id taskId)
     return taskId < (2 << 28);
 }
 
+inline const Message & block_to_message(const Block & block)
+{
+    return *reinterpret_cast<const Message*>(&block);
+}
+
+inline Message & block_to_message(Block & block)
+{
+    return *reinterpret_cast<Message*>(&block);
+}
+
+inline const Block & message_to_block(const Message & message)
+{
+    return *reinterpret_cast<const Block*>(&message);
+}
+
+inline Block & message_to_block(Message & message)
+{
+    return *reinterpret_cast<Block*>(&message);
+}
 
 } // namespace gaen
 

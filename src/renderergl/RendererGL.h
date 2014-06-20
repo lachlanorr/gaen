@@ -70,7 +70,7 @@ public:
     void render();
     void endFrame();
 
-    MessageResult message(const MessageQueue::MessageAccessor& msgAcc);
+    MessageResult message(const MessageQueueAccessor & msgAcc);
 
 private:
     bool mIsInit = false;

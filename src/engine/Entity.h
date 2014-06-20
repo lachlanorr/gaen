@@ -38,12 +38,6 @@
 namespace gaen
 {
 
-enum ComponentPosition
-{
-    kCPOS_Begin,
-    kCPOS_End
-};
-
 class Entity
 {
 public:
@@ -55,13 +49,18 @@ public:
     void update(f32 deltaSecs);
 
     template <typename T>
-    MessageResult message(const Message & msg, T msgAcc);
+    MessageResult message(const T& msgAcc);
 
 protected:
-    void insertComponent(u32 nameHash, ComponentPosition pos);
-    void removeComponent(u32 nameHash);
+    void insertComponent(u32 nameHash, u32 index);
 
+    u32 findComponent(u32 nameHash);
+
+    void moveComponentUp(u32 nameHash);
+    void moveComponentDown(u32 nameHash);
+    
     void removeBlocks(Block * pStart, u32 count);
+    void removeComponent(u32 nameHash);
 
     void insertChild(Task & task);
     void removeChild(Task & task);

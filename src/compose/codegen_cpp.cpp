@@ -230,7 +230,7 @@ static S codegen_recurse(const Ast * pAst,
 
         // LORRTEMP - these are here just to get things to compile, replace with proper codegenerated ones
         code += I + S("    template <typename T>\n");
-        code += I + S("    MessageResult message(const Message & msg, T msgAcc) { return MessageResult::Propogate; }\n");
+        code += I + S("    MessageResult message(const T & msgAcc) { return MessageResult::Propogate; }\n");
         code += I + S("\n");
 
         code += I + S("private:\n");
@@ -316,7 +316,7 @@ static S codegen_recurse(const Ast * pAst,
         
         // LORRTEMP - these are here just to get things to compile, replace with proper codegenerated ones
         code += I + S("    template <typename T>\n");
-        code += I + S("    MessageResult message(const Message & msg, T msgAcc) { return MessageResult::Propogate; }\n");
+        code += I + S("    MessageResult message(const T & msgAcc) { return MessageResult::Propogate; }\n");
         code += I + S("\n");
 
         code += I + S("private:\n");

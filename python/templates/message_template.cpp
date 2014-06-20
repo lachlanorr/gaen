@@ -33,10 +33,11 @@ namespace gaen
 namespace msg
 {
 
+template <typename T>
 class <<message_name>>R
 {
 public:
-    <<message_name>>R(const MessageQueue::MessageAccessor & msgAcc)
+    <<message_name>>R(const T & msgAcc)
       : mMsgAcc(msgAcc)
     {
 <<reader_data_member_init>>
@@ -45,31 +46,56 @@ public:
 <<reader_getters>>
         
 private:
-    const MessageQueue::MessageAccessor & mMsgAcc;
+    const T & mMsgAcc;
 
 <<reader_data_members>>
 };
 
+typedef <<message_name>>R<MessageQueueAccessor> <<message_name>>QR;
+typedef <<message_name>>R<MessageBlockAccessor> <<message_name>>BR;
 
-
-class <<message_name>>W : protected MessageWriter
+class <<message_name>>QW : protected MessageQueueWriter
 {
 public:
-    <<message_name>>W(u32 msgId,
+    <<message_name>>QW(u32 msgId,
     <<message_name_indent>>  u32 flags,
     <<message_name_indent>>  task_id source,
     <<message_name_indent>>  task_id target<<payload_decl>>)
-      : MessageWriter(msgId,
-                      flags,
-                      source,
-                      target,
-                      to_cell(<<payload_value>>),
-                      <<block_count>>) {}
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(<<payload_value>>),
+                           <<block_count>>)
+    {}
     
 <<writer_setters>>
 };
 
-} // namespcae msg
+class <<message_name>>BW : protected MessageBlockWriter
+{
+public:
+    <<message_name>>BW(u32 msgId,
+    <<message_name_indent>>  u32 flags,
+    <<message_name_indent>>  task_id source,
+    <<message_name_indent>>  task_id target,
+    <<message_name_indent>>  Block * pBlocks,
+    <<message_name_indent>>  u32 blockCount<<payload_decl>>)
+      : MessageBlockWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(<<payload_value>>),
+                           <<block_count>>,
+                           mBlocks)
+    {}
+
+<<writer_setters>>
+
+    Block mBlocks[<<block_count>>];
+};
+
+} // namespace msg
 } // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_MESSAGES_<<message_name_caps>>MESSAGE_H

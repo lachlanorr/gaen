@@ -12,9 +12,15 @@ class InsertTask(FieldHandler):
                      includes=['core/threading.h'])
     task  = TaskField()
 
+# Instantiate and insert a component
+class InsertComponent(FieldHandler):
+    nameHash = u32Field(payload=True)
+    index = u32Field()
+
 # Transform and entity
 class Transform(FieldHandler):
     transform = Mat34Field()
+    
 
 class RemoveModelInstance(FieldHandler):
     instanceId = u32Field(payload=True,

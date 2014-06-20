@@ -30,6 +30,9 @@
 #include "core/logging.h"
 #include "engine/hashes.h"
 #include "engine/Registry.h"
+
+#include "engine/messages/InsertComponent.h"
+
 #include "engine/Entity.h"
 
 namespace gaen
@@ -87,9 +90,9 @@ void Entity::update(f32 deltaSecs)
 }
 
 template <typename T>
-MessageResult Entity::message(const Message & msg, T msgAcc)
+MessageResult Entity::message(const T & msgAcc)
 {
-    switch (msg.msgId)
+    switch (msgAcc.message().msgId)
     {
     case HASH::fin:
     {
@@ -100,17 +103,17 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
         // Send fin message to all children entities
         for (u32 i = 0; i < mChildCount; ++i)
         {
-            mpChildren[i].message(msg, msgAcc);
+            mpChildren[i].message(msgAcc);
         }
 
         // Now, send fin to our components
         for (u32 i = 0; i < mComponentCount; ++i)
         {
-            mpComponents[i].task().message(msg, msgAcc);
+            mpComponents[i].task().message(msgAcc);
         }
 
         // Call our subclassed message routine
-        mTask.message(msg, msgAcc);
+        mTask.message(msgAcc);
 
         // And finally, delete ourselves
         GDELETE(this);
@@ -123,13 +126,15 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
         // passed to Components when they are added to us.
 
         // Call our subclassed message routine
-        mTask.message(msg, msgAcc);
+        mTask.message(msgAcc);
 
         return MessageResult::Consumed;
     }
     case HASH::insert_component:
     {
-        //insertComponent(msgAcc); // LORRTODO
+        msg::InsertComponentR<T> msgr(msgAcc);
+        u32 index = msgr.index() == (u32)-1 ? mComponentCount : msgr.index();
+        insertComponent(msgr.nameHash(), index);
         return MessageResult::Consumed;
     }
     case HASH::register_watcher:
@@ -146,7 +151,7 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
     MessageResult res;
 
     // Call our subclassed message routine
-    res = mTask.message(msg, msgAcc);
+    res = mTask.message(msgAcc);
     if (res == MessageResult::Consumed)
         return MessageResult::Consumed;
     
@@ -154,7 +159,7 @@ MessageResult Entity::message(const Message & msg, T msgAcc)
     // Send the message to all components
     for (u32 i = 0; i < mComponentCount; ++i)
     {
-        res = mpComponents[i].task().message(msg, msgAcc);
+        res = mpComponents[i].task().message(msgAcc);
         if (res == MessageResult::Consumed)
             return MessageResult::Consumed;
     }
@@ -206,9 +211,13 @@ void Entity::growBlocks(u32 minSizeIncrease)
     mpBlocks = pNewBlocks;
 }
 
-void Entity::insertComponent(u32 nameHash, ComponentPosition pos)
+void Entity::insertComponent(u32 nameHash, u32 index)
 {
     ASSERT(mComponentCount <= mComponentsMax);
+    ASSERT(index <= mComponentCount);
+
+    if (index > mComponentCount)
+        index = mComponentCount;
     
     // Resize buffer if necessary
     if (mComponentCount == mComponentsMax)
@@ -218,10 +227,10 @@ void Entity::insertComponent(u32 nameHash, ComponentPosition pos)
 
     Component * pLoc = &mpComponents[mComponentCount];
 
-    if (pos == kCPOS_Begin)
+    if (index != mComponentCount)
     {
         // shift all components the right
-        for (u32 i = mComponentCount-1; i > 0; --i)
+        for (u32 i = mComponentCount-1; i > index; --i)
             mpComponents[i] = mpComponents[i-1];
         pLoc = &mpComponents[0];
     }
@@ -240,6 +249,42 @@ void Entity::insertComponent(u32 nameHash, ComponentPosition pos)
     mBlockCount += pComp->mBlockCount;
 
     mComponentCount++;
+}
+
+
+u32 Entity::findComponent(u32 nameHash)
+{
+    for (u32 i = 0; i < mComponentCount; ++i)
+    {
+        if (mpComponents[i].mTask.nameHash() == nameHash)
+        {
+            return i;
+        }
+    }
+    return mComponentCount;
+}
+
+
+void Entity::moveComponentUp(u32 nameHash)
+{
+    u32 i = findComponent(nameHash);
+    if (i != mComponentCount && i > 0)
+    {
+        Component temp = mpComponents[i];
+        mpComponents[i] = mpComponents[i-1];
+        mpComponents[i-1] = temp;
+    }
+}
+
+void Entity::moveComponentDown(u32 nameHash)
+{
+    u32 i = findComponent(nameHash);
+    if (i != mComponentCount && i < mComponentCount-1)
+    {
+        Component temp = mpComponents[i];
+        mpComponents[i] = mpComponents[i+1];
+        mpComponents[i+1] = temp;
+    }
 }
 
 void Entity::removeBlocks(Block * pStart, u32 count)
@@ -275,22 +320,19 @@ void Entity::removeBlocks(Block * pStart, u32 count)
 
 void Entity::removeComponent(u32 nameHash)
 {
-    for (u32 i = 0; i < mComponentCount; ++i)
+    u32 i = findComponent(nameHash);
+    if (i != mComponentCount)
     {
-        if (mpComponents[i].mTask.nameHash() == nameHash)
+        removeBlocks(mpComponents[i].mpBlocks, mpComponents[i].mBlockCount);
+        if (i < mComponentCount - 1)
         {
-            removeBlocks(mpComponents[i].mpBlocks, mpComponents[i].mBlockCount);
-            if (i < mComponentCount - 1)
+            // removing in middle, need to shift subsequent components one to left
+            for (u32 j = i; j < mComponentCount; ++j)
             {
-                // removing in middle, need to shift subsequent components one to left
-                for (u32 j = i; j < mComponentCount; ++j)
-                {
-                    mpComponents[j] = mpComponents[j+1];
-                }
+                mpComponents[j] = mpComponents[j+1];
             }
-            mComponentCount--;
-            return;
         }
+        mComponentCount--;
     }
 }
 

@@ -84,7 +84,7 @@ class TaskMaster
 {
 public:
     void init(thread_id tid);
-    void fin(const Message & msg, const MessageQueue::MessageAccessor& msgAcc);
+    void fin(const MessageQueueAccessor& msgAcc);
     void cleanup();
 
     static TaskMaster<RendererT> & task_master_for_thread(thread_id tid);
@@ -140,7 +140,7 @@ private:
     // Process any messages on the queue
     void processMessages(MessageQueue & msgQueue);
 
-    MessageResult message(const Message & msg, const MessageQueue::MessageAccessor& msgAcc);
+    MessageResult message(const MessageQueueAccessor& msgAcc);
     
     void insertTask(thread_id threadOwner, const Task & task);
 

@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 89e75dc1aed10253c1a2f9ac2d64ed0f
+// HASH: 61e2ced77b357453694cbbf869de5424
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -49,7 +49,7 @@ public:
     }
 
     template <typename T>
-    MessageResult message(const Message & msg, T msgAcc) { return MessageResult::Propogate; }
+    MessageResult message(const T & msgAcc) { return MessageResult::Propogate; }
 
 private:
     start(u32 childCount)

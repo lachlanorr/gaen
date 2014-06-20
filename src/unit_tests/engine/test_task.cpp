@@ -42,7 +42,7 @@ public:
     }
 
     template <typename T>
-    gaen::MessageResult message(const gaen::Message & msg, T msgAcc)
+    gaen::MessageResult message(const T & msgAcc)
     {
         printf("Entity1::message\n");
         return gaen::MessageResult::Propogate;
@@ -64,7 +64,7 @@ public:
     }
 
     template <typename T>
-    gaen::MessageResult message(const gaen::Message & msg, T msgAcc)
+    gaen::MessageResult message(const T & msgAcc)
     {
         printf("Entity2::message\n");
         return gaen::MessageResult::Propogate;
@@ -88,12 +88,12 @@ TEST(TaskTest, CreateTasks)
     vec[0] = gaen::Task::createUpdatable(&e1, 0);
     vec[1] = gaen::Task::createUpdatable(&e2, 0);
 
-    gaen::MessageQueue::MessageAccessor msgAcc;
+    gaen::MessageQueueAccessor msgAcc;
 
     for(gaen::Task & t : vec)
     {
         t.update(1.23);
-        t.message(msgAcc.message(), msgAcc);
+        t.message(msgAcc);
     }
 }
 

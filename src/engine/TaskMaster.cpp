@@ -111,11 +111,11 @@ void start_game_loops(Entity * pInitEntity)
         // Create a task out of the entity and start it up
         Task t = Task::createUpdatable(pInitEntity, 0);
         {
-            msg::InsertTaskW msgw(HASH::add_task,
-                                  kMessageFlag_None,
-                                  kMainThreadTaskId,
-                                  kPrimaryThreadId,
-                                  kPrimaryThreadId);
+            msg::InsertTaskQW msgw(HASH::add_task,
+                                   kMessageFlag_None,
+                                   kMainThreadTaskId,
+                                   kPrimaryThreadId,
+                                   kPrimaryThreadId);
             msgw.setTask(t);
         }
     }
@@ -162,13 +162,13 @@ void broadcast_message(u32 msgId,
 
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
-        MessageWriter msgw(msgId,
-                           flags,
-                           source,
-                           tid, // in this special case, thread_id is used in place of task_id to indicate the message is for a TaskMaster
-                           payload,
-                           blockCount);
-        MessageQueue::MessageAccessor & msgAcc = msgw.accessor();
+        MessageQueueWriter msgw(msgId,
+                                flags,
+                                source,
+                                tid, // in this special case, thread_id is used in place of task_id to indicate the message is for a TaskMaster
+                                payload,
+                                blockCount);
+        MessageQueueAccessor & msgAcc = msgw.accessor();
         for (u32 i = 0; i < blockCount; ++i)
         {
             msgAcc[i] = pBlocks[i];
@@ -205,14 +205,14 @@ void TaskMaster<RendererT>::init(thread_id tid)
 }
 
 template <class RendererT>
-void TaskMaster<RendererT>::fin(const Message & msg, const MessageQueue::MessageAccessor& msgAcc)
+void TaskMaster<RendererT>::fin(const MessageQueueAccessor& msgAcc)
 {
     ASSERT(mIsInit);
-    ASSERT(msg.msgId == HASH::fin);
+    ASSERT(msgAcc.message().msgId == HASH::fin);
 
     for (Task & task : mOwnedTasks)
     {
-        task.message(msg, msgAcc);
+        task.message(msgAcc);
     }
 
     mIsRunning = false;
@@ -410,19 +410,20 @@ void TaskMaster<RendererT>::deregisterMutableDependency(task_id taskId, u32 path
 template <class RendererT>
 void TaskMaster<RendererT>::processMessages(MessageQueue & msgQueue)
 {
-    MessageQueue::MessageAccessor msgAcc;
+    MessageQueueAccessor msgAcc;
 
     while (msgQueue.popBegin(&msgAcc))
     {
-        message(msgAcc.message(), msgAcc);
+        message(msgAcc);
         msgQueue.popCommit(msgAcc);
     }
 }
 
 
 template <class RendererT>
-MessageResult TaskMaster<RendererT>::message(const Message & msg, const MessageQueue::MessageAccessor& msgAcc)
+MessageResult TaskMaster<RendererT>::message(const MessageQueueAccessor& msgAcc)
 {
+    const Message & msg = msgAcc.message();
     // Handle messages sent to us, the TaskMaster
     if (msg.target < num_threads())
     {
@@ -432,12 +433,12 @@ MessageResult TaskMaster<RendererT>::message(const Message & msg, const MessageQ
         case HASH::fin:
         {
             ASSERT(mIsRunning);
-            fin(msg, msgAcc);
+            fin(msgAcc);
             return MessageResult::Consumed;
         }
         case HASH::insert_task:
         {
-            msg::InsertTaskR msgr(msgAcc);
+            msg::InsertTaskR<MessageQueueAccessor> msgr(msgAcc);
             insertTask(msgr.owner(), msgr.task());
             return MessageResult::Consumed;
         }

@@ -93,7 +93,7 @@ void RendererGL::initViewport()
                                         100.0f);
 }
 
-MessageResult RendererGL::message(const MessageQueue::MessageAccessor& msgAcc)
+MessageResult RendererGL::message(const MessageQueueAccessor & msgAcc)
 {
     const Message & msg = msgAcc.message();
 
@@ -101,7 +101,7 @@ MessageResult RendererGL::message(const MessageQueue::MessageAccessor& msgAcc)
     {
     case HASH::renderer_insert_model_instance:
     {
-        msg::InsertModelInstanceR msgr(msgAcc);
+        msg::InsertModelInstanceQR msgr(msgAcc);
         mModelMgr.insertModelInstance(msgr.instanceId(),
                                       msgr.model(),
                                       msgr.worldTransform(),

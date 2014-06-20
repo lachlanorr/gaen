@@ -36,10 +36,11 @@ namespace gaen
 namespace msg
 {
 
+template <typename T>
 class InsertTaskR
 {
 public:
-    InsertTaskR(const MessageQueue::MessageAccessor & msgAcc)
+    InsertTaskR(const T & msgAcc)
       : mMsgAcc(msgAcc)
     {
         if (&msgAcc[1] > &msgAcc[0])
@@ -63,29 +64,31 @@ public:
     const Task & task() const { return *mpTask; }
         
 private:
-    const MessageQueue::MessageAccessor & mMsgAcc;
+    const T & mMsgAcc;
 
     // These members provide storage for fields larger than a block that wrap the ring buffer
     Task mTask;
     const Task * mpTask;
 };
 
+typedef InsertTaskR<MessageQueueAccessor> InsertTaskQR;
+typedef InsertTaskR<MessageBlockAccessor> InsertTaskBR;
 
-
-class InsertTaskW : protected MessageWriter
+class InsertTaskQW : protected MessageQueueWriter
 {
 public:
-    InsertTaskW(u32 msgId,
+    InsertTaskQW(u32 msgId,
                 u32 flags,
                 task_id source,
                 task_id target,
                 thread_id owner)
-      : MessageWriter(msgId,
-                      flags,
-                      source,
-                      target,
-                      to_cell(owner),
-                      2) {}
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(owner),
+                           2)
+    {}
     
     void setOwner(thread_id val) { mMsgAcc.message().payload.u = val; }
     void setTask(const Task & val)
@@ -97,7 +100,38 @@ public:
     }
 };
 
-} // namespcae msg
+class InsertTaskBW : protected MessageBlockWriter
+{
+public:
+    InsertTaskBW(u32 msgId,
+                u32 flags,
+                task_id source,
+                task_id target,
+                Block * pBlocks,
+                u32 blockCount,
+                thread_id owner)
+      : MessageBlockWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(owner),
+                           2,
+                           mBlocks)
+    {}
+
+    void setOwner(thread_id val) { mMsgAcc.message().payload.u = val; }
+    void setTask(const Task & val)
+    {
+        for (u32 i = 0; i < 2; ++i)
+        {
+            mMsgAcc[i + 0] = block_at(&val, i);
+        }
+    }
+
+    Block mBlocks[2];
+};
+
+} // namespace msg
 } // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_MESSAGES_INSERTTASKMESSAGE_H

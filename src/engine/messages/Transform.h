@@ -35,10 +35,11 @@ namespace gaen
 namespace msg
 {
 
+template <typename T>
 class TransformR
 {
 public:
-    TransformR(const MessageQueue::MessageAccessor & msgAcc)
+    TransformR(const T & msgAcc)
       : mMsgAcc(msgAcc)
     {
         if (&msgAcc[2] > &msgAcc[0])
@@ -61,28 +62,30 @@ public:
     const Mat34 & transform() const { return *mpTransform; }
         
 private:
-    const MessageQueue::MessageAccessor & mMsgAcc;
+    const T & mMsgAcc;
 
     // These members provide storage for fields larger than a block that wrap the ring buffer
     Mat34 mTransform;
     const Mat34 * mpTransform;
 };
 
+typedef TransformR<MessageQueueAccessor> TransformQR;
+typedef TransformR<MessageBlockAccessor> TransformBR;
 
-
-class TransformW : protected MessageWriter
+class TransformQW : protected MessageQueueWriter
 {
 public:
-    TransformW(u32 msgId,
+    TransformQW(u32 msgId,
                u32 flags,
                task_id source,
                task_id target)
-      : MessageWriter(msgId,
-                      flags,
-                      source,
-                      target,
-                      to_cell(0),
-                      3) {}
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(0),
+                           3)
+    {}
     
     void setTransform(const Mat34 & val)
     {
@@ -93,7 +96,36 @@ public:
     }
 };
 
-} // namespcae msg
+class TransformBW : protected MessageBlockWriter
+{
+public:
+    TransformBW(u32 msgId,
+               u32 flags,
+               task_id source,
+               task_id target,
+               Block * pBlocks,
+               u32 blockCount)
+      : MessageBlockWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(0),
+                           3,
+                           mBlocks)
+    {}
+
+    void setTransform(const Mat34 & val)
+    {
+        for (u32 i = 0; i < 3; ++i)
+        {
+            mMsgAcc[i + 0] = block_at(&val, i);
+        }
+    }
+
+    Block mBlocks[3];
+};
+
+} // namespace msg
 } // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_MESSAGES_TRANSFORMMESSAGE_H

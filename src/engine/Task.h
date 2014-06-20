@@ -28,7 +28,7 @@
 #define GAEN_ENGINE_TASK_H
 
 #include "core/base_defines.h"
-#include "engine/MessageQueue.h"
+#include "engine/MessageAccessor.h"
 
 namespace gaen
 {
@@ -74,9 +74,9 @@ task_id next_task_id();
 //   pObj must implement methods:
 //     void update(f32 deltaSecs);
 //     // Queue Message
-//     MessageResult message(const Message & msg, const MessageQueue::MessageAccessor& msgAcc);
+//     MessageResult message(const MessageQueueAccessor& msgAcc);
 //     // Immediate Message
-//     MessageResult message(const Message & msg, const Block* pBlocks);
+//     MessageResult message(const MessageBlockAccessor& msgAcc);
 //
 // E.g.
 //   Task t = Task::create(pObj);
@@ -159,13 +159,13 @@ public:
     const void * that() const { return mpThat; }
 
     // Queued message
-    MessageResult message(const Message & msg, const MessageQueue::MessageAccessor& msgAcc)
+    MessageResult message(const MessageQueueAccessor & msgAcc)
     {
-        return (*mpMessageStub)(mpThat, msg, msgAcc);
+        return (*mpMessageStub)(mpThat, msgAcc);
     }
 
     // Immediate message
-    MessageResult message(const Message & msg, const Block * pBlocks)
+    MessageResult message(const MessageBlockAccessor & msgAcc)
     {
         // Since we're storing the offset of the message stub from the
         // update stub we do a little pointer arithmetic to get the
@@ -175,7 +175,7 @@ public:
         std::intptr_t iptrMessageImmediateStub = iptrMessageStub + mMessageImmediateStubOffset;
 
         MessageImmediateStub pMessageImmediateStub = reinterpret_cast<MessageImmediateStub>(iptrMessageImmediateStub);
-        return (*pMessageImmediateStub)(mpThat, msg, pBlocks);
+        return (*pMessageImmediateStub)(mpThat, msgAcc);
     }
 
     void update(f32 deltaSecs)
@@ -199,10 +199,10 @@ private:
     typedef void (*UpdateStub)(void*, f32);
 
     // Message coming from the processing of a MessageQueue
-    typedef MessageResult (*MessageStub)(void*, const Message&, const MessageQueue::MessageAccessor&);
+    typedef MessageResult (*MessageStub)(void*, const MessageQueueAccessor&);
 
     // Message coming from someone for immediate processing (no MessageQueue access)
-    typedef MessageResult (*MessageImmediateStub)(void*, const Message&, const Block*);
+    typedef MessageResult (*MessageImmediateStub)(void*, const MessageBlockAccessor&);
 
 
     u32 mStatus:2;           // current running state
@@ -225,17 +225,17 @@ private:
     }
 
     template <class T>
-    static MessageResult message_stub(void* pThat, const Message& msg, const MessageQueue::MessageAccessor& msgAcc)
+    static MessageResult message_stub(void* pThat, const MessageQueueAccessor& msgAcc)
     {
         T* p = static_cast<T*>(pThat);
-        return p->message(msg, msgAcc);
+        return p->message(msgAcc);
     }
 
     template <class T>
-    static MessageResult message_immediate_stub(void* pThat, const Message& msg, const Block* pBlocks)
+    static MessageResult message_immediate_stub(void* pThat, const MessageBlockAccessor& msgAcc)
     {
         T* p = static_cast<T*>(pThat);
-        return p->message(msg, pBlocks);
+        return p->message(msgAcc);
     }
 };
 

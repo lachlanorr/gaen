@@ -41,6 +41,7 @@ SET (engine_SOURCES
   Mesh.cpp
   Mesh.h
   Message.h
+  MessageAccessor.h
   MessageQueue.h
   MessageWriter.h
   Model.cpp

@@ -36,15 +36,15 @@ namespace gaen
 
 // Base class that wll writers should inherit from.
 // Handles the message queue book keeping.
-class MessageWriter
+class MessageQueueWriter
 {
 public:
-    MessageWriter(u32 msgId,
-                  u32 flags,
-                  task_id source,
-                  task_id target,
-                  cell payload = to_cell(0),
-                  u32 blockCount = 0)
+    MessageQueueWriter(u32 msgId,
+                       u32 flags,
+                       task_id source,
+                       task_id target,
+                       cell payload,
+                       u32 blockCount)
     {
         mpMsgQueue = &GET_MESSAGE_QUEUE(msgId, flags, source, target);
         mpMsgQueue->pushBegin(&mMsgAcc,
@@ -56,7 +56,7 @@ public:
                               blockCount);
     }
 
-    ~MessageWriter()
+    ~MessageQueueWriter()
     {
         // RAII commit the thing if not already committed
         if (!mIsCommitted)
@@ -69,13 +69,38 @@ public:
         mIsCommitted = true;
     }
 
-    MessageQueue::MessageAccessor & accessor() { return mMsgAcc; }
+    MessageQueueAccessor & accessor() { return mMsgAcc; }
 
 protected:
     MessageQueue * mpMsgQueue;
-    MessageQueue::MessageAccessor mMsgAcc;
+    MessageQueueAccessor mMsgAcc;
     bool mIsCommitted = false;
 };
+
+// Similar to MessageWriter, but used when writing to a header/block array.
+// Used for messages not intended to be queued but constructed on the stack
+// and sent directly to a messsage handler.
+class MessageBlockWriter
+{
+public:
+    MessageBlockWriter(u32 msgId,
+                       u32 flags,
+                       task_id source,
+                       task_id target,
+                       cell payload,
+                       u32 blockCount,
+                       Block * pBlocks)
+      : mMsgAcc(pBlocks, blockCount)
+    {
+        mMsgAcc.message() = Message(msgId, flags, source, target, payload, blockCount);
+    }
+
+    MessageBlockAccessor accessor() { return mMsgAcc; }
+
+protected:
+    MessageBlockAccessor mMsgAcc;
+};
+
 
 } // namespace gaen
 
