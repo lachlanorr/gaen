@@ -75,7 +75,7 @@ task_id next_task_id();
 //     void update(f32 deltaSecs);
 //     // Queue Message
 //     MessageResult message(const MessageQueueAccessor& msgAcc);
-//     // Immediate Message
+//     // Blcok Message
 //     MessageResult message(const MessageBlockAccessor& msgAcc);
 //
 // E.g.
@@ -112,17 +112,17 @@ public:
 
         task.mpThat = pThat;
 
-        task.mpMessageStub = &message_stub<T>;
-        MessageImmediateStub messageImmediateStub = &message_immediate_stub<T>;
+        task.mpMessageQueueStub = &message_stub<T>;
+        MessageBlockStub messageBlockStub = &message_immediate_stub<T>;
 
-        std::intptr_t iptrMessageStub = reinterpret_cast<std::intptr_t>(task.mpMessageStub);
-        std::intptr_t iptrMessageImmediateStub = reinterpret_cast<std::intptr_t>(messageImmediateStub);
+        std::intptr_t iptrMessageQueueStub = reinterpret_cast<std::intptr_t>(task.mpMessageQueueStub);
+        std::intptr_t iptrMessageBlockStub = reinterpret_cast<std::intptr_t>(messageBlockStub);
 
         // We only store one real function pointer to the stubs, and
         // the others are offsets to this pointer.  This allows us to
         // use 8 bytes for the first, but only 4 bytes each for each
         // additional message.
-        task.mMessageImmediateStubOffset = static_cast<i32>(iptrMessageImmediateStub - iptrMessageStub);
+        task.mMessageBlockStubOffset = static_cast<i32>(iptrMessageBlockStub - iptrMessageQueueStub);
 
         // Not all tasks are updatable.  To create an updatable one,
         // use createUpdatable static function below.
@@ -137,10 +137,10 @@ public:
         Task task = Task::create(pThat, nameHash);
 
         // This task is updatable, so calculate the offset to that method as well.
-        std::intptr_t iptrMessageStub = reinterpret_cast<std::intptr_t>(task.mpMessageStub);
+        std::intptr_t iptrMessageQueueStub = reinterpret_cast<std::intptr_t>(task.mpMessageQueueStub);
         UpdateStub updateStub = &update_stub<T>;
         std::intptr_t iptrUpdateStub = reinterpret_cast<std::intptr_t>(updateStub);
-        task.mUpdateStubOffset = static_cast<i32>(iptrUpdateStub - iptrMessageStub);
+        task.mUpdateStubOffset = static_cast<i32>(iptrUpdateStub - iptrMessageQueueStub);
         
         return task;
     }
@@ -161,21 +161,21 @@ public:
     // Queued message
     MessageResult message(const MessageQueueAccessor & msgAcc)
     {
-        return (*mpMessageStub)(mpThat, msgAcc);
+        return (*mpMessageQueueStub)(mpThat, msgAcc);
     }
 
-    // Immediate message
+    // Block message
     MessageResult message(const MessageBlockAccessor & msgAcc)
     {
         // Since we're storing the offset of the message stub from the
         // update stub we do a little pointer arithmetic to get the
         // actual address.
 
-        std::intptr_t iptrMessageStub = reinterpret_cast<std::intptr_t>(mpMessageStub);
-        std::intptr_t iptrMessageImmediateStub = iptrMessageStub + mMessageImmediateStubOffset;
+        std::intptr_t iptrMessageQueueStub = reinterpret_cast<std::intptr_t>(mpMessageQueueStub);
+        std::intptr_t iptrMessageBlockStub = iptrMessageQueueStub + mMessageBlockStubOffset;
 
-        MessageImmediateStub pMessageImmediateStub = reinterpret_cast<MessageImmediateStub>(iptrMessageImmediateStub);
-        return (*pMessageImmediateStub)(mpThat, msgAcc);
+        MessageBlockStub pMessageBlockStub = reinterpret_cast<MessageBlockStub>(iptrMessageBlockStub);
+        return (*pMessageBlockStub)(mpThat, msgAcc);
     }
 
     void update(f32 deltaSecs)
@@ -186,8 +186,8 @@ public:
 
         if (mUpdateStubOffset != 0) // some tasks are not updatable
         {
-            std::intptr_t iptrMessageStub = reinterpret_cast<std::intptr_t>(mpMessageStub);
-            std::intptr_t iptrUpdateStub = iptrMessageStub + mUpdateStubOffset;
+            std::intptr_t iptrMessageQueueStub = reinterpret_cast<std::intptr_t>(mpMessageQueueStub);
+            std::intptr_t iptrUpdateStub = iptrMessageQueueStub + mUpdateStubOffset;
         
             UpdateStub pUpdateStub = reinterpret_cast<UpdateStub>(iptrUpdateStub);
             (*pUpdateStub)(mpThat, deltaSecs);
@@ -199,10 +199,10 @@ private:
     typedef void (*UpdateStub)(void*, f32);
 
     // Message coming from the processing of a MessageQueue
-    typedef MessageResult (*MessageStub)(void*, const MessageQueueAccessor&);
+    typedef MessageResult (*MessageQueueStub)(void*, const MessageQueueAccessor&);
 
     // Message coming from someone for immediate processing (no MessageQueue access)
-    typedef MessageResult (*MessageImmediateStub)(void*, const MessageBlockAccessor&);
+    typedef MessageResult (*MessageBlockStub)(void*, const MessageBlockAccessor&);
 
 
     u32 mStatus:2;           // current running state
@@ -211,9 +211,9 @@ private:
 
     u32 mNameHash;           // storage for a name hash, typically an entity or component name
 
-    MessageStub mpMessageStub;       // address of message method
-    i32 mMessageImmediateStubOffset; // offset in bytes from MessageStub pointer to MessageImmediateStub pointer
-    i32 mUpdateStubOffset;           // offset in bytes from MessageStub pointer to UpdateStub pointer
+    MessageQueueStub mpMessageQueueStub; // address of message method
+    i32 mMessageBlockStubOffset;         // offset in bytes from MessageQueueStub pointer to MessageBlockStub pointer
+    i32 mUpdateStubOffset;               // offset in bytes from MessageQueueStub pointer to UpdateStub pointer
 
     void* mpThat;                     // pointer to class instance that has the real update/message methods
 
