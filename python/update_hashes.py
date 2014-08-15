@@ -47,7 +47,7 @@ def fnv32a(s):
  
 # These are members of FNV class, which we don't want to confuse with
 # references to precalculated FNV hashses.
-EXCLUDE_PATTERNS = ['HASH::__hash_func__',
+EXCLUDE_PATTERNS = ['HASH::hash_func',
                     ]
                     
 def process_file(path):
@@ -98,7 +98,7 @@ def hashes_h_construct(hash_list):
 
 def hashes_initializations(hash_list):
     max_len = max_hash_name_len(hash_list)
-    return ''.join(['    ASSERT(HASH::__hash_func__("%s")%s == HASH::%s);\n' % (h[0],' ' * (max_len-len(h[0])),h[0]) for h in hash_list])
+    return ''.join(['    ASSERT(HASH_FUNC("%s")%s == HASH::%s);\n' % (h[0],' ' * (max_len-len(h[0])),h[0]) for h in hash_list])
 
 def hashes_cpp_construct(hash_list):
     return HASHES_CPP_TEMPLATE.replace('<<hashes_map_insertions>>', hashes_initializations(hash_list))
@@ -160,7 +160,7 @@ HASHES_H_TEMPLATE = ('//--------------------------------------------------------
                   '#include "core/base_defines.h"\n'
                   '\n'
                   '// Determines if string collisions are detected in hashes\n'
-                  '#define TRACK_HASHES WHEN(HAS(DEV_BUILD))\n'
+                  '#define TRACK_HASHES HAS_X\n'
                   '\n'
                   'namespace gaen\n'
                   '{\n'
@@ -168,7 +168,7 @@ HASHES_H_TEMPLATE = ('//--------------------------------------------------------
                   'class HASH\n'
                   '{\n'
                   'public:\n'
-                  '    static u32 __hash_func__(const char * str);\n'
+                  '    static u32 hash_func(const char * str);\n'
                   '\n'
                   '    // Pre calculated hashes.\n'
                   '    // Generated with update_hashes.py, which gets run\n'
@@ -219,6 +219,8 @@ HASHES_CPP_TEMPLATE = ('//------------------------------------------------------
                     '#include "core/String.h"\n'
                     '#endif // #if HAS(TRACK_HASHES)\n'
                     '\n'
+                    '#define HASH_FUNC ::gaen::fnv1a_32\n'
+                    '\n'
                     'namespace gaen\n'
                     '{\n'
                     '\n'
@@ -238,11 +240,11 @@ HASHES_CPP_TEMPLATE = ('//------------------------------------------------------
                     'static TrackMap sTrackMap = build_initial_track_map();\n'
                     '#endif // #if HAS(TRACK_HASHES)\n'
                     '\n'
-                    'u32 HASH::__hash_func__(const char *str)\n'
+                    'u32 HASH::hash_func(const char *str)\n'
                     '{\n'
                     '    ASSERT(str);\n'
                     '\n'
-                    '    u32 hval = ::gaen::fnv1a_32(str);\n'
+                    '    u32 hval = HASH_FUNC(str);\n'
                     '\n'
                     '#if HAS(TRACK_HASHES)\n'
                     '    {\n'
@@ -250,12 +252,12 @@ HASHES_CPP_TEMPLATE = ('//------------------------------------------------------
                     '        auto it = sTrackMap.find(hval);\n'
                     '        if (it != sTrackMap.end())\n'
                     '        {\n'
-                    '            // If this assert fires, you have two distinct strings whose\n'
+                    '            // If strings don\'t match, you have two distinct strings whose\n'
                     '            // hashes clash.  This will likely break stuff in horrific\n'
                     '            // ways.  You need to tweak one of the strings, change its\n'
                     '            // value slightly and the problem should be resolved.\n'
-                    '            // Sorry... it\'s the price to be paid for runtime efficiency.\n'
-                    '            ASSERT_MSG(it->second == str, "Hash Clash Detected: %s and %s", it->second.c_str(), str);\n'
+                    '            if (0 != strcmp(it->second.c_str(), str))\n'
+                    '                ERR("Hash Clash Detected: %s and %s", it->second.c_str(), str);\n'
                     '        }\n'
                     '        else\n'
                     '        {\n'

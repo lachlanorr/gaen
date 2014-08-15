@@ -75,7 +75,7 @@ task_id next_task_id();
 //     void update(f32 deltaSecs);
 //     // Queue Message
 //     MessageResult message(const MessageQueueAccessor& msgAcc);
-//     // Blcok Message
+//     // Block Message
 //     MessageResult message(const MessageBlockAccessor& msgAcc);
 //
 // E.g.

@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+
+#include "engine/hashes.h"
 #include "compose/codegen_cpp.h"
 #include "compose/compiler_structs.h"
 #include "compose/codegen_utils.h"
@@ -654,6 +656,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_MessageSend:
     {
+        static const u32 kScratchSize = 255;
         S code;
         code += I + S("{\n");
         S target;
@@ -664,7 +667,21 @@ static S codegen_recurse(const Ast * pAst,
         if (pAst->pMid)
             PANIC("Specific component not implemented yet");
         
-        //code += I + S("MessageWriter msgw(") + ;
+        char scratch[kScratchSize+1];
+        snprintf(scratch,
+                 kScratchSize,
+                 "MessageBlockWriter msgw(%u, 0, ",
+                 HASH::hash_func(pAst->str));
+
+        code += S(scratch);
+
+        if (pAst->pLhs == 0)
+            code += S("mEntityTaskId");
+        else
+            PANIC("TODO");
+
+        code += S(", 0, 0, 0);\n");
+
         code += I + S("}\n");
         return code;
     }

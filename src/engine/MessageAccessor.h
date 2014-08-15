@@ -72,7 +72,7 @@ private:
 
 // Similar to MessageQueueAccessor, but used when writing/reading a
 // message from raw blocks. An example of where this is useful is when
-// you want to send a message toa task you have a reference to, and
+// you want to send a message to a task you have a reference to, and
 // don't want to incur the cost of going through the MessageQueue
 // mechanism.
 class MessageBlockAccessor
