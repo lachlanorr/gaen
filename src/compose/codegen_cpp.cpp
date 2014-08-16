@@ -666,12 +666,13 @@ static S codegen_recurse(const Ast * pAst,
             PANIC("Specific target not implemented yet");
         if (pAst->pMid)
             PANIC("Specific component not implemented yet");
-        
+
+        code += indent(indentLevel+1);
         char scratch[kScratchSize+1];
         snprintf(scratch,
                  kScratchSize,
-                 "MessageBlockWriter msgw(%u, 0, ",
-                 HASH::hash_func(pAst->str));
+                 "MessageBlockWriter msgw(HASH::%s, kMessageFlag_None, ",
+                 pAst->str);
 
         code += S(scratch);
 
@@ -680,7 +681,7 @@ static S codegen_recurse(const Ast * pAst,
         else
             PANIC("TODO");
 
-        code += S(", 0, 0, 0);\n");
+        code += S(", mEntityTaskId, to_cell(0), 0, nullptr);\n");
 
         code += I + S("}\n");
         return code;

@@ -225,19 +225,18 @@ void Entity::insertComponent(u32 nameHash, u32 index)
 
     ASSERT(mComponentCount < mComponentsMax);
 
-    Component * pLoc = &mpComponents[mComponentCount];
-
     if (index != mComponentCount)
     {
         // shift all components the right
         for (u32 i = mComponentCount-1; i > index; --i)
             mpComponents[i] = mpComponents[i-1];
-        pLoc = &mpComponents[0];
     }
 
+    Component * pLoc = &mpComponents[index];
     Component * pComp = ComponentRegistry::construct(nameHash, pLoc);
 
     ASSERT(pComp);
+    ASSERT(pComp == pLoc);
 
     // Check if we have enough blocks for this new component
     if (mBlockCount + pComp->mBlockCount > mBlocksMax)

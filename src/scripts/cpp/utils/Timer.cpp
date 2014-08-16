@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 5835370b79472ddb6b541ed1e58c9ba3
+// HASH: 2ef0aa64b9053f4d354ebde773fdb666
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -52,6 +52,7 @@ public:
             if ((last_notification() >= interval()))
             {
                 {
+                    MessageBlockWriter msgw(HASH::timer_tick, kMessageFlag_None, mEntityTaskId, mEntityTaskId, to_cell(0), 0, nullptr);
                 }
                 last_notification() = 0.000000f;
             }
