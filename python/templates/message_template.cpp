@@ -92,7 +92,8 @@ public:
 
 <<writer_setters>>
 
-Block mBlocks[<<block_count>> + 1]; // +1 for header
+private:
+    Block mBlocks[<<block_count>> + 1]; // +1 for header
 };
 
 } // namespace msg
