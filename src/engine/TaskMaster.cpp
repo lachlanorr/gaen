@@ -215,6 +215,10 @@ void TaskMaster<RendererT>::fin(const MessageQueueAccessor& msgAcc)
         task.message(msgAcc);
     }
 
+    // Entities should have deleted themselves and all dependent memory
+    mOwnedTaskMap.clear();
+    mOwnedTasks.clear();
+
     mIsRunning = false;
 }
 
