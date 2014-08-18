@@ -41,7 +41,7 @@ namespace gaen
 class Entity
 {
 public:
-    Entity(u32 nameHash, u32 componentCount, u32 blockCount, u32 childCount);
+    Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax);
     ~Entity();
 
     const Task & task() { return mTask; }
@@ -69,7 +69,7 @@ protected:
     void growBlocks(u32 minSizeIncrease);
     void growChildren();
 
-    Task mTask;
+    Task mTask; // task representing Entity fake "sub class" created by writing an entity script
     
     Mat34 mLocalTransform;
     Mat34 mGlobalTransform;

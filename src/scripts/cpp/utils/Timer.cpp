@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 2ef0aa64b9053f4d354ebde773fdb666
+// HASH: 365dd4753bb521af9912add9ac67d1c3
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -85,14 +85,15 @@ private:
         return mpBlocks[0].cells[1].f;
     }
 
-};
-
-namespace
-{
-bool isRegistered = ComponentRegistry::register_constructor(HASH::Timer, Timer::construct);
-}
+}; // class Timer
 
 } // namespace comp
- 
+
+void register_component_Timer()
+{
+    if (!ComponentRegistry::register_constructor(HASH::Timer, comp::Timer::construct))
+        PANIC("Unable to register component: Timer");
+}
+
 } // namespace gaen
 

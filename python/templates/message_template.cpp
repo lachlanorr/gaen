@@ -58,9 +58,9 @@ class <<message_name>>QW : protected MessageQueueWriter
 {
 public:
     <<message_name>>QW(u32 msgId,
-    <<message_name_indent>>  u32 flags,
-    <<message_name_indent>>  task_id source,
-    <<message_name_indent>>  task_id target<<payload_decl>>)
+    <<message_name_indent>> u32 flags,
+    <<message_name_indent>> task_id source,
+    <<message_name_indent>> task_id target<<payload_decl>>)
       : MessageQueueWriter(msgId,
                            flags,
                            source,
@@ -76,11 +76,11 @@ class <<message_name>>BW : protected MessageBlockWriter
 {
 public:
     <<message_name>>BW(u32 msgId,
-    <<message_name_indent>>  u32 flags,
-    <<message_name_indent>>  task_id source,
-    <<message_name_indent>>  task_id target,
-    <<message_name_indent>>  Block * pBlocks,
-    <<message_name_indent>>  u32 blockCount<<payload_decl>>)
+    <<message_name_indent>> u32 flags,
+    <<message_name_indent>> task_id source,
+    <<message_name_indent>> task_id target,
+    <<message_name_indent>> Block * pBlocks,
+    <<message_name_indent>> u32 blockCount<<payload_decl>>)
       : MessageBlockWriter(msgId,
                            flags,
                            source,
@@ -92,7 +92,7 @@ public:
 
 <<writer_setters>>
 
-    Block mBlocks[<<block_count>>];
+Block mBlocks[<<block_count>> + 1]; // +1 for header
 };
 
 } // namespace msg

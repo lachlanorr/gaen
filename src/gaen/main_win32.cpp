@@ -289,9 +289,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     // be called directly.  Interaction with the renderer should only
     // be made with messages sent to the primary TaskMaster.
 
-    // LORRTEMP - make the loaded initial entity data driven
-    Entity * pEntity = gaen::model_viewer_init_entity();
-
+    Entity * pEntity = init_start_entity();
 
     start_game_loops<renderer_type>(pEntity);
 

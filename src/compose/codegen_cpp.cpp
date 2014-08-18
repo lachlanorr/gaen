@@ -233,7 +233,7 @@ static S codegen_recurse(const Ast * pAst,
         // LORRTEMP - these are here just to get things to compile, replace with proper codegenerated ones
         code += I + S("    template <typename T>\n");
         code += I + S("    MessageResult message(const T & msgAcc) { return MessageResult::Propogate; }\n");
-        code += I + S("\n");
+        code += S("\n");
 
         code += I + S("private:\n");
 
@@ -252,6 +252,28 @@ static S codegen_recurse(const Ast * pAst,
                 code += S(";\n");
             }
         }
+
+        code += S("\n");
+
+        // Initialize mBlockSize
+        {
+            static const u32 kScratchSize = 32;
+            char scratch[kScratchSize+1];
+            scratch[kScratchSize] = '\0'; // sanity null terminator
+
+            snprintf(scratch, kScratchSize, "%d", pAst->pScope->pSymTab->blockCount);
+            code += I + S("        mBlockCount = ") + S(scratch) + S(";\n");
+        }
+        // Prep task member
+        {
+            S createTaskMethod;
+            if (pUpdateDef)
+                createTaskMethod = S("createUpdatable");
+            else
+                createTaskMethod = S("create");
+            code += I + S("        ") + S("mTask = Task::") + createTaskMethod + S("(this, HASH::") + entName + S(");\n");
+        }
+
         code += I + S("    }\n");
 
         // Delete copy constructor, assignment, etc.
@@ -271,26 +293,20 @@ static S codegen_recurse(const Ast * pAst,
             }
         }
 
+        code += I + S("}; // class ") + entName + S("\n");
+
+        code += I + S("\n} // namespace ent\n");
         code += S("\n");
-        
-        // mBlocks, the only data member, all data is stored in 16 byte blocks
-        {
-            static const u32 kScratchSize = 32;
-            char scratch[kScratchSize+1];
-            scratch[kScratchSize] = '\0'; // sanity null terminator
 
-            snprintf(scratch, kScratchSize, "%d", pAst->pScope->pSymTab->blockCount);
-            code += I + S("    Block mBlocks[") + S(scratch) + S("];\n");
-        }
-        
-        code += I + S("};\n\n");
-
-        code += I + S("namespace\n");
-        code += I + S("{\n");
-        code += (I + S("bool isRegistered = EntityRegistry::register_constructor(HASH::") +
-                 entName + S(", ") + entName + S("::construct);\n"));
-        code += I + S("}\n");
-        code += I + S("\n} // namespace ent\n ");
+        // Registration
+        S reg_func_name = S("register_entity_") + entName;
+        code += I + S("void ") + reg_func_name + S("()\n");
+        code += I + "{\n";
+        code += (I + S("    if (!EntityRegistry::register_constructor(HASH::") +
+                 entName + S(", ent::") + entName + S("::construct))\n"));
+        code += (I + S("        PANIC(\"Unable to register entity: ") +
+                 entName + S("\");\n"));
+        code += I + "}\n";
 
         return code;
     }
@@ -377,15 +393,21 @@ static S codegen_recurse(const Ast * pAst,
 
         code += S("\n");
         
-        code += I + S("};\n\n");
+        code += I + S("}; // class ") + compName + S("\n");
 
-        code += I + S("namespace\n");
-        code += I + S("{\n");
-        code += (I + S("bool isRegistered = ComponentRegistry::register_constructor(HASH::") +
-                 compName + S(", ") + compName + S("::construct);\n"));
-        code += I + S("}\n");
-        
-        code += I + S("\n} // namespace comp\n ");
+        code += I + S("\n} // namespace comp\n");
+        code += S("\n");
+
+        // Registration
+        S reg_func_name = S("register_component_") + compName;
+        code += I + S("void ") + reg_func_name + S("()\n");
+        code += I + "{\n";
+        code += (I + S("    if (!ComponentRegistry::register_constructor(HASH::") +
+                 compName + S(", comp::") + compName + S("::construct))\n"));
+        code += (I + S("        PANIC(\"Unable to register component: ") +
+                 compName + S("\");\n"));
+        code += I + "}\n";
+
         return code;
    }
     case kAST_MessageDef:

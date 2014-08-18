@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 61e2ced77b357453694cbbf869de5424
+// HASH: 44f590334653b14d275281fe2910e47c
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -57,6 +57,9 @@ private:
     {
         f_prop() = 1.000000f;
         f_field() = 2.000000f;
+
+        mBlockCount = 1;
+        mTask = Task::createUpdatable(this, HASH::start);
     }
     start(const start&)              = delete;
     start(const start&&)             = delete;
@@ -71,16 +74,15 @@ private:
     {
         return mpBlocks[0].cells[1].f;
     }
-
-    Block mBlocks[1];
-};
-
-namespace
-{
-bool isRegistered = EntityRegistry::register_constructor(HASH::start, start::construct);
-}
+}; // class start
 
 } // namespace ent
- 
+
+void register_entity_start()
+{
+    if (!EntityRegistry::register_constructor(HASH::start, ent::start::construct))
+        PANIC("Unable to register entity: start");
+}
+
 } // namespace gaen
 

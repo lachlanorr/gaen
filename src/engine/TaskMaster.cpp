@@ -109,14 +109,14 @@ void start_game_loops(Entity * pInitEntity)
     if (pInitEntity)
     {
         // Create a task out of the entity and start it up
-        Task t = Task::createUpdatable(pInitEntity, 0);
+        Task entityTask = Task::createUpdatable(pInitEntity, 0);
         {
-            msg::InsertTaskQW msgw(HASH::add_task,
+            msg::InsertTaskQW msgw(HASH::insert_task,
                                    kMessageFlag_None,
                                    kMainThreadTaskId,
                                    kPrimaryThreadId,
                                    kPrimaryThreadId);
-            msgw.setTask(t);
+            msgw.setTask(entityTask);
         }
     }
 }
@@ -264,8 +264,8 @@ MessageQueue & TaskMaster<RendererT>::messageQueueForTarget(task_id target)
     }
     else
     {
-        // Lookup the task in our map to see which task masger it
-        // belogns to.
+        // Lookup the task in our map to see which task manager it
+        // belongs to.
         TaskOwnerMap::iterator it = mTaskOwnerMap.find(target);
         if (it == mTaskOwnerMap.end())
             PANIC("queueMessage to unknown target task_id %d", target);

@@ -76,9 +76,9 @@ class TransformQW : protected MessageQueueWriter
 {
 public:
     TransformQW(u32 msgId,
-               u32 flags,
-               task_id source,
-               task_id target)
+                u32 flags,
+                task_id source,
+                task_id target)
       : MessageQueueWriter(msgId,
                            flags,
                            source,
@@ -100,11 +100,11 @@ class TransformBW : protected MessageBlockWriter
 {
 public:
     TransformBW(u32 msgId,
-               u32 flags,
-               task_id source,
-               task_id target,
-               Block * pBlocks,
-               u32 blockCount)
+                u32 flags,
+                task_id source,
+                task_id target,
+                Block * pBlocks,
+                u32 blockCount)
       : MessageBlockWriter(msgId,
                            flags,
                            source,
@@ -122,7 +122,7 @@ public:
         }
     }
 
-    Block mBlocks[3];
+Block mBlocks[3 + 1]; // +1 for header
 };
 
 } // namespace msg

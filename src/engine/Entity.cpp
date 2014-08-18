@@ -38,14 +38,19 @@
 namespace gaen
 {
 
-Entity::Entity(u32 nameHash, u32 childCount, u32 componentCount, u32 blockCount)
+Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksCount)
 {
-    mTask = Task::create(this, nameHash);
-
     mLocalTransform = Mat34::identity();
     mGlobalTransform = Mat34::identity();
 
-    mComponentsMax = componentCount;
+    mChildrenMax = childrenMax;
+    mChildCount = 0;
+    if (mChildrenMax > 0)
+        mpChildren = (Task*)GALLOC(kMEM_Engine, sizeof(Task)* mChildrenMax);
+    else
+        mpChildren = nullptr;
+
+    mComponentsMax = componentsMax;
     mComponentCount = 0;
     if (mComponentsMax > 0)
         mpComponents = (Component*)GALLOC(kMEM_Engine, sizeof(Component) * mComponentsMax);
@@ -54,19 +59,12 @@ Entity::Entity(u32 nameHash, u32 childCount, u32 componentCount, u32 blockCount)
 
     // Most entities that aren't undergoing active design should have
     // a fixed amount of blocks.
-    mBlocksMax = blockCount;
+    mBlocksMax = blocksCount;
     mBlockCount = 0;
     if (mBlocksMax > 0)
         mpBlocks = (Block*)GALLOC(kMEM_Engine, sizeof(Block) * mBlocksMax);
     else
         mpBlocks = nullptr;
-
-    mChildrenMax = childCount;
-    mChildCount = 0;
-    if (mChildrenMax > 0)
-        mpChildren = (Task*)GALLOC(kMEM_Engine, sizeof(Task) * mChildrenMax);
-    else
-        mpChildren = nullptr;
 }
 
 Entity::~Entity()
@@ -398,5 +396,9 @@ void Entity::removeChild(Task & task)
     }
     PANIC("Attempt to remove task that Entity does not have");
 }
+
+// Template decls so we can define message func here in the .cpp
+template MessageResult Entity::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template MessageResult Entity::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
 
 } // namespace gaen

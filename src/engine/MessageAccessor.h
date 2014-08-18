@@ -55,14 +55,14 @@ public:
     Block & operator[] (u32 index)
     {
         ASSERT(mAccessor.available() > 0);
-        ASSERT(index + 1 < mAccessor[0].blockCount);
+        ASSERT(index < mAccessor[0].blockCount);
         return message_to_block(mAccessor[index+1]); // +1 to skip past header
     }
 
     const Block & operator[] (u32 index) const
     {
         ASSERT(mAccessor.available() > 0);
-        ASSERT(index + 1 < mAccessor[0].blockCount);
+        ASSERT(index < mAccessor[0].blockCount);
         return message_to_block(mAccessor[index+1]); // +1 to skip past header
     }
 
@@ -98,13 +98,13 @@ public:
     // Access blocks of message
     Block & operator[] (u32 index)
     {
-        ASSERT(index + 1 < mBlockCount);
+        ASSERT(index < mBlockCount);
         return mpBlocks[index+1]; // +1 to skip past header
     }
 
     const Block & operator[] (u32 index) const
     {
-        ASSERT(index + 1 < mBlockCount);
+        ASSERT(index < mBlockCount);
         return mpBlocks[index+1]; // +1 to skip past header
     }
 

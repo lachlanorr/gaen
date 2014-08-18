@@ -32,7 +32,8 @@ entity start
 
     #update(float deltaSecs)
     {
-    
+        //int x = 5;
+        //x = 6;
     }
 
 }

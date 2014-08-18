@@ -61,10 +61,10 @@ class RemoveModelInstanceQW : protected MessageQueueWriter
 {
 public:
     RemoveModelInstanceQW(u32 msgId,
-                         u32 flags,
-                         task_id source,
-                         task_id target,
-                         model_instance_id instanceId)
+                          u32 flags,
+                          task_id source,
+                          task_id target,
+                          model_instance_id instanceId)
       : MessageQueueWriter(msgId,
                            flags,
                            source,
@@ -80,12 +80,12 @@ class RemoveModelInstanceBW : protected MessageBlockWriter
 {
 public:
     RemoveModelInstanceBW(u32 msgId,
-                         u32 flags,
-                         task_id source,
-                         task_id target,
-                         Block * pBlocks,
-                         u32 blockCount,
-                         model_instance_id instanceId)
+                          u32 flags,
+                          task_id source,
+                          task_id target,
+                          Block * pBlocks,
+                          u32 blockCount,
+                          model_instance_id instanceId)
       : MessageBlockWriter(msgId,
                            flags,
                            source,
@@ -97,7 +97,7 @@ public:
 
     void setInstanceId(model_instance_id val) { mMsgAcc.message().payload.u = val; }
 
-    Block mBlocks[0];
+Block mBlocks[0 + 1]; // +1 for header
 };
 
 } // namespace msg

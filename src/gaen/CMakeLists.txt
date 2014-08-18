@@ -66,6 +66,7 @@ TARGET_LINK_LIBRARIES (gaen
   core
   engine
   renderergl
+  scripts
   samples
   ${PLATFORM_LINK_LIBS}
   )

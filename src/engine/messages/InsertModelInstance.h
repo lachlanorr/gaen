@@ -81,10 +81,10 @@ class InsertModelInstanceQW : protected MessageQueueWriter
 {
 public:
     InsertModelInstanceQW(u32 msgId,
-                         u32 flags,
-                         task_id source,
-                         task_id target,
-                         model_instance_id instanceId)
+                          u32 flags,
+                          task_id source,
+                          task_id target,
+                          model_instance_id instanceId)
       : MessageQueueWriter(msgId,
                            flags,
                            source,
@@ -109,12 +109,12 @@ class InsertModelInstanceBW : protected MessageBlockWriter
 {
 public:
     InsertModelInstanceBW(u32 msgId,
-                         u32 flags,
-                         task_id source,
-                         task_id target,
-                         Block * pBlocks,
-                         u32 blockCount,
-                         model_instance_id instanceId)
+                          u32 flags,
+                          task_id source,
+                          task_id target,
+                          Block * pBlocks,
+                          u32 blockCount,
+                          model_instance_id instanceId)
       : MessageBlockWriter(msgId,
                            flags,
                            source,
@@ -135,7 +135,7 @@ public:
         }
     }
 
-    Block mBlocks[4];
+Block mBlocks[4 + 1]; // +1 for header
 };
 
 } // namespace msg

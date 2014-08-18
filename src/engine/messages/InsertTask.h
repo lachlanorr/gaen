@@ -78,10 +78,10 @@ class InsertTaskQW : protected MessageQueueWriter
 {
 public:
     InsertTaskQW(u32 msgId,
-                u32 flags,
-                task_id source,
-                task_id target,
-                thread_id owner)
+                 u32 flags,
+                 task_id source,
+                 task_id target,
+                 thread_id owner)
       : MessageQueueWriter(msgId,
                            flags,
                            source,
@@ -104,12 +104,12 @@ class InsertTaskBW : protected MessageBlockWriter
 {
 public:
     InsertTaskBW(u32 msgId,
-                u32 flags,
-                task_id source,
-                task_id target,
-                Block * pBlocks,
-                u32 blockCount,
-                thread_id owner)
+                 u32 flags,
+                 task_id source,
+                 task_id target,
+                 Block * pBlocks,
+                 u32 blockCount,
+                 thread_id owner)
       : MessageBlockWriter(msgId,
                            flags,
                            source,
@@ -128,7 +128,7 @@ public:
         }
     }
 
-    Block mBlocks[2];
+Block mBlocks[2 + 1]; // +1 for header
 };
 
 } // namespace msg

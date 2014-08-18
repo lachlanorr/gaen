@@ -140,7 +140,7 @@ def gen_reader_data_members(field_handler):
 def gen_payload_decl(field_handler):
     for f in field_handler.fields:
         if f.payload:
-            return ',\n%s      %s %s' % (' ' * len(field_handler.object_name), f.type_name, f.name)
+            return ',\n%s      %s %s' % (' ' * (len(field_handler.object_name)+1), f.type_name, f.name)
     return ''
 
 def gen_payload_value(field_handler):
@@ -172,7 +172,7 @@ def gen_writer_setters(field_handler):
 def gen_message_class(field_handler):
     repl = {'message_name_caps'      : field_handler.object_name.upper(),
             'message_name'           : field_handler.object_name,
-            'message_name_indent'    : ' ' * len(field_handler.object_name),
+            'message_name_indent'    : ' ' * (len(field_handler.object_name) + 2),
             'includes'               : gen_includes(field_handler.includes),
             'reader_data_member_init': gen_reader_member_init(field_handler),
             'reader_getters'         : gen_reader_getters(field_handler),

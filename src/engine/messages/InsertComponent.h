@@ -61,10 +61,10 @@ class InsertComponentQW : protected MessageQueueWriter
 {
 public:
     InsertComponentQW(u32 msgId,
-                     u32 flags,
-                     task_id source,
-                     task_id target,
-                     u32 nameHash)
+                      u32 flags,
+                      task_id source,
+                      task_id target,
+                      u32 nameHash)
       : MessageQueueWriter(msgId,
                            flags,
                            source,
@@ -81,12 +81,12 @@ class InsertComponentBW : protected MessageBlockWriter
 {
 public:
     InsertComponentBW(u32 msgId,
-                     u32 flags,
-                     task_id source,
-                     task_id target,
-                     Block * pBlocks,
-                     u32 blockCount,
-                     u32 nameHash)
+                      u32 flags,
+                      task_id source,
+                      task_id target,
+                      Block * pBlocks,
+                      u32 blockCount,
+                      u32 nameHash)
       : MessageBlockWriter(msgId,
                            flags,
                            source,
@@ -99,7 +99,7 @@ public:
     void setNameHash(u32 val) { mMsgAcc.message().payload.u = val; }
     void setIndex(u32 val) { mMsgAcc[0].cells[0].u = val; }
 
-    Block mBlocks[1];
+Block mBlocks[1 + 1]; // +1 for header
 };
 
 } // namespace msg
