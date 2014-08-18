@@ -28,6 +28,7 @@ component Timer
 {
     float #interval = 0.0;
     float last_notification = 0.0;
+    int timer_message = 0;
 
     #update(float deltaSecs)
     {
@@ -36,7 +37,7 @@ component Timer
             last_notification += deltaSecs;
             if (last_notification >= interval)
             {
-                @:#timer_tick();
+                @:#timer_tick(timer_message);
                 last_notification = 0.0;
             }
         }

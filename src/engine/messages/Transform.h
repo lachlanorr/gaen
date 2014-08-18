@@ -122,7 +122,8 @@ public:
         }
     }
 
-Block mBlocks[3 + 1]; // +1 for header
+private:
+    Block mBlocks[3 + 1]; // +1 for header
 };
 
 } // namespace msg

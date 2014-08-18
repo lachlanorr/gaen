@@ -97,7 +97,8 @@ public:
 
     void setInstanceId(model_instance_id val) { mMsgAcc.message().payload.u = val; }
 
-Block mBlocks[0 + 1]; // +1 for header
+private:
+    Block mBlocks[0 + 1]; // +1 for header
 };
 
 } // namespace msg

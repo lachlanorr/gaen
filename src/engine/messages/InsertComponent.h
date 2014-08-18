@@ -99,7 +99,8 @@ public:
     void setNameHash(u32 val) { mMsgAcc.message().payload.u = val; }
     void setIndex(u32 val) { mMsgAcc[0].cells[0].u = val; }
 
-Block mBlocks[1 + 1]; // +1 for header
+private:
+    Block mBlocks[1 + 1]; // +1 for header
 };
 
 } // namespace msg

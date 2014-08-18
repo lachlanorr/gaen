@@ -101,6 +101,36 @@ protected:
     MessageBlockAccessor mMsgAcc;
 };
 
+// Simple block writer that allocates storage for us on the stack.
+template <u32 blockCount>
+class StackMessageBlockWriter : public MessageBlockWriter
+{
+public:
+    StackMessageBlockWriter(u32 msgId,
+                            u32 flags,
+                            task_id source,
+                            task_id target,
+                            cell payload)
+      : MessageBlockWriter(msgId, flags, source, target, payload, blockCount, mBlocks)
+    {
+    }
+
+    // Access blocks of message
+    Block & operator[] (u32 index)
+    {
+        ASSERT(index < blockCount);
+        return mBlocks[index+1]; // +1 to skip past header
+    }
+
+    const Block & operator[] (u32 index) const
+    {
+        ASSERT(index < blockCount);
+        return mBlocks[index+1]; // +1 to skip past header
+    }
+
+private:
+    Block mBlocks[blockCount + 1]; // +1 for header
+};
 
 } // namespace gaen
 

@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 365dd4753bb521af9912add9ac67d1c3
+// HASH: 2bac120dfab55f29a8063493c0901925
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -67,6 +67,7 @@ private:
     {
         interval() = 0.000000f;
         last_notification() = 0.000000f;
+        timer_message() = 0;
 
         mTask = Task::createUpdatable(this, HASH::Timer);
         mBlockCount = 1;
@@ -83,6 +84,10 @@ private:
     float& last_notification()
     {
         return mpBlocks[0].cells[1].f;
+    }
+    int& timer_message()
+    {
+        return mpBlocks[0].cells[2].i;
     }
 
 }; // class Timer
