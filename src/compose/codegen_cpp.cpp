@@ -465,7 +465,13 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_SymbolDecl:
     {
-        return S("");
+        S code = I + type_str(pAst->pSymRec->dataType) + S(" ") + S(pAst->pSymRec->name);
+        if (pAst->pSymRec->pAst)
+        {
+            // set assignment
+            code += S(" = ") + codegen_recurse(pAst->pSymRec->pAst, indentLevel);
+        }
+        return code;
     }
 
     case kAST_SimpleStmt:

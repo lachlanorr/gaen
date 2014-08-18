@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 44f590334653b14d275281fe2910e47c
+// HASH: acd2addef7634df573edcea19064ef05
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -46,6 +46,9 @@ public:
     
     void update(float deltaSecs)
     {
+        float f = deltaSecs;
+        int x = 5;
+        x = 6;
     }
 
     template <typename T>
