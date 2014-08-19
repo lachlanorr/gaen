@@ -41,12 +41,6 @@ struct SymRec
     Ast * pAst;
     SymTab * pSymTab;
     u32 order;
-
-    // Block storage info for properties and fields
-    u32 blockIndex;
-    u32 cellIndex;
-    u32 cellCount;
-    bool isAssigned;
 };
 
 struct SymTab
@@ -55,12 +49,51 @@ struct SymTab
     Ast * pAst;
     CompMap<const char*, SymRec*> dict;
     CompList<SymTab*> children;
-    u32 blockCount;
 };
 
 struct AstList
 {
     CompList<Ast*> nodes;
+};
+
+// Block storage info for properties, fields, and message parameters
+struct BlockInfo
+{
+    Ast * pAst;
+    u32 blockIndex;
+    u32 cellIndex;
+    u32 cellCount;
+    bool isAssigned;
+
+    BlockInfo(Ast * pAst)
+      : pAst(pAst)
+      , blockIndex(0)
+      , cellIndex(0)
+      , cellCount(0)
+      , isAssigned(false)
+    {}
+};
+
+struct BlockInfos
+{
+    u32 blockCount;
+    CompVector<BlockInfo> items;
+
+    BlockInfos()
+      : blockCount(0)
+    {}
+
+    const BlockInfo * find(const Ast * pAst) const
+    {
+        for (auto it = items.begin(); it != items.end(); ++it)
+        {
+            if (it->pAst == pAst)
+                return &*it;
+        }
+        return nullptr;
+    }
+
+
 };
 
 struct Ast
@@ -80,6 +113,8 @@ struct Ast
 
     AstList* pChildren;
     const char * fullPath;
+
+    BlockInfos * pBlockInfos;
 };
 
 struct Scope
@@ -94,7 +129,7 @@ struct ParseData
     void * pScanner;
     Scope* pRootScope;
     CompList<Scope*> scopeStack;
-    CompHashSet<CompString> strings;
+    CompSet<CompString> strings;
 
     // location info
     int line;

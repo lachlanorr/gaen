@@ -89,68 +89,41 @@ u32 props_and_fields_count(const Ast * pAst)
     return count;
 }
 
-static Ast * find_next_fit(const CompVector<Ast*> & items,
-                           u32 currCell)
+static BlockInfo * find_next_fit(CompVector<BlockInfo> & items,
+                                 u32 currCell)
 {
     ASSERT(currCell < kCellsPerBlock);
 
     u32 cellsRemaining = kCellsPerBlock - currCell;
     
-    for (Ast * pItem : items)
+    for (BlockInfo & item : items)
     {
-        if (pItem->pSymRec->isAssigned)
+        if (item.isAssigned)
             continue;
 
-        if (pItem->pSymRec->cellCount > 1 && currCell != 0)
+        if (item.cellCount > 1 && currCell != 0)
             continue;
 
-        return pItem;
+        return &item;
     }
     return nullptr;
 }
 
-
-
-void block_pack_props_and_fields(Ast *pAst)
+void block_pack_items(BlockInfos * pBlockInfos)
 {
-    u32 count = props_and_fields_count(pAst);
+    std::sort(pBlockInfos->items.begin(),
+              pBlockInfos->items.end(),
+              [](const BlockInfo & a, const BlockInfo & b)
+              { return a.cellCount < b.cellCount; });
 
-    if (count == 0)
-    {
-        pAst->pScope->pSymTab->blockCount = 0;
-    }
-
-    CompVector<Ast*> items;
-    items.reserve(count);
-
-    for (Ast *pChild : pAst->pChildren->nodes)
-    {
-        if (is_prop_or_field(pChild->pSymRec))
-        {
-            ASSERT(pChild->pSymRec->blockIndex == 0 &&
-                   pChild->pSymRec->cellIndex == 0 &&
-                   pChild->pSymRec->cellCount == data_type_cell_count(pChild->pSymRec->dataType) &&
-                   pChild->pSymRec->isAssigned == false);
-
-            items.push_back(pChild);
-        }
-    }
-
-    // items vector now holds all props and fields Ast*'s
-
-    std::sort(items.begin(),
-              items.end(),
-              [](const Ast* a, const Ast* b)
-              { return a->pSymRec->cellCount < b->pSymRec->cellCount; });
-
-    u32 unassignedItemCount = count;
+    u32 unassignedItemCount = (u32)pBlockInfos->items.size();
 
     u32 currBlock = 0;
     u32 currCell = 0;
 
     while (unassignedItemCount > 0)
     {
-        Ast * pItem = find_next_fit(items, currCell);
+        BlockInfo * pItem = find_next_fit(pBlockInfos->items, currCell);
 
         if (!pItem)
         {
@@ -160,13 +133,14 @@ void block_pack_props_and_fields(Ast *pAst)
         }
         else
         {
-            pItem->pSymRec->isAssigned = true;
+            pItem->isAssigned = true;
             unassignedItemCount--;
-            pItem->pSymRec->blockIndex = currBlock;
-            pItem->pSymRec->cellIndex = currCell;
+            pItem->cellCount = data_type_cell_count(pItem->pAst->pSymRec->dataType);
+            pItem->blockIndex = currBlock;
+            pItem->cellIndex = currCell;
 
-            currBlock += pItem->pSymRec->cellCount / kCellsPerBlock;
-            currCell += pItem->pSymRec->cellCount % kCellsPerBlock;
+            currBlock += pItem->cellCount / kCellsPerBlock;
+            currCell += pItem->cellCount % kCellsPerBlock;
 
             ASSERT(currCell <= kCellsPerBlock);
             if (currCell >= kCellsPerBlock)
@@ -177,8 +151,30 @@ void block_pack_props_and_fields(Ast *pAst)
         }
     }
 
-    pAst->pScope->pSymTab->blockCount = currCell == 0 ? currBlock : currBlock + 1;
+    pBlockInfos->blockCount = currCell == 0 ? currBlock : currBlock + 1;;
+}
 
+BlockInfos * block_pack_props_and_fields(Ast *pAst)
+{
+    ASSERT(pAst->type == kAST_ComponentDef ||
+           pAst->type == kAST_EntityDef);
+
+    u32 count = props_and_fields_count(pAst);
+
+    BlockInfos * pBlockInfos = COMP_NEW(BlockInfos);
+    pBlockInfos->items.reserve(count);
+
+    for (Ast *pChild : pAst->pChildren->nodes)
+    {
+        if (is_prop_or_field(pChild->pSymRec))
+        {
+            pBlockInfos->items.emplace_back(pChild);
+        }
+    }
+
+    block_pack_items(pBlockInfos);
+
+    return pBlockInfos;
 }
 
 

@@ -75,11 +75,6 @@ SymRec * symrec_create(SymType symType,
 
     pSymRec->pSymTab = nullptr;
 
-    pSymRec->order = 0;
-    pSymRec->blockIndex = 0;
-    pSymRec->cellIndex = 0;
-    pSymRec->cellCount = data_type_cell_count(dataType);
-    
     return pSymRec;
 }
 //------------------------------------------------------------------------------
@@ -96,7 +91,6 @@ SymTab* symtab_create()
     SymTab* pSymTab = COMP_NEW(SymTab);
     pSymTab->pParent = nullptr;
     pSymTab->pAst = nullptr;
-    pSymTab->blockCount = 0;
     return pSymTab;
 }
 
@@ -222,6 +216,8 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
     pAst->pChildren = nullptr;
     pAst->fullPath = pParseData->fullPath;
 
+    pAst->pBlockInfos = 0;
+
     return pAst;
 }
 
@@ -279,7 +275,7 @@ Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseD
                                       pBlock,
                                       pParseData->pRootAst,
                                       pParseData);
-    block_pack_props_and_fields(pAst);
+    pAst->pBlockInfos = block_pack_props_and_fields(pAst);
     return pAst;
 }
 
@@ -292,7 +288,7 @@ Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pPar
                                       pBlock,
                                       pParseData->pRootAst,
                                       pParseData);
-    block_pack_props_and_fields(pAst);
+    pAst->pBlockInfos = block_pack_props_and_fields(pAst);
     return pAst;
 }
 

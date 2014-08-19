@@ -62,8 +62,7 @@ size_t comp_avail_mem();
 #include <string>
 #include <list>
 #include <vector>
-#include <unordered_set>
-#include <unordered_map>
+#include <set>
 #include <map>
 
 #include "core/base_defines.h"
@@ -153,22 +152,10 @@ template <class T>
 using CompVector = std::vector<T, gaen::CompAllocator<T>>;
 
 template <class Key,
-          class Hash = std::hash<Key>,
-          class KeyEqual = std::equal_to<Key>>
-using CompHashSet = std::unordered_set<Key,
-                                       Hash,
-                                       KeyEqual,
-                                       gaen::CompAllocator<Key>>;
-
-template <class Key,
-          class T,
-          class Hash = std::hash<Key>,
-          class KeyEqual = std::equal_to<Key>>
-using CompHashMap = std::unordered_map<Key,
-                                       T,
-                                       Hash,
-                                       KeyEqual,
-                                       gaen::CompAllocator<std::pair<const Key,T>>>;
+          class Compare = std::less<Key>>
+using CompSet = std::set<Key,
+                         Compare,
+                         gaen::CompAllocator<Key>>;
 
 template <class Key,
           class T,

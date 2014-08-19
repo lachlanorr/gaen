@@ -24,6 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include <algorithm>
 
 #include "engine/hashes.h"
 #include "compose/codegen_cpp.h"
@@ -41,7 +42,7 @@ namespace gaen
 
 static S indent(u32 level);
 static S type_str(DataType dt);
-static S property_block_accessor(const Ast * pAst);
+static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo);
 static S binary_op(const Ast * pAst, const char * op);
 static S unary_op(const Ast * pAst, const char* op);
 static S unary_op_post(const Ast * pAst, const char* op);
@@ -104,56 +105,54 @@ static S type_str(DataType dt)
     }
 }
 
-static S property_block_accessor(const Ast * pAst)
+static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo)
 {
-    ASSERT(pAst && pAst->pSymRec);
-    
     static const u32 kScratchSize = 255;
     char scratch[kScratchSize+1];
     scratch[kScratchSize] = '\0';
         
-    switch (pAst->pSymRec->dataType)
+    switch (dataType)
     {
     case kDT_int:
-        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].i", pAst->pSymRec->blockIndex, pAst->pSymRec->cellIndex);
+        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].i", blockInfo.blockIndex, blockInfo.cellIndex);
         return S(scratch);
     case kDT_uint:
-        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].u", pAst->pSymRec->blockIndex, pAst->pSymRec->cellIndex);
+        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].u", blockInfo.blockIndex, blockInfo.cellIndex);
         return S(scratch);
     case kDT_float:
-        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].f", pAst->pSymRec->blockIndex, pAst->pSymRec->cellIndex);
+        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].f", blockInfo.blockIndex, blockInfo.cellIndex);
         return S(scratch);
     case kDT_bool:
-        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].b", pAst->pSymRec->blockIndex, pAst->pSymRec->cellIndex);
+        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].b", blockInfo.blockIndex, blockInfo.cellIndex);
         return S(scratch);
     case kDT_char:
-        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].c", pAst->pSymRec->blockIndex, pAst->pSymRec->cellIndex);
+        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].c", blockInfo.blockIndex, blockInfo.cellIndex);
         return S(scratch);
     case kDT_color:
-        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].color", pAst->pSymRec->blockIndex, pAst->pSymRec->cellIndex);
+        snprintf(scratch, kScratchSize, "mpBlocks[%u].cells[%u].color", blockInfo.blockIndex, blockInfo.cellIndex);
         return S(scratch);
     case kDT_vec3:
-        ASSERT(pAst->pSymRec->cellIndex == 0);
-        snprintf(scratch, kScratchSize, "*static_cast<Vec3*>(&mpBlocks[%u].qCell)", pAst->pSymRec->blockIndex);
+        ASSERT(blockInfo.cellIndex == 0);
+        snprintf(scratch, kScratchSize, "*static_cast<Vec3*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
         return S(scratch);
     case kDT_vec4:
-        ASSERT(pAst->pSymRec->cellIndex == 0);
-        snprintf(scratch, kScratchSize, "*static_cast<Vec4*>(&mpBlocks[%u].qCell)", pAst->pSymRec->blockIndex);
+        ASSERT(blockInfo.cellIndex == 0);
+        snprintf(scratch, kScratchSize, "*static_cast<Vec4*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
         return S(scratch);
     case kDT_mat3:
-        ASSERT(pAst->pSymRec->cellIndex == 0);
-        snprintf(scratch, kScratchSize, "*static_cast<Mat3*>(&mpBlocks[%u].qCell)", pAst->pSymRec->blockIndex);
+        ASSERT(blockInfo.cellIndex == 0);
+        snprintf(scratch, kScratchSize, "*static_cast<Mat3*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
         return S(scratch);
     case kDT_mat34:
-        ASSERT(pAst->pSymRec->cellIndex == 0);
-        snprintf(scratch, kScratchSize, "*static_cast<Mat34*>(&mpBlocks[%u].qCell)", pAst->pSymRec->blockIndex);
+        ASSERT(blockInfo.cellIndex == 0);
+        snprintf(scratch, kScratchSize, "*static_cast<Mat34*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
         return S(scratch);
     case kDT_mat4:
-        ASSERT(pAst->pSymRec->cellIndex == 0);
-        snprintf(scratch, kScratchSize, "*static_cast<Mat4*>(&mpBlocks[%u].qCell)", pAst->pSymRec->blockIndex);
+        ASSERT(blockInfo.cellIndex == 0);
+        snprintf(scratch, kScratchSize, "*static_cast<Mat4*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
         return S(scratch);
     default:
-        PANIC("Invalid dataType: %d", pAst->pSymRec->dataType);
+        PANIC("Invalid dataType: %d", dataType);
         return S("");
     }
 }
@@ -260,8 +259,8 @@ static S codegen_recurse(const Ast * pAst,
             static const u32 kScratchSize = 32;
             char scratch[kScratchSize+1];
             scratch[kScratchSize] = '\0'; // sanity null terminator
-
-            snprintf(scratch, kScratchSize, "%d", pAst->pScope->pSymTab->blockCount);
+            ASSERT(pAst->pBlockInfos);
+            snprintf(scratch, kScratchSize, "%d", pAst->pBlockInfos->blockCount);
             code += I + S("        mBlockCount = ") + S(scratch) + S(";\n");
         }
         // Prep task member
@@ -367,8 +366,8 @@ static S codegen_recurse(const Ast * pAst,
             static const u32 kScratchSize = 32;
             char scratch[kScratchSize+1];
             scratch[kScratchSize] = '\0'; // sanity null terminator
-
-            snprintf(scratch, kScratchSize, "%d", pAst->pScope->pSymTab->blockCount);
+            ASSERT(pAst->pBlockInfos);
+            snprintf(scratch, kScratchSize, "%d", pAst->pBlockInfos->blockCount);
             code += I + S("        mBlockCount = ") + S(scratch) + S(";\n");
         }
 
@@ -430,11 +429,22 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_PropertyDef:
     case kAST_FieldDef:
     {
+        ASSERT(pAst->pParent && pAst->pParent->pBlockInfos);
+        ASSERT(pAst->pSymRec);
+
+        const BlockInfo * pBlockInfo = pAst->pParent->pBlockInfos->find(pAst);
+
+        if (!pBlockInfo)
+        {
+            PANIC("BlockInfo not found for Ast Node");
+            return S("");
+        }
+
         S propName = S(pAst->pSymRec->name);
 
         S code = I + type_str(pAst->pSymRec->dataType) + S("& ") + propName + S("()\n");
         code += I + S("{\n");
-        code += I + S("    return ") + property_block_accessor(pAst) + S(";\n");
+        code += I + S("    return ") + property_block_accessor(pAst->pSymRec->dataType, *pBlockInfo) + S(";\n");
         code += I + S("}\n");
 
         return code;

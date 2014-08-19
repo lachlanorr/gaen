@@ -48,8 +48,7 @@ inline bool is_prop_or_field(const SymRec * pSymRec)
 }
 
 u32 data_type_cell_count(DataType dataType);
-u32 props_and_fields_count(const Ast * pAst);
-void block_pack_props_and_fields(Ast *pAst);
+BlockInfos * block_pack_props_and_fields(Ast *pAst);
 
 } // namespace gaen
 
