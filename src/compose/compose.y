@@ -132,7 +132,9 @@ message_list
 message_prop
     : '#' IDENTIFIER '(' param_list ')' block { $$ = ast_create_message_def($2, $6, pParseData); }
     | type '#' IDENTIFIER '=' expr ';'        { $$ = ast_create_property_def($3, $1, $5, pParseData); }
+    | type '#' IDENTIFIER ';'                 { $$ = ast_create_property_def($3, $1, NULL, pParseData); }
     | type IDENTIFIER '=' expr ';'            { $$ = ast_create_field_def($2, $1, $4, pParseData); }
+    | type IDENTIFIER ';'                     { $$ = ast_create_field_def($2, $1, NULL, pParseData); }
     ;
 
 param_list
@@ -202,8 +204,6 @@ expr
     | expr '|' expr    { $$ = ast_create_binary_op(kAST_BitOr,  $1, $3, pParseData); }
     | expr '^' expr    { $$ = ast_create_binary_op(kAST_BitXor, $1, $3, pParseData); }
     | expr '&' expr    { $$ = ast_create_binary_op(kAST_BitAnd, $1, $3, pParseData); }
-
-
 
     | IDENTIFIER '=' expr           { $$ = ast_create_assign_op(kAST_Assign,       $1, $3, pParseData); }
     | IDENTIFIER ADD_ASSIGN expr    { $$ = ast_create_assign_op(kAST_AddAssign,    $1, $3, pParseData); }

@@ -709,7 +709,7 @@ static S codegen_recurse(const Ast * pAst,
         char scratch[kScratchSize+1];
         snprintf(scratch,
                  kScratchSize,
-                 "MessageBlockWriter msgw(HASH::%s, kMessageFlag_None, ",
+                 "StackMessageBlockWriter msgw(HASH::%s, kMessageFlag_None, ",
                  pAst->str);
 
         code += S(scratch);

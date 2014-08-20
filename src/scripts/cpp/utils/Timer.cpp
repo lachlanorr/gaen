@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 2bac120dfab55f29a8063493c0901925
+// HASH: 84e624786615f3f8feb140fae0575b15
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -52,7 +52,7 @@ public:
             if ((last_notification() >= interval()))
             {
                 {
-                    MessageBlockWriter msgw(HASH::timer_tick, kMessageFlag_None, mEntityTaskId, mEntityTaskId, to_cell(0), 0, nullptr);
+                    StackMessageBlockWriter msgw(HASH::timer_tick, kMessageFlag_None, mEntityTaskId, mEntityTaskId, to_cell(0), 0, nullptr);
                 }
                 last_notification() = 0.000000f;
             }
@@ -66,8 +66,8 @@ private:
     Timer()
     {
         interval() = 0.000000f;
-        last_notification() = 0.000000f;
         timer_message() = 0;
+        last_notification() = 0.000000f;
 
         mTask = Task::createUpdatable(this, HASH::Timer);
         mBlockCount = 1;
@@ -81,13 +81,13 @@ private:
     {
         return mpBlocks[0].cells[0].f;
     }
+    uint& timer_message()
+    {
+        return mpBlocks[0].cells[1].u;
+    }
     float& last_notification()
     {
-        return mpBlocks[0].cells[1].f;
-    }
-    int& timer_message()
-    {
-        return mpBlocks[0].cells[2].i;
+        return mpBlocks[0].cells[2].f;
     }
 
 }; // class Timer

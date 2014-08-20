@@ -63,15 +63,10 @@ struct BlockInfo
     u32 blockIndex;
     u32 cellIndex;
     u32 cellCount;
+    bool isPayload;
     bool isAssigned;
 
-    BlockInfo(Ast * pAst)
-      : pAst(pAst)
-      , blockIndex(0)
-      , cellIndex(0)
-      , cellCount(0)
-      , isAssigned(false)
-    {}
+    BlockInfo(Ast * pAst);
 };
 
 struct BlockInfos

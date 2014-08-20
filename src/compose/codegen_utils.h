@@ -40,6 +40,7 @@ bool is_update_message_def(const Ast * pAst);
 
 const Ast * find_update_message_def(const Ast * pAst);
 
+u32 calc_cell_count(const Ast * pAst);
 
 inline bool is_prop_or_field(const SymRec * pSymRec)
 {
@@ -49,6 +50,7 @@ inline bool is_prop_or_field(const SymRec * pSymRec)
 
 u32 data_type_cell_count(DataType dataType);
 BlockInfos * block_pack_props_and_fields(Ast *pAst);
+BlockInfos * block_pack_message_params(Ast * pAst);
 
 } // namespace gaen
 

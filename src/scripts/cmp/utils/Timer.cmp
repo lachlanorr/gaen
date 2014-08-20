@@ -27,8 +27,8 @@
 component Timer
 {
     float #interval = 0.0;
+    uint #timer_message = 0;
     float last_notification = 0.0;
-    int timer_message = 0;
 
     #update(float deltaSecs)
     {

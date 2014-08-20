@@ -584,6 +584,8 @@ Ast * ast_create_message_send(Ast *pTarget, Ast *pComponent, const char * messag
     ast_set_mid(pAst, pComponent);
     ast_set_rhs(pAst, pParams);
 
+    pAst->pBlockInfos = block_pack_message_params(pParams);
+
     return pAst;
 }
 
