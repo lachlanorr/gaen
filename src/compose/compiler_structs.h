@@ -88,7 +88,15 @@ struct BlockInfos
         return nullptr;
     }
 
-
+    const BlockInfo * find_payload() const
+    {
+        for (auto it = items.begin(); it != items.end(); ++it)
+        {
+            if (it->isPayload)
+                return &*it;
+        }
+        return nullptr;
+    }
 };
 
 struct Ast

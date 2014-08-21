@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: acd2addef7634df573edcea19064ef05
+// HASH: 5617b4e24c8ca182a805e6c1c7b244c1
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -46,8 +46,8 @@ public:
     
     void update(float deltaSecs)
     {
-        float f = deltaSecs;
-        int x = 5;
+        f32 f = deltaSecs;
+        i32 x = 5;
         x = 6;
     }
 
@@ -69,11 +69,11 @@ private:
     start & operator=(const start&)  = delete;
     start & operator=(const start&&) = delete;
 
-    float& f_prop()
+    f32& f_prop()
     {
         return mpBlocks[0].cells[0].f;
     }
-    float& f_field()
+    f32& f_field()
     {
         return mpBlocks[0].cells[1].f;
     }

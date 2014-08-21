@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 84e624786615f3f8feb140fae0575b15
+// HASH: 070969c5c3eeac94d16929f29b335d58
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -52,7 +52,7 @@ public:
             if ((last_notification() >= interval()))
             {
                 {
-                    StackMessageBlockWriter msgw(HASH::timer_tick, kMessageFlag_None, mEntityTaskId, mEntityTaskId, to_cell(0), 0, nullptr);
+                    StackMessageBlockWriter<0> msgw(HASH::timer_tick__uint, kMessageFlag_None, mEntityTaskId, mEntityTaskId, to_cell(timer_message()));
                 }
                 last_notification() = 0.000000f;
             }
@@ -77,15 +77,15 @@ private:
     Timer & operator=(const Timer&)  = delete;
     Timer & operator=(const Timer&&) = delete;
 
-    float& interval()
+    f32& interval()
     {
         return mpBlocks[0].cells[0].f;
     }
-    uint& timer_message()
+    u32& timer_message()
     {
         return mpBlocks[0].cells[1].u;
     }
-    float& last_notification()
+    f32& last_notification()
     {
         return mpBlocks[0].cells[2].f;
     }

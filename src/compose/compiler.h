@@ -250,6 +250,8 @@ void ast_set_lhs(Ast * pParent, Ast * pLhs);
 void ast_set_mid(Ast * pParent, Ast * pMid);
 void ast_set_rhs(Ast * pParent, Ast * pRhs);
 
+DataType ast_data_type(const Ast * pAst);
+
 ParseData * parsedata_create(const char * fullPath,
                              MessageHandler messageHandler);
 void *  parsedata_scanner(ParseData * pParseData);

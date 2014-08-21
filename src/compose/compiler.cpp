@@ -643,6 +643,14 @@ void ast_set_rhs(Ast * pParent, Ast * pRhs)
         pRhs->pParent = pParent;    
 }
 
+DataType ast_data_type(const Ast * pAst)
+{
+    if (pAst->pSymRec)
+        return pAst->pSymRec->dataType;
+    PANIC("Cannot determine datatype for pAst, type: %d", pAst->type);
+    return kDT_Undefined;
+}
+
 //------------------------------------------------------------------------------
 // Ast (END)
 //------------------------------------------------------------------------------

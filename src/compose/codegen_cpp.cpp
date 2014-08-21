@@ -41,7 +41,7 @@ namespace gaen
 #define I indent(indentLevel)
 
 static S indent(u32 level);
-static S type_str(DataType dt);
+static S cpp_type_str(DataType dt);
 static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo);
 static S binary_op(const Ast * pAst, const char * op);
 static S unary_op(const Ast * pAst, const char* op);
@@ -88,6 +88,38 @@ static S type_str(DataType dt)
     case kDT_char:
         return S("char");
     case kDT_vec3:
+        return S("vec3");
+    case kDT_vec4:
+        return S("vec4");
+    case kDT_mat3:
+        return S("mat3");
+    case kDT_mat34:
+        return S("mat34");
+    case kDT_mat4:
+        return S("mat4");
+    case kDT_void:
+        return S("void");
+    default:
+        PANIC("type_str invalid DataType: %d", dt);
+        return S("");
+    }
+}
+
+static S cpp_type_str(DataType dt)
+{
+    switch (dt)
+    {
+    case kDT_int:
+        return S("i32");
+    case kDT_uint:
+        return S("u32");
+    case kDT_float:
+        return S("f32");
+    case kDT_bool:
+        return S("bool");
+    case kDT_char:
+        return S("u8");
+    case kDT_vec3:
         return S("Vec3");
     case kDT_vec4:
         return S("Vec4");
@@ -100,7 +132,7 @@ static S type_str(DataType dt)
     case kDT_void:
         return S("void");
     default:
-        PANIC("type_str invalid DataType: %d", dt);
+        PANIC("cpp_type_str invalid DataType: %d", dt);
         return S("");
     }
 }
@@ -194,6 +226,25 @@ static S symref(const SymRec * pSymRec)
         code += S("()"); // properties and fields are accessed from mpBlocks using generated private accessors
     }
     return code;
+}
+
+static S message_and_params(const Ast * pAst)
+{
+    ASSERT(pAst->type == kAST_MessageSend);
+    ASSERT(pAst->pRhs && pAst->pRhs->type == kAST_FunctionParams);
+
+    S name = S(pAst->str);
+
+    if (pAst->pRhs->pChildren->nodes.size() > 0)
+    {
+        name += S("_");
+        for (const Ast * pChild : pAst->pRhs->pChildren->nodes)
+        {
+            name += S("_") + type_str(ast_data_type(pChild));
+        }
+    }
+
+    return name;
 }
 
 static S codegen_recurse(const Ast * pAst,
@@ -424,6 +475,10 @@ static S codegen_recurse(const Ast * pAst,
             }
             code += I + S("}\n");
         }
+        else
+        {
+            PANIC("Not implemented yet");
+        }
         return code;
     }
     case kAST_PropertyDef:
@@ -442,9 +497,9 @@ static S codegen_recurse(const Ast * pAst,
 
         S propName = S(pAst->pSymRec->name);
 
-        S code = I + type_str(pAst->pSymRec->dataType) + S("& ") + propName + S("()\n");
+        S code = I + cpp_type_str(ast_data_type(pAst)) + S("& ") + propName + S("()\n");
         code += I + S("{\n");
-        code += I + S("    return ") + property_block_accessor(pAst->pSymRec->dataType, *pBlockInfo) + S(";\n");
+        code += I + S("    return ") + property_block_accessor(ast_data_type(pAst), *pBlockInfo) + S(";\n");
         code += I + S("}\n");
 
         return code;
@@ -475,7 +530,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_SymbolDecl:
     {
-        S code = I + type_str(pAst->pSymRec->dataType) + S(" ") + S(pAst->pSymRec->name);
+        S code = I + cpp_type_str(ast_data_type(pAst)) + S(" ") + S(pAst->pSymRec->name);
         if (pAst->pSymRec->pAst)
         {
             // set assignment
@@ -695,6 +750,9 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_MessageSend:
     {
         static const u32 kScratchSize = 255;
+
+        S full_message_name = message_and_params(pAst);
+
         S code;
         code += I + S("{\n");
         S target;
@@ -705,21 +763,32 @@ static S codegen_recurse(const Ast * pAst,
         if (pAst->pMid)
             PANIC("Specific component not implemented yet");
 
+        ASSERT(pAst->pBlockInfos);
+        
         code += indent(indentLevel+1);
         char scratch[kScratchSize+1];
         snprintf(scratch,
                  kScratchSize,
-                 "StackMessageBlockWriter msgw(HASH::%s, kMessageFlag_None, ",
-                 pAst->str);
+                 "StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mEntityTaskId, ",
+                 pAst->pBlockInfos->blockCount,
+                 full_message_name.c_str());
 
         code += S(scratch);
 
         if (pAst->pLhs == 0)
             code += S("mEntityTaskId");
         else
-            PANIC("TODO");
+            code += codegen_recurse(pAst->pLhs, indentLevel);
 
-        code += S(", mEntityTaskId, to_cell(0), 0, nullptr);\n");
+        code += S(", to_cell(");
+
+        const BlockInfo * pBi = pAst->pBlockInfos->find_payload();
+        if (pBi)
+            code += codegen_recurse(pBi->pAst, indentLevel);
+        else
+            code += S("0");
+        
+        code += S("));\n");
 
         code += I + S("}\n");
         return code;
