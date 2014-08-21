@@ -128,6 +128,7 @@ typedef enum
     kAST_Not,
     kAST_Complement,
     kAST_Negate,
+    kAST_Hash,
 
     kAST_PreInc,
     kAST_PreDec,
@@ -222,6 +223,7 @@ Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData);
 
 Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData);
 Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * pParseData);
+Ast * ast_create_hash(const char * name, ParseData * pParseData);
 
 Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, ParseData * pParseData);
 

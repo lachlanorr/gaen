@@ -82,16 +82,18 @@ def hashes_cpp_path():
 def build_hash_list():
     hash_list = process_dir(src_dir())
     hash_list = [hash[len("HASH::"):] for hash in hash_list]
-    hash_list = sorted(set(hash_list))
+    print hash_list
+    hash_list = sorted(set(hash_list), key=lambda s: s.lower())
+    print hash_list
     hash_list = [(hash, fnv32a(hash)) for hash in hash_list]
     return hash_list
 
 def max_hash_name_len(hash_list):
-    return len(max([h[0] for h in hash_list]))
+    return max([len(h[0]) for h in hash_list])
 
 def hashes_declarations(hash_list):
     max_len = max_hash_name_len(hash_list)
-    return ''.join(['    static const u32 %s%s = 0x%08x; // %d\n' % (h[0], ' ' * (max_len-len(h[0])), h[1], h[1]) for h in hash_list])
+    return ''.join(['    static const u32 %s%s = 0x%08x; // %10d\n' % (h[0], ' ' * (max_len-len(h[0])), h[1], h[1]) for h in hash_list])
 
 def hashes_h_construct(hash_list):
     return HASHES_H_TEMPLATE.replace('<<hashes_const_declarations>>', hashes_declarations(hash_list))

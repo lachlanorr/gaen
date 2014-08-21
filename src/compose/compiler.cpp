@@ -355,6 +355,13 @@ Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_hash(const char * name, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_Hash, pParseData);
+    pAst->str = name;
+    return pAst;
+}
+
 Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * pParseData)
 {
     Ast * pAst = ast_create(astType, pParseData);
@@ -647,6 +654,8 @@ DataType ast_data_type(const Ast * pAst)
 {
     if (pAst->pSymRec)
         return pAst->pSymRec->dataType;
+    else if (pAst->type == kAST_Hash)
+        return kDT_uint;
     PANIC("Cannot determine datatype for pAst, type: %d", pAst->type);
     return kDT_Undefined;
 }

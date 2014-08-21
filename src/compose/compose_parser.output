@@ -98,64 +98,65 @@ Grammar
    64     | '!' expr
    65     | '~' expr
    66     | '-' expr
-   67     | INC expr
-   68     | DEC expr
-   69     | expr INC
-   70     | expr DEC
-   71     | literal
-   72     | IDENTIFIER '(' fun_params ')'
-   73     | IDENTIFIER
+   67     | '#' IDENTIFIER
+   68     | INC expr
+   69     | DEC expr
+   70     | expr INC
+   71     | expr DEC
+   72     | literal
+   73     | IDENTIFIER '(' fun_params ')'
+   74     | IDENTIFIER
 
-   74 cond_expr: expr EQ expr
-   75          | expr NEQ expr
-   76          | expr LTE expr
-   77          | expr GTE expr
-   78          | expr '<' expr
-   79          | expr '>' expr
+   75 cond_expr: expr EQ expr
+   76          | expr NEQ expr
+   77          | expr LTE expr
+   78          | expr GTE expr
+   79          | expr '<' expr
+   80          | expr '>' expr
 
-   80 literal: INT_LITERAL
-   81        | FLOAT_LITERAL
-   82        | TRUE
-   83        | FALSE
+   81 literal: INT_LITERAL
+   82        | FLOAT_LITERAL
+   83        | TRUE
+   84        | FALSE
 
-   84 expr_or_empty: /* empty */
-   85              | expr
+   85 expr_or_empty: /* empty */
+   86              | expr
 
-   86 cond_expr_or_empty: /* empty */
-   87                   | cond_expr
+   87 cond_expr_or_empty: /* empty */
+   88                   | cond_expr
 
-   88 fun_params: /* empty */
-   89           | expr
-   90           | fun_params ',' expr
+   89 fun_params: /* empty */
+   90           | expr
+   91           | fun_params ',' expr
 
-   91 type: INT
-   92     | UINT
-   93     | FLOAT
-   94     | BOOL
-   95     | VEC3
-   96     | VOID
+   92 type: INT
+   93     | UINT
+   94     | FLOAT
+   95     | BOOL
+   96     | VEC3
+   97     | VOID
 
 
 Terminals, with rules where they appear
 
 $end (0) 0
 '!' (33) 64
-'#' (35) 10 11 12 27 28
+'#' (35) 10 11 12 27 28 67
 '%' (37) 45
 '&' (38) 52
-'(' (40) 5 10 22 23 24 25 26 28 37 72
-')' (41) 5 10 22 23 24 25 26 28 37 72
+'(' (40) 5 10 22 23 24 25 26 28 37 73
+')' (41) 5 10 22 23 24 25 26 28 37 73
 '*' (42) 43
 '+' (43) 41
-',' (44) 17 90
+',' (44) 17 91
 '-' (45) 42 66
 '.' (46)
 '/' (47) 44
 ':' (58) 27 28
 ';' (59) 11 12 13 14 25 26 27 28 30
-'<' (60) 78
+'<' (60) 79
 '=' (61) 11 13 27 39 53
-'>' (62) 79
+'>' (62) 80
 '@' (64) 27 28
 '[' (91)
 ']' (93)
@@ -166,22 +167,22 @@ $end (0) 0
 '~' (126) 65
 error (256)
 IDENTIFIER (258) 3 4 5 10 11 12 13 14 16 17 27 28 33 36 38 39 53 54
-    55 56 57 58 59 60 61 62 63 72 73
-INT_LITERAL (259) 34 80
-TRUE (260) 82
-FALSE (261) 83
-FLOAT_LITERAL (262) 81
-INT (263) 91
-UINT (264) 92
-FLOAT (265) 93
-BOOL (266) 94
+    55 56 57 58 59 60 61 62 63 67 73 74
+INT_LITERAL (259) 34 81
+TRUE (260) 83
+FALSE (261) 84
+FLOAT_LITERAL (262) 82
+INT (263) 92
+UINT (264) 93
+FLOAT (265) 94
+BOOL (266) 95
 CHAR (267)
-VEC3 (268) 95
+VEC3 (268) 96
 VEC4 (269)
 MAT3 (270)
 MAT34 (271)
 MAT4 (272)
-VOID (273) 96
+VOID (273) 97
 IF (274) 22 23
 SWITCH (275)
 CASE (276)
@@ -207,14 +208,14 @@ SUB_ASSIGN (295) 55
 ADD_ASSIGN (296) 54
 OR (297) 48
 AND (298) 49
-NEQ (299) 75
-EQ (300) 74
-GTE (301) 77
-LTE (302) 76
+NEQ (299) 76
+EQ (300) 75
+GTE (301) 78
+LTE (302) 77
 RSHIFT (303) 47
 LSHIFT (304) 46
-DEC (305) 68 70
-INC (306) 67 69
+DEC (305) 69 71
+INC (306) 68 70
 UMINUS (307)
 POSTDEC (308)
 POSTINC (309)
@@ -252,22 +253,22 @@ component_expr (93)
     on left: 35 36, on right: 27 28
 expr (94)
     on left: 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54
-    55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73, on right:
+    55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74, on right:
     11 13 27 30 37 39 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55
-    56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 74 75 76 77 78 79
-    85 89 90
+    56 57 58 59 60 61 62 63 64 65 66 68 69 70 71 75 76 77 78 79 80
+    86 90 91
 cond_expr (95)
-    on left: 74 75 76 77 78 79, on right: 22 23 24 25 40 87
+    on left: 75 76 77 78 79 80, on right: 22 23 24 25 40 88
 literal (96)
-    on left: 80 81 82 83, on right: 71
+    on left: 81 82 83 84, on right: 72
 expr_or_empty (97)
-    on left: 84 85, on right: 26
+    on left: 85 86, on right: 26
 cond_expr_or_empty (98)
-    on left: 86 87, on right: 26
+    on left: 87 88, on right: 26
 fun_params (99)
-    on left: 88 89 90, on right: 28 72 90
+    on left: 89 90 91, on right: 28 73 91
 type (100)
-    on left: 91 92 93 94 95 96, on right: 5 11 12 13 14 16 17 38 39
+    on left: 92 93 94 95 96 97, on right: 5 11 12 13 14 16 17 38 39
 
 
 State 0
@@ -290,44 +291,44 @@ State 0
 
 State 1
 
-   91 type: INT .
-
-    $default  reduce using rule 91 (type)
-
-
-State 2
-
-   92 type: UINT .
+   92 type: INT .
 
     $default  reduce using rule 92 (type)
 
 
-State 3
+State 2
 
-   93 type: FLOAT .
+   93 type: UINT .
 
     $default  reduce using rule 93 (type)
 
 
-State 4
+State 3
 
-   94 type: BOOL .
+   94 type: FLOAT .
 
     $default  reduce using rule 94 (type)
 
 
-State 5
+State 4
 
-   95 type: VEC3 .
+   95 type: BOOL .
 
     $default  reduce using rule 95 (type)
 
 
-State 6
+State 5
 
-   96 type: VOID .
+   96 type: VEC3 .
 
     $default  reduce using rule 96 (type)
+
+
+State 6
+
+   97 type: VOID .
+
+    $default  reduce using rule 97 (type)
 
 
 State 7
@@ -427,8 +428,8 @@ State 17
     BOOL   shift, and go to state 4
     VEC3   shift, and go to state 5
     VOID   shift, and go to state 6
-    '}'    shift, and go to state 21
-    '#'    shift, and go to state 22
+    '#'    shift, and go to state 21
+    '}'    shift, and go to state 22
 
     message_list  go to state 23
     message_prop  go to state 24
@@ -468,16 +469,16 @@ State 20
 
 State 21
 
-    6 message_block: '{' '}' .
+   10 message_prop: '#' . IDENTIFIER '(' param_list ')' block
 
-    $default  reduce using rule 6 (message_block)
+    IDENTIFIER  shift, and go to state 28
 
 
 State 22
 
-   10 message_prop: '#' . IDENTIFIER '(' param_list ')' block
+    6 message_block: '{' '}' .
 
-    IDENTIFIER  shift, and go to state 28
+    $default  reduce using rule 6 (message_block)
 
 
 State 23
@@ -491,8 +492,8 @@ State 23
     BOOL   shift, and go to state 4
     VEC3   shift, and go to state 5
     VOID   shift, and go to state 6
+    '#'    shift, and go to state 21
     '}'    shift, and go to state 29
-    '#'    shift, and go to state 22
 
     message_prop  go to state 30
     type          go to state 25
@@ -635,14 +636,15 @@ State 37
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 55
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 56
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 38
@@ -657,8 +659,8 @@ State 39
    11 message_prop: type '#' IDENTIFIER . '=' expr ';'
    12             | type '#' IDENTIFIER . ';'
 
-    '='  shift, and go to state 59
-    ';'  shift, and go to state 60
+    '='  shift, and go to state 60
+    ';'  shift, and go to state 61
 
 
 State 40
@@ -677,27 +679,28 @@ State 40
     BOOL           shift, and go to state 4
     VEC3           shift, and go to state 5
     VOID           shift, and go to state 6
-    IF             shift, and go to state 61
-    FOR            shift, and go to state 62
-    WHILE          shift, and go to state 63
-    DO             shift, and go to state 64
+    IF             shift, and go to state 62
+    FOR            shift, and go to state 63
+    WHILE          shift, and go to state 64
+    DO             shift, and go to state 65
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
     '{'            shift, and go to state 40
-    '}'            shift, and go to state 65
-    '@'            shift, and go to state 66
+    '}'            shift, and go to state 66
+    '@'            shift, and go to state 67
 
-    block      go to state 67
-    stmt_list  go to state 68
-    stmt       go to state 69
-    expr       go to state 70
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    block      go to state 68
+    stmt_list  go to state 69
+    stmt       go to state 70
+    expr       go to state 71
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 41
@@ -711,7 +714,7 @@ State 42
 
    17 param_list: param_list ',' type . IDENTIFIER
 
-    IDENTIFIER  shift, and go to state 71
+    IDENTIFIER  shift, and go to state 72
 
 
 State 43
@@ -719,7 +722,7 @@ State 43
    10 message_prop: '#' IDENTIFIER '(' param_list . ')' block
    17 param_list: param_list . ',' type IDENTIFIER
 
-    ')'  shift, and go to state 72
+    ')'  shift, and go to state 73
     ','  shift, and go to state 34
 
 
@@ -736,51 +739,51 @@ State 44
    61     | IDENTIFIER . AND_ASSIGN expr
    62     | IDENTIFIER . XOR_ASSIGN expr
    63     | IDENTIFIER . OR_ASSIGN expr
-   72     | IDENTIFIER . '(' fun_params ')'
-   73     | IDENTIFIER .
+   73     | IDENTIFIER . '(' fun_params ')'
+   74     | IDENTIFIER .
 
-    '='            shift, and go to state 73
-    OR_ASSIGN      shift, and go to state 74
-    XOR_ASSIGN     shift, and go to state 75
-    AND_ASSIGN     shift, and go to state 76
-    RSHIFT_ASSIGN  shift, and go to state 77
-    LSHIFT_ASSIGN  shift, and go to state 78
-    MOD_ASSIGN     shift, and go to state 79
-    DIV_ASSIGN     shift, and go to state 80
-    MUL_ASSIGN     shift, and go to state 81
-    SUB_ASSIGN     shift, and go to state 82
-    ADD_ASSIGN     shift, and go to state 83
-    '('            shift, and go to state 84
+    '='            shift, and go to state 74
+    OR_ASSIGN      shift, and go to state 75
+    XOR_ASSIGN     shift, and go to state 76
+    AND_ASSIGN     shift, and go to state 77
+    RSHIFT_ASSIGN  shift, and go to state 78
+    LSHIFT_ASSIGN  shift, and go to state 79
+    MOD_ASSIGN     shift, and go to state 80
+    DIV_ASSIGN     shift, and go to state 81
+    MUL_ASSIGN     shift, and go to state 82
+    SUB_ASSIGN     shift, and go to state 83
+    ADD_ASSIGN     shift, and go to state 84
+    '('            shift, and go to state 85
 
-    $default  reduce using rule 73 (expr)
+    $default  reduce using rule 74 (expr)
 
 
 State 45
 
-   80 literal: INT_LITERAL .
+   81 literal: INT_LITERAL .
 
-    $default  reduce using rule 80 (literal)
+    $default  reduce using rule 81 (literal)
 
 
 State 46
 
-   82 literal: TRUE .
-
-    $default  reduce using rule 82 (literal)
-
-
-State 47
-
-   83 literal: FALSE .
+   83 literal: TRUE .
 
     $default  reduce using rule 83 (literal)
 
 
+State 47
+
+   84 literal: FALSE .
+
+    $default  reduce using rule 84 (literal)
+
+
 State 48
 
-   81 literal: FLOAT_LITERAL .
+   82 literal: FLOAT_LITERAL .
 
-    $default  reduce using rule 81 (literal)
+    $default  reduce using rule 82 (literal)
 
 
 State 49
@@ -801,14 +804,15 @@ State 49
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 85
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 86
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 50
@@ -829,14 +833,15 @@ State 50
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 86
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 87
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 51
@@ -857,47 +862,27 @@ State 51
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 87
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 88
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 52
 
-   68 expr: DEC . expr
+   67 expr: '#' . IDENTIFIER
 
-    IDENTIFIER     shift, and go to state 44
-    INT_LITERAL    shift, and go to state 45
-    TRUE           shift, and go to state 46
-    FALSE          shift, and go to state 47
-    FLOAT_LITERAL  shift, and go to state 48
-    INT            shift, and go to state 1
-    UINT           shift, and go to state 2
-    FLOAT          shift, and go to state 3
-    BOOL           shift, and go to state 4
-    VEC3           shift, and go to state 5
-    VOID           shift, and go to state 6
-    '-'            shift, and go to state 49
-    '!'            shift, and go to state 50
-    '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
-
-    expr       go to state 88
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    IDENTIFIER  shift, and go to state 89
 
 
 State 53
 
-   67 expr: INC . expr
+   69 expr: DEC . expr
 
     IDENTIFIER     shift, and go to state 44
     INT_LITERAL    shift, and go to state 45
@@ -913,17 +898,47 @@ State 53
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 89
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 90
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 54
+
+   68 expr: INC . expr
+
+    IDENTIFIER     shift, and go to state 44
+    INT_LITERAL    shift, and go to state 45
+    TRUE           shift, and go to state 46
+    FALSE          shift, and go to state 47
+    FLOAT_LITERAL  shift, and go to state 48
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 49
+    '!'            shift, and go to state 50
+    '~'            shift, and go to state 51
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
+
+    expr       go to state 91
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
+
+
+State 55
 
    37 expr: '(' . expr ')'
 
@@ -941,17 +956,18 @@ State 54
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 90
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 92
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 55
+State 56
 
    13 message_prop: type IDENTIFIER '=' expr . ';'
    41 expr: expr . '+' expr
@@ -966,61 +982,61 @@ State 55
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
-    ';'     shift, and go to state 111
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
+    ';'     shift, and go to state 113
 
 
-State 56
+State 57
 
    40 expr: cond_expr .
 
     $default  reduce using rule 40 (expr)
 
 
-State 57
-
-   71 expr: literal .
-
-    $default  reduce using rule 71 (expr)
-
-
 State 58
+
+   72 expr: literal .
+
+    $default  reduce using rule 72 (expr)
+
+
+State 59
 
    38 expr: type . IDENTIFIER
    39     | type . IDENTIFIER '=' expr
 
-    IDENTIFIER  shift, and go to state 112
+    IDENTIFIER  shift, and go to state 114
 
 
-State 59
+State 60
 
    11 message_prop: type '#' IDENTIFIER '=' . expr ';'
 
@@ -1038,46 +1054,47 @@ State 59
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 113
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 115
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 60
+State 61
 
    12 message_prop: type '#' IDENTIFIER ';' .
 
     $default  reduce using rule 12 (message_prop)
 
 
-State 61
+State 62
 
    22 stmt: IF . '(' cond_expr ')' stmt
    23     | IF . '(' cond_expr ')' stmt ELSE stmt
 
-    '('  shift, and go to state 114
-
-
-State 62
-
-   26 stmt: FOR . '(' expr_or_empty ';' cond_expr_or_empty ';' expr_or_empty ')' stmt
-
-    '('  shift, and go to state 115
+    '('  shift, and go to state 116
 
 
 State 63
 
-   24 stmt: WHILE . '(' cond_expr ')' stmt
+   26 stmt: FOR . '(' expr_or_empty ';' cond_expr_or_empty ';' expr_or_empty ')' stmt
 
-    '('  shift, and go to state 116
+    '('  shift, and go to state 117
 
 
 State 64
+
+   24 stmt: WHILE . '(' cond_expr ')' stmt
+
+    '('  shift, and go to state 118
+
+
+State 65
 
    25 stmt: DO . do_stmt WHILE '(' cond_expr ')' ';'
 
@@ -1092,56 +1109,57 @@ State 64
     BOOL           shift, and go to state 4
     VEC3           shift, and go to state 5
     VOID           shift, and go to state 6
-    IF             shift, and go to state 61
-    FOR            shift, and go to state 62
-    WHILE          shift, and go to state 63
-    DO             shift, and go to state 64
+    IF             shift, and go to state 62
+    FOR            shift, and go to state 63
+    WHILE          shift, and go to state 64
+    DO             shift, and go to state 65
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
     '{'            shift, and go to state 40
-    '@'            shift, and go to state 66
+    '@'            shift, and go to state 67
 
-    block      go to state 67
-    stmt       go to state 117
-    do_stmt    go to state 118
-    expr       go to state 70
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    block      go to state 68
+    stmt       go to state 119
+    do_stmt    go to state 120
+    expr       go to state 71
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 65
+State 66
 
    18 block: '{' '}' .
 
     $default  reduce using rule 18 (block)
 
 
-State 66
+State 67
 
    27 stmt: '@' . target_expr ':' component_expr '#' IDENTIFIER '=' expr ';'
    28     | '@' . target_expr ':' component_expr '#' IDENTIFIER '(' fun_params ')' ';'
 
-    IDENTIFIER   shift, and go to state 119
-    INT_LITERAL  shift, and go to state 120
+    IDENTIFIER   shift, and go to state 121
+    INT_LITERAL  shift, and go to state 122
 
     $default  reduce using rule 32 (target_expr)
 
-    target_expr  go to state 121
+    target_expr  go to state 123
 
 
-State 67
+State 68
 
    29 stmt: block .
 
     $default  reduce using rule 29 (stmt)
 
 
-State 68
+State 69
 
    19 block: '{' stmt_list . '}'
    21 stmt_list: stmt_list . stmt
@@ -1157,36 +1175,37 @@ State 68
     BOOL           shift, and go to state 4
     VEC3           shift, and go to state 5
     VOID           shift, and go to state 6
-    IF             shift, and go to state 61
-    FOR            shift, and go to state 62
-    WHILE          shift, and go to state 63
-    DO             shift, and go to state 64
+    IF             shift, and go to state 62
+    FOR            shift, and go to state 63
+    WHILE          shift, and go to state 64
+    DO             shift, and go to state 65
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
     '{'            shift, and go to state 40
-    '}'            shift, and go to state 122
-    '@'            shift, and go to state 66
+    '}'            shift, and go to state 124
+    '@'            shift, and go to state 67
 
-    block      go to state 67
-    stmt       go to state 123
-    expr       go to state 70
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    block      go to state 68
+    stmt       go to state 125
+    expr       go to state 71
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 69
+State 70
 
    20 stmt_list: stmt .
 
     $default  reduce using rule 20 (stmt_list)
 
 
-State 70
+State 71
 
    30 stmt: expr . ';'
    41 expr: expr . '+' expr
@@ -1201,55 +1220,55 @@ State 70
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
-    ';'     shift, and go to state 124
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
+    ';'     shift, and go to state 126
 
 
-State 71
+State 72
 
    17 param_list: param_list ',' type IDENTIFIER .
 
     $default  reduce using rule 17 (param_list)
 
 
-State 72
+State 73
 
    10 message_prop: '#' IDENTIFIER '(' param_list ')' . block
 
     '{'  shift, and go to state 40
 
-    block  go to state 125
+    block  go to state 127
 
 
-State 73
+State 74
 
    53 expr: IDENTIFIER '=' . expr
 
@@ -1267,17 +1286,18 @@ State 73
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 126
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 128
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 74
+State 75
 
    63 expr: IDENTIFIER OR_ASSIGN . expr
 
@@ -1295,17 +1315,18 @@ State 74
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 127
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 129
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 75
+State 76
 
    62 expr: IDENTIFIER XOR_ASSIGN . expr
 
@@ -1323,17 +1344,18 @@ State 75
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 128
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 130
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 76
+State 77
 
    61 expr: IDENTIFIER AND_ASSIGN . expr
 
@@ -1351,17 +1373,18 @@ State 76
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 129
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 131
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 77
+State 78
 
    60 expr: IDENTIFIER RSHIFT_ASSIGN . expr
 
@@ -1379,17 +1402,18 @@ State 77
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 130
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 132
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 78
+State 79
 
    59 expr: IDENTIFIER LSHIFT_ASSIGN . expr
 
@@ -1407,17 +1431,18 @@ State 78
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 131
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 133
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 79
+State 80
 
    58 expr: IDENTIFIER MOD_ASSIGN . expr
 
@@ -1435,17 +1460,18 @@ State 79
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 132
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 134
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 80
+State 81
 
    57 expr: IDENTIFIER DIV_ASSIGN . expr
 
@@ -1463,17 +1489,18 @@ State 80
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 133
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 135
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 81
+State 82
 
    56 expr: IDENTIFIER MUL_ASSIGN . expr
 
@@ -1491,17 +1518,18 @@ State 81
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 134
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 136
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 82
+State 83
 
    55 expr: IDENTIFIER SUB_ASSIGN . expr
 
@@ -1519,17 +1547,18 @@ State 82
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 135
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 137
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 83
+State 84
 
    54 expr: IDENTIFIER ADD_ASSIGN . expr
 
@@ -1547,19 +1576,20 @@ State 83
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 136
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 138
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 84
+State 85
 
-   72 expr: IDENTIFIER '(' . fun_params ')'
+   73 expr: IDENTIFIER '(' . fun_params ')'
 
     IDENTIFIER     shift, and go to state 44
     INT_LITERAL    shift, and go to state 45
@@ -1575,44 +1605,18 @@ State 84
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    $default  reduce using rule 88 (fun_params)
+    $default  reduce using rule 89 (fun_params)
 
-    expr        go to state 137
-    cond_expr   go to state 56
-    literal     go to state 57
-    fun_params  go to state 138
-    type        go to state 58
-
-
-State 85
-
-   41 expr: expr . '+' expr
-   42     | expr . '-' expr
-   43     | expr . '*' expr
-   44     | expr . '/' expr
-   45     | expr . '%' expr
-   46     | expr . LSHIFT expr
-   47     | expr . RSHIFT expr
-   48     | expr . OR expr
-   49     | expr . AND expr
-   50     | expr . '|' expr
-   51     | expr . '^' expr
-   52     | expr . '&' expr
-   66     | '-' expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
-
-    $default  reduce using rule 66 (expr)
+    expr        go to state 139
+    cond_expr   go to state 57
+    literal     go to state 58
+    fun_params  go to state 140
+    type        go to state 59
 
 
 State 86
@@ -1629,20 +1633,17 @@ State 86
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   64     | '!' expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   66     | '-' expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    DEC  shift, and go to state 109
-    INC  shift, and go to state 110
-
-    $default  reduce using rule 64 (expr)
+    $default  reduce using rule 66 (expr)
 
 
 State 87
@@ -1659,20 +1660,20 @@ State 87
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   65     | '~' expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   64     | '!' expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    DEC  shift, and go to state 109
-    INC  shift, and go to state 110
+    DEC  shift, and go to state 111
+    INC  shift, and go to state 112
 
-    $default  reduce using rule 65 (expr)
+    $default  reduce using rule 64 (expr)
 
 
 State 88
@@ -1689,23 +1690,30 @@ State 88
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   68     | DEC expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   65     | '~' expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    DEC  shift, and go to state 109
-    INC  shift, and go to state 110
+    DEC  shift, and go to state 111
+    INC  shift, and go to state 112
 
-    $default  reduce using rule 68 (expr)
+    $default  reduce using rule 65 (expr)
 
 
 State 89
+
+   67 expr: '#' IDENTIFIER .
+
+    $default  reduce using rule 67 (expr)
+
+
+State 90
 
    41 expr: expr . '+' expr
    42     | expr . '-' expr
@@ -1719,23 +1727,53 @@ State 89
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   67     | INC expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   69     | DEC expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    DEC  shift, and go to state 109
-    INC  shift, and go to state 110
+    DEC  shift, and go to state 111
+    INC  shift, and go to state 112
 
-    $default  reduce using rule 67 (expr)
+    $default  reduce using rule 69 (expr)
 
 
-State 90
+State 91
+
+   41 expr: expr . '+' expr
+   42     | expr . '-' expr
+   43     | expr . '*' expr
+   44     | expr . '/' expr
+   45     | expr . '%' expr
+   46     | expr . LSHIFT expr
+   47     | expr . RSHIFT expr
+   48     | expr . OR expr
+   49     | expr . AND expr
+   50     | expr . '|' expr
+   51     | expr . '^' expr
+   52     | expr . '&' expr
+   68     | INC expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
+
+    DEC  shift, and go to state 111
+    INC  shift, and go to state 112
+
+    $default  reduce using rule 68 (expr)
+
+
+State 92
 
    37 expr: '(' expr . ')'
    41     | expr . '+' expr
@@ -1750,39 +1788,39 @@ State 90
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
-    ')'     shift, and go to state 139
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
+    ')'     shift, and go to state 141
 
 
-State 91
+State 93
 
    48 expr: expr OR . expr
 
@@ -1800,17 +1838,18 @@ State 91
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 140
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 142
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 92
+State 94
 
    49 expr: expr AND . expr
 
@@ -1828,17 +1867,18 @@ State 92
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 141
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 143
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 93
+State 95
 
    50 expr: expr '|' . expr
 
@@ -1856,17 +1896,18 @@ State 93
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 142
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 144
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 94
+State 96
 
    51 expr: expr '^' . expr
 
@@ -1884,17 +1925,18 @@ State 94
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 143
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 145
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 95
+State 97
 
    52 expr: expr '&' . expr
 
@@ -1912,75 +1954,20 @@ State 95
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
-
-    expr       go to state 144
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
-
-
-State 96
-
-   75 cond_expr: expr NEQ . expr
-
-    IDENTIFIER     shift, and go to state 44
-    INT_LITERAL    shift, and go to state 45
-    TRUE           shift, and go to state 46
-    FALSE          shift, and go to state 47
-    FLOAT_LITERAL  shift, and go to state 48
-    INT            shift, and go to state 1
-    UINT           shift, and go to state 2
-    FLOAT          shift, and go to state 3
-    BOOL           shift, and go to state 4
-    VEC3           shift, and go to state 5
-    VOID           shift, and go to state 6
-    '-'            shift, and go to state 49
-    '!'            shift, and go to state 50
-    '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
-
-    expr       go to state 145
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
-
-
-State 97
-
-   74 cond_expr: expr EQ . expr
-
-    IDENTIFIER     shift, and go to state 44
-    INT_LITERAL    shift, and go to state 45
-    TRUE           shift, and go to state 46
-    FALSE          shift, and go to state 47
-    FLOAT_LITERAL  shift, and go to state 48
-    INT            shift, and go to state 1
-    UINT           shift, and go to state 2
-    FLOAT          shift, and go to state 3
-    BOOL           shift, and go to state 4
-    VEC3           shift, and go to state 5
-    VOID           shift, and go to state 6
-    '-'            shift, and go to state 49
-    '!'            shift, and go to state 50
-    '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
     expr       go to state 146
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 98
 
-   78 cond_expr: expr '<' . expr
+   76 cond_expr: expr NEQ . expr
 
     IDENTIFIER     shift, and go to state 44
     INT_LITERAL    shift, and go to state 45
@@ -1996,19 +1983,20 @@ State 98
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
     expr       go to state 147
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 99
 
-   79 cond_expr: expr '>' . expr
+   75 cond_expr: expr EQ . expr
 
     IDENTIFIER     shift, and go to state 44
     INT_LITERAL    shift, and go to state 45
@@ -2024,19 +2012,20 @@ State 99
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
     expr       go to state 148
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 100
 
-   77 cond_expr: expr GTE . expr
+   79 cond_expr: expr '<' . expr
 
     IDENTIFIER     shift, and go to state 44
     INT_LITERAL    shift, and go to state 45
@@ -2052,19 +2041,20 @@ State 100
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
     expr       go to state 149
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 101
 
-   76 cond_expr: expr LTE . expr
+   80 cond_expr: expr '>' . expr
 
     IDENTIFIER     shift, and go to state 44
     INT_LITERAL    shift, and go to state 45
@@ -2080,17 +2070,76 @@ State 101
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
     expr       go to state 150
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 102
+
+   78 cond_expr: expr GTE . expr
+
+    IDENTIFIER     shift, and go to state 44
+    INT_LITERAL    shift, and go to state 45
+    TRUE           shift, and go to state 46
+    FALSE          shift, and go to state 47
+    FLOAT_LITERAL  shift, and go to state 48
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 49
+    '!'            shift, and go to state 50
+    '~'            shift, and go to state 51
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
+
+    expr       go to state 151
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
+
+
+State 103
+
+   77 cond_expr: expr LTE . expr
+
+    IDENTIFIER     shift, and go to state 44
+    INT_LITERAL    shift, and go to state 45
+    TRUE           shift, and go to state 46
+    FALSE          shift, and go to state 47
+    FLOAT_LITERAL  shift, and go to state 48
+    INT            shift, and go to state 1
+    UINT           shift, and go to state 2
+    FLOAT          shift, and go to state 3
+    BOOL           shift, and go to state 4
+    VEC3           shift, and go to state 5
+    VOID           shift, and go to state 6
+    '-'            shift, and go to state 49
+    '!'            shift, and go to state 50
+    '~'            shift, and go to state 51
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
+
+    expr       go to state 152
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
+
+
+State 104
 
    47 expr: expr RSHIFT . expr
 
@@ -2108,17 +2157,18 @@ State 102
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 151
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 153
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 103
+State 105
 
    46 expr: expr LSHIFT . expr
 
@@ -2136,17 +2186,18 @@ State 103
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 152
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 154
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 104
+State 106
 
    41 expr: expr '+' . expr
 
@@ -2164,17 +2215,18 @@ State 104
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 153
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 155
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 105
+State 107
 
    42 expr: expr '-' . expr
 
@@ -2192,17 +2244,18 @@ State 105
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 154
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 156
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 106
+State 108
 
    43 expr: expr '*' . expr
 
@@ -2220,17 +2273,18 @@ State 106
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 155
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 157
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 107
+State 109
 
    44 expr: expr '/' . expr
 
@@ -2248,17 +2302,18 @@ State 107
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 156
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 158
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 108
+State 110
 
    45 expr: expr '%' . expr
 
@@ -2276,48 +2331,49 @@ State 108
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 157
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 159
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 109
+State 111
 
-   70 expr: expr DEC .
+   71 expr: expr DEC .
+
+    $default  reduce using rule 71 (expr)
+
+
+State 112
+
+   70 expr: expr INC .
 
     $default  reduce using rule 70 (expr)
 
 
-State 110
-
-   69 expr: expr INC .
-
-    $default  reduce using rule 69 (expr)
-
-
-State 111
+State 113
 
    13 message_prop: type IDENTIFIER '=' expr ';' .
 
     $default  reduce using rule 13 (message_prop)
 
 
-State 112
+State 114
 
    38 expr: type IDENTIFIER .
    39     | type IDENTIFIER . '=' expr
 
-    '='  shift, and go to state 158
+    '='  shift, and go to state 160
 
     $default  reduce using rule 38 (expr)
 
 
-State 113
+State 115
 
    11 message_prop: type '#' IDENTIFIER '=' expr . ';'
    41 expr: expr . '+' expr
@@ -2332,39 +2388,39 @@ State 113
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
-    ';'     shift, and go to state 159
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
+    ';'     shift, and go to state 161
 
 
-State 114
+State 116
 
    22 stmt: IF '(' . cond_expr ')' stmt
    23     | IF '(' . cond_expr ')' stmt ELSE stmt
@@ -2383,17 +2439,18 @@ State 114
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 160
-    cond_expr  go to state 161
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 162
+    cond_expr  go to state 163
+    literal    go to state 58
+    type       go to state 59
 
 
-State 115
+State 117
 
    26 stmt: FOR '(' . expr_or_empty ';' cond_expr_or_empty ';' expr_or_empty ')' stmt
 
@@ -2411,20 +2468,21 @@ State 115
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    $default  reduce using rule 84 (expr_or_empty)
+    $default  reduce using rule 85 (expr_or_empty)
 
-    expr           go to state 162
-    cond_expr      go to state 56
-    literal        go to state 57
-    expr_or_empty  go to state 163
-    type           go to state 58
+    expr           go to state 164
+    cond_expr      go to state 57
+    literal        go to state 58
+    expr_or_empty  go to state 165
+    type           go to state 59
 
 
-State 116
+State 118
 
    24 stmt: WHILE '(' . cond_expr ')' stmt
 
@@ -2442,174 +2500,79 @@ State 116
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 160
-    cond_expr  go to state 164
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 162
+    cond_expr  go to state 166
+    literal    go to state 58
+    type       go to state 59
 
 
-State 117
+State 119
 
    31 do_stmt: stmt .
 
     $default  reduce using rule 31 (do_stmt)
 
 
-State 118
+State 120
 
    25 stmt: DO do_stmt . WHILE '(' cond_expr ')' ';'
 
-    WHILE  shift, and go to state 165
+    WHILE  shift, and go to state 167
 
 
-State 119
+State 121
 
    33 target_expr: IDENTIFIER .
 
     $default  reduce using rule 33 (target_expr)
 
 
-State 120
+State 122
 
    34 target_expr: INT_LITERAL .
 
     $default  reduce using rule 34 (target_expr)
 
 
-State 121
+State 123
 
    27 stmt: '@' target_expr . ':' component_expr '#' IDENTIFIER '=' expr ';'
    28     | '@' target_expr . ':' component_expr '#' IDENTIFIER '(' fun_params ')' ';'
 
-    ':'  shift, and go to state 166
+    ':'  shift, and go to state 168
 
 
-State 122
+State 124
 
    19 block: '{' stmt_list '}' .
 
     $default  reduce using rule 19 (block)
 
 
-State 123
+State 125
 
    21 stmt_list: stmt_list stmt .
 
     $default  reduce using rule 21 (stmt_list)
 
 
-State 124
+State 126
 
    30 stmt: expr ';' .
 
     $default  reduce using rule 30 (stmt)
 
 
-State 125
+State 127
 
    10 message_prop: '#' IDENTIFIER '(' param_list ')' block .
 
     $default  reduce using rule 10 (message_prop)
-
-
-State 126
-
-   41 expr: expr . '+' expr
-   42     | expr . '-' expr
-   43     | expr . '*' expr
-   44     | expr . '/' expr
-   45     | expr . '%' expr
-   46     | expr . LSHIFT expr
-   47     | expr . RSHIFT expr
-   48     | expr . OR expr
-   49     | expr . AND expr
-   50     | expr . '|' expr
-   51     | expr . '^' expr
-   52     | expr . '&' expr
-   53     | IDENTIFIER '=' expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
-
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
-
-    $default  reduce using rule 53 (expr)
-
-
-State 127
-
-   41 expr: expr . '+' expr
-   42     | expr . '-' expr
-   43     | expr . '*' expr
-   44     | expr . '/' expr
-   45     | expr . '%' expr
-   46     | expr . LSHIFT expr
-   47     | expr . RSHIFT expr
-   48     | expr . OR expr
-   49     | expr . AND expr
-   50     | expr . '|' expr
-   51     | expr . '^' expr
-   52     | expr . '&' expr
-   63     | IDENTIFIER OR_ASSIGN expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
-
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
-
-    $default  reduce using rule 63 (expr)
 
 
 State 128
@@ -2626,38 +2589,38 @@ State 128
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   62     | IDENTIFIER XOR_ASSIGN expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   53     | IDENTIFIER '=' expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 62 (expr)
+    $default  reduce using rule 53 (expr)
 
 
 State 129
@@ -2674,38 +2637,38 @@ State 129
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   61     | IDENTIFIER AND_ASSIGN expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   63     | IDENTIFIER OR_ASSIGN expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 61 (expr)
+    $default  reduce using rule 63 (expr)
 
 
 State 130
@@ -2722,38 +2685,38 @@ State 130
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   60     | IDENTIFIER RSHIFT_ASSIGN expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   62     | IDENTIFIER XOR_ASSIGN expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 60 (expr)
+    $default  reduce using rule 62 (expr)
 
 
 State 131
@@ -2770,38 +2733,38 @@ State 131
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   59     | IDENTIFIER LSHIFT_ASSIGN expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   61     | IDENTIFIER AND_ASSIGN expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 59 (expr)
+    $default  reduce using rule 61 (expr)
 
 
 State 132
@@ -2818,38 +2781,38 @@ State 132
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   58     | IDENTIFIER MOD_ASSIGN expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   60     | IDENTIFIER RSHIFT_ASSIGN expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 58 (expr)
+    $default  reduce using rule 60 (expr)
 
 
 State 133
@@ -2866,38 +2829,38 @@ State 133
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   57     | IDENTIFIER DIV_ASSIGN expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   59     | IDENTIFIER LSHIFT_ASSIGN expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 57 (expr)
+    $default  reduce using rule 59 (expr)
 
 
 State 134
@@ -2914,38 +2877,38 @@ State 134
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   56     | IDENTIFIER MUL_ASSIGN expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   58     | IDENTIFIER MOD_ASSIGN expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 56 (expr)
+    $default  reduce using rule 58 (expr)
 
 
 State 135
@@ -2962,38 +2925,38 @@ State 135
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   55     | IDENTIFIER SUB_ASSIGN expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   57     | IDENTIFIER DIV_ASSIGN expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 55 (expr)
+    $default  reduce using rule 57 (expr)
 
 
 State 136
@@ -3010,38 +2973,38 @@ State 136
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   54     | IDENTIFIER ADD_ASSIGN expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   56     | IDENTIFIER MUL_ASSIGN expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 54 (expr)
+    $default  reduce using rule 56 (expr)
 
 
 State 137
@@ -3058,57 +3021,153 @@ State 137
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
-   89 fun_params: expr .
+   55     | IDENTIFIER SUB_ASSIGN expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 89 (fun_params)
+    $default  reduce using rule 55 (expr)
 
 
 State 138
 
-   72 expr: IDENTIFIER '(' fun_params . ')'
-   90 fun_params: fun_params . ',' expr
+   41 expr: expr . '+' expr
+   42     | expr . '-' expr
+   43     | expr . '*' expr
+   44     | expr . '/' expr
+   45     | expr . '%' expr
+   46     | expr . LSHIFT expr
+   47     | expr . RSHIFT expr
+   48     | expr . OR expr
+   49     | expr . AND expr
+   50     | expr . '|' expr
+   51     | expr . '^' expr
+   52     | expr . '&' expr
+   54     | IDENTIFIER ADD_ASSIGN expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    ')'  shift, and go to state 167
-    ','  shift, and go to state 168
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
+
+    $default  reduce using rule 54 (expr)
 
 
 State 139
+
+   41 expr: expr . '+' expr
+   42     | expr . '-' expr
+   43     | expr . '*' expr
+   44     | expr . '/' expr
+   45     | expr . '%' expr
+   46     | expr . LSHIFT expr
+   47     | expr . RSHIFT expr
+   48     | expr . OR expr
+   49     | expr . AND expr
+   50     | expr . '|' expr
+   51     | expr . '^' expr
+   52     | expr . '&' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
+   90 fun_params: expr .
+
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
+
+    $default  reduce using rule 90 (fun_params)
+
+
+State 140
+
+   73 expr: IDENTIFIER '(' fun_params . ')'
+   91 fun_params: fun_params . ',' expr
+
+    ')'  shift, and go to state 169
+    ','  shift, and go to state 170
+
+
+State 141
 
    37 expr: '(' expr ')' .
 
     $default  reduce using rule 37 (expr)
 
 
-State 140
+State 142
 
    41 expr: expr . '+' expr
    42     | expr . '-' expr
@@ -3123,39 +3182,39 @@ State 140
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
     $default  reduce using rule 48 (expr)
 
 
-State 141
+State 143
 
    41 expr: expr . '+' expr
    42     | expr . '-' expr
@@ -3170,124 +3229,35 @@ State 141
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
     $default  reduce using rule 49 (expr)
-
-
-State 142
-
-   41 expr: expr . '+' expr
-   42     | expr . '-' expr
-   43     | expr . '*' expr
-   44     | expr . '/' expr
-   45     | expr . '%' expr
-   46     | expr . LSHIFT expr
-   47     | expr . RSHIFT expr
-   48     | expr . OR expr
-   49     | expr . AND expr
-   50     | expr . '|' expr
-   50     | expr '|' expr .
-   51     | expr . '^' expr
-   52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
-
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
-
-    $default  reduce using rule 50 (expr)
-
-
-State 143
-
-   41 expr: expr . '+' expr
-   42     | expr . '-' expr
-   43     | expr . '*' expr
-   44     | expr . '/' expr
-   45     | expr . '%' expr
-   46     | expr . LSHIFT expr
-   47     | expr . RSHIFT expr
-   48     | expr . OR expr
-   49     | expr . AND expr
-   50     | expr . '|' expr
-   51     | expr . '^' expr
-   51     | expr '^' expr .
-   52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
-
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
-
-    $default  reduce using rule 51 (expr)
 
 
 State 144
@@ -3302,35 +3272,37 @@ State 144
    48     | expr . OR expr
    49     | expr . AND expr
    50     | expr . '|' expr
+   50     | expr '|' expr .
    51     | expr . '^' expr
    52     | expr . '&' expr
-   52     | expr '&' expr .
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 52 (expr)
+    $default  reduce using rule 50 (expr)
 
 
 State 145
@@ -3346,35 +3318,35 @@ State 145
    49     | expr . AND expr
    50     | expr . '|' expr
    51     | expr . '^' expr
+   51     | expr '^' expr .
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   75          | expr NEQ expr .
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    NEQ  error (nonassociative)
-    EQ   error (nonassociative)
-
-    $default  reduce using rule 75 (cond_expr)
+    $default  reduce using rule 51 (expr)
 
 
 State 146
@@ -3391,34 +3363,33 @@ State 146
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   74          | expr EQ expr .
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   52     | expr '&' expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    NEQ  error (nonassociative)
-    EQ   error (nonassociative)
-
-    $default  reduce using rule 74 (cond_expr)
+    $default  reduce using rule 52 (expr)
 
 
 State 147
@@ -3435,32 +3406,34 @@ State 147
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   78          | expr '<' expr .
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   76          | expr NEQ expr .
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    '<'  error (nonassociative)
-    '>'  error (nonassociative)
-    GTE  error (nonassociative)
-    LTE  error (nonassociative)
+    NEQ  error (nonassociative)
+    EQ   error (nonassociative)
 
-    $default  reduce using rule 78 (cond_expr)
+    $default  reduce using rule 76 (cond_expr)
 
 
 State 148
@@ -3477,32 +3450,34 @@ State 148
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
-   79          | expr '>' expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   75          | expr EQ expr .
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    '<'  error (nonassociative)
-    '>'  error (nonassociative)
-    GTE  error (nonassociative)
-    LTE  error (nonassociative)
+    NEQ  error (nonassociative)
+    EQ   error (nonassociative)
 
-    $default  reduce using rule 79 (cond_expr)
+    $default  reduce using rule 75 (cond_expr)
 
 
 State 149
@@ -3519,32 +3494,32 @@ State 149
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   77          | expr GTE expr .
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   79          | expr '<' expr .
+   80          | expr . '>' expr
 
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
     '<'  error (nonassociative)
     '>'  error (nonassociative)
     GTE  error (nonassociative)
     LTE  error (nonassociative)
 
-    $default  reduce using rule 77 (cond_expr)
+    $default  reduce using rule 79 (cond_expr)
 
 
 State 150
@@ -3561,35 +3536,119 @@ State 150
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   76          | expr LTE expr .
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
+   80          | expr '>' expr .
 
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
     '<'  error (nonassociative)
     '>'  error (nonassociative)
     GTE  error (nonassociative)
     LTE  error (nonassociative)
 
-    $default  reduce using rule 76 (cond_expr)
+    $default  reduce using rule 80 (cond_expr)
 
 
 State 151
+
+   41 expr: expr . '+' expr
+   42     | expr . '-' expr
+   43     | expr . '*' expr
+   44     | expr . '/' expr
+   45     | expr . '%' expr
+   46     | expr . LSHIFT expr
+   47     | expr . RSHIFT expr
+   48     | expr . OR expr
+   49     | expr . AND expr
+   50     | expr . '|' expr
+   51     | expr . '^' expr
+   52     | expr . '&' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   78          | expr GTE expr .
+   79          | expr . '<' expr
+   80          | expr . '>' expr
+
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
+
+    '<'  error (nonassociative)
+    '>'  error (nonassociative)
+    GTE  error (nonassociative)
+    LTE  error (nonassociative)
+
+    $default  reduce using rule 78 (cond_expr)
+
+
+State 152
+
+   41 expr: expr . '+' expr
+   42     | expr . '-' expr
+   43     | expr . '*' expr
+   44     | expr . '/' expr
+   45     | expr . '%' expr
+   46     | expr . LSHIFT expr
+   47     | expr . RSHIFT expr
+   48     | expr . OR expr
+   49     | expr . AND expr
+   50     | expr . '|' expr
+   51     | expr . '^' expr
+   52     | expr . '&' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   77          | expr LTE expr .
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
+
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
+
+    '<'  error (nonassociative)
+    '>'  error (nonassociative)
+    GTE  error (nonassociative)
+    LTE  error (nonassociative)
+
+    $default  reduce using rule 77 (cond_expr)
+
+
+State 153
 
    41 expr: expr . '+' expr
    42     | expr . '-' expr
@@ -3604,27 +3663,27 @@ State 151
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    '+'  shift, and go to state 104
-    '-'  shift, and go to state 105
-    '*'  shift, and go to state 106
-    '/'  shift, and go to state 107
-    '%'  shift, and go to state 108
-    DEC  shift, and go to state 109
-    INC  shift, and go to state 110
+    '+'  shift, and go to state 106
+    '-'  shift, and go to state 107
+    '*'  shift, and go to state 108
+    '/'  shift, and go to state 109
+    '%'  shift, and go to state 110
+    DEC  shift, and go to state 111
+    INC  shift, and go to state 112
 
     $default  reduce using rule 47 (expr)
 
 
-State 152
+State 154
 
    41 expr: expr . '+' expr
    42     | expr . '-' expr
@@ -3639,27 +3698,27 @@ State 152
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    '+'  shift, and go to state 104
-    '-'  shift, and go to state 105
-    '*'  shift, and go to state 106
-    '/'  shift, and go to state 107
-    '%'  shift, and go to state 108
-    DEC  shift, and go to state 109
-    INC  shift, and go to state 110
+    '+'  shift, and go to state 106
+    '-'  shift, and go to state 107
+    '*'  shift, and go to state 108
+    '/'  shift, and go to state 109
+    '%'  shift, and go to state 110
+    DEC  shift, and go to state 111
+    INC  shift, and go to state 112
 
     $default  reduce using rule 46 (expr)
 
 
-State 153
+State 155
 
    41 expr: expr . '+' expr
    41     | expr '+' expr .
@@ -3674,25 +3733,25 @@ State 153
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    '*'  shift, and go to state 106
-    '/'  shift, and go to state 107
-    '%'  shift, and go to state 108
-    DEC  shift, and go to state 109
-    INC  shift, and go to state 110
+    '*'  shift, and go to state 108
+    '/'  shift, and go to state 109
+    '%'  shift, and go to state 110
+    DEC  shift, and go to state 111
+    INC  shift, and go to state 112
 
     $default  reduce using rule 41 (expr)
 
 
-State 154
+State 156
 
    41 expr: expr . '+' expr
    42     | expr . '-' expr
@@ -3707,25 +3766,25 @@ State 154
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    '*'  shift, and go to state 106
-    '/'  shift, and go to state 107
-    '%'  shift, and go to state 108
-    DEC  shift, and go to state 109
-    INC  shift, and go to state 110
+    '*'  shift, and go to state 108
+    '/'  shift, and go to state 109
+    '%'  shift, and go to state 110
+    DEC  shift, and go to state 111
+    INC  shift, and go to state 112
 
     $default  reduce using rule 42 (expr)
 
 
-State 155
+State 157
 
    41 expr: expr . '+' expr
    42     | expr . '-' expr
@@ -3740,22 +3799,22 @@ State 155
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    DEC  shift, and go to state 109
-    INC  shift, and go to state 110
+    DEC  shift, and go to state 111
+    INC  shift, and go to state 112
 
     $default  reduce using rule 43 (expr)
 
 
-State 156
+State 158
 
    41 expr: expr . '+' expr
    42     | expr . '-' expr
@@ -3770,22 +3829,22 @@ State 156
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    DEC  shift, and go to state 109
-    INC  shift, and go to state 110
+    DEC  shift, and go to state 111
+    INC  shift, and go to state 112
 
     $default  reduce using rule 44 (expr)
 
 
-State 157
+State 159
 
    41 expr: expr . '+' expr
    42     | expr . '-' expr
@@ -3800,22 +3859,22 @@ State 157
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    DEC  shift, and go to state 109
-    INC  shift, and go to state 110
+    DEC  shift, and go to state 111
+    INC  shift, and go to state 112
 
     $default  reduce using rule 45 (expr)
 
 
-State 158
+State 160
 
    39 expr: type IDENTIFIER '=' . expr
 
@@ -3833,77 +3892,22 @@ State 158
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 169
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
-
-
-State 159
-
-   11 message_prop: type '#' IDENTIFIER '=' expr ';' .
-
-    $default  reduce using rule 11 (message_prop)
-
-
-State 160
-
-   41 expr: expr . '+' expr
-   42     | expr . '-' expr
-   43     | expr . '*' expr
-   44     | expr . '/' expr
-   45     | expr . '%' expr
-   46     | expr . LSHIFT expr
-   47     | expr . RSHIFT expr
-   48     | expr . OR expr
-   49     | expr . AND expr
-   50     | expr . '|' expr
-   51     | expr . '^' expr
-   52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
-
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    expr       go to state 171
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
 State 161
 
-   22 stmt: IF '(' cond_expr . ')' stmt
-   23     | IF '(' cond_expr . ')' stmt ELSE stmt
-   40 expr: cond_expr .
+   11 message_prop: type '#' IDENTIFIER '=' expr ';' .
 
-    ')'  shift, and go to state 170
-
-    $default  reduce using rule 40 (expr)
+    $default  reduce using rule 11 (message_prop)
 
 
 State 162
@@ -3920,50 +3924,41 @@ State 162
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
-   85 expr_or_empty: expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
-
-    $default  reduce using rule 85 (expr_or_empty)
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
 
 State 163
 
-   26 stmt: FOR '(' expr_or_empty . ';' cond_expr_or_empty ';' expr_or_empty ')' stmt
-
-    ';'  shift, and go to state 171
-
-
-State 164
-
-   24 stmt: WHILE '(' cond_expr . ')' stmt
+   22 stmt: IF '(' cond_expr . ')' stmt
+   23     | IF '(' cond_expr . ')' stmt ELSE stmt
    40 expr: cond_expr .
 
     ')'  shift, and go to state 172
@@ -3971,35 +3966,100 @@ State 164
     $default  reduce using rule 40 (expr)
 
 
+State 164
+
+   41 expr: expr . '+' expr
+   42     | expr . '-' expr
+   43     | expr . '*' expr
+   44     | expr . '/' expr
+   45     | expr . '%' expr
+   46     | expr . LSHIFT expr
+   47     | expr . RSHIFT expr
+   48     | expr . OR expr
+   49     | expr . AND expr
+   50     | expr . '|' expr
+   51     | expr . '^' expr
+   52     | expr . '&' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
+   86 expr_or_empty: expr .
+
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
+
+    $default  reduce using rule 86 (expr_or_empty)
+
+
 State 165
 
-   25 stmt: DO do_stmt WHILE . '(' cond_expr ')' ';'
+   26 stmt: FOR '(' expr_or_empty . ';' cond_expr_or_empty ';' expr_or_empty ')' stmt
 
-    '('  shift, and go to state 173
+    ';'  shift, and go to state 173
 
 
 State 166
 
-   27 stmt: '@' target_expr ':' . component_expr '#' IDENTIFIER '=' expr ';'
-   28     | '@' target_expr ':' . component_expr '#' IDENTIFIER '(' fun_params ')' ';'
+   24 stmt: WHILE '(' cond_expr . ')' stmt
+   40 expr: cond_expr .
 
-    IDENTIFIER  shift, and go to state 174
+    ')'  shift, and go to state 174
 
-    $default  reduce using rule 35 (component_expr)
-
-    component_expr  go to state 175
+    $default  reduce using rule 40 (expr)
 
 
 State 167
 
-   72 expr: IDENTIFIER '(' fun_params ')' .
+   25 stmt: DO do_stmt WHILE . '(' cond_expr ')' ';'
 
-    $default  reduce using rule 72 (expr)
+    '('  shift, and go to state 175
 
 
 State 168
 
-   90 fun_params: fun_params ',' . expr
+   27 stmt: '@' target_expr ':' . component_expr '#' IDENTIFIER '=' expr ';'
+   28     | '@' target_expr ':' . component_expr '#' IDENTIFIER '(' fun_params ')' ';'
+
+    IDENTIFIER  shift, and go to state 176
+
+    $default  reduce using rule 35 (component_expr)
+
+    component_expr  go to state 177
+
+
+State 169
+
+   73 expr: IDENTIFIER '(' fun_params ')' .
+
+    $default  reduce using rule 73 (expr)
+
+
+State 170
+
+   91 fun_params: fun_params ',' . expr
 
     IDENTIFIER     shift, and go to state 44
     INT_LITERAL    shift, and go to state 45
@@ -4015,17 +4075,18 @@ State 168
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 176
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 178
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 169
+State 171
 
    39 expr: type IDENTIFIER '=' expr .
    41     | expr . '+' expr
@@ -4040,40 +4101,40 @@ State 169
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
     $default  reduce using rule 39 (expr)
 
 
-State 170
+State 172
 
    22 stmt: IF '(' cond_expr ')' . stmt
    23     | IF '(' cond_expr ')' . stmt ELSE stmt
@@ -4089,28 +4150,29 @@ State 170
     BOOL           shift, and go to state 4
     VEC3           shift, and go to state 5
     VOID           shift, and go to state 6
-    IF             shift, and go to state 61
-    FOR            shift, and go to state 62
-    WHILE          shift, and go to state 63
-    DO             shift, and go to state 64
+    IF             shift, and go to state 62
+    FOR            shift, and go to state 63
+    WHILE          shift, and go to state 64
+    DO             shift, and go to state 65
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
     '{'            shift, and go to state 40
-    '@'            shift, and go to state 66
+    '@'            shift, and go to state 67
 
-    block      go to state 67
-    stmt       go to state 177
-    expr       go to state 70
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    block      go to state 68
+    stmt       go to state 179
+    expr       go to state 71
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 171
+State 173
 
    26 stmt: FOR '(' expr_or_empty ';' . cond_expr_or_empty ';' expr_or_empty ')' stmt
 
@@ -4128,20 +4190,21 @@ State 171
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    $default  reduce using rule 86 (cond_expr_or_empty)
+    $default  reduce using rule 87 (cond_expr_or_empty)
 
-    expr                go to state 160
-    cond_expr           go to state 178
-    literal             go to state 57
-    cond_expr_or_empty  go to state 179
-    type                go to state 58
+    expr                go to state 162
+    cond_expr           go to state 180
+    literal             go to state 58
+    cond_expr_or_empty  go to state 181
+    type                go to state 59
 
 
-State 172
+State 174
 
    24 stmt: WHILE '(' cond_expr ')' . stmt
 
@@ -4156,28 +4219,29 @@ State 172
     BOOL           shift, and go to state 4
     VEC3           shift, and go to state 5
     VOID           shift, and go to state 6
-    IF             shift, and go to state 61
-    FOR            shift, and go to state 62
-    WHILE          shift, and go to state 63
-    DO             shift, and go to state 64
+    IF             shift, and go to state 62
+    FOR            shift, and go to state 63
+    WHILE          shift, and go to state 64
+    DO             shift, and go to state 65
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
     '{'            shift, and go to state 40
-    '@'            shift, and go to state 66
+    '@'            shift, and go to state 67
 
-    block      go to state 67
-    stmt       go to state 180
-    expr       go to state 70
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    block      go to state 68
+    stmt       go to state 182
+    expr       go to state 71
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 173
+State 175
 
    25 stmt: DO do_stmt WHILE '(' . cond_expr ')' ';'
 
@@ -4195,32 +4259,33 @@ State 173
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 160
-    cond_expr  go to state 181
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 162
+    cond_expr  go to state 183
+    literal    go to state 58
+    type       go to state 59
 
 
-State 174
+State 176
 
    36 component_expr: IDENTIFIER .
 
     $default  reduce using rule 36 (component_expr)
 
 
-State 175
+State 177
 
    27 stmt: '@' target_expr ':' component_expr . '#' IDENTIFIER '=' expr ';'
    28     | '@' target_expr ':' component_expr . '#' IDENTIFIER '(' fun_params ')' ';'
 
-    '#'  shift, and go to state 182
+    '#'  shift, and go to state 184
 
 
-State 176
+State 178
 
    41 expr: expr . '+' expr
    42     | expr . '-' expr
@@ -4234,92 +4299,92 @@ State 176
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
-   90 fun_params: fun_params ',' expr .
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
+   91 fun_params: fun_params ',' expr .
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
 
-    $default  reduce using rule 90 (fun_params)
-
-
-State 177
-
-   22 stmt: IF '(' cond_expr ')' stmt .
-   23     | IF '(' cond_expr ')' stmt . ELSE stmt
-
-    ELSE  shift, and go to state 183
-
-    $default  reduce using rule 22 (stmt)
-
-
-State 178
-
-   40 expr: cond_expr .
-   87 cond_expr_or_empty: cond_expr .
-
-    ';'       reduce using rule 87 (cond_expr_or_empty)
-    $default  reduce using rule 40 (expr)
+    $default  reduce using rule 91 (fun_params)
 
 
 State 179
 
-   26 stmt: FOR '(' expr_or_empty ';' cond_expr_or_empty . ';' expr_or_empty ')' stmt
+   22 stmt: IF '(' cond_expr ')' stmt .
+   23     | IF '(' cond_expr ')' stmt . ELSE stmt
 
-    ';'  shift, and go to state 184
+    ELSE  shift, and go to state 185
+
+    $default  reduce using rule 22 (stmt)
 
 
 State 180
+
+   40 expr: cond_expr .
+   88 cond_expr_or_empty: cond_expr .
+
+    ';'       reduce using rule 88 (cond_expr_or_empty)
+    $default  reduce using rule 40 (expr)
+
+
+State 181
+
+   26 stmt: FOR '(' expr_or_empty ';' cond_expr_or_empty . ';' expr_or_empty ')' stmt
+
+    ';'  shift, and go to state 186
+
+
+State 182
 
    24 stmt: WHILE '(' cond_expr ')' stmt .
 
     $default  reduce using rule 24 (stmt)
 
 
-State 181
+State 183
 
    25 stmt: DO do_stmt WHILE '(' cond_expr . ')' ';'
    40 expr: cond_expr .
 
-    ')'  shift, and go to state 185
+    ')'  shift, and go to state 187
 
     $default  reduce using rule 40 (expr)
 
 
-State 182
+State 184
 
    27 stmt: '@' target_expr ':' component_expr '#' . IDENTIFIER '=' expr ';'
    28     | '@' target_expr ':' component_expr '#' . IDENTIFIER '(' fun_params ')' ';'
 
-    IDENTIFIER  shift, and go to state 186
+    IDENTIFIER  shift, and go to state 188
 
 
-State 183
+State 185
 
    23 stmt: IF '(' cond_expr ')' stmt ELSE . stmt
 
@@ -4334,28 +4399,29 @@ State 183
     BOOL           shift, and go to state 4
     VEC3           shift, and go to state 5
     VOID           shift, and go to state 6
-    IF             shift, and go to state 61
-    FOR            shift, and go to state 62
-    WHILE          shift, and go to state 63
-    DO             shift, and go to state 64
+    IF             shift, and go to state 62
+    FOR            shift, and go to state 63
+    WHILE          shift, and go to state 64
+    DO             shift, and go to state 65
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
     '{'            shift, and go to state 40
-    '@'            shift, and go to state 66
+    '@'            shift, and go to state 67
 
-    block      go to state 67
-    stmt       go to state 187
-    expr       go to state 70
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    block      go to state 68
+    stmt       go to state 189
+    expr       go to state 71
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 184
+State 186
 
    26 stmt: FOR '(' expr_or_empty ';' cond_expr_or_empty ';' . expr_or_empty ')' stmt
 
@@ -4373,57 +4439,58 @@ State 184
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    $default  reduce using rule 84 (expr_or_empty)
+    $default  reduce using rule 85 (expr_or_empty)
 
-    expr           go to state 162
-    cond_expr      go to state 56
-    literal        go to state 57
-    expr_or_empty  go to state 188
-    type           go to state 58
+    expr           go to state 164
+    cond_expr      go to state 57
+    literal        go to state 58
+    expr_or_empty  go to state 190
+    type           go to state 59
 
 
-State 185
+State 187
 
    25 stmt: DO do_stmt WHILE '(' cond_expr ')' . ';'
 
-    ';'  shift, and go to state 189
+    ';'  shift, and go to state 191
 
 
-State 186
+State 188
 
    27 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER . '=' expr ';'
    28     | '@' target_expr ':' component_expr '#' IDENTIFIER . '(' fun_params ')' ';'
 
-    '='  shift, and go to state 190
-    '('  shift, and go to state 191
+    '='  shift, and go to state 192
+    '('  shift, and go to state 193
 
 
-State 187
+State 189
 
    23 stmt: IF '(' cond_expr ')' stmt ELSE stmt .
 
     $default  reduce using rule 23 (stmt)
 
 
-State 188
+State 190
 
    26 stmt: FOR '(' expr_or_empty ';' cond_expr_or_empty ';' expr_or_empty . ')' stmt
 
-    ')'  shift, and go to state 192
+    ')'  shift, and go to state 194
 
 
-State 189
+State 191
 
    25 stmt: DO do_stmt WHILE '(' cond_expr ')' ';' .
 
     $default  reduce using rule 25 (stmt)
 
 
-State 190
+State 192
 
    27 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '=' . expr ';'
 
@@ -4441,17 +4508,18 @@ State 190
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    expr       go to state 193
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    expr       go to state 195
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 191
+State 193
 
    28 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '(' . fun_params ')' ';'
 
@@ -4469,20 +4537,21 @@ State 191
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
 
-    $default  reduce using rule 88 (fun_params)
+    $default  reduce using rule 89 (fun_params)
 
-    expr        go to state 137
-    cond_expr   go to state 56
-    literal     go to state 57
-    fun_params  go to state 194
-    type        go to state 58
+    expr        go to state 139
+    cond_expr   go to state 57
+    literal     go to state 58
+    fun_params  go to state 196
+    type        go to state 59
 
 
-State 192
+State 194
 
    26 stmt: FOR '(' expr_or_empty ';' cond_expr_or_empty ';' expr_or_empty ')' . stmt
 
@@ -4497,28 +4566,29 @@ State 192
     BOOL           shift, and go to state 4
     VEC3           shift, and go to state 5
     VOID           shift, and go to state 6
-    IF             shift, and go to state 61
-    FOR            shift, and go to state 62
-    WHILE          shift, and go to state 63
-    DO             shift, and go to state 64
+    IF             shift, and go to state 62
+    FOR            shift, and go to state 63
+    WHILE          shift, and go to state 64
+    DO             shift, and go to state 65
     '-'            shift, and go to state 49
     '!'            shift, and go to state 50
     '~'            shift, and go to state 51
-    DEC            shift, and go to state 52
-    INC            shift, and go to state 53
-    '('            shift, and go to state 54
+    '#'            shift, and go to state 52
+    DEC            shift, and go to state 53
+    INC            shift, and go to state 54
+    '('            shift, and go to state 55
     '{'            shift, and go to state 40
-    '@'            shift, and go to state 66
+    '@'            shift, and go to state 67
 
-    block      go to state 67
-    stmt       go to state 195
-    expr       go to state 70
-    cond_expr  go to state 56
-    literal    go to state 57
-    type       go to state 58
+    block      go to state 68
+    stmt       go to state 197
+    expr       go to state 71
+    cond_expr  go to state 57
+    literal    go to state 58
+    type       go to state 59
 
 
-State 193
+State 195
 
    27 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '=' expr . ';'
    41 expr: expr . '+' expr
@@ -4533,69 +4603,69 @@ State 193
    50     | expr . '|' expr
    51     | expr . '^' expr
    52     | expr . '&' expr
-   69     | expr . INC
-   70     | expr . DEC
-   74 cond_expr: expr . EQ expr
-   75          | expr . NEQ expr
-   76          | expr . LTE expr
-   77          | expr . GTE expr
-   78          | expr . '<' expr
-   79          | expr . '>' expr
+   70     | expr . INC
+   71     | expr . DEC
+   75 cond_expr: expr . EQ expr
+   76          | expr . NEQ expr
+   77          | expr . LTE expr
+   78          | expr . GTE expr
+   79          | expr . '<' expr
+   80          | expr . '>' expr
 
-    OR      shift, and go to state 91
-    AND     shift, and go to state 92
-    '|'     shift, and go to state 93
-    '^'     shift, and go to state 94
-    '&'     shift, and go to state 95
-    NEQ     shift, and go to state 96
-    EQ      shift, and go to state 97
-    '<'     shift, and go to state 98
-    '>'     shift, and go to state 99
-    GTE     shift, and go to state 100
-    LTE     shift, and go to state 101
-    RSHIFT  shift, and go to state 102
-    LSHIFT  shift, and go to state 103
-    '+'     shift, and go to state 104
-    '-'     shift, and go to state 105
-    '*'     shift, and go to state 106
-    '/'     shift, and go to state 107
-    '%'     shift, and go to state 108
-    DEC     shift, and go to state 109
-    INC     shift, and go to state 110
-    ';'     shift, and go to state 196
+    OR      shift, and go to state 93
+    AND     shift, and go to state 94
+    '|'     shift, and go to state 95
+    '^'     shift, and go to state 96
+    '&'     shift, and go to state 97
+    NEQ     shift, and go to state 98
+    EQ      shift, and go to state 99
+    '<'     shift, and go to state 100
+    '>'     shift, and go to state 101
+    GTE     shift, and go to state 102
+    LTE     shift, and go to state 103
+    RSHIFT  shift, and go to state 104
+    LSHIFT  shift, and go to state 105
+    '+'     shift, and go to state 106
+    '-'     shift, and go to state 107
+    '*'     shift, and go to state 108
+    '/'     shift, and go to state 109
+    '%'     shift, and go to state 110
+    DEC     shift, and go to state 111
+    INC     shift, and go to state 112
+    ';'     shift, and go to state 198
 
 
-State 194
+State 196
 
    28 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '(' fun_params . ')' ';'
-   90 fun_params: fun_params . ',' expr
+   91 fun_params: fun_params . ',' expr
 
-    ')'  shift, and go to state 197
-    ','  shift, and go to state 168
+    ')'  shift, and go to state 199
+    ','  shift, and go to state 170
 
 
-State 195
+State 197
 
    26 stmt: FOR '(' expr_or_empty ';' cond_expr_or_empty ';' expr_or_empty ')' stmt .
 
     $default  reduce using rule 26 (stmt)
 
 
-State 196
+State 198
 
    27 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '=' expr ';' .
 
     $default  reduce using rule 27 (stmt)
 
 
-State 197
+State 199
 
    28 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '(' fun_params ')' . ';'
 
-    ';'  shift, and go to state 198
+    ';'  shift, and go to state 200
 
 
-State 198
+State 200
 
    28 stmt: '@' target_expr ':' component_expr '#' IDENTIFIER '(' fun_params ')' ';' .
 

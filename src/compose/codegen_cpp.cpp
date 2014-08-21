@@ -700,6 +700,10 @@ static S codegen_recurse(const Ast * pAst,
     {
         return unary_op(pAst, "-");
     }
+    case kAST_Hash:
+    {
+        return S("HASH::") + S(pAst->str);
+    }
 
     case kAST_PreInc:
     {

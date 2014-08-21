@@ -89,7 +89,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %left <pAst> '+' '-'
 %left <pAst> '*' '/' '%'
 
-%right <pAst> INC DEC '!' '~'
+%right <pAst> INC DEC '!' '~' '#'
 %right <pAst> UMINUS
 
 %left <pAst> '.'
@@ -220,6 +220,8 @@ expr
     | '!' expr              { $$ = ast_create_unary_op(kAST_Not,        $2, pParseData); }
     | '~' expr              { $$ = ast_create_unary_op(kAST_Complement, $2, pParseData); }
     | '-' expr %prec UMINUS { $$ = ast_create_unary_op(kAST_Complement, $2, pParseData); }
+
+    | '#' IDENTIFIER        { $$ = ast_create_hash($2, pParseData); }
 
     | INC expr               { $$ = ast_create_unary_op(kAST_PreInc, $2, pParseData); }
     | DEC expr               { $$ = ast_create_unary_op(kAST_PreDec, $2, pParseData); }

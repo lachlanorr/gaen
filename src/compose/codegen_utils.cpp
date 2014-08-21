@@ -67,6 +67,8 @@ u32 calc_cell_count(const Ast * pAst)
 {
     if (pAst->pSymRec)
         return data_type_cell_count(pAst->pSymRec->dataType);
+    else if (pAst->type == kAST_Hash)
+        return 1;
 
     PANIC("Unable to calculate cell count for Ast type: %d", pAst->type);
     return -1;
