@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 263ee5d5e92c1c8a0389d2c3389159f6
+// HASH: 275c6a1e681d48aeed6edc9500c51afb
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -69,13 +69,13 @@ private:
             Task & compTask = insertComponent(HASH::Timer, mComponentCount);
             // Init Property: interval
             {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::interval));
+                StackMessageBlockWriter<1> msgw(HASH::set_property__float, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::interval));
                 msgw[0].cells[1].f = 1.000000f;
                 compTask.message(msgw.accessor());
             }
             // Init Property: timer_message
             {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::timer_message));
+                StackMessageBlockWriter<1> msgw(HASH::set_property__uint, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::timer_message));
                 msgw[0].cells[1].u = HASH::msg;
                 compTask.message(msgw.accessor());
             }

@@ -342,14 +342,17 @@ static S codegen_recurse(const Ast * pAst,
                     {
                         code += I + S("            // Init Property: ") + S(pPropInit->str) + ("\n");
                         code += S("            {\n");
-                        u32 valCellCount = data_type_cell_count(ast_data_type(pPropInit->pRhs));
+                        DataType rhsDataType = ast_data_type(pPropInit->pRhs);
+                        u32 valCellCount = data_type_cell_count(rhsDataType);
                         u32 blockCount = block_count(1 + valCellCount); // +1 for property name hash
                         static const u32 kScratchSize = 256;
                         char scratch[kScratchSize+1];
                         snprintf(scratch,
                                  kScratchSize,
-                                 "                StackMessageBlockWriter<%u> msgw(HASH::set_property, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::%s));\n",
+                                 "                StackMessageBlockWriter<%u> msgw(HASH::%s__%s, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::%s));\n",
                                  blockCount,
+                                 "set_property",
+                                 type_str(rhsDataType).c_str(),
                                  pPropInit->str);
                         code += S(scratch);
 
