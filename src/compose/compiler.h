@@ -177,7 +177,9 @@ typedef enum
     kDT_mat3,
     kDT_mat34,
     kDT_mat4,
-    kDT_void
+    kDT_void,
+
+    kDT_COUNT
 } DataType;
 
 typedef enum

@@ -33,7 +33,7 @@ entity start
     components
     {
         Timer(interval = 1.0,
-              timer_message = #msg);
+              message = #msg);
     }
 
     #update(float deltaSecs)

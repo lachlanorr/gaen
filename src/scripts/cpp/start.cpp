@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 275c6a1e681d48aeed6edc9500c51afb
+// HASH: 38c4f9753fc2393216012e8fabbcb175
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -52,7 +52,24 @@ public:
     }
 
     template <typename T>
-    MessageResult message(const T & msgAcc) { return MessageResult::Propogate; }
+    MessageResult message(const T & msgAcc)
+    {
+        switch(msgAcc.message().msgId)
+        {
+        case HASH::set_property__float:
+            switch (msgAcc[0].cells[0].u)
+            {
+            case HASH::f_prop:
+                f_prop() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[1].u);
+                return MessageResult::Consumed;
+            case HASH::f_field:
+                f_field() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[1].u);
+                return MessageResult::Consumed;
+            }
+            return MessageResult::Propogate; // Invalid property
+        }
+        return MessageResult::Propogate;
+}
 
 private:
     start(u32 childCount)
@@ -69,13 +86,15 @@ private:
             Task & compTask = insertComponent(HASH::Timer, mComponentCount);
             // Init Property: interval
             {
-                StackMessageBlockWriter<1> msgw(HASH::set_property__float, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::interval));
+                StackMessageBlockWriter<1> msgw(HASH::set_property__float, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::Timer));
+                msgw[0].cells[0].u = HASH::interval;
                 msgw[0].cells[1].f = 1.000000f;
                 compTask.message(msgw.accessor());
             }
-            // Init Property: timer_message
+            // Init Property: message
             {
-                StackMessageBlockWriter<1> msgw(HASH::set_property__uint, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::timer_message));
+                StackMessageBlockWriter<1> msgw(HASH::set_property__uint, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::Timer));
+                msgw[0].cells[0].u = HASH::message;
                 msgw[0].cells[1].u = HASH::msg;
                 compTask.message(msgw.accessor());
             }

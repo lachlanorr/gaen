@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: c5440d412e57f0d857f6d4c2f5a1c57c
+// HASH: f263fb4e40227f7ade9050fd6e300d7b
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -60,15 +60,41 @@ public:
     }
 
     template <typename T>
-    MessageResult message(const T & msgAcc) { return MessageResult::Propogate; }
+    MessageResult message(const T & msgAcc)
+    {
+        switch(msgAcc.message().msgId)
+        {
+        case HASH::init_data:
+            interval() = 0.000000f;
+            message() = 0;
+            last_notification() = 0.000000f;
+            return MessageResult::Consumed;
+        case HASH::set_property__uint:
+            switch (msgAcc[0].cells[0].u)
+            {
+            case HASH::message:
+                message() = *reinterpret_cast<const u32*>(&msgAcc[0].cells[1].u);
+                return MessageResult::Consumed;
+            }
+            return MessageResult::Propogate; // Invalid property
+        case HASH::set_property__float:
+            switch (msgAcc[0].cells[0].u)
+            {
+            case HASH::interval:
+                interval() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[1].u);
+                return MessageResult::Consumed;
+            case HASH::last_notification:
+                last_notification() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[1].u);
+                return MessageResult::Consumed;
+            }
+            return MessageResult::Propogate; // Invalid property
+        }
+        return MessageResult::Propogate;
+}
 
 private:
     Timer()
     {
-        interval() = 0.000000f;
-        payload() = 0;
-        last_notification() = 0.000000f;
-
         mTask = Task::createUpdatable(this, HASH::Timer);
         mBlockCount = 1;
     }
@@ -81,7 +107,7 @@ private:
     {
         return mpBlocks[0].cells[0].f;
     }
-    u32& payload()
+    u32& message()
     {
         return mpBlocks[0].cells[1].u;
     }

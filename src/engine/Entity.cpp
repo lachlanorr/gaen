@@ -247,6 +247,9 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
 
     mComponentCount++;
 
+    StackMessageBlockWriter<0> initDataMsgw(HASH::init_data, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(pComp->task().id()));
+    pComp->task().message(initDataMsgw.accessor());
+
     return pComp->task();
 }
 

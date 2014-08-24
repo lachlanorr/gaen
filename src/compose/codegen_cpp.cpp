@@ -248,6 +248,68 @@ static S message_and_params(const Ast * pAst)
     return name;
 }
 
+static S set_property_handlers(const Ast * pAst, int indentLevel)
+{
+    ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
+
+    bool propTypes[kDT_COUNT];
+    for (u32 i = 0; i < kDT_COUNT; ++i)
+        propTypes[i] = false;
+
+    // Determine which types we have properties for
+    for (const auto & kv : pAst->pScope->pSymTab->dict)
+    {
+        SymRec * pSymRec = kv.second;
+        if (is_prop_or_field(pSymRec))
+        {
+            propTypes[pSymRec->dataType] = true;
+        }
+    }
+
+    S code = S("");
+    for (int i = 0; i < kDT_COUNT; ++i)
+    {
+        if (propTypes[i])
+        {
+            code += indent(indentLevel) + S("case HASH::") + S("set_property__") + type_str((DataType)i) + S(":\n");
+            code += indent(indentLevel+1) + S("switch (msgAcc[0].cells[0].u)\n");
+            code += indent(indentLevel+1) + S("{\n");
+            for (const auto & kv : pAst->pScope->pSymTab->dict)
+            {
+                SymRec * pSymRec = kv.second;
+                if (is_prop_or_field(pSymRec) && pSymRec->dataType == i)
+                {
+                    code += indent(indentLevel+1) + S("case HASH::") + S(pSymRec->name) + S(":\n");
+                    code += indent(indentLevel+2) + S(pSymRec->name) + S("() = *reinterpret_cast<const ") + S(cpp_type_str((DataType)i)) + S("*>(&msgAcc[0].cells[1].u);\n");
+                    code += indent(indentLevel+2) + S("return MessageResult::Consumed;\n");
+                }
+            }
+            code += indent(indentLevel+1) + S("}\n");
+            code += indent(indentLevel+1) + S("return MessageResult::Propogate; // Invalid property\n");
+        }
+    }
+    return code;
+}
+
+static S init_data(const Ast * pAst, int indentLevel)
+{
+    ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
+
+    S code = S("");
+    for (const auto & kv : pAst->pScope->pSymTab->dict)
+    {
+        SymRec * pSymRec = kv.second;
+        if (is_prop_or_field(pSymRec))
+        {
+            code += indent(indentLevel+1) + symref(pSymRec) + S(" = ");
+            ASSERT(pSymRec->pAst);
+            code += codegen_recurse(pSymRec->pAst, 0);
+            code += S(";\n");
+        }
+    }
+    return code;
+}
+
 static S codegen_recurse(const Ast * pAst,
                          int indentLevel)
 {
@@ -281,10 +343,20 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("\n");
         }
 
-        // LORRTEMP - these are here just to get things to compile, replace with proper codegenerated ones
+        // Message handlers
         code += I + S("    template <typename T>\n");
-        code += I + S("    MessageResult message(const T & msgAcc) { return MessageResult::Propogate; }\n");
-        code += S("\n");
+        code += I + S("    MessageResult message(const T & msgAcc)\n");
+        code += I + S("    {\n");
+        code += I + S("        switch(msgAcc.message().msgId)\n");
+        code += I + S("        {\n");
+
+        // property setters
+        code += set_property_handlers(pAst, indentLevel + 2);
+
+        code += I + S("        }\n");
+        code += I + S("        return MessageResult::Propogate;\n");
+        code += I + S("}\n");
+        code += I + S("\n");
 
         code += I + S("private:\n");
 
@@ -293,16 +365,7 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36)\n");
         code += I + S("    {\n");
         // Initialize fields and properties
-        for (const auto & kv : pAst->pScope->pSymTab->dict)
-        {
-            if (is_prop_or_field(kv.second))
-            {
-                code += I + S("        ") + symref(kv.second) + S(" = ");
-                ASSERT(kv.second->pAst);
-                code += codegen_recurse(kv.second->pAst, 0);
-                code += S(";\n");
-            }
-        }
+        code += init_data(pAst, indentLevel + 1);
         code += S("\n");
 
         // Initialize mBlockSize
@@ -353,8 +416,10 @@ static S codegen_recurse(const Ast * pAst,
                                  blockCount,
                                  "set_property",
                                  type_str(rhsDataType).c_str(),
-                                 pPropInit->str);
+                                 pCompMember->str);
                         code += S(scratch);
+
+                        code += S("                msgw[0].cells[0].u = HASH::") + S(pPropInit->str) + S(";\n");
 
                         switch (pPropInit->pRhs->type)
                         {
@@ -440,9 +505,24 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("\n");
         }
         
-        // LORRTEMP - these are here just to get things to compile, replace with proper codegenerated ones
+        // Message handlers
         code += I + S("    template <typename T>\n");
-        code += I + S("    MessageResult message(const T & msgAcc) { return MessageResult::Propogate; }\n");
+        code += I + S("    MessageResult message(const T & msgAcc)\n");
+        code += I + S("    {\n");
+        code += I + S("        switch(msgAcc.message().msgId)\n");
+        code += I + S("        {\n");
+
+        // #init_data
+        code += I + S("        case HASH::") + S("init_data:\n");
+        code += init_data(pAst, indentLevel + 2);
+        code += I + S("            ") + S("return MessageResult::Consumed;\n");
+
+        // property setters
+        code += set_property_handlers(pAst, indentLevel + 2);
+
+        code += I + S("        }\n");
+        code += I + S("        return MessageResult::Propogate;\n");
+        code += I + S("}\n");
         code += I + S("\n");
 
         code += I + S("private:\n");
@@ -450,18 +530,6 @@ static S codegen_recurse(const Ast * pAst,
         // Constructor
         code += I + S("    ") + compName + S("()\n");
         code += I + S("    {\n");
-        // Initialize fields and properties
-        for (const auto & kv : pAst->pScope->pSymTab->dict)
-        {
-            if (is_prop_or_field(kv.second))
-            {
-                code += I + S("        ") + symref(kv.second) + S(" = ");
-                ASSERT(kv.second->pAst);
-                code += codegen_recurse(kv.second->pAst, 0);
-                code += S(";\n");
-            }
-        }
-        code += S("\n");
         // Create task
         if (pUpdateDef)
         {

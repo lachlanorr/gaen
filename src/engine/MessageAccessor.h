@@ -82,7 +82,7 @@ public:
       : mpBlocks(pBlocks)
       , mBlockCount(blockCount)
     {
-        ASSERT(blockCount > 0 && blockCount <= kMaxBlockCount);
+        ASSERT(blockCount <= kMaxBlockCount);
     }
 
     Message & message()
