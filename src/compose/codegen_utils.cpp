@@ -63,6 +63,25 @@ const Ast * find_update_message_def(const Ast * pAst)
     return nullptr;
 }
 
+const Ast * find_component_members(const Ast * pAst)
+{
+    Ast * pCompMembers = nullptr;
+    for (Ast * pChild : pAst->pChildren->nodes)
+    {
+        if (pChild->type == kAST_ComponentMemberList)
+        {
+            if (!pCompMembers)
+                pCompMembers = pChild;
+            else
+                // Based on grammar, we currently allow multiple
+                // components sections in an entity.  We check for
+                // this error here for simplicity.
+                PANIC("More than one components section defined in entity");
+        }
+    }
+    return pCompMembers;
+}
+
 u32 calc_cell_count(const Ast * pAst)
 {
     if (pAst->pSymRec)
@@ -213,9 +232,12 @@ BlockInfos * block_pack_props_and_fields(Ast *pAst)
 
 BlockInfos * block_pack_message_params(Ast * pAst)
 {
-    ASSERT(pAst->type == kAST_FunctionParams);
+    ASSERT(pAst->type == kAST_MessageSend);
 
-    u32 count = (u32)pAst->pChildren->nodes.size();
+    Ast * pParams = pAst->pRhs;
+    ASSERT(pParams->type == kAST_FunctionParams);
+
+    u32 count = (u32)pParams->pChildren->nodes.size();
 
     BlockInfos * pBlockInfos = COMP_NEW(BlockInfos);
 
@@ -223,10 +245,10 @@ BlockInfos * block_pack_message_params(Ast * pAst)
     {
         pBlockInfos->items.reserve(count);
 
-        for (Ast *pChild : pAst->pChildren->nodes)
+        for (Ast *pChild : pParams->pChildren->nodes)
             pBlockInfos->items.emplace_back(pChild);
 
-        block_pack_items(pBlockInfos, true);
+        block_pack_items(pBlockInfos, false); // payload must be used for optional component target
     }
 
     return pBlockInfos;

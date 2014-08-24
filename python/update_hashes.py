@@ -82,9 +82,7 @@ def hashes_cpp_path():
 def build_hash_list():
     hash_list = process_dir(src_dir())
     hash_list = [hash[len("HASH::"):] for hash in hash_list]
-    print hash_list
     hash_list = sorted(set(hash_list), key=lambda s: s.lower())
-    print hash_list
     hash_list = [(hash, fnv32a(hash)) for hash in hash_list]
     return hash_list
 

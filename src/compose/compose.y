@@ -70,7 +70,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 
 %token <dataType> INT UINT FLOAT BOOL CHAR VEC3 VEC4 MAT3 MAT34 MAT4 VOID
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN ENTITY COMPONENT
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN ENTITY COMPONENT COMPONENTS
 %right ELSE THEN
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
@@ -102,7 +102,8 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %type <dataType> type
 
 %type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
-%type <pAst> message_block message_list message_prop target_expr component_expr
+%type <pAst> message_block message_list message_prop target_expr component_expr 
+%type <pAst> prop_init_list prop_init component_block component_member_list component_member
 
 %type <pSymTab> param_list
 
@@ -135,12 +136,38 @@ message_prop
     | type '#' IDENTIFIER ';'                 { $$ = ast_create_property_def($3, $1, NULL, pParseData); }
     | type IDENTIFIER '=' expr ';'            { $$ = ast_create_field_def($2, $1, $4, pParseData); }
     | type IDENTIFIER ';'                     { $$ = ast_create_field_def($2, $1, NULL, pParseData); }
+    | COMPONENTS component_block              { $$ = ast_create_component_members($2, pParseData); }
     ;
 
 param_list
     : /* empty */                       { $$ = parsedata_add_param(pParseData, NULL, NULL); }
     | type IDENTIFIER                   { $$ = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, $1, $2, NULL)); }
     | param_list ',' type IDENTIFIER    { $$ = parsedata_add_param(pParseData, $1, symrec_create(kSYMT_Param, $3, $4, NULL)); }
+    ;
+
+component_block
+    : '{' '}'                        { $$ = ast_create_with_child_list(kAST_ComponentMemberList, pParseData); }
+    | '{' component_member_list '}'  { $$ = $2; }
+    ;
+
+component_member_list
+    : component_member                       { $$ = ast_append(kAST_ComponentMemberList, NULL, $1, pParseData); }
+    | component_member_list component_member { $$ = ast_append(kAST_ComponentMemberList, $1, $2, pParseData); }
+    ;
+
+component_member
+    : IDENTIFIER ';'                        { $$ = ast_create_component_member($1, ast_create(kAST_PropInit, pParseData), pParseData); }
+    | IDENTIFIER '(' prop_init_list ')' ';' { $$ = ast_create_component_member($1, $3, pParseData); }
+    ;
+
+prop_init_list
+    : /* empty */                   { $$ = ast_create(kAST_PropInitList, pParseData); }
+    | prop_init                     { $$ = ast_append(kAST_PropInitList, NULL, $1, pParseData); }
+    | prop_init_list ',' prop_init  { $$ = ast_append(kAST_PropInitList, $1, $3, pParseData); }
+    ;
+
+prop_init
+    : IDENTIFIER '=' expr  { $$ = ast_create_prop_init($1, $3, pParseData); }
     ;
 
 block

@@ -221,7 +221,12 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
     return pAst;
 }
 
-
+Ast * ast_create_with_child_list(AstType astType, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(astType, pParseData);
+    pAst->pChildren = astlist_create(); 
+    return pAst;
+}
 
 static Ast * ast_create_block_def(const char * name,
                                   AstType astType,
@@ -333,6 +338,28 @@ Ast * ast_create_field_def(const char * name, DataType dataType, Ast * pInitVal,
     Scope * pScope = pParseData->scopeStack.back();
     symtab_add_symbol(pScope->pSymTab, pAst->pSymRec, pParseData);
 
+    return pAst;
+}
+
+Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData)
+{
+    parsedata_pop_scope(pParseData);
+    return pAst;
+}
+
+Ast * ast_create_component_member(const char * name, Ast * pPropInitList, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_ComponentMember, pParseData);
+    pAst->str = name;
+    ast_set_rhs(pAst, pPropInitList);
+    return pAst;
+}
+
+Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_PropInit, pParseData);
+    pAst->str = name;
+    ast_set_rhs(pAst, pVal);
     return pAst;
 }
 
@@ -591,7 +618,7 @@ Ast * ast_create_message_send(Ast *pTarget, Ast *pComponent, const char * messag
     ast_set_mid(pAst, pComponent);
     ast_set_rhs(pAst, pParams);
 
-    pAst->pBlockInfos = block_pack_message_params(pParams);
+    pAst->pBlockInfos = block_pack_message_params(pAst);
 
     return pAst;
 }
@@ -656,6 +683,10 @@ DataType ast_data_type(const Ast * pAst)
         return pAst->pSymRec->dataType;
     else if (pAst->type == kAST_Hash)
         return kDT_uint;
+    else if (pAst->type == kAST_FloatLiteral)
+        return kDT_float;
+    else if (pAst->type == kAST_IntLiteral)
+        return kDT_int;
     PANIC("Cannot determine datatype for pAst, type: %d", pAst->type);
     return kDT_Undefined;
 }

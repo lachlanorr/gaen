@@ -30,6 +30,12 @@ entity start
     float #f_prop = 1.0;
     float f_field = 2.0;
 
+    components
+    {
+        Timer(interval = 1.0,
+              timer_message = #msg);
+    }
+
     #update(float deltaSecs)
     {
         float f = deltaSecs;

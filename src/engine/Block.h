@@ -113,6 +113,14 @@ inline const Block & block_at(const void * start, size_t index)
     return *(reinterpret_cast<const Block*>(start) + index);
 }
 
+inline u32 block_count(u32 cell_count)
+{
+    u32 blocks = cell_count / kCellsPerBlock;
+    if (cell_count % kCellsPerBlock != 0)
+        blocks++;
+    return blocks;
+}
+
 } // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_BLOCK_H

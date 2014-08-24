@@ -52,7 +52,7 @@ public:
     MessageResult message(const T& msgAcc);
 
 protected:
-    void insertComponent(u32 nameHash, u32 index);
+    Task& insertComponent(u32 nameHash, u32 index);
 
     u32 findComponent(u32 nameHash);
 

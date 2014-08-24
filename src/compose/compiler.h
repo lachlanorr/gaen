@@ -78,6 +78,11 @@ typedef enum
     kAST_MessageDef,
     kAST_PropertyDef,
     kAST_FieldDef,
+    kAST_ComponentBlock,
+    kAST_ComponentMemberList,
+    kAST_ComponentMember,
+    kAST_PropInitList,
+    kAST_PropInit,
 
     kAST_Block,
     kAST_FunctionParams,
@@ -210,7 +215,8 @@ AstList * astlist_append(AstList * pAstList, Ast * pAst);
 
 
 Ast * ast_create(AstType astType, ParseData * pParseData);
-
+Ast * ast_create_with_child_list(AstType astType, ParseData * pParseData);
+    
 Ast * ast_create_function_def(const char * name, DataType returnType, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
@@ -218,6 +224,10 @@ Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pPar
 Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_property_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData);
 Ast * ast_create_field_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData);
+
+Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData);
+Ast * ast_create_component_member(const char * name, Ast * pPropInitList, ParseData * pParseData);
+Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData);
 
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData);
 

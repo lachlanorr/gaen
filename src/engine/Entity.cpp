@@ -38,7 +38,7 @@
 namespace gaen
 {
 
-Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksCount)
+Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
 {
     mLocalTransform = Mat34::identity();
     mGlobalTransform = Mat34::identity();
@@ -59,7 +59,7 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksCount
 
     // Most entities that aren't undergoing active design should have
     // a fixed amount of blocks.
-    mBlocksMax = blocksCount;
+    mBlocksMax = blocksMax;
     mBlockCount = 0;
     if (mBlocksMax > 0)
         mpBlocks = (Block*)GALLOC(kMEM_Engine, sizeof(Block) * mBlocksMax);
@@ -209,7 +209,7 @@ void Entity::growBlocks(u32 minSizeIncrease)
     mpBlocks = pNewBlocks;
 }
 
-void Entity::insertComponent(u32 nameHash, u32 index)
+Task& Entity::insertComponent(u32 nameHash, u32 index)
 {
     ASSERT(mComponentCount <= mComponentsMax);
     ASSERT(index <= mComponentCount);
@@ -246,6 +246,8 @@ void Entity::insertComponent(u32 nameHash, u32 index)
     mBlockCount += pComp->mBlockCount;
 
     mComponentCount++;
+
+    return pComp->task();
 }
 
 

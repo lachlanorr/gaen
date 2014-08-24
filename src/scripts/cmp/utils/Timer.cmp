@@ -26,8 +26,9 @@
 
 component Timer
 {
-    float #interval = 0.0;
-    uint #timer_message = 0;
+    float #interval = 0.0;          // interval in seconds to send the timer message
+    uint #payload = 0;              // payload to send with each message, useful if multiple timers are used in the same component
+
     float last_notification = 0.0;
 
     #update(float deltaSecs)
@@ -37,7 +38,7 @@ component Timer
             last_notification += deltaSecs;
             if (last_notification >= interval)
             {
-                @:#timer_tick(timer_message);
+                @:#timer(payload);
                 last_notification = 0.0;
             }
         }

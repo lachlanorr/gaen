@@ -35,10 +35,10 @@ namespace gaen
 
 typedef u32 task_id; // defined here since we are the root of the includes, and we need this
 
-static const u32 kMessageFlag_None       = 0;
+static const u32 kMessageFlag_None     = 0;
 
-static const u32 kMessageFlag_Recurse    = 1 << 0; // message should be sent to all children (e.g. save_state)
-static const u32 kMessageFlag_Undoable   = 1 << 1; // message originated from editor
+static const u32 kMessageFlag_Recurse  = 1 << 0; // message should be sent to all children (e.g. save_state)
+static const u32 kMessageFlag_Undoable = 1 << 1; // message originated from editor
 
 static const u32 kMaxBlockCount = 2 << 4;
 
@@ -52,9 +52,9 @@ struct Message
 {
     u32 msgId;        // hash based on message string
     u32 flags:4;      // message flags
-    u32 source:28;    // source task id - NOTE Changeing this size requires changing kMaxTaskId in Task.h
+    u32 source:28;    // source task id - NOTE Changing this size requires changing kMaxTaskId in Task.h
     u32 blockCount:4; // count of additional 16 byte payload (e.g. value of 4 means an additional 64 bytes)
-    u32 target:28;    // target task id - NOTE Changeing this size requires changing kMaxTaskId in Task.h
+    u32 target:28;    // target task id - NOTE Changing this size requires changing kMaxTaskId in Task.h
     cell payload;     // optional payload for the message
 
     Message() = default;
@@ -82,7 +82,7 @@ struct Message
 // 16 bytes is pretty key to the principles of the message passing system.
 // We want to maintain alignment, and to be able to quickly write messages
 // to a buffer.
-// Changing this size will propogate necessary changes... so don't.
+// Changing this size will propagate necessary changes... so don't.
 static_assert(sizeof(Message) == 16, "Message should be 16 bytes");
 static_assert(sizeof(Block) == sizeof(Message), "Block and Message must be the same size");
 

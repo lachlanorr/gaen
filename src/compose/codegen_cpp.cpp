@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #include "engine/hashes.h"
+#include "engine/Block.h"
 #include "compose/codegen_cpp.h"
 #include "compose/compiler_structs.h"
 #include "compose/codegen_utils.h"
@@ -302,7 +303,6 @@ static S codegen_recurse(const Ast * pAst,
                 code += S(";\n");
             }
         }
-
         code += S("\n");
 
         // Initialize mBlockSize
@@ -324,6 +324,61 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("        ") + S("mTask = Task::") + createTaskMethod + S("(this, HASH::") + entName + S(");\n");
         }
 
+        // Add initial component members
+        // NOTE: This must happen after mBlocks is initialized to hold
+        // the data members of the entity.
+        const Ast * pCompMembers = find_component_members(pAst);
+        if (pCompMembers)
+        {
+            for (Ast * pCompMember : pCompMembers->pChildren->nodes)
+            {
+                code += S("\n");
+                code += I + S("        // Component: ") + S(pCompMember->str) + ("\n");
+                code += I + S("        {\n");
+                code += I + S("            Task & compTask = insertComponent(HASH::") + S(pCompMember->str) + S(", mComponentCount);\n");
+                if (pCompMember->pRhs && pCompMember->pRhs->pChildren)
+                {
+                    for (Ast * pPropInit : pCompMember->pRhs->pChildren->nodes)
+                    {
+                        code += I + S("            // Init Property: ") + S(pPropInit->str) + ("\n");
+                        code += S("            {\n");
+                        u32 valCellCount = data_type_cell_count(ast_data_type(pPropInit->pRhs));
+                        u32 blockCount = block_count(1 + valCellCount); // +1 for property name hash
+                        static const u32 kScratchSize = 256;
+                        char scratch[kScratchSize+1];
+                        snprintf(scratch,
+                                 kScratchSize,
+                                 "                StackMessageBlockWriter<%u> msgw(HASH::set_property, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::%s));\n",
+                                 blockCount,
+                                 pPropInit->str);
+                        code += S(scratch);
+
+                        switch (pPropInit->pRhs->type)
+                        {
+                        case kAST_FloatLiteral:
+                            code += S("                msgw[0].cells[1].f = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
+                            break;
+                        case kAST_IntLiteral:
+                            code += S("                msgw[0].cells[1].i = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
+                            break;
+                        case kAST_Hash:
+                            code += S("                msgw[0].cells[1].u = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
+                            break;
+                        default:
+                            PANIC("Unsupported type for codegen component property init, type: %d", pPropInit->pRhs->type);
+                        }
+                        code += S(";\n");
+                        // Future work... support for multi cell values
+                        //code += S("            cell * pCellDestStart = &msgw[0].cells[0]\n");
+                        //code += S("            cell * pCellSrcStart = 
+                        code += S("                compTask.message(msgw.accessor());\n");
+                        code += S("            }\n");
+                    }
+                }
+                code += S("        }\n");
+            }
+        }
+        
         code += I + S("    }\n");
 
         // Delete copy constructor, assignment, etc.
@@ -421,6 +476,14 @@ static S codegen_recurse(const Ast * pAst,
             snprintf(scratch, kScratchSize, "%d", pAst->pBlockInfos->blockCount);
             code += I + S("        mBlockCount = ") + S(scratch) + S(";\n");
         }
+
+        const Ast * pCompMembers = find_component_members(pAst);
+        // Based on grammar, we currently allow components section in
+        // a component.  We check for this error here for
+        // simplicity. Grammar could and maybe should be improved to
+        // make this illegal in parsing.
+        if (pCompMembers)
+            PANIC("Components section defined within component");
 
         code += I + S("    }\n");
 
@@ -786,9 +849,8 @@ static S codegen_recurse(const Ast * pAst,
 
         code += S(", to_cell(");
 
-        const BlockInfo * pBi = pAst->pBlockInfos->find_payload();
-        if (pBi)
-            code += codegen_recurse(pBi->pAst, indentLevel);
+        if (pAst->pMid)
+            code += S("HASH::") + S(pAst->pMid->str);
         else
             code += S("0");
         

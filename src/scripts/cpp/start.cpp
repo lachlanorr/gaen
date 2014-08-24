@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 5617b4e24c8ca182a805e6c1c7b244c1
+// HASH: 263ee5d5e92c1c8a0389d2c3389159f6
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -63,6 +63,23 @@ private:
 
         mBlockCount = 1;
         mTask = Task::createUpdatable(this, HASH::start);
+
+        // Component: Timer
+        {
+            Task & compTask = insertComponent(HASH::Timer, mComponentCount);
+            // Init Property: interval
+            {
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::interval));
+                msgw[0].cells[1].f = 1.000000f;
+                compTask.message(msgw.accessor());
+            }
+            // Init Property: timer_message
+            {
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::timer_message));
+                msgw[0].cells[1].u = HASH::msg;
+                compTask.message(msgw.accessor());
+            }
+        }
     }
     start(const start&)              = delete;
     start(const start&&)             = delete;
