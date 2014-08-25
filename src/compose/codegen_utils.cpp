@@ -248,7 +248,7 @@ BlockInfos * block_pack_message_params(Ast * pAst)
         for (Ast *pChild : pParams->pChildren->nodes)
             pBlockInfos->items.emplace_back(pChild);
 
-        block_pack_items(pBlockInfos, false); // payload must be used for optional component target
+        block_pack_items(pBlockInfos, true);
     }
 
     return pBlockInfos;

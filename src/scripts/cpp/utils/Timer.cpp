@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: f263fb4e40227f7ade9050fd6e300d7b
+// HASH: 2644403e99ada21060f42197e87f98ce
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -46,13 +46,13 @@ public:
     
     void update(float deltaSecs)
     {
-        if ((interval() > 0.000000f))
+        if ((timer_interval() > 0.000000f))
         {
             last_notification() += deltaSecs;
-            if ((last_notification() >= interval()))
+            if ((last_notification() >= timer_interval()))
             {
                 {
-                    StackMessageBlockWriter<1> msgw(HASH::timer__uint, kMessageFlag_None, mEntityTaskId, mEntityTaskId, to_cell(0));
+                    StackMessageBlockWriter<0> msgw(HASH::timer__uint, kMessageFlag_None, mEntityTaskId, mEntityTaskId, to_cell(timer_message()));
                 }
                 last_notification() = 0.000000f;
             }
@@ -65,26 +65,26 @@ public:
         switch(msgAcc.message().msgId)
         {
         case HASH::init_data:
-            interval() = 0.000000f;
-            message() = 0;
+            timer_interval() = 0.000000f;
+            timer_message() = 0;
             last_notification() = 0.000000f;
             return MessageResult::Consumed;
         case HASH::set_property__uint:
-            switch (msgAcc[0].cells[0].u)
+            switch (msgAcc.message().payload.u)
             {
-            case HASH::message:
-                message() = *reinterpret_cast<const u32*>(&msgAcc[0].cells[1].u);
+            case HASH::timer_message:
+                timer_message() = *reinterpret_cast<const u32*>(&msgAcc[0].cells[0].u);
                 return MessageResult::Consumed;
             }
             return MessageResult::Propogate; // Invalid property
         case HASH::set_property__float:
-            switch (msgAcc[0].cells[0].u)
+            switch (msgAcc.message().payload.u)
             {
-            case HASH::interval:
-                interval() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[1].u);
+            case HASH::timer_interval:
+                timer_interval() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[0].u);
                 return MessageResult::Consumed;
             case HASH::last_notification:
-                last_notification() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[1].u);
+                last_notification() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[0].u);
                 return MessageResult::Consumed;
             }
             return MessageResult::Propogate; // Invalid property
@@ -103,11 +103,11 @@ private:
     Timer & operator=(const Timer&)  = delete;
     Timer & operator=(const Timer&&) = delete;
 
-    f32& interval()
+    f32& timer_interval()
     {
         return mpBlocks[0].cells[0].f;
     }
-    u32& message()
+    u32& timer_message()
     {
         return mpBlocks[0].cells[1].u;
     }

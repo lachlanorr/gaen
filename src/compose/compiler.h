@@ -253,8 +253,8 @@ Ast * ast_create_for(Ast * pInit, Ast * pCondition, Ast * pUpdate, Ast * pBody, 
 Ast * ast_create_block(Ast* pBlock, ParseData * pParseData);
 
 Ast * ast_create_identifier(const char * name, ParseData * pParseData);
-Ast * ast_create_property_set(Ast *pTarget, Ast *pComponent, const char * propertyStr, Ast *pRhs, ParseData *pParseData);
-Ast * ast_create_message_send(Ast *pTarget, Ast *pComponent, const char * messageStr, Ast *pParams, ParseData *pParseData);
+Ast * ast_create_property_set(Ast *pTarget, const char * propertyStr, Ast *pRhs, ParseData *pParseData);
+Ast * ast_create_message_send(Ast *pTarget, const char * messageStr, Ast *pParams, ParseData *pParseData);
     
 Ast * ast_append(AstType astType, Ast * pAst, Ast * pAstNew, ParseData * pParseData);
 Ast * ast_add_child(Ast * pParent, Ast * pChild);

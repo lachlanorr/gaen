@@ -102,7 +102,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %type <dataType> type
 
 %type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
-%type <pAst> message_block message_list message_prop target_expr component_expr 
+%type <pAst> message_block message_list message_prop target_expr
 %type <pAst> prop_init_list prop_init component_block component_member_list component_member
 
 %type <pSymTab> param_list
@@ -189,8 +189,8 @@ stmt
 
     | FOR '(' expr_or_empty ';' cond_expr_or_empty ';' expr_or_empty ')' stmt { $$ = ast_create_for($3, $5, $7, $9, pParseData); }
 
-    | '@' target_expr ':' component_expr '#' IDENTIFIER '=' expr ';'            { $$ = ast_create_property_set($2, $4, $6, $8, pParseData); }
-    | '@' target_expr ':' component_expr '#' IDENTIFIER '(' fun_params ')' ';'  { $$ = ast_create_message_send($2, $4, $6, $8, pParseData); }
+    | '@' target_expr '#' IDENTIFIER '=' expr ';'            { $$ = ast_create_property_set($2, $4, $6, pParseData); }
+    | '@' target_expr '#' IDENTIFIER '(' fun_params ')' ';'  { $$ = ast_create_message_send($2, $4, $6, pParseData); }
 
     | block     { $$ = $1; }
     
@@ -204,11 +204,6 @@ target_expr
     : /* empty */  { $$ = NULL; }
     | IDENTIFIER   { $$ = ast_create_identifier($1, pParseData); }
     | INT_LITERAL  { $$ = ast_create_int_literal($1, pParseData); }
-    ;
-
-component_expr
-    : /* empty */  { $$ = NULL; }
-    | IDENTIFIER   { $$ = ast_create_identifier($1, pParseData); }
     ;
 
 expr

@@ -599,23 +599,21 @@ Ast * ast_create_identifier(const char * name, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_property_set(Ast *pTarget, Ast *pComponent, const char * propertyStr, Ast *pRhs, ParseData *pParseData)
+Ast * ast_create_property_set(Ast *pTarget, const char * propertyStr, Ast *pRhs, ParseData *pParseData)
 {
     Ast * pAst = ast_create(kAST_PropertySet, pParseData);
     pAst->str = propertyStr;
     ast_set_lhs(pAst, pTarget);
-    ast_set_mid(pAst, pComponent);
     ast_set_rhs(pAst, pRhs);
 
     return pAst;
 }
 
-Ast * ast_create_message_send(Ast *pTarget, Ast *pComponent, const char * messageStr, Ast *pParams, ParseData *pParseData)
+Ast * ast_create_message_send(Ast *pTarget, const char * messageStr, Ast *pParams, ParseData *pParseData)
 {
     Ast * pAst = ast_create(kAST_MessageSend, pParseData);
     pAst->str = messageStr;
     ast_set_lhs(pAst, pTarget);
-    ast_set_mid(pAst, pComponent);
     ast_set_rhs(pAst, pParams);
 
     pAst->pBlockInfos = block_pack_message_params(pAst);

@@ -272,7 +272,7 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
         if (propTypes[i])
         {
             code += indent(indentLevel) + S("case HASH::") + S("set_property__") + type_str((DataType)i) + S(":\n");
-            code += indent(indentLevel+1) + S("switch (msgAcc[0].cells[0].u)\n");
+            code += indent(indentLevel+1) + S("switch (msgAcc.message().payload.u)\n");
             code += indent(indentLevel+1) + S("{\n");
             for (const auto & kv : pAst->pScope->pSymTab->dict)
             {
@@ -280,7 +280,7 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                 if (is_prop_or_field(pSymRec) && pSymRec->dataType == i)
                 {
                     code += indent(indentLevel+1) + S("case HASH::") + S(pSymRec->name) + S(":\n");
-                    code += indent(indentLevel+2) + S(pSymRec->name) + S("() = *reinterpret_cast<const ") + S(cpp_type_str((DataType)i)) + S("*>(&msgAcc[0].cells[1].u);\n");
+                    code += indent(indentLevel+2) + S(pSymRec->name) + S("() = *reinterpret_cast<const ") + S(cpp_type_str((DataType)i)) + S("*>(&msgAcc[0].cells[0].u);\n");
                     code += indent(indentLevel+2) + S("return MessageResult::Consumed;\n");
                 }
             }
@@ -416,21 +416,19 @@ static S codegen_recurse(const Ast * pAst,
                                  blockCount,
                                  "set_property",
                                  type_str(rhsDataType).c_str(),
-                                 pCompMember->str);
+                                 pPropInit->str);
                         code += S(scratch);
-
-                        code += S("                msgw[0].cells[0].u = HASH::") + S(pPropInit->str) + S(";\n");
 
                         switch (pPropInit->pRhs->type)
                         {
                         case kAST_FloatLiteral:
-                            code += S("                msgw[0].cells[1].f = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
+                            code += S("                msgw[0].cells[0].f = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
                             break;
                         case kAST_IntLiteral:
-                            code += S("                msgw[0].cells[1].i = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
+                            code += S("                msgw[0].cells[0].i = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
                             break;
                         case kAST_Hash:
-                            code += S("                msgw[0].cells[1].u = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
+                            code += S("                msgw[0].cells[0].u = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
                             break;
                         default:
                             PANIC("Unsupported type for codegen component property init, type: %d", pPropInit->pRhs->type);
@@ -898,8 +896,6 @@ static S codegen_recurse(const Ast * pAst,
             target = S("mpCompDesc->entityTaskId");
         else
             PANIC("Specific target not implemented yet");
-        if (pAst->pMid)
-            PANIC("Specific component not implemented yet");
 
         ASSERT(pAst->pBlockInfos);
         
@@ -920,11 +916,12 @@ static S codegen_recurse(const Ast * pAst,
 
         code += S(", to_cell(");
 
-        if (pAst->pMid)
-            code += S("HASH::") + S(pAst->pMid->str);
+        const BlockInfo * pPayload = pAst->pBlockInfos->find_payload();
+        if (pPayload)
+            code += codegen_recurse(pPayload->pAst, indentLevel);
         else
             code += S("0");
-        
+
         code += S("));\n");
 
         code += I + S("}\n");
