@@ -70,7 +70,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 
 %token <dataType> INT UINT FLOAT BOOL CHAR VEC3 VEC4 MAT3 MAT34 MAT4 VOID
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN ENTITY COMPONENT COMPONENTS
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN ENTITY COMPONENT COMPONENTS IMPORT
 %right ELSE THEN
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
@@ -102,12 +102,36 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %type <dataType> type
 
 %type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
+%type <pAst> import_list import_stmt dotted_id dotted_id_part
 %type <pAst> message_block message_list message_prop target_expr
 %type <pAst> prop_init_list prop_init component_block component_member_list component_member
 
 %type <pSymTab> param_list
 
 %%
+
+cmp_file
+    : def_list
+    | import_list def_list  { ast_create_import_list($1, pParseData); }
+    ;
+
+import_list
+    : import_stmt             { $$ = ast_append(kAST_ImportList, NULL, $1, pParseData); }
+    | import_list import_stmt { $$ = ast_append(kAST_ImportList, $1, $2, pParseData); }
+    ;
+
+import_stmt
+    : IMPORT dotted_id ';'  { $$ = ast_create_import_stmt($2, pParseData); }
+    ;
+
+dotted_id
+    : dotted_id_part               { $$ = ast_append(kAST_DottedId, NULL, $1, pParseData); }
+    | dotted_id '.' dotted_id_part  { $$ = ast_append(kAST_DottedId, $1, $3, pParseData); }
+    ;
+
+dotted_id_part
+    : IDENTIFIER { $$ = ast_create_with_str(kAST_DottedIdPart, $1, pParseData); }
+    ;
 
 def_list
     : def

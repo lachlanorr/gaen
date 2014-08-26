@@ -72,6 +72,10 @@ typedef enum
 
     kAST_Root,
 
+    kAST_ImportList,
+    kAST_ImportStmt,
+    kAST_DottedId,
+    kAST_DottedIdPart,
     kAST_FunctionDef,
     kAST_EntityDef,
     kAST_ComponentDef,
@@ -218,7 +222,11 @@ AstList * astlist_append(AstList * pAstList, Ast * pAst);
 
 Ast * ast_create(AstType astType, ParseData * pParseData);
 Ast * ast_create_with_child_list(AstType astType, ParseData * pParseData);
-    
+
+Ast * ast_create_with_str(AstType astType, const char * name, ParseData * pParseData);
+
+void ast_create_import_list(Ast * pImportList, ParseData * pParseData);
+Ast * ast_create_import_stmt(Ast * pDottedId, ParseData * pParseData);
 Ast * ast_create_function_def(const char * name, DataType returnType, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);

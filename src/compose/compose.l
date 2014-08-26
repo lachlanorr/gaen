@@ -96,6 +96,7 @@ ParseData * pParseData = yyextra;
 "break"    { return BREAK;   }
 "return"   { return RETURN;  }
 
+"import"     { return IMPORT; }
 "components" { return COMPONENTS; }
 "entity"     { parsedata_push_stmt_scope(pParseData); return ENTITY; }
 "component"  { parsedata_push_stmt_scope(pParseData); return COMPONENT; }

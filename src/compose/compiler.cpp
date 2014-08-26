@@ -228,6 +228,13 @@ Ast * ast_create_with_child_list(AstType astType, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_with_str(AstType astType, const char * name, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(astType, pParseData);
+    pAst->str = name;
+    return pAst;
+}
+
 static Ast * ast_create_block_def(const char * name,
                                   AstType astType,
                                   SymType symType,
@@ -241,6 +248,7 @@ static Ast * ast_create_block_def(const char * name,
     ASSERT(pParseData);
 
     Ast * pAst = ast_create(astType, pParseData);
+    pAst->str = name;
     ast_add_children(pAst, pBlock->pChildren);
     pAst->pScope = pBlock->pScope;
     pAst->pScope->pSymTab->pAst = pAst;
@@ -255,6 +263,18 @@ static Ast * ast_create_block_def(const char * name,
     if (pParent)
         ast_add_child(pParent, pAst);
 
+    return pAst;
+}
+
+void ast_create_import_list(Ast * pImportList, ParseData * pParseData)
+{
+    pParseData->pRootAst->pLhs = pImportList;
+}
+
+Ast * ast_create_import_stmt(Ast * pDottedId, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_ImportStmt, pParseData);
+    pAst->pRhs = pDottedId;
     return pAst;
 }
 
