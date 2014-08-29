@@ -1002,12 +1002,13 @@ static S codegen_header(const Ast * pRootAst)
     S headerDecls = S();
     headerDecls += S("#include \"core/base_defines.h\"\n");
     headerDecls += LF;
-    headerDecls += S("namespace gaen\n{\n\n");
+    headerDecls += S("namespace gaen\n{\n");
 
     headerDecls += S("namespace funcs\n{\n\n");
 
     headerDecls += code;
 
+    headerDecls += LF;
     headerDecls += S("} // namespace func\n");
     headerDecls += S("} // namespace gaen\n");
     return headerDecls;

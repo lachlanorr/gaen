@@ -21,15 +21,15 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: f3da180eaa01e1e974199937470e921c
+// HASH: 58d9b4204224c5ae337e86bda81f319c
 #include "core/base_defines.h"
 
 namespace gaen
 {
-
 namespace funcs
 {
 
 handle create_box(f32 width, f32 height);
+
 } // namespace func
 } // namespace gaen
