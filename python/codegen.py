@@ -123,19 +123,30 @@ class ScriptInfo(object):
     def __init__(self, cmpFullPath):
         self.cmpFullPath = cmpFullPath
         self.cppFullPath = cmpFullPath.replace('/cmp/', '/cpp/').replace('.cmp', '.cpp')
+        self.hFullPath = self.cppFullPath.replace('.cpp', '.h')
         self.cmpFilename = posixpath.split(self.cmpFullPath)[1]
         self.cppFilename = posixpath.split(self.cppFullPath)[1]
+        self.hFilename = posixpath.split(self.hFullPath)[1]
         
         self.cppExists, self.cppModTime = check_file(self.cppFullPath)
         self.cmpExists, self.cmpModTime = check_file(self.cmpFullPath)
+        self.hExists, self.hModTime = check_file(self.hFullPath)
 
         if (self.cppExists):
             self.cppOutputOld, self.cppSourceOld, self.cppSourceOldHash = read_cpp_file(self.cppFullPath)
             self.cppSourceOldHashActual = md5.new(self.cppSourceOld).hexdigest()
 
+        if (self.hExists):
+            self.hOutputOld, self.hSourceOld, self.hSourceOldHash = read_cpp_file(self.hFullPath)
+            self.hSourceOldHashActual = md5.new(self.hSourceOld).hexdigest()
+
         self._compile()
 
         self.cppOutput = TEMPLATE % (self.cppFilename, self.cmpFilename, CPP_LICENSE, self.cppSourceHash, self.cppSource)
+
+        if (self.hSource is not None):
+            self.hOutput = TEMPLATE % (self.hFilename, self.cmpFilename, CPP_LICENSE, self.hSourceHash, self.hSource)
+
 
     def _compile(self):
         p = subprocess.Popen([CMPC, self.cmpFullPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -147,8 +158,9 @@ class ScriptInfo(object):
             m = re.match(r'^/// \.H SECTION\n(.*)./// \.CPP SECTION\n.*$', output, flags=re.MULTILINE|re.DOTALL)
             if (m):
                 self.hSource = m.group(1)
+                self.hSourceHash = md5.new(self.hSource).hexdigest();
             else:
-                self.hSource = ''
+                self.hSource = None
             self.cppSource = re.match(r'^.*/// \.CPP SECTION\n(.*)$', output, flags=re.MULTILINE|re.DOTALL).group(1)
             self.cppSourceHash = md5.new(self.cppSource).hexdigest();
             return True
@@ -162,6 +174,13 @@ class ScriptInfo(object):
         if self.cppOutput == self.cppOutputOld:
             return False
         return True
+
+    def _should_write_h(self):
+        if not self.hExists:
+            return True
+        if self.hOutput == self.hOutputOld:
+            return False
+        return True
             
 
     def write_cpp(self):
@@ -173,6 +192,16 @@ class ScriptInfo(object):
         elif self._should_write_cpp():
             print "Writing %s" % self.cppFullPath
             write_file(self.cppFullPath, self.cppOutput)
+
+        if (self.hSource is not None):
+            if (self.hExists and
+                self.hSourceOldHash != self.hSourceOldHashActual):
+                # file already exists and has been modified
+                write_file(self.hFullPath + ".codegen", self.hOutput)
+                print "WARNING: %s has been modified and is not being replaced, diff with %s.codegen and manually apply the changes." % (self.hFullPath, self.hFullPath)
+            elif self._should_write_h():
+                print "Writing %s" % self.hFullPath
+                write_file(self.hFullPath, self.hOutput)
             
         
 
@@ -220,15 +249,17 @@ def write_registration_cpp(script_infos):
         write_file(reg_cpp_path, reg_cpp)
 
 
-def write_cmake(cmp_files, cpp_files):
+def write_cmake(cmp_files, cpp_files, h_files):
     cmp_rel_files = [f.replace(SCRIPTS_DIR, '  ${scripts_dir}') for f in cmp_files]
     cpp_rel_files = [f.replace(SCRIPTS_DIR, '  ${scripts_dir}') for f in cpp_files]
+    h_rel_files = [f.replace(SCRIPTS_DIR, '  ${scripts_dir}') for f in h_files]
     ide_src_props = ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (posixpath.split(r.lstrip())[0].replace('${scripts_dir}/cmp', '/cmp'), r.lstrip()) for r in cmp_rel_files]
     ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (posixpath.split(r.lstrip())[0].replace('${scripts_dir}/cpp', '/cpp'), r.lstrip()) for r in cpp_rel_files]
+    ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (posixpath.split(r.lstrip())[0].replace('${scripts_dir}/cpp', '/cpp'), r.lstrip()) for r in h_rel_files]
     template = CMAKE_TEMPLATE
     template = template.replace('<<scripts_dir>>', SCRIPTS_DIR)
     template = template.replace('<<license>>', CMAKE_LICENSE)
-    template = template.replace('<<files>>', '\n'.join(cmp_rel_files + cpp_rel_files))
+    template = template.replace('<<files>>', '\n'.join(cmp_rel_files + cpp_rel_files + h_rel_files))
     template = template.replace('<<ide_source_props>>', '\n'.join(ide_src_props))
     cmake_path = posixpath.join(gaen_dir(), 'src/scripts/codegen.cmake')
     if not os.path.exists(cmake_path) or read_file(cmake_path) != template:
@@ -242,6 +273,7 @@ def main():
     script_infos = []
     cmp_files = []
     cpp_files = []
+    h_files = []
     for root, dirs, files in os.walk(SCRIPTS_DIR):
         for f in files:
             pospath = posixpath.join(root.replace('\\', '/'), f)
@@ -252,10 +284,12 @@ def main():
                     script_infos.append(si)
                     cmp_files.append(si.cmpFullPath)
                     cpp_files.append(si.cppFullPath)
+                    if (si.hSource is not None):
+                        h_files.append(si.hFullPath)
             except:
                 print "ERROR: %s failed to compile" % pospath
     write_registration_cpp(script_infos)
-    write_cmake(cmp_files, cpp_files)
+    write_cmake(cmp_files, cpp_files, h_files)
     return None
     
 

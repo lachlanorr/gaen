@@ -48,6 +48,7 @@ struct SymTab
     SymTab * pParent;
     Ast * pAst;
     CompMap<const char*, SymRec*> dict;
+    CompList<SymRec*> orderedSymRecs;
     CompList<SymTab*> children;
 };
 

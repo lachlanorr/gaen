@@ -118,6 +118,7 @@ SymTab* symtab_add_symbol(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseD
     pSymRec->pSymTab = pSymTab;
     pSymRec->order = static_cast<u32>(pSymTab->dict.size());
     pSymTab->dict[pSymRec->name] = pSymRec;
+    pSymTab->orderedSymRecs.push_back(pSymRec);
     return pSymTab;
 }
 

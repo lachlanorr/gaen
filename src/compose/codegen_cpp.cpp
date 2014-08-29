@@ -56,6 +56,8 @@ static S symref(const SymRec * pSymRec);
 static S codegen_recurse(const Ast * pAst,
                          int indentLevel);
 
+static S codegen_header(const Ast * pRootAst);
+
 static S indent(u32 level)
 {
     static const char * sIndents[] = { "",
@@ -970,6 +972,50 @@ static S codegen_recurse(const Ast * pAst,
     }
 }
 
+static S codegen_header(const Ast * pRootAst)
+{
+    ASSERT(pRootAst->type == kAST_Root);
+
+    S code = S();
+    for (Ast * pFuncAst : pRootAst->pChildren->nodes)
+    {
+        if (pFuncAst->type == kAST_FunctionDef)
+        {
+            code += S(cpp_type_str(pFuncAst->pSymRec->dataType)) + S(" ") + S(pFuncAst->pSymRec->name) + S("(");
+
+            for (auto it = pFuncAst->pScope->pSymTab->orderedSymRecs.begin();
+                 it != pFuncAst->pScope->pSymTab->orderedSymRecs.end();
+                 ++it)
+            {
+                SymRec* pParamSymRec = *it;
+                code += S(cpp_type_str(pParamSymRec->dataType)) + S(" ") + S(pParamSymRec->name);
+                if (pParamSymRec != pFuncAst->pScope->pSymTab->orderedSymRecs.back())
+                    code += S(", ");
+            }
+            code += S(");\n");
+        }
+    }
+
+    if (code != S(""))
+    {
+
+    S headerDecls = S();
+    headerDecls += S("#include \"core/base_defines.h\"\n");
+    headerDecls += LF;
+    headerDecls += S("namespace gaen\n{\n\n");
+
+    headerDecls += S("namespace funcs\n{\n\n");
+
+    headerDecls += code;
+
+    headerDecls += S("} // namespace func\n");
+    headerDecls += S("} // namespace gaen\n");
+    return headerDecls;
+    }
+
+    return S("");
+}
+
 static void extract_filenames(const S & cmpFullPath,
                               CodeCpp & codeCpp)
 {
@@ -1011,8 +1057,6 @@ CodeCpp codegen_cpp(const ParseData * pParseData)
 
     extract_filenames(pParseData->fullPath, codeCpp);
     
-    codeCpp.header = S("");
-
     codeCpp.code += S("#include \"engine/hashes.h\"\n");
     codeCpp.code += S("#include \"engine/Block.h\"\n");
     codeCpp.code += S("#include \"engine/MessageWriter.h\"\n");
@@ -1030,14 +1074,14 @@ CodeCpp codegen_cpp(const ParseData * pParseData)
         // only process top level AST nodes from the primary file
         if (pAst->fullPath == pParseData->fullPath)
         {
-            codeDefs += codegen_recurse(pAst, 0) + S("\n");
+            codeDefs += codegen_recurse(pAst, 0) + LF;
         }
     }
-
     codeCpp.code += codeDefs;
-
     codeCpp.code += S("} // namespace gaen\n");
-    
+
+    codeCpp.header = codegen_header(pParseData->pRootAst);
+
     return codeCpp;
 }
 
