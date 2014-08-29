@@ -85,5 +85,12 @@ int main(int argc, char ** argv)
         codeCpp = codegen_cpp(pParseData);
     }
 
+    if (codeCpp.header != "")
+    {
+        puts("/// .H SECTION");
+        puts(codeCpp.header.c_str());
+    }
+
+    puts("/// .CPP SECTION");
     puts(codeCpp.code.c_str());
 }

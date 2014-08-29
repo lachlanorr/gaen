@@ -93,6 +93,9 @@ typedef enum
     kAST_FunctionCall,
     kAST_SymbolRef,
     kAST_SymbolDecl,
+    
+    kAST_DataType,
+    kAST_CustomType,
 
     kAST_SimpleStmt,
 
@@ -150,7 +153,8 @@ typedef enum
 
     kAST_Identifier,
     kAST_PropertySet,
-    kAST_MessageSend
+    kAST_MessageSend,
+    kAST_Return
 
 } AstType;
 
@@ -170,18 +174,27 @@ typedef enum
 typedef enum
 {
     kDT_Undefined = 0,
+    kDT_char,
+    kDT_byte,
+    kDT_short,
+    kDT_ushort,
     kDT_int,
     kDT_uint,
+    kDT_long,
+    kDT_ulong,
+    kDT_half,
     kDT_float,
+    kDT_double,
     kDT_bool,
-    kDT_char,
     kDT_color,
+    kDT_vec2,
     kDT_vec3,
     kDT_vec4,
     kDT_mat3,
     kDT_mat34,
     kDT_mat4,
     kDT_void,
+    kDT_handle,
 
     kDT_COUNT
 } DataType;
@@ -206,7 +219,7 @@ int parse_int(const char * pStr, int base);
 float parse_float(const char * pStr);
 
 SymRec * symrec_create(SymType symType,
-                       DataType dataType,
+                       Ast * pDataType,
                        const char * name,
                        Ast * pAst);
 
@@ -223,17 +236,18 @@ AstList * astlist_append(AstList * pAstList, Ast * pAst);
 Ast * ast_create(AstType astType, ParseData * pParseData);
 Ast * ast_create_with_child_list(AstType astType, ParseData * pParseData);
 
-Ast * ast_create_with_str(AstType astType, const char * name, ParseData * pParseData);
+Ast * ast_create_with_str(AstType astType, const char * str, ParseData * pParseData);
+Ast * ast_create_with_numi(AstType astType, int numi, ParseData * pParseData);
 
 void ast_create_import_list(Ast * pImportList, ParseData * pParseData);
 Ast * ast_create_import_stmt(Ast * pDottedId, ParseData * pParseData);
-Ast * ast_create_function_def(const char * name, DataType returnType, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_function_def(const char * name, Ast* pReturnType, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
 
 Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParseData);
-Ast * ast_create_property_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData);
-Ast * ast_create_field_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData);
+Ast * ast_create_property_def(const char * name, Ast * pDataType, Ast * pInitVal, ParseData * pParseData);
+Ast * ast_create_field_def(const char * name, Ast * pDataType, Ast * pInitVal, ParseData * pParseData);
 
 Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData);
 Ast * ast_create_component_member(const char * name, Ast * pPropInitList, ParseData * pParseData);
@@ -263,7 +277,8 @@ Ast * ast_create_block(Ast* pBlock, ParseData * pParseData);
 Ast * ast_create_identifier(const char * name, ParseData * pParseData);
 Ast * ast_create_property_set(Ast *pTarget, const char * propertyStr, Ast *pRhs, ParseData *pParseData);
 Ast * ast_create_message_send(Ast *pTarget, const char * messageStr, Ast *pParams, ParseData *pParseData);
-    
+Ast * ast_create_return(Ast *pExpr, ParseData *pParseData);
+
 Ast * ast_append(AstType astType, Ast * pAst, Ast * pAstNew, ParseData * pParseData);
 Ast * ast_add_child(Ast * pParent, Ast * pChild);
 Ast * ast_add_children(Ast * pParent, AstList * pChildren);

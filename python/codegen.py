@@ -143,7 +143,13 @@ class ScriptInfo(object):
         sout, serr = p.communicate()
 
         if p.returncode == 0:
-            self.cppSource = sout.replace('\r\n', '\n')
+            output = sout.replace('\r\n', '\n')
+            m = re.match(r'^/// \.H SECTION\n(.*)./// \.CPP SECTION\n.*$', output, flags=re.MULTILINE|re.DOTALL)
+            if (m):
+                self.hSource = m.group(1)
+            else:
+                self.hSource = ''
+            self.cppSource = re.match(r'^.*/// \.CPP SECTION\n(.*)$', output, flags=re.MULTILINE|re.DOTALL).group(1)
             self.cppSourceHash = md5.new(self.cppSource).hexdigest();
             return True
         else:

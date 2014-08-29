@@ -68,7 +68,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <numi> INT_LITERAL TRUE FALSE
 %token <numf> FLOAT_LITERAL
 
-%token <dataType> INT UINT FLOAT BOOL CHAR VEC3 VEC4 MAT3 MAT34 MAT4 VOID
+%token <dataType> CHAR BYTE SHORT USHORT INT UINT LONG ULONG HALF FLOAT DOUBLE BOOL VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 VOID HANDLE
 
 %token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN ENTITY COMPONENT COMPONENTS IMPORT
 %right ELSE THEN
@@ -99,7 +99,9 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 
 %left <pAst> SCOPE
 
-%type <dataType> type
+%type <dataType> basic_type
+
+%type <pAst> type
 
 %type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> import_list import_stmt dotted_id dotted_id_part
@@ -216,6 +218,8 @@ stmt
     | '@' target_expr '#' IDENTIFIER '=' expr ';'            { $$ = ast_create_property_set($2, $4, $6, pParseData); }
     | '@' target_expr '#' IDENTIFIER '(' fun_params ')' ';'  { $$ = ast_create_message_send($2, $4, $6, pParseData); }
 
+    | RETURN expr ';'  { $$ = ast_create_return($2, pParseData); }
+
     | block     { $$ = $1; }
     
     | expr ';'  { $$ = ast_create_simple_stmt($1, pParseData); }
@@ -314,12 +318,30 @@ fun_params
     ;
 
 type
-    : INT
+    : basic_type  { $$ = ast_create_with_numi(kAST_DataType, $1, pParseData); }
+    | IDENTIFIER  { $$ = ast_create_with_str(kAST_CustomType, $1, pParseData); }
+
+basic_type
+    : CHAR
+    | BYTE
+    | SHORT
+    | USHORT
+    | INT
     | UINT
+    | LONG
+    | ULONG
+    | HALF
     | FLOAT
+    | DOUBLE
     | BOOL
+    | VEC2
     | VEC3
+    | VEC4
+    | MAT3
+    | MAT34
+    | MAT4
     | VOID
+    | HANDLE
     ;
 
 %%

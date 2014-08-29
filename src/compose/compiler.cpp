@@ -62,11 +62,18 @@ float parse_float(const char * pStr)
 // SymRec
 //------------------------------------------------------------------------------
 SymRec * symrec_create(SymType symType,
-                       DataType dataType,
+                       Ast * pDataType,
                        const char * name,
                        Ast * pAst)
 {
     SymRec * pSymRec = COMP_NEW(SymRec);
+
+    if (pDataType && pDataType->type != kAST_DataType)
+    {
+        PANIC("Custom Types Not Supported Yet");
+        return nullptr;
+    }
+    DataType dataType = pDataType ? (DataType)pDataType->numi : kDT_Undefined;
 
     pSymRec->type = symType;
     pSymRec->dataType = dataType;
@@ -228,17 +235,24 @@ Ast * ast_create_with_child_list(AstType astType, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_with_str(AstType astType, const char * name, ParseData * pParseData)
+Ast * ast_create_with_str(AstType astType, const char * str, ParseData * pParseData)
 {
     Ast * pAst = ast_create(astType, pParseData);
-    pAst->str = name;
+    pAst->str = str;
+    return pAst;
+}
+
+Ast * ast_create_with_numi(AstType astType, int numi, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(astType, pParseData);
+    pAst->numi = numi;
     return pAst;
 }
 
 static Ast * ast_create_block_def(const char * name,
                                   AstType astType,
                                   SymType symType,
-                                  DataType returnType,
+                                  Ast * pReturnType,
                                   Ast * pBlock,
                                   Ast * pParent,
                                   ParseData * pParseData)
@@ -253,8 +267,13 @@ static Ast * ast_create_block_def(const char * name,
     pAst->pScope = pBlock->pScope;
     pAst->pScope->pSymTab->pAst = pAst;
     
+    if (pReturnType && pReturnType->type != kAST_DataType)
+    {
+        PANIC("Custom Types Not Supported Yet");
+        return nullptr;
+    }
     pAst->pSymRec = symrec_create(symType,
-                                  returnType,
+                                  pReturnType,
                                   name,
                                   pAst);
 
@@ -278,12 +297,12 @@ Ast * ast_create_import_stmt(Ast * pDottedId, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_function_def(const char * name, DataType returnType, Ast * pBlock, ParseData * pParseData)
+Ast * ast_create_function_def(const char * name, Ast * pReturnType, Ast * pBlock, ParseData * pParseData)
 {
     Ast * pAst = ast_create_block_def(name,
                                       kAST_FunctionDef,
                                       kSYMT_Function,
-                                      returnType,
+                                      pReturnType,
                                       pBlock,
                                       pParseData->pRootAst,
                                       pParseData);
@@ -296,7 +315,7 @@ Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseD
     Ast * pAst = ast_create_block_def(name,
                                       kAST_EntityDef,
                                       kSYMT_Entity,
-                                      kDT_Undefined,
+                                      nullptr,
                                       pBlock,
                                       pParseData->pRootAst,
                                       pParseData);
@@ -309,7 +328,7 @@ Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pPar
     Ast * pAst = ast_create_block_def(name,
                                       kAST_ComponentDef,
                                       kSYMT_Component,
-                                      kDT_Undefined,
+                                      nullptr,
                                       pBlock,
                                       pParseData->pRootAst,
                                       pParseData);
@@ -322,20 +341,26 @@ Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParse
     Ast * pAst = ast_create_block_def(name,
                                       kAST_MessageDef,
                                       kSYMT_Message,
-                                      kDT_Undefined,
+                                      nullptr,
                                       pBlock,
                                       NULL,
                                       pParseData);
     return pAst;
 }
 
-Ast * ast_create_property_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData)
+Ast * ast_create_property_def(const char * name, Ast * pDataType, Ast * pInitVal, ParseData * pParseData)
 {
     ASSERT(pParseData);
 
     Ast * pAst = ast_create(kAST_PropertyDef, pParseData);
+
+    if (pDataType->type != kAST_DataType)
+    {
+        PANIC("Custom Types Not Supported Yet");
+        return nullptr;
+    }
     pAst->pSymRec = symrec_create(kSYMT_Property,
-                                  dataType,
+                                  pDataType,
                                   name,
                                   pInitVal);
 
@@ -345,13 +370,19 @@ Ast * ast_create_property_def(const char * name, DataType dataType, Ast * pInitV
     return pAst;
 }
 
-Ast * ast_create_field_def(const char * name, DataType dataType, Ast * pInitVal, ParseData * pParseData)
+Ast * ast_create_field_def(const char * name, Ast * pDataType, Ast * pInitVal, ParseData * pParseData)
 {
     ASSERT(pParseData);
 
     Ast * pAst = ast_create(kAST_FieldDef, pParseData);
+
+    if (pDataType->type != kAST_DataType)
+    {
+        PANIC("Custom Types Not Supported Yet");
+        return nullptr;
+    }
     pAst->pSymRec = symrec_create(kSYMT_Field,
-                                  dataType,
+                                  pDataType,
                                   name,
                                   pInitVal);
 
@@ -638,6 +669,13 @@ Ast * ast_create_message_send(Ast *pTarget, const char * messageStr, Ast *pParam
 
     pAst->pBlockInfos = block_pack_message_params(pAst);
 
+    return pAst;
+}
+
+Ast * ast_create_return(Ast *pExpr, ParseData *pParseData)
+{
+    Ast * pAst = ast_create(kAST_Return, pParseData);
+    ast_set_rhs(pAst, pExpr);
     return pAst;
 }
 

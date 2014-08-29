@@ -42,6 +42,7 @@ struct CodeCpp
     String<kMEM_Compose> cppFilename;
     String<kMEM_Compose> cppRelPath;
     String<kMEM_Compose> cppFullPath;
+    String<kMEM_Compose> header;
     String<kMEM_Compose> code;
 };
 

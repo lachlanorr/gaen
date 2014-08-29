@@ -78,16 +78,32 @@ static S type_str(DataType dt)
 {
     switch (dt)
     {
+    case kDT_char:
+        return S("char");
+    case kDT_byte:
+        return S("byte");
+    case kDT_short:
+        return S("short");
+    case kDT_ushort:
+        return S("ushort");
     case kDT_int:
         return S("int");
     case kDT_uint:
         return S("uint");
+    case kDT_long:
+        return S("long");
+    case kDT_ulong:
+        return S("ulong");
+    case kDT_half:
+        return S("half");
     case kDT_float:
         return S("float");
+    case kDT_double:
+        return S("double");
     case kDT_bool:
         return S("bool");
-    case kDT_char:
-        return S("char");
+    case kDT_vec2:
+        return S("vec2");
     case kDT_vec3:
         return S("vec3");
     case kDT_vec4:
@@ -100,6 +116,8 @@ static S type_str(DataType dt)
         return S("mat4");
     case kDT_void:
         return S("void");
+    case kDT_handle:
+        return S("handle");
     default:
         PANIC("type_str invalid DataType: %d", dt);
         return S("");
@@ -110,16 +128,32 @@ static S cpp_type_str(DataType dt)
 {
     switch (dt)
     {
+    case kDT_char:
+        return S("i8");
+    case kDT_byte:
+        return S("u8");
+    case kDT_short:
+        return S("i16");
+    case kDT_ushort:
+        return S("u16");
     case kDT_int:
         return S("i32");
     case kDT_uint:
         return S("u32");
+    case kDT_long:
+        return S("i64");
+    case kDT_ulong:
+        return S("u64");
+    case kDT_half:
+        return S("f16");
     case kDT_float:
         return S("f32");
+    case kDT_double:
+        return S("f64");
     case kDT_bool:
         return S("bool");
-    case kDT_char:
-        return S("u8");
+    case kDT_vec2:
+        return S("Vec2");
     case kDT_vec3:
         return S("Vec3");
     case kDT_vec4:
@@ -132,6 +166,8 @@ static S cpp_type_str(DataType dt)
         return S("Mat4");
     case kDT_void:
         return S("void");
+    case kDT_handle:
+        return S("handle");
     default:
         PANIC("cpp_type_str invalid DataType: %d", dt);
         return S("");
@@ -975,7 +1011,7 @@ CodeCpp codegen_cpp(const ParseData * pParseData)
 
     extract_filenames(pParseData->fullPath, codeCpp);
     
-    codeCpp.code = S("");
+    codeCpp.header = S("");
 
     codeCpp.code += S("#include \"engine/hashes.h\"\n");
     codeCpp.code += S("#include \"engine/Block.h\"\n");
@@ -1001,7 +1037,7 @@ CodeCpp codegen_cpp(const ParseData * pParseData)
     codeCpp.code += codeDefs;
 
     codeCpp.code += S("} // namespace gaen\n");
-
+    
     return codeCpp;
 }
 
