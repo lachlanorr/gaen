@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: e6f400734be03a1f59d763cdc127e885
+// HASH: da3df053a1a579b98c2a7672fc8ef680
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -77,6 +77,10 @@ public:
                 return MessageResult::Consumed;
             }
             return MessageResult::Propogate; // Invalid property
+        case HASH::init:
+        {
+            system_api::renderer_insert_model_instance(boxModel(), 0, Mat34(1.000000f), entity());
+        }
         }
         return MessageResult::Propogate;
 }
@@ -87,7 +91,7 @@ private:
     {
         f_prop() = 1.000000f;
         f_field() = 2.000000f;
-        boxModel() = create_model_box(Vec3(1.000000f, 1.000000f, 1.000000f), Color(0, 0, 255, 255), entity());
+        boxModel() = system_api::create_model_box(Vec3(1.000000f, 1.000000f, 1.000000f), Color(0, 0, 255, 255), entity());
 
         mBlockCount = 3;
         mTask = Task::createUpdatable(this, HASH::start);

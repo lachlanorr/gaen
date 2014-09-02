@@ -152,6 +152,7 @@ typedef enum
     kAST_Vec2Init,
     kAST_Vec3Init,
     kAST_Vec4Init,
+    kAST_Mat34Init,
     
     kAST_IntLiteral,
     kAST_FloatLiteral,
@@ -269,6 +270,7 @@ Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, Parse
 
 Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData);
 
 Ast * ast_create_int_literal(int numi, ParseData * pParseData);
 Ast * ast_create_float_literal(float numf, ParseData * pParseData);
@@ -297,6 +299,7 @@ void ast_set_mid(Ast * pParent, Ast * pMid);
 void ast_set_rhs(Ast * pParent, Ast * pRhs);
 
 DataType ast_data_type(const Ast * pAst);
+int are_types_compatible(DataType a, DataType b);
 
 ParseData * parsedata_create(const char * fullPath,
                              MessageHandler messageHandler);

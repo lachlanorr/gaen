@@ -507,7 +507,16 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
 
     switch (pParams->pChildren->nodes.size())
     {
+    case 1:
+    {
+        Ast * pParam = pParams->pChildren->nodes.front();
+        DataType paramDt = ast_data_type(pParam);
+        if (paramDt != kDT_float && paramDt != kDT_vec3)
+            PANIC("Invalid data type in vec3 initialization");
+        break;
+    }
     case 3:
+    {
         for (Ast * pParam : pParams->pChildren->nodes)
         {
             DataType paramDt = ast_data_type(pParam);
@@ -515,8 +524,42 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
                 PANIC("Invalid data type in vec3 initialization");
         }
         break;
+    }
     default:
         PANIC("Invalid parameters for vec3 initialization");
+        break;
+    }
+
+    return pAst;
+}
+
+Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_Mat34Init, pParseData);
+    ast_set_rhs(pAst, pParams);
+
+    switch (pParams->pChildren->nodes.size())
+    {
+    case 1:
+    {
+        Ast * pParam = pParams->pChildren->nodes.front();
+        DataType paramDt = ast_data_type(pParam);
+        if (paramDt != kDT_float && paramDt != kDT_mat34)
+            PANIC("Invalid data type in mat34 initialization");
+        break;
+    }
+    case 12:
+    {
+        for (Ast * pParam : pParams->pChildren->nodes)
+        {
+            DataType paramDt = ast_data_type(pParam);
+            if (paramDt != kDT_float)
+                PANIC("Invalid data type in mat34 initialization");
+        }
+        break;
+    }
+    default:
+        PANIC("Invalid parameters for mat34 initialization");
         break;
     }
 
@@ -816,8 +859,20 @@ DataType ast_data_type(const Ast * pAst)
         return kDT_vec3;
     else if (pAst->type == kAST_Vec4Init)
         return kDT_vec4;
+    else if (pAst->type == kAST_Mat34Init)
+        return kDT_mat34;
     PANIC("Cannot determine datatype for pAst, type: %d", pAst->type);
     return kDT_Undefined;
+}
+
+int are_types_compatible(DataType a, DataType b)
+{
+    if (a == b)
+        return 1;
+    if (a == kDT_uint && b == kDT_int || 
+        a == kDT_int && b == kDT_uint)
+        return 1;
+    return 0;
 }
 
 //------------------------------------------------------------------------------

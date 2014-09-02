@@ -92,6 +92,7 @@ struct Mat4;
 struct Mat3
 {
     Mat3();
+    Mat3(f32 diag);
     Mat3(f32 e0, f32 e1, f32 e2,
          f32 e3, f32 e4, f32 e5,
          f32 e6, f32 e7, f32 e8);
@@ -115,6 +116,7 @@ struct Mat3
 struct Mat34
 {
     Mat34();
+    Mat34(f32 diag);
     Mat34(const Mat4 & mat4);
     Mat34(f32 e0, f32 e1,  f32 e2,
           f32 e3, f32 e4,  f32 e5,
@@ -156,6 +158,7 @@ struct Mat34
 struct Mat4
 {
     Mat4();
+    Mat4(f32 diag);
     Mat4(f32 e0,  f32 e1,  f32 e2,  f32 e3,
          f32 e4,  f32 e5,  f32 e6,  f32 e7,
          f32 e8,  f32 e9,  f32 e10, f32 e11,
@@ -363,6 +366,20 @@ inline bool operator==(const Vec4 & lhs,const Vec4 & rhs)
 // Mat3 inlined methods
 //--------------------------------------
 inline Mat3::Mat3() {}
+inline Mat3::Mat3(f32 diag)
+{
+    elems[0] = 1.0f;
+    elems[1] = 0.0f;
+    elems[2] = 0.0f;
+
+    elems[3] = 0.0f;
+    elems[4] = 1.0f;
+    elems[5] = 0.0f;
+
+    elems[6] = 0.0f;
+    elems[7] = 0.0f;
+    elems[8] = 1.0f;
+}
 inline Mat3::Mat3(f32 e0, f32 e1, f32 e2,
                   f32 e3, f32 e4, f32 e5,
                   f32 e6, f32 e7, f32 e8)
@@ -412,6 +429,24 @@ inline const f32 & Mat3::operator[](size_t idx) const
 // Mat34 inlined methods
 //--------------------------------------
 inline Mat34::Mat34() {}
+inline Mat34::Mat34(f32 diag)
+{
+    elems[0]  = 1.0f;
+    elems[1]  = 0.0f;
+    elems[2]  = 0.0f;
+
+    elems[3]  = 0.0f;
+    elems[4]  = 1.0f;
+    elems[5]  = 0.0f;
+
+    elems[6]  = 0.0f;
+    elems[7]  = 0.0f;
+    elems[8]  = 1.0f;
+
+    elems[9]  = 0.0f;
+    elems[10] = 0.0f;
+    elems[11] = 0.0f;
+}
 inline Mat34::Mat34(f32 e0, f32 e1,  f32 e2,
                     f32 e3, f32 e4,  f32 e5,
                     f32 e6, f32 e7,  f32 e8,
@@ -534,6 +569,28 @@ inline const Vec4 & Mat34::vec4(size_t idx) const
 // Mat4 inlined methods
 //--------------------------------------
 inline Mat4::Mat4() {}
+inline Mat4::Mat4(f32 diag)
+{
+    elems[0]  = 1.0f;
+    elems[1]  = 0.0f;
+    elems[2]  = 0.0f;
+    elems[3]  = 0.0f;
+
+    elems[4]  = 0.0f;
+    elems[5]  = 1.0f;
+    elems[6]  = 0.0f;
+    elems[7]  = 0.0f;
+
+    elems[8]  = 0.0f;
+    elems[9]  = 0.0f;
+    elems[10] = 1.0f;
+    elems[11] = 0.0f;
+
+    elems[12] = 0.0f;
+    elems[13] = 0.0f;
+    elems[14] = 0.0f;
+    elems[15] = 1.0f;
+}
 inline Mat4::Mat4(f32 e0,  f32 e1,  f32 e2,  f32 e3,
                   f32 e4,  f32 e5,  f32 e6,  f32 e7,
                   f32 e8,  f32 e9,  f32 e10, f32 e11,

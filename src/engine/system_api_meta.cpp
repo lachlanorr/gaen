@@ -29,9 +29,10 @@
 
 namespace gaen
 {
+// LORRTODO - autogenerate this file
 
-ApiSignature gApiSignatures[] = { { HASH::create_model_box,      kDT_handle, { kDT_vec3, kDT_color } },
-                                  { HASH::renderer_insert_model, kDT_void,   { kDT_handle } },
+ApiSignature gApiSignatures[] = { { HASH::create_model_box,               kDT_handle, { kDT_vec3,   kDT_color } },
+                                  { HASH::renderer_insert_model_instance, kDT_void,   { kDT_handle, kDT_uint, kDT_mat34  } },
                                   { 0 }
                                 };
 

@@ -400,6 +400,22 @@ static S codegen_recurse(const Ast * pAst,
         // property setters
         code += set_property_handlers(pAst, indentLevel + 2);
 
+        for (Ast * pMsg : pAst->pChildren->nodes)
+        {
+            if (pMsg->type == kAST_MessageDef &&
+                pMsg->pSymRec &&
+                0 != strcmp(pMsg->pSymRec->name, "update"))
+            {
+                code += I + S("        case HASH::") + S(pMsg->str) + S(":\n");
+                code += I + S("        {\n");
+                for (Ast * pChild : pMsg->pChildren->nodes)
+                {
+                    code += codegen_recurse(pChild, indentLevel + 3);
+                }
+                code += I + S("        }\n");
+            }
+        }
+
         code += I + S("        }\n");
         code += I + S("        return MessageResult::Propogate;\n");
         code += I + S("}\n");
@@ -503,11 +519,11 @@ static S codegen_recurse(const Ast * pAst,
         code += S("\n");
 
         // Property and fields accessors into mpBlocks
-        for (Ast * pChild : pAst->pChildren->nodes)
+        for (Ast * pMsg : pAst->pChildren->nodes)
         {
-            if (is_prop_or_field(pChild->pSymRec))
+            if (is_prop_or_field(pMsg->pSymRec))
             {
-                code += codegen_recurse(pChild, indentLevel + 1);
+                code += codegen_recurse(pMsg, indentLevel + 1);
             }
         }
 
@@ -719,6 +735,18 @@ static S codegen_recurse(const Ast * pAst,
         code += S(")");
         return code;
     }
+    case kAST_Mat34Init:
+    {
+        S code = S("Mat34(");
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegen_recurse(pParam, indentLevel);
+            if (pParam != pAst->pRhs->pChildren->nodes.back())
+                code += S(", ");
+        }
+        code += S(")");
+        return code;
+    }
 
 //    case kAST_FunctionParams:
 //    {
@@ -748,7 +776,7 @@ static S codegen_recurse(const Ast * pAst,
         u32 idx = 0;
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
-            if (ast_data_type(pParam) != pSig->paramTypes[idx])
+            if (!are_types_compatible(ast_data_type(pParam), pSig->paramTypes[idx]))
             {
                 paramsMatch = false;
                 break;
@@ -762,7 +790,7 @@ static S codegen_recurse(const Ast * pAst,
             return code;
         }
 
-        code += S(pAst->str) + S("(");
+        code += S("system_api::") + S(pAst->str) + S("(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel+1) + S(", ");

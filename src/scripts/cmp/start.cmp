@@ -41,7 +41,7 @@ entity start
 
     #init()
     {
-
+        renderer_insert_model_instance(boxModel, 0, mat34(1.0));
     }
 
     #update(float deltaSecs)
