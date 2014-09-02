@@ -28,6 +28,7 @@
 #include <cstdlib>
 
 #include "core/platutils.h"
+#include "engine/system_api.h"
 
 #include "compose/compiler.h"
 #include "compose/compiler_structs.h"
@@ -476,6 +477,52 @@ Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, Parse
     return pAst;
 }
 
+Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_ColorInit, pParseData);
+    ast_set_rhs(pAst, pParams);
+
+    switch (pParams->pChildren->nodes.size())
+    {
+    case 4:
+        for (Ast * pParam : pParams->pChildren->nodes)
+        {
+            DataType paramDt = ast_data_type(pParam);
+            if (paramDt != kDT_int && paramDt != kDT_uint)
+                PANIC("Invalid data type in color initialization");
+        }
+        break;
+    default:
+        PANIC("Invalid parameters for color initialization");
+        break;
+    }
+
+    return pAst;
+}
+
+Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_Vec3Init, pParseData);
+    ast_set_rhs(pAst, pParams);
+
+    switch (pParams->pChildren->nodes.size())
+    {
+    case 3:
+        for (Ast * pParam : pParams->pChildren->nodes)
+        {
+            DataType paramDt = ast_data_type(pParam);
+            if (paramDt != kDT_float)
+                PANIC("Invalid data type in vec3 initialization");
+        }
+        break;
+    default:
+        PANIC("Invalid parameters for vec3 initialization");
+        break;
+    }
+
+    return pAst;
+}
+
 Ast * ast_create_int_literal(int numi, ParseData * pParseData)
 {
     Ast * pAst = ast_create(kAST_IntLiteral, pParseData);
@@ -492,25 +539,42 @@ Ast * ast_create_float_literal(float numf, ParseData * pParseData)
 
 Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pParseData)
 {
+    Ast * pAst = nullptr;
+
     SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
 
-    Ast * pAst = ast_create(kAST_FunctionCall, pParseData);
-
-    if (!pSymRec)
+    if (pSymRec)
     {
-        COMP_ERROR("Unknown symbol reference: %s", name);
-        return pAst;
+        pAst = ast_create(kAST_FunctionCall, pParseData);
+
+        if (pSymRec->type != kSYMT_Function)
+        {
+            COMP_ERROR("Call to non-function symbol: %s", name);
+        }
+        else
+        {
+            pAst->pSymRec = pSymRec;
+            ast_set_rhs(pAst, pParams);
+        }
+    }
+    else
+    {
+        // check to see if this is a syscall
+        const ApiSignature * pSig = find_api(name);
+        if (pSig)
+        {
+            pAst = ast_create(kAST_SystemCall, pParseData);
+            pAst->str = name;
+            ast_set_rhs(pAst, pParams);
+        }
+        else
+        {
+            COMP_ERROR("Unknown symbol reference: %s", name);
+            pAst = ast_create(kAST_FunctionCall, pParseData);
+        }
     }
 
-    if (pSymRec->type != kSYMT_Function)
-    {
-        COMP_ERROR("Call to non-function symbol: %s", name);
-        return pAst;
-    }   
-
-    pAst->pSymRec = pSymRec;
-    ast_set_rhs(pAst, pParams);
-   
+    ASSERT(pAst);
     return pAst;
 }
 
@@ -744,6 +808,14 @@ DataType ast_data_type(const Ast * pAst)
         return kDT_float;
     else if (pAst->type == kAST_IntLiteral)
         return kDT_int;
+    else if (pAst->type == kAST_ColorInit)
+        return kDT_color;
+    else if (pAst->type == kAST_Vec2Init)
+        return kDT_vec2;
+    else if (pAst->type == kAST_Vec3Init)
+        return kDT_vec3;
+    else if (pAst->type == kAST_Vec4Init)
+        return kDT_vec4;
     PANIC("Cannot determine datatype for pAst, type: %d", pAst->type);
     return kDT_Undefined;
 }

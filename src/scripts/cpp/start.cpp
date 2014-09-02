@@ -21,14 +21,16 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 10131510bd3c1aaac1fc174735a9079d
+// HASH: e6f400734be03a1f59d763cdc127e885
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
 #include "engine/Task.h"
+#include "engine/Handle.h"
 #include "engine/Registry.h"
 #include "engine/Component.h"
 #include "engine/Entity.h"
+#include "engine/system_api.h"
 
 namespace gaen
 {
@@ -67,6 +69,14 @@ public:
                 return MessageResult::Consumed;
             }
             return MessageResult::Propogate; // Invalid property
+        case HASH::set_property__handle:
+            switch (msgAcc.message().payload.u)
+            {
+            case HASH::boxModel:
+                boxModel() = *reinterpret_cast<const Handle*>(&msgAcc[0].cells[0].u);
+                return MessageResult::Consumed;
+            }
+            return MessageResult::Propogate; // Invalid property
         }
         return MessageResult::Propogate;
 }
@@ -77,8 +87,9 @@ private:
     {
         f_prop() = 1.000000f;
         f_field() = 2.000000f;
+        boxModel() = create_model_box(Vec3(1.000000f, 1.000000f, 1.000000f), Color(0, 0, 255, 255), entity());
 
-        mBlockCount = 1;
+        mBlockCount = 3;
         mTask = Task::createUpdatable(this, HASH::start);
 
         // Component: Timer
@@ -105,11 +116,15 @@ private:
 
     f32& f_prop()
     {
-        return mpBlocks[0].cells[0].f;
+        return mpBlocks[2].cells[0].f;
     }
     f32& f_field()
     {
-        return mpBlocks[0].cells[1].f;
+        return mpBlocks[2].cells[1].f;
+    }
+    Handle& boxModel()
+    {
+        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
     }
 }; // class start
 

@@ -28,6 +28,7 @@
 
 #include "engine/hashes.h"
 #include "engine/Block.h"
+#include "engine/system_api.h"
 #include "compose/codegen_cpp.h"
 #include "compose/compiler_structs.h"
 #include "compose/codegen_utils.h"
@@ -104,6 +105,8 @@ static S type_str(DataType dt)
         return S("double");
     case kDT_bool:
         return S("bool");
+    case kDT_color:
+        return S("color");
     case kDT_vec2:
         return S("vec2");
     case kDT_vec3:
@@ -154,6 +157,8 @@ static S cpp_type_str(DataType dt)
         return S("f64");
     case kDT_bool:
         return S("bool");
+    case kDT_color:
+        return S("Color");
     case kDT_vec2:
         return S("Vec2");
     case kDT_vec3:
@@ -169,7 +174,7 @@ static S cpp_type_str(DataType dt)
     case kDT_void:
         return S("void");
     case kDT_handle:
-        return S("handle");
+        return S("Handle");
     default:
         PANIC("cpp_type_str invalid DataType: %d", dt);
         return S("");
@@ -204,23 +209,27 @@ static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo)
         return S(scratch);
     case kDT_vec3:
         ASSERT(blockInfo.cellIndex == 0);
-        snprintf(scratch, kScratchSize, "*static_cast<Vec3*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
+        snprintf(scratch, kScratchSize, "*reinterpret_cast<Vec3*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
         return S(scratch);
     case kDT_vec4:
         ASSERT(blockInfo.cellIndex == 0);
-        snprintf(scratch, kScratchSize, "*static_cast<Vec4*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
+        snprintf(scratch, kScratchSize, "*reinterpret_cast<Vec4*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
         return S(scratch);
     case kDT_mat3:
         ASSERT(blockInfo.cellIndex == 0);
-        snprintf(scratch, kScratchSize, "*static_cast<Mat3*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
+        snprintf(scratch, kScratchSize, "*reinterpret_cast<Mat3*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
         return S(scratch);
     case kDT_mat34:
         ASSERT(blockInfo.cellIndex == 0);
-        snprintf(scratch, kScratchSize, "*static_cast<Mat34*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
+        snprintf(scratch, kScratchSize, "*reinterpret_cast<Mat34*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
         return S(scratch);
     case kDT_mat4:
         ASSERT(blockInfo.cellIndex == 0);
-        snprintf(scratch, kScratchSize, "*static_cast<Mat4*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
+        snprintf(scratch, kScratchSize, "*reinterpret_cast<Mat4*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
+        return S(scratch);
+    case kDT_handle:
+        ASSERT(blockInfo.cellIndex == 0);
+        snprintf(scratch, kScratchSize, "*reinterpret_cast<Handle*>(&mpBlocks[%u].qCell)", blockInfo.blockIndex);
         return S(scratch);
     default:
         PANIC("Invalid dataType: %d", dataType);
@@ -686,6 +695,31 @@ static S codegen_recurse(const Ast * pAst,
         code += indent(indentLevel-1) + S("}\n");
         return code;
     }
+    case kAST_ColorInit:
+    {
+        S code = S("Color(");
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegen_recurse(pParam, indentLevel);
+            if (pParam != pAst->pRhs->pChildren->nodes.back())
+                code += S(", ");
+        }
+        code += S(")");
+        return code;
+    }
+    case kAST_Vec3Init:
+    {
+        S code = S("Vec3(");
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegen_recurse(pParam, indentLevel);
+            if (pParam != pAst->pRhs->pChildren->nodes.back())
+                code += S(", ");
+        }
+        code += S(")");
+        return code;
+    }
+
 //    case kAST_FunctionParams:
 //    {
 //        return S("");
@@ -693,6 +727,50 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_FunctionCall:
     {
         return S("");
+    }
+    case kAST_SystemCall:
+    {
+        S code = S("");
+        if (pAst->pRhs->pChildren->nodes.size() > kMaxApiParams)
+        {
+            PANIC("Too many parameters to a system api: %u", pAst->pRhs->pChildren->nodes.size());
+            return code;
+        }
+
+        const ApiSignature * pSig = find_api(pAst->str);
+        if (!pSig)
+        {
+            PANIC("Cannot find api: %s", pAst->str);
+            return code;
+        }
+
+        bool paramsMatch = true;
+        u32 idx = 0;
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            if (ast_data_type(pParam) != pSig->paramTypes[idx])
+            {
+                paramsMatch = false;
+                break;
+            }
+            idx++;
+        }
+
+        if (!paramsMatch)
+        {
+            PANIC("Paramters do not match for system api call to %s", pAst->str);
+            return code;
+        }
+
+        code += S(pAst->str) + S("(");
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegen_recurse(pParam, indentLevel+1) + S(", ");
+        }
+        // Always add our entity as last parameter
+        code += S("entity())");
+
+        return code;
     }
     case kAST_SymbolRef:
     {
@@ -941,14 +1019,14 @@ static S codegen_recurse(const Ast * pAst,
         char scratch[kScratchSize+1];
         snprintf(scratch,
                  kScratchSize,
-                 "StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mEntityTaskId, ",
+                 "StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mpEntity->task().id(), ",
                  pAst->pBlockInfos->blockCount,
                  full_message_name.c_str());
 
         code += S(scratch);
 
         if (pAst->pLhs == 0)
-            code += S("mEntityTaskId");
+            code += S("mpEntity->task().id()");
         else
             code += codegen_recurse(pAst->pLhs, indentLevel);
 
@@ -1062,9 +1140,11 @@ CodeCpp codegen_cpp(const ParseData * pParseData)
     codeCpp.code += S("#include \"engine/Block.h\"\n");
     codeCpp.code += S("#include \"engine/MessageWriter.h\"\n");
     codeCpp.code += S("#include \"engine/Task.h\"\n");
+    codeCpp.code += S("#include \"engine/Handle.h\"\n");
     codeCpp.code += S("#include \"engine/Registry.h\"\n");
     codeCpp.code += S("#include \"engine/Component.h\"\n");
     codeCpp.code += S("#include \"engine/Entity.h\"\n");
+    codeCpp.code += S("#include \"engine/system_api.h\"\n");
     codeCpp.code += LF;
 
     codeCpp.code += S("namespace gaen\n{\n\n");

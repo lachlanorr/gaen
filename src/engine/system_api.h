@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// shapes.h - Routines to create various geometrical shapes
+// system_api.h - C functionas available to Compose scripts
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,52 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_SHAPES_H
-#define GAEN_ENGINE_SHAPES_H
+#ifndef GAEN_COMPOSE_SYSTEM_API_H
+#define GAEN_COMPOSE_SYSTEM_API_H
 
-#include "engine/Mesh.h"
+#include "engine/Handle.h"
 #include "engine/Model.h"
+#include "engine/Entity.h"
+#include "engine/system_api_meta.h"
 
 namespace gaen
 {
 
-class ShapeBuilder
-{
-public:
-    ShapeBuilder(Mesh * pMesh);
+const ApiSignature * find_api(const char * name);
 
-    void pushTri(const Vec3 & p0,
-                 const Vec3 & p1,
-                 const Vec3 & p2);
-    void pushTri(const Vec3 * pPoints);
+// This file gets parsed by codegen.py.
+// Always use a single line per definition, as the parser is quite simple.
 
-    void pushQuad(const Vec3 & p0,
-                  const Vec3 & p1,
-                  const Vec3 & p2,
-                  const Vec3 & p3);
-    void pushQuad(const Vec3 * pPoints);
+//void print(
 
-    void pushMesh(const Mesh & mesh);
-
-    Mesh & mesh() { return mMesh; }
-    u32 currVertex() { return mCurrVertex; }
-    u32 currPrimitive() { return mCurrPrimitive; }
-
-private:
-    Mesh & mMesh;
-    u32 mCurrVertex = 0;
-    u32 mCurrPrimitive = 0;
-};
-
-
-Mesh * buildTriMesh(f32 width, f32 height);
-
-Model * buildTriModel(f32 width, f32 height, Color color);
-
-
-Model * build_box(const Vec3 & size, Color color);
+Handle create_model_box(const Vec3 & size, const Color & color, const Entity & caller);
+void renderer_insert_model(Handle & handle, const Entity & caller);
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_SHAPES_H
-
+#endif // #ifndef GAEN_COMPOSE_SYSTEM_API_H

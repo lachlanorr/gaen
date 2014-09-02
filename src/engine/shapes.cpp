@@ -40,7 +40,7 @@ ShapeBuilder::ShapeBuilder(Mesh * pMesh)
     if (mMesh.vertexType() != kVERT_PosNorm)
         PANIC("ShapeBuilder only builds meshes with vertices of type kVERT_PosNorm");
 
-    if (mMesh.indexType() != kIND_Triangle)
+    if (mMesh.primitiveType() != kPRIM_Triangle)
         PANIC("ShapeBuilder only builds meshes with indices of type kIND_Triangle");
 }
 
@@ -51,31 +51,32 @@ void ShapeBuilder::pushTri(const Vec3 & p0,
 {
     if (mCurrVertex + 3 > mMesh.vertexCount())
         PANIC("Vertex array overrun during pushTri");
-    if (mCurrIndex + 1 > mMesh.indexCount())
+    if (mCurrPrimitive + 1 > mMesh.primitiveCount())
         PANIC("Index array overrun during pushTri");
 
     VertexPosNorm * pVert = mMesh;
     pVert += mCurrVertex;
 
-    IndexTriangle * pInd = mMesh;
-    IndexTriangle & ind = pInd[mCurrIndex];
+    PrimitiveTriangle * pTris = mMesh;
+    PrimitiveTriangle & tri = pTris[mCurrPrimitive];
 
     Vec3 vecNorm = triNormal(p0, p1, p2);
 
     pVert[0].position = p0;
-    pVert[1].position = p1;
-    pVert[2].position = p2;
-
     pVert[0].normal = vecNorm;
+
+    pVert[1].position = p1;
     pVert[1].normal = vecNorm;
+
+    pVert[2].position = p2;
     pVert[2].normal = vecNorm;
     
-    ind.p0 = mCurrVertex;
-    ind.p1 = mCurrVertex + 1;
-    ind.p2 = mCurrVertex + 2;
+    tri.p0 = mCurrVertex + 0;
+    tri.p1 = mCurrVertex + 1;
+    tri.p2 = mCurrVertex + 2;
 
     mCurrVertex += 3;
-    mCurrIndex += 1;
+    mCurrPrimitive += 1;
 }
 
 void ShapeBuilder::pushTri(const Vec3 * pPoints)
@@ -92,11 +93,43 @@ void ShapeBuilder::pushQuad(const Vec3 & p0,
 {
     if (mCurrVertex + 4 > mMesh.vertexCount())
         PANIC("Vertex array overrun during pushQuad");
-    if (mCurrIndex + 2 > mMesh.indexCount())
+    if (mCurrPrimitive + 2 > mMesh.primitiveCount())
         PANIC("Index array overrun during pushQuad");
 
-    pushTri(p0, p1, p2);
-    pushTri(p3, p0, p2);
+    VertexPosNorm * pVert = mMesh;
+    pVert += mCurrVertex;
+
+    PrimitiveTriangle * pTris = mMesh;
+    PrimitiveTriangle & tri0 = pTris[mCurrPrimitive];
+    PrimitiveTriangle & tri1 = pTris[mCurrPrimitive+1];
+
+    Vec3 vecNorm = triNormal(p0, p1, p2);
+    Vec3 vecNorm2 = triNormal(p3, p0, p2);
+
+    ASSERT(vecNorm == vecNorm2);
+
+    pVert[0].position = p0;
+    pVert[0].normal = vecNorm;
+
+    pVert[1].position = p1;
+    pVert[1].normal = vecNorm;
+
+    pVert[2].position = p2;
+    pVert[2].normal = vecNorm;
+
+    pVert[3].position = p3;
+    pVert[3].normal = vecNorm;
+
+    tri0.p0 = mCurrVertex + 0;
+    tri0.p1 = mCurrVertex + 1;
+    tri0.p2 = mCurrVertex + 2;
+
+    tri1.p0 = mCurrVertex + 3;
+    tri1.p1 = mCurrVertex + 0;
+    tri1.p2 = mCurrVertex + 2;
+
+    mCurrVertex += 4;
+    mCurrPrimitive += 2;
 }
 
 void ShapeBuilder::pushQuad(const Vec3 * pPoints)
@@ -112,12 +145,12 @@ void ShapeBuilder::pushMesh(const Mesh & mesh)
 {
     if (mesh.vertexType() != kVERT_PosNorm)
         PANIC("ShapeBuilder only appends meshes with vertices of type kVERT_PosNorm");
-    if (mesh.indexType() != kIND_Triangle)
+    if (mesh.primitiveType() != kPRIM_Triangle)
         PANIC("ShapeBuilder only appends meshes with indices of type kIND_Triangle");
 
     if (mCurrVertex + mesh.vertexCount() >= mMesh.vertexCount())
         PANIC("Vertex array overrun during pushMesh");
-    if (mCurrIndex + mesh.indexCount() >= mMesh.indexCount())
+    if (mCurrPrimitive + mesh.primitiveCount() >= mMesh.primitiveCount())
         PANIC("Index array overrun during pushMesh");
 
     VertexPosNorm * pVert = mMesh;
@@ -129,21 +162,21 @@ void ShapeBuilder::pushMesh(const Mesh & mesh)
         *pVert++ = *pMeshVert++;
     }
 
-    IndexTriangle * pInd = mMesh;
-    pInd += mCurrIndex;
+    PrimitiveTriangle * pInd = mMesh;
+    pInd += mCurrPrimitive;
 
-    const IndexTriangle * pMeshInd = mesh;
-    for (u32 i = 0; i < mesh.indexCount(); ++i)
+    const PrimitiveTriangle * pMeshInd = mesh;
+    for (u32 i = 0; i < mesh.primitiveCount(); ++i)
     {
-        pInd[0].p0 = pMeshInd[0].p0 + mCurrIndex;
-        pInd[0].p1 = pMeshInd[0].p1 + mCurrIndex;
-        pInd[0].p2 = pMeshInd[0].p2 + mCurrIndex;
+        pInd[0].p0 = pMeshInd[0].p0 + mCurrPrimitive;
+        pInd[0].p1 = pMeshInd[0].p1 + mCurrPrimitive;
+        pInd[0].p2 = pMeshInd[0].p2 + mCurrPrimitive;
         pInd++;
         pMeshInd++;
     }
 
     mCurrVertex += mesh.vertexCount();
-    mCurrIndex += mesh.indexCount();
+    mCurrPrimitive += mesh.primitiveCount();
 }
 //------------------------------------------------------------------------------
 // ShapeBuilder (END)
@@ -151,7 +184,7 @@ void ShapeBuilder::pushMesh(const Mesh & mesh)
 
 Mesh * buildTriMesh(f32 width, f32 height)
 {
-    Mesh * pMesh = Mesh::create(kVERT_PosNorm, 3, kIND_Triangle, 1);
+    Mesh * pMesh = Mesh::create(kVERT_PosNorm, 3, kPRIM_Triangle, 1);
     ShapeBuilder sb(pMesh);
     
     f32 widthHalf = width * 0.5f;
@@ -174,6 +207,44 @@ Model * buildTriModel(f32 width, f32 height, Color color)
 
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
 
+    return pModel;
+}
+
+Model * build_box(const Vec3 & size, Color color)
+{
+    Material * pMat = GNEW(kMEM_Texture, Material, color);
+    Mesh * pMesh = Mesh::create(kVERT_PosNorm, 24, kPRIM_Triangle, 12);
+
+    ShapeBuilder builder(pMesh);
+
+    f32 xmax = size.x / 2.0f;
+    f32 xmin = -xmax;
+    
+    f32 ymax = size.y / 2.0f;
+    f32 ymin = -ymax;
+
+    f32 zmax = size.z / 2.0f;
+    f32 zmin = -zmax;
+
+    // Top
+    builder.pushQuad(Vec3(xmin, ymax, zmax), Vec3(xmin, ymin, zmax), Vec3(xmax, ymin, zmax), Vec3(xmax, ymax, zmax));
+
+    // Front
+    builder.pushQuad(Vec3(xmin, ymin, zmax), Vec3(xmin, ymin, zmin), Vec3(xmax, ymin, zmin), Vec3(xmax, ymin, zmax));
+
+    // Bottom
+    builder.pushQuad(Vec3(xmin, ymin, zmin), Vec3(xmin, ymax, zmin), Vec3(xmax, ymax, zmin), Vec3(xmax, ymin, zmin));
+
+    // Back
+    builder.pushQuad(Vec3(xmax, ymax, zmax), Vec3(xmax, ymax, zmin), Vec3(xmin, ymax, zmin), Vec3(xmin, ymax, zmax));
+
+    // Left
+    builder.pushQuad(Vec3(xmin, ymax, zmax), Vec3(xmin, ymax, zmin), Vec3(xmin, ymin, zmin), Vec3(xmin, ymin, zmax));
+
+    // Right
+    builder.pushQuad(Vec3(xmax, ymin, zmax), Vec3(xmax, ymin, zmin), Vec3(xmax, ymax, zmin), Vec3(xmax, ymax, zmax));
+
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }
 

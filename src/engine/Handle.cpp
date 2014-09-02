@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// shapes.h - Routines to create various geometrical shapes
+// Handle.cpp - Manages data reference sharing and access from Compose scripts
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -23,53 +23,28 @@
 //   3. This notice may not be removed or altered from any source
 //   distribution.
 //------------------------------------------------------------------------------
+#include "engine/stdafx.h"
 
-#ifndef GAEN_ENGINE_SHAPES_H
-#define GAEN_ENGINE_SHAPES_H
-
-#include "engine/Mesh.h"
-#include "engine/Model.h"
+#include "engine/Handle.h"
 
 namespace gaen
 {
 
-class ShapeBuilder
+Handle::Handle(u32 typeHash, u32 nameHash, u32 ownerTaskId, u32 dataSize, void * pData, HandleFreeFunc pFreeFunc)
+  : mTypeHash(typeHash)
+  , mNameHash(nameHash)
+  , mOwnerTaskId(ownerTaskId)
+  , mDataSize(dataSize)
+  , mpData(pData)
+  , mpFreeFunc(pFreeFunc)
 {
-public:
-    ShapeBuilder(Mesh * pMesh);
+}
 
-    void pushTri(const Vec3 & p0,
-                 const Vec3 & p1,
-                 const Vec3 & p2);
-    void pushTri(const Vec3 * pPoints);
+void Handle::free()
+{
+    if (mpFreeFunc)
+        mpFreeFunc(*this);
+}
 
-    void pushQuad(const Vec3 & p0,
-                  const Vec3 & p1,
-                  const Vec3 & p2,
-                  const Vec3 & p3);
-    void pushQuad(const Vec3 * pPoints);
-
-    void pushMesh(const Mesh & mesh);
-
-    Mesh & mesh() { return mMesh; }
-    u32 currVertex() { return mCurrVertex; }
-    u32 currPrimitive() { return mCurrPrimitive; }
-
-private:
-    Mesh & mMesh;
-    u32 mCurrVertex = 0;
-    u32 mCurrPrimitive = 0;
-};
-
-
-Mesh * buildTriMesh(f32 width, f32 height);
-
-Model * buildTriModel(f32 width, f32 height, Color color);
-
-
-Model * build_box(const Vec3 & size, Color color);
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_ENGINE_SHAPES_H
-

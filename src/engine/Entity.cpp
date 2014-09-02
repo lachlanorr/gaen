@@ -236,6 +236,8 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
     ASSERT(pComp);
     ASSERT(pComp == pLoc);
 
+    pComp->mpEntity = this;
+
     // Check if we have enough blocks for this new component
     if (mBlockCount + pComp->mBlockCount > mBlocksMax)
         growBlocks(pComp->mBlockCount);

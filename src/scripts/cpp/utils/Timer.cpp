@@ -21,14 +21,16 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 2644403e99ada21060f42197e87f98ce
+// HASH: bdc9c533fd143cb3b0504524998c68e4
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
 #include "engine/Task.h"
+#include "engine/Handle.h"
 #include "engine/Registry.h"
 #include "engine/Component.h"
 #include "engine/Entity.h"
+#include "engine/system_api.h"
 
 namespace gaen
 {
@@ -52,7 +54,7 @@ public:
             if ((last_notification() >= timer_interval()))
             {
                 {
-                    StackMessageBlockWriter<0> msgw(HASH::timer__uint, kMessageFlag_None, mEntityTaskId, mEntityTaskId, to_cell(timer_message()));
+                    StackMessageBlockWriter<0> msgw(HASH::timer__uint, kMessageFlag_None, mpEntity->task().id(), mpEntity->task().id(), to_cell(timer_message()));
                 }
                 last_notification() = 0.000000f;
             }

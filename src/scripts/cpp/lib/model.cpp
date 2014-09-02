@@ -21,14 +21,16 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: c7c8a2221b0167f04bc48f2ea1eb7dd9
+// HASH: c6c48e40ae7f1fad281d848e8f8c211e
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
 #include "engine/Task.h"
+#include "engine/Handle.h"
 #include "engine/Registry.h"
 #include "engine/Component.h"
 #include "engine/Entity.h"
+#include "engine/system_api.h"
 
 namespace gaen
 {

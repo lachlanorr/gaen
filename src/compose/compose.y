@@ -68,7 +68,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <numi> INT_LITERAL TRUE FALSE
 %token <numf> FLOAT_LITERAL
 
-%token <dataType> CHAR BYTE SHORT USHORT INT UINT LONG ULONG HALF FLOAT DOUBLE BOOL VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 VOID HANDLE
+%token <dataType> CHAR BYTE SHORT USHORT INT UINT LONG ULONG HALF FLOAT DOUBLE BOOL COLOR VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 VOID HANDLE_
 
 %token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN ENTITY COMPONENT COMPONENTS IMPORT
 %right ELSE THEN
@@ -280,9 +280,11 @@ expr
 
     | literal   { $$ = $1; }
 
+    | COLOR '(' fun_params ')'  { $$ = ast_create_color_init($3, pParseData); }
+    | VEC3  '(' fun_params ')'  { $$ = ast_create_vec3_init($3, pParseData); }
+    
     | IDENTIFIER '(' fun_params ')'  { $$ = ast_create_function_call($1, $3, pParseData); }
     | IDENTIFIER                    { $$ = ast_create_symbol_ref($1, pParseData); }
-    
     ;
 
 cond_expr
@@ -334,6 +336,7 @@ basic_type
     | FLOAT
     | DOUBLE
     | BOOL
+    | COLOR
     | VEC2
     | VEC3
     | VEC4
@@ -341,7 +344,7 @@ basic_type
     | MAT34
     | MAT4
     | VOID
-    | HANDLE
+    | HANDLE_
     ;
 
 %%

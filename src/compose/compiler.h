@@ -91,6 +91,7 @@ typedef enum
     kAST_Block,
     kAST_FunctionParams,
     kAST_FunctionCall,
+    kAST_SystemCall,
     kAST_SymbolRef,
     kAST_SymbolDecl,
     
@@ -147,6 +148,11 @@ typedef enum
     kAST_PostInc,
     kAST_PostDec,
 
+    kAST_ColorInit,
+    kAST_Vec2Init,
+    kAST_Vec3Init,
+    kAST_Vec4Init,
+    
     kAST_IntLiteral,
     kAST_FloatLiteral,
     kAST_StringLiteral,
@@ -260,6 +266,9 @@ Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * 
 Ast * ast_create_hash(const char * name, ParseData * pParseData);
 
 Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, ParseData * pParseData);
+
+Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData);
 
 Ast * ast_create_int_literal(int numi, ParseData * pParseData);
 Ast * ast_create_float_literal(float numf, ParseData * pParseData);

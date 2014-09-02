@@ -32,8 +32,10 @@ SET (engine_SOURCES
   Component.h
   Entity.cpp
   Entity.h
-  hashes.h
+  Handle.cpp
+  Handle.h
   hashes.cpp
+  hashes.h
   Material.cpp
   Material.h
   math.cpp
@@ -52,6 +54,10 @@ SET (engine_SOURCES
   renderer_type.h
   shapes.cpp
   shapes.h
+  system_api.cpp
+  system_api.h
+  system_api_meta.cpp
+  system_api_meta.h
   Task.cpp
   Task.h
   TaskMaster.cpp

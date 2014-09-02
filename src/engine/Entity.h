@@ -51,7 +51,12 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
+    const Mat34 & localTransform() const { return mLocalTransform; }
+    const Mat34 & globalTransform() const { return mGlobalTransform; }
+
 protected:
+    Entity & entity() { return *this; }
+    
     Task& insertComponent(u32 nameHash, u32 index);
 
     u32 findComponent(u32 nameHash);

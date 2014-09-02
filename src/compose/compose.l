@@ -85,6 +85,7 @@ ParseData * pParseData = yyextra;
 "float"  { yylval->dataType = kDT_float;  return FLOAT;  }
 "double" { yylval->dataType = kDT_double; return DOUBLE; }
 "bool"   { yylval->dataType = kDT_bool;   return BOOL;   }
+"color"  { yylval->dataType = kDT_color;  return COLOR;  }
 "vec2"   { yylval->dataType = kDT_vec2;   return VEC2;   }
 "vec3"   { yylval->dataType = kDT_vec3;   return VEC3;   }
 "vec4"   { yylval->dataType = kDT_vec4;   return VEC4;   }
@@ -92,7 +93,7 @@ ParseData * pParseData = yyextra;
 "mat34"  { yylval->dataType = kDT_mat34;  return MAT34;  }
 "mat4"   { yylval->dataType = kDT_mat4;   return MAT4;   }
 "void"   { yylval->dataType = kDT_void;   return VOID;   }
-"handle" { yylval->dataType = kDT_handle; return HANDLE; }
+"handle" { yylval->dataType = kDT_handle; return HANDLE_; }
 
 "if"       { parsedata_push_stmt_scope(pParseData); return IF;     }
 "else"     { parsedata_push_stmt_scope(pParseData); return ELSE;   }

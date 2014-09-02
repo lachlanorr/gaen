@@ -113,7 +113,10 @@ u32 data_type_cell_count(DataType dataType)
         return 12;
     case kDT_mat4:
         return 16;
+    case kDT_handle:
+        return 8;
     default:
+        PANIC("Unknown cell count for datatype: %d", dataType);
         return 0;
     }
 }

@@ -31,9 +31,9 @@
 namespace gaen
 {
 
-static u32 calc_size(u32 vertexStride, u32 vertexCount, u32 indexStride, u32 indexCount)
+static u32 calc_size(u32 vertexStride, u32 vertexCount, u32 primitiveStride, u32 primitiveCount)
 {
-    return (sizeof(Mesh) + vertexStride * vertexCount + indexStride * indexCount);
+    return (sizeof(Mesh) + vertexStride * vertexCount + primitiveStride * primitiveCount);
 }
 
 Mesh * Mesh::cast(u8 * pData, size_t dataSize)
@@ -43,45 +43,50 @@ Mesh * Mesh::cast(u8 * pData, size_t dataSize)
     if (!is_valid_vertex_type(pMesh->mVertexType))
         PANIC("Mesh invalid VertexType");
 
-    if (!is_valid_index_type(pMesh->mIndexType))
-        PANIC("Mesh invalid IndexType");
+    if (!is_valid_primitive_type(pMesh->mPrimitiveType))
+        PANIC("Mesh invalid PrimitiveType");
 
     if (dataSize <= sizeof(Mesh))
         PANIC("Mesh dataSize too small");
 
     u32 vertexStride = vertex_stride(pMesh->mVertexType);
-    u32 indexStride = index_stride(pMesh->mIndexType);
+    u32 primitiveStride = primitive_stride(pMesh->mPrimitiveType);
 
-    if (dataSize != calc_size(vertexStride, pMesh->mVertexCount, indexStride, pMesh->mIndexCount))
+    if (dataSize != calc_size(vertexStride, pMesh->mVertexCount, primitiveStride, pMesh->mPrimitiveCount))
         PANIC("Mesh invalid dataSize");
 
     if (pMesh->mVertexOffset != sizeof(Mesh))
         PANIC("Mesh invalid vertexOffset");
 
-    if (pMesh->mIndexOffset != sizeof(Mesh) + vertexStride * pMesh->mVertexCount)
+    if (pMesh->mPrimitiveOffset != sizeof(Mesh) + vertexStride * pMesh->mVertexCount)
         PANIC("Mesh invalid lineOffset or vertexCount");
 
     return pMesh;
 }
 
-Mesh * Mesh::create(VertexType vertexType, u32 vertexCount, IndexType indexType, u32 indexCount)
+Mesh * Mesh::create(VertexType vertexType, u32 vertexCount, PrimitiveType primitiveType, u32 primitiveCount)
 {
     u32 vertexStride = vertex_stride(vertexType);
-    u32 indexStride = index_stride(indexType);
+    u32 primitiveStride = primitive_stride(primitiveType);
 
-    u32 dataSize = calc_size(vertexStride, vertexCount, indexStride, indexCount);
+    u32 dataSize = calc_size(vertexStride, vertexCount, primitiveStride, primitiveCount);
     u8 * pData = static_cast<u8*>(GALLOC(kMEM_Model, dataSize));
 
     Mesh * pMesh = reinterpret_cast<Mesh*>(pData);
     pMesh->mVertexType = vertexType;
-    pMesh->mIndexType = indexType;
+    pMesh->mPrimitiveType = primitiveType;
     pMesh->mVertexCount = vertexCount;
-    pMesh->mIndexCount = indexCount;
+    pMesh->mPrimitiveCount = primitiveCount;
     pMesh->mVertexOffset = sizeof(Mesh);
-    pMesh->mIndexOffset = pMesh->mVertexOffset + vertexStride * vertexCount;
+    pMesh->mPrimitiveOffset = pMesh->mVertexOffset + vertexStride * vertexCount;
 
     // Return result of cast, since it will sanity check our struct is built properly
     return cast(pData, dataSize);
+}
+
+void destroy(Mesh * pMesh)
+{
+    GFREE(pMesh);
 }
 
 

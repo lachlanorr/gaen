@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// shapes.h - Routines to create various geometrical shapes
+// system_api_meta.h - Metadata for C functions callable from Compose scripts
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,52 +24,26 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_SHAPES_H
-#define GAEN_ENGINE_SHAPES_H
+#ifndef GAEN_COMPOSE_SYSTEM_API_META_H
+#define GAEN_COMPOSE_SYSTEM_API_META_H
 
-#include "engine/Mesh.h"
-#include "engine/Model.h"
+#include "core/base_defines.h"
+#include "engine/hashes.h"
+#include "engine/Handle.h"
+#include "compose/compiler.h"
 
 namespace gaen
 {
 
-class ShapeBuilder
+const u32 kMaxApiParams = 16;
+
+struct ApiSignature
 {
-public:
-    ShapeBuilder(Mesh * pMesh);
-
-    void pushTri(const Vec3 & p0,
-                 const Vec3 & p1,
-                 const Vec3 & p2);
-    void pushTri(const Vec3 * pPoints);
-
-    void pushQuad(const Vec3 & p0,
-                  const Vec3 & p1,
-                  const Vec3 & p2,
-                  const Vec3 & p3);
-    void pushQuad(const Vec3 * pPoints);
-
-    void pushMesh(const Mesh & mesh);
-
-    Mesh & mesh() { return mMesh; }
-    u32 currVertex() { return mCurrVertex; }
-    u32 currPrimitive() { return mCurrPrimitive; }
-
-private:
-    Mesh & mMesh;
-    u32 mCurrVertex = 0;
-    u32 mCurrPrimitive = 0;
+    u32 nameHash;
+    DataType returnType;
+    DataType paramTypes[kMaxApiParams];
 };
-
-
-Mesh * buildTriMesh(f32 width, f32 height);
-
-Model * buildTriModel(f32 width, f32 height, Color color);
-
-
-Model * build_box(const Vec3 & size, Color color);
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_SHAPES_H
-
+#endif // #ifndef GAEN_COMPOSE_SYSTEM_API_META_H

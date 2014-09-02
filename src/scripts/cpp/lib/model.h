@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 58d9b4204224c5ae337e86bda81f319c
+// HASH: f6344d54f9696311f5bf6f7247186c69
 #include "core/base_defines.h"
 
 namespace gaen
@@ -29,7 +29,7 @@ namespace gaen
 namespace funcs
 {
 
-handle create_box(f32 width, f32 height);
+Handle create_box(f32 width, f32 height);
 
 } // namespace func
 } // namespace gaen

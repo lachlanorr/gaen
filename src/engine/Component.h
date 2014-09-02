@@ -49,19 +49,22 @@ class Component
 public:
     Component()
       : mIsInit(0)
-      , mEntityTaskId(kInvalidTaskId){}
+      , mpEntity(nullptr){}
 
     Task & task() { return mTask; }
 
 protected:
+    Entity & entity() { return *mpEntity; }
+    
     Task mTask;
+    Entity * mpEntity;
     Block *mpBlocks;
     u32 mBlockCount:24;
     u32 mIsInit:8;
-    u32 mEntityTaskId;
+    u8 PADDING__[12];
 };
 
-static_assert(sizeof(Component) == 48, "Component unexpected size");
+static_assert(sizeof(Component) == 64, "Component unexpected size");
 
 } // namespace gaen
 

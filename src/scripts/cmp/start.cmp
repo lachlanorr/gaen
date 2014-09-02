@@ -31,11 +31,17 @@ entity start
 
     float #f_prop = 1.0;
     float f_field = 2.0;
+    handle boxModel = create_model_box(vec3(1.0, 1.0, 1.0), color(0, 0, 255, 255));
 
     components
     {
         Timer(timer_interval = 1.0,
               timer_message = #msg);
+    }
+
+    #init()
+    {
+
     }
 
     #update(float deltaSecs)

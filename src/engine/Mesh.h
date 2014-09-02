@@ -46,13 +46,13 @@ enum VertexType
     kVERT_END
 };
 
-enum IndexType
+enum PrimitiveType
 {
-    kIND_Point    = GAEN_4CC('I','D','X','A'),
-    kIND_Line     = GAEN_4CC('I','D','X','B'),
-    kIND_Triangle = GAEN_4CC('I','D','X','C'),
+    kPRIM_Point    = GAEN_4CC('P','R','M','A'),
+    kPRIM_Line     = GAEN_4CC('P','R','M','B'),
+    kPRIM_Triangle = GAEN_4CC('P','R','M','C'),
 
-    kIND_END
+    kPRIM_END
 };
 
 
@@ -101,54 +101,54 @@ inline bool is_valid_vertex_type(u32 vertexType)
     return vertexType >= kVERT_PosNorm && vertexType < kVERT_END;
 }
 
-inline bool is_valid_index_type(u32 indexType)
+inline bool is_valid_primitive_type(u32 primitiveType)
 {
-    return indexType >= kIND_Point && indexType < kIND_END;
+    return primitiveType >= kPRIM_Point && primitiveType < kPRIM_END;
 }
 
 inline u8 vertex_type_zero_based_id(VertexType vertexType)
 {
-    PANIC("Fix 4cc endianess issue");
-    return 0;
-//    ASSERT(is_valid_vertex_type(vertexType));
-//    return static_cast<u8>(static_cast<u32>(vertexType) - static_cast<u32>(kVERT_Pos));
+    // LORRTODO - Big endian support needed here if we ever port to such a platform
+    ASSERT(is_valid_vertex_type(vertexType));
+    static const u32 kSwapped_kVERT_Pos = BYTESWAP32(kVERT_Pos);
+    return (u8)(BYTESWAP32(vertexType) - kSwapped_kVERT_Pos);
 }
 
 inline u8 vertex_type_zero_based_id_end()
 {
-    PANIC("Fix 4cc endianess issue");
-    return 0;
-//    return static_cast<u8>(static_cast<u32>(kVERT_END) - static_cast<u32>(kVERT_Pos));
+    // LORRTODO - Big endian support needed here if we ever port to such a platform
+    static const u32 diff = BYTESWAP32(kVERT_END) - BYTESWAP32(kVERT_Pos);
+    return (u8)diff;
 }
 
 
-inline u8 index_type_zero_based_id(IndexType indexType)
+inline u8 primitive_type_zero_based_id(PrimitiveType primitiveType)
 {
-    PANIC("Fix 4cc endianess issue");
-    return 0;
-//    ASSERT(is_valid_index_type(indexType));
-//    return static_cast<u8>(static_cast<u32>(indexType) - static_cast<u32>(kIND_Point));
+    // LORRTODO - Big endian support needed here if we ever port to such a platform
+    ASSERT(is_valid_primitive_type(primitiveType));
+    static const u32 kSwapped_kPRIM_Point = BYTESWAP32(kPRIM_Point);
+    return (u8)(BYTESWAP32(primitiveType) - kSwapped_kPRIM_Point);
 }
 
-inline u8 index_type_zero_based_id_end()
+inline u8 primitive_type_zero_based_id_end()
 {
-    PANIC("Fix 4cc endianess issue");
-    return 0;
-//    return static_cast<u8>(static_cast<u32>(kIND_END) - static_cast<u32>(kIND_Point));
+    // LORRTODO - Big endian support needed here if we ever port to such a platform
+    static const u32 diff = BYTESWAP32(kPRIM_END) - BYTESWAP32(kPRIM_Point);
+    return (u8)diff;
 }
 
-struct IndexPoint
+struct PrimitivePoint
 {
-    IndexPoint(index p0)
+    PrimitivePoint(index p0)
       : p0(p0) {}
 
-    // a line is composed of 2 indices into point array
+    // a point is composed of a single index into point array
     index p0;
 };
 
-struct IndexLine
+struct PrimitiveLine
 {
-    IndexLine(index p0, index p1)
+    PrimitiveLine(index p0, index p1)
       : p0(p0), p1(p1) {}
 
     // a line is composed of 2 indices into point array
@@ -157,10 +157,10 @@ struct IndexLine
 };
 
 
-struct IndexTriangle
+struct PrimitiveTriangle
 {
     // a triangle is composed of 3 indices into point array
-    IndexTriangle(index p0, index p1, index p2)
+    PrimitiveTriangle(index p0, index p1, index p2)
       : p0(p0), p1(p1), p2(p2) {}
 
     index p0;
@@ -187,18 +187,18 @@ inline u32 vertex_stride(VertexType vertexType)
     }
 }
 
-inline u32 index_stride(IndexType indexType)
+inline u32 primitive_stride(PrimitiveType primitiveType)
 {
-    switch(indexType)
+    switch(primitiveType)
     {
-    case kIND_Point:
-        return sizeof(index);
-    case kIND_Line:
-        return sizeof(IndexLine);
-    case kIND_Triangle:
-        return sizeof(IndexTriangle);
+    case kPRIM_Point:
+        return sizeof(PrimitivePoint);
+    case kPRIM_Line:
+        return sizeof(PrimitiveLine);
+    case kPRIM_Triangle:
+        return sizeof(PrimitiveTriangle);
     default:
-        PANIC("Invalid IndexType: %d", indexType);
+        PANIC("Invalid PrimitiveType: %d", primitiveType);
         return 0;
     }
 }
@@ -207,14 +207,14 @@ inline u32 index_stride(IndexType indexType)
 //-------------------------------------------
 // Comparison operators for Polygon and Line
 //-------------------------------------------
-inline bool operator==(const IndexTriangle & lhs, const IndexTriangle & rhs)
+inline bool operator==(const PrimitiveTriangle & lhs, const PrimitiveTriangle & rhs)
 {
     return lhs.p0 == rhs.p0 &&
         lhs.p1 == rhs.p1 &&
         lhs.p2 == rhs.p2;
 }
 
-inline bool operator<(const IndexTriangle & lhs, const IndexTriangle & rhs)
+inline bool operator<(const PrimitiveTriangle & lhs, const PrimitiveTriangle & rhs)
 {
     if(lhs.p0 != rhs.p0)
         return lhs.p0 < rhs.p0;
@@ -227,7 +227,7 @@ inline bool operator<(const IndexTriangle & lhs, const IndexTriangle & rhs)
     return false;
 }
 
-inline bool operator==(const IndexLine & lhs, const IndexLine & rhs)
+inline bool operator==(const PrimitiveLine & lhs, const PrimitiveLine & rhs)
 {
     // do a simple sort of points to consider two lines equal even if
     // their points are in different order
@@ -260,7 +260,7 @@ inline bool operator==(const IndexLine & lhs, const IndexLine & rhs)
         line0p1 == line1p1;
 }
 
-inline bool operator<(const IndexLine & lhs, const IndexLine & rhs)
+inline bool operator<(const PrimitiveLine & lhs, const PrimitiveLine & rhs)
 {
     // do a simple sort of points to consider two lines equal even if
     // their points are in different order
@@ -302,7 +302,7 @@ class Mesh
 {
 public:
     VertexType vertexType() const { return mVertexType; }
-    IndexType indexType() const { return mIndexType; }
+    PrimitiveType primitiveType() const { return mPrimitiveType; }
 
     f32 * vertices()
     {
@@ -316,12 +316,12 @@ public:
 
     index * indices()
     {
-        return reinterpret_cast<index*>(reinterpret_cast<u8*>(this) + mIndexOffset);
+        return reinterpret_cast<index*>(reinterpret_cast<u8*>(this) + mPrimitiveOffset);
     }
 
     const index * indices() const
     {
-        return reinterpret_cast<const index*>(reinterpret_cast<const u8*>(this) + mIndexOffset);
+        return reinterpret_cast<const index*>(reinterpret_cast<const u8*>(this) + mPrimitiveOffset);
     }
 
     //--------------------------------------------------------------------------
@@ -375,35 +375,35 @@ public:
         return reinterpret_cast<const VertexPosNormUvTan*>(vertices());
     }
 
-    operator IndexPoint*()
+    operator PrimitivePoint*()
     {
-        ASSERT(mIndexType == kIND_Point);
-        return reinterpret_cast<IndexPoint*>(indices());
+        ASSERT(mPrimitiveType == kPRIM_Point);
+        return reinterpret_cast<PrimitivePoint*>(indices());
     }
-    operator const IndexPoint*() const
+    operator const PrimitivePoint*() const
     {
-        ASSERT(mIndexType == kIND_Point);
-        return reinterpret_cast<const IndexPoint*>(indices());
+        ASSERT(mPrimitiveType == kPRIM_Point);
+        return reinterpret_cast<const PrimitivePoint*>(indices());
     }
-    operator IndexLine*()
+    operator PrimitiveLine*()
     {
-        ASSERT(mIndexType == kIND_Line);
-        return reinterpret_cast<IndexLine*>(indices());
+        ASSERT(mPrimitiveType == kPRIM_Line);
+        return reinterpret_cast<PrimitiveLine*>(indices());
     }
-    operator const IndexLine*() const
+    operator const PrimitiveLine*() const
     {
-        ASSERT(mIndexType == kIND_Line);
-        return reinterpret_cast<const IndexLine*>(indices());
+        ASSERT(mPrimitiveType == kPRIM_Line);
+        return reinterpret_cast<const PrimitiveLine*>(indices());
     }
-    operator IndexTriangle*()
+    operator PrimitiveTriangle*()
     {
-        ASSERT(mIndexType == kIND_Triangle);
-        return reinterpret_cast<IndexTriangle*>(indices());
+        ASSERT(mPrimitiveType == kPRIM_Triangle);
+        return reinterpret_cast<PrimitiveTriangle*>(indices());
     }
-    operator const IndexTriangle*() const
+    operator const PrimitiveTriangle*() const
     {
-        ASSERT(mIndexType == kIND_Triangle);
-        return reinterpret_cast<const IndexTriangle*>(indices());
+        ASSERT(mPrimitiveType == kPRIM_Triangle);
+        return reinterpret_cast<const PrimitiveTriangle*>(indices());
     }
     //--------------------------------------------------------------------------
     // Cast operators (END)
@@ -411,10 +411,11 @@ public:
 
 
     u32 vertexCount() const { return mVertexCount; }
-    u32 indexCount() const { return mIndexCount; }
+    u32 primitiveCount() const { return mPrimitiveCount; }
 
     static Mesh * cast(u8 * pData, size_t dataSize);
-    static Mesh * create(VertexType vertexType, u32 vertexCount, IndexType indexType, u32 indexCount);
+    static Mesh * create(VertexType vertexType, u32 vertexCount, PrimitiveType primitiveType, u32 primitiveCount);
+    static void destroy(Mesh * pMesh);
 
 private:
     // Class should not be constructed directly.  Use cast and create static methods.
@@ -423,11 +424,11 @@ private:
     Mesh & operator=(const Mesh&) = delete;
 
     VertexType mVertexType;
-    IndexType mIndexType;
+    PrimitiveType mPrimitiveType;
     u32 mVertexOffset;
-    u32 mIndexOffset;
+    u32 mPrimitiveOffset;
     index mVertexCount;
-    index mIndexCount;
+    index mPrimitiveCount;
 };
 
 
@@ -440,10 +441,10 @@ static_assert(sizeof(VertexPosNormUv) == 32,         "geometry struct has unexpe
 static_assert(sizeof(VertexPosNormUv[10]) == 320,    "geometry struct has unexpected size");
 static_assert(sizeof(VertexPosNormUvTan) == 48,      "geometry struct has unexpected size");
 static_assert(sizeof(VertexPosNormUvTan[10]) == 480, "geometry struct has unexpected size");
-static_assert(sizeof(IndexTriangle) == 6,            "geometry struct has unexpected size");
-static_assert(sizeof(IndexTriangle[10]) == 60,       "geometry struct has unexpected size");
-static_assert(sizeof(IndexLine) == 4,                "geometry struct has unexpected size");
-static_assert(sizeof(IndexLine[10]) == 40,           "geometry struct has unexpected size");
+static_assert(sizeof(PrimitiveTriangle) == 6,            "geometry struct has unexpected size");
+static_assert(sizeof(PrimitiveTriangle[10]) == 60,       "geometry struct has unexpected size");
+static_assert(sizeof(PrimitiveLine) == 4,                "geometry struct has unexpected size");
+static_assert(sizeof(PrimitiveLine[10]) == 40,           "geometry struct has unexpected size");
 static_assert(sizeof(Mesh) % sizeof(f32) == 0,       "Mesh struct size not aligned. Must be multiple of sizeof(f32)");
 
 } // namespace gaen
