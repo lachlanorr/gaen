@@ -219,7 +219,7 @@ HASHES_CPP_TEMPLATE = ('//------------------------------------------------------
                     '#include "core/String.h"\n'
                     '#endif // #if HAS(TRACK_HASHES)\n'
                     '\n'
-                    '#define HASH_FUNC ::gaen::fnv1a_32\n'
+                    '#define HASH_FUNC ::gaen::gaen_hash\n'
                     '\n'
                     'namespace gaen\n'
                     '{\n'

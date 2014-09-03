@@ -35,6 +35,7 @@
 #include "engine/hashes.h"
 #include "engine/Message.h"
 #include "engine/Task.h"
+#include "engine/Registry.h"
 
 namespace gaen
 {
@@ -57,7 +58,7 @@ void fin_task_masters();
 // loops.  This function will return immediately, main thread
 // should be used for OS tasks, or go to sleep.
 template <class RendererT>
-void start_game_loops(Entity * pInitEntity);
+void start_game_loops();
 
 // Get the correct message queue against which you should queue
 template <class RendererT>
@@ -179,6 +180,8 @@ private:
     bool mIsPrimary = false; // primary task master has GPU, handles rendering/physics
     bool mIsInit = false;
     bool mIsRunning = false;
+
+    Registry mRegistry;
 };
 
 } // namespace gaen

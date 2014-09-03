@@ -40,6 +40,7 @@
 
 namespace gaen
 {
+extern void register_all_entities_and_components(Registry & registry);
 
 static const u32 kMaxMainMessages = 4096;
 static const u32 kMaxTaskMasterMessages = 4096;
@@ -95,7 +96,7 @@ static void start_game_loop()
 }
 
 template <class RendererT>
-void start_game_loops(Entity * pInitEntity)
+void start_game_loops()
 {
     ASSERT(sIsInit);
     thread_id numThreads = num_threads();
@@ -106,19 +107,6 @@ void start_game_loops(Entity * pInitEntity)
         start_thread(start_game_loop<RendererT>);
     }
 
-    if (pInitEntity)
-    {
-        // Create a task out of the entity and start it up
-        Task entityTask = Task::createUpdatable(pInitEntity, 0);
-        {
-            msg::InsertTaskQW msgw(HASH::insert_task,
-                                   kMessageFlag_None,
-                                   kMainThreadTaskId,
-                                   kPrimaryThreadId,
-                                   kPrimaryThreadId);
-            msgw.setTask(entityTask);
-        }
-    }
 }
 
 template <class RendererT>
@@ -200,6 +188,8 @@ void TaskMaster<RendererT>::init(thread_id tid)
     mTaskOwnerMap.reserve(kEstimatedTaskCount);
     mMutableDataUsers.reserve(kEstimatedMutableDataCount);
     mMutableData.reserve(kEstimatedTaskCount);
+
+    register_all_entities_and_components(mRegistry);
 
     mIsInit = true;
 }
@@ -293,6 +283,24 @@ void TaskMaster<RendererT>::runPrimaryGameLoop()
 
     mpRenderer->initRenderDevice();
     mpRenderer->initViewport();
+
+    // LORRREG
+    //--/
+    /*
+    // Init the start entity now that we have a TaskMaster running.
+    Entity * pStartEntity = EntityRegistry::construct(HASH::start, 32);
+    if (pStartEntity)
+        LOG_INFO("Start entity: %s", startEntityName);
+    else
+        LOG_ERROR("Unable to start entity: %s", startEntityName);
+    if (pStartEntity)
+    {
+        // Create a task out of the entity and start it up
+        Task entityTask = Task::createUpdatable(pStartEntity, 0);
+        insertTask(threadId(), entityTask);
+    }
+    */
+    //--//
 
     f32 lastFrameTime = 0.0f;
     
@@ -496,7 +504,7 @@ void TaskMaster<RendererT>::insertTask(thread_id threadOwner, const Task & task)
 template class TaskMaster<renderer_type>;
 template void init_task_masters<renderer_type>();
 template void fin_task_masters<renderer_type>();
-template void start_game_loops<renderer_type>(Entity * pInitEntity);
+template void start_game_loops<renderer_type>();
 
 template MessageQueue & get_message_queue<renderer_type>(u32 msgId,
                                                          u32 flags,

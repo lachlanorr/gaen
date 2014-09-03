@@ -42,12 +42,13 @@ public:
     Handle(u32 typeHash, u32 nameHash, u32 ownerTaskId, u32 dataSize, void * pData, HandleFreeFunc pFreeFunc);
     void free();
 
-    u32 typeHash() { return mTypeHash; }
-    u32 nameHash() { return mNameHash; }
-    u32 ownerTaskId() { return mOwnerTaskId; }
+    u32 typeHash() const { return mTypeHash; }
+    u32 nameHash() const { return mNameHash; }
+    u32 ownerTaskId() const { return mOwnerTaskId; }
 
-    u32 dataSize() { return mDataSize; }
+    u32 dataSize() const { return mDataSize; }
     void * data() { return mpData; }
+    const void * data() const { return mpData; }
 
 private:
     u32 mTypeHash;

@@ -178,8 +178,7 @@ template <> struct hash<gaen::CompString>
 {
     size_t operator()(const gaen::CompString & str) const
     {
-        // LORRTODO - consider a 64 bit hash for here, but for now fnv1a_32 will suffice
-        return gaen::fnv1a_32(str.c_str());
+        return gaen::gaen_hash(str.c_str());
     }
 };
 }

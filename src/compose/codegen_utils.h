@@ -33,6 +33,8 @@
 namespace gaen
 {
 
+struct ApiSignature;
+const ApiSignature * find_api(const char * name);
 
 // If pAst contains a message def called "Update", return it
 // otherwise return null

@@ -42,8 +42,6 @@
 
 namespace gaen
 {
-extern void register_all_entities_and_components();
-
 static const char * kDefaultMemInitStr = "16:100,64:100,256:100,1024:100,4096:100";
 static const size_t kMaxMemInitStrLen = 256;
 static char sMemInitStr[kMaxMemInitStrLen] = {0};
@@ -190,18 +188,6 @@ void init_gaen(int argc, char ** argv)
     init_memory_manager(sMemInitStr);
 
     init_task_masters<renderer_type>();
-
-    register_all_entities_and_components();
-}
-
-Entity * init_start_entity(const char * startEntityName)
-{
-    Entity * pStartEntity = EntityRegistry::construct(HASH::hash_func(startEntityName), 32);
-    if (pStartEntity)
-        LOG_INFO("Start engityt: %s", startEntityName);
-    else
-        LOG_ERROR("Unable to start entity: %s", startEntityName);
-    return pStartEntity;
 }
 
 void fin_gaen()

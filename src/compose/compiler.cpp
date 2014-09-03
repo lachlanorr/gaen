@@ -34,6 +34,7 @@
 #include "compose/compiler_structs.h"
 #include "compose/codegen_utils.h"
 #include "compose/utils.h"
+#include "compose/system_api_meta.h"
 
 extern "C" {
 #define YYDEBUG 1
@@ -43,7 +44,6 @@ extern "C" {
 }
 
 using namespace gaen;
-
 
 int parse_int(const char * pStr, int base)
 {

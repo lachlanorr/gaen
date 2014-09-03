@@ -28,7 +28,7 @@
 
 #include "engine/hashes.h"
 #include "engine/Block.h"
-#include "engine/system_api.h"
+#include "compose/system_api_meta.h"
 #include "compose/codegen_cpp.h"
 #include "compose/compiler_structs.h"
 #include "compose/codegen_utils.h"
@@ -534,9 +534,9 @@ static S codegen_recurse(const Ast * pAst,
 
         // Registration
         S reg_func_name = S("register_entity_") + entName;
-        code += I + S("void ") + reg_func_name + S("()\n");
+        code += I + S("void ") + reg_func_name + S("(Registry & registry)\n");
         code += I + "{\n";
-        code += (I + S("    if (!EntityRegistry::register_constructor(HASH::") +
+        code += (I + S("    if (!registry.registerEntityConstructor(HASH::") +
                  entName + S(", ent::") + entName + S("::construct))\n"));
         code += (I + S("        PANIC(\"Unable to register entity: ") +
                  entName + S("\");\n"));
@@ -645,9 +645,9 @@ static S codegen_recurse(const Ast * pAst,
 
         // Registration
         S reg_func_name = S("register_component_") + compName;
-        code += I + S("void ") + reg_func_name + S("()\n");
+        code += I + S("void ") + reg_func_name + S("(Registry & registry)\n");
         code += I + "{\n";
-        code += (I + S("    if (!ComponentRegistry::register_constructor(HASH::") +
+        code += (I + S("    if (!registry.registerComponentConstructor(HASH::") +
                  compName + S(", comp::") + compName + S("::construct))\n"));
         code += (I + S("        PANIC(\"Unable to register component: ") +
                  compName + S("\");\n"));

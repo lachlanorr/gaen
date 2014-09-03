@@ -40,6 +40,8 @@ SET (compose_SOURCES
   compose_parser.h
   compose_scanner.c
   compose_scanner.h
+  system_api_meta.cpp
+  system_api_meta.h
   utils.cpp
   utils.h
   )

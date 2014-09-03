@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: bdc9c533fd143cb3b0504524998c68e4
+// HASH: 431ab3161b072c7913025774a6346b28
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -122,9 +122,9 @@ private:
 
 } // namespace comp
 
-void register_component_Timer()
+void register_component_Timer(Registry & registry)
 {
-    if (!ComponentRegistry::register_constructor(HASH::Timer, comp::Timer::construct))
+    if (!registry.registerComponentConstructor(HASH::Timer, comp::Timer::construct))
         PANIC("Unable to register component: Timer");
 }
 

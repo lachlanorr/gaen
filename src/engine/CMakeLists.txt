@@ -50,14 +50,13 @@ SET (engine_SOURCES
   Model.h
   ModelMgr.cpp
   ModelMgr.h
+  Registry.cpp
   Registry.h
   renderer_type.h
   shapes.cpp
   shapes.h
   system_api.cpp
   system_api.h
-  system_api_meta.cpp
-  system_api_meta.h
   Task.cpp
   Task.h
   TaskMaster.cpp

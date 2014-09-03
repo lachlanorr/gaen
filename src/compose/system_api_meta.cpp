@@ -25,7 +25,7 @@
 //------------------------------------------------------------------------------
 #include "engine/stdafx.h"
 
-#include "engine/system_api_meta.h"
+#include "compose/system_api_meta.h"
 
 namespace gaen
 {

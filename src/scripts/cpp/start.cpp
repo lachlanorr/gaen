@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: da3df053a1a579b98c2a7672fc8ef680
+// HASH: 64b910d72e170fa736f3a558d97ea170
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -134,9 +134,9 @@ private:
 
 } // namespace ent
 
-void register_entity_start()
+void register_entity_start(Registry & registry)
 {
-    if (!EntityRegistry::register_constructor(HASH::start, ent::start::construct))
+    if (!registry.registerEntityConstructor(HASH::start, ent::start::construct))
         PANIC("Unable to register entity: start");
 }
 

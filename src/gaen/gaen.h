@@ -45,8 +45,6 @@ void set_renderer(RendererT * pRenderer)
     tm.setRenderer(pRenderer);
 }
 
-Entity * init_start_entity(const char * startEntityName = "start");
-
 // Call this to shutdown TaskMasters when app wants to close
 void fin_gaen();
 

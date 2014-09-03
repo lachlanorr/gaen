@@ -231,7 +231,9 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
     }
 
     Component * pLoc = &mpComponents[index];
-    Component * pComp = ComponentRegistry::construct(nameHash, pLoc);
+    // LORRREG
+    //--//Component * pComp = ComponentRegistry::construct(nameHash, pLoc);
+    Component * pComp = nullptr; //--//
 
     ASSERT(pComp);
     ASSERT(pComp == pLoc);

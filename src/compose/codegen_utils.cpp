@@ -26,8 +26,11 @@
 
 #include <algorithm>
 
+#include "core/HashMap.h"
+#include "core/hashing.h"
 #include "engine/Block.h"
 #include "compose/codegen_utils.h"
+#include "compose/system_api_meta.h"
 
 // Define BlockInfo constructor here to avoid issues including this file from compiler_structs.h
 BlockInfo::BlockInfo(Ast * pAst)
@@ -43,6 +46,33 @@ BlockInfo::BlockInfo(Ast * pAst)
 
 namespace gaen
 {
+
+    extern ApiSignature gApiSignatures[];
+    const ApiSignature * find_api(const char * name)
+    {
+        static bool isInit = false;
+        static HashMap<kMEM_Compose, u32, const ApiSignature*> apiMap;
+        if (!isInit)
+        {
+            ApiSignature * pSig = &gApiSignatures[0];
+            while (pSig->nameHash != 0)
+            {
+                apiMap[pSig->nameHash] = pSig;
+                pSig++;
+            }
+            isInit = true;
+        }
+
+        u32 nameHash = gaen_hash(name);
+
+        auto it = apiMap.find(nameHash);
+        if (it == apiMap.end())
+        {
+            PANIC("Cannot find Compose system api: %u", nameHash);
+        }
+        return it->second;
+    }
+
 
 bool is_update_message_def(const Ast * pAst)
 {

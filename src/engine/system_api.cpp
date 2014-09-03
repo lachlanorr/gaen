@@ -32,37 +32,9 @@
 #include "engine/messages/InsertModelInstance.h"
 
 #include "engine/system_api.h"
-#include "engine/system_api_meta.h"
 
 namespace gaen
 {
-
-extern ApiSignature gApiSignatures[];
-
-const ApiSignature * find_api(const char * name)
-{
-    static bool isInit = false;
-    static HashMap<kMEM_Compose, u32, const ApiSignature*> apiMap;
-    if (!isInit)
-    {
-        ApiSignature * pSig = &gApiSignatures[0];
-        while (pSig->nameHash != 0)
-        {
-            apiMap[pSig->nameHash] = pSig;
-            pSig++;
-        }
-        isInit = true;
-    }
-
-    u32 nameHash = HASH::hash_func(name);
-
-    auto it = apiMap.find(nameHash);
-    if (it == apiMap.end())
-    {
-        PANIC("Cannot find Compose system api: %u", nameHash);
-    }
-    return it->second;
-}
 
 //------------------------------------------------------------------------------
 // API Defs start here
@@ -78,10 +50,15 @@ Handle create_model_box(const Vec3 & size, const Color & color, const Entity & c
     return Handle(HASH::Model, 0, 0, sizeof(Model), pModel, nullptr);
 }
 
-void renderer_insert_model_instance(const Handle & modelHandle, const u32 & instanceId, const Mat34 & transform, const Entity & caller)
+void renderer_insert_model_instance(Handle & modelHandle, const u32 & instanceId, const Mat34 & transform, const Entity & caller)
 {
-    //InsertModelInstanceQW msgQW(HASH::renderer_insert_model_instance,
-                                
+    if (modelHandle.typeHash() != HASH::Model)
+        PANIC("Invalid model handle");
+
+    msg::InsertModelInstanceQW msgQW(HASH::renderer_insert_model_instance, kMessageFlag_None, caller.task().id(), kRendererTaskId, instanceId);
+    msgQW.setIsAssetManaged(true);
+    msgQW.setModel((Model*)modelHandle.data());
+    msgQW.setWorldTransform(transform);
 }
 
 } // namespace system_api

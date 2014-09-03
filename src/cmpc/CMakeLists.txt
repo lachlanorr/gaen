@@ -37,7 +37,6 @@ ADD_EXECUTABLE (cmpc
 TARGET_LINK_LIBRARIES (cmpc
   compose
   core
-  engine
   ${PLATFORM_LINK_LIBS}
   )
 

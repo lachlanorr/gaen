@@ -44,7 +44,8 @@ public:
     Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax);
     ~Entity();
 
-    const Task & task() { return mTask; }
+    const Task & task() const { return mTask; }
+    Task & task() { return mTask; }
 
     void update(f32 deltaSecs);
 

@@ -30,87 +30,29 @@
 #include "core/base_defines.h"
 #include "core/HashMap.h"
 
-#include "engine/Component.h"
-#include "engine/Entity.h"
-
 namespace gaen
 {
 
-class ComponentRegistry
+class Component;
+class Entity;
+
+class Registry
 {
 public:
-    typedef Component * (*Constructor)(void * place);
+    typedef Component * (*ComponentConstructor)(void * place);
+    typedef Entity * (*EntityConstructor)(u32 childCount);
 
-    static bool register_constructor(u32 nameHash, Constructor constructor)
-    {
-        auto it = singleton<ComponentRegistry>().mConstructors.find(nameHash);
+    bool registerComponentConstructor(u32 nameHash, ComponentConstructor constructor);
+    Component * constructComponent(u32 nameHash, void * place);
 
-        if (it != singleton<ComponentRegistry>().mConstructors.end())
-        {
-            PANIC("Hash already registered: 0x%08x", nameHash);
-            return false;
-        }
-    
-        singleton<ComponentRegistry>().mConstructors[nameHash] = constructor;
-        return true;
-    }
-    
-    static Component * construct(u32 nameHash, void * place)
-    {
-        auto it = singleton<ComponentRegistry>().mConstructors.find(nameHash);
-
-        if (it == singleton<ComponentRegistry>().mConstructors.end())
-        {
-            PANIC("Unknown hash, cannot construct: 0x%08x", nameHash);
-            return nullptr;
-        }
-    
-        return it->second(place);
-    }
+    bool registerEntityConstructor(u32 nameHash, EntityConstructor constructor);
+    Entity * constructEntity(u32 nameHash, u32 childCount);
 
 private:
-    HashMap<kMEM_Engine, u32, Constructor> mConstructors;
+    HashMap<kMEM_Engine, u32, ComponentConstructor> mComponentConstructors;
+    HashMap<kMEM_Engine, u32, EntityConstructor> mEntityConstructors;
+    
 };
-
-
-class EntityRegistry
-{
-public:
-    typedef Entity * (*Constructor)(u32 childCount);
-
-    static bool register_constructor(u32 nameHash, Constructor constructor)
-    {
-        auto it = singleton<EntityRegistry>().mConstructors.find(nameHash);
-
-        if (it != singleton<EntityRegistry>().mConstructors.end())
-        {
-            PANIC("Hash already registered: 0x%08x", nameHash);
-            return false;
-        }
-    
-        singleton<EntityRegistry>().mConstructors[nameHash] = constructor;
-        return true;
-    }
-    
-    static Entity * construct(u32 nameHash, u32 childCount)
-    {
-        auto it = singleton<EntityRegistry>().mConstructors.find(nameHash);
-
-        if (it == singleton<EntityRegistry>().mConstructors.end())
-        {
-            PANIC("Unknown hash, cannot construct: 0x%08x", nameHash);
-            return nullptr;
-        }
-    
-        return it->second(childCount);
-    }
-
-private:
-    HashMap<kMEM_Engine, u32, Constructor> mConstructors;
-};
-
-
-
 
 } // namespace gaen
 

@@ -34,6 +34,13 @@ namespace gaen
 
 u32 fnv1a_32(const char *str);
 
+// Use this everywhere, avoid using fnv1a_32 direectly since we may
+// change the algorithm some day.
+inline u32 gaen_hash(const char * str)
+{
+    return fnv1a_32(str);
+}
+
 } // namespace gaen
 
 
