@@ -60,6 +60,9 @@ void fin_task_masters();
 template <class RendererT>
 void start_game_loops();
 
+template <class RendererT>
+Registry & get_registry();
+
 // Get the correct message queue against which you should queue
 template <class RendererT>
 MessageQueue & get_message_queue(u32 msgId,
@@ -77,6 +80,7 @@ void broadcast_message(u32 msgId,
 
 // Convenience macros to avoid repeated template param render_type in
 // all calls.  It will always be render_type.
+#define GET_REGISTRY get_registry<renderer_type>
 #define GET_MESSAGE_QUEUE get_message_queue<renderer_type>
 #define BROADCAST_MESSAGE broadcast_message<renderer_type>
 
@@ -111,6 +115,8 @@ public:
     }
 
     MessageQueue & messageQueueForTarget(task_id target);
+
+    Registry & registry() { return mRegistry; }
 
     // Start the game loop.  This function won't return
     // until the TaskMaster gets shut down.

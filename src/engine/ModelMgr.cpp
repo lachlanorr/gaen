@@ -40,14 +40,14 @@ ModelMgr::MeshIterator::MeshIterator(const ShaderModelMap::const_iterator & shad
 {
     mShaderModelIterator = shaderModelIterator;
     mModelMeshIterator = modelMeshIterator;
-    mMeshIterator = meshIterator;
+    mMeshListIterator = meshIterator;
 }
 
 const ModelMgr::MeshIterator& ModelMgr::MeshIterator::operator++()
 {
-    ++mMeshIterator;
+    ++mMeshListIterator;
 
-    if (mMeshIterator == mModelMeshIterator->second.end())
+    if (mMeshListIterator == mModelMeshIterator->second.end())
     {
         ++mModelMeshIterator;
 
@@ -57,7 +57,7 @@ const ModelMgr::MeshIterator& ModelMgr::MeshIterator::operator++()
             mModelMeshIterator = mShaderModelIterator->second.begin();
         }
 
-        mMeshIterator = mModelMeshIterator->second.begin();
+        mMeshListIterator = mModelMeshIterator->second.begin();
     }
 
     return *this;
@@ -65,12 +65,12 @@ const ModelMgr::MeshIterator& ModelMgr::MeshIterator::operator++()
 
 bool ModelMgr::MeshIterator::operator!=(const MeshIterator & rhs) const
 {
-    return mMeshIterator != rhs.mMeshIterator;
+    return mMeshListIterator->pModelInstance != rhs.mMeshListIterator->pModelInstance;
 }
 
 const ModelMgr::MaterialMeshInstance & ModelMgr::MeshIterator::operator*() const
 {
-    return *mMeshIterator;
+    return *mMeshListIterator;
 }
 
 

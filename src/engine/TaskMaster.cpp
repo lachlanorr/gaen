@@ -110,6 +110,18 @@ void start_game_loops()
 }
 
 template <class RendererT>
+Registry & get_registry()
+{
+    ASSERT(sIsInit);
+
+    thread_id activeThreadId = active_thread_id();
+
+    ASSERT(activeThreadId < num_threads());
+    TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(activeThreadId);
+    return tm.registry();
+}
+
+template <class RendererT>
 MessageQueue & get_message_queue(u32 msgId,
                                  u32 flags,
                                  task_id source,
@@ -284,23 +296,19 @@ void TaskMaster<RendererT>::runPrimaryGameLoop()
     mpRenderer->initRenderDevice();
     mpRenderer->initViewport();
 
-    // LORRREG
-    //--/
-    /*
+    // LORRTODO - make start entity name dynamic based on command line args
     // Init the start entity now that we have a TaskMaster running.
-    Entity * pStartEntity = EntityRegistry::construct(HASH::start, 32);
+    Entity * pStartEntity = mRegistry.constructEntity(HASH::start, 32);
     if (pStartEntity)
-        LOG_INFO("Start entity: %s", startEntityName);
+        LOG_INFO("Start entity: %s", "start");
     else
-        LOG_ERROR("Unable to start entity: %s", startEntityName);
+        LOG_ERROR("Unable to start entity: %s", "start");
     if (pStartEntity)
     {
         // Create a task out of the entity and start it up
         Task entityTask = Task::createUpdatable(pStartEntity, 0);
         insertTask(threadId(), entityTask);
     }
-    */
-    //--//
 
     f32 lastFrameTime = 0.0f;
     
@@ -505,6 +513,8 @@ template class TaskMaster<renderer_type>;
 template void init_task_masters<renderer_type>();
 template void fin_task_masters<renderer_type>();
 template void start_game_loops<renderer_type>();
+
+template Registry & get_registry<renderer_type>();
 
 template MessageQueue & get_message_queue<renderer_type>(u32 msgId,
                                                          u32 flags,

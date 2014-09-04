@@ -94,7 +94,7 @@ public:
 
         ShaderModelMap::const_iterator mShaderModelIterator;
         ModelMeshMap::const_iterator mModelMeshIterator;
-        MeshList::const_iterator mMeshIterator;
+        MeshList::const_iterator mMeshListIterator;
         
     };
     friend class MeshIterator;

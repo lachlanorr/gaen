@@ -35,7 +35,7 @@ namespace gaen
 
 // We only have 28 bits per task_id inside of the Task and Message structures.
 // If you change the size in either of those structs, all of them must change.
-static const task_id kMaxTaskId = (2 << 28) - 1;
+static const task_id kMaxTaskId = (1 << 28) - 1;
 
 // LORRTODO - do we still need this kRootTaskId?  We're no longer doing the tree thing
 static const task_id kRootTaskId         = 0; // A task with this as their parent is a top level, root task

@@ -61,8 +61,16 @@ void RendererGL::render()
 {
     ASSERT(mIsInit);
 
-    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    ModelMgr::MeshIterator meshIt = mModelMgr.begin();
+    ModelMgr::MeshIterator meshItEnd = mModelMgr.end();
+
+    while (meshIt != meshItEnd)
+    {
+        ++meshIt;
+    }
 }
 
 void RendererGL::initViewport()

@@ -30,6 +30,7 @@
 #include "core/logging.h"
 #include "engine/hashes.h"
 #include "engine/Registry.h"
+#include "engine/renderer_type.h"
 
 #include "engine/messages/InsertComponent.h"
 
@@ -231,9 +232,7 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
     }
 
     Component * pLoc = &mpComponents[index];
-    // LORRREG
-    //--//Component * pComp = ComponentRegistry::construct(nameHash, pLoc);
-    Component * pComp = nullptr; //--//
+    Component * pComp = GET_REGISTRY().constructComponent(nameHash, pLoc);
 
     ASSERT(pComp);
     ASSERT(pComp == pLoc);
