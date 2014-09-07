@@ -43,7 +43,7 @@ namespace gaen
 namespace system_api
 {
 
-Handle create_model_box(const Vec3 & size, const Color & color, const Entity & caller)
+Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & caller)
 {
     Model * pModel = build_box(size, color);
 

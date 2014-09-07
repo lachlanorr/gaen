@@ -27,8 +27,10 @@
 #ifndef GAEN_RENDERERGL_RENDERERGL_H
 #define GAEN_RENDERERGL_RENDERERGL_H
 
-#include "engine/ModelMgr.h"
 #include "engine/math.h"
+#include "engine/Message.h"
+#include "engine/MessageAccessor.h"
+#include "engine/ModelMgr.h"
 
 #if IS_PLATFORM_WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -53,7 +55,6 @@ typedef u32 render_context;
 
 namespace gaen
 {
-
 class RendererGL
 {
 public:
@@ -72,6 +73,8 @@ public:
 
     MessageResult message(const MessageQueueAccessor & msgAcc);
 
+    void loadMaterialMesh(Model::MaterialMesh & matMesh);
+
 private:
     bool mIsInit = false;
     
@@ -83,7 +86,7 @@ private:
     Mat4 mProjection;
     Mat4 mGuiProjection;
 
-    ModelMgr mModelMgr;
+    ModelMgr<RendererGL> * mpModelMgr;
 };
 
 

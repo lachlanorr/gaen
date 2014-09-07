@@ -37,84 +37,226 @@
 namespace gaen
 {
 
+//------------------------------------------------------------------------------
+
+struct ModelInstance
+{
+    ModelInstance(model_instance_id instanceId,
+                  Model * pModel,
+                  const Mat34 & worldTransform)
+      : worldTransform(worldTransform)
+      , pModel(pModel)
+      , instanceId(instanceId)
+    {}
+        
+    Mat34 worldTransform;
+    Model * pModel;
+    model_instance_id instanceId;
+};
+    
+//------------------------------------------------------------------------------
+
+struct MaterialMeshInstance
+{
+    MaterialMeshInstance(ModelInstance * pModelInstance,
+                         Model::MaterialMesh * pMaterialMesh)
+      : pModelInstance(pModelInstance)
+      , pMaterialMesh(pMaterialMesh)
+    {}
+
+    ModelInstance * pModelInstance;
+    Model::MaterialMesh * pMaterialMesh;
+};
+
+//------------------------------------------------------------------------------
+
+typedef List<kMEM_Model,
+    MaterialMeshInstance> MeshList;
+typedef Map<kMEM_Model,
+    model_instance_id,
+    MeshList> ModelMeshMap;
+typedef Map<kMEM_Model,
+    shader_hash,
+    ModelMeshMap> ShaderModelMap;
+
+//------------------------------------------------------------------------------
+
+template <class RendererT>
 class ModelMgr
 {
 public:
-    struct ModelInstance
-    {
-        ModelInstance(model_instance_id instanceId,
-                      Model * pModel,
-                      const Mat34 & worldTransform)
-          : worldTransform(worldTransform)
-          , pModel(pModel)
-          , instanceId(instanceId)
-        {}
-        
-        Mat34 worldTransform;
-        Model * pModel;
-        model_instance_id instanceId;
-    };
-    
-    struct MaterialMeshInstance
-    {
-        MaterialMeshInstance(ModelInstance * pModelInstance,
-                             Model::MaterialMesh * pMaterialMesh)
-          : pModelInstance(pModelInstance)
-          , pMaterialMesh(pMaterialMesh)
-        {}
 
-        ModelInstance * pModelInstance;
-        Model::MaterialMesh * pMaterialMesh;
-    };
-
-
-    typedef List<kMEM_Model,
-                 MaterialMeshInstance> MeshList;
-    typedef Map<kMEM_Model,
-                model_instance_id,
-                MeshList> ModelMeshMap;
-    typedef Map<kMEM_Model,
-                shader_hash,
-                ModelMeshMap> ShaderModelMap;
-
-
-    //--------------------------------------------------------------------------
     class MeshIterator
     {
-        friend class ModelMgr;
+        friend class ModelMgr<RendererT>;
     public:
-        const MeshIterator& operator++();
-        bool operator!=(const MeshIterator & rhs) const;
-        const MaterialMeshInstance & operator*() const;
+        const MeshIterator& operator++()
+        {
+            ++mMeshListIterator;
+
+            if (mMeshListIterator == mModelMeshIterator->second.end())
+            {
+                ++mModelMeshIterator;
+
+                if (mModelMeshIterator == mShaderModelIterator->second.end())
+                {
+                    ++mShaderModelIterator;
+                    mModelMeshIterator = mShaderModelIterator->second.begin();
+                }
+
+                mMeshListIterator = mModelMeshIterator->second.begin();
+            }
+
+            return *this;
+        }
+        
+        bool operator!=(const MeshIterator & rhs) const
+        {
+            return mMeshListIterator->pModelInstance != rhs.mMeshListIterator->pModelInstance;
+        }
+            
+        const MaterialMeshInstance & operator*() const
+        {
+            return *mMeshListIterator;
+        }
 
     private:
         MeshIterator(const ShaderModelMap::const_iterator & shaderModelIterator,
                      const ModelMeshMap::const_iterator & modelMeshIterator,
-                     const MeshList::const_iterator & meshIterator);
+                     const MeshList::const_iterator & meshIterator)
+        {
+            mShaderModelIterator = shaderModelIterator;
+            mModelMeshIterator = modelMeshIterator;
+            mMeshListIterator = meshIterator;
+        }
 
         ShaderModelMap::const_iterator mShaderModelIterator;
         ModelMeshMap::const_iterator mModelMeshIterator;
         MeshList::const_iterator mMeshListIterator;
-        
     };
-    friend class MeshIterator;
+
     //--------------------------------------------------------------------------
 
-    ModelMgr();
+    friend class MeshIterator;
 
-    void fin();
+    ModelMgr(RendererT & renderer)
+      : mRenderer(renderer)
+    {
+        // Place a dummy entry to ShaderMeshInstanceMap.
+        // This simplifies our iterators knowing that there is always at
+        // least this entry. Mesh list will remain empty, so impact
+        // to iteration will be minimal.
+        mShaderModelMap[-1][-1] = MeshList();
+    }
+
+    void fin()
+    {
+        // LORRTODO - delete all models and materials not managed by asset mgr
+    }
 
     // Iterate meshes sorted by material/vertex type
-    MeshIterator begin();
-    MeshIterator end();
+    MeshIterator begin()
+    {
+        ShaderModelMap::const_iterator shaderModelIt = mShaderModelMap.begin();
+        ModelMeshMap::const_iterator modelMeshIt = shaderModelIt->second.begin();
+    
+        return MeshIterator(shaderModelIt,
+                            modelMeshIt,
+                            modelMeshIt->second.begin());
+    }
+
+    MeshIterator end()
+    {
+        ShaderModelMap::const_iterator shaderModelIt = mShaderModelMap.end();
+        --shaderModelIt;
+
+        ModelMeshMap::const_iterator modelMeshIt = shaderModelIt->second.end();
+        --modelMeshIt;
+
+        return ModelMgr<RendererT>::MeshIterator(shaderModelIt,
+                                                 modelMeshIt,
+                                                 modelMeshIt->second.end());
+    }
 
     // Once inserted, don't delete.  To delete objects, send
     // appropriate delete message to renderer.
     void insertModelInstance(model_instance_id instanceId,
                              Model * pModel,
                              const Mat34 & worldTransform,
-                             bool isAssetManaged);
-    void removeModelInstance(model_instance_id instanceId);
+                             bool isAssetManaged)
+    {
+        // Insert into mModelMap if necessary
+        ModelMap::iterator modelIt = mModelMap.find(pModel->id());
+        if (modelIt == mModelMap.end())
+        {
+            mModelMap.emplace(pModel->id(), make_ref_counted(pModel, ModelDeleter(isAssetManaged)));
+        }
+        else
+        {
+            modelIt->second.addRef();
+        }
+
+        // Insert into mModelInstanceMap
+        ASSERT(mModelInstanceMap.find(instanceId) == mModelInstanceMap.end());
+        auto empResult = mModelInstanceMap.emplace(instanceId, ModelInstance(instanceId, pModel, worldTransform));
+        if (!empResult.second)
+            PANIC("Failed to emplace model instance");
+        auto modelInstanceIt = empResult.first;
+
+        // Insert materials
+        for (Model::MaterialMesh & matMesh : *pModel)
+        {
+            insertMaterial(&matMesh.material(), isAssetManaged);
+
+            // Insert meshes into mShaderModelMap
+            mShaderModelMap[matMesh.shaderHash()][instanceId].push_back(MaterialMeshInstance(&modelInstanceIt->second, &matMesh));
+
+            // Load material and mesh into GPU through renderer
+            if (matMesh.mesh().rendererVertsId() == -1)
+            {
+                ASSERT(matMesh.mesh().rendererPrimsId() == -1); // Both should be -1 as they are initialized tegether
+                mRenderer.loadMaterialMesh(matMesh);
+            }
+        }
+    }
+    
+    void removeModelInstance(model_instance_id instanceId)
+    {
+        // Insert into mModelInstanceMap
+        auto modelInstanceIt = mModelInstanceMap.find(instanceId);
+        if (modelInstanceIt == mModelInstanceMap.end())
+        {
+            PANIC("removeModelInstance of non existent material");
+        }
+
+
+        Model * pModel = modelInstanceIt->second.pModel;
+
+        // Remove materials
+        for (Model::MaterialMesh & matMesh : *pModel)
+        {
+            // Delete all meshes from mShaderModelMap for this instanceId
+            mShaderModelMap[matMesh.shaderHash()].erase(instanceId);
+
+            removeMaterial(&matMesh.material());
+        }
+
+        // Remove the modelInstanceIt
+        mModelInstanceMap.erase(modelInstanceIt);
+
+        // Remove from into mModelMap
+        ModelMap::iterator modelIt = mModelMap.find(pModel->id());
+        if (modelIt != mModelMap.end())
+        {
+            modelIt->second.release();
+            if (!modelIt->second.get()) // if refcount has gone to zero
+                mModelMap.erase(modelIt);
+        }
+        else
+        {
+            PANIC("removeModelInstance of non existent material");
+        }
+    }
 
 private:
     class ModelDeleter
@@ -179,9 +321,37 @@ private:
 
 
     void insertMaterial(Material * pMaterial,
-                        bool isAssetManaged);
-    void removeMaterial(Material * pMaterial);
+                        bool isAssetManaged)
+    {
+        MaterialMap::iterator materialIt = mMaterialMap.find(pMaterial->id());
+
+        if (materialIt == mMaterialMap.end())
+        {
+            mMaterialMap.emplace(pMaterial->id(), make_ref_counted(pMaterial, MaterialDeleter(isAssetManaged)));
+        }
+        else
+        {
+            materialIt->second.addRef();
+        }
+    }
     
+    void removeMaterial(Material * pMaterial)
+    {
+        MaterialMap::iterator materialIt = mMaterialMap.find(pMaterial->id());
+
+        if (materialIt != mMaterialMap.end())
+        {
+            materialIt->second.release();
+            if (!materialIt->second.get()) // if refcount has gone to zero
+                mMaterialMap.erase(materialIt);
+        }
+        else
+        {
+            PANIC("removeMaterial of non existent material");
+        }
+    }
+    
+    RendererT & mRenderer;
 
     // Ref counted models and materials
     MaterialMap mMaterialMap;

@@ -69,8 +69,8 @@ shader_hash Model::MaterialMesh::calcShaderHash()
     // | 4 bits       | 3 bits     | 2 bits    | 23 bits |
     
     u8 matType = static_cast<u8>(mpMaterial->type());
-    u8 vertType = vertex_type_zero_based_id(mpMesh->vertexType());
-    u8 indType = primitive_type_zero_based_id(mpMesh->primitiveType());
+    u8 vertType = vert_type_zero_based_id(mpMesh->vertType());
+    u8 indType = prim_type_zero_based_id(mpMesh->primType());
 
     if (matType >= 16)
         PANIC("Not enough bits for MaterialType %d", matType);

@@ -42,7 +42,7 @@ namespace gaen
 namespace system_api
 {
 
-Handle create_model_box(const Vec3 & size, const Color & color, const Entity & caller);
+Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & caller);
 void renderer_insert_model_instance(Handle & modelHandle, const u32 & instanceId, const Mat34 & transform, const Entity & caller);
 
 }

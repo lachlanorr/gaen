@@ -48,7 +48,6 @@ SET (engine_SOURCES
   MessageWriter.h
   Model.cpp
   Model.h
-  ModelMgr.cpp
   ModelMgr.h
   Registry.cpp
   Registry.h

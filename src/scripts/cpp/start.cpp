@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 64b910d72e170fa736f3a558d97ea170
+// HASH: 4933a1bef180c819e6541a43c98b2d51
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -91,7 +91,7 @@ private:
     {
         f_prop() = 1.000000f;
         f_field() = 2.000000f;
-        boxModel() = system_api::create_model_box(Vec3(1.000000f, 1.000000f, 1.000000f), Color(0, 0, 255, 255), entity());
+        boxModel() = system_api::create_shape_box(Vec3(1.000000f, 1.000000f, 1.000000f), Color(0, 0, 255, 255), entity());
 
         mBlockCount = 3;
         mTask = Task::createUpdatable(this, HASH::start);

@@ -28,7 +28,7 @@
 #define GAEN_ENGINE_RENDERER_TYPE_H
 
 // Changing the renderer should just require changing the following
-// include and typedef.  The renderer class used must fulfill the
+// include and typedef.  The renderer class used must fullfill the
 // appropriate duck type.
 #include "renderergl/RendererGL.h"
 namespace gaen

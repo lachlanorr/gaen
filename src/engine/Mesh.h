@@ -36,7 +36,7 @@ namespace gaen
 
 typedef u16 index;
 
-enum VertexType
+enum VertType
 {
     kVERT_Pos          = GAEN_4CC('V','T','X','A'),
     kVERT_PosNorm      = GAEN_4CC('V','T','X','B'),
@@ -46,7 +46,7 @@ enum VertexType
     kVERT_END
 };
 
-enum PrimitiveType
+enum PrimType
 {
     kPRIM_Point    = GAEN_4CC('P','R','M','A'),
     kPRIM_Line     = GAEN_4CC('P','R','M','B'),
@@ -59,31 +59,31 @@ enum PrimitiveType
 //------------------------------------------------------------------------------
 // Vertex structs
 //------------------------------------------------------------------------------
-struct VertexPos
+struct VertPos
 {
-    static const VertexType kVertexType = kVERT_Pos;
+    static const VertType kVertType = kVERT_Pos;
     Vec3 position;
 };
 
-struct VertexPosNorm
+struct VertPosNorm
 {
-    static const VertexType kVertexType = kVERT_PosNorm;
+    static const VertType kVertType = kVERT_PosNorm;
     Vec3 position;
     Vec3 normal;
 };
 
-struct VertexPosNormUv
+struct VertPosNormUv
 {
-    static const VertexType kVertexType = kVERT_PosNormUv;
+    static const VertType kVertType = kVERT_PosNormUv;
     Vec3 position;
     Vec3 normal;
     f32 u;
     f32 v;
 };
 
-struct VertexPosNormUvTan
+struct VertPosNormUvTan
 {
-    static const VertexType kVertexType = kVERT_PosNormUvTan;
+    static const VertType kVertType = kVERT_PosNormUvTan;
     Vec3 position;
     Vec3 normal;
     f32 u;
@@ -96,25 +96,25 @@ const u32 kOffsetNormal   = kOffsetPosition + sizeof(Vec3);
 const u32 kOffsetUV       = kOffsetNormal + sizeof(Vec3);
 const u32 kOffsetTangent  = kOffsetUV + sizeof(f32) + sizeof(f32);
 
-inline bool is_valid_vertex_type(u32 vertexType)
+inline bool is_valid_vert_type(u32 vertType)
 {
-    return vertexType >= kVERT_PosNorm && vertexType < kVERT_END;
+    return vertType >= kVERT_PosNorm && vertType < kVERT_END;
 }
 
-inline bool is_valid_primitive_type(u32 primitiveType)
+inline bool is_valid_prim_type(u32 primType)
 {
-    return primitiveType >= kPRIM_Point && primitiveType < kPRIM_END;
+    return primType >= kPRIM_Point && primType < kPRIM_END;
 }
 
-inline u8 vertex_type_zero_based_id(VertexType vertexType)
+inline u8 vert_type_zero_based_id(VertType vertType)
 {
     // LORRTODO - Big endian support needed here if we ever port to such a platform
-    ASSERT(is_valid_vertex_type(vertexType));
+    ASSERT(is_valid_vert_type(vertType));
     static const u32 kSwapped_kVERT_Pos = BYTESWAP32(kVERT_Pos);
-    return (u8)(BYTESWAP32(vertexType) - kSwapped_kVERT_Pos);
+    return (u8)(BYTESWAP32(vertType) - kSwapped_kVERT_Pos);
 }
 
-inline u8 vertex_type_zero_based_id_end()
+inline u8 vert_type_zero_based_id_end()
 {
     // LORRTODO - Big endian support needed here if we ever port to such a platform
     static const u32 diff = BYTESWAP32(kVERT_END) - BYTESWAP32(kVERT_Pos);
@@ -122,33 +122,33 @@ inline u8 vertex_type_zero_based_id_end()
 }
 
 
-inline u8 primitive_type_zero_based_id(PrimitiveType primitiveType)
+inline u8 prim_type_zero_based_id(PrimType primType)
 {
     // LORRTODO - Big endian support needed here if we ever port to such a platform
-    ASSERT(is_valid_primitive_type(primitiveType));
+    ASSERT(is_valid_prim_type(primType));
     static const u32 kSwapped_kPRIM_Point = BYTESWAP32(kPRIM_Point);
-    return (u8)(BYTESWAP32(primitiveType) - kSwapped_kPRIM_Point);
+    return (u8)(BYTESWAP32(primType) - kSwapped_kPRIM_Point);
 }
 
-inline u8 primitive_type_zero_based_id_end()
+inline u8 prim_type_zero_based_id_end()
 {
     // LORRTODO - Big endian support needed here if we ever port to such a platform
     static const u32 diff = BYTESWAP32(kPRIM_END) - BYTESWAP32(kPRIM_Point);
     return (u8)diff;
 }
 
-struct PrimitivePoint
+struct PrimPoint
 {
-    PrimitivePoint(index p0)
+    PrimPoint(index p0)
       : p0(p0) {}
 
     // a point is composed of a single index into point array
     index p0;
 };
 
-struct PrimitiveLine
+struct PrimLine
 {
-    PrimitiveLine(index p0, index p1)
+    PrimLine(index p0, index p1)
       : p0(p0), p1(p1) {}
 
     // a line is composed of 2 indices into point array
@@ -157,10 +157,10 @@ struct PrimitiveLine
 };
 
 
-struct PrimitiveTriangle
+struct PrimTriangle
 {
     // a triangle is composed of 3 indices into point array
-    PrimitiveTriangle(index p0, index p1, index p2)
+    PrimTriangle(index p0, index p1, index p2)
       : p0(p0), p1(p1), p2(p2) {}
 
     index p0;
@@ -169,36 +169,36 @@ struct PrimitiveTriangle
 };
 
 
-inline u32 vertex_stride(VertexType vertexType)
+inline u32 vert_stride(VertType vertType)
 {
-    switch(vertexType)
+    switch(vertType)
     {
     case kVERT_Pos:
-        return sizeof(VertexPos);
+        return sizeof(VertPos);
     case kVERT_PosNorm:
-        return sizeof(VertexPosNorm);
+        return sizeof(VertPosNorm);
     case kVERT_PosNormUv:
-        return sizeof(VertexPosNormUv);
+        return sizeof(VertPosNormUv);
     case kVERT_PosNormUvTan:
-        return sizeof(VertexPosNormUvTan);
+        return sizeof(VertPosNormUvTan);
     default:
-        PANIC("Invalid VertexType: %d", vertexType);
+        PANIC("Invalid VertexType: %d", vertType);
         return 0;
     }
 }
 
-inline u32 primitive_stride(PrimitiveType primitiveType)
+inline u32 prim_stride(PrimType primType)
 {
-    switch(primitiveType)
+    switch(primType)
     {
     case kPRIM_Point:
-        return sizeof(PrimitivePoint);
+        return sizeof(PrimPoint);
     case kPRIM_Line:
-        return sizeof(PrimitiveLine);
+        return sizeof(PrimLine);
     case kPRIM_Triangle:
-        return sizeof(PrimitiveTriangle);
+        return sizeof(PrimTriangle);
     default:
-        PANIC("Invalid PrimitiveType: %d", primitiveType);
+        PANIC("Invalid PrimType: %d", primType);
         return 0;
     }
 }
@@ -207,14 +207,14 @@ inline u32 primitive_stride(PrimitiveType primitiveType)
 //-------------------------------------------
 // Comparison operators for Polygon and Line
 //-------------------------------------------
-inline bool operator==(const PrimitiveTriangle & lhs, const PrimitiveTriangle & rhs)
+inline bool operator==(const PrimTriangle & lhs, const PrimTriangle & rhs)
 {
     return lhs.p0 == rhs.p0 &&
         lhs.p1 == rhs.p1 &&
         lhs.p2 == rhs.p2;
 }
 
-inline bool operator<(const PrimitiveTriangle & lhs, const PrimitiveTriangle & rhs)
+inline bool operator<(const PrimTriangle & lhs, const PrimTriangle & rhs)
 {
     if(lhs.p0 != rhs.p0)
         return lhs.p0 < rhs.p0;
@@ -227,7 +227,7 @@ inline bool operator<(const PrimitiveTriangle & lhs, const PrimitiveTriangle & r
     return false;
 }
 
-inline bool operator==(const PrimitiveLine & lhs, const PrimitiveLine & rhs)
+inline bool operator==(const PrimLine & lhs, const PrimLine & rhs)
 {
     // do a simple sort of points to consider two lines equal even if
     // their points are in different order
@@ -260,7 +260,7 @@ inline bool operator==(const PrimitiveLine & lhs, const PrimitiveLine & rhs)
         line0p1 == line1p1;
 }
 
-inline bool operator<(const PrimitiveLine & lhs, const PrimitiveLine & rhs)
+inline bool operator<(const PrimLine & lhs, const PrimLine & rhs)
 {
     // do a simple sort of points to consider two lines equal even if
     // their points are in different order
@@ -301,120 +301,157 @@ inline bool operator<(const PrimitiveLine & lhs, const PrimitiveLine & rhs)
 class Mesh
 {
 public:
-    VertexType vertexType() const { return mVertexType; }
-    PrimitiveType primitiveType() const { return mPrimitiveType; }
+    VertType vertType() const { return mVertType; }
+    PrimType primType() const { return mPrimType; }
 
-    f32 * vertices()
+    f32 * verts()
     {
-        return reinterpret_cast<f32*>(reinterpret_cast<u8*>(this) + mVertexOffset);
+        return reinterpret_cast<f32*>(reinterpret_cast<u8*>(this) + mVertOffset);
     }
 
-    const f32 * vertices() const
+    const f32 * verts() const
     {
-        return reinterpret_cast<const f32*>(reinterpret_cast<const u8*>(this) + mVertexOffset);
+        return reinterpret_cast<const f32*>(reinterpret_cast<const u8*>(this) + mVertOffset);
     }
 
-    index * indices()
+    index * prims()
     {
-        return reinterpret_cast<index*>(reinterpret_cast<u8*>(this) + mPrimitiveOffset);
+        return reinterpret_cast<index*>(reinterpret_cast<u8*>(this) + mPrimOffset);
     }
 
-    const index * indices() const
+    const index * prims() const
     {
-        return reinterpret_cast<const index*>(reinterpret_cast<const u8*>(this) + mPrimitiveOffset);
+        return reinterpret_cast<const index*>(reinterpret_cast<const u8*>(this) + mPrimOffset);
+    }
+
+    u32 vertStride() const
+    {
+        // if there are morph targets, multiply by that count
+        return vert_stride(mVertType) * (1 + mMorphTargetCount);
+    }
+
+    u32 vertsSize() const
+    {
+        return vertStride() * mVertCount;
+    }
+
+    u32 primStride() const
+    {
+        // double the primitive stride if indices are 32 bit instead of 16 bit
+        return prim_stride(mPrimType) << mHas32BitIndices;
+    }
+
+    u32 primsSize() const
+    {
+        return primStride() * mPrimCount;
+    }
+
+    u32 totalSize() const
+    {
+        return sizeof(Mesh) + vertsSize() + primsSize();
+    }
+
+    u32& rendererVertsId()
+    {
+        return mRendererVertsId;
+    }
+
+    u32& rendererPrimsId()
+    {
+        return mRendererPrimsId;
     }
 
     //--------------------------------------------------------------------------
     // Cast operators which provide a convenient way to get to vertices
     // and indices without a lot of explicit reinterpret casts.
     // E.g. Rather than:
-    //    VertexPosNorm * pVerts = reinterpret_cast<VertexPosNorm*>(mesh.indices);
+    //    VertPosNorm * pVerts = reinterpret_cast<VertPosNorm*>(mesh.prims);
     // use instead:
-    //    VertexPosNorm * pVerts = mesh
+    //    VertPosNorm * pVerts = mesh
     // 
     // The second form will call one of the cast operators below
     //--------------------------------------------------------------------------
-    operator VertexPos*()
+    operator VertPos*()
     {
-        ASSERT(mVertexType == kVERT_Pos);
-        return reinterpret_cast<VertexPos*>(vertices());
+        ASSERT(mVertType == kVERT_Pos);
+        return reinterpret_cast<VertPos*>(verts());
     }
-    operator const VertexPos*() const
+    operator const VertPos*() const
     {
-        ASSERT(mVertexType == kVERT_Pos);
-        return reinterpret_cast<const VertexPos*>(vertices());
+        ASSERT(mVertType == kVERT_Pos);
+        return reinterpret_cast<const VertPos*>(verts());
     }
-    operator VertexPosNorm*()
+    operator VertPosNorm*()
     {
-        ASSERT(mVertexType == kVERT_PosNorm);
-        return reinterpret_cast<VertexPosNorm*>(vertices());
+        ASSERT(mVertType == kVERT_PosNorm);
+        return reinterpret_cast<VertPosNorm*>(verts());
     }
-    operator const VertexPosNorm*() const
+    operator const VertPosNorm*() const
     {
-        ASSERT(mVertexType == kVERT_PosNorm);
-        return reinterpret_cast<const VertexPosNorm*>(vertices());
+        ASSERT(mVertType == kVERT_PosNorm);
+        return reinterpret_cast<const VertPosNorm*>(verts());
     }
-    operator VertexPosNormUv*()
+    operator VertPosNormUv*()
     {
-        ASSERT(mVertexType == kVERT_PosNormUv);
-        return reinterpret_cast<VertexPosNormUv*>(vertices());
+        ASSERT(mVertType == kVERT_PosNormUv);
+        return reinterpret_cast<VertPosNormUv*>(verts());
     }
-    operator const VertexPosNormUv*() const
+    operator const VertPosNormUv*() const
     {
-        ASSERT(mVertexType == kVERT_PosNormUv);
-        return reinterpret_cast<const VertexPosNormUv*>(vertices());
+        ASSERT(mVertType == kVERT_PosNormUv);
+        return reinterpret_cast<const VertPosNormUv*>(verts());
     }
-    operator VertexPosNormUvTan*()
+    operator VertPosNormUvTan*()
     {
-        ASSERT(mVertexType == kVERT_PosNormUvTan);
-        return reinterpret_cast<VertexPosNormUvTan*>(vertices());
+        ASSERT(mVertType == kVERT_PosNormUvTan);
+        return reinterpret_cast<VertPosNormUvTan*>(verts());
     }
-    operator const VertexPosNormUvTan*() const
+    operator const VertPosNormUvTan*() const
     {
-        ASSERT(mVertexType == kVERT_PosNormUvTan);
-        return reinterpret_cast<const VertexPosNormUvTan*>(vertices());
+        ASSERT(mVertType == kVERT_PosNormUvTan);
+        return reinterpret_cast<const VertPosNormUvTan*>(verts());
     }
 
-    operator PrimitivePoint*()
+    operator PrimPoint*()
     {
-        ASSERT(mPrimitiveType == kPRIM_Point);
-        return reinterpret_cast<PrimitivePoint*>(indices());
+        ASSERT(mPrimType == kPRIM_Point);
+        return reinterpret_cast<PrimPoint*>(prims());
     }
-    operator const PrimitivePoint*() const
+    operator const PrimPoint*() const
     {
-        ASSERT(mPrimitiveType == kPRIM_Point);
-        return reinterpret_cast<const PrimitivePoint*>(indices());
+        ASSERT(mPrimType == kPRIM_Point);
+        return reinterpret_cast<const PrimPoint*>(prims());
     }
-    operator PrimitiveLine*()
+    operator PrimLine*()
     {
-        ASSERT(mPrimitiveType == kPRIM_Line);
-        return reinterpret_cast<PrimitiveLine*>(indices());
+        ASSERT(mPrimType == kPRIM_Line);
+        return reinterpret_cast<PrimLine*>(prims());
     }
-    operator const PrimitiveLine*() const
+    operator const PrimLine*() const
     {
-        ASSERT(mPrimitiveType == kPRIM_Line);
-        return reinterpret_cast<const PrimitiveLine*>(indices());
+        ASSERT(mPrimType == kPRIM_Line);
+        return reinterpret_cast<const PrimLine*>(prims());
     }
-    operator PrimitiveTriangle*()
+    operator PrimTriangle*()
     {
-        ASSERT(mPrimitiveType == kPRIM_Triangle);
-        return reinterpret_cast<PrimitiveTriangle*>(indices());
+        ASSERT(mPrimType == kPRIM_Triangle);
+        return reinterpret_cast<PrimTriangle*>(prims());
     }
-    operator const PrimitiveTriangle*() const
+    operator const PrimTriangle*() const
     {
-        ASSERT(mPrimitiveType == kPRIM_Triangle);
-        return reinterpret_cast<const PrimitiveTriangle*>(indices());
+        ASSERT(mPrimType == kPRIM_Triangle);
+        return reinterpret_cast<const PrimTriangle*>(prims());
     }
     //--------------------------------------------------------------------------
     // Cast operators (END)
     //--------------------------------------------------------------------------
 
 
-    u32 vertexCount() const { return mVertexCount; }
-    u32 primitiveCount() const { return mPrimitiveCount; }
+    u32 vertCount() const { return mVertCount; }
+    u32 primCount() const { return mPrimCount; }
 
     static Mesh * cast(u8 * pData, size_t dataSize);
-    static Mesh * create(VertexType vertexType, u32 vertexCount, PrimitiveType primitiveType, u32 primitiveCount);
+    static Mesh * create(VertType vertType, u32 vertCount, PrimType primType, u32 primCount);
     static void destroy(Mesh * pMesh);
 
 private:
@@ -423,29 +460,34 @@ private:
     Mesh(const Mesh&) = delete;
     Mesh & operator=(const Mesh&) = delete;
 
-    VertexType mVertexType;
-    PrimitiveType mPrimitiveType;
-    u32 mVertexOffset;
-    u32 mPrimitiveOffset;
-    index mVertexCount;
-    index mPrimitiveCount;
+    VertType mVertType;
+    PrimType mPrimType;
+
+    u32 mVertCount;
+    u32 mPrimCount;
+    u32 mVertOffset;     // offset from start of struct
+    u32 mPrimOffset;  // offset from start of struct
+
+    u32 mRendererVertsId;
+    u32 mRendererPrimsId;
+
+    u32 mHas32BitIndices:1;
+    u32 mMorphTargetCount:7;
+    u32 RESERVED_0:24;
+
+    u32 RESERVED[7]; // Pad to 64 bytes, for future possibilities.
 };
 
 
-// Sanity checks for sizeof our structs.  Just in case a different compiler/platform pads stuff unexpectedly.
-static_assert(sizeof(VertexPos) == 12,               "geometry struct has unexpected size");
-static_assert(sizeof(VertexPos[10]) == 120,          "geometry struct has unexpected size");
-static_assert(sizeof(VertexPosNorm) == 24,           "geometry struct has unexpected size");
-static_assert(sizeof(VertexPosNorm[10]) == 240,      "geometry struct has unexpected size");
-static_assert(sizeof(VertexPosNormUv) == 32,         "geometry struct has unexpected size");
-static_assert(sizeof(VertexPosNormUv[10]) == 320,    "geometry struct has unexpected size");
-static_assert(sizeof(VertexPosNormUvTan) == 48,      "geometry struct has unexpected size");
-static_assert(sizeof(VertexPosNormUvTan[10]) == 480, "geometry struct has unexpected size");
-static_assert(sizeof(PrimitiveTriangle) == 6,            "geometry struct has unexpected size");
-static_assert(sizeof(PrimitiveTriangle[10]) == 60,       "geometry struct has unexpected size");
-static_assert(sizeof(PrimitiveLine) == 4,                "geometry struct has unexpected size");
-static_assert(sizeof(PrimitiveLine[10]) == 40,           "geometry struct has unexpected size");
-static_assert(sizeof(Mesh) % sizeof(f32) == 0,       "Mesh struct size not aligned. Must be multiple of sizeof(f32)");
+// Sanity checks for sizeof our structs.
+static_assert(sizeof(VertPos) == 12,          "VertPos geometry struct has unexpected size");
+static_assert(sizeof(VertPosNorm) == 24,      "VertPosNorm geometry struct has unexpected size");
+static_assert(sizeof(VertPosNormUv) == 32,    "VertPosNormUv geometry struct has unexpected size");
+static_assert(sizeof(VertPosNormUvTan) == 48, "VertPosNormUvTan geometry struct has unexpected size");
+static_assert(sizeof(PrimPoint) == 2,         "PrimLine geometry struct has unexpected size");
+static_assert(sizeof(PrimLine) == 4,          "PrimLine geometry struct has unexpected size");
+static_assert(sizeof(PrimTriangle) == 6,      "PrimTriangle geometry struct has unexpected size");
+static_assert(sizeof(Mesh) == 64,             "Mesh struct has unexpected size");
 
 } // namespace gaen
 

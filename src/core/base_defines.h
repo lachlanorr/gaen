@@ -211,17 +211,7 @@ typedef std::uint64_t   u64;
 typedef float           f32;
 typedef double          f64;
 
-
 #define GAEN_4CC(a, b, c, d) ((d) << 24 | (c) << 16 | (b) << 8 | (a))
-
-inline u32 byteswap32(u32 val)
-{
-    return ((val >> 24) & 0xff) |
-           ((val >> 8)  & 0xff00) |
-           ((val << 8)  & 0xff0000) |
-           ((val << 24) & 0xff000000);
-}
-
 #define BYTESWAP32(val) ((((val) >> 24) & 0xff) | (((val) >> 8)  & 0xff00) | (((val) << 8)  & 0xff0000) | (((val) << 24) & 0xff000000))
 
 // Align a value to specified alignment.  Useful to ensure memory

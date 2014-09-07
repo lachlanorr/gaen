@@ -37,10 +37,10 @@ namespace gaen
 ShapeBuilder::ShapeBuilder(Mesh * pMesh)
   : mMesh(*pMesh)
 {
-    if (mMesh.vertexType() != kVERT_PosNorm)
+    if (mMesh.vertType() != kVERT_PosNorm)
         PANIC("ShapeBuilder only builds meshes with vertices of type kVERT_PosNorm");
 
-    if (mMesh.primitiveType() != kPRIM_Triangle)
+    if (mMesh.primType() != kPRIM_Triangle)
         PANIC("ShapeBuilder only builds meshes with indices of type kIND_Triangle");
 }
 
@@ -49,16 +49,16 @@ void ShapeBuilder::pushTri(const Vec3 & p0,
                            const Vec3 & p1,
                            const Vec3 & p2)
 {
-    if (mCurrVertex + 3 > mMesh.vertexCount())
+    if (mCurrVertex + 3 > mMesh.vertCount())
         PANIC("Vertex array overrun during pushTri");
-    if (mCurrPrimitive + 1 > mMesh.primitiveCount())
+    if (mCurrPrimitive + 1 > mMesh.primCount())
         PANIC("Index array overrun during pushTri");
 
-    VertexPosNorm * pVert = mMesh;
+    VertPosNorm * pVert = mMesh;
     pVert += mCurrVertex;
 
-    PrimitiveTriangle * pTris = mMesh;
-    PrimitiveTriangle & tri = pTris[mCurrPrimitive];
+    PrimTriangle * pTris = mMesh;
+    PrimTriangle & tri = pTris[mCurrPrimitive];
 
     Vec3 vecNorm = triNormal(p0, p1, p2);
 
@@ -91,17 +91,17 @@ void ShapeBuilder::pushQuad(const Vec3 & p0,
                             const Vec3 & p2,
                             const Vec3 & p3)
 {
-    if (mCurrVertex + 4 > mMesh.vertexCount())
+    if (mCurrVertex + 4 > mMesh.vertCount())
         PANIC("Vertex array overrun during pushQuad");
-    if (mCurrPrimitive + 2 > mMesh.primitiveCount())
+    if (mCurrPrimitive + 2 > mMesh.primCount())
         PANIC("Index array overrun during pushQuad");
 
-    VertexPosNorm * pVert = mMesh;
+    VertPosNorm * pVert = mMesh;
     pVert += mCurrVertex;
 
-    PrimitiveTriangle * pTris = mMesh;
-    PrimitiveTriangle & tri0 = pTris[mCurrPrimitive];
-    PrimitiveTriangle & tri1 = pTris[mCurrPrimitive+1];
+    PrimTriangle * pTris = mMesh;
+    PrimTriangle & tri0 = pTris[mCurrPrimitive];
+    PrimTriangle & tri1 = pTris[mCurrPrimitive+1];
 
     Vec3 vecNorm = triNormal(p0, p1, p2);
     Vec3 vecNorm2 = triNormal(p3, p0, p2);
@@ -143,30 +143,30 @@ void ShapeBuilder::pushQuad(const Vec3 * pPoints)
 
 void ShapeBuilder::pushMesh(const Mesh & mesh)
 {
-    if (mesh.vertexType() != kVERT_PosNorm)
+    if (mesh.vertType() != kVERT_PosNorm)
         PANIC("ShapeBuilder only appends meshes with vertices of type kVERT_PosNorm");
-    if (mesh.primitiveType() != kPRIM_Triangle)
+    if (mesh.primType() != kPRIM_Triangle)
         PANIC("ShapeBuilder only appends meshes with indices of type kIND_Triangle");
 
-    if (mCurrVertex + mesh.vertexCount() >= mMesh.vertexCount())
+    if (mCurrVertex + mesh.vertCount() >= mMesh.vertCount())
         PANIC("Vertex array overrun during pushMesh");
-    if (mCurrPrimitive + mesh.primitiveCount() >= mMesh.primitiveCount())
+    if (mCurrPrimitive + mesh.primCount() >= mMesh.primCount())
         PANIC("Index array overrun during pushMesh");
 
-    VertexPosNorm * pVert = mMesh;
+    VertPosNorm * pVert = mMesh;
     pVert += mCurrVertex;
     
-    const VertexPosNorm * pMeshVert = mesh;
-    for (u32 i = 0; i < mesh.vertexCount(); ++i)
+    const VertPosNorm * pMeshVert = mesh;
+    for (u32 i = 0; i < mesh.vertCount(); ++i)
     {
         *pVert++ = *pMeshVert++;
     }
 
-    PrimitiveTriangle * pInd = mMesh;
+    PrimTriangle * pInd = mMesh;
     pInd += mCurrPrimitive;
 
-    const PrimitiveTriangle * pMeshInd = mesh;
-    for (u32 i = 0; i < mesh.primitiveCount(); ++i)
+    const PrimTriangle * pMeshInd = mesh;
+    for (u32 i = 0; i < mesh.primCount(); ++i)
     {
         pInd[0].p0 = pMeshInd[0].p0 + mCurrPrimitive;
         pInd[0].p1 = pMeshInd[0].p1 + mCurrPrimitive;
@@ -175,8 +175,8 @@ void ShapeBuilder::pushMesh(const Mesh & mesh)
         pMeshInd++;
     }
 
-    mCurrVertex += mesh.vertexCount();
-    mCurrPrimitive += mesh.primitiveCount();
+    mCurrVertex += mesh.vertCount();
+    mCurrPrimitive += mesh.primCount();
 }
 //------------------------------------------------------------------------------
 // ShapeBuilder (END)
