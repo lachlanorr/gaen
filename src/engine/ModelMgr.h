@@ -212,9 +212,13 @@ public:
             mShaderModelMap[matMesh.shaderHash()][instanceId].push_back(MaterialMeshInstance(&modelInstanceIt->second, &matMesh));
 
             // Load material and mesh into GPU through renderer
-            if (matMesh.mesh().rendererVertsId() == -1)
+            if (matMesh.mesh().rendererReserved(0) == -1)
             {
-                ASSERT(matMesh.mesh().rendererPrimsId() == -1); // Both should be -1 as they are initialized tegether
+                // All should be -1 as they are initialized tegether
+                static_assert(Mesh::kRendererReservedCount == 4, "Unexpected kRendererReservedCount, ASSERT below needs to be updated");
+                ASSERT(matMesh.mesh().rendererReserved(1) == -1 &&
+                       matMesh.mesh().rendererReserved(2) == -1 &&
+                       matMesh.mesh().rendererReserved(3) == -1);
                 mRenderer.loadMaterialMesh(matMesh);
             }
         }

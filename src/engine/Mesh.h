@@ -301,6 +301,8 @@ inline bool operator<(const PrimLine & lhs, const PrimLine & rhs)
 class Mesh
 {
 public:
+    static const u32 kRendererReservedCount = 4;
+
     VertType vertType() const { return mVertType; }
     PrimType primType() const { return mPrimType; }
 
@@ -351,14 +353,10 @@ public:
         return sizeof(Mesh) + vertsSize() + primsSize();
     }
 
-    u32& rendererVertsId()
+    u32& rendererReserved(u32 idx)
     {
-        return mRendererVertsId;
-    }
-
-    u32& rendererPrimsId()
-    {
-        return mRendererPrimsId;
+        ASSERT(idx < kRendererReservedCount);
+        return mRendererReserved[idx];
     }
 
     //--------------------------------------------------------------------------
@@ -468,14 +466,13 @@ private:
     u32 mVertOffset;     // offset from start of struct
     u32 mPrimOffset;  // offset from start of struct
 
-    u32 mRendererVertsId;
-    u32 mRendererPrimsId;
-
     u32 mHas32BitIndices:1;
     u32 mMorphTargetCount:7;
     u32 RESERVED_0:24;
 
-    u32 RESERVED[7]; // Pad to 64 bytes, for future possibilities.
+    u32 mRendererReserved[kRendererReservedCount];
+
+    u32 RESERVED[5]; // Pad to 64 bytes, for future possibilities.
 };
 
 

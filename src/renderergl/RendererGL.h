@@ -58,6 +58,13 @@ namespace gaen
 class RendererGL
 {
 public:
+    enum MeshReservedIndex
+    {
+        kMSHR_VAO = 0,
+        kMSHR_VertBuffer = 1,
+        kMSHR_PrimBuffer = 2
+    };
+
     void init(device_context deviceContext,
               render_context renderContext,
               u32 screenWidth,

@@ -60,63 +60,139 @@ void RendererGL::fin()
     GDELETE(mpModelMgr);
 }
 
-void RendererGL::render()
+static const char * sVertShaderCode = 
+    "#version 430 core\n"
+    "layout(location=0) in vec4 vPosition;\n"
+    "void main()\n"
+    "{\n"
+    "    gl_Position = vPosition;\n"
+    "}\n";
+
+/*    "attribute vec3 position; \n"
+    "varying vec4 colorVarying; \n"
+    "uniform mat4 modelView; \n"
+    "uniform mat4 projection; \n"
+    "void main() \n"
+    "{ \n"
+    "    //gl_Position = projection * modelView * vec4(position, 1.0); \n"
+    "    gl_Position = vec4(position, 1.0);\n"
+    "    colorVarying = vec4(0.0, 1.0, 1.0, 1.0); \n"
+    "} \n";
+*/
+
+
+static const char * sFragShaderCode =
+    "#version 430 core\n"
+    "out vec4 fColor;\n"
+    "void main()\n"
+    "{\n"
+    "    fColor = vec4(0.0, 0.0, 1.0, 1.0);\n"
+    "}\n";
+
+/*    "varying vec4 colorVarying; \n"
+    "void main() \n"
+    "{ \n"
+    "    gl_FragColor = colorVarying; \n"
+    "} \n";
+*/
+
+static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode)
 {
-    ASSERT(mIsInit);
+    GLuint shader;
 
-    glClear(GL_COLOR_BUFFER_BIT);
-    glClearDepth(1.0f);
+    shader = glCreateShader(type);
+    glShaderSource(shader, 1, &shaderCode, NULL);
+    glCompileShader(shader);
 
-    ModelMgr<RendererGL>::MeshIterator meshIt = mpModelMgr->begin();
-    ModelMgr<RendererGL>::MeshIterator meshItEnd = mpModelMgr->end();
-
-//--//    mesh_->render(projection, modelView_, currProgram);
-
-    while (meshIt != meshItEnd)
+    GLint status;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+    if (status == GL_FALSE)
     {
-        // Set current program if necessary
-//--//        if (shader_->programId() != currProgram)
-//--//        {
-//--//            glUseProgram(shader_->programId());
-//--//            currProgram = shader_->programId();
-//--//        }
-//--//        glUniformMatrix4fv(shader_->uniform(eUniform_Projection), 1, 0, projection.elems);
-//--//        glBindBuffer(GL_ARRAY_BUFFER, vertBufferId_);
-//--//
-//--//        // position
-//--//        glEnableVertexAttribArray(eAttrib_Position);
-//--//        glVertexAttribPointer(eAttrib_Position, 3, GL_FLOAT, GL_FALSE, vertStride_, reinterpret_cast<GLvoid*>(kOffsetPosition));
-//--//        
-//--//        // texture
-//--//        if (vertType_ >= 'B')
-//--//        {
-//--//            glEnableVertexAttribArray(eAttrib_UV);
-//--//            glVertexAttribPointer(eAttrib_UV, 2, GL_FLOAT, GL_FALSE, vertStride_, reinterpret_cast<GLvoid*>(kOffsetUV));
-//--//        }
-//--//
-//--//        // normal
-//--//        if (vertType_ >= 'C')
-//--//        {
-//--//            glEnableVertexAttribArray(eAttrib_Normal);
-//--//            glVertexAttribPointer(eAttrib_Normal, 3, GL_FLOAT, GL_FALSE, vertStride_, reinterpret_cast<GLvoid*>(kOffsetNormal));
-//--//        }
-//--//
-//--//        // tangent
-//--//        if (vertType_ >= 'D')
-//--//        {
-//--//            glEnableVertexAttribArray(eAttrib_Tangent);
-//--//            glVertexAttribPointer(eAttrib_Tangent, 3, GL_FLOAT, GL_FALSE, vertStride_, reinterpret_cast<GLvoid*>(kOffsetTangent));
-//--//        }
-//--//
-//--//        // Bind triangle buffer
-//--//        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elemBufferId_);
-//--//
-//--//        // Draw our triangles
-//--//        glDrawElements(GL_TRIANGLES, elemCount_, GL_UNSIGNED_SHORT, 0);
-//--//
+        char errMsg[256];
+        int len;
+        glGetShaderInfoLog(shader, 256, &len, errMsg);
 
-        ++meshIt;
+        glDeleteShader(shader);
+        ERR("Failed to compile shader: %s", errMsg);
+        return false;
     }
+
+    *pShader = shader;
+    return true;
+}
+
+static float sVerts[6][2] = {
+    { -0.90, -0.90 },
+    {  0.85, -0.90 },
+    { -0.90,  0.85 },
+
+    {  0.90, -0.85 },
+    {  0.90,  0.90 },
+    { -0.85,  0.90 }
+};
+
+static GLuint sVAO = -1;
+static GLuint sBuffer = -1;
+static GLuint sProgramId = -1;
+static GLint sModelViewUniform = -1;
+static GLint sProjectionUniform = -1;
+static Mat4 sModelViewMat(1.0f);
+
+static bool build_program(GLuint * pProgramId,
+                          GLint * pModelViewUniform,
+                          GLint * pProjectionUniform,
+                          const char * vertShaderCode,
+                          const char * fragShaderCode)
+{
+    // create program
+    GLuint programId = glCreateProgram();
+
+    GLuint vertShader, fragShader;
+    // load shaders
+    if (!compile_shader(&vertShader, GL_VERTEX_SHADER, vertShaderCode) ||
+        !compile_shader(&fragShader, GL_FRAGMENT_SHADER, fragShaderCode))
+    {
+        glDeleteProgram(programId);
+        ERR("Failed to compile shaders");
+        return false;
+    }
+
+    // attach shaders to program
+    glAttachShader(programId, vertShader);
+    glAttachShader(programId, fragShader);
+
+    // bind attribute locations
+    glBindAttribLocation(programId, 0, "position");
+    glBindAttribLocation(programId, 1, "uv");
+    //--//glBindAttribLocation(programId, eAttrib_Normal, "normal");
+
+    // link program
+    GLint status;
+    glLinkProgram(programId);
+    glGetProgramiv(programId, GL_LINK_STATUS, &status);
+    if (status == 0)
+    {
+        glDeleteShader(vertShader);
+        glDeleteShader(fragShader);
+        glDeleteProgram(programId);
+        ERR("Failed to link shader program.");
+        return false;
+    }
+
+    // Get uniform locations
+    GLint modelViewUniform = glGetUniformLocation(programId, "modelView");
+    GLint projectionUniform = glGetUniformLocation(programId, "projection");
+    //--//uniforms[eUniform_NormalTransform] = glGetUniformLocation(program_, "normalTransform");
+
+    // Release vertex and fragment shaders
+    glDeleteShader(vertShader);
+    glDeleteShader(fragShader);
+
+    *pProgramId = programId;
+    *pModelViewUniform = modelViewUniform;
+    *pProjectionUniform = projectionUniform;
+
+    return true;
 }
 
 void RendererGL::initViewport()
@@ -124,9 +200,12 @@ void RendererGL::initViewport()
     ASSERT(mIsInit);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);                            // Enables Depth Testing
-    glDepthFunc(GL_LEQUAL);                             // The Type Of Depth Testing To Do
+
+    glDisable(GL_CULL_FACE);
+
+    //glEnable(GL_CULL_FACE);
+    //glEnable(GL_DEPTH_TEST);                            // Enables Depth Testing
+    //glDepthFunc(GL_LEQUAL);                             // The Type Of Depth Testing To Do
 
     // Make sure we don't divide by zero
     if (mScreenHeight==0)
@@ -150,6 +229,66 @@ void RendererGL::initViewport()
                                         static_cast<float>(mScreenHeight) * 0.5f,
                                         0.0f,
                                         100.0f);
+
+    sModelViewMat = Mat4::build_translation(Vec3(0.0f, 10.0f, 10.0f));
+
+    glGenVertexArrays(1, &sVAO);
+    glBindVertexArray(sVAO);
+
+    glGenBuffers(1, &sBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, sBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(sVerts), sVerts, GL_STATIC_DRAW);
+
+    if (!build_program(&sProgramId, &sModelViewUniform, &sProjectionUniform, sVertShaderCode, sFragShaderCode))
+    {
+        PANIC("Failed to build_program for default shader");
+    }
+
+    glUseProgram(sProgramId);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+}
+
+void RendererGL::render()
+{
+    ASSERT(mIsInit);
+
+    glClear(GL_COLOR_BUFFER_BIT);
+
+//    glBindVertexArray(sVAO);
+//    glDrawArrays(GL_TRIANGLES, 0, 6);
+//    glFlush();
+
+
+//    return;
+    //
+
+
+    glClearDepth(1.0f);
+
+    ModelMgr<RendererGL>::MeshIterator meshIt = mpModelMgr->begin();
+    ModelMgr<RendererGL>::MeshIterator meshItEnd = mpModelMgr->end();
+
+    //--//    mesh_->render(projection, modelView_, currProgram);
+
+    glUseProgram(sProgramId);
+
+    while (meshIt != meshItEnd)
+    {
+        const MaterialMeshInstance & matMeshInst = *meshIt;
+        Mesh & mesh = matMeshInst.pMaterialMesh->mesh();
+
+        glUniformMatrix4fv(sModelViewUniform, 1, 0, sModelViewMat.elems);
+        glUniformMatrix4fv(sProjectionUniform, 1, 0, mProjection.elems);
+
+        glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
+
+        // Draw our triangles
+        glDrawElements(GL_TRIANGLES, mesh.primCount(), GL_UNSIGNED_SHORT, 0);
+
+        ++meshIt;
+    }
 }
 
 MessageResult RendererGL::message(const MessageQueueAccessor & msgAcc)
@@ -184,19 +323,39 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
 {
     Mesh & mesh = matMesh.mesh();
 
-    if (mesh.rendererVertsId() == -1)
+    if (mesh.rendererReserved(kMSHR_VAO) == -1)
     {
-        glGenBuffers(1, &mesh.rendererVertsId());
-        glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererVertsId());
-        glBufferData(GL_ARRAY_BUFFER, mesh.vertsSize(), mesh.verts(), GL_STATIC_DRAW);
+        glGenVertexArrays(1, &mesh.rendererReserved(kMSHR_VAO));
     }
 
-    if (mesh.rendererPrimsId() == -1)
+    glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
+
+    if (mesh.rendererReserved(kMSHR_VertBuffer) == -1)
     {
-        glGenBuffers(1, &mesh.rendererVertsId());
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.rendererPrimsId());
+        glGenBuffers(1, &mesh.rendererReserved(kMSHR_VertBuffer));
+        glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
+        glBufferData(GL_ARRAY_BUFFER, mesh.vertsSize(), mesh.verts(), GL_STATIC_DRAW);
+
+        // position
+        glVertexAttribPointer(0 /* eAttrib_position */, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)0);
+        glEnableVertexAttribArray(0); // eAttrib_Position
+
+        // normal
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)12);
+        glEnableVertexAttribArray(1);
+
+    }
+
+    if (mesh.rendererReserved(kMSHR_PrimBuffer) == -1)
+    {
+        glGenBuffers(1, &mesh.rendererReserved(kMSHR_PrimBuffer));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_PrimBuffer));
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.primsSize(), mesh.prims(), GL_STATIC_DRAW);
     }
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 } // namespace gaen

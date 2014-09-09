@@ -80,8 +80,9 @@ Mesh * Mesh::create(VertType vertType, u32 vertCount, PrimType primType, u32 pri
     pMesh->mVertOffset = sizeof(Mesh);
     pMesh->mPrimOffset = pMesh->mVertOffset + vertStride * vertCount;
 
-    pMesh->mRendererVertsId = -1;
-    pMesh->mRendererPrimsId = -1;
+    for (u32 i = 0; i < kRendererReservedCount; ++i)
+        pMesh->mRendererReserved[i] = -1;
+
     pMesh->mHas32BitIndices = 0;
     pMesh->mMorphTargetCount = 0; // no targets, just one set of verts
 

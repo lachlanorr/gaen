@@ -34,8 +34,11 @@
 #include "renderergl/gaen_opengl.h"
 #include "gaen/gaen.h"
 
-// LORRTEMP - make the loaded initial entity data driven
-#include "samples/model_viewer/model_viewer.h"
+// Force Optimus enabled systems to use Nvidia adapter
+extern "C"
+{
+    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+}
 
 namespace gaen
 {
@@ -280,7 +283,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     sHinstance = hInstance;
 
-    createGLWindow("Gaen", 1280, 720, 24);
+    createGLWindow("Gaen", 1280, 720, 32);
 
     init_gaen(__argc, __argv);
     set_renderer(&sRenderer);
