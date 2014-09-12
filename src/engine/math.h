@@ -537,7 +537,7 @@ inline Mat34 Mat34::transform(const Vec3 & trans,
                               const Vec3 & angles,
                               f32 factor)
 {
-    return scale(factor) * rotation(angles) * translation(trans);
+    return translation(trans) * rotation(angles) * scale(factor);
 }
 
 inline f32 & Mat34::operator[](size_t idx)
@@ -676,7 +676,7 @@ inline Mat4 Mat4::transform(const Vec3 & trans,
                             const Vec3 & angles,
                             f32 factor)
 {
-    return scale(factor) * rotation(angles) * translation(trans);
+    return translation(trans) * rotation(angles) * scale(factor);
 }
 
 inline f32 & Mat4::operator[](size_t idx)
