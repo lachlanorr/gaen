@@ -77,6 +77,12 @@ union dcell
 };
 static_assert(sizeof(dcell) == 8, "dcell must be 8 bytes");
 
+union tcell
+{
+    Vec3 vec3;
+};
+static_assert(sizeof(tcell) == 12, "tcell must be 12 bytes");
+
 union qcell
 {
     Vec4 vec4;
@@ -89,6 +95,11 @@ union Block
 {
     cell cells[4];
     dcell dCells[2];
+    struct
+    {
+        tcell tCell;
+        cell pad;
+    } tCellPad;
     qcell qCell;
 };
 

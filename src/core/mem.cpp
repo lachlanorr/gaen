@@ -52,6 +52,7 @@ static const size_t kAllocHeaderSize = sizeof(AllocHeader);
 static const char * sMemTypeText[] = {"Unspecified",
                                       "Debug",
                                       "Engine",
+                                      "Renderer",
                                       "Texture",
                                       "Model",
                                       "Sound",

@@ -43,7 +43,19 @@ namespace system_api
 {
 
 Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & caller);
-void renderer_insert_model_instance(Handle & modelHandle, const u32 & instanceId, const Mat34 & transform, const Entity & caller);
+
+u32 renderer_gen_uid(const Entity & caller);
+void renderer_insert_model_instance(const u32 & uid,
+                                    Handle & modelHandle,
+                                    const Mat34 & transform,
+                                    const Entity & caller);
+void renderer_remove_model_instance(const u32 & uid, const Entity & caller);
+
+void renderer_insert_light_distant(const u32 & uid,
+                                   const Vec3 & direction,
+                                   const Color & color,
+                                   const Entity & caller);
+void renderer_remove_light_distant(const u32 & uid, const Entity & caller);
 
 }
 

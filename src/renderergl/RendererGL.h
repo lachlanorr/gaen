@@ -27,10 +27,12 @@
 #ifndef GAEN_RENDERERGL_RENDERERGL_H
 #define GAEN_RENDERERGL_RENDERERGL_H
 
+#include "core/Vector.h"
 #include "engine/math.h"
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
 #include "engine/ModelMgr.h"
+#include "engine/renderer_structs.h"
 
 #if IS_PLATFORM_WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -94,6 +96,9 @@ private:
     Mat4 mGuiProjection;
 
     ModelMgr<RendererGL> * mpModelMgr;
+
+    Vector<kMEM_Renderer, DistantLight> mDistantLights;
+    Vector<kMEM_Renderer, PointLight> mPointLights;
 };
 
 

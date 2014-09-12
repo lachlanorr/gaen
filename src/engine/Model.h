@@ -36,7 +36,6 @@ namespace gaen
 {
 
 typedef u32 model_id;
-typedef u32 model_instance_id;
 
 typedef u32 material_mesh_id;
 typedef u32 shader_hash;

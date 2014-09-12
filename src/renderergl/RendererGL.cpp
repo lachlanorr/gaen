@@ -61,14 +61,20 @@ void RendererGL::fin()
 }
 
 static const char * sVertShaderCode = 
-    "#version 430 core\n"
-    "layout(location=0) in vec4 vPosition;\n"
+    "#version 330 core\n"
+    "in vec4 vPosition;\n"
+    "uniform mat4 mvp;\n"
     "void main()\n"
     "{\n"
-    "    gl_Position = vPosition;\n"
+    "    gl_Position = mvp * vPosition;\n"
     "}\n";
 
-/*    "attribute vec3 position; \n"
+/*
+    "layout(location=0) in vec4 vPosition;\n"
+
+
+
+"attribute vec3 position; \n"
     "varying vec4 colorVarying; \n"
     "uniform mat4 modelView; \n"
     "uniform mat4 projection; \n"
@@ -82,7 +88,7 @@ static const char * sVertShaderCode =
 
 
 static const char * sFragShaderCode =
-    "#version 430 core\n"
+    "#version 330 core\n"
     "out vec4 fColor;\n"
     "void main()\n"
     "{\n"
@@ -121,26 +127,12 @@ static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCod
     return true;
 }
 
-static float sVerts[6][2] = {
-    { -0.90, -0.90 },
-    {  0.85, -0.90 },
-    { -0.90,  0.85 },
-
-    {  0.90, -0.85 },
-    {  0.90,  0.90 },
-    { -0.85,  0.90 }
-};
-
-static GLuint sVAO = -1;
-static GLuint sBuffer = -1;
 static GLuint sProgramId = -1;
-static GLint sModelViewUniform = -1;
-static GLint sProjectionUniform = -1;
-static Mat4 sModelViewMat(1.0f);
+static GLint sMVPUniform = -1;
+static Mat4 sMVPMat(1.0f);
 
 static bool build_program(GLuint * pProgramId,
-                          GLint * pModelViewUniform,
-                          GLint * pProjectionUniform,
+                          GLint * pMVPUniform,
                           const char * vertShaderCode,
                           const char * fragShaderCode)
 {
@@ -162,8 +154,8 @@ static bool build_program(GLuint * pProgramId,
     glAttachShader(programId, fragShader);
 
     // bind attribute locations
-    glBindAttribLocation(programId, 0, "position");
-    glBindAttribLocation(programId, 1, "uv");
+    //glBindAttribLocation(programId, 0, "position");
+    //glBindAttribLocation(programId, 1, "uv");
     //--//glBindAttribLocation(programId, eAttrib_Normal, "normal");
 
     // link program
@@ -180,8 +172,7 @@ static bool build_program(GLuint * pProgramId,
     }
 
     // Get uniform locations
-    GLint modelViewUniform = glGetUniformLocation(programId, "modelView");
-    GLint projectionUniform = glGetUniformLocation(programId, "projection");
+    GLint mvpUniform = glGetUniformLocation(programId, "mvp");
     //--//uniforms[eUniform_NormalTransform] = glGetUniformLocation(program_, "normalTransform");
 
     // Release vertex and fragment shaders
@@ -189,8 +180,7 @@ static bool build_program(GLuint * pProgramId,
     glDeleteShader(fragShader);
 
     *pProgramId = programId;
-    *pModelViewUniform = modelViewUniform;
-    *pProjectionUniform = projectionUniform;
+    *pMVPUniform = mvpUniform;
 
     return true;
 }
@@ -230,16 +220,11 @@ void RendererGL::initViewport()
                                         0.0f,
                                         100.0f);
 
-    sModelViewMat = Mat4::build_translation(Vec3(0.0f, 10.0f, 10.0f));
+    //sMVPMat = Mat4::translation(Vec3(0.0f, 0.0f, 0.0f));
+    //sMVPMat = Mat4::lookat(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(0.0f, 1.0f, 0.0f));
+    sMVPMat = Mat4::rotation(Vec3(20.0f, -20.0f, 0.0f));
 
-    glGenVertexArrays(1, &sVAO);
-    glBindVertexArray(sVAO);
-
-    glGenBuffers(1, &sBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, sBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(sVerts), sVerts, GL_STATIC_DRAW);
-
-    if (!build_program(&sProgramId, &sModelViewUniform, &sProjectionUniform, sVertShaderCode, sFragShaderCode))
+    if (!build_program(&sProgramId, &sMVPUniform, sVertShaderCode, sFragShaderCode))
     {
         PANIC("Failed to build_program for default shader");
     }
@@ -279,13 +264,14 @@ void RendererGL::render()
         const MaterialMeshInstance & matMeshInst = *meshIt;
         Mesh & mesh = matMeshInst.pMaterialMesh->mesh();
 
-        glUniformMatrix4fv(sModelViewUniform, 1, 0, sModelViewMat.elems);
-        glUniformMatrix4fv(sProjectionUniform, 1, 0, mProjection.elems);
+        Mat4 mvp = matMeshInst.pModelInstance->worldTransform * mProjection;
+
+        glUniformMatrix4fv(sMVPUniform, 1, 0, sMVPMat.elems);
 
         glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
 
         // Draw our triangles
-        glDrawElements(GL_TRIANGLES, mesh.primCount(), GL_UNSIGNED_SHORT, 0);
+        glDrawElements(GL_TRIANGLES, mesh.indexCount(), GL_UNSIGNED_SHORT, 0);
 
         ++meshIt;
     }
@@ -300,16 +286,16 @@ MessageResult RendererGL::message(const MessageQueueAccessor & msgAcc)
     case HASH::renderer_insert_model_instance:
     {
         msg::InsertModelInstanceQR msgr(msgAcc);
-        mpModelMgr->insertModelInstance(msgr.instanceId(),
-                                      msgr.model(),
-                                      msgr.worldTransform(),
-                                      msgr.isAssetManaged());
+        mpModelMgr->insertModelInstance(msgAcc.message().source,
+                                        msgr.uid(),
+                                        msgr.model(),
+                                        msgr.worldTransform(),
+                                        msgr.isAssetManaged());
         break;
     }
     case HASH::renderer_remove_model_instance:
     {
-        model_instance_id instanceId = msg.payload.u;
-        mpModelMgr->removeModelInstance(instanceId);
+        mpModelMgr->removeModelInstance(msg.source, msg.payload.u);
         break;
     }
     default:

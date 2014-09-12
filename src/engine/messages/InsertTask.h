@@ -28,8 +28,8 @@
 #define GAEN_ENGINE_MESSAGES_INSERTTASKMESSAGE_H
 
 #include "engine/MessageWriter.h"
-#include "core/threading.h"
 #include "engine/Task.h"
+#include "core/threading.h"
 
 namespace gaen
 {
@@ -60,8 +60,8 @@ public:
 
     }
 
-    thread_id owner() const { return mMsgAcc.message().payload.u; }
     const Task & task() const { return *mpTask; }
+    thread_id owner() const { return mMsgAcc.message().payload.u; }
         
 private:
     const T & mMsgAcc;
@@ -90,7 +90,6 @@ public:
                            2)
     {}
     
-    void setOwner(thread_id val) { mMsgAcc.message().payload.u = val; }
     void setTask(const Task & val)
     {
         for (u32 i = 0; i < 2; ++i)
@@ -98,6 +97,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
+    void setOwner(thread_id val) { mMsgAcc.message().payload.u = val; }
 };
 
 class InsertTaskBW : protected MessageBlockWriter
@@ -119,7 +119,6 @@ public:
                            mBlocks)
     {}
 
-    void setOwner(thread_id val) { mMsgAcc.message().payload.u = val; }
     void setTask(const Task & val)
     {
         for (u32 i = 0; i < 2; ++i)
@@ -127,6 +126,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
+    void setOwner(thread_id val) { mMsgAcc.message().payload.u = val; }
 
 private:
     Block mBlocks[2 + 1]; // +1 for header

@@ -226,16 +226,16 @@ Model * build_box(const Vec3 & size, Color color)
     f32 zmax = size.z / 2.0f;
     f32 zmin = -zmax;
 
-    // Top
+    // Front
     builder.pushQuad(Vec3(xmin, ymax, zmax), Vec3(xmin, ymin, zmax), Vec3(xmax, ymin, zmax), Vec3(xmax, ymax, zmax));
 
-    // Front
+    // Bottom
     builder.pushQuad(Vec3(xmin, ymin, zmax), Vec3(xmin, ymin, zmin), Vec3(xmax, ymin, zmin), Vec3(xmax, ymin, zmax));
 
-    // Bottom
+    // Back
     builder.pushQuad(Vec3(xmin, ymin, zmin), Vec3(xmin, ymax, zmin), Vec3(xmax, ymax, zmin), Vec3(xmax, ymin, zmin));
 
-    // Back
+    // Top
     builder.pushQuad(Vec3(xmax, ymax, zmax), Vec3(xmax, ymax, zmin), Vec3(xmin, ymax, zmin), Vec3(xmin, ymax, zmax));
 
     // Left

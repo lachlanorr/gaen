@@ -32,6 +32,7 @@ entity start
     float #f_prop = 1.0;
     float f_field = 2.0;
     handle boxModel = create_shape_box(vec3(1.0, 1.0, 1.0), color(0, 0, 255, 255));
+    uint boxModelUid = renderer_gen_uid();
 
     components
     {
@@ -41,7 +42,7 @@ entity start
 
     #init()
     {
-        renderer_insert_model_instance(boxModel, 0, mat34(1.0));
+        renderer_insert_model_instance(boxModelUid, boxModel, mat34(1.0));
     }
 
     #update(float deltaSecs)

@@ -152,9 +152,7 @@ class ScriptInfo(object):
 
     def _compile(self):
         p = subprocess.Popen([CMPC, self.cmpFullPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        p.wait()
         sout, serr = p.communicate()
-
         if p.returncode == 0:
             output = sout.replace('\r\n', '\n')
             m = re.match(r'^/// \.H SECTION\n(.*)./// \.CPP SECTION\n.*$', output, flags=re.MULTILINE|re.DOTALL)

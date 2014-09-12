@@ -33,6 +33,7 @@
 
 #include "engine/Model.h"
 #include "engine/MessageQueue.h"
+#include "engine/renderer_structs.h"
 
 namespace gaen
 {
@@ -41,17 +42,18 @@ namespace gaen
 
 struct ModelInstance
 {
-    ModelInstance(model_instance_id instanceId,
+    ModelInstance(task_id owner,
+                  u32 uid,
                   Model * pModel,
                   const Mat34 & worldTransform)
-      : worldTransform(worldTransform)
+      : ruid(owner, uid)
+      , worldTransform(worldTransform)
       , pModel(pModel)
-      , instanceId(instanceId)
     {}
         
+    Ruid ruid;
     Mat34 worldTransform;
     Model * pModel;
-    model_instance_id instanceId;
 };
     
 //------------------------------------------------------------------------------
@@ -73,11 +75,11 @@ struct MaterialMeshInstance
 typedef List<kMEM_Model,
     MaterialMeshInstance> MeshList;
 typedef Map<kMEM_Model,
-    model_instance_id,
-    MeshList> ModelMeshMap;
+            u32, // uid
+            MeshList> ModelMeshMap;
 typedef Map<kMEM_Model,
-    shader_hash,
-    ModelMeshMap> ShaderModelMap;
+            shader_hash,
+            ModelMeshMap> ShaderModelMap;
 
 //------------------------------------------------------------------------------
 
@@ -180,7 +182,8 @@ public:
 
     // Once inserted, don't delete.  To delete objects, send
     // appropriate delete message to renderer.
-    void insertModelInstance(model_instance_id instanceId,
+    void insertModelInstance(task_id owner,
+                             u32 uid,
                              Model * pModel,
                              const Mat34 & worldTransform,
                              bool isAssetManaged)
@@ -197,8 +200,8 @@ public:
         }
 
         // Insert into mModelInstanceMap
-        ASSERT(mModelInstanceMap.find(instanceId) == mModelInstanceMap.end());
-        auto empResult = mModelInstanceMap.emplace(instanceId, ModelInstance(instanceId, pModel, worldTransform));
+        ASSERT(mModelInstanceMap.find(uid) == mModelInstanceMap.end());
+        auto empResult = mModelInstanceMap.emplace(uid, ModelInstance(owner, uid, pModel, worldTransform));
         if (!empResult.second)
             PANIC("Failed to emplace model instance");
         auto modelInstanceIt = empResult.first;
@@ -209,7 +212,7 @@ public:
             insertMaterial(&matMesh.material(), isAssetManaged);
 
             // Insert meshes into mShaderModelMap
-            mShaderModelMap[matMesh.shaderHash()][instanceId].push_back(MaterialMeshInstance(&modelInstanceIt->second, &matMesh));
+            mShaderModelMap[matMesh.shaderHash()][uid].push_back(MaterialMeshInstance(&modelInstanceIt->second, &matMesh));
 
             // Load material and mesh into GPU through renderer
             if (matMesh.mesh().rendererReserved(0) == -1)
@@ -224,23 +227,32 @@ public:
         }
     }
     
-    void removeModelInstance(model_instance_id instanceId)
+    void removeModelInstance(task_id source, u32 uid)
     {
         // Insert into mModelInstanceMap
-        auto modelInstanceIt = mModelInstanceMap.find(instanceId);
+        auto modelInstanceIt = mModelInstanceMap.find(uid);
         if (modelInstanceIt == mModelInstanceMap.end())
         {
             PANIC("removeModelInstance of non existent material");
         }
 
+        const ModelInstance & modelInst = modelInstanceIt->second;
 
-        Model * pModel = modelInstanceIt->second.pModel;
+        // Only remove if caller is the owner
+        if (modelInst.ruid.owner != source)
+        {
+            // LORRTODO - change this to a non fatal error message
+            PANIC("removeModelInstance attempted by non owning task");
+            return;
+        }
+
+        Model * pModel = modelInst.pModel;
 
         // Remove materials
         for (Model::MaterialMesh & matMesh : *pModel)
         {
-            // Delete all meshes from mShaderModelMap for this instanceId
-            mShaderModelMap[matMesh.shaderHash()].erase(instanceId);
+            // Delete all meshes from mShaderModelMap for this uid
+            mShaderModelMap[matMesh.shaderHash()].erase(uid);
 
             removeMaterial(&matMesh.material());
         }
@@ -320,7 +332,7 @@ private:
 
     // Instances of models (a model and transform)
     typedef Map<kMEM_Model,
-                model_instance_id,
+                u32, // uid
                 ModelInstance> ModelInstanceMap;
 
 

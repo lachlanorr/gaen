@@ -30,6 +30,7 @@
 #include "engine/math.h"
 #include "engine/shapes.h"
 #include "engine/messages/InsertModelInstance.h"
+#include "engine/messages/InsertLightDistant.h"
 
 #include "engine/system_api.h"
 
@@ -50,16 +51,61 @@ Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & c
     return Handle(HASH::Model, 0, 0, sizeof(Model), pModel, nullptr);
 }
 
-void renderer_insert_model_instance(Handle & modelHandle, const u32 & instanceId, const Mat34 & transform, const Entity & caller)
+u32 renderer_gen_uid(const Entity & caller)
+{
+    static std::atomic<u32> sNextUid(0);
+    return sNextUid.fetch_add(1, std::memory_order_relaxed);
+}
+void renderer_insert_model_instance(const u32 & uid,
+                                    Handle & modelHandle,
+                                    const Mat34 & transform,
+                                    const Entity & caller)
 {
     if (modelHandle.typeHash() != HASH::Model)
         PANIC("Invalid model handle");
 
-    msg::InsertModelInstanceQW msgQW(HASH::renderer_insert_model_instance, kMessageFlag_None, caller.task().id(), kRendererTaskId, instanceId);
+    msg::InsertModelInstanceQW msgQW(HASH::renderer_insert_model_instance,
+                                     kMessageFlag_None,
+                                     caller.task().id(),
+                                     kRendererTaskId,
+                                     uid);
     msgQW.setIsAssetManaged(true);
     msgQW.setModel((Model*)modelHandle.data());
     msgQW.setWorldTransform(transform);
 }
+
+void renderer_remove_model_instance(const u32 & uid, const Entity & caller)
+{
+    MessageQueueWriter msgQW(HASH::renderer_remove_model_instance,
+                             kMessageFlag_None,
+                             caller.task().id(),
+                             kRendererTaskId,
+                             to_cell(uid),
+                             0);
+}
+
+void renderer_insert_light_distant(const u32 & uid, const Vec3 & direction, const Color & color, const Entity & caller)
+{
+    msg::InsertLightDistantQW msgQW(HASH::renderer_insert_light_distant,
+                                    kMessageFlag_None,
+                                    caller.task().id(),
+                                    kRendererTaskId,
+                                    uid);
+    msgQW.setDirection(direction);
+    msgQW.setColor(color);
+}
+
+void renderer_remove_light_distant(const u32 & uid, const Entity & caller)
+{
+    MessageQueueWriter msgQW(HASH::renderer_remove_light_distant,
+                             kMessageFlag_None,
+                             caller.task().id(),
+                             kRendererTaskId,
+                             to_cell(uid),
+                             0);
+}
+
+
 
 } // namespace system_api
 

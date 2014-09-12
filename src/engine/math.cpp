@@ -230,6 +230,98 @@ Mat34 Mat34::multiply(const Mat34 & lhs, const Mat34 & rhs)
     return mat34;
 }
 
+Mat4 Mat34::multiply(const Mat34 & lhs, const Mat4 & rhs)
+{
+    Mat4 mat4;
+
+    // first row
+    mat4[0] =  lhs[0]  *  rhs[0] +
+               lhs[3]  *  rhs[1] +
+               lhs[6]  *  rhs[2] +
+               lhs[9]  *  rhs[3];
+
+    mat4[4] =  lhs[0]  *  rhs[4] +
+               lhs[3]  *  rhs[5] +
+               lhs[6]  *  rhs[6] +
+               lhs[9]  *  rhs[7];
+
+    mat4[8] =  lhs[0]  *  rhs[8] +
+               lhs[3]  *  rhs[9] +
+               lhs[6]  * rhs[10] +
+               lhs[9]  * rhs[11];
+
+    mat4[12] = lhs[0]  * rhs[12] +
+               lhs[3]  * rhs[13] +
+               lhs[6]  * rhs[14] +
+               lhs[9]  * rhs[15];
+
+    // second row
+    mat4[1] =  lhs[1]  *  rhs[0] +
+               lhs[4]  *  rhs[1] +
+               lhs[7]  *  rhs[2] +
+               lhs[10] *  rhs[3];
+
+    mat4[5] =  lhs[1]  *  rhs[4] +
+               lhs[4]  *  rhs[5] +
+               lhs[7]  *  rhs[6] +
+               lhs[10] *  rhs[7];
+
+    mat4[9] =  lhs[1]  *  rhs[8] +
+               lhs[4]  *  rhs[9] +
+               lhs[7]  * rhs[10] +
+               lhs[10] * rhs[11];
+
+    mat4[13] = lhs[1]  * rhs[12] +
+               lhs[4]  * rhs[13] +
+               lhs[7]  * rhs[14] +
+               lhs[10] * rhs[15];
+
+    // third row
+    mat4[2] =  lhs[2]  *  rhs[0] +
+               lhs[5]  *  rhs[1] +
+               lhs[8]  *  rhs[2] +
+               lhs[11] *  rhs[3];
+
+    mat4[6] =  lhs[2]  *  rhs[4] +
+               lhs[5]  *  rhs[5] +
+               lhs[8]  *  rhs[6] +
+               lhs[11] *  rhs[7];
+
+    mat4[10] = lhs[2]  *  rhs[8] +
+               lhs[5]  *  rhs[9] +
+               lhs[8]  * rhs[10] +
+               lhs[11] * rhs[11];
+
+    mat4[14] = lhs[2]  * rhs[12] +
+               lhs[5]  * rhs[13] +
+               lhs[8]  * rhs[14] +
+               lhs[11] * rhs[15];
+
+    // fourth row
+    mat4[3] =/*0.0f *  rhs[0] +
+               0.0f *  rhs[1] +
+               0.0f *  rhs[2] +
+               1.0f * */ rhs[3];
+
+    mat4[7] =/*0.0f *  rhs[4] +
+               0.0f *  rhs[5] +
+               0.0f *  rhs[6] +
+               1.0f * */ rhs[7];
+
+    mat4[11] =/*0.0f *  rhs[8] +
+                0.0f *  rhs[9] +
+                0.0f * rhs[10] +
+                1.0f * */ rhs[11];
+
+    mat4[15] =/*0.0f * rhs[12] +
+                0.0f * rhs[13] +
+                0.0f * rhs[14] +
+                1.0f * */ rhs[15];
+
+    return mat4;
+}
+
+
 f32 Mat34::determinant(const Mat34 & mat34)
 {
     f32 a0 = mat34[0]  * mat34[4]  - mat34[3]  * mat34[1];
@@ -291,7 +383,7 @@ Mat34 Mat34::inverse(const Mat34 & mat34)
 }
 
 
-Mat34 Mat34::build_translation(const Vec3 & pos)
+Mat34 Mat34::translation(const Vec3 & trans)
 {
     Mat34 mat34;
 
@@ -307,59 +399,59 @@ Mat34 Mat34::build_translation(const Vec3 & pos)
     mat34[7]  = 0.0f;
     mat34[8]  = 1.0f;
 
-    mat34[9]  = pos.x;
-    mat34[10] = pos.y;
-    mat34[11] = pos.z;
+    mat34[9]  = trans.x;
+    mat34[10] = trans.y;
+    mat34[11] = trans.z;
 
     return mat34;
 }
 
-Mat34 Mat34::build_rotation(const Vec3 & rot)
+Mat34 Mat34::rotation(const Vec3 & angles)
 {
-    f32 cosX = cos(rot.x);
-    f32 sinX = sin(rot.x);
-    f32 cosY = cos(rot.y);
-    f32 sinY = sin(rot.y);
-    f32 cosZ = cos(rot.z);
-    f32 sinZ = sin(rot.z);
+    f32 cosX = cos(angles.x);
+    f32 sinX = sin(angles.x);
+    f32 cosY = cos(angles.y);
+    f32 sinY = sin(angles.y);
+    f32 cosZ = cos(angles.z);
+    f32 sinZ = sin(angles.z);
     f32 cosXsinY = cosX * sinY;
     f32 sinXsinY = sinX * sinY;
 
-    Mat4 mat4;
+    Mat34 mat34;
 
-    mat4[0]  = cosY * cosZ;
-    mat4[1]  = -cosY * sinZ;
-    mat4[2]  = sinY;
+    mat34[0]  = cosY * cosZ;
+    mat34[1]  = -cosY * sinZ;
+    mat34[2]  = sinY;
 
-    mat4[3]  = sinXsinY * cosZ + cosX * sinZ;
-    mat4[4]  = -sinXsinY * sinZ + cosX * cosZ;
-    mat4[5]  = -sinX * cosY;
+    mat34[3]  = sinXsinY * cosZ + cosX * sinZ;
+    mat34[4]  = -sinXsinY * sinZ + cosX * cosZ;
+    mat34[5]  = -sinX * cosY;
     
-    mat4[6]  = -cosXsinY * cosZ + sinX * sinZ;
-    mat4[7]  = cosXsinY * sinZ + sinX * cosZ;
-    mat4[8]  = cosX * cosY;
+    mat34[6]  = -cosXsinY * cosZ + sinX * sinZ;
+    mat34[7]  = cosXsinY * sinZ + sinX * cosZ;
+    mat34[8]  = cosX * cosY;
 
-    mat4[9]  = 0.0f;
-    mat4[10] = 0.0f;
-    mat4[11] = 0.0f;
+    mat34[9]  = 0.0f;
+    mat34[10] = 0.0f;
+    mat34[11] = 0.0f;
 
-    return mat4;
+    return mat34;
 }
 
-Mat34 Mat34::build_scale(f32 scale)
+Mat34 Mat34::scale(f32 factor)
 {
     Mat34 mat34;
-    mat34[0]  = scale;
+    mat34[0]  = factor;
     mat34[1]  = 0.0f;
     mat34[2]  = 0.0f;
 
     mat34[3]  = 0.0f;
-    mat34[4]  = scale;
+    mat34[4]  = factor;
     mat34[5]  = 0.0f;
 
     mat34[6]  = 0.0f;
     mat34[7]  = 0.0f;
-    mat34[8]  = scale;
+    mat34[8]  = factor;
 
     mat34[9]  = 0.0f;
     mat34[10] = 0.0f;
@@ -559,7 +651,7 @@ Mat4 Mat4::inverse(const Mat4 & mat4)
 }
 
 
-Mat4 Mat4::build_translation(const Vec3 & pos)
+Mat4 Mat4::translation(const Vec3 & trans)
 {
     Mat4 mat4;
     mat4[0]  = 1.0f;
@@ -577,22 +669,22 @@ Mat4 Mat4::build_translation(const Vec3 & pos)
     mat4[10] = 1.0f;
     mat4[11] = 0.0f;
 
-    mat4[12] = pos.x;
-    mat4[13] = pos.y;
-    mat4[14] = pos.z;
+    mat4[12] = trans.x;
+    mat4[13] = trans.y;
+    mat4[14] = trans.z;
     mat4[15] = 1.0f;
 
     return mat4;
 }
 
-Mat4 Mat4::build_rotation(const Vec3 & rot)
+Mat4 Mat4::rotation(const Vec3 & angles)
 {
-    f32 cosX = cos(rot.x);
-    f32 sinX = sin(rot.x);
-    f32 cosY = cos(rot.y);
-    f32 sinY = sin(rot.y);
-    f32 cosZ = cos(rot.z);
-    f32 sinZ = sin(rot.z);
+    f32 cosX = cos(angles.x);
+    f32 sinX = sin(angles.x);
+    f32 cosY = cos(angles.y);
+    f32 sinY = sin(angles.y);
+    f32 cosZ = cos(angles.z);
+    f32 sinZ = sin(angles.z);
     f32 cosXsinY = cosX * sinY;
     f32 sinXsinY = sinX * sinY;
 
@@ -621,22 +713,22 @@ Mat4 Mat4::build_rotation(const Vec3 & rot)
     return mat4;
 }
 
-Mat4 Mat4::build_scale(f32 scale)
+Mat4 Mat4::scale(f32 factor)
 {
     Mat4 mat4;
-    mat4[0]  = scale;
+    mat4[0]  = factor;
     mat4[1]  = 0.0f;
     mat4[2]  = 0.0f;
     mat4[3]  = 0.0f;
 
     mat4[4]  = 0.0f;
-    mat4[5]  = scale;
+    mat4[5]  = factor;
     mat4[6]  = 0.0f;
     mat4[7]  = 0.0f;
 
     mat4[8]  = 0.0f;
     mat4[9]  = 0.0f;
-    mat4[10] = scale;
+    mat4[10] = factor;
     mat4[11] = 0.0f;
 
     mat4[12] = 0.0f;
@@ -690,6 +782,21 @@ Mat4 Mat4::perspective(f32 fovy, f32 aspect, f32 nearZ, f32 farZ)
 
    return frustum(-frustumW, frustumW, -frustumH, frustumH, nearZ, farZ);
 }
+
+Mat4 Mat4::lookat(const Vec3 & eye, const Vec3 & center, const Vec3 & up)
+{
+    Vec3 f = Vec3::normalize(center - eye);
+    Vec3 upN = Vec3::normalize(up);
+    Vec3 s = Vec3::cross(f, upN);
+    Vec3 u = Vec3::cross(s, f);
+    Mat4 M = Mat4(s.x,  u.x,  -f.x,  0.0f,
+                  s.y,  u.y,  -f.y,  0.0f,
+                  s.z,  u.z,  -f.z,  0.0f,
+                  0.0f, 0.0f,  0.0f, 1.0f);
+
+    return M * Mat4::translation(-eye);
+}
+
 
 Mat4 Mat4::orthographic(f32 left, f32 right, f32 bottom, f32 top, f32 nearZ, f32 farZ)
 {

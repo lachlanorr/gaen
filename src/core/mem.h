@@ -44,11 +44,12 @@ enum MemType
     kMEM_Unspecified = 0,
     kMEM_Debug       = 1,
     kMEM_Engine      = 2,  // data structures used in the engine to manage tasks, entities, etc
-    kMEM_Texture     = 3,
-    kMEM_Model       = 4,
-    kMEM_Sound       = 5,
-    kMEM_Network     = 6,
-    kMEM_Compose     = 7,
+    kMEM_Renderer    = 3,
+    kMEM_Texture     = 4,
+    kMEM_Model       = 5,
+    kMEM_Sound       = 6,
+    kMEM_Network     = 7,
+    kMEM_Compose     = 8,
 
     kMEM_COUNT
 };

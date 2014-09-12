@@ -62,7 +62,7 @@ class boolField(cellField):
     union_type = 'b'
     
 class ColorField(cellField):
-    union_type = 'c'
+    union_type = 'color'
     includes = cellField.includes + ['engine/Color.h']
 
 class EnumField(cellField):
@@ -130,6 +130,8 @@ def block_accessor(field):
         return 'cells[%d]' % field.block_cell_start
     elif field.cell_count == 2:
         return 'dCells[%d]' % (field.block_cell_start / 2,)
+    elif field.cell_count == 3:
+        return 'tCellPad.tCell'
     elif field.cell_count == 4:
         return 'qCell'
     else:
@@ -164,69 +166,83 @@ class FieldHandlerType(type):
                     'payload_field': None,
                     'attrs': Attributes()}
 
+        field_attrs = []
         for attrname, attrvalue in attrs.iteritems():
             if isinstance(attrvalue, BaseField):
-                fieldname, field = attrname, attrvalue
-                field_class_name = field.__class__.__name__
-                if not field_class_name.endswith('Field'):
-                    raise Exception('Field class must end in "Field"')
-                
-                field.name = fieldname
-
-                if not hasattr(field, 'type_name'):
-                    field.type_name = field_class_name[:-5]
-                
-                for inc in field.includes:
-                    if inc not in includes:
-                        includes.append(inc)
-
-                field.block_count = field.cell_count / BLOCK_CELL_COUNT
-
-                if isinstance(field, PointerField):
-                    n = field.name
-                    if n.startswith('p'):
-                        n = n[1:]
-                    field.getter_name = lower_first(n)
-                else:
-                    field.getter_name = field.name
-
-                field.setter_name = 'set' + upper_first(field.getter_name)
-
-                # handle payload
-                if field.payload:
-                    if has_payload:
-                        raise Exception('Only one payload field permitted')
-                    if field.cell_count > 4:
-                        raise Exception('Payload must be 4 bytes or less')
-                    has_payload = True
-                    newattrs['payload_field'] = field
-                # handle block sizing
-                else:
-                    remaining = BLOCK_CELL_COUNT - curr_byte
-                    if field.cell_count > remaining and curr_byte > 0:
-                        curr_block += 1
-                        curr_byte = 0
-                    field.block_start = curr_block
-                    field.block_cell_start = curr_byte
-                    curr_byte += field.cell_count % BLOCK_CELL_COUNT
-                    curr_block += field.cell_count / BLOCK_CELL_COUNT
-
-                    if (field.cell_count > BLOCK_CELL_COUNT and field.cell_count % BLOCK_CELL_COUNT != 0):
-                        raise Exception("We don't currently support multi block fields that aren't a multiple of 16 bytes")
-
-                    # We'll need some data members for the class for larger than block size
-                    # fields.  This is so we can have a place to copy them into if they
-                    # happen to wrap the message ring.
-                    if (field.block_count > 1):
-                        field.member_var  = 'm'  + upper_first(field.name)
-                        field.member_pvar = 'mp' + upper_first(field.name)
-
-                    if field.block_count <= 1:
-                        field.block_accessor = block_accessor(field)
-
-                fields.append(field)
+                field_attrs.append((attrname, attrvalue))
             elif not attrname.startswith('_'):
                 setattr(newattrs['attrs'], attrname, attrvalue)
+
+        # sort the fields in descending order by cell count
+        field_attrs = sorted(field_attrs, key=lambda f: f[1].cell_count, reverse=True)
+
+        # LORRTODO - Fix field packing, make it tighter
+        # In some cases we're not packing as efficiently as we can.
+        # For example, if there are 2 Vec3s and 2 u32s, we could pack these
+        # into 2 blocks, but instead we'll bleed over to a third.
+        # The Compose compiler does a nice job of this, and we should be
+        # using that algorithm here.
+
+        for fieldname, field in field_attrs:
+            field_class_name = field.__class__.__name__
+            if not field_class_name.endswith('Field'):
+                raise Exception('Field class must end in "Field"')
+                
+            field.name = fieldname
+
+            if not hasattr(field, 'type_name'):
+                field.type_name = field_class_name[:-5]
+                
+            for inc in field.includes:
+                if inc not in includes:
+                    includes.append(inc)
+
+            field.block_count = field.cell_count / BLOCK_CELL_COUNT
+
+            if isinstance(field, PointerField):
+                n = field.name
+                if n.startswith('p'):
+                    n = n[1:]
+                field.getter_name = lower_first(n)
+            else:
+                field.getter_name = field.name
+
+            field.setter_name = 'set' + upper_first(field.getter_name)
+
+            # handle payload
+            if field.payload:
+                if has_payload:
+                    raise Exception('Only one payload field permitted')
+                if field.cell_count > 4:
+                    raise Exception('Payload must be 4 bytes or less')
+                has_payload = True
+                newattrs['payload_field'] = field
+            # handle block sizing
+            else:
+                remaining = BLOCK_CELL_COUNT - curr_byte
+                if field.cell_count > remaining and curr_byte > 0:
+                    curr_block += 1
+                    curr_byte = 0
+                field.block_start = curr_block
+                field.block_cell_start = curr_byte
+                curr_byte += field.cell_count % BLOCK_CELL_COUNT
+                curr_block += field.cell_count / BLOCK_CELL_COUNT
+
+                if (field.cell_count > BLOCK_CELL_COUNT and field.cell_count % BLOCK_CELL_COUNT != 0):
+                    raise Exception("We don't currently support multi block fields that aren't a multiple of 16 bytes")
+
+                # We'll need some data members for the class for larger than block size
+                # fields.  This is so we can have a place to copy them into if they
+                # happen to wrap the message ring.
+                if (field.block_count > 1):
+                    field.member_var  = 'm'  + upper_first(field.name)
+                    field.member_pvar = 'mp' + upper_first(field.name)
+
+                if field.block_count <= 1:
+                    field.block_accessor = block_accessor(field)
+
+            fields.append(field)
+
                 
         newattrs['block_count'] = curr_block + (0 if curr_byte == 0 else 1)
         return super(FieldHandlerType, cls).__new__(cls, name, bases, newattrs)

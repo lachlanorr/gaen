@@ -55,6 +55,11 @@ struct Vec3
     void normalize();
     void normalizeIfNecessary();
 
+    Vec3 operator-() const;
+    Vec3 operator-(const Vec3& rhs) const;
+    bool operator==(const Vec3 & rhs) const;
+
+    static Vec3 normalize(const Vec3 &vec3);
     static f32 dot(const Vec3 &lhs, const Vec3 &rhs);
     static Vec3 cross(const Vec3 &lhs, const Vec3 &rhs);
 
@@ -63,8 +68,6 @@ struct Vec3
     f32 z;
 };
 
-Vec3 operator-(const Vec3 & lhs, const Vec3& rhs);
-bool operator==(const Vec3 & lhs,const Vec3 & rhs);
 Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2);
 
 struct Vec4
@@ -77,6 +80,10 @@ struct Vec4
     void normalize();
     void normalizeIfNecessary();
 
+    Vec4 operator-() const;
+    bool operator==(const Vec4 & rhs) const;
+
+    static Vec4 normalize(const Vec4 &vec4);
     static f32 dot(const Vec3 &lhs, const Vec3 &rhs);
     static Vec4 cross(const Vec4 &lhs, const Vec4 &rhs);
 
@@ -85,8 +92,6 @@ struct Vec4
     f32 z;
     f32 w;
 };
-
-bool operator==(const Vec4 & lhs,const Vec4 & rhs);
 
 struct Mat4;
 struct Mat3
@@ -126,28 +131,26 @@ struct Mat34
     static const Mat34 & zero();
     static const Mat34 & identity();
 
-    static Mat34 build_from_vec4(const Vec4 & vec4_0,
-                                 const Vec4 & vec4_1,
-                                 const Vec4 & vec4_2);
-
     static Vec4 multiply(const Mat34 & mat34, const Vec4 & vec4);
     static Mat34 multiply(const Mat34 & lhs, const Mat34 & rhs);
+    static Mat4 multiply(const Mat34 & lhs, const Mat4 & rhs);
 
     static f32 determinant(const Mat34 & mat34);
     static Mat34 inverse(const Mat34 & mat34);
 
-    static Mat34 build_translation(const Vec3 & pos);
-    static Mat34 build_rotation(const Vec3 & rot);
-    static Mat34 build_scale(f32 scale);
-    static Mat34 build_transform(const Vec3 & pos,
-                                 const Vec3 & rot,
-                                 f32 scale);
+    static Mat34 translation(const Vec3 & trans);
+    static Mat34 rotation(const Vec3 & angles);
+    static Mat34 scale(f32 factor);
+    static Mat34 transform(const Vec3 & trans,
+                           const Vec3 & angles,
+                           f32 factor);
 
     f32 & operator[](size_t idx);
     const f32 & operator[](size_t idx) const;
 
     Vec4  operator* (const Vec4 & rhs) const;
     Mat34 operator* (const Mat34 & rhs) const;
+    Mat4  operator* (const Mat4 & rhs) const;
 
     Vec4 & vec4(size_t idx);
     const Vec4 & vec4(size_t idx) const;
@@ -174,15 +177,17 @@ struct Mat4
     static f32 determinant(const Mat4 & mat4);
     static Mat4 inverse(const Mat4 & mat4);
 
-    static Mat4 build_translation(const Vec3 & pos);
-    static Mat4 build_rotation(const Vec3 & rot);
-    static Mat4 build_scale(f32 scale);
-    static Mat4 build_transform(const Vec3 & pos,
-                                const Vec3 & rot,
-                                f32 scale);
+    static Mat4 translation(const Vec3 & trans);
+    static Mat4 rotation(const Vec3 & angles);
+    static Mat4 scale(f32 factor);
+    static Mat4 transform(const Vec3 & trans,
+                          const Vec3 & angles,
+                          f32 factor);
 
     static Mat4 frustum(f32 left, f32 right, f32 bottom, f32 top, f32 nearZ, f32 farZ);
     static Mat4 perspective(f32 fovy, f32 aspect, f32 nearZ, f32 farZ);
+    static Mat4 lookat(const Vec3 & eye, const Vec3 & center, const Vec3 & up);
+
     static Mat4 orthographic(f32 left, f32 right, f32 bottom, f32 top, f32 nearZ, f32 farZ);
 
     f32 & operator[](size_t idx);
@@ -263,6 +268,28 @@ inline void Vec3::normalizeIfNecessary()
     }
 }
 
+inline Vec3 Vec3::operator-() const 
+{
+    return Vec3(-x, -y, -z);
+}
+
+inline Vec3 Vec3::operator-(const Vec3 & rhs) const
+{
+    return Vec3(x - rhs.x, y - rhs.y, z - rhs.z);
+}
+
+inline bool Vec3::operator==(const Vec3 & rhs) const
+{
+    return x == rhs.x && y == rhs.y && z == rhs.z;
+}
+
+inline Vec3 Vec3::normalize(const Vec3 &vec)
+{
+    //float inv_mag = invSqrt(x*x + y*y + z*z);
+    f32 inv_mag = 1.0f / sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
+    return Vec3(vec.x * inv_mag, vec.y * inv_mag, vec.z * inv_mag);
+}
+
 inline f32 Vec3::dot(const Vec3 &lhs, const Vec3 &rhs)
 {
     return lhs.x*rhs.x + lhs.y*rhs.y + lhs.z*rhs.z;
@@ -274,20 +301,6 @@ inline Vec3 Vec3::cross(const Vec3 &lhs, const Vec3 &rhs)
              lhs.z*rhs.x - lhs.x*rhs.z,
              lhs.x*rhs.y - lhs.y*rhs.x);
     return vec;
-}
-
-inline Vec3 operator-(const Vec3 & lhs, const Vec3 & rhs)
-{
-    return Vec3(lhs.x - rhs.x,
-                lhs.y - rhs.y,
-                lhs.z - rhs.z);
-}
-
-inline bool operator==(const Vec3 & lhs, const Vec3 & rhs)
-{
-    return lhs.x == rhs.x &&
-           lhs.y == rhs.y &&
-           lhs.z == rhs.z;
 }
 
 inline Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2)
@@ -339,6 +352,23 @@ inline void Vec4::normalizeIfNecessary()
     }
 }
 
+inline Vec4 Vec4::operator-() const
+{
+    return Vec4(-x, -y, -z, w);
+}
+
+inline bool Vec4::operator==(const Vec4 & rhs) const
+{
+    return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
+}
+
+inline Vec4 Vec4::normalize(const Vec4 &vec)
+{
+    //float inv_mag = invSqrt(x*x + y*y + z*z);
+    f32 inv_mag = 1.0f / sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
+    return Vec4(vec.x * inv_mag, vec.y * inv_mag, vec.z * inv_mag, 1.0f);
+}
+
 inline f32 Vec4::dot(const Vec3 &lhs, const Vec3 &rhs)
 {
     return lhs.x*rhs.x + lhs.y*rhs.y + lhs.z*rhs.z;
@@ -351,14 +381,6 @@ inline Vec4 Vec4::cross(const Vec4 &lhs, const Vec4 &rhs)
              lhs.x*rhs.y - lhs.y*rhs.x,
              0.0f);
     return vec;
-}
-
-inline bool operator==(const Vec4 & lhs,const Vec4 & rhs)
-{
-    return lhs.x == rhs.x &&
-        lhs.y == rhs.y &&
-        lhs.z == rhs.z &&
-        lhs.w == rhs.w;
 }
 
 
@@ -511,22 +533,11 @@ inline const Mat34 & Mat34::identity()
     return ident34;
 }
 
-inline Mat34 Mat34::build_from_vec4(const Vec4 & vec4_0,
-                           const Vec4 & vec4_1,
-                           const Vec4 & vec4_2)
+inline Mat34 Mat34::transform(const Vec3 & trans,
+                              const Vec3 & angles,
+                              f32 factor)
 {
-    Mat34 mat34;
-    mat34.vec4(0) = vec4_0;
-    mat34.vec4(1) = vec4_1;
-    mat34.vec4(2) = vec4_2;
-    return mat34;
-}
-
-inline Mat34 Mat34::build_transform(const Vec3 & pos,
-                                    const Vec3 & rot,
-                                    f32 scale)
-{
-    return build_translation(pos) * build_rotation(rot) * build_scale(scale);
+    return scale(factor) * rotation(angles) * translation(trans);
 }
 
 inline f32 & Mat34::operator[](size_t idx)
@@ -551,6 +562,10 @@ inline Mat34 Mat34::operator* (const Mat34 & rhs) const
     return multiply(*this, rhs);
 }
 
+inline Mat4 Mat34::operator* (const Mat4 & rhs) const
+{
+    return multiply(*this, rhs);
+}
 
 inline Vec4 & Mat34::vec4(size_t idx)
 {
@@ -657,11 +672,11 @@ inline const Mat4 & Mat4::identity()
     return ident4;
 }
 
-inline Mat4 Mat4::build_transform(const Vec3 & pos,
-                                  const Vec3 & rot,
-                                  f32 scale)
+inline Mat4 Mat4::transform(const Vec3 & trans,
+                            const Vec3 & angles,
+                            f32 factor)
 {
-    return build_translation(pos) * build_rotation(rot) * build_scale(scale);
+    return scale(factor) * rotation(angles) * translation(trans);
 }
 
 inline f32 & Mat4::operator[](size_t idx)

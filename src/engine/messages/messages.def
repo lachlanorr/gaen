@@ -22,18 +22,16 @@ class Transform(FieldHandler):
     transform = Mat34Field()
     
 
-class RemoveModelInstance(FieldHandler):
-    instanceId = u32Field(payload=True,
-                          type_name='model_instance_id',
-                          includes=['engine/Model.h'])
-
-
 class InsertModelInstance(FieldHandler):
-    instanceId      = u32Field(payload=True,
-                               type_name='model_instance_id',
-                               includes=['engine/Model.h'])
+    uid             = u32Field(payload=True)
     pModel          = PointerField(type_name='Model *',
                                    includes=['engine/Model.h'])
     isAssetManaged  = boolField()
     worldTransform  = Mat34Field()
     
+
+class InsertLightDistant(FieldHandler):
+    uid       = u32Field(payload=True)
+    color     = ColorField()
+    direction = Vec3Field()
+

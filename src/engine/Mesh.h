@@ -203,6 +203,21 @@ inline u32 prim_stride(PrimType primType)
     }
 }
 
+inline u32 index_count(PrimType primType)
+{
+    switch (primType)
+    {
+    case kPRIM_Point:
+        return 1;
+    case kPRIM_Line:
+        return 2;
+    case kPRIM_Triangle:
+        return 3;
+    default:
+        PANIC("Invalid PrimType: %d", primType);
+        return 0;
+    }
+}
 
 //-------------------------------------------
 // Comparison operators for Polygon and Line
@@ -340,12 +355,17 @@ public:
     u32 primStride() const
     {
         // double the primitive stride if indices are 32 bit instead of 16 bit
-        return prim_stride(mPrimType) << mHas32BitIndices;
+        return prim_stride(mPrimType) << mHas32BitIndices; // * 2 if mhas32BitIndices == 1
     }
 
     u32 primsSize() const
     {
         return primStride() * mPrimCount;
+    }
+
+    u32 indexCount() const
+    {
+        return mPrimCount * index_count(mPrimType);
     }
 
     u32 totalSize() const

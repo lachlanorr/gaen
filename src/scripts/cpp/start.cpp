@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 4933a1bef180c819e6541a43c98b2d51
+// HASH: 602a687cd280f9ba07b660cee8694aa2
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -58,6 +58,14 @@ public:
     {
         switch(msgAcc.message().msgId)
         {
+        case HASH::set_property__uint:
+            switch (msgAcc.message().payload.u)
+            {
+            case HASH::boxModelUid:
+                boxModelUid() = *reinterpret_cast<const u32*>(&msgAcc[0].cells[0].u);
+                return MessageResult::Consumed;
+            }
+            return MessageResult::Propogate; // Invalid property
         case HASH::set_property__float:
             switch (msgAcc.message().payload.u)
             {
@@ -79,7 +87,7 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
-            system_api::renderer_insert_model_instance(boxModel(), 0, Mat34(1.000000f), entity());
+            system_api::renderer_insert_model_instance(boxModelUid(), boxModel(), Mat34(1.000000f), entity());
         }
         }
         return MessageResult::Propogate;
@@ -92,6 +100,7 @@ private:
         f_prop() = 1.000000f;
         f_field() = 2.000000f;
         boxModel() = system_api::create_shape_box(Vec3(1.000000f, 1.000000f, 1.000000f), Color(0, 0, 255, 255), entity());
+        boxModelUid() = system_api::renderer_gen_uid(entity());
 
         mBlockCount = 3;
         mTask = Task::createUpdatable(this, HASH::start);
@@ -129,6 +138,10 @@ private:
     Handle& boxModel()
     {
         return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
+    }
+    u32& boxModelUid()
+    {
+        return mpBlocks[2].cells[2].u;
     }
 }; // class start
 
