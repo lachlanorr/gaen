@@ -19,8 +19,8 @@ class InsertComponent(FieldHandler):
 
 # Transform and entity
 class Transform(FieldHandler):
+    id        = u32Field(payload=True)
     transform = Mat34Field()
-    
 
 class InsertModelInstance(FieldHandler):
     uid             = u32Field(payload=True)

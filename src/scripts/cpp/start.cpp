@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 602a687cd280f9ba07b660cee8694aa2
+// HASH: a0b2df9d09111a2a83c12584aa784b53
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -64,6 +64,9 @@ public:
             case HASH::boxModelUid:
                 boxModelUid() = *reinterpret_cast<const u32*>(&msgAcc[0].cells[0].u);
                 return MessageResult::Consumed;
+            case HASH::lightUid:
+                lightUid() = *reinterpret_cast<const u32*>(&msgAcc[0].cells[0].u);
+                return MessageResult::Consumed;
             }
             return MessageResult::Propogate; // Invalid property
         case HASH::set_property__float:
@@ -88,6 +91,14 @@ public:
         case HASH::init:
         {
             system_api::renderer_insert_model_instance(boxModelUid(), boxModel(), Mat34(1.000000f), entity());
+            system_api::renderer_insert_light_distant(lightUid(), Vec3(0.500000f, 0.000000f, -(0.500000f)), Color(255, 255, 255, 255), entity());
+            return MessageResult::Consumed;
+        }
+        case HASH::timer__uint:
+        {
+            if ((/*timer_msg*/msgAcc.message().payload.u == HASH::tick))
+                system_api::renderer_transform_model_instance(boxModelUid(), Mat34(1.000000f), entity());
+            return MessageResult::Consumed;
         }
         }
         return MessageResult::Propogate;
@@ -101,6 +112,7 @@ private:
         f_field() = 2.000000f;
         boxModel() = system_api::create_shape_box(Vec3(1.000000f, 1.000000f, 1.000000f), Color(0, 0, 255, 255), entity());
         boxModelUid() = system_api::renderer_gen_uid(entity());
+        lightUid() = system_api::renderer_gen_uid(entity());
 
         mBlockCount = 3;
         mTask = Task::createUpdatable(this, HASH::start);
@@ -117,7 +129,7 @@ private:
             // Init Property: timer_message
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property__uint, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::timer_message));
-                msgw[0].cells[0].u = HASH::msg;
+                msgw[0].cells[0].u = HASH::tick;
                 compTask.message(msgw.accessor());
             }
         }
@@ -142,6 +154,10 @@ private:
     u32& boxModelUid()
     {
         return mpBlocks[2].cells[2].u;
+    }
+    u32& lightUid()
+    {
+        return mpBlocks[2].cells[3].u;
     }
 }; // class start
 

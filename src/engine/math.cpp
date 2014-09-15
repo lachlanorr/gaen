@@ -131,22 +131,22 @@ Vec4 Mat34::multiply(const Mat34 & mat34, const Vec4 & vec4)
 {
     Vec4 newVec;
 
-    newVec.x = mat34[0]  * vec4.x +
-               mat34[1]  * vec4.y +
-               mat34[2]  * vec4.z;
+    newVec.x() = mat34[0]  * vec4.x() +
+                 mat34[1]  * vec4.y() +
+                 mat34[2]  * vec4.z();
 
-    newVec.y = mat34[3]  * vec4.x +
-               mat34[4]  * vec4.y +
-               mat34[5]  * vec4.z;
+    newVec.y() = mat34[3]  * vec4.x() +
+                 mat34[4]  * vec4.y() +
+                 mat34[5]  * vec4.z();
 
-    newVec.z = mat34[6]  * vec4.x +
-               mat34[7]  * vec4.y +
-               mat34[8]  * vec4.z;
+    newVec.z() = mat34[6]  * vec4.x() +
+                 mat34[7]  * vec4.y() +
+                 mat34[8]  * vec4.z();
 
-    newVec.w = mat34[9]  * vec4.x +
-               mat34[10] * vec4.y +
-               mat34[11] * vec4.z +
-               vec4.w;
+    newVec.w() = mat34[9]  * vec4.x() +
+                 mat34[10] * vec4.y() +
+                 mat34[11] * vec4.z() +
+                 vec4.w();
     
     return newVec;
 }
@@ -399,21 +399,21 @@ Mat34 Mat34::translation(const Vec3 & trans)
     mat34[7]  = 0.0f;
     mat34[8]  = 1.0f;
 
-    mat34[9]  = trans.x;
-    mat34[10] = trans.y;
-    mat34[11] = trans.z;
+    mat34[9]  = trans.x();
+    mat34[10] = trans.y();
+    mat34[11] = trans.z();
 
     return mat34;
 }
 
 Mat34 Mat34::rotation(const Vec3 & angles)
 {
-    f32 cosX = cos(angles.x);
-    f32 sinX = sin(angles.x);
-    f32 cosY = cos(angles.y);
-    f32 sinY = sin(angles.y);
-    f32 cosZ = cos(angles.z);
-    f32 sinZ = sin(angles.z);
+    f32 cosX = cos(angles.x());
+    f32 sinX = sin(angles.x());
+    f32 cosY = cos(angles.y());
+    f32 sinY = sin(angles.y());
+    f32 cosZ = cos(angles.z());
+    f32 sinZ = sin(angles.z());
     f32 cosXsinY = cosX * sinY;
     f32 sinXsinY = sinX * sinY;
 
@@ -471,25 +471,25 @@ Vec4 Mat4::multiply(const Mat4 & mat4, const Vec4 & vec4)
 {
     Vec4 newVec;
 
-    newVec.x = mat4[0]  * vec4.x +
-               mat4[1]  * vec4.y +
-               mat4[2]  * vec4.z +
-               mat4[3]  * vec4.w;
+    newVec.x() = mat4[0]  * vec4.x() +
+                 mat4[1]  * vec4.y() +
+                 mat4[2]  * vec4.z() +
+                 mat4[3]  * vec4.w();
 
-    newVec.y = mat4[4]  * vec4.x +
-               mat4[5]  * vec4.y +
-               mat4[6]  * vec4.z +
-               mat4[7]  * vec4.w;
+    newVec.y() = mat4[4]  * vec4.x() +
+                 mat4[5]  * vec4.y() +
+                 mat4[6]  * vec4.z() +
+                 mat4[7]  * vec4.w();
 
-    newVec.z = mat4[8]  * vec4.x +
-               mat4[9]  * vec4.y +
-               mat4[10] * vec4.z +
-               mat4[11] * vec4.w;
+    newVec.z() = mat4[8]  * vec4.x() +
+                 mat4[9]  * vec4.y() +
+                 mat4[10] * vec4.z() +
+                 mat4[11] * vec4.w();
 
-    newVec.w = mat4[12] * vec4.x +
-               mat4[13] * vec4.y +
-               mat4[14] * vec4.z +
-               mat4[15] * vec4.w;
+    newVec.w() = mat4[12] * vec4.x() +
+                 mat4[13] * vec4.y() +
+                 mat4[14] * vec4.z() +
+                 mat4[15] * vec4.w();
 
     return newVec;
 }
@@ -669,9 +669,9 @@ Mat4 Mat4::translation(const Vec3 & trans)
     mat4[10] = 1.0f;
     mat4[11] = 0.0f;
 
-    mat4[12] = trans.x;
-    mat4[13] = trans.y;
-    mat4[14] = trans.z;
+    mat4[12] = trans.x();
+    mat4[13] = trans.y();
+    mat4[14] = trans.z();
     mat4[15] = 1.0f;
 
     return mat4;
@@ -679,12 +679,12 @@ Mat4 Mat4::translation(const Vec3 & trans)
 
 Mat4 Mat4::rotation(const Vec3 & angles)
 {
-    f32 cosX = cos(angles.x);
-    f32 sinX = sin(angles.x);
-    f32 cosY = cos(angles.y);
-    f32 sinY = sin(angles.y);
-    f32 cosZ = cos(angles.z);
-    f32 sinZ = sin(angles.z);
+    f32 cosX = cos(angles.x());
+    f32 sinX = sin(angles.x());
+    f32 cosY = cos(angles.y());
+    f32 sinY = sin(angles.y());
+    f32 cosZ = cos(angles.z());
+    f32 sinZ = sin(angles.z());
     f32 cosXsinY = cosX * sinY;
     f32 sinXsinY = sinX * sinY;
 
@@ -789,9 +789,9 @@ Mat4 Mat4::lookat(const Vec3 & eye, const Vec3 & center, const Vec3 & up)
     Vec3 upN = Vec3::normalize(up);
     Vec3 s = Vec3::cross(f, upN);
     Vec3 u = Vec3::cross(s, f);
-    Mat4 M = Mat4(s.x,  u.x,  -f.x,  0.0f,
-                  s.y,  u.y,  -f.y,  0.0f,
-                  s.z,  u.z,  -f.z,  0.0f,
+    Mat4 M = Mat4(s.x(),  u.x(),  -f.x(),  0.0f,
+                  s.y(),  u.y(),  -f.y(),  0.0f,
+                  s.z(),  u.z(),  -f.z(),  0.0f,
                   0.0f, 0.0f,  0.0f, 1.0f);
 
     return M * Mat4::translation(-eye);

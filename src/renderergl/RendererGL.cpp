@@ -29,8 +29,10 @@
 #include "core/base_defines.h"
 
 #include "engine/MessageQueue.h"
-#include "engine/messages/InsertModelInstance.h"
 #include "engine/ModelMgr.h"
+
+#include "engine/messages/InsertModelInstance.h"
+#include "engine/messages/InsertLightDistant.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/RendererGL.h"
@@ -62,45 +64,51 @@ void RendererGL::fin()
 
 static const char * sVertShaderCode = 
     "#version 330 core\n"
+
     "in vec4 vPosition;\n"
-    "uniform mat4 mvp;\n"
+    "in vec3 vNormal;\n"
+
+    "uniform mat4 umMVP;\n"
+    "uniform mat3 umNormal;\n"
+    "uniform vec4 uvColor;\n"
+    "uniform vec3 uvLightDirection;\n"
+    "uniform vec4 uvLightColor;\n"
+
+    "out vec4 vColor;\n"
+
     "void main()\n"
     "{\n"
-    "    gl_Position = mvp * vPosition;\n"
+    "    vec3 normalTrans = normalize(umNormal * vNormal);\n"
+    "    float intensity = max(dot(normalTrans, uvLightDirection), 0.0);\n"
+    "    vColor = vec4(intensity, intensity, intensity, 1.0);\n"
+    "    //vColor = vec4((umNormal * vNormal), 1.0);\n"
+    "    //vColor = vec4(dot(uvLightDirection, normalTrans));\n"
+    "    //vColor = abs(dot(uvLightDirection, normalTrans)) * uvColor;\n"
+    "    //vColor = vec4(abs(uvLightDirection), 1.0);\n"
+    "    //vColor = 0.5 * uvColor;\n"
+    "    //vColor = vec4(1.0, 1.0, 0.0, 0.6);\n"
+    "    gl_Position = umMVP * vPosition;\n"
     "}\n";
-
-/*
-    "layout(location=0) in vec4 vPosition;\n"
-
-
-
-"attribute vec3 position; \n"
-    "varying vec4 colorVarying; \n"
-    "uniform mat4 modelView; \n"
-    "uniform mat4 projection; \n"
-    "void main() \n"
-    "{ \n"
-    "    //gl_Position = projection * modelView * vec4(position, 1.0); \n"
-    "    gl_Position = vec4(position, 1.0);\n"
-    "    colorVarying = vec4(0.0, 1.0, 1.0, 1.0); \n"
-    "} \n";
-*/
-
 
 static const char * sFragShaderCode =
     "#version 330 core\n"
-    "out vec4 fColor;\n"
+
+    "in vec4 vColor;\n"
+    "out vec4 color;\n"
+
     "void main()\n"
     "{\n"
-    "    fColor = vec4(0.0, 0.0, 1.0, 1.0);\n"
+    "    color = vColor;\n"
     "}\n";
 
-/*    "varying vec4 colorVarying; \n"
-    "void main() \n"
-    "{ \n"
-    "    gl_FragColor = colorVarying; \n"
-    "} \n";
-*/
+static GLuint sProgramId = -1;
+static GLint sMVPUniform = -1;
+static GLint sNormalUniform = -1;
+static GLint sColorUniform = -1;
+static GLint sLightDirectionUniform = -1;
+static GLint sLightColorUniform = -1;
+
+static Mat4 sMVPMat(1.0f);
 
 static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode)
 {
@@ -127,12 +135,7 @@ static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCod
     return true;
 }
 
-static GLuint sProgramId = -1;
-static GLint sMVPUniform = -1;
-static Mat4 sMVPMat(1.0f);
-
 static bool build_program(GLuint * pProgramId,
-                          GLint * pMVPUniform,
                           const char * vertShaderCode,
                           const char * fragShaderCode)
 {
@@ -171,16 +174,11 @@ static bool build_program(GLuint * pProgramId,
         return false;
     }
 
-    // Get uniform locations
-    GLint mvpUniform = glGetUniformLocation(programId, "mvp");
-    //--//uniforms[eUniform_NormalTransform] = glGetUniformLocation(program_, "normalTransform");
-
     // Release vertex and fragment shaders
     glDeleteShader(vertShader);
     glDeleteShader(fragShader);
 
     *pProgramId = programId;
-    *pMVPUniform = mvpUniform;
 
     return true;
 }
@@ -222,12 +220,19 @@ void RendererGL::initViewport()
 
     //sMVPMat = Mat4::translation(Vec3(0.0f, 0.0f, 0.0f));
     //sMVPMat = Mat4::lookat(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(0.0f, 1.0f, 0.0f));
-    sMVPMat = Mat4::rotation(Vec3(20.0f, -20.0f, 0.0f));
+    sMVPMat = Mat4::rotation(Vec3(kPi / 4.0f, kPi / 4.0f, 0.0f));
 
-    if (!build_program(&sProgramId, &sMVPUniform, sVertShaderCode, sFragShaderCode))
+    if (!build_program(&sProgramId, sVertShaderCode, sFragShaderCode))
     {
         PANIC("Failed to build_program for default shader");
     }
+
+    // Get uniform locations
+    sMVPUniform = glGetUniformLocation(sProgramId, "umMVP");
+    sNormalUniform = glGetUniformLocation(sProgramId, "umNormal");
+    sColorUniform = glGetUniformLocation(sProgramId, "uvColor");
+    sLightDirectionUniform = glGetUniformLocation(sProgramId, "uvLightDirection");
+    sLightColorUniform = glGetUniformLocation(sProgramId, "uvLightColor");
 
     glUseProgram(sProgramId);
 
@@ -240,37 +245,35 @@ void RendererGL::render()
     ASSERT(mIsInit);
 
     glClear(GL_COLOR_BUFFER_BIT);
-
-//    glBindVertexArray(sVAO);
-//    glDrawArrays(GL_TRIANGLES, 0, 6);
-//    glFlush();
-
-
-//    return;
-    //
-
-
     glClearDepth(1.0f);
 
     ModelMgr<RendererGL>::MeshIterator meshIt = mpModelMgr->begin();
     ModelMgr<RendererGL>::MeshIterator meshItEnd = mpModelMgr->end();
 
-    //--//    mesh_->render(projection, modelView_, currProgram);
-
     glUseProgram(sProgramId);
+
+    if (mDistantLights.size() > 0)
+    {
+        const DistantLight & light = mDistantLights.front();
+        glUniform3fv(sLightDirectionUniform, 1, light.direction.elems);
+        glUniform4fv(sLightColorUniform, 1, light.color.elems);
+    }
 
     while (meshIt != meshItEnd)
     {
         const MaterialMeshInstance & matMeshInst = *meshIt;
         Mesh & mesh = matMeshInst.pMaterialMesh->mesh();
 
-        Mat4 mvp = matMeshInst.pModelInstance->worldTransform * mProjection;
+        static Mat4 view = Mat4::translation(Vec3(0.0f, 0.0f, -5.0f));
+        Mat4 mvp = mProjection * view * matMeshInst.pModelInstance->worldTransform;
+        Mat3 normalTrans = Mat3(view * matMeshInst.pModelInstance->worldTransform);
 
-        glUniformMatrix4fv(sMVPUniform, 1, 0, sMVPMat.elems);
+        glUniformMatrix4fv(sMVPUniform, 1, 0, mvp.elems);
+        glUniformMatrix3fv(sNormalUniform, 1, 0, normalTrans.elems);
+        glUniform4fv(sColorUniform, 1, Vec4(1.0f, 1.0f, 0.0f, 1.0f).elems);
 
         glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
 
-        // Draw our triangles
         glDrawElements(GL_TRIANGLES, mesh.indexCount(), GL_UNSIGNED_SHORT, 0);
 
         ++meshIt;
@@ -293,9 +296,20 @@ MessageResult RendererGL::message(const MessageQueueAccessor & msgAcc)
                                         msgr.isAssetManaged());
         break;
     }
+    case HASH::renderer_transform_model_instance:
+        break;
     case HASH::renderer_remove_model_instance:
     {
         mpModelMgr->removeModelInstance(msg.source, msg.payload.u);
+        break;
+    }
+    case HASH::renderer_insert_light_distant:
+    {
+        msg::InsertLightDistantQR msgr(msgAcc);
+        mDistantLights.emplace_back(msgAcc.message().source,
+                                    msgr.uid(),
+                                    msgr.direction(),
+                                    msgr.color());
         break;
     }
     default:
@@ -321,6 +335,10 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
         glGenBuffers(1, &mesh.rendererReserved(kMSHR_VertBuffer));
         glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
         glBufferData(GL_ARRAY_BUFFER, mesh.vertsSize(), mesh.verts(), GL_STATIC_DRAW);
+
+        // LORRTEMP
+        u32 vertsSize = mesh.vertsSize();
+        f32 * pVerts = mesh.verts();
 
         // position
         glVertexAttribPointer(0 /* eAttrib_position */, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)0);

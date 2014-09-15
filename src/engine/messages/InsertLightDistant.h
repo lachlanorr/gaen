@@ -48,7 +48,7 @@ public:
 
     }
 
-    const Vec3 & direction() const { return *reinterpret_cast<Vec3*>(&mMsgAcc[0].tCellPad.tCell); }
+    const Vec3 & direction() const { return *reinterpret_cast<const Vec3*>(&mMsgAcc[0].tCellPad.tCell); }
     Color color() const { return mMsgAcc[0].cells[3].color; }
     u32 uid() const { return mMsgAcc.message().payload.u; }
         

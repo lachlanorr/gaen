@@ -30,6 +30,7 @@
 #include "engine/math.h"
 #include "engine/shapes.h"
 #include "engine/messages/InsertModelInstance.h"
+#include "engine/messages/Transform.h"
 #include "engine/messages/InsertLightDistant.h"
 
 #include "engine/system_api.h"
@@ -53,7 +54,7 @@ Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & c
 
 u32 renderer_gen_uid(const Entity & caller)
 {
-    static std::atomic<u32> sNextUid(0);
+    static std::atomic<u32> sNextUid(1);
     return sNextUid.fetch_add(1, std::memory_order_relaxed);
 }
 void renderer_insert_model_instance(const u32 & uid,
@@ -72,6 +73,16 @@ void renderer_insert_model_instance(const u32 & uid,
     msgQW.setIsAssetManaged(true);
     msgQW.setModel((Model*)modelHandle.data());
     msgQW.setWorldTransform(transform);
+}
+
+void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, const Entity & caller)
+{
+    msg::TransformQW msgQW(HASH::renderer_transform_model_instance,
+                           kMessageFlag_None,
+                           caller.task().id(),
+                           kRendererTaskId,
+                           uid);
+    msgQW.setTransform(transform);
 }
 
 void renderer_remove_model_instance(const u32 & uid, const Entity & caller)

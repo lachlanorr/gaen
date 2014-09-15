@@ -157,7 +157,7 @@ message_list
     ;
  
 message_prop
-    : '#' IDENTIFIER '(' param_list ')' block { $$ = ast_create_message_def($2, $6, pParseData); }
+    : '#' IDENTIFIER '(' param_list ')' block { $$ = ast_create_message_def($2, $4, $6, pParseData); }
     | type '#' IDENTIFIER '=' expr ';'        { $$ = ast_create_property_def($3, $1, $5, pParseData); }
     | type '#' IDENTIFIER ';'                 { $$ = ast_create_property_def($3, $1, NULL, pParseData); }
     | type IDENTIFIER '=' expr ';'            { $$ = ast_create_field_def($2, $1, $4, pParseData); }
@@ -269,7 +269,7 @@ expr
 
     | '!' expr              { $$ = ast_create_unary_op(kAST_Not,        $2, pParseData); }
     | '~' expr              { $$ = ast_create_unary_op(kAST_Complement, $2, pParseData); }
-    | '-' expr %prec UMINUS { $$ = ast_create_unary_op(kAST_Complement, $2, pParseData); }
+    | '-' expr %prec UMINUS { $$ = ast_create_unary_op(kAST_Negate,     $2, pParseData); }
 
     | '#' IDENTIFIER        { $$ = ast_create_hash($2, pParseData); }
 

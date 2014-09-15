@@ -175,6 +175,7 @@ typedef enum
     kSYMT_Property,
     kSYMT_Field,
     kSYMT_Param,
+    kSYMT_MessageParam,
     kSYMT_Local
 } SymType;
 
@@ -252,7 +253,7 @@ Ast * ast_create_function_def(const char * name, Ast* pReturnType, Ast * pBlock,
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
 
-Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_message_def(const char * name, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_property_def(const char * name, Ast * pDataType, Ast * pInitVal, ParseData * pParseData);
 Ast * ast_create_field_def(const char * name, Ast * pDataType, Ast * pInitVal, ParseData * pParseData);
 

@@ -2033,7 +2033,7 @@ yyreduce:
   case 19:
 /* Line 1787 of yacc.c  */
 #line 160 "compose.y"
-    { (yyval.pAst) = ast_create_message_def((yyvsp[(2) - (6)].str), (yyvsp[(6) - (6)].pAst), pParseData); }
+    { (yyval.pAst) = ast_create_message_def((yyvsp[(2) - (6)].str), (yyvsp[(4) - (6)].pSymTab), (yyvsp[(6) - (6)].pAst), pParseData); }
     break;
 
   case 20:
@@ -2429,7 +2429,7 @@ yyreduce:
   case 85:
 /* Line 1787 of yacc.c  */
 #line 272 "compose.y"
-    { (yyval.pAst) = ast_create_unary_op(kAST_Complement, (yyvsp[(2) - (2)].pAst), pParseData); }
+    { (yyval.pAst) = ast_create_unary_op(kAST_Negate,     (yyvsp[(2) - (2)].pAst), pParseData); }
     break;
 
   case 86:

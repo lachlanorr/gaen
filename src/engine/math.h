@@ -35,7 +35,8 @@ namespace gaen
 {
 
 static const f32 kPi = 3.1415926535897932384626433832795f;
-inline f32 deg2rad(f32 deg) { return deg * kPi * (1.0f / 180.0f); }
+inline f32 radians(f32 deg) { return deg * (kPi / 180.0f); }
+inline f32 degrees(f32 rad) { return rad * (180.0f / kPi); }
 
 static const f32 kFpErrThreshold = 0.00000001f;
 inline bool is_fp_eq(f32 actual, f32 expected) { return (actual >= expected - kFpErrThreshold) && (actual <= expected + kFpErrThreshold); }
@@ -58,14 +59,22 @@ struct Vec3
     Vec3 operator-() const;
     Vec3 operator-(const Vec3& rhs) const;
     bool operator==(const Vec3 & rhs) const;
+    f32 & operator[](size_t idx);
+    const f32 & operator[](size_t idx) const;
+
+    f32 & x();
+    f32 & y();
+    f32 & z();
+
+    const f32 & x() const;
+    const f32 & y() const;
+    const f32 & z() const;
 
     static Vec3 normalize(const Vec3 &vec3);
     static f32 dot(const Vec3 &lhs, const Vec3 &rhs);
     static Vec3 cross(const Vec3 &lhs, const Vec3 &rhs);
 
-    f32 x;
-    f32 y;
-    f32 z;
+    f32 elems[3];
 };
 
 Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2);
@@ -82,17 +91,27 @@ struct Vec4
 
     Vec4 operator-() const;
     bool operator==(const Vec4 & rhs) const;
+    f32 & operator[](size_t idx);
+    const f32 & operator[](size_t idx) const;
+
+    f32 & x();
+    f32 & y();
+    f32 & z();
+    f32 & w();
+
+    const f32 & x() const;
+    const f32 & y() const;
+    const f32 & z() const;
+    const f32 & w() const;
 
     static Vec4 normalize(const Vec4 &vec4);
     static f32 dot(const Vec3 &lhs, const Vec3 &rhs);
     static Vec4 cross(const Vec4 &lhs, const Vec4 &rhs);
 
-    f32 x;
-    f32 y;
-    f32 z;
-    f32 w;
+    f32 elems[4];
 };
 
+struct Mat34;
 struct Mat4;
 struct Mat3
 {
@@ -101,6 +120,8 @@ struct Mat3
     Mat3(f32 e0, f32 e1, f32 e2,
          f32 e3, f32 e4, f32 e5,
          f32 e6, f32 e7, f32 e8);
+    Mat3(const Mat34 & mat34);
+    Mat3(const Mat4 & mat4);
 
     static const Mat3 & zero();
     static const Mat3 & identity();
@@ -233,73 +254,97 @@ inline f32 fastSqrt(const f32 x)
 // Vec3 inlined methods
 //--------------------------------------
 inline Vec3::Vec3(f32 x, f32 y, f32 z)
-  : x(x)
-  , y(y)
-  , z(z) {}
+{
+    elems[0] = x;
+    elems[1] = y;
+    elems[2] = z;
+}
 
 inline Vec3::Vec3(const Vec4 &vec4)
-  : x(vec4.x)
-  , y(vec4.y)
-  , z(vec4.z) {}
+{
+    elems[0] = vec4.elems[0];
+    elems[1] = vec4.elems[1];
+    elems[2] = vec4.elems[2];
+}
 
 inline f32 Vec3::length() const
 {
-    return sqrt(x*x + y*y + z*z);
+    return sqrt(x()*x() + y()*y() + z()*z());
 }
 
 inline void Vec3::normalize()
 {
     //float inv_mag = invSqrt(x*x + y*y + z*z);
-    f32 inv_mag = 1.0f / sqrt(x*x + y*y + z*z);
-    x *= inv_mag;
-    y *= inv_mag;
-    z *= inv_mag;
+    f32 inv_mag = 1.0f / sqrt(x()*x() + y()*y() + z()*z());
+    x() *= inv_mag;
+    y() *= inv_mag;
+    z() *= inv_mag;
 }
 
 inline void Vec3::normalizeIfNecessary()
 {
-    f32 sumSquares = x*x + y*y + z*z;
+    f32 sumSquares = x()*x() + y()*y() + z()*z();
     if (!is_fp_eq(sumSquares, 1.0f))
     {
         f32 inv_mag = 1.0f / sqrt(sumSquares);
-        x *= inv_mag;
-        y *= inv_mag;
-        z *= inv_mag;
+        x() *= inv_mag;
+        y() *= inv_mag;
+        z() *= inv_mag;
     }
 }
 
 inline Vec3 Vec3::operator-() const 
 {
-    return Vec3(-x, -y, -z);
+    return Vec3(-x(), -y(), -z());
 }
 
 inline Vec3 Vec3::operator-(const Vec3 & rhs) const
 {
-    return Vec3(x - rhs.x, y - rhs.y, z - rhs.z);
+    return Vec3(x() - rhs.x(), y() - rhs.y(), z() - rhs.z());
 }
 
 inline bool Vec3::operator==(const Vec3 & rhs) const
 {
-    return x == rhs.x && y == rhs.y && z == rhs.z;
+    return x() == rhs.x() && y() == rhs.y() && z() == rhs.z();
 }
+
+inline f32 & Vec3::operator[](size_t idx)
+{
+    ASSERT(idx < 4);
+    return elems[idx];
+}
+
+inline const f32 & Vec3::operator[](size_t idx) const
+{
+    ASSERT(idx < 4);
+    return elems[idx];
+}
+
+inline f32 & Vec3::x() { return elems[0]; }
+inline f32 & Vec3::y() { return elems[1]; }
+inline f32 & Vec3::z() { return elems[2]; }
+
+inline const f32 & Vec3::x() const { return elems[0]; }
+inline const f32 & Vec3::y() const { return elems[1]; }
+inline const f32 & Vec3::z() const { return elems[2]; }
 
 inline Vec3 Vec3::normalize(const Vec3 &vec)
 {
     //float inv_mag = invSqrt(x*x + y*y + z*z);
-    f32 inv_mag = 1.0f / sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
-    return Vec3(vec.x * inv_mag, vec.y * inv_mag, vec.z * inv_mag);
+    f32 inv_mag = 1.0f / sqrt(vec.x()*vec.x() + vec.y()*vec.y() + vec.z()*vec.z());
+    return Vec3(vec.x() * inv_mag, vec.y() * inv_mag, vec.z() * inv_mag);
 }
 
 inline f32 Vec3::dot(const Vec3 &lhs, const Vec3 &rhs)
 {
-    return lhs.x*rhs.x + lhs.y*rhs.y + lhs.z*rhs.z;
+    return lhs.x()*rhs.x() + lhs.y()*rhs.y() + lhs.z()*rhs.z();
 }
 
 inline Vec3 Vec3::cross(const Vec3 &lhs, const Vec3 &rhs)
 {
-    Vec3 vec(lhs.y*rhs.z - lhs.z*rhs.y,
-             lhs.z*rhs.x - lhs.x*rhs.z,
-             lhs.x*rhs.y - lhs.y*rhs.x);
+    Vec3 vec(lhs.y()*rhs.z() - lhs.z()*rhs.y(),
+             lhs.z()*rhs.x() - lhs.x()*rhs.z(),
+             lhs.x()*rhs.y() - lhs.y()*rhs.x());
     return vec;
 }
 
@@ -314,71 +359,99 @@ inline Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2)
 //--------------------------------------
 // Vec4 inlined methods
 //--------------------------------------
-inline Vec4::Vec4(f32 x, f32 y, f32 z, f32 w) 
-  : x(x)
-  , y(y)
-  , z(z)
-  , w(w) {}
+inline Vec4::Vec4(f32 x, f32 y, f32 z, f32 w)
+{
+    elems[0] = x;
+    elems[1] = y;
+    elems[2] = z;
+    elems[3] = w;
+}
 
 inline Vec4::Vec4(const Vec3 &vec3, f32 w)
-  : x(vec3.x)
-  , y(vec3.y)
-  , z(vec3.z)
-  , w(w) {}
+{
+    elems[0] = vec3.x();
+    elems[1] = vec3.y();
+    elems[2] = vec3.z();
+    elems[3] = w;
+}
 
 inline f32 Vec4::length() const 
 { 
-    return sqrt(x*x + y*y + z*z + w*w);
+    return sqrt(x()*x() + y()*y() + z()*z() + w()*w());
 }
 
 inline void Vec4::normalize()
 {
-    //float inv_mag = invSqrt(x*x + y*y + z*z);
-    f32 inv_mag = 1.0f / sqrt(x*x + y*y + z*z);
-    x *= inv_mag;
-    y *= inv_mag;
-    z *= inv_mag;
+    //float inv_mag = invSqrt(x()*x() + y()*y() + z()*z());
+    f32 inv_mag = 1.0f / sqrt(x()*x() + y()*y() + z()*z());
+    x() *= inv_mag;
+    y() *= inv_mag;
+    z() *= inv_mag;
+    w() = 1.0f;
 }
 
 inline void Vec4::normalizeIfNecessary()
 {
-    f32 sumSquares = x*x + y*y + z*z;
+    f32 sumSquares = x()*x() + y()*y() + z()*z();
     if (!is_fp_eq(sumSquares, 1.0f))
     {
         f32 inv_mag = 1.0f / sqrt(sumSquares);
-        x *= inv_mag;
-        y *= inv_mag;
-        z *= inv_mag;
+        x() *= inv_mag;
+        y() *= inv_mag;
+        z() *= inv_mag;
+        w() = 1.0f;
     }
 }
 
 inline Vec4 Vec4::operator-() const
 {
-    return Vec4(-x, -y, -z, w);
+    return Vec4(-x(), -y(), -z(), w());
 }
 
 inline bool Vec4::operator==(const Vec4 & rhs) const
 {
-    return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
+    return x() == rhs.x() && y() == rhs.y() && z() == rhs.z() && w() == rhs.w();
 }
+
+inline f32 & Vec4::operator[](size_t idx)
+{
+    ASSERT(idx < 4);
+    return elems[idx];
+}
+
+inline const f32 & Vec4::operator[](size_t idx) const
+{
+    ASSERT(idx < 4);
+    return elems[idx];
+}
+
+inline f32 & Vec4::x() { return elems[0]; }
+inline f32 & Vec4::y() { return elems[1]; }
+inline f32 & Vec4::z() { return elems[2]; }
+inline f32 & Vec4::w() { return elems[3]; }
+
+inline const f32 & Vec4::x() const { return elems[0]; }
+inline const f32 & Vec4::y() const { return elems[1]; }
+inline const f32 & Vec4::z() const { return elems[2]; }
+inline const f32 & Vec4::w() const { return elems[3]; }
 
 inline Vec4 Vec4::normalize(const Vec4 &vec)
 {
-    //float inv_mag = invSqrt(x*x + y*y + z*z);
-    f32 inv_mag = 1.0f / sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
-    return Vec4(vec.x * inv_mag, vec.y * inv_mag, vec.z * inv_mag, 1.0f);
+    //float inv_mag = invSqrt(x()*x() + y()*y() + z()*z());
+    f32 inv_mag = 1.0f / sqrt(vec.x()*vec.x() + vec.y()*vec.y() + vec.z()*vec.z());
+    return Vec4(vec.x() * inv_mag, vec.y() * inv_mag, vec.z() * inv_mag, 1.0f);
 }
 
 inline f32 Vec4::dot(const Vec3 &lhs, const Vec3 &rhs)
 {
-    return lhs.x*rhs.x + lhs.y*rhs.y + lhs.z*rhs.z;
+    return lhs.x()*rhs.x() + lhs.y()*rhs.y() + lhs.z()*rhs.z();
 }
 
 inline Vec4 Vec4::cross(const Vec4 &lhs, const Vec4 &rhs)
 {
-    Vec4 vec(lhs.y*rhs.z - lhs.z*rhs.y,
-             lhs.z*rhs.x - lhs.x*rhs.z,
-             lhs.x*rhs.y - lhs.y*rhs.x,
+    Vec4 vec(lhs.y()*rhs.z() - lhs.z()*rhs.y(),
+             lhs.z()*rhs.x() - lhs.x()*rhs.z(),
+             lhs.x()*rhs.y() - lhs.y()*rhs.x(),
              0.0f);
     return vec;
 }
@@ -417,6 +490,36 @@ inline Mat3::Mat3(f32 e0, f32 e1, f32 e2,
     elems[6] = e6;
     elems[7] = e7;
     elems[8] = e8;
+}
+
+inline Mat3::Mat3(const Mat34 & mat34)
+{
+    elems[0] = mat34.elems[0];
+    elems[1] = mat34.elems[1];
+    elems[2] = mat34.elems[2];
+
+    elems[3] = mat34.elems[3];
+    elems[4] = mat34.elems[4];
+    elems[5] = mat34.elems[5];
+
+    elems[6] = mat34.elems[6];
+    elems[7] = mat34.elems[7];
+    elems[8] = mat34.elems[8];
+}
+
+inline Mat3::Mat3(const Mat4 & mat4)
+{
+    elems[0] = mat4.elems[0];
+    elems[1] = mat4.elems[1];
+    elems[2] = mat4.elems[2];
+
+    elems[3] = mat4.elems[4];
+    elems[4] = mat4.elems[5];
+    elems[5] = mat4.elems[6];
+
+    elems[6] = mat4.elems[8];
+    elems[7] = mat4.elems[9];
+    elems[8] = mat4.elems[10];
 }
 
 inline const Mat3 & Mat3::zero()

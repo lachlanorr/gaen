@@ -51,12 +51,12 @@ struct DistantLight
 {
     Ruid ruid;
     Vec3 direction;
-    Color color;
+    Vec4 color;
 
     DistantLight(task_id owner, u32 uid, const Vec3& direction, Color color)
       : ruid(owner, uid)
       , direction(direction)
-      , color(color)
+      , color(Color::build_vec4(color))
     {}
 };
 
@@ -64,12 +64,12 @@ struct PointLight
 {
     Ruid ruid;
     Vec3 location;
-    Color color;
+    Vec4 color;
 
     PointLight(task_id owner, u32 uid, const Vec3 & location, Color color)
       : ruid(owner, uid)
       , location(location)
-      , color(color)
+      , color(Color::build_vec4(color))
     {}
 };
 

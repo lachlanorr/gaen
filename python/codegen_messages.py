@@ -120,7 +120,7 @@ def gen_reader_getters(field_handler):
         elif type(f) == PointerField:
             lines.append('    %s %s() const { return static_cast<%s>(mMsgAcc[%d].%s.p); }' % (f.type_name, f.getter_name, f.type_name, f.block_start, f.block_accessor))
         elif f.type_name == 'Vec3':
-            lines.append('    const %s & %s() const { return *reinterpret_cast<%s*>(&mMsgAcc[%d].%s); }' % (f.type_name, f.name, f.type_name, f.block_start, f.block_accessor))
+            lines.append('    const %s & %s() const { return *reinterpret_cast<const %s*>(&mMsgAcc[%d].%s); }' % (f.type_name, f.name, f.type_name, f.block_start, f.block_accessor))
         elif f.block_count <= 1:
             lines.append('    %s %s() const { return mMsgAcc[%d].%s.%s; }' % (f.type_name, f.name, f.block_start, f.block_accessor, f.union_type))
         else:

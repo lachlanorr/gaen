@@ -28,6 +28,7 @@
 #define GAEN_RENDERERGL_RENDERERGL_H
 
 #include "core/Vector.h"
+#include "core/List.h"
 #include "engine/math.h"
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
@@ -97,8 +98,8 @@ private:
 
     ModelMgr<RendererGL> * mpModelMgr;
 
-    Vector<kMEM_Renderer, DistantLight> mDistantLights;
-    Vector<kMEM_Renderer, PointLight> mPointLights;
+    List<kMEM_Renderer, DistantLight> mDistantLights;
+    List<kMEM_Renderer, PointLight> mPointLights;
 };
 
 

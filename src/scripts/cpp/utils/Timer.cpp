@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 431ab3161b072c7913025774a6346b28
+// HASH: f847ccbcff3644bec53b32d5236bc4af
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -55,6 +55,7 @@ public:
             {
                 {
                     StackMessageBlockWriter<0> msgw(HASH::timer__uint, kMessageFlag_None, mpEntity->task().id(), mpEntity->task().id(), to_cell(timer_message()));
+                    mpEntity->message(msgw.accessor());
                 }
                 last_notification() = 0.000000f;
             }

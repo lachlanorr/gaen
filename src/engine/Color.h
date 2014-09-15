@@ -59,7 +59,7 @@ public:
 
     void setChannels(Vec4 vec)
     {
-        setChannels(vec.x, vec.y, vec.z, vec.w);
+        setChannels(vec.x(), vec.y(), vec.z(), vec.w());
     }
 
     u32 value() { return mColorValue.value; }

@@ -29,6 +29,7 @@
 
 #include "engine/MessageWriter.h"
 #include "engine/math.h"
+#include "core/threading.h"
 
 namespace gaen
 {
@@ -60,6 +61,7 @@ public:
     }
 
     const Mat34 & transform() const { return *mpTransform; }
+    u32 id() const { return mMsgAcc.message().payload.u; }
         
 private:
     const T & mMsgAcc;
@@ -78,12 +80,13 @@ public:
     TransformQW(u32 msgId,
                 u32 flags,
                 task_id source,
-                task_id target)
+                task_id target,
+                u32 id)
       : MessageQueueWriter(msgId,
                            flags,
                            source,
                            target,
-                           to_cell(0),
+                           to_cell(id),
                            3)
     {}
     
@@ -94,6 +97,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
+    void setId(u32 val) { mMsgAcc.message().payload.u = val; }
 };
 
 class TransformBW : protected MessageBlockWriter
@@ -104,12 +108,13 @@ public:
                 task_id source,
                 task_id target,
                 Block * pBlocks,
-                u32 blockCount)
+                u32 blockCount,
+                u32 id)
       : MessageBlockWriter(msgId,
                            flags,
                            source,
                            target,
-                           to_cell(0),
+                           to_cell(id),
                            3,
                            mBlocks)
     {}
@@ -121,6 +126,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
+    void setId(u32 val) { mMsgAcc.message().payload.u = val; }
 
 private:
     Block mBlocks[3 + 1]; // +1 for header

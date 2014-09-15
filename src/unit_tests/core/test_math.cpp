@@ -41,14 +41,14 @@ TEST(MathTest, Vec3)
     len = v0.length();
     EXPECT_TRUE(is_fp_eq(len, 1.0f));
 
-    EXPECT_TRUE(is_fp_eq(v0.x, 0.87287158f));
-    EXPECT_TRUE(is_fp_eq(v0.y, 0.43643579f));
-    EXPECT_TRUE(is_fp_eq(v0.z, 0.21821789f));
+    EXPECT_TRUE(is_fp_eq(v0.x(), 0.87287158f));
+    EXPECT_TRUE(is_fp_eq(v0.y(), 0.43643579f));
+    EXPECT_TRUE(is_fp_eq(v0.z(), 0.21821789f));
 
 
-    v0.x = 20.0f;
-    v0.y = 10.0f;
-    v0.z = 5.0f;
+    v0.x() = 20.0f;
+    v0.y() = 10.0f;
+    v0.z() = 5.0f;
 
     len = v0.length();
     EXPECT_TRUE(is_fp_eq(len,22.9128780f));
@@ -57,9 +57,9 @@ TEST(MathTest, Vec3)
     len = v0.length();
     EXPECT_TRUE(is_fp_eq(len,1.0f));
 
-    EXPECT_TRUE(is_fp_eq(v0.x,0.87287158f));
-    EXPECT_TRUE(is_fp_eq(v0.y,0.43643579f));
-    EXPECT_TRUE(is_fp_eq(v0.z,0.21821789f));
+    EXPECT_TRUE(is_fp_eq(v0.x(),0.87287158f));
+    EXPECT_TRUE(is_fp_eq(v0.y(),0.43643579f));
+    EXPECT_TRUE(is_fp_eq(v0.z(),0.21821789f));
 
 
     Vec3 v1(10.0f, -20.0f, 30.0f);
@@ -69,9 +69,9 @@ TEST(MathTest, Vec3)
     EXPECT_TRUE(is_fp_eq(dotResult, -160.0f));
 
     Vec3 crossResult = Vec3::cross(v1, v2);
-    EXPECT_TRUE(is_fp_eq(crossResult.x, -10.0f));
-    EXPECT_TRUE(is_fp_eq(crossResult.y, 100.0f));
-    EXPECT_TRUE(is_fp_eq(crossResult.z, 70.0f));
+    EXPECT_TRUE(is_fp_eq(crossResult.x(), -10.0f));
+    EXPECT_TRUE(is_fp_eq(crossResult.y(), 100.0f));
+    EXPECT_TRUE(is_fp_eq(crossResult.z(), 70.0f));
 
     
 }
@@ -87,14 +87,14 @@ TEST(MathTest, Vec4)
     len = v0.length();
     EXPECT_TRUE(is_fp_eq(len, 1.0f));
 
-    EXPECT_TRUE(is_fp_eq(v0.x, 0.87287158f));
-    EXPECT_TRUE(is_fp_eq(v0.y, 0.43643579f));
-    EXPECT_TRUE(is_fp_eq(v0.z, 0.21821789f));
+    EXPECT_TRUE(is_fp_eq(v0.x(), 0.87287158f));
+    EXPECT_TRUE(is_fp_eq(v0.y(), 0.43643579f));
+    EXPECT_TRUE(is_fp_eq(v0.z(), 0.21821789f));
 
 
-    v0.x = 20.0f;
-    v0.y = 10.0f;
-    v0.z = 5.0f;
+    v0.x() = 20.0f;
+    v0.y() = 10.0f;
+    v0.z() = 5.0f;
 
     len = v0.length();
     EXPECT_TRUE(is_fp_eq(len,22.9128780f));
@@ -103,9 +103,9 @@ TEST(MathTest, Vec4)
     len = v0.length();
     EXPECT_TRUE(is_fp_eq(len,1.0f));
 
-    EXPECT_TRUE(is_fp_eq(v0.x,0.87287158f));
-    EXPECT_TRUE(is_fp_eq(v0.y,0.43643579f));
-    EXPECT_TRUE(is_fp_eq(v0.z,0.21821789f));
+    EXPECT_TRUE(is_fp_eq(v0.x(),0.87287158f));
+    EXPECT_TRUE(is_fp_eq(v0.y(),0.43643579f));
+    EXPECT_TRUE(is_fp_eq(v0.z(),0.21821789f));
 
 
     Vec4 v1(10.0f, -20.0f, 30.0f, 0.0f);
@@ -115,9 +115,9 @@ TEST(MathTest, Vec4)
     EXPECT_TRUE(is_fp_eq(dotResult, -160.0f));
 
     Vec4 crossResult = Vec4::cross(v1, v2);
-    EXPECT_TRUE(is_fp_eq(crossResult.x, -10.0f));
-    EXPECT_TRUE(is_fp_eq(crossResult.y, 100.0f));
-    EXPECT_TRUE(is_fp_eq(crossResult.z, 70.0f));
+    EXPECT_TRUE(is_fp_eq(crossResult.x(), -10.0f));
+    EXPECT_TRUE(is_fp_eq(crossResult.y(), 100.0f));
+    EXPECT_TRUE(is_fp_eq(crossResult.z(), 70.0f));
     
 }
 

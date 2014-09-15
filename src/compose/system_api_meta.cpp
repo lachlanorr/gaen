@@ -37,6 +37,7 @@ ApiSignature gApiSignatures[] = { { HASH::create_shape_box, kDT_handle, { kDT_ve
                                   { HASH::renderer_gen_uid, kDT_void, {} },
 
                                   { HASH::renderer_insert_model_instance, kDT_void, { kDT_uint, kDT_handle, kDT_mat34  } },
+                                  { HASH::renderer_transform_model_instance, kDT_void, { kDT_uint, kDT_mat34 } },
                                   { HASH::renderer_remove_model_instance, kDT_void, { kDT_uint } },
 
                                   { HASH::renderer_insert_light_distant, kDT_void, { kDT_uint, kDT_vec3, kDT_color  } },

@@ -287,6 +287,41 @@ BlockInfos * block_pack_message_params(Ast * pAst)
     return pBlockInfos;
 }
 
+BlockInfos * block_pack_message_def_params(SymTab * pSymTab, ParseData * pParseData)
+{
+    u32 count = (u32)pSymTab->orderedSymRecs.size();
+
+    BlockInfos * pBlockInfos = COMP_NEW(BlockInfos);
+
+    if (count > 0)
+    {
+        pBlockInfos->items.reserve(count);
+
+        for (SymRec * pSymRec : pSymTab->orderedSymRecs)
+        {
+            if (pSymRec->type == kSYMT_Param)
+            {
+                // Till now, parsing is ambiguous as to the param list.
+                // Now we know this is a message param, so set it as such.
+                // We have to know if it's a message param since it will have
+                // to be pulled out of the message blocks when referenced in
+                // the message definition.
+                pSymRec->type = kSYMT_MessageParam;
+                Ast * pAst = ast_create(kAST_SymbolDecl, pParseData);
+                pAst->pSymRec = pSymRec;
+                pAst->str = pAst->pSymRec->name;
+                pAst->pBlockInfos = pBlockInfos;
+                pSymRec->pAst = pAst;
+
+                pBlockInfos->items.emplace_back(pAst);
+            }
+        }
+        block_pack_items(pBlockInfos, true);
+    }
+
+    return pBlockInfos;
+}
+
 
 } // namespace gaen
 

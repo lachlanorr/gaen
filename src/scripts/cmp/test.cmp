@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// start.cmp - startup script, run by default if no other entity is specified
+// test.cmp - Scratch file for testing new language features
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,35 +24,9 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-import lib.models;
-
-entity start
+entity test
 {
-
-    float #f_prop = 1.0;
-    float f_field = 2.0;
-    handle boxModel = create_shape_box(vec3(1.0, 1.0, 1.0), color(0, 0, 255, 255));
     uint boxModelUid = renderer_gen_uid();
-    uint lightUid = renderer_gen_uid();
-
-    components
-    {
-        Timer(timer_interval = 1.0,
-              timer_message = #tick);
-    }
-
-    #init()
-    {
-        renderer_insert_model_instance(boxModelUid, boxModel, mat34(1.0));
-        renderer_insert_light_distant(lightUid, vec3(0.5, 0.0, -0.5), color(255, 255, 255, 255));
-    }
-
-    #update(float deltaSecs)
-    {
-        float f = deltaSecs;
-        int x = 5;
-        x = 6;
-    }
 
     #timer(uint timer_msg)
     {

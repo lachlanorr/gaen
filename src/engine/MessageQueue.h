@@ -95,7 +95,7 @@ public:
         // By inspecting the message, we know how many are actually available.
         u32 msgSize = pMsgAcc->mAccessor[0].blockCount;
 
-        ASSERT(pMsgAcc->mAccessor.available() == msgSize + 1);
+        ASSERT(pMsgAcc->mAccessor.available() >= msgSize + 1);
         ASSERT(msgSize < pMsgAcc->mAccessor.available());
 
         return true;

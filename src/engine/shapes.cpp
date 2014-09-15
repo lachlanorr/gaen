@@ -217,13 +217,13 @@ Model * build_box(const Vec3 & size, Color color)
 
     ShapeBuilder builder(pMesh);
 
-    f32 xmax = size.x / 2.0f;
+    f32 xmax = size.x() / 2.0f;
     f32 xmin = -xmax;
     
-    f32 ymax = size.y / 2.0f;
+    f32 ymax = size.y() / 2.0f;
     f32 ymin = -ymax;
 
-    f32 zmax = size.z / 2.0f;
+    f32 zmax = size.z() / 2.0f;
     f32 zmin = -zmax;
 
     // Front

@@ -338,7 +338,7 @@ Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pPar
     return pAst;
 }
 
-Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParseData)
+Ast * ast_create_message_def(const char * name, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData)
 {
     Ast * pAst = ast_create_block_def(name,
                                       kAST_MessageDef,
@@ -347,6 +347,14 @@ Ast * ast_create_message_def(const char * name, Ast * pBlock, ParseData * pParse
                                       pBlock,
                                       NULL,
                                       pParseData);
+    if (0 != strcmp(name, "update"))
+    {
+        // Update messages are special cased to run as a direct
+        // function call on the task.  Other messages are handled in
+        // the message routine, and need block info computed to
+        // reference their "parameters".
+        pAst->pBlockInfos = block_pack_message_def_params(pSymTab, pParseData);
+    }
     return pAst;
 }
 
@@ -861,6 +869,8 @@ DataType ast_data_type(const Ast * pAst)
         return kDT_vec4;
     else if (pAst->type == kAST_Mat34Init)
         return kDT_mat34;
+    else if (pAst->type == kAST_Negate)
+        return ast_data_type(pAst->pRhs);
     PANIC("Cannot determine datatype for pAst, type: %d", pAst->type);
     return kDT_Undefined;
 }
