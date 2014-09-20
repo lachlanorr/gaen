@@ -52,8 +52,6 @@ static S unary_op(const Ast * pAst, const char* op);
 static S unary_op_post(const Ast * pAst, const char* op);
 static S assign(const Ast * pAst, const char * op);
 
-static S message_id(const Ast *pMsgSend);
-
 static S symref(const SymRec * pSymRec);
 
 static S codegen_recurse(const Ast * pAst,
@@ -81,50 +79,50 @@ static S indent(u32 level)
 
 static const char * type_str(DataType dt)
 {
-    switch (dt)
+    switch (RAW_DT(dt))
     {
     case kDT_char:
-        return "char";
+        return IS_DT_CONST(dt) ? "const char" : "char";
     case kDT_byte:
-        return "byte";
+        return IS_DT_CONST(dt) ? "const byte" : "byte";
     case kDT_short:
-        return "short";
+        return IS_DT_CONST(dt) ? "const short" : "short";
     case kDT_ushort:
-        return "ushort";
+        return IS_DT_CONST(dt) ? "const ushort" : "ushort";
     case kDT_int:
-        return "int";
+        return IS_DT_CONST(dt) ? "const int" : "int";
     case kDT_uint:
-        return "uint";
+        return IS_DT_CONST(dt) ? "const uint" : "uint";
     case kDT_long:
-        return "long";
+        return IS_DT_CONST(dt) ? "const long" : "long";
     case kDT_ulong:
-        return "ulong";
+        return IS_DT_CONST(dt) ? "const ulong" : "ulong";
     case kDT_half:
-        return "half";
+        return IS_DT_CONST(dt) ? "const half" : "half";
     case kDT_float:
-        return "float";
+        return IS_DT_CONST(dt) ? "const float" : "float";
     case kDT_double:
-        return "double";
+        return IS_DT_CONST(dt) ? "const double" : "double";
     case kDT_bool:
-        return "bool";
+        return IS_DT_CONST(dt) ? "const bool" : "bool";
     case kDT_color:
-        return "color";
+        return IS_DT_CONST(dt) ? "const color" : "color";
     case kDT_vec2:
-        return "vec2";
+        return IS_DT_CONST(dt) ? "const vec2" : "vec2";
     case kDT_vec3:
-        return "vec3";
+        return IS_DT_CONST(dt) ? "const vec3" : "vec3";
     case kDT_vec4:
-        return "vec4";
+        return IS_DT_CONST(dt) ? "const vec4" : "vec4";
     case kDT_mat3:
-        return "mat3";
+        return IS_DT_CONST(dt) ? "const mat3" : "mat3";
     case kDT_mat34:
-        return "mat34";
+        return IS_DT_CONST(dt) ? "const mat34" : "mat34";
     case kDT_mat4:
-        return "mat4";
+        return IS_DT_CONST(dt) ? "const mat4" : "mat4";
     case kDT_void:
-        return "void";
+        return IS_DT_CONST(dt) ? "const void" : "void";
     case kDT_handle:
-        return "handle";
+        return IS_DT_CONST(dt) ? "const handle" : "handle";
     default:
         PANIC("type_str invalid DataType: %d", dt);
         return "";
@@ -133,50 +131,50 @@ static const char * type_str(DataType dt)
 
 static const char * cpp_type_str(DataType dt)
 {
-    switch (dt)
+    switch (RAW_DT(dt))
     {
     case kDT_char:
-        return "i8";
+        return IS_DT_CONST(dt) ? "const i8" : "i8";
     case kDT_byte:
-        return "u8";
+        return IS_DT_CONST(dt) ? "const u8" : "u8";
     case kDT_short:
-        return "i16";
+        return IS_DT_CONST(dt) ? "const i16" : "i16";
     case kDT_ushort:
-        return "u16";
+        return IS_DT_CONST(dt) ? "const u16" : "u16";
     case kDT_int:
-        return "i32";
+        return IS_DT_CONST(dt) ? "const i32" : "i32";
     case kDT_uint:
-        return "u32";
+        return IS_DT_CONST(dt) ? "const u32" : "u32";
     case kDT_long:
-        return "i64";
+        return IS_DT_CONST(dt) ? "const i64" : "i64";
     case kDT_ulong:
-        return "u64";
+        return IS_DT_CONST(dt) ? "const u64" : "u64";
     case kDT_half:
-        return "f16";
+        return IS_DT_CONST(dt) ? "const f16" : "f16";
     case kDT_float:
-        return "f32";
+        return IS_DT_CONST(dt) ? "const f32" : "f32";
     case kDT_double:
-        return "f64";
+        return IS_DT_CONST(dt) ? "const f64" : "f64";
     case kDT_bool:
-        return "bool";
+        return IS_DT_CONST(dt) ? "const bool" : "bool";
     case kDT_color:
-        return "Color";
+        return IS_DT_CONST(dt) ? "const Color" : "Color";
     case kDT_vec2:
-        return "Vec2";
+        return IS_DT_CONST(dt) ? "const Vec2" : "Vec2";
     case kDT_vec3:
-        return "Vec3";
+        return IS_DT_CONST(dt) ? "const Vec3" : "Vec3";
     case kDT_vec4:
-        return "Vec4";
+        return IS_DT_CONST(dt) ? "const Vec4" : "Vec4";
     case kDT_mat3:
-        return "Mat3";
+        return IS_DT_CONST(dt) ? "const Mat3" : "Mat3";
     case kDT_mat34:
-        return "Mat34";
+        return IS_DT_CONST(dt) ? "const Mat34" : "Mat34";
     case kDT_mat4:
-        return "Mat4";
+        return IS_DT_CONST(dt) ? "const Mat4" : "Mat4";
     case kDT_void:
-        return "void";
+        return IS_DT_CONST(dt) ? "const void" : "void";
     case kDT_handle:
-        return "Handle";
+        return IS_DT_CONST(dt) ? "const Handle" : "Handle";
     default:
         PANIC("cpp_type_str invalid DataType: %d", dt);
         return "";
@@ -185,7 +183,7 @@ static const char * cpp_type_str(DataType dt)
 
 static const char * cell_field_str(DataType dt)
 {
-    switch (dt)
+    switch (RAW_DT(dt))
     {
     case kDT_char:
         return "c";
@@ -222,7 +220,7 @@ static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo,
     }
     else
     {
-        switch (dataType)
+        switch (RAW_DT(dataType))
         {
         case kDT_int:
         case kDT_uint:
@@ -267,11 +265,6 @@ static S unary_op_post(const Ast * pAst, const char* op)
 static S assign(const Ast * pAst, const char * op)
 {
     return symref(pAst->pSymRec) + S(" ") + S(op) + S(" ") + codegen_recurse(pAst->pRhs, 0);
-}
-
-static S message_id(const Ast *pMsgSend)
-{
-
 }
 
 static S symref(const SymRec * pSymRec)
@@ -347,9 +340,9 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
     for (const auto & kv : pAst->pScope->pSymTab->dict)
     {
         SymRec * pSymRec = kv.second;
-        if (is_prop_or_field(pSymRec))
+        if (is_prop(pSymRec))
         {
-            propTypes[pSymRec->dataType] = true;
+            propTypes[RAW_DT(pSymRec->dataType)] = true;
         }
     }
 
@@ -364,7 +357,7 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
             for (const auto & kv : pAst->pScope->pSymTab->dict)
             {
                 SymRec * pSymRec = kv.second;
-                if (is_prop_or_field(pSymRec) && pSymRec->dataType == i)
+                if (is_prop(pSymRec) && RAW_DT(pSymRec->dataType) == i)
                 {
                     code += indent(indentLevel+1) + S("case HASH::") + S(pSymRec->name) + S(":\n");
                     code += indent(indentLevel+2) + S(pSymRec->name) + S("() = *reinterpret_cast<const ") + S(cpp_type_str((DataType)i)) + S("*>(&msgAcc[0].cells[0].u);\n");
@@ -753,7 +746,7 @@ static S codegen_recurse(const Ast * pAst,
 
         S propName = S(pAst->pSymRec->name);
 
-        S code = I + S(cpp_type_str(ast_data_type(pAst))) + S("& ") + propName + S("()\n");
+        S code = I + S(cpp_type_str(RAW_DT(ast_data_type(pAst)))) + S("& ") + propName + S("()\n");
         code += I + S("{\n");
         code += I + S("    return ") + property_block_accessor(ast_data_type(pAst), *pBlockInfo, "mpBlocks") + S(";\n");
         code += I + S("}\n");

@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 23226346bfedbb9ab9a695e9c2720152
+// HASH: 4a9f42f89fd2863fc0e833e24a0c2efc
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -51,20 +51,14 @@ public:
     {
         switch(msgAcc.message().msgId)
         {
-        case HASH::set_property__uint:
+        case HASH::set_property__int:
             switch (msgAcc.message().payload.u)
             {
-            case HASH::boxModelUid:
-                boxModelUid() = *reinterpret_cast<const u32*>(&msgAcc[0].cells[0].u);
+            case HASH::property:
+                property() = *reinterpret_cast<const i32*>(&msgAcc[0].cells[0].u);
                 return MessageResult::Consumed;
             }
             return MessageResult::Propogate; // Invalid property
-        case HASH::timer__uint:
-        {
-            if ((/*timer_msg*/msgAcc.message().payload.u == HASH::tick))
-                system_api::renderer_transform_model_instance(boxModelUid(), Mat34(1.000000f), entity());
-            return MessageResult::Consumed;
-        }
         }
         return MessageResult::Propogate;
 }
@@ -74,6 +68,8 @@ private:
       : Entity(HASH::test, childCount, 36, 36)
     {
         boxModelUid() = system_api::renderer_gen_uid(entity());
+        nonconst() = 4;
+        property() = 56;
 
         mBlockCount = 1;
         mTask = Task::create(this, HASH::test);
@@ -86,6 +82,14 @@ private:
     u32& boxModelUid()
     {
         return mpBlocks[0].cells[0].u;
+    }
+    i32& nonconst()
+    {
+        return mpBlocks[0].cells[1].i;
+    }
+    i32& property()
+    {
+        return mpBlocks[0].cells[2].i;
     }
 }; // class test
 

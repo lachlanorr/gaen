@@ -495,7 +495,7 @@ Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData)
     case 4:
         for (Ast * pParam : pParams->pChildren->nodes)
         {
-            DataType paramDt = ast_data_type(pParam);
+            DataType paramDt = RAW_DT(ast_data_type(pParam));
             if (paramDt != kDT_int && paramDt != kDT_uint)
                 PANIC("Invalid data type in color initialization");
         }
@@ -518,7 +518,7 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
     case 1:
     {
         Ast * pParam = pParams->pChildren->nodes.front();
-        DataType paramDt = ast_data_type(pParam);
+        DataType paramDt = RAW_DT(ast_data_type(pParam));
         if (paramDt != kDT_float && paramDt != kDT_vec3)
             PANIC("Invalid data type in vec3 initialization");
         break;
@@ -527,7 +527,7 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
     {
         for (Ast * pParam : pParams->pChildren->nodes)
         {
-            DataType paramDt = ast_data_type(pParam);
+            DataType paramDt = RAW_DT(ast_data_type(pParam));
             if (paramDt != kDT_float)
                 PANIC("Invalid data type in vec3 initialization");
         }
@@ -551,7 +551,7 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
     case 1:
     {
         Ast * pParam = pParams->pChildren->nodes.front();
-        DataType paramDt = ast_data_type(pParam);
+        DataType paramDt = RAW_DT(ast_data_type(pParam));
         if (paramDt != kDT_float && paramDt != kDT_mat34)
             PANIC("Invalid data type in mat34 initialization");
         break;
@@ -560,7 +560,7 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
     {
         for (Ast * pParam : pParams->pChildren->nodes)
         {
-            DataType paramDt = ast_data_type(pParam);
+            DataType paramDt = RAW_DT(ast_data_type(pParam));
             if (paramDt != kDT_float)
                 PANIC("Invalid data type in mat34 initialization");
         }
@@ -877,10 +877,15 @@ DataType ast_data_type(const Ast * pAst)
 
 int are_types_compatible(DataType a, DataType b)
 {
-    if (a == b)
+    // TODO: Support const checking in assignment. This function should be
+    // renamed or special cased to handle checks on LHS of assignment consts.
+    // We also need to support implicit conversion from int to float, etc.
+    DataType rawA = RAW_DT(a);
+    DataType rawB = RAW_DT(b);
+    if (rawA == rawB)
         return 1;
-    if (a == kDT_uint && b == kDT_int || 
-        a == kDT_int && b == kDT_uint)
+    if (rawA == kDT_uint && rawB == kDT_int || 
+        rawA == kDT_int && rawB == kDT_uint)
         return 1;
     return 0;
 }

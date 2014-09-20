@@ -68,9 +68,10 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <numi> INT_LITERAL TRUE FALSE
 %token <numf> FLOAT_LITERAL
 
-%token <dataType> CHAR BYTE SHORT USHORT INT UINT LONG ULONG HALF FLOAT DOUBLE BOOL COLOR VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 VOID HANDLE_
+/* This type list must match the DataType enum in compiler.h */
+%token <dataType> VOID BOOL CHAR BYTE SHORT USHORT INT UINT LONG ULONG HALF FLOAT DOUBLE COLOR VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 HANDLE_
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN ENTITY COMPONENT COMPONENTS IMPORT
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN ENTITY COMPONENT COMPONENTS IMPORT CONST
 %right ELSE THEN
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
@@ -321,8 +322,9 @@ fun_params
     ;
 
 type
-    : basic_type  { $$ = ast_create_with_numi(kAST_DataType, $1, pParseData); }
-    | IDENTIFIER  { $$ = ast_create_with_str(kAST_CustomType, $1, pParseData); }
+    : CONST basic_type  { $$ = ast_create_with_numi(kAST_DataType, CONST_DT($2), pParseData); }
+    | basic_type        { $$ = ast_create_with_numi(kAST_DataType, $1, pParseData); }
+    | IDENTIFIER        { $$ = ast_create_with_str(kAST_CustomType, $1, pParseData); }
 
 basic_type
     : CHAR

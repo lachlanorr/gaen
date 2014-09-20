@@ -26,12 +26,7 @@
 
 entity test
 {
-    uint boxModelUid = renderer_gen_uid();
-
-    #timer(uint timer_msg)
-    {
-        if (timer_msg == #tick)
-            renderer_transform_model_instance(boxModelUid, mat34(1.0));        
-    }
-
+    const uint boxModelUid = renderer_gen_uid();
+    int nonconst = 4;
+    int #property = 56;
 }

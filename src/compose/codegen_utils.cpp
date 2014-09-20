@@ -125,7 +125,7 @@ u32 calc_cell_count(const Ast * pAst)
 
 u32 data_type_cell_count(DataType dataType)
 {
-    switch (dataType)
+    switch (RAW_DT(dataType))
     {
     case kDT_int:
     case kDT_uint:

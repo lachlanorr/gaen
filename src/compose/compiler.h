@@ -179,33 +179,49 @@ typedef enum
     kSYMT_Local
 } SymType;
 
+
+// High order bit set indicates const
+#define DT_CONST_FLAG   0x80000000
+#define IS_DT_CONST(dt) ((DataType)((dt) & DT_CONST_FLAG))
+#define CONST_DT(dt)    ((DataType)((dt) | DT_CONST_FLAG))
+#define RAW_DT(dt)      ((DataType)((dt) & ~DT_CONST_FLAG))
+
+// This enum must match the %token <dataType> definition in compose.y
 typedef enum
 {
     kDT_Undefined = 0,
-    kDT_char,
-    kDT_byte,
-    kDT_short,
-    kDT_ushort,
-    kDT_int,
-    kDT_uint,
-    kDT_long,
-    kDT_ulong,
-    kDT_half,
-    kDT_float,
-    kDT_double,
-    kDT_bool,
-    kDT_color,
-    kDT_vec2,
-    kDT_vec3,
-    kDT_vec4,
-    kDT_mat3,
-    kDT_mat34,
-    kDT_mat4,
-    kDT_void,
-    kDT_handle,
 
-    kDT_COUNT
+    kDT_void      = 1,
+    kDT_bool      = 2,
+    kDT_char      = 3,
+    kDT_byte      = 4,
+    kDT_short     = 5,
+
+    kDT_ushort    = 6,
+    kDT_int       = 7,
+    kDT_uint      = 8,
+    kDT_long      = 9,
+    kDT_ulong     = 10,
+
+    kDT_half      = 11,
+    kDT_float     = 12,
+    kDT_double    = 13,
+    kDT_color     = 14,
+    kDT_vec2      = 15,
+
+    kDT_vec3      = 16,
+    kDT_vec4      = 17,
+    kDT_mat3      = 18,
+    kDT_mat34     = 19,
+    kDT_mat4      = 20,
+
+    kDT_handle    = 21,
+
+    kDT_COUNT     = 22
+
 } DataType;
+
+
 
 typedef enum
 {

@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: f847ccbcff3644bec53b32d5236bc4af
+// HASH: edcd2438ca973b783db79165f2e97536
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -85,9 +85,6 @@ public:
             {
             case HASH::timer_interval:
                 timer_interval() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[0].u);
-                return MessageResult::Consumed;
-            case HASH::last_notification:
-                last_notification() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[0].u);
                 return MessageResult::Consumed;
             }
             return MessageResult::Propogate; // Invalid property

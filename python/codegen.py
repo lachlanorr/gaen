@@ -34,6 +34,8 @@ import md5
 import datetime
 import re
 
+import codegen_api
+
 TEMPLATE = '''\
 //------------------------------------------------------------------------------
 // %s - Auto-generated from %s%s
@@ -269,6 +271,10 @@ def write_cmake(cmp_files, cpp_files, h_files):
         write_file(cmake_path, template)
 
 def main():
+    # run codegen_api first so the compiler has the latest api
+    # metadata to work against.
+    codegen_api.write_metadata()
+
     if CMPC is None:
         print "ERROR: cmpc not found, do you need to build?"
         exit(1)
@@ -292,7 +298,6 @@ def main():
                 print "ERROR: %s failed to compile" % pospath
     write_registration_cpp(script_infos)
     write_cmake(cmp_files, cpp_files, h_files)
-    return None
     
 
 if __name__=='__main__':

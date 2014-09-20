@@ -34,10 +34,10 @@
 namespace gaen
 {
 
-// This file gets parsed by codegen.py.
-// Always use a single line per definition, as the parser is quite simple.
+// This file gets parsed by codegen.py to create system_api_meta.cpp, which
+// is used by Compose to compile type safe system calls.
 
-//void print(
+// All parameters must be references or const references.
 
 namespace system_api
 {

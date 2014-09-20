@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: a0b2df9d09111a2a83c12584aa784b53
+// HASH: be5d8642c1d7f9f09a44696b2ff82d18
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -58,33 +58,11 @@ public:
     {
         switch(msgAcc.message().msgId)
         {
-        case HASH::set_property__uint:
-            switch (msgAcc.message().payload.u)
-            {
-            case HASH::boxModelUid:
-                boxModelUid() = *reinterpret_cast<const u32*>(&msgAcc[0].cells[0].u);
-                return MessageResult::Consumed;
-            case HASH::lightUid:
-                lightUid() = *reinterpret_cast<const u32*>(&msgAcc[0].cells[0].u);
-                return MessageResult::Consumed;
-            }
-            return MessageResult::Propogate; // Invalid property
         case HASH::set_property__float:
             switch (msgAcc.message().payload.u)
             {
             case HASH::f_prop:
                 f_prop() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[0].u);
-                return MessageResult::Consumed;
-            case HASH::f_field:
-                f_field() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[0].u);
-                return MessageResult::Consumed;
-            }
-            return MessageResult::Propogate; // Invalid property
-        case HASH::set_property__handle:
-            switch (msgAcc.message().payload.u)
-            {
-            case HASH::boxModel:
-                boxModel() = *reinterpret_cast<const Handle*>(&msgAcc[0].cells[0].u);
                 return MessageResult::Consumed;
             }
             return MessageResult::Propogate; // Invalid property
