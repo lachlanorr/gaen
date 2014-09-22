@@ -81,7 +81,8 @@ public:
     void render();
     void endFrame();
 
-    MessageResult message(const MessageQueueAccessor & msgAcc);
+    template <typename T>
+    MessageResult message(const T& msgAcc);
 
     void loadMaterialMesh(Model::MaterialMesh & matMesh);
 

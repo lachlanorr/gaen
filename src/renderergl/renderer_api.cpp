@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// gaen.h - Gaen game app
+// renderer_api.cpp - RendererGL versions of renderer_api.h functions
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,29 +24,44 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_GAEN_GAEN_H
-#define GAEN_GAEN_GAEN_H
+#include "renderergl/stdafx.h"
 
-#include "engine/TaskMaster.h"
+#include "engine/renderer_api.h"
+
+#include "renderergl/RendererGL.h"
 
 namespace gaen
 {
 
-// Platform specific main function should call init_gaen once things are
-// fully initialized.  It will start the TaskMaster threads.  Main thread
-// is reserved for OS specific stuff, like event handling.
-void init_gaen(int argc, char ** argv);
-
-// Set the renderer for the primary taskmaster
-void set_renderer(const Task & rendererTask)
+void renderer_fin(Task & rendererTask)
 {
-    TaskMaster & tm = TaskMaster::primary_task_master();
-    tm.setRenderer(rendererTask);
+    RendererGL * pRenderer = reinterpret_cast<RendererGL*>(rendererTask.that());
+    pRenderer->fin();
 }
 
-// Call this to shutdown TaskMasters when app wants to close
-void fin_gaen();
+void renderer_init_device(Task & rendererTask)
+{
+    RendererGL * pRenderer = reinterpret_cast<RendererGL*>(rendererTask.that());
+    pRenderer->initRenderDevice();
+}
+
+void renderer_init_viewport(Task & rendererTask)
+{
+    RendererGL * pRenderer = reinterpret_cast<RendererGL*>(rendererTask.that());
+    pRenderer->initViewport();
+}
+
+void renderer_render(Task & rendererTask)
+{
+    RendererGL * pRenderer = reinterpret_cast<RendererGL*>(rendererTask.that());
+    pRenderer->render();
+}
+
+void renderer_end_frame(Task & rendererTask)
+{
+    RendererGL * pRenderer = reinterpret_cast<RendererGL*>(rendererTask.that());
+    pRenderer->endFrame();
+}
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_GAEN_GAEN_H

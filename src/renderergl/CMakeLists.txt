@@ -27,6 +27,7 @@
 
 SET (renderergl_SOURCES
   gaen_opengl.h
+  renderer_api.cpp
   RendererGL.h
   RendererGL.cpp
   RendererGL_${platform}.cpp

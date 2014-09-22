@@ -51,8 +51,8 @@ SET (engine_SOURCES
   ModelMgr.h
   Registry.cpp
   Registry.h
+  renderer_api.h
   renderer_structs.h
-  renderer_type.h
   shapes.cpp
   shapes.h
   system_api.cpp

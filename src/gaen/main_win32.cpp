@@ -30,7 +30,8 @@
 #include <windows.h>
 
 #include "core/logging.h"
-#include "engine/renderer_type.h"
+#include "engine/renderer_api.h"
+#include "renderergl/RendererGL.h"
 #include "renderergl/gaen_opengl.h"
 #include "gaen/gaen.h"
 
@@ -54,8 +55,6 @@ static bool sFullScreen = false;
 
 static const size_t kKeyCount = 256;
 static bool sKeys[kKeyCount];
-
-renderer_type sRenderer;
 
 LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -269,7 +268,6 @@ void createGLWindow(const char * title, u32 screenWidth, u32 screenHeight, u32 b
     SetForegroundWindow(sHwnd);
     SetFocus(sHwnd);
 
-    sRenderer.init(sHdc, sHrc, screenWidth, screenHeight);
 }
 
 } // namespace gaen
@@ -283,16 +281,22 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     sHinstance = hInstance;
 
-    createGLWindow("Gaen", 1280, 720, 32);
+    const u32 kScreenWidth = 1280;
+    const u32 kScreenHeight = 720;
+    createGLWindow("Gaen", kScreenWidth, kScreenHeight, 32);
 
     init_gaen(__argc, __argv);
-    set_renderer(&sRenderer);
+
+    RendererGL renderer;
+    renderer.init(sHdc, sHrc, kScreenWidth, kScreenHeight);
+    Task rendererTask = Task::create(&renderer, HASH::renderer);
+    set_renderer(rendererTask);
 
     // NOTE: From this point forward, methods on sRenderer should not
     // be called directly.  Interaction with the renderer should only
     // be made with messages sent to the primary TaskMaster.
 
-    start_game_loops<renderer_type>();
+    start_game_loops();
 
     BOOL ret;
     MSG msg;

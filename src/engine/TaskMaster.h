@@ -45,32 +45,26 @@ class Entity;
 
 // Call this from main to prep one task master per thread and
 // get them running.
-template <class RendererT>
 void init_task_masters();
 
 // Once main TaskMaster quits (i.e. runGameLoop exits)
 // you should call this from main thread.
-template <class RendererT>
 void fin_task_masters();
 
 // Call this from main loop after all other initialization
 // is complete.  It will start all threads, and their game
 // loops.  This function will return immediately, main thread
 // should be used for OS tasks, or go to sleep.
-template <class RendererT>
 void start_game_loops();
 
-template <class RendererT>
 Registry & get_registry();
 
 // Get the correct message queue against which you should queue
-template <class RendererT>
 MessageQueue & get_message_queue(u32 msgId,
                                  u32 flags,
                                  task_id source,
                                  task_id target);
 // Broadcast a message to all TaskMasters
-template <class RendererT>
 void broadcast_message(u32 msgId,
                        u32 flags,
                        task_id source,
@@ -78,13 +72,6 @@ void broadcast_message(u32 msgId,
                        u32 blockCount = 0,
                        const Block * pBlocks = nullptr);
 
-// Convenience macros to avoid repeated template param render_type in
-// all calls.  It will always be render_type.
-#define GET_REGISTRY get_registry<renderer_type>
-#define GET_MESSAGE_QUEUE get_message_queue<renderer_type>
-#define BROADCAST_MESSAGE broadcast_message<renderer_type>
-
-template <class RendererT>
 class TaskMaster
 {
 public:
@@ -92,8 +79,8 @@ public:
     void fin(const MessageQueueAccessor& msgAcc);
     void cleanup();
 
-    static TaskMaster<RendererT> & task_master_for_thread(thread_id tid);
-    inline static TaskMaster<RendererT> & primary_task_master()
+    static TaskMaster & task_master_for_thread(thread_id tid);
+    inline static TaskMaster & primary_task_master()
     {
         return task_master_for_thread(0);
     }
@@ -132,12 +119,11 @@ public:
     // Deregister a task from a mutable data dependency
     void deregisterMutableDependency(task_id taskId, u32 path);
 
-    void setRenderer(RendererT * pRenderer)
+    void setRenderer(const Task & rendererTask)
     {
         ASSERT(mIsInit);
         ASSERT(mIsPrimary);
-        ASSERT(pRenderer);
-        mpRenderer = pRenderer;
+        mRendererTask = rendererTask;
     }
 
     thread_id threadId() { return mThreadId; }
@@ -166,7 +152,7 @@ private:
     typedef HashMap<kMEM_Engine, task_id, thread_id> TaskOwnerMap;
     TaskOwnerMap mTaskOwnerMap;
 
-    RendererT * mpRenderer = nullptr;
+    Task mRendererTask;
 
     // Maps mutable data paths to the set of task_ids that depend on it
     // We maintain a reference count the data path has to the task

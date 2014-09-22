@@ -32,8 +32,8 @@
 #include "engine/hashes.h"
 #include "engine/MessageQueue.h"
 #include "engine/Entity.h"
-#include "engine/renderer_type.h"
 #include "engine/messages/InsertTask.h"
+#include "engine/renderer_api.h"
 
 #include "engine/TaskMaster.h"
 
@@ -47,32 +47,29 @@ static const u32 kMaxTaskMasterMessages = 4096;
 
 static bool sIsInit = false;
 
-template <class RendererT>
 void init_task_masters()
 {
     ASSERT(!sIsInit);
 
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
-        TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(tid);
+        TaskMaster & tm = TaskMaster::task_master_for_thread(tid);
         tm.init(tid);
     }
 
     sIsInit = true;
 }
 
-template <class RendererT>
 void fin_task_masters()
 {
     ASSERT(sIsInit);
-    broadcast_message<RendererT>(HASH::fin,
-                                 kMessageFlag_None,
-                                 kMainThreadTaskId);
+    broadcast_message(HASH::fin,
+                      kMessageFlag_None,
+                      kMainThreadTaskId);
     join_all_threads();
 }
 
 // Entry point of our thread
-template <class RendererT>
 static void start_game_loop()
 {
     ASSERT(sIsInit);
@@ -85,7 +82,7 @@ static void start_game_loop()
 
     LOG_INFO("Starting thread: %d", tid);
 
-    TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(active_thread_id());
+    TaskMaster & tm = TaskMaster::task_master_for_thread(active_thread_id());
 
     if (tm.isPrimary())
         tm.runPrimaryGameLoop();
@@ -95,7 +92,6 @@ static void start_game_loop()
     tm.cleanup();
 }
 
-template <class RendererT>
 void start_game_loops()
 {
     ASSERT(sIsInit);
@@ -104,12 +100,11 @@ void start_game_loops()
     // Start a TaskMaster for every thread
     for (thread_id i = 0; i < numThreads; ++i)
     {
-        start_thread(start_game_loop<RendererT>);
+        start_thread(start_game_loop);
     }
 
 }
 
-template <class RendererT>
 Registry & get_registry()
 {
     ASSERT(sIsInit);
@@ -117,11 +112,10 @@ Registry & get_registry()
     thread_id activeThreadId = active_thread_id();
 
     ASSERT(activeThreadId < num_threads());
-    TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(activeThreadId);
+    TaskMaster & tm = TaskMaster::task_master_for_thread(activeThreadId);
     return tm.registry();
 }
 
-template <class RendererT>
 MessageQueue & get_message_queue(u32 msgId,
                                  u32 flags,
                                  task_id source,
@@ -134,7 +128,7 @@ MessageQueue & get_message_queue(u32 msgId,
     if (source != kMainThreadTaskId)
     {
         ASSERT(activeThreadId < num_threads());
-        TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(activeThreadId);
+        TaskMaster & tm = TaskMaster::task_master_for_thread(activeThreadId);
         return tm.messageQueueForTarget(target);
     }
     else // main thread sent this message
@@ -144,12 +138,11 @@ MessageQueue & get_message_queue(u32 msgId,
         thread_id targetThreadId = static_cast<thread_id>(target);
         ASSERT(targetThreadId < num_threads());
 
-        TaskMaster<RendererT> & tm = TaskMaster<RendererT>::task_master_for_thread(targetThreadId);
+        TaskMaster & tm = TaskMaster::task_master_for_thread(targetThreadId);
         return tm.mainMessageQueue();
     }
 }
 
-template <class RendererT>
 void broadcast_message(u32 msgId,
                        u32 flags,
                        task_id source,
@@ -176,12 +169,14 @@ void broadcast_message(u32 msgId,
     }
 }
 
-template <class RendererT>
-void TaskMaster<RendererT>::init(thread_id tid)
+void TaskMaster::init(thread_id tid)
 {
     ASSERT(!mIsInit);
     mThreadId = tid;
     mIsPrimary = tid == kPrimaryThreadId;
+
+    // initialize mRenderTask to be blank for now
+    mRendererTask = Task::blank();
 
     // Allocate a message queue that the main thread can use to communicate with us
     mpMainMessageQueue = GNEW(kMEM_Engine, MessageQueue, kMaxMainMessages);
@@ -206,8 +201,7 @@ void TaskMaster<RendererT>::init(thread_id tid)
     mIsInit = true;
 }
 
-template <class RendererT>
-void TaskMaster<RendererT>::fin(const MessageQueueAccessor& msgAcc)
+void TaskMaster::fin(const MessageQueueAccessor& msgAcc)
 {
     ASSERT(mIsInit);
     ASSERT(msgAcc.message().msgId == HASH::fin);
@@ -225,16 +219,15 @@ void TaskMaster<RendererT>::fin(const MessageQueueAccessor& msgAcc)
 }
 
 
-template <class RendererT>
-void TaskMaster<RendererT>::cleanup()
+void TaskMaster::cleanup()
 {
     // We can't do this cleanup in the fin() method, since message queues
     // are still active.
     // This clenaup will get called when loop actually exits and we can
     // really clean up everything.
 
-    if (mpRenderer)
-        mpRenderer->fin();
+    if (mRendererTask.id() != 0)
+        renderer_fin(mRendererTask);
 
     GDELETE(mpMainMessageQueue);
     for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
@@ -246,18 +239,16 @@ void TaskMaster<RendererT>::cleanup()
 }
 
 
-template <class RendererT>
-TaskMaster<RendererT> & TaskMaster<RendererT>::task_master_for_thread(thread_id tid)
+TaskMaster & TaskMaster::task_master_for_thread(thread_id tid)
 {
     ASSERT(is_threading_init());
     ASSERT(tid >= 0 && tid < num_threads());
-    static Vector<kMEM_Engine, TaskMaster<RendererT>> sTaskMasters(num_threads());
+    static Vector<kMEM_Engine, TaskMaster> sTaskMasters(num_threads());
     ASSERT(tid < sTaskMasters.size());
     return sTaskMasters[tid];
 }
 
-template <class RendererT>
-MessageQueue & TaskMaster<RendererT>::messageQueueForTarget(task_id target)
+MessageQueue & TaskMaster::messageQueueForTarget(task_id target)
 {
     thread_id targetThreadId;
 
@@ -280,21 +271,20 @@ MessageQueue & TaskMaster<RendererT>::messageQueueForTarget(task_id target)
     }
 
     ASSERT(targetThreadId < num_threads());
-    TaskMaster<RendererT> & targetTaskMaster = TaskMaster<RendererT>::task_master_for_thread(targetThreadId);
+    TaskMaster & targetTaskMaster = TaskMaster::task_master_for_thread(targetThreadId);
     return targetTaskMaster.taskMasterMessageQueue();
 }
 
-template <class RendererT>
-void TaskMaster<RendererT>::runPrimaryGameLoop()
+void TaskMaster::runPrimaryGameLoop()
 {
     ASSERT(mIsInit);
-    ASSERT(mIsPrimary && mpRenderer);
+    ASSERT(mIsPrimary && mRendererTask.id() != 0);
     ASSERT(!mIsRunning);
     
     mIsRunning = true;
 
-    mpRenderer->initRenderDevice();
-    mpRenderer->initViewport();
+    renderer_init_device(mRendererTask);
+    renderer_init_viewport(mRendererTask);
 
     // LORRTODO - make start entity name dynamic based on command line args
     // Init the start entity now that we have a TaskMaster running.
@@ -315,7 +305,7 @@ void TaskMaster<RendererT>::runPrimaryGameLoop()
     while(mIsRunning)
     {
         // Render through the render adapter
-        mpRenderer->render();
+        renderer_render(mRendererTask);
 
         // Get delta since the last time we ran
         f32 startFrameTime = now();
@@ -342,15 +332,14 @@ void TaskMaster<RendererT>::runPrimaryGameLoop()
             task.update(deltaSecs);
         }
 
-        mpRenderer->endFrame();
+        renderer_end_frame(mRendererTask);
     };
 }
 
-template <class RendererT>
-void TaskMaster<RendererT>::runAuxiliaryGameLoop()
+void TaskMaster::runAuxiliaryGameLoop()
 {
     ASSERT(mIsInit);
-    ASSERT(!mIsPrimary && !mpRenderer);
+    ASSERT(!mIsPrimary && mRendererTask.id() == 0);
     ASSERT(!mIsRunning);
 
     mIsRunning = true;
@@ -377,8 +366,7 @@ void TaskMaster<RendererT>::runAuxiliaryGameLoop()
 }
 
 
-template <class RendererT>
-void TaskMaster<RendererT>::registerMutableDependency(task_id taskId, u32 path)
+void TaskMaster::registerMutableDependency(task_id taskId, u32 path)
 {
     ASSERT(mIsInit);
 /*
@@ -421,14 +409,12 @@ void TaskMaster<RendererT>::registerMutableDependency(task_id taskId, u32 path)
 */  
 }
 
-template <class RendererT>
-void TaskMaster<RendererT>::deregisterMutableDependency(task_id taskId, u32 path)
+void TaskMaster::deregisterMutableDependency(task_id taskId, u32 path)
 {
     ASSERT(mIsInit);
 }
 
-template <class RendererT>
-void TaskMaster<RendererT>::processMessages(MessageQueue & msgQueue)
+void TaskMaster::processMessages(MessageQueue & msgQueue)
 {
     MessageQueueAccessor msgAcc;
 
@@ -440,8 +426,7 @@ void TaskMaster<RendererT>::processMessages(MessageQueue & msgQueue)
 }
 
 
-template <class RendererT>
-MessageResult TaskMaster<RendererT>::message(const MessageQueueAccessor& msgAcc)
+MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
 {
     const Message & msg = msgAcc.message();
     // Handle messages sent to us, the TaskMaster
@@ -471,8 +456,8 @@ MessageResult TaskMaster<RendererT>::message(const MessageQueueAccessor& msgAcc)
     }
     else if (msg.target == kRendererTaskId)
     {
-        ASSERT(mpRenderer);
-        return mpRenderer->message(msgAcc);
+        ASSERT(mRendererTask.id() != 0);
+        return mRendererTask.message(msgAcc);
     }
     else if (msg.target == kInputManagerTaskId)
     {
@@ -492,8 +477,7 @@ MessageResult TaskMaster<RendererT>::message(const MessageQueueAccessor& msgAcc)
 }
 
 
-template <class RendererT>
-void TaskMaster<RendererT>::insertTask(thread_id threadOwner, const Task & task)
+void TaskMaster::insertTask(thread_id threadOwner, const Task & task)
 {
     ASSERT(mTaskOwnerMap.find(task.id()) == mTaskOwnerMap.end());
 
@@ -506,27 +490,6 @@ void TaskMaster<RendererT>::insertTask(thread_id threadOwner, const Task & task)
         mOwnedTaskMap[task.id()] = mOwnedTasks.size() - 1;
     }
 }
-
-
-// Instantiate TaskMaster and helper funcs with our renderer class.
-template class TaskMaster<renderer_type>;
-template void init_task_masters<renderer_type>();
-template void fin_task_masters<renderer_type>();
-template void start_game_loops<renderer_type>();
-
-template Registry & get_registry<renderer_type>();
-
-template MessageQueue & get_message_queue<renderer_type>(u32 msgId,
-                                                         u32 flags,
-                                                         task_id source,
-                                                         task_id target);
-
-template void broadcast_message<renderer_type>(u32 msgId,
-                                               u32 flags,
-                                               task_id source,
-                                               cell payload,
-                                               u32 blockCount,
-                                               const Block * pBlocks);
 
 
 } // namespace gaen

@@ -280,7 +280,8 @@ void RendererGL::render()
     }
 }
 
-MessageResult RendererGL::message(const MessageQueueAccessor & msgAcc)
+template <typename T>
+MessageResult RendererGL::message(const T & msgAcc)
 {
     const Message & msg = msgAcc.message();
 
@@ -288,7 +289,7 @@ MessageResult RendererGL::message(const MessageQueueAccessor & msgAcc)
     {
     case HASH::renderer_insert_model_instance:
     {
-        msg::InsertModelInstanceQR msgr(msgAcc);
+        msg::InsertModelInstanceR<T> msgr(msgAcc);
         mpModelMgr->insertModelInstance(msgAcc.message().source,
                                         msgr.uid(),
                                         msgr.model(),
@@ -305,7 +306,7 @@ MessageResult RendererGL::message(const MessageQueueAccessor & msgAcc)
     }
     case HASH::renderer_insert_light_distant:
     {
-        msg::InsertLightDistantQR msgr(msgAcc);
+        msg::InsertLightDistantR<T> msgr(msgAcc);
         mDistantLights.emplace_back(msgAcc.message().source,
                                     msgr.uid(),
                                     msgr.direction(),
@@ -361,6 +362,11 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
+
+
+// Template decls so we can define message func here in the .cpp
+template MessageResult RendererGL::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template MessageResult RendererGL::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
 
 } // namespace gaen
 

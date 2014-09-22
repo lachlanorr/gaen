@@ -99,6 +99,18 @@ struct Task
 public:
     Task() = default;
 
+    static Task blank()
+    {
+        Task task;
+        // set 32 bytes to 0
+        u64 * pData = reinterpret_cast<u64*>(&task);
+        pData[0] = 0;
+        pData[1] = 0;
+        pData[2] = 0;
+        pData[3] = 0;
+        return task;
+    }
+
     template <class T>
     static Task create(T* pThat, u32 nameHash)
     {

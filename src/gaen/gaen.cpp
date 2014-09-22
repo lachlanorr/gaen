@@ -35,7 +35,6 @@
 #include "core/threading.h"
 #include "core/mem.h"
 
-#include "engine/renderer_type.h"
 #include "engine/TaskMaster.h"
 #include "engine/Entity.h"
 #include "engine/Registry.h"
@@ -187,12 +186,12 @@ void init_gaen(int argc, char ** argv)
 
     init_memory_manager(sMemInitStr);
 
-    init_task_masters<renderer_type>();
+    init_task_masters();
 }
 
 void fin_gaen()
 {
-    fin_task_masters<renderer_type>();
+    fin_task_masters();
 
     fin_memory_manager();
 

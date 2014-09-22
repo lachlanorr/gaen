@@ -27,7 +27,6 @@
 #ifndef GAEN_ENGINE_MESSAGEWRITER_H
 #define GAEN_ENGINE_MESSAGEWRITER_H
 
-#include "engine/renderer_type.h"
 #include "engine/MessageQueue.h"
 #include "engine/TaskMaster.h"
 
@@ -46,7 +45,7 @@ public:
                        cell payload,
                        u32 blockCount)
     {
-        mpMsgQueue = &GET_MESSAGE_QUEUE(msgId, flags, source, target);
+        mpMsgQueue = &get_message_queue(msgId, flags, source, target);
         mpMsgQueue->pushBegin(&mMsgAcc,
                               msgId,
                               flags,

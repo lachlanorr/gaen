@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// renderer_type.h - Declaration of renderer type
+// renderer_api.h - Functions thet must be implemented by the renderer
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,17 +24,23 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_RENDERER_TYPE_H
-#define GAEN_ENGINE_RENDERER_TYPE_H
+#ifndef GAEN_ENGINE_RENDERER_API_H
+#define GAEN_ENGINE_RENDERER_API_H // #ifndef GAEN_ENGINE_RENDERER_API_H
 
-// Changing the renderer should just require changing the following
-// include and typedef.  The renderer class used must fullfill the
-// appropriate duck type.
-#include "renderergl/RendererGL.h"
+#include "engine/Task.h"
+
 namespace gaen
 {
-typedef RendererGL renderer_type;
-}
 
+// The renderer must implement these functions.
+void renderer_fin(Task & rendererTask);
 
-#endif // #ifndef GAEN_ENGINE_RENDERER_TYPE_H
+void renderer_init_device(Task & rendererTask);
+void renderer_init_viewport(Task & rendererTask);
+
+void renderer_render(Task & rendererTask);
+void renderer_end_frame(Task & rendererTask);
+
+} // namespace gaen
+
+#endif // #ifndef GAEN_ENGINE_RENDERER_API_H
