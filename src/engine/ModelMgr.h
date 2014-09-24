@@ -180,6 +180,15 @@ public:
                                                  modelMeshIt->second.end());
     }
 
+    ModelInstance * findModelInstance(u32 uid)
+    {
+        ModelInstanceMap::iterator it = mModelInstanceMap.find(uid);
+        if (it != mModelInstanceMap.end())
+            return &it->second;
+        else
+            return nullptr;
+    }
+
     // Once inserted, don't delete.  To delete objects, send
     // appropriate delete message to renderer.
     void insertModelInstance(task_id owner,

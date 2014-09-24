@@ -45,11 +45,27 @@ namespace gaen
 namespace system_api
 {
 
+f32 radians(const f32 & degrees, const Entity & caller)
+{
+    return ::gaen::radians(degrees);
+}
+
+f32 degrees(const f32 & radians, const Entity & caller)
+{
+    return ::gaen::degrees(radians);
+}
+
+
 Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & caller)
 {
     Model * pModel = build_box(size, color);
 
     return Handle(HASH::Model, 0, 0, sizeof(Model), pModel, nullptr);
+}
+
+Mat34 transform_rotate(const Vec3 & angles, const Entity & caller)
+{
+    return Mat34::rotation(angles);
 }
 
 u32 renderer_gen_uid(const Entity & caller)

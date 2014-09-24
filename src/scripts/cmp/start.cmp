@@ -29,15 +29,14 @@ import lib.models;
 entity start
 {
 
-    float #f_prop = 1.0;
-    float f_field = 2.0;
+    float angle = 0.0;
     handle boxModel = create_shape_box(vec3(1.0, 1.0, 1.0), color(0, 0, 255, 255));
     uint boxModelUid = renderer_gen_uid();
     uint lightUid = renderer_gen_uid();
 
     components
     {
-        Timer(timer_interval = 1.0,
+        Timer(timer_interval = 0.016,
               timer_message = #tick);
     }
 
@@ -56,8 +55,13 @@ entity start
 
     #timer(uint timer_msg)
     {
+        angle += 2.0;
+        float radAngle = radians(angle);
+        vec3 angles = vec3(1.0, radAngle, 0.0);
+        mat34 transform = transform_rotate(angles);
+
         if (timer_msg == #tick)
-            renderer_transform_model_instance(boxModelUid, mat34(1.0));        
+            renderer_transform_model_instance(boxModelUid, transform);
     }
 
 }

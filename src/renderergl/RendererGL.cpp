@@ -33,6 +33,7 @@
 
 #include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/InsertLightDistant.h"
+#include "engine/messages/Transform.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/RendererGL.h"
@@ -80,7 +81,8 @@ static const char * sVertShaderCode =
     "{\n"
     "    vec3 normalTrans = normalize(umNormal * vNormal);\n"
     "    float intensity = max(dot(normalTrans, uvLightDirection), 0.0);\n"
-    "    vColor = vec4(intensity, intensity, intensity, 1.0);\n"
+    "    intensity += min(intensity + 0.3, 1.0);\n"
+    "    vColor = intensity * uvColor;\n"
     "    //vColor = vec4((umNormal * vNormal), 1.0);\n"
     "    //vColor = vec4(dot(uvLightDirection, normalTrans));\n"
     "    //vColor = abs(dot(uvLightDirection, normalTrans)) * uvColor;\n"
@@ -189,11 +191,9 @@ void RendererGL::initViewport()
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-    glDisable(GL_CULL_FACE);
-
-    //glEnable(GL_CULL_FACE);
-    //glEnable(GL_DEPTH_TEST);                            // Enables Depth Testing
-    //glDepthFunc(GL_LEQUAL);                             // The Type Of Depth Testing To Do
+    glEnable(GL_CULL_FACE);
+    //glEnable(GL_DEPTH_TEST);   // Enables Depth Testing
+    //glDepthFunc(GL_LEQUAL);    // The Type Of Depth Testing To Do
 
     // Make sure we don't divide by zero
     if (mScreenHeight==0)
@@ -298,7 +298,13 @@ MessageResult RendererGL::message(const T & msgAcc)
         break;
     }
     case HASH::renderer_transform_model_instance:
+    {
+        msg::TransformR<T> msgr(msgAcc);
+        ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.id());
+        ASSERT(pModelInst);
+        pModelInst->worldTransform = msgr.transform();
         break;
+    }
     case HASH::renderer_remove_model_instance:
     {
         mpModelMgr->removeModelInstance(msg.source, msg.payload.u);

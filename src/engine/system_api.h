@@ -42,7 +42,12 @@ namespace gaen
 namespace system_api
 {
 
+f32 radians(const f32 & degrees, const Entity & caller);
+f32 degrees(const f32 & radians, const Entity & caller);
+
 Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & caller);
+
+Mat34 transform_rotate(const Vec3 & angles, const Entity & caller);
 
 u32 renderer_gen_uid(const Entity & caller);
 void renderer_insert_model_instance(const u32 & uid,

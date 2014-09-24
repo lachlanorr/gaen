@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: be5d8642c1d7f9f09a44696b2ff82d18
+// HASH: c591ce7304aefa3848917615d4b97a92
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -58,14 +58,6 @@ public:
     {
         switch(msgAcc.message().msgId)
         {
-        case HASH::set_property__float:
-            switch (msgAcc.message().payload.u)
-            {
-            case HASH::f_prop:
-                f_prop() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[0].u);
-                return MessageResult::Consumed;
-            }
-            return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
             system_api::renderer_insert_model_instance(boxModelUid(), boxModel(), Mat34(1.000000f), entity());
@@ -74,8 +66,12 @@ public:
         }
         case HASH::timer__uint:
         {
+            angle() += 2.000000f;
+            f32 radAngle = system_api::radians(angle(), entity());
+            Vec3 angles = Vec3(1.000000f, radAngle, 0.000000f);
+            Mat34 transform = system_api::transform_rotate(angles, entity());
             if ((/*timer_msg*/msgAcc.message().payload.u == HASH::tick))
-                system_api::renderer_transform_model_instance(boxModelUid(), Mat34(1.000000f), entity());
+                system_api::renderer_transform_model_instance(boxModelUid(), transform, entity());
             return MessageResult::Consumed;
         }
         }
@@ -86,8 +82,7 @@ private:
     start(u32 childCount)
       : Entity(HASH::start, childCount, 36, 36)
     {
-        f_prop() = 1.000000f;
-        f_field() = 2.000000f;
+        angle() = 0.000000f;
         boxModel() = system_api::create_shape_box(Vec3(1.000000f, 1.000000f, 1.000000f), Color(0, 0, 255, 255), entity());
         boxModelUid() = system_api::renderer_gen_uid(entity());
         lightUid() = system_api::renderer_gen_uid(entity());
@@ -101,7 +96,7 @@ private:
             // Init Property: timer_interval
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property__float, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::timer_interval));
-                msgw[0].cells[0].f = 1.000000f;
+                msgw[0].cells[0].f = 0.016000f;
                 compTask.message(msgw.accessor());
             }
             // Init Property: timer_message
@@ -117,13 +112,9 @@ private:
     start & operator=(const start&)  = delete;
     start & operator=(const start&&) = delete;
 
-    f32& f_prop()
+    f32& angle()
     {
         return mpBlocks[2].cells[0].f;
-    }
-    f32& f_field()
-    {
-        return mpBlocks[2].cells[1].f;
     }
     Handle& boxModel()
     {
@@ -131,11 +122,11 @@ private:
     }
     u32& boxModelUid()
     {
-        return mpBlocks[2].cells[2].u;
+        return mpBlocks[2].cells[1].u;
     }
     u32& lightUid()
     {
-        return mpBlocks[2].cells[3].u;
+        return mpBlocks[2].cells[2].u;
     }
 }; // class start
 
