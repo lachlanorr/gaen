@@ -871,6 +871,11 @@ DataType ast_data_type(const Ast * pAst)
         return kDT_mat34;
     else if (pAst->type == kAST_Negate)
         return ast_data_type(pAst->pRhs);
+    else if (pAst->type == kAST_SystemCall)
+    {
+        const ApiSignature * pSig = find_api(pAst->str);
+        return pSig->returnType;
+    }
     PANIC("Cannot determine datatype for pAst, type: %d", pAst->type);
     return kDT_Undefined;
 }

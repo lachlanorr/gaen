@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: c591ce7304aefa3848917615d4b97a92
+// HASH: ba6cbd07faf204c896e45aff05074dbd
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -46,13 +46,6 @@ public:
         return GNEW(kMEM_Engine, start, childCount);
     }
     
-    void update(float deltaSecs)
-    {
-        f32 f = deltaSecs;
-        i32 x = 5;
-        x = 6;
-    }
-
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
@@ -66,12 +59,12 @@ public:
         }
         case HASH::timer__uint:
         {
-            angle() += 2.000000f;
-            f32 radAngle = system_api::radians(angle(), entity());
-            Vec3 angles = Vec3(1.000000f, radAngle, 0.000000f);
-            Mat34 transform = system_api::transform_rotate(angles, entity());
             if ((/*timer_msg*/msgAcc.message().payload.u == HASH::tick))
+            {
+                angle() += 2.000000f;
+                Mat34 transform = system_api::transform_rotate(Vec3(1.000000f, system_api::radians(angle(), entity()), 0.000000f), entity());
                 system_api::renderer_transform_model_instance(boxModelUid(), transform, entity());
+            }
             return MessageResult::Consumed;
         }
         }
@@ -88,7 +81,7 @@ private:
         lightUid() = system_api::renderer_gen_uid(entity());
 
         mBlockCount = 3;
-        mTask = Task::createUpdatable(this, HASH::start);
+        mTask = Task::create(this, HASH::start);
 
         // Component: Timer
         {

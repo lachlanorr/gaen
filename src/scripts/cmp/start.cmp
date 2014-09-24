@@ -46,22 +46,14 @@ entity start
         renderer_insert_light_distant(lightUid, vec3(0.5, 0.0, -0.5), color(255, 255, 255, 255));
     }
 
-    #update(float deltaSecs)
-    {
-        float f = deltaSecs;
-        int x = 5;
-        x = 6;
-    }
-
     #timer(uint timer_msg)
     {
-        angle += 2.0;
-        float radAngle = radians(angle);
-        vec3 angles = vec3(1.0, radAngle, 0.0);
-        mat34 transform = transform_rotate(angles);
-
         if (timer_msg == #tick)
+        {
+            angle += 2.0;
+            mat34 transform = transform_rotate(vec3(1.0, radians(angle), 0.0));
             renderer_transform_model_instance(boxModelUid, transform);
+        }
     }
 
 }
