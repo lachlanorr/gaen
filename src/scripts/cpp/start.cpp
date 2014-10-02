@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: ba6cbd07faf204c896e45aff05074dbd
+// HASH: 468999411db314a7be5816bb63b7a742
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -53,6 +53,7 @@ public:
         {
         case HASH::init:
         {
+            system_api::register_input_state_listener(HASH::forward, 0, HASH::yaw_foward, entity());
             system_api::renderer_insert_model_instance(boxModelUid(), boxModel(), Mat34(1.000000f), entity());
             system_api::renderer_insert_light_distant(lightUid(), Vec3(0.500000f, 0.000000f, -(0.500000f)), Color(255, 255, 255, 255), entity());
             return MessageResult::Consumed;
@@ -65,6 +66,10 @@ public:
                 Mat34 transform = system_api::transform_rotate(Vec3(1.000000f, system_api::radians(angle(), entity()), 0.000000f), entity());
                 system_api::renderer_transform_model_instance(boxModelUid(), transform, entity());
             }
+            return MessageResult::Consumed;
+        }
+        case HASH::yaw_forward__bool:
+        {
             return MessageResult::Consumed;
         }
         }

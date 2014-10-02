@@ -47,6 +47,8 @@ f32 degrees(const f32 & radians, const Entity & caller);
 
 Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & caller);
 
+void register_input_state_listener(const u32 & state, const u32 & deviceId, const u32 & message, const Entity & caller);
+
 Mat34 transform_rotate(const Vec3 & angles, const Entity & caller);
 
 u32 renderer_gen_uid(const Entity & caller);

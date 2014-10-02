@@ -34,6 +34,7 @@ ApiSignature gApiSignatures[] = {
                                     { HASH::radians, kDT_float, { CONST_DT(kDT_float) } },
                                     { HASH::degrees, kDT_float, { CONST_DT(kDT_float) } },
                                     { HASH::create_shape_box, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_color) } },
+                                    { HASH::register_input_state_listener, kDT_void, { CONST_DT(kDT_uint), CONST_DT(kDT_uint), CONST_DT(kDT_uint) } },
                                     { HASH::transform_rotate, kDT_mat34, { CONST_DT(kDT_vec3) } },
                                     { HASH::renderer_gen_uid, kDT_uint, {  } },
                                     { HASH::renderer_insert_model_instance, kDT_void, { CONST_DT(kDT_uint), kDT_handle, CONST_DT(kDT_mat34) } },

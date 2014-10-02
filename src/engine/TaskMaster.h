@@ -32,6 +32,7 @@
 #include "core/HashMap.h"
 #include "core/List.h"
 #include "core/Vector.h"
+#include "engine/FrameTime.h"
 #include "engine/hashes.h"
 #include "engine/Message.h"
 #include "engine/Task.h"
@@ -40,6 +41,7 @@
 namespace gaen
 {
 
+class InputMgr;
 class MessageQueue;
 class Entity;
 
@@ -152,7 +154,10 @@ private:
     typedef HashMap<kMEM_Engine, task_id, thread_id> TaskOwnerMap;
     TaskOwnerMap mTaskOwnerMap;
 
+    UniquePtr<InputMgr> mpInputMgr;
     Task mRendererTask;
+
+    FrameTime mFrameTime;
 
     // Maps mutable data paths to the set of task_ids that depend on it
     // We maintain a reference count the data path has to the task

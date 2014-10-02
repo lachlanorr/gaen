@@ -26,7 +26,8 @@
 
 entity test
 {
-    const uint boxModelUid = renderer_gen_uid();
-    int nonconst = 4;
-    int #property = 56;
+    #init()
+    {
+        register_input_state_listener(#forward, 0, #yaw_foward);
+    }
 }

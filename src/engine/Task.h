@@ -44,7 +44,7 @@ static const task_id kInvalidTaskId      = kMaxTaskId - 0; // 536870911
 static const task_id kMainThreadTaskId   = kMaxTaskId - 1; // 536870910, special task id used to refer to the main thread as a task
 
 static const task_id kRendererTaskId     = kMaxTaskId - 3; // 536870908
-static const task_id kInputManagerTaskId = kMaxTaskId - 4;  // 536870907
+static const task_id kInputMgrTaskId     = kMaxTaskId - 4; // 536870907
 
 enum class TaskStatus : u8
 {

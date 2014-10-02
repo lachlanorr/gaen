@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// start.cmp - startup script, run by default if no other entity is specified
+// input.cpp - Low level input handling
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,43 +24,24 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-import lib.models;
+#include "engine/stdafx.h"
 
-entity start
+#include "engine/MessageWriter.h"
+#include "engine/input.h"
+
+namespace gaen
 {
 
-    float angle = 0.0;
-    handle boxModel = create_shape_box(vec3(1.0, 1.0, 1.0), color(0, 0, 255, 255));
-    uint boxModelUid = renderer_gen_uid();
-    uint lightUid = renderer_gen_uid();
+void process_key_input(void * pKeyInfo)
+{
+    KeyInput keyInput = convert_key_input(pKeyInfo);
 
-    components
-    {
-        Timer(timer_interval = 0.016,
-              timer_message = #tick);
-    }
-
-    #init()
-    {
-        register_input_state_listener(#forward, 0, #yaw_foward);
-
-        renderer_insert_model_instance(boxModelUid, boxModel, mat34(1.0));
-        renderer_insert_light_distant(lightUid, vec3(0.5, 0.0, -0.5), color(255, 255, 255, 255));
-    }
-
-    #timer(uint timer_msg)
-    {
-        if (timer_msg == #tick)
-        {
-            angle += 2.0;
-            mat34 transform = transform_rotate(vec3(1.0, radians(angle), 0.0));
-            renderer_transform_model_instance(boxModelUid, transform);
-        }
-    }
-
-    #yaw_forward(bool status)
-    {
-    
-    }
-
+    MessageQueueWriter msgw(HASH::keyboard_input,
+                            kMessageFlag_None,
+                            kMainThreadTaskId,
+                            kInputMgrTaskId,
+                            to_cell(keyInput),
+                            0);
 }
+
+} // namespcae gaen

@@ -61,7 +61,7 @@ public:
     }
 
     const Task & task() const { return *mpTask; }
-    thread_id owner() const { return mMsgAcc.message().payload.u; }
+    thread_id owner() const { return *reinterpret_cast<const thread_id*>(&mMsgAcc.message().payload.u); }
         
 private:
     const T & mMsgAcc;
@@ -86,7 +86,7 @@ public:
                            flags,
                            source,
                            target,
-                           to_cell(owner),
+                           to_cell(*reinterpret_cast<const u32*>(&owner)),
                            2)
     {}
     
@@ -97,7 +97,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
-    void setOwner(thread_id val) { mMsgAcc.message().payload.u = val; }
+    void setOwner(thread_id val) { mMsgAcc.message().payload.u = *reinterpret_cast<const u32*>(&val); }
 };
 
 class InsertTaskBW : protected MessageBlockWriter
@@ -114,7 +114,7 @@ public:
                            flags,
                            source,
                            target,
-                           to_cell(owner),
+                           to_cell(*reinterpret_cast<const u32*>(&owner)),
                            2,
                            mBlocks)
     {}
@@ -126,7 +126,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
-    void setOwner(thread_id val) { mMsgAcc.message().payload.u = val; }
+    void setOwner(thread_id val) { mMsgAcc.message().payload.u = *reinterpret_cast<const u32*>(&val); }
 
 private:
     Block mBlocks[2 + 1]; // +1 for header

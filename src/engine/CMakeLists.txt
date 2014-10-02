@@ -32,10 +32,16 @@ SET (engine_SOURCES
   Component.h
   Entity.cpp
   Entity.h
+  FrameTime.h
   Handle.cpp
   Handle.h
   hashes.cpp
   hashes.h
+  input.cpp
+  input_${platform}.cpp
+  input.h
+  InputMgr.cpp
+  InputMgr.h
   Material.cpp
   Material.h
   math.cpp

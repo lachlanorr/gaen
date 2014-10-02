@@ -55,7 +55,7 @@ bool time_to_str(char * str, size_t strLen, f32 timeSecs)
 
     f32 fSecs = rem + (timeSecs - secs);
 
-    int ret = snprintf(str, strLen-1, "%02u:%02u:%02.6f", hours, mins, fSecs);
+    int ret = snprintf(str, strLen-1, "%02u:%02u:%09.6f", hours, mins, fSecs);
     str[strLen-1] = '\0';
 
     // snprintf tells us if we could insert the whole string

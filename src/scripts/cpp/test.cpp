@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 4a9f42f89fd2863fc0e833e24a0c2efc
+// HASH: 3c67c280e3f69b968804acaf1864eaf1
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -51,14 +51,11 @@ public:
     {
         switch(msgAcc.message().msgId)
         {
-        case HASH::set_property__int:
-            switch (msgAcc.message().payload.u)
-            {
-            case HASH::property:
-                property() = *reinterpret_cast<const i32*>(&msgAcc[0].cells[0].u);
-                return MessageResult::Consumed;
-            }
-            return MessageResult::Propogate; // Invalid property
+        case HASH::init:
+        {
+            system_api::register_input_state_listener(HASH::forward, 0, HASH::yaw_foward, entity());
+            return MessageResult::Consumed;
+        }
         }
         return MessageResult::Propogate;
 }
@@ -67,11 +64,8 @@ private:
     test(u32 childCount)
       : Entity(HASH::test, childCount, 36, 36)
     {
-        boxModelUid() = system_api::renderer_gen_uid(entity());
-        nonconst() = 4;
-        property() = 56;
 
-        mBlockCount = 1;
+        mBlockCount = 0;
         mTask = Task::create(this, HASH::test);
     }
     test(const test&)              = delete;
@@ -79,18 +73,6 @@ private:
     test & operator=(const test&)  = delete;
     test & operator=(const test&&) = delete;
 
-    u32& boxModelUid()
-    {
-        return mpBlocks[0].cells[0].u;
-    }
-    i32& nonconst()
-    {
-        return mpBlocks[0].cells[1].i;
-    }
-    i32& property()
-    {
-        return mpBlocks[0].cells[2].i;
-    }
 }; // class test
 
 } // namespace ent

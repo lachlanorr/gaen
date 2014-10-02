@@ -29,5 +29,6 @@ SET (engine_messages_SOURCES
   messages/InsertLightDistant.h
   messages/InsertModelInstance.h
   messages/InsertTask.h
+  messages/RegisterInputStateListener.h
   messages/Transform.h
 )

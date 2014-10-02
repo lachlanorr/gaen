@@ -31,9 +31,19 @@
 
 #include "core/logging.h"
 #include "engine/renderer_api.h"
+#include "engine/input.h"
 #include "renderergl/RendererGL.h"
 #include "renderergl/gaen_opengl.h"
 #include "gaen/gaen.h"
+
+// Set INPUT_LOGGING to HAS_X to log raw mouse/keyboard inputs
+#define INPUT_LOGGING HAS__
+#if HAS(INPUT_LOGGING)
+#define LOG_INPUT LOG_INFO
+#else
+#define LOG_INPUT(...)
+#endif
+
 
 // Force Optimus enabled systems to use Nvidia adapter
 extern "C"
@@ -79,6 +89,61 @@ LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
     case WM_CLOSE:
         PostQuitMessage(0);
         return 0;
+
+    case WM_INPUT:
+    {
+        const u32 kMaxInputBufferSize = 256;
+        u8 inputBuffer[kMaxInputBufferSize];
+
+        u32 inputBufferSize = 0;
+        GetRawInputData((HRAWINPUT)lParam,
+                        RID_INPUT,
+                        NULL,
+                        &inputBufferSize,
+                        sizeof(RAWINPUTHEADER));
+
+        if (inputBufferSize > kMaxInputBufferSize)
+        {
+            PANIC("RawInput buffer size too large: %d", inputBufferSize);
+            return 0;
+        }
+
+        GetRawInputData((HRAWINPUT)lParam,
+                        RID_INPUT,
+                        inputBuffer,
+                        &inputBufferSize,
+                        sizeof(RAWINPUTHEADER));
+
+        RAWINPUT* pRaw = (RAWINPUT*)inputBuffer;
+
+        if (pRaw->header.dwType == RIM_TYPEKEYBOARD)
+        {
+            LOG_INPUT("WM_INPUT Keyboard: make=%04x Flags:%04x Reserved:%04x ExtraInformation:%08x, msg=%04x VK=%04x",
+                      pRaw->data.keyboard.MakeCode,
+                      pRaw->data.keyboard.Flags,
+                      pRaw->data.keyboard.Reserved,
+                      pRaw->data.keyboard.ExtraInformation,
+                      pRaw->data.keyboard.Message,
+                      pRaw->data.keyboard.VKey);
+
+            process_key_input(pRaw);
+
+        }
+        else if (pRaw->header.dwType == RIM_TYPEMOUSE)
+        {
+            LOG_INPUT("WM_INPUT Mouse: usFlags=%04x ulButtons=%04x usButtonFlags=%04x usButtonData=%04x ulRawButtons=%04x lLastX=%4d lLastY=%4d ulExtraInformation=%04x",
+                      pRaw->data.mouse.usFlags,
+                      pRaw->data.mouse.ulButtons,
+                      pRaw->data.mouse.usButtonFlags,
+                      pRaw->data.mouse.usButtonData,
+                      pRaw->data.mouse.ulRawButtons,
+                      pRaw->data.mouse.lLastX,
+                      pRaw->data.mouse.lLastY,
+                      pRaw->data.mouse.ulExtraInformation);
+        }
+        //return DefWindowProc(hWnd, msg, wParam, lParam);
+        return 0;
+    }
 
     case WM_KEYDOWN:
         sKeys[wParam] = true;
@@ -198,8 +263,7 @@ void createGLWindow(const char * title, u32 screenWidth, u32 screenHeight, u32 b
         // Try to set full screen mode
         if (ChangeDisplaySettings(&screenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
         {
-            LOG_WARNING(NULL, "The requested fullscreen mode is not supported.  Defaulting to windowed mode.",
-                        "Graphics Error", MB_OK | MB_ICONEXCLAMATION);
+            LOG_WARNING("The requested fullscreen mode is not supported.  Defaulting to windowed mode.");
             sFullScreen = false;
         }
     }
@@ -270,6 +334,26 @@ void createGLWindow(const char * title, u32 screenWidth, u32 screenHeight, u32 b
 
 }
 
+void prep_raw_input()
+{
+    RAWINPUTDEVICE Rid[2];
+
+    Rid[0].usUsagePage = 0x01;
+    Rid[0].usUsage = 0x02;
+    Rid[0].dwFlags = 0; //RIDEV_NOLEGACY;   // adds HID mouse and also ignores legacy mouse messages
+    Rid[0].hwndTarget = 0;
+
+    Rid[1].usUsagePage = 0x01;
+    Rid[1].usUsage = 0x06;
+    Rid[1].dwFlags = RIDEV_NOLEGACY;   // adds HID keyboard and also ignores legacy keyboard messages
+    Rid[1].hwndTarget = 0;
+
+    if (!RegisterRawInputDevices(Rid, 2, sizeof(Rid[0])))
+    {
+        PANIC("Unable to register raw input devices");
+    }
+}
+
 } // namespace gaen
 
 int CALLBACK WinMain(HINSTANCE hInstance,
@@ -284,6 +368,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     const u32 kScreenWidth = 1280;
     const u32 kScreenHeight = 720;
     createGLWindow("Gaen", kScreenWidth, kScreenHeight, 32);
+
+    prep_raw_input();
 
     init_gaen(__argc, __argv);
 

@@ -33,10 +33,12 @@
 #include "engine/MessageQueue.h"
 #include "engine/Entity.h"
 #include "engine/messages/InsertTask.h"
+#include "engine/InputMgr.h"
 #include "engine/renderer_api.h"
 
 #include "engine/TaskMaster.h"
 
+#define LOG_FPS HAS_X
 
 namespace gaen
 {
@@ -133,10 +135,23 @@ MessageQueue & get_message_queue(u32 msgId,
     }
     else // main thread sent this message
     {
-        // If the main thread is sending, we assume target is the thread id of the taskmaster
-        // this message is going to.
-        thread_id targetThreadId = static_cast<thread_id>(target);
-        ASSERT(targetThreadId < num_threads());
+        thread_id targetThreadId = -1;
+        // Check to see of target is a "standard" reserved target
+        if (target == kRendererTaskId ||
+            target == kInputMgrTaskId)
+        {
+            // send standard target messages to primary task master for now
+            // LORRTODO - InputMgr may not be located on primary task master, support that possibility
+            targetThreadId = kPrimaryThreadId;
+        }
+        else
+        {
+            // Not a standard target so assume "target" is the thread id of a taskmaster
+            targetThreadId = static_cast<thread_id>(target);
+            ASSERT(targetThreadId < num_threads());
+        }
+
+        ASSERT(targetThreadId != -1);
 
         TaskMaster & tm = TaskMaster::task_master_for_thread(targetThreadId);
         return tm.mainMessageQueue();
@@ -255,7 +270,7 @@ MessageQueue & TaskMaster::messageQueueForTarget(task_id target)
     // Special case the Renderer and InputManager since they
     // are so common.
     if (target == kRendererTaskId ||
-        target == kInputManagerTaskId)
+        target == kInputMgrTaskId)
     {
         targetThreadId = kPrimaryThreadId;
     }
@@ -280,8 +295,8 @@ void TaskMaster::runPrimaryGameLoop()
     ASSERT(mIsInit);
     ASSERT(mIsPrimary && mRendererTask.id() != 0);
     ASSERT(!mIsRunning);
-    
-    mIsRunning = true;
+
+    mpInputMgr.reset(new InputMgr());
 
     renderer_init_device(mRendererTask);
     renderer_init_viewport(mRendererTask);
@@ -300,7 +315,8 @@ void TaskMaster::runPrimaryGameLoop()
         insertTask(threadId(), entityTask);
     }
 
-    f32 lastFrameTime = 0.0f;
+    mIsRunning = true;
+    mFrameTime.init();
     
     while(mIsRunning)
     {
@@ -308,10 +324,22 @@ void TaskMaster::runPrimaryGameLoop()
         renderer_render(mRendererTask);
 
         // Get delta since the last time we ran
-        f32 startFrameTime = now();
-        f32 deltaSecs = startFrameTime - lastFrameTime;
-        lastFrameTime = startFrameTime;
+        f32 deltaSecs = mFrameTime.calcDelta();
 
+#if HAS(LOG_FPS)
+        if (mFrameTime.frameCount() % 100 == 0)
+        {
+            FrameInfo fi;
+            mFrameTime.fps(&fi);
+            LOG_INFO("TaskMasterFPS %d: %d tasks, %f, %f, %f, %f",
+                     mThreadId,
+                     mOwnedTasks.size(),
+                     fi.last10,
+                     fi.last100,
+                     fi.last1000,
+                     fi.last10000);
+        }
+#endif
 
         // process messages accumulated since last frame
         processMessages(*mpMainMessageQueue); // messages from main thread
@@ -333,6 +361,12 @@ void TaskMaster::runPrimaryGameLoop()
         }
 
         renderer_end_frame(mRendererTask);
+
+        // If we're not full of work, sleep a bit.
+        // Don't sleep too aggressively since Windows
+        // time slice is 10ms.
+        if (mFrameTime.deltaMeanLast10() < 0.06)
+            sleep(10);
     };
 }
 
@@ -343,10 +377,27 @@ void TaskMaster::runAuxiliaryGameLoop()
     ASSERT(!mIsRunning);
 
     mIsRunning = true;
+    mFrameTime.init();
 
     while(mIsRunning)
     {
-        f32 deltaSecs = 0.0f;
+        // Get delta since the last time we ran
+        f32 deltaSecs = mFrameTime.calcDelta();
+
+#if HAS(LOG_FPS)
+        if (mFrameTime.frameCount() % 100 == 0)
+        {
+            FrameInfo fi;
+            mFrameTime.fps(&fi);
+            LOG_INFO("TaskMasterFPS %d: %d tasks, %f, %f, %f, %f",
+                mThreadId,
+                mOwnedTasks.size(),
+                fi.last10,
+                fi.last100,
+                fi.last1000,
+                fi.last10000);
+        }
+#endif
 
         // process messages accumulated since last frame
         processMessages(*mpMainMessageQueue); // messages from main thread
@@ -362,6 +413,12 @@ void TaskMaster::runAuxiliaryGameLoop()
         {
             task.update(deltaSecs);
         }
+
+        // If we're not full of work, sleep a bit
+        // Don't sleep too aggressively since Windows
+        // time slice is 10ms.
+        if (mFrameTime.deltaMeanLast10() < 0.06)
+            sleep(10);
     };
 }
 
@@ -459,9 +516,10 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
         ASSERT(mRendererTask.id() != 0);
         return mRendererTask.message(msgAcc);
     }
-    else if (msg.target == kInputManagerTaskId)
+    else if (msg.target == kInputMgrTaskId)
     {
-        PANIC("Not Implemented");
+        ASSERT(mpInputMgr.get() != nullptr);
+        mpInputMgr->message(msgAcc);
     }
     else if (msg.target == kMainThreadTaskId)
     {

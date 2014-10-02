@@ -29,9 +29,12 @@
 #include "engine/hashes.h"
 #include "engine/math.h"
 #include "engine/shapes.h"
+#include "engine/InputMgr.h"
+#include "engine/MessageWriter.h"
 #include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/Transform.h"
 #include "engine/messages/InsertLightDistant.h"
+#include "engine/messages/RegisterInputStateListener.h"
 
 #include "engine/system_api.h"
 
@@ -61,6 +64,17 @@ Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & c
     Model * pModel = build_box(size, color);
 
     return Handle(HASH::Model, 0, 0, sizeof(Model), pModel, nullptr);
+}
+
+void register_input_state_listener(const u32 & state, const u32 & deviceId, const u32 & message, const Entity & caller)
+{
+    msg::RegisterInputStateListenerQW msgQW(HASH::register_input_state_listener,
+                                            kMessageFlag_None,
+                                            caller.task().id(),
+                                            kInputMgrTaskId,
+                                            state);
+    msgQW.setDeviceId(deviceId);
+    msgQW.setMessage(message);
 }
 
 Mat34 transform_rotate(const Vec3 & angles, const Entity & caller)

@@ -35,3 +35,8 @@ class InsertLightDistant(FieldHandler):
     color     = ColorField()
     direction = Vec3Field()
 
+
+class RegisterInputStateListener(FieldHandler):
+    state = u32Field(payload=True)
+    message = u32Field()
+    deviceId = u32Field()

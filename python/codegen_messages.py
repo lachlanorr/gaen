@@ -116,7 +116,11 @@ def gen_reader_getters(field_handler):
     lines = []
     for f in field_handler.fields:
         if f.payload:
-            lines.append('    %s %s() const { return mMsgAcc.message().payload.%s; }' % (f.type_name, f.name, f.union_type))
+            if f.type_name in ('u32', 'i32'):
+                lines.append('    %s %s() const { return mMsgAcc.message().payload.%s; }' % (f.type_name, f.name, f.union_type))
+            else:
+                # add explicit casting as it's probably necessary for this type
+                lines.append('    %s %s() const { return *reinterpret_cast<const %s*>(&mMsgAcc.message().payload.%s); }' % (f.type_name, f.name, f.type_name, f.union_type))
         elif type(f) == PointerField:
             lines.append('    %s %s() const { return static_cast<%s>(mMsgAcc[%d].%s.p); }' % (f.type_name, f.getter_name, f.type_name, f.block_start, f.block_accessor))
         elif f.type_name == 'Vec3':
@@ -148,7 +152,11 @@ def gen_payload_decl(field_handler):
 def gen_payload_value(field_handler):
     for f in field_handler.fields:
         if f.payload:
-            return f.name
+            if f.type_name in ('u32', 'i32'):
+                return f.name
+            else:
+                # add explicit casting as it's probably necessary for this type
+                return "*reinterpret_cast<const u32*>(&%s)" % f.name
     return '0'
     
 
@@ -156,7 +164,11 @@ def gen_writer_setters(field_handler):
     lines = []
     for f in field_handler.fields:
         if f.payload:
-            lines.append('    void %s(%s val) { mMsgAcc.message().payload.%s = val; }' % (f.setter_name, f.type_name, f.union_type))
+            if f.type_name in ('u32', 'i32'):
+                lines.append('    void %s(%s val) { mMsgAcc.message().payload.%s = val; }' % (f.setter_name, f.type_name, f.union_type))
+            else:
+                # add explicit casting as it's probably necessary for this type
+                lines.append('    void %s(%s val) { mMsgAcc.message().payload.%s = *reinterpret_cast<const u32*>(&val); }' % (f.setter_name, f.type_name, f.union_type))
         elif type(f) == PointerField:
             lines.append('    void %s(%s pVal) { mMsgAcc[%d].%s.p = pVal; }' % (f.setter_name, f.type_name, f.block_start, f.block_accessor))
         elif f.type_name == 'Vec3':
