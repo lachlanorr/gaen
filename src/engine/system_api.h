@@ -47,7 +47,7 @@ f32 degrees(const f32 & radians, const Entity & caller);
 
 Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & caller);
 
-void register_input_state_listener(const u32 & state, const u32 & deviceId, const u32 & message, const Entity & caller);
+void watch_input_state(const u32 & state, const u32 & deviceId, const u32 & message, const Entity & caller);
 
 Mat34 transform_rotate(const Vec3 & angles, const Entity & caller);
 
@@ -59,11 +59,11 @@ void renderer_insert_model_instance(const u32 & uid,
 void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, const Entity & caller);
 void renderer_remove_model_instance(const u32 & uid, const Entity & caller);
 
-void renderer_insert_light_distant(const u32 & uid,
-                                   const Vec3 & direction,
-                                   const Color & color,
-                                   const Entity & caller);
-void renderer_remove_light_distant(const u32 & uid, const Entity & caller);
+void renderer_insert_light_directional(const u32 & uid,
+                                       const Vec3 & direction,
+                                       const Color & color,
+                                       const Entity & caller);
+void renderer_remove_light_directional(const u32 & uid, const Entity & caller);
 
 }
 

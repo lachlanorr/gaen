@@ -32,7 +32,7 @@
 #include "engine/ModelMgr.h"
 
 #include "engine/messages/InsertModelInstance.h"
-#include "engine/messages/InsertLightDistant.h"
+#include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/Transform.h"
 
 #include "renderergl/gaen_opengl.h"
@@ -252,9 +252,9 @@ void RendererGL::render()
 
     glUseProgram(sProgramId);
 
-    if (mDistantLights.size() > 0)
+    if (mDirectionalLights.size() > 0)
     {
-        const DistantLight & light = mDistantLights.front();
+        const DirectionalLight & light = mDirectionalLights.front();
         glUniform3fv(sLightDirectionUniform, 1, light.direction.elems);
         glUniform4fv(sLightColorUniform, 1, light.color.elems);
     }
@@ -289,7 +289,7 @@ MessageResult RendererGL::message(const T & msgAcc)
     {
     case HASH::renderer_insert_model_instance:
     {
-        msg::InsertModelInstanceR<T> msgr(msgAcc);
+        messages::InsertModelInstanceR<T> msgr(msgAcc);
         mpModelMgr->insertModelInstance(msgAcc.message().source,
                                         msgr.uid(),
                                         msgr.model(),
@@ -299,7 +299,7 @@ MessageResult RendererGL::message(const T & msgAcc)
     }
     case HASH::renderer_transform_model_instance:
     {
-        msg::TransformR<T> msgr(msgAcc);
+        messages::TransformR<T> msgr(msgAcc);
         ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.id());
         ASSERT(pModelInst);
         pModelInst->worldTransform = msgr.transform();
@@ -310,13 +310,13 @@ MessageResult RendererGL::message(const T & msgAcc)
         mpModelMgr->removeModelInstance(msg.source, msg.payload.u);
         break;
     }
-    case HASH::renderer_insert_light_distant:
+    case HASH::renderer_insert_light_directional:
     {
-        msg::InsertLightDistantR<T> msgr(msgAcc);
-        mDistantLights.emplace_back(msgAcc.message().source,
-                                    msgr.uid(),
-                                    msgr.direction(),
-                                    msgr.color());
+        messages::InsertLightDirectionalR<T> msgr(msgAcc);
+        mDirectionalLights.emplace_back(msgAcc.message().source,
+                                        msgr.uid(),
+                                        msgr.direction(),
+                                        msgr.color());
         break;
     }
     default:

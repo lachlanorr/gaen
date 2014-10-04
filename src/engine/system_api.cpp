@@ -33,8 +33,8 @@
 #include "engine/MessageWriter.h"
 #include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/Transform.h"
-#include "engine/messages/InsertLightDistant.h"
-#include "engine/messages/RegisterInputStateListener.h"
+#include "engine/messages/InsertLightDirectional.h"
+#include "engine/messages/WatchInputState.h"
 
 #include "engine/system_api.h"
 
@@ -66,13 +66,13 @@ Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & c
     return Handle(HASH::Model, 0, 0, sizeof(Model), pModel, nullptr);
 }
 
-void register_input_state_listener(const u32 & state, const u32 & deviceId, const u32 & message, const Entity & caller)
+void watch_input_state(const u32 & state, const u32 & deviceId, const u32 & message, const Entity & caller)
 {
-    msg::RegisterInputStateListenerQW msgQW(HASH::register_input_state_listener,
-                                            kMessageFlag_None,
-                                            caller.task().id(),
-                                            kInputMgrTaskId,
-                                            state);
+    messages::WatchInputStateQW msgQW(HASH::watch_input_state,
+                                      kMessageFlag_None,
+                                      caller.task().id(),
+                                      kInputMgrTaskId,
+                                      state);
     msgQW.setDeviceId(deviceId);
     msgQW.setMessage(message);
 }
@@ -95,11 +95,11 @@ void renderer_insert_model_instance(const u32 & uid,
     if (modelHandle.typeHash() != HASH::Model)
         PANIC("Invalid model handle");
 
-    msg::InsertModelInstanceQW msgQW(HASH::renderer_insert_model_instance,
-                                     kMessageFlag_None,
-                                     caller.task().id(),
-                                     kRendererTaskId,
-                                     uid);
+    messages::InsertModelInstanceQW msgQW(HASH::renderer_insert_model_instance,
+                                          kMessageFlag_None,
+                                          caller.task().id(),
+                                          kRendererTaskId,
+                                          uid);
     msgQW.setIsAssetManaged(true);
     msgQW.setModel((Model*)modelHandle.data());
     msgQW.setWorldTransform(transform);
@@ -107,11 +107,11 @@ void renderer_insert_model_instance(const u32 & uid,
 
 void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, const Entity & caller)
 {
-    msg::TransformQW msgQW(HASH::renderer_transform_model_instance,
-                           kMessageFlag_None,
-                           caller.task().id(),
-                           kRendererTaskId,
-                           uid);
+    messages::TransformQW msgQW(HASH::renderer_transform_model_instance,
+                                kMessageFlag_None,
+                                caller.task().id(),
+                                kRendererTaskId,
+                                uid);
     msgQW.setTransform(transform);
 }
 
@@ -125,20 +125,20 @@ void renderer_remove_model_instance(const u32 & uid, const Entity & caller)
                              0);
 }
 
-void renderer_insert_light_distant(const u32 & uid, const Vec3 & direction, const Color & color, const Entity & caller)
+void renderer_insert_light_directional(const u32 & uid, const Vec3 & direction, const Color & color, const Entity & caller)
 {
-    msg::InsertLightDistantQW msgQW(HASH::renderer_insert_light_distant,
-                                    kMessageFlag_None,
-                                    caller.task().id(),
-                                    kRendererTaskId,
-                                    uid);
+    messages::InsertLightDirectionalQW msgQW(HASH::renderer_insert_light_directional,
+                                             kMessageFlag_None,
+                                             caller.task().id(),
+                                             kRendererTaskId,
+                                             uid);
     msgQW.setDirection(direction);
     msgQW.setColor(color);
 }
 
-void renderer_remove_light_distant(const u32 & uid, const Entity & caller)
+void renderer_remove_light_directional(const u32 & uid, const Entity & caller)
 {
-    MessageQueueWriter msgQW(HASH::renderer_remove_light_distant,
+    MessageQueueWriter msgQW(HASH::renderer_remove_light_directional,
                              kMessageFlag_None,
                              caller.task().id(),
                              kRendererTaskId,

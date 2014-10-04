@@ -290,85 +290,121 @@ static S symref(const SymRec * pSymRec)
     return code;
 }
 
-static S message_def_and_params(const Ast * pAst)
-{
-    ASSERT(pAst->type == kAST_MessageDef);
-
-    S name = S(pAst->str);
-
-    if (pAst->pBlockInfos->items.size() > 0)
-    {
-        name += S("_");
-
-        for (BlockInfo & blockInfo : pAst->pBlockInfos->items)
-        {
-            name += S("_") + S(type_str(blockInfo.pAst->pSymRec->dataType));
-        }
-    }
-
-    return name;
-}
-
-static S message_and_params(const Ast * pAst)
-{
-    ASSERT(pAst->type == kAST_MessageSend);
-    ASSERT(pAst->pRhs && pAst->pRhs->type == kAST_FunctionParams);
-
-    S name = S(pAst->str);
-
-    if (pAst->pRhs->pChildren->nodes.size() > 0)
-    {
-        name += S("_");
-        for (const Ast * pChild : pAst->pRhs->pChildren->nodes)
-        {
-            name += S("_") + S(type_str(ast_data_type(pChild)));
-        }
-    }
-
-    return name;
-}
-
 static S set_property_handlers(const Ast * pAst, int indentLevel)
 {
     ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
 
-    bool propTypes[kDT_COUNT];
-    for (u32 i = 0; i < kDT_COUNT; ++i)
-        propTypes[i] = false;
+    bool hasProperty = false;
 
-    // Determine which types we have properties for
     for (const auto & kv : pAst->pScope->pSymTab->dict)
     {
         SymRec * pSymRec = kv.second;
         if (is_prop(pSymRec))
         {
-            propTypes[RAW_DT(pSymRec->dataType)] = true;
+            hasProperty = true;
+            break;
         }
     }
 
+
     S code = S("");
-    for (int i = 0; i < kDT_COUNT; ++i)
+
+    if (hasProperty)
     {
-        if (propTypes[i])
+        code += indent(indentLevel) + S("case HASH::") + S("set_property:\n");
+        code += indent(indentLevel+1) + S("switch (_msg.payload.u)\n");
+        code += indent(indentLevel+1) + S("{\n");
+        for (const auto & kv : pAst->pScope->pSymTab->dict)
         {
-            code += indent(indentLevel) + S("case HASH::") + S("set_property__") + S(type_str((DataType)i)) + S(":\n");
-            code += indent(indentLevel+1) + S("switch (msgAcc.message().payload.u)\n");
-            code += indent(indentLevel+1) + S("{\n");
-            for (const auto & kv : pAst->pScope->pSymTab->dict)
+            SymRec * pSymRec = kv.second;
+            if (is_prop(pSymRec))
             {
-                SymRec * pSymRec = kv.second;
-                if (is_prop(pSymRec) && RAW_DT(pSymRec->dataType) == i)
+                static const u32 kScratchSize = 128;
+                char scratch[kScratchSize+1];
+
+                DataType dt = RAW_DT(pSymRec->dataType);
+                u32 cellCount = data_type_cell_count(dt);
+                u32 blockCount = block_count(cellCount);
+
+                code += indent(indentLevel+1) + S("case HASH::") + S(pSymRec->name) + S(":\n");
+                code += indent(indentLevel+1) + S("{\n");
+                snprintf(scratch, kScratchSize, "u32 requiredBlockCount = %d;\n", blockCount);
+                code += indent(indentLevel+2) + S(scratch);
+                code += indent(indentLevel+2) + S("if (_msg.blockCount >= requiredBlockCount)\n");
+                code += indent(indentLevel+2) + S("{\n");
+
+                u32 fullBlocksToCopy = blockCount;
+                if (cellCount % kCellsPerBlock != 0)
+                    fullBlocksToCopy--;
+
+                // copy full blocks
+                for (u32 i = 0; i < fullBlocksToCopy; ++i)
                 {
-                    code += indent(indentLevel+1) + S("case HASH::") + S(pSymRec->name) + S(":\n");
-                    code += indent(indentLevel+2) + S(pSymRec->name) + S("() = *reinterpret_cast<const ") + S(cpp_type_str((DataType)i)) + S("*>(&msgAcc[0].cells[0].u);\n");
-                    code += indent(indentLevel+2) + S("return MessageResult::Consumed;\n");
+                    snprintf(scratch,
+                             kScratchSize,
+                             "reinterpret_cast<Block*>(&%s())[%d] = msgAcc[%d];\n",
+                             pSymRec->name,
+                             i,
+                             i);
+                    code += indent(indentLevel+3) + S(scratch);
                 }
+                // copy remaining cells from last block
+                if (fullBlocksToCopy < blockCount)
+                {
+                    u32 lastBlockIdx = blockCount - 1;
+                    u32 cellsToCopy = cellCount % kCellsPerBlock;
+                    for (u32 i = 0; i < cellsToCopy; ++i)
+                    {
+                        snprintf(scratch,
+                                 kScratchSize,
+                                 "reinterpret_cast<Block*>(&%s())[%d].cells[%d] = msgAcc[%d].cells[%d];\n",
+                                 pSymRec->name,
+                                 lastBlockIdx,
+                                 i,
+                                 lastBlockIdx,
+                                 i);
+                        code += indent(indentLevel+3) + S(scratch);
+                    }
+                }
+                code += indent(indentLevel+3) + S("return MessageResult::Consumed;\n");
+                code += indent(indentLevel+2) + S("}\n");
+                code += indent(indentLevel+1) + S("}\n");
             }
-            code += indent(indentLevel+1) + S("}\n");
-            code += indent(indentLevel+1) + S("return MessageResult::Propogate; // Invalid property\n");
         }
+        code += indent(indentLevel+1) + S("}\n");
+        code += indent(indentLevel+1) + S("return MessageResult::Propogate; // Invalid property\n");
     }
     return code;
+}
+
+static S data_type_init_value(DataType dataType)
+{
+    switch (RAW_DT(dataType))
+    {
+    case kDT_int:
+    case kDT_uint:
+        return S("0");
+    case kDT_float:
+        return S("0.0f");
+    case kDT_bool:
+    case kDT_char:
+        return S("0");
+    case kDT_vec3:
+        return S("Vec3(0.0f, 0.0f, 0.0f)");
+    case kDT_vec4:
+        return S("Vec4(0.0, 0.0f, 0.0f, 1.0f)");
+    case kDT_mat3:
+        return S("Mat3(1.0f)");
+    case kDT_mat34:
+        return S("Mat34(1.0f)");
+    case kDT_mat4:
+        return S("Mat4(1.0f)");
+    case kDT_handle:
+        return S("nullptr");
+    default:
+        PANIC("Unknown initial value for datatype: %d", dataType);
+        return S("");
+    }
 }
 
 static S init_data(const Ast * pAst, int indentLevel)
@@ -381,9 +417,19 @@ static S init_data(const Ast * pAst, int indentLevel)
         SymRec * pSymRec = kv.second;
         if (is_prop_or_field(pSymRec))
         {
-            code += indent(indentLevel+1) + symref(pSymRec) + S(" = ");
-            ASSERT(pSymRec->pAst);
-            code += codegen_recurse(pSymRec->pAst, 0);
+            code += indent(indentLevel+1) + symref(pSymRec);
+            code += S(" = ");
+
+            // Does the script initiialize this with a value?
+            if (pSymRec->pAst)
+            {
+                code += codegen_recurse(pSymRec->pAst, 0);
+            }
+            else
+            {
+                // initialzie with a default value based on the type
+                code += data_type_init_value(pSymRec->dataType);
+            }
             code += S(";\n");
         }
     }
@@ -398,9 +444,7 @@ static S message_def(const Ast * pAst, int indentLevel)
         pAst->pSymRec &&
         0 != strcmp(pAst->pSymRec->name, "update"))
     {
-        S full_message_name = message_def_and_params(pAst);
-
-        code += I + S("case HASH::") + full_message_name + S(":\n");
+        code += I + S("case HASH::") + S(pAst->str) + S(":\n");
         code += I + S("{\n");
         for (Ast * pChild : pAst->pChildren->nodes)
         {
@@ -450,7 +494,8 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    template <typename T>\n");
         code += I + S("    MessageResult message(const T & msgAcc)\n");
         code += I + S("    {\n");
-        code += I + S("        switch(msgAcc.message().msgId)\n");
+        code += I + S("        const Message & _msg = msgAcc.message();\n");
+        code += I + S("        switch(_msg.msgId)\n");
         code += I + S("        {\n");
 
         // property setters
@@ -490,10 +535,10 @@ static S codegen_recurse(const Ast * pAst,
         {
             S createTaskMethod;
             if (pUpdateDef)
-                createTaskMethod = S("createUpdatable");
+                createTaskMethod = S("create_updatable");
             else
                 createTaskMethod = S("create");
-            code += I + S("        ") + S("mTask = Task::") + createTaskMethod + S("(this, HASH::") + entName + S(");\n");
+            code += I + S("        ") + S("mScriptTask = Task::") + createTaskMethod + S("(this, HASH::") + entName + S(");\n");
         }
 
         // Add initial component members
@@ -521,22 +566,21 @@ static S codegen_recurse(const Ast * pAst,
                         char scratch[kScratchSize+1];
                         snprintf(scratch,
                                  kScratchSize,
-                                 "                StackMessageBlockWriter<%u> msgw(HASH::%s__%s, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::%s));\n",
+                                 "                StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::%s));\n",
                                  blockCount,
                                  "set_property",
-                                 type_str(rhsDataType),
                                  pPropInit->str);
                         code += S(scratch);
 
-                        switch (pPropInit->pRhs->type)
+                        switch (ast_data_type(pPropInit->pRhs))
                         {
-                        case kAST_FloatLiteral:
+                        case kDT_float:
                             code += S("                msgw[0].cells[0].f = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
                             break;
-                        case kAST_IntLiteral:
+                        case kDT_int:
                             code += S("                msgw[0].cells[0].i = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
                             break;
-                        case kAST_Hash:
+                        case kDT_uint:
                             code += S("                msgw[0].cells[0].u = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
                             break;
                         default:
@@ -599,9 +643,9 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("class ") + compName + S(" : public Component\n{\n");
         
         code += I + S("public:\n");
-        code += I + S("    static Component * construct(void * place)\n");
+        code += I + S("    static Component * construct(void * place, Entity * pEntity)\n");
         code += I + S("    {\n");
-        code += I + S("        return new (place) ") + compName + S("();\n");
+        code += I + S("        return new (place) ") + compName + S("(pEntity);\n");
         code += I + S("    }\n");
         code += I + S("    \n");
 
@@ -616,7 +660,8 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    template <typename T>\n");
         code += I + S("    MessageResult message(const T & msgAcc)\n");
         code += I + S("    {\n");
-        code += I + S("        switch(msgAcc.message().msgId)\n");
+        code += I + S("        const Message & _msg = msgAcc.message();\n");
+        code += I + S("        switch(_msg.msgId)\n");
         code += I + S("        {\n");
 
         // #init_data
@@ -641,16 +686,17 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("private:\n");
 
         // Constructor
-        code += I + S("    ") + compName + S("()\n");
+        code += I + S("    ") + compName + S("(Entity * pEntity)\n");
+        code += I + S("      : Component(pEntity)\n");
         code += I + S("    {\n");
         // Create task
         if (pUpdateDef)
         {
-            code += I + S("        mTask = Task::createUpdatable(this, HASH::") + compName + S(");\n");
+            code += I + S("        mScriptTask = Task::create_updatable(this, HASH::") + compName + S(");\n");
         }
         else
         {
-            code += I + S("        mTask = Task::create(this, HASH::") + compName + S(");\n");
+            code += I + S("        mScriptTask = Task::create(this, HASH::") + compName + S(");\n");
         }
         {
             static const u32 kScratchSize = 32;
@@ -1085,8 +1131,6 @@ static S codegen_recurse(const Ast * pAst,
     {
         static const u32 kScratchSize = 255;
 
-        S full_message_name = message_and_params(pAst);
-
         S code;
         code += I + S("{\n");
 
@@ -1100,7 +1144,7 @@ static S codegen_recurse(const Ast * pAst,
                 kScratchSize,
                 "StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mpEntity->task().id(), ",
                 pAst->pBlockInfos->blockCount,
-                full_message_name.c_str());
+                pAst->str);
 
             code += S(scratch);
 

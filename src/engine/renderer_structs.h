@@ -47,13 +47,13 @@ struct Ruid
     {}
 };
 
-struct DistantLight
+struct DirectionalLight
 {
     Ruid ruid;
     Vec3 direction;
     Vec4 color;
 
-    DistantLight(task_id owner, u32 uid, const Vec3& direction, Color color)
+    DirectionalLight(task_id owner, u32 uid, const Vec3& direction, Color color)
       : ruid(owner, uid)
       , direction(direction)
       , color(Color::build_vec4(color))

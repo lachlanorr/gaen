@@ -27,6 +27,8 @@
 #include "engine/stdafx.h"
 
 #include "engine/MessageWriter.h"
+#include "engine/messages/WatchInputState.h"
+
 #include "engine/InputMgr.h"
 
 namespace gaen
@@ -90,8 +92,12 @@ MessageResult InputMgr::message(const T& msgAcc)
     case HASH::keyboard_input:
         processKeyInput(KeyInput(msg.payload));
         break;
-    case HASH::register_input_state_listener:
+    case HASH::watch_input_state:
+    {
+        messages::WatchInputStateR<T> msgr(msgAcc);
+        registerStateListener(msgr.state(), TaskMessage(msg.source, msgr.message()));
         break;
+    }
     default:
         PANIC("Unknown InputMgr message: %d", msg.msgId);
     }

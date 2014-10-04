@@ -26,9 +26,9 @@
 
 SET (engine_messages_SOURCES
   messages/InsertComponent.h
-  messages/InsertLightDistant.h
+  messages/InsertLightDirectional.h
   messages/InsertModelInstance.h
   messages/InsertTask.h
-  messages/RegisterInputStateListener.h
   messages/Transform.h
+  messages/WatchInputState.h
 )

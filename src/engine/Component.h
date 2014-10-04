@@ -47,16 +47,16 @@ class Component
 {
     friend class Entity;
 public:
-    Component()
+    Component(Entity * pEntity)
       : mIsInit(0)
-      , mpEntity(nullptr){}
+      , mpEntity(pEntity){}
 
-    Task & task() { return mTask; }
+    Task & task() { return mScriptTask; }
 
 protected:
     Entity & entity() { return *mpEntity; }
     
-    Task mTask;
+    Task mScriptTask;
     Entity * mpEntity;
     Block *mpBlocks;
     u32 mBlockCount:24;

@@ -33,7 +33,7 @@
 
 namespace gaen
 {
-namespace msg
+namespace messages
 {
 
 template <typename T>

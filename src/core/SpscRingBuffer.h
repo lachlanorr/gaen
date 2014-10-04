@@ -46,7 +46,7 @@ namespace gaen
 //
 // Usage and caveats:
 //   1. To push:
-//      a. Call pushBegin, which will return an Accessor
+//      a. Call pushBegin, providing an uninitialized Accessor struct.
 //      b. Check there's available space for your message with
 //         Accessor::available().
 //      c. Use the [] operator on the Accessor set your data.
@@ -56,7 +56,7 @@ namespace gaen
 //      d. Call pushCommit with the element count you are pushing.
 //
 //   2. To pop (analagous process to push above):
-//      a. Call popBegin, which will return an Accessor
+//      a. Call popBegin, providing an uninitialized Accessor struct.
 //      b. Check there's available data to read with
 //         Accessor::available().
 //      c. Use the [] operator on the Accessor read your data.

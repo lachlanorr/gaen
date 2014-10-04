@@ -30,13 +30,13 @@ class InsertModelInstance(FieldHandler):
     worldTransform  = Mat34Field()
     
 
-class InsertLightDistant(FieldHandler):
+class InsertLightDirectional(FieldHandler):
     uid       = u32Field(payload=True)
     color     = ColorField()
     direction = Vec3Field()
 
 
-class RegisterInputStateListener(FieldHandler):
+class WatchInputState(FieldHandler):
     state = u32Field(payload=True)
     message = u32Field()
     deviceId = u32Field()

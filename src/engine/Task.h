@@ -144,7 +144,7 @@ public:
     }
 
     template <class T>
-    static Task createUpdatable(T* pThat, u32 nameHash)
+    static Task create_updatable(T* pThat, u32 nameHash)
     {
         Task task = Task::create(pThat, nameHash);
 

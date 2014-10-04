@@ -197,7 +197,7 @@ KeyInput convert_key_input(void * pKeyInfo)
 
     KeyInput keyInput;
 
-    keyInput.keyEvent = (pRaw->data.keyboard.Flags & RI_KEY_MAKE) ? kKEVT_Down : kKEVT_Up;
+    keyInput.keyEvent = (pRaw->data.keyboard.Flags & RI_KEY_BREAK) ? kKEVT_Up : kKEVT_Down;
 
 
     // Windows virtual keys decode is straight forward, except for shift, control and alt.

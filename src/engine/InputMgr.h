@@ -53,6 +53,7 @@ private:
         
         TaskMessage(u32 taskId, u32 message)
           : taskId(taskId)
+          , deviceId(0) // LORRTODO: For now we don't use deviceId. Should probably be playerId instead. Needs more thought.
           , message(message)
         {}
 

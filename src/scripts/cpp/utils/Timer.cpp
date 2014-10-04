@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: edcd2438ca973b783db79165f2e97536
+// HASH: 912237c349f150cb6c27adbb832c55cb
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -41,9 +41,9 @@ namespace comp
 class Timer : public Component
 {
 public:
-    static Component * construct(void * place)
+    static Component * construct(void * place, Entity * pEntity)
     {
-        return new (place) Timer();
+        return new (place) Timer(pEntity);
     }
     
     void update(float deltaSecs)
@@ -54,7 +54,7 @@ public:
             if ((last_notification() >= timer_interval()))
             {
                 {
-                    StackMessageBlockWriter<0> msgw(HASH::timer__uint, kMessageFlag_None, mpEntity->task().id(), mpEntity->task().id(), to_cell(timer_message()));
+                    StackMessageBlockWriter<0> msgw(HASH::timer, kMessageFlag_None, mpEntity->task().id(), mpEntity->task().id(), to_cell(timer_message()));
                     mpEntity->message(msgw.accessor());
                 }
                 last_notification() = 0.000000f;
@@ -65,27 +65,35 @@ public:
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
-        switch(msgAcc.message().msgId)
+        const Message & _msg = msgAcc.message();
+        switch(_msg.msgId)
         {
         case HASH::init_data:
             timer_interval() = 0.000000f;
             timer_message() = 0;
             last_notification() = 0.000000f;
             return MessageResult::Consumed;
-        case HASH::set_property__uint:
-            switch (msgAcc.message().payload.u)
-            {
-            case HASH::timer_message:
-                timer_message() = *reinterpret_cast<const u32*>(&msgAcc[0].cells[0].u);
-                return MessageResult::Consumed;
-            }
-            return MessageResult::Propogate; // Invalid property
-        case HASH::set_property__float:
-            switch (msgAcc.message().payload.u)
+        case HASH::set_property:
+            switch (_msg.payload.u)
             {
             case HASH::timer_interval:
-                timer_interval() = *reinterpret_cast<const f32*>(&msgAcc[0].cells[0].u);
-                return MessageResult::Consumed;
+            {
+                u32 requiredBlockCount = 1;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&timer_interval())[0].cells[0] = msgAcc[0].cells[0];
+                    return MessageResult::Consumed;
+                }
+            }
+            case HASH::timer_message:
+            {
+                u32 requiredBlockCount = 1;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&timer_message())[0].cells[0] = msgAcc[0].cells[0];
+                    return MessageResult::Consumed;
+                }
+            }
             }
             return MessageResult::Propogate; // Invalid property
         }
@@ -93,9 +101,10 @@ public:
 }
 
 private:
-    Timer()
+    Timer(Entity * pEntity)
+      : Component(pEntity)
     {
-        mTask = Task::createUpdatable(this, HASH::Timer);
+        mScriptTask = Task::create_updatable(this, HASH::Timer);
         mBlockCount = 1;
     }
     Timer(const Timer&)              = delete;

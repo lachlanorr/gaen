@@ -38,7 +38,7 @@
 
 #include "engine/TaskMaster.h"
 
-#define LOG_FPS HAS_X
+#define LOG_FPS HAS__
 
 namespace gaen
 {
@@ -296,7 +296,7 @@ void TaskMaster::runPrimaryGameLoop()
     ASSERT(mIsPrimary && mRendererTask.id() != 0);
     ASSERT(!mIsRunning);
 
-    mpInputMgr.reset(new InputMgr());
+    mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr));
 
     renderer_init_device(mRendererTask);
     renderer_init_viewport(mRendererTask);
@@ -310,9 +310,7 @@ void TaskMaster::runPrimaryGameLoop()
         LOG_ERROR("Unable to start entity: %s", "start");
     if (pStartEntity)
     {
-        // Create a task out of the entity and start it up
-        Task entityTask = Task::createUpdatable(pStartEntity, 0);
-        insertTask(threadId(), entityTask);
+        insertTask(threadId(), pStartEntity->task());
     }
 
     mIsRunning = true;
@@ -500,7 +498,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
         }
         case HASH::insert_task:
         {
-            msg::InsertTaskR<MessageQueueAccessor> msgr(msgAcc);
+            messages::InsertTaskR<MessageQueueAccessor> msgr(msgAcc);
             insertTask(msgr.owner(), msgr.task());
             return MessageResult::Consumed;
         }
@@ -527,8 +525,41 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
     }
     else
     {
-        // Message was meant for a task, send it appropriately
-        PANIC("Not Implemented");
+        // Message is for a specific task
+        // Verify we own this task
+        auto it = mOwnedTaskMap.find(msg.target);
+
+        if (it != mOwnedTaskMap.end())
+        {
+            size_t taskIdx = it->second;
+            ASSERT(taskIdx < mOwnedTasks.size());
+            MessageResult mr = mOwnedTasks[taskIdx].message(msgAcc);
+            EXPECT_MSG(mr == MessageResult::Consumed,
+                       "Task didn't consume a message intended for it, task nameHash: 0x%08x, messaeg: 0x%08x",
+                       mOwnedTasks[taskIdx].nameHash(),
+                       msg.msgId);
+            return MessageResult::Consumed;
+        }
+        else
+        {
+            // We don't own this task, attempt to forward the message
+            MessageQueue & msgQ = messageQueueForTarget(msg.target);
+            MessageQueueAccessor msgAccNew;
+            msgQ.pushBegin(&msgAccNew,
+                           msg.msgId,
+                           msg.flags,
+                           msg.source,
+                           msg.target,
+                           msg.payload,
+                           msg.blockCount);
+
+            for (u32 i = 0; i < msg.blockCount; ++i)
+            {
+                msgAccNew[i] = msgAcc[i];
+            }
+
+            msgQ.pushCommit(msgAcc);
+        }
     }
     
     return MessageResult::Consumed;

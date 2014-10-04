@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 468999411db314a7be5816bb63b7a742
+// HASH: e48e60f55c244fba4a5a6241e3267ba1
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -49,27 +49,21 @@ public:
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
-        switch(msgAcc.message().msgId)
+        const Message & _msg = msgAcc.message();
+        switch(_msg.msgId)
         {
         case HASH::init:
         {
-            system_api::register_input_state_listener(HASH::forward, 0, HASH::yaw_foward, entity());
             system_api::renderer_insert_model_instance(boxModelUid(), boxModel(), Mat34(1.000000f), entity());
-            system_api::renderer_insert_light_distant(lightUid(), Vec3(0.500000f, 0.000000f, -(0.500000f)), Color(255, 255, 255, 255), entity());
+            system_api::renderer_insert_light_directional(lightUid(), Vec3(0.100000f, 0.100000f, 0.200000f), Color(255, 255, 255, 255), entity());
             return MessageResult::Consumed;
         }
-        case HASH::timer__uint:
+        case HASH::timer:
         {
             if ((/*timer_msg*/msgAcc.message().payload.u == HASH::tick))
             {
                 angle() += 2.000000f;
-                Mat34 transform = system_api::transform_rotate(Vec3(1.000000f, system_api::radians(angle(), entity()), 0.000000f), entity());
-                system_api::renderer_transform_model_instance(boxModelUid(), transform, entity());
             }
-            return MessageResult::Consumed;
-        }
-        case HASH::yaw_forward__bool:
-        {
             return MessageResult::Consumed;
         }
         }
@@ -86,21 +80,32 @@ private:
         lightUid() = system_api::renderer_gen_uid(entity());
 
         mBlockCount = 3;
-        mTask = Task::create(this, HASH::start);
+        mScriptTask = Task::create(this, HASH::start);
 
         // Component: Timer
         {
             Task & compTask = insertComponent(HASH::Timer, mComponentCount);
             // Init Property: timer_interval
             {
-                StackMessageBlockWriter<1> msgw(HASH::set_property__float, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::timer_interval));
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_interval));
                 msgw[0].cells[0].f = 0.016000f;
                 compTask.message(msgw.accessor());
             }
             // Init Property: timer_message
             {
-                StackMessageBlockWriter<1> msgw(HASH::set_property__uint, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(HASH::timer_message));
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_message));
                 msgw[0].cells[0].u = HASH::tick;
+                compTask.message(msgw.accessor());
+            }
+        }
+
+        // Component: WasdRot
+        {
+            Task & compTask = insertComponent(HASH::WasdRot, mComponentCount);
+            // Init Property: wasdrot_modeluid
+            {
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::wasdrot_modeluid));
+                msgw[0].cells[0].u = boxModelUid();
                 compTask.message(msgw.accessor());
             }
         }

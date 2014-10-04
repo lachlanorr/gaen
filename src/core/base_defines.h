@@ -174,7 +174,7 @@ void report_failure(const char * condition,
 
 // Non message versions
 #define ASSERT(condition) ASSERT_MSG(condition, "")
-#define EXPECT(condition) ASSERT_MSG(condition, "")
+#define EXPECT(condition) EXPECT_MSG(condition, "")
 
 #define PANIC(format, ...) \
 do \

@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 3c67c280e3f69b968804acaf1864eaf1
+// HASH: 4622b2a19801627772c77767626a0835
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -49,13 +49,25 @@ public:
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
-        switch(msgAcc.message().msgId)
+        const Message & _msg = msgAcc.message();
+        switch(_msg.msgId)
         {
-        case HASH::init:
-        {
-            system_api::register_input_state_listener(HASH::forward, 0, HASH::yaw_foward, entity());
-            return MessageResult::Consumed;
-        }
+        case HASH::set_property:
+            switch (_msg.payload.u)
+            {
+            case HASH::mat01:
+            {
+                u32 requiredBlockCount = 3;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&mat01())[0] = msgAcc[0];
+                    reinterpret_cast<Block*>(&mat01())[1] = msgAcc[1];
+                    reinterpret_cast<Block*>(&mat01())[2] = msgAcc[2];
+                    return MessageResult::Consumed;
+                }
+            }
+            }
+            return MessageResult::Propogate; // Invalid property
         }
         return MessageResult::Propogate;
 }
@@ -64,15 +76,20 @@ private:
     test(u32 childCount)
       : Entity(HASH::test, childCount, 36, 36)
     {
+        mat01() = Mat34(1.0f);
 
-        mBlockCount = 0;
-        mTask = Task::create(this, HASH::test);
+        mBlockCount = 3;
+        mScriptTask = Task::create(this, HASH::test);
     }
     test(const test&)              = delete;
     test(const test&&)             = delete;
     test & operator=(const test&)  = delete;
     test & operator=(const test&&) = delete;
 
+    Mat34& mat01()
+    {
+        return *reinterpret_cast<Mat34*>(&mpBlocks[0].qCell);
+    }
 }; // class test
 
 } // namespace ent

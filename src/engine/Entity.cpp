@@ -65,6 +65,8 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
         mpBlocks = (Block*)GALLOC(kMEM_Engine, sizeof(Block) * mBlocksMax);
     else
         mpBlocks = nullptr;
+
+    mTask = Task::create_updatable(this, nameHash);
 }
 
 Entity::~Entity()
@@ -76,7 +78,7 @@ Entity::~Entity()
 
 void Entity::update(f32 deltaSecs)
 {
-    mTask.update(deltaSecs);
+    mScriptTask.update(deltaSecs);
     
     // send update our components
     for (u32 i = 0; i < mComponentCount; ++i)
@@ -111,7 +113,7 @@ MessageResult Entity::message(const T & msgAcc)
         }
 
         // Call our subclassed message routine
-        mTask.message(msgAcc);
+        mScriptTask.message(msgAcc);
 
         // And finally, delete ourselves
         GDELETE(this);
@@ -124,13 +126,13 @@ MessageResult Entity::message(const T & msgAcc)
         // passed to Components when they are added to us.
 
         // Call our subclassed message routine
-        mTask.message(msgAcc);
+        mScriptTask.message(msgAcc);
 
         return MessageResult::Consumed;
     }
     case HASH::insert_component:
     {
-        msg::InsertComponentR<T> msgr(msgAcc);
+        messages::InsertComponentR<T> msgr(msgAcc);
         u32 index = msgr.index() == (u32)-1 ? mComponentCount : msgr.index();
         insertComponent(msgr.nameHash(), index);
         return MessageResult::Consumed;
@@ -149,7 +151,7 @@ MessageResult Entity::message(const T & msgAcc)
     MessageResult res;
 
     // Call our subclassed message routine
-    res = mTask.message(msgAcc);
+    res = mScriptTask.message(msgAcc);
     if (res == MessageResult::Consumed)
         return MessageResult::Consumed;
     
@@ -231,12 +233,10 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
     }
 
     Component * pLoc = &mpComponents[index];
-    Component * pComp = get_registry().constructComponent(nameHash, pLoc);
+    Component * pComp = get_registry().constructComponent(nameHash, pLoc, this);
 
     ASSERT(pComp);
     ASSERT(pComp == pLoc);
-
-    pComp->mpEntity = this;
 
     // Check if we have enough blocks for this new component
     if (mBlockCount + pComp->mBlockCount > mBlocksMax)
@@ -249,7 +249,7 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
 
     mComponentCount++;
 
-    StackMessageBlockWriter<0> initDataMsgw(HASH::init_data, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(pComp->task().id()));
+    StackMessageBlockWriter<0> initDataMsgw(HASH::init_data, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(pComp->task().id()));
     pComp->task().message(initDataMsgw.accessor());
 
     return pComp->task();
@@ -260,7 +260,7 @@ u32 Entity::findComponent(u32 nameHash)
 {
     for (u32 i = 0; i < mComponentCount; ++i)
     {
-        if (mpComponents[i].mTask.nameHash() == nameHash)
+        if (mpComponents[i].mScriptTask.nameHash() == nameHash)
         {
             return i;
         }

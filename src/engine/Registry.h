@@ -39,11 +39,11 @@ class Entity;
 class Registry
 {
 public:
-    typedef Component * (*ComponentConstructor)(void * place);
+    typedef Component * (*ComponentConstructor)(void * place, Entity * pEntity);
     typedef Entity * (*EntityConstructor)(u32 childCount);
 
     bool registerComponentConstructor(u32 nameHash, ComponentConstructor constructor);
-    Component * constructComponent(u32 nameHash, void * place);
+    Component * constructComponent(u32 nameHash, void * place, Entity * pEntity);
 
     bool registerEntityConstructor(u32 nameHash, EntityConstructor constructor);
     Entity * constructEntity(u32 nameHash, u32 childCount);

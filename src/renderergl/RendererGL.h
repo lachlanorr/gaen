@@ -99,7 +99,7 @@ private:
 
     ModelMgr<RendererGL> * mpModelMgr;
 
-    List<kMEM_Renderer, DistantLight> mDistantLights;
+    List<kMEM_Renderer, DirectionalLight> mDirectionalLights;
     List<kMEM_Renderer, PointLight> mPointLights;
 };
 

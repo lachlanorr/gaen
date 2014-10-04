@@ -26,8 +26,7 @@
 
 entity test
 {
-    #init()
-    {
-        register_input_state_listener(#forward, 0, #yaw_foward);
-    }
+    mat34 #mat01;
+
+    
 }

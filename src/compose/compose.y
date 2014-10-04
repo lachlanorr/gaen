@@ -286,7 +286,6 @@ expr
     | MAT34 '(' fun_params ')'  { $$ = ast_create_mat34_init($3, pParseData); }
     
     | IDENTIFIER '(' fun_params ')'  { $$ = ast_create_function_call($1, $3, pParseData); }
-    | IDENTIFIER                    { $$ = ast_create_symbol_ref($1, pParseData); }
     ;
 
 cond_expr
@@ -296,6 +295,7 @@ cond_expr
     | expr GTE expr  { $$ = ast_create_binary_op(kAST_GTE, $1, $3, pParseData); }
     | expr '<' expr  { $$ = ast_create_binary_op(kAST_LT,  $1, $3, pParseData); }
     | expr '>' expr  { $$ = ast_create_binary_op(kAST_GT,  $1, $3, pParseData); }
+    | IDENTIFIER     { $$ = ast_create_symbol_ref($1, pParseData); }
     ;
 
 literal

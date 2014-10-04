@@ -47,6 +47,9 @@ public:
     const Task & task() const { return mTask; }
     Task & task() { return mTask; }
 
+    const Task & scriptTask() const { return mScriptTask; }
+    Task & scripTask() { return mScriptTask; }
+
     void update(f32 deltaSecs);
 
     template <typename T>
@@ -75,7 +78,15 @@ protected:
     void growBlocks(u32 minSizeIncrease);
     void growChildren();
 
-    Task mTask; // task representing Entity fake "sub class" created by writing an entity script
+    // Task representing this base class update/message methods.  This
+    // is the "public" task_id used external to the entity to refer to
+    // it. Messages sent to entities need to use this task_id as this
+    // is is the task_id that will be registered within TaskMasters.
+    Task mTask;
+
+    // Task representing Entity "sub class" created by writing an
+    // entity Compose script.
+    Task mScriptTask;
     
     Mat34 mLocalTransform;
     Mat34 mGlobalTransform;

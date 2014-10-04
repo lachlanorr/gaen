@@ -49,7 +49,7 @@ bool Registry::registerComponentConstructor(u32 nameHash, ComponentConstructor c
     return true;
 }
     
-Component * Registry::constructComponent(u32 nameHash, void * place)
+Component * Registry::constructComponent(u32 nameHash, void * place, Entity * pEntity)
 {
     auto it = mComponentConstructors.find(nameHash);
 
@@ -59,7 +59,7 @@ Component * Registry::constructComponent(u32 nameHash, void * place)
         return nullptr;
     }
 
-    Component * pComponent = it->second(place);
+    Component * pComponent = it->second(place, pEntity);
 
     // Send init message
     StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pComponent->task().id(), pComponent->task().id(), to_cell(0));
