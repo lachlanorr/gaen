@@ -263,6 +263,7 @@ void RendererGL::render()
     {
         const MaterialMeshInstance & matMeshInst = *meshIt;
         Mesh & mesh = matMeshInst.pMaterialMesh->mesh();
+        Material & mat = matMeshInst.pMaterialMesh->material();
 
         static Mat4 view = Mat4::translation(Vec3(0.0f, 0.0f, -5.0f));
         Mat4 mvp = mProjection * view * matMeshInst.pModelInstance->worldTransform;
@@ -270,7 +271,7 @@ void RendererGL::render()
 
         glUniformMatrix4fv(sMVPUniform, 1, 0, mvp.elems);
         glUniformMatrix3fv(sNormalUniform, 1, 0, normalTrans.elems);
-        glUniform4fv(sColorUniform, 1, Vec4(1.0f, 1.0f, 0.0f, 1.0f).elems);
+        glUniform4fv(sColorUniform, 1, mat.color().elems);
 
         glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
 

@@ -44,9 +44,9 @@ namespace gaen
 
 static S indent(u32 level);
 static const char * type_str(DataType dt);
-static const char * cpp_type_str(DataType dt);
-static const char * cell_field_str(DataType dt);
-static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo, const char * blockVarName);
+static const char * cpp_type_str(DataType dt, ParseData * pParseData);
+static const char * cell_field_str(DataType dt, ParseData * pParseData);
+static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo, const char * blockVarName, ParseData * pParseData);
 static S binary_op(const Ast * pAst, const char * op);
 static S unary_op(const Ast * pAst, const char* op);
 static S unary_op_post(const Ast * pAst, const char* op);
@@ -77,7 +77,7 @@ static S indent(u32 level)
     return S(sIndents[level]);
 }
 
-static const char * type_str(DataType dt)
+static const char * type_str(DataType dt, ParseData * pParseData)
 {
     switch (RAW_DT(dt))
     {
@@ -124,12 +124,12 @@ static const char * type_str(DataType dt)
     case kDT_handle:
         return IS_DT_CONST(dt) ? "const handle" : "handle";
     default:
-        PANIC("type_str invalid DataType: %d", dt);
+        COMP_ERROR(pParseData, "type_str invalid DataType: %d", dt);
         return "";
     }
 }
 
-static const char * cpp_type_str(DataType dt)
+static const char * cpp_type_str(DataType dt, ParseData * pParseData)
 {
     switch (RAW_DT(dt))
     {
@@ -176,12 +176,12 @@ static const char * cpp_type_str(DataType dt)
     case kDT_handle:
         return IS_DT_CONST(dt) ? "const Handle" : "Handle";
     default:
-        PANIC("cpp_type_str invalid DataType: %d", dt);
+        COMP_ERROR(pParseData, "cpp_type_str invalid DataType: %d", dt);
         return "";
     }
 }
 
-static const char * cell_field_str(DataType dt)
+static const char * cell_field_str(DataType dt, ParseData * pParseData)
 {
     switch (RAW_DT(dt))
     {
@@ -198,12 +198,12 @@ static const char * cell_field_str(DataType dt)
     case kDT_color:
         return "color";
     default:
-        PANIC("cell_field_str invalid DataType: %d", dt);
+        COMP_ERROR(pParseData, "cell_field_str invalid DataType: %d", dt);
         return "";
     }
 }
 
-static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo, const char * blockVarName)
+static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo, const char * blockVarName, ParseData * pParseData)
 {
     static const u32 kScratchSize = 255;
     char scratch[kScratchSize+1];
@@ -215,7 +215,7 @@ static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo,
                  kScratchSize,
                  "%s.message().payload.%s",
                  blockVarName,
-                 cell_field_str(dataType));
+                 cell_field_str(dataType, pParseData));
         return S(scratch);
     }
     else
@@ -228,7 +228,7 @@ static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo,
         case kDT_bool:
         case kDT_char:
         case kDT_color:
-            snprintf(scratch, kScratchSize, "%s[%u].cells[%u].%s", blockVarName, blockInfo.blockIndex, blockInfo.cellIndex, cell_field_str(dataType));
+            snprintf(scratch, kScratchSize, "%s[%u].cells[%u].%s", blockVarName, blockInfo.blockIndex, blockInfo.cellIndex, cell_field_str(dataType, pParseData));
             return S(scratch);
         case kDT_vec3:
         case kDT_vec4:
@@ -237,10 +237,10 @@ static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo,
         case kDT_mat4:
         case kDT_handle:
             ASSERT(blockInfo.cellIndex == 0);
-            snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].qCell)", cpp_type_str(dataType), blockVarName, blockInfo.blockIndex);
+            snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].qCell)", cpp_type_str(dataType, pParseData), blockVarName, blockInfo.blockIndex);
             return S(scratch);
         default:
-            PANIC("Invalid dataType: %d", dataType);
+            COMP_ERROR(pParseData, "Invalid dataType: %d", dataType);
             return S("");
         }
     }
@@ -276,7 +276,7 @@ static S symref(const SymRec * pSymRec)
     if (pSymRec->type == kSYMT_MessageParam)
     {
         const BlockInfo * pBlockInfo = pSymRec->pAst->pBlockInfos->find(pSymRec->pAst);
-        code = S("/*") + S(pSymRec->name) + S("*/") + property_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc");
+        code = S("/*") + S(pSymRec->name) + S("*/") + property_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc", pSymRec->pAst->pParseData);
     }
     else
     {
@@ -323,7 +323,7 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                 char scratch[kScratchSize+1];
 
                 DataType dt = RAW_DT(pSymRec->dataType);
-                u32 cellCount = data_type_cell_count(dt);
+                u32 cellCount = data_type_cell_count(dt, pAst->pParseData);
                 u32 blockCount = block_count(cellCount);
 
                 code += indent(indentLevel+1) + S("case HASH::") + S(pSymRec->name) + S(":\n");
@@ -377,7 +377,7 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
     return code;
 }
 
-static S data_type_init_value(DataType dataType)
+static S data_type_init_value(DataType dataType, ParseData * pParseData)
 {
     switch (RAW_DT(dataType))
     {
@@ -400,9 +400,9 @@ static S data_type_init_value(DataType dataType)
     case kDT_mat4:
         return S("Mat4(1.0f)");
     case kDT_handle:
-        return S("nullptr");
+        return S("Handle::null()");
     default:
-        PANIC("Unknown initial value for datatype: %d", dataType);
+        COMP_ERROR(pParseData, "Unknown initial value for datatype: %d", dataType);
         return S("");
     }
 }
@@ -428,7 +428,7 @@ static S init_data(const Ast * pAst, int indentLevel)
             else
             {
                 // initialzie with a default value based on the type
-                code += data_type_init_value(pSymRec->dataType);
+                code += data_type_init_value(pSymRec->dataType, pAst->pParseData);
             }
             code += S(";\n");
         }
@@ -560,7 +560,7 @@ static S codegen_recurse(const Ast * pAst,
                         code += I + S("            // Init Property: ") + S(pPropInit->str) + ("\n");
                         code += S("            {\n");
                         DataType rhsDataType = ast_data_type(pPropInit->pRhs);
-                        u32 valCellCount = data_type_cell_count(rhsDataType);
+                        u32 valCellCount = data_type_cell_count(rhsDataType, pAst->pParseData);
                         u32 blockCount = block_count(1 + valCellCount); // +1 for property name hash
                         static const u32 kScratchSize = 256;
                         char scratch[kScratchSize+1];
@@ -584,7 +584,7 @@ static S codegen_recurse(const Ast * pAst,
                             code += S("                msgw[0].cells[0].u = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
                             break;
                         default:
-                            PANIC("Unsupported type for codegen component property init, type: %d", pPropInit->pRhs->type);
+                            COMP_ERROR(pAst->pParseData, "Unsupported type for codegen component property init, type: %d", pPropInit->pRhs->type);
                         }
                         code += S(";\n");
                         // Future work... support for multi cell values
@@ -713,7 +713,7 @@ static S codegen_recurse(const Ast * pAst,
         // simplicity. Grammar could and maybe should be improved to
         // make this illegal in parsing.
         if (pCompMembers)
-            PANIC("Components section defined within component");
+            COMP_ERROR(pAst->pParseData, "Components section defined within component");
 
         code += I + S("    }\n");
 
@@ -752,7 +752,7 @@ static S codegen_recurse(const Ast * pAst,
         code += I + "}\n";
 
         return code;
-   }
+    }
     case kAST_MessageDef:
     {
         S msgName = S(pAst->pSymRec->name);
@@ -772,7 +772,8 @@ static S codegen_recurse(const Ast * pAst,
         {
             // We should never get here, as non-update related message defs are
             // generated elsewhere without recursing.
-            PANIC("Not implemented yet");
+            COMP_ERROR(pAst->pParseData, "Attempt to codegen non update message def in kAST_MessageDef case, which shouldn't be possible");
+            return code;
         }
         return code;
     }
@@ -786,15 +787,15 @@ static S codegen_recurse(const Ast * pAst,
 
         if (!pBlockInfo)
         {
-            PANIC("BlockInfo not found for Ast Node");
+            COMP_ERROR(pAst->pParseData, "BlockInfo not found for Ast Node");
             return S("");
         }
 
         S propName = S(pAst->pSymRec->name);
 
-        S code = I + S(cpp_type_str(RAW_DT(ast_data_type(pAst)))) + S("& ") + propName + S("()\n");
+        S code = I + S(cpp_type_str(RAW_DT(ast_data_type(pAst)), pAst->pParseData)) + S("& ") + propName + S("()\n");
         code += I + S("{\n");
-        code += I + S("    return ") + property_block_accessor(ast_data_type(pAst), *pBlockInfo, "mpBlocks") + S(";\n");
+        code += I + S("    return ") + property_block_accessor(ast_data_type(pAst), *pBlockInfo, "mpBlocks", pAst->pParseData) + S(";\n");
         code += I + S("}\n");
 
         return code;
@@ -861,14 +862,14 @@ static S codegen_recurse(const Ast * pAst,
         S code = S("");
         if (pAst->pRhs->pChildren->nodes.size() > kMaxApiParams)
         {
-            PANIC("Too many parameters to a system api: %u", pAst->pRhs->pChildren->nodes.size());
+            COMP_ERROR(pAst->pParseData,"Too many parameters to a system api: %u", pAst->pRhs->pChildren->nodes.size());
             return code;
         }
 
-        const ApiSignature * pSig = find_api(pAst->str);
+        const ApiSignature * pSig = find_api(pAst->str, pAst->pParseData);
         if (!pSig)
         {
-            PANIC("Cannot find api: %s", pAst->str);
+            COMP_ERROR(pAst->pParseData, "Cannot find api: %s", pAst->str);
             return code;
         }
 
@@ -886,7 +887,7 @@ static S codegen_recurse(const Ast * pAst,
 
         if (!paramsMatch)
         {
-            PANIC("Paramters do not match for system api call to %s", pAst->str);
+            COMP_ERROR(pAst->pParseData, "Paramters do not match for system api call to %s", pAst->str);
             return code;
         }
 
@@ -906,7 +907,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_SymbolDecl:
     {
-        S code = I + S(cpp_type_str(ast_data_type(pAst))) + S(" ") + S(pAst->pSymRec->name);
+        S code = I + S(cpp_type_str(ast_data_type(pAst), pAst->pParseData)) + S(" ") + S(pAst->pSymRec->name);
         if (pAst->pSymRec->pAst)
         {
             // set assignment
@@ -1168,7 +1169,7 @@ static S codegen_recurse(const Ast * pAst,
         }
         else
         {
-            PANIC("Specific target not implemented yet");
+            COMP_ERROR(pAst->pParseData, "Specific target not implemented yet");
         }
 
         code += I + S("}\n");
@@ -1176,7 +1177,7 @@ static S codegen_recurse(const Ast * pAst,
     }
 
     default:
-        PANIC("codegen_recurse invalid AstType: %d", pAst->type);
+        COMP_ERROR(pAst->pParseData, "codegen_recurse invalid AstType: %d", pAst->type);
         return S("");
     }
 }
@@ -1190,14 +1191,14 @@ static S codegen_header(const Ast * pRootAst)
     {
         if (pFuncAst->type == kAST_FunctionDef)
         {
-            code += S(cpp_type_str(pFuncAst->pSymRec->dataType)) + S(" ") + S(pFuncAst->pSymRec->name) + S("(");
+            code += S(cpp_type_str(pFuncAst->pSymRec->dataType, pRootAst->pParseData)) + S(" ") + S(pFuncAst->pSymRec->name) + S("(");
 
             for (auto it = pFuncAst->pScope->pSymTab->orderedSymRecs.begin();
                  it != pFuncAst->pScope->pSymTab->orderedSymRecs.end();
                  ++it)
             {
                 SymRec* pParamSymRec = *it;
-                code += S(cpp_type_str(pParamSymRec->dataType)) + S(" ") + S(pParamSymRec->name);
+                code += S(cpp_type_str(pParamSymRec->dataType, pRootAst->pParseData)) + S(" ") + S(pParamSymRec->name);
                 if (pParamSymRec != pFuncAst->pScope->pSymTab->orderedSymRecs.back())
                     code += S(", ");
             }
@@ -1227,18 +1228,19 @@ static S codegen_header(const Ast * pRootAst)
 }
 
 static void extract_filenames(const S & cmpFullPath,
-                              CodeCpp & codeCpp)
+                              CodeCpp & codeCpp,
+                              ParseData * pParseData)
 {
     codeCpp.cmpFullPath = cmpFullPath;
 
     if (cmpFullPath.substr(cmpFullPath.size() - 4) != S(".cmp"))
-        PANIC("Compose filename doesn't have .cmp extension: %s", cmpFullPath.c_str());
+        COMP_ERROR(pParseData, "Compose filename doesn't have .cmp extension: %s", cmpFullPath.c_str());
 
     S scriptsCompose("/scripts/cmp/");
 
     size_t scriptsComposePos = cmpFullPath.rfind(scriptsCompose);
     if (scriptsComposePos == S::npos)
-        PANIC("Compose filename doesn't contain .../scripts/cmp/... directory: %s", cmpFullPath.c_str());
+        COMP_ERROR(pParseData, "Compose filename doesn't contain .../scripts/cmp/... directory: %s", cmpFullPath.c_str());
 
     size_t lastSlashPos = cmpFullPath.rfind('/');
 
@@ -1259,13 +1261,13 @@ static void extract_filenames(const S & cmpFullPath,
 }
                        
 
-CodeCpp codegen_cpp(const ParseData * pParseData)
+CodeCpp codegen_cpp(ParseData * pParseData)
 {
     ASSERT(pParseData);
 
     CodeCpp codeCpp;
 
-    extract_filenames(pParseData->fullPath, codeCpp);
+    extract_filenames(pParseData->fullPath, codeCpp, pParseData);
     
     codeCpp.code += S("#include \"engine/hashes.h\"\n");
     codeCpp.code += S("#include \"engine/Block.h\"\n");

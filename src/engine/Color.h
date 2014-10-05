@@ -66,9 +66,9 @@ public:
     void setValue(u32 value) { mColorValue.value = value; }
 
     u8 r() const { return mColorValue.channel.r; }
-    u8 g() const { return mColorValue.channel.r; }
-    u8 b() const { return mColorValue.channel.r; }
-    u8 a() const { return mColorValue.channel.r; }
+    u8 g() const { return mColorValue.channel.g; }
+    u8 b() const { return mColorValue.channel.b; }
+    u8 a() const { return mColorValue.channel.a; }
 
     void setr(u8 r) { mColorValue.channel.r = r; }
     void setg(u8 g) { mColorValue.channel.g = g; }
@@ -85,6 +85,7 @@ public:
     void setbf(f32 b) { setb(static_cast<u8>(clamp(b, 0.0f, 1.0f) * 255.0f + 0.5f)); }
     void setaf(f32 a) { seta(static_cast<u8>(clamp(a, 0.0f, 1.0f) * 255.0f + 0.5f)); }
 
+    Vec4 toVec4() const { return build_vec4(*this); }
     static Vec4 build_vec4(const Color & col) { return Vec4(col.rf(), col.gf(), col.bf(), col.af()); }
 
 private:

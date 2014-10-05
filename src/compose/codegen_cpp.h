@@ -46,7 +46,7 @@ struct CodeCpp
     String<kMEM_Compose> code;
 };
 
-CodeCpp codegen_cpp(const ParseData * pParseData);
+CodeCpp codegen_cpp(ParseData * pParseData);
 
 } // namespace gaen
 

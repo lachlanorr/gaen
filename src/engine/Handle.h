@@ -50,6 +50,9 @@ public:
     void * data() { return mpData; }
     const void * data() const { return mpData; }
 
+    bool isNull() const { return mTypeHash == 0; }
+    static Handle null() { return Handle(0, 0, 0, 0, nullptr, nullptr); }
+
 private:
     u32 mTypeHash;
     u32 mNameHash;

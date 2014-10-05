@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: e48e60f55c244fba4a5a6241e3267ba1
+// HASH: 677d007b892e7c389b8b5321b86adc73
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -54,7 +54,7 @@ public:
         {
         case HASH::init:
         {
-            system_api::renderer_insert_model_instance(boxModelUid(), boxModel(), Mat34(1.000000f), entity());
+            system_api::renderer_insert_model_instance(boxModelUid(), boxModel(), entity());
             system_api::renderer_insert_light_directional(lightUid(), Vec3(0.100000f, 0.100000f, 0.200000f), Color(255, 255, 255, 255), entity());
             return MessageResult::Consumed;
         }
@@ -74,10 +74,6 @@ private:
     start(u32 childCount)
       : Entity(HASH::start, childCount, 36, 36)
     {
-        angle() = 0.000000f;
-        boxModel() = system_api::create_shape_box(Vec3(1.000000f, 1.000000f, 1.000000f), Color(0, 0, 255, 255), entity());
-        boxModelUid() = system_api::renderer_gen_uid(entity());
-        lightUid() = system_api::renderer_gen_uid(entity());
 
         mBlockCount = 3;
         mScriptTask = Task::create(this, HASH::start);

@@ -46,7 +46,7 @@ component WasdRot
     {
         pitch += pitching * deltaSecs * 100.0;
         yaw += yawing * deltaSecs * 100.0;
-        mat34 transform = transform_rotate(vec3(radians(pitch), radians(yaw), 0.0));
+        mat34 transform = transform_rotate(vec3{radians(pitch), radians(yaw), 0.0});
         renderer_transform_model_instance(wasdrot_modeluid, transform);
     }
 

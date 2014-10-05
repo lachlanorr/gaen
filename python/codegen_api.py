@@ -102,7 +102,7 @@ def read_types():
     while i < len(lines):
         line = lines[i]
         if not in_cpp_type_str_func:
-            if line == "static const char * cpp_type_str(DataType dt)":
+            if line == "static const char * cpp_type_str(DataType dt, ParseData * pParseData)":
                 in_cpp_type_str_func = True
         else:
             if "default:" in line:

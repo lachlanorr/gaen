@@ -102,6 +102,7 @@ struct BlockInfos
 
 struct Ast
 {
+    ParseData * pParseData;
     AstType type;
     Ast* pParent;
     Scope* pScope;

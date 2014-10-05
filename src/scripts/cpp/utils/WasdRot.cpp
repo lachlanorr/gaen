@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: bf8dce80e529d6067c601b949f03d58b
+// HASH: ebc0a9bfdf7fe552080383ef48567662
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -61,26 +61,7 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            wasdrot_modeluid() = 0;
-            yawing() = 0.000000f;
-            yaw() = 0.000000f;
-            pitching() = 0.000000f;
-            pitch() = 0.000000f;
             return MessageResult::Consumed;
-        case HASH::set_property:
-            switch (_msg.payload.u)
-            {
-            case HASH::wasdrot_modeluid:
-            {
-                u32 requiredBlockCount = 1;
-                if (_msg.blockCount >= requiredBlockCount)
-                {
-                    reinterpret_cast<Block*>(&wasdrot_modeluid())[0].cells[0] = msgAcc[0].cells[0];
-                    return MessageResult::Consumed;
-                }
-            }
-            }
-            return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
             system_api::watch_input_state(HASH::forward, 0, HASH::forward, entity());

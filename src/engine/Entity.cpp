@@ -39,14 +39,14 @@ namespace gaen
 {
 
 Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
+  : mpParent(nullptr)
 {
-    mLocalTransform = Mat34::identity();
-    mGlobalTransform = Mat34::identity();
+    mTransform = Mat34::identity();
 
     mChildrenMax = childrenMax;
     mChildCount = 0;
     if (mChildrenMax > 0)
-        mpChildren = (Task*)GALLOC(kMEM_Engine, sizeof(Task)* mChildrenMax);
+        mpChildren = (Entity**)GALLOC(kMEM_Engine, sizeof(Entity*) * mChildrenMax);
     else
         mpChildren = nullptr;
 
@@ -76,6 +76,65 @@ Entity::~Entity()
     GFREE(mpComponents);
 }
 
+Mat34 Entity::worldTransform() const
+{
+    if (!mpParent)
+        return mTransform;
+    else
+        return mpParent->transform() * mTransform;
+}
+
+void Entity::setTransform(const Mat34 & mat)
+{
+    mTransform = mat;
+    // LORRTODO - pass new transform to children
+}
+
+void Entity::applyTransform(bool isLocal, const Mat34 & mat)
+{
+    if (isLocal)
+    {
+        Mat34 invTrans = Mat34::inverse(mTransform);
+        setTransform(invTrans * mat * mTransform);
+    }
+    else
+    {
+        if (!mpParent)
+            setTransform(mat);
+        else
+        {
+            Mat34 invParent = Mat34::inverse(mpParent->transform());
+            setTransform(mTransform * mat * invParent);
+        }
+    }
+}
+
+void Entity::setParent(Entity * pEntity)
+{
+    ASSERT(!mpParent);
+
+    if (pEntity)
+    {
+        // Convert our global transform into local coords relative to parent
+        mpParent = pEntity;
+        Mat34 invParent = Mat34::inverse(mpParent->transform());
+        setTransform(mTransform * invParent);
+    }
+}
+
+const Mat34 & Entity::parentTransform() const
+{
+    if (!mpParent)
+    {
+        return Mat34::identity();
+    }
+    else
+    {
+        return mpParent->transform();
+    }
+}
+
+
 void Entity::update(f32 deltaSecs)
 {
     mScriptTask.update(deltaSecs);
@@ -86,7 +145,7 @@ void Entity::update(f32 deltaSecs)
 
     // send update to our child entities
     for (u32 i = 0; i < mChildCount; ++i)
-        mpChildren[i].update(deltaSecs);
+        mpChildren[i]->update(deltaSecs);
 }
 
 template <typename T>
@@ -103,7 +162,7 @@ MessageResult Entity::message(const T & msgAcc)
         // Send fin message to all children entities
         for (u32 i = 0; i < mChildCount; ++i)
         {
-            mpChildren[i].message(msgAcc);
+            mpChildren[i]->message(msgAcc);
         }
 
         // Now, send fin to our components
@@ -141,7 +200,6 @@ MessageResult Entity::message(const T & msgAcc)
     {
         // register a property watcher for some combination of:
         // - component type
-        // - compenent id
         // - property id
         PANIC("TODO");
         break;
@@ -344,7 +402,7 @@ void Entity::growChildren()
 {
     u32 newMax = mpChildren ? mChildrenMax * 2 : 4;
     
-    Task * pNewChildren = (Task*)GALLOC(kMEM_Engine, sizeof(Task) * newMax);
+    Entity ** pNewChildren = (Entity**)GALLOC(kMEM_Engine, sizeof(Entity**) * newMax);
 
     if (mpChildren)
     {
@@ -358,9 +416,10 @@ void Entity::growChildren()
     mpChildren = pNewChildren;
 }
 
-void Entity::insertChild(Task & task)
+void Entity::insertChild(Entity * pEntity)
 {
     ASSERT(mChildCount <= mChildrenMax);
+    ASSERT(!pEntity->parent());
 
     // Resize buffer if necessary
     if (mChildCount == mChildrenMax)
@@ -370,16 +429,23 @@ void Entity::insertChild(Task & task)
 
     ASSERT(mChildCount < mChildrenMax);
 
-    mpChildren[mChildCount] = task;
+    mpChildren[mChildCount] = pEntity;
     mChildCount++;
+
+    pEntity->setParent(this);
 }
 
-void Entity::removeChild(Task & task)
+void Entity::removeChild(Entity * pEntity)
+{
+    removeChild(pEntity->task().id());
+}
+
+void Entity::removeChild(task_id taskId)
 {
     if (mChildCount == 1)
     {
-        ASSERT_MSG(mpChildren[0].id() == task.id(), "Attempt to remove task that Entity does not have");
-        if (mpChildren[0].id() == task.id())
+        ASSERT_MSG(mpChildren[0]->task().id() == taskId, "Attempt to remove task that Entity does not have");
+        if (mpChildren[0]->task().id() == taskId)
         {
             mChildCount = 0;
             return;
@@ -389,8 +455,9 @@ void Entity::removeChild(Task & task)
     {
         for (u32 i = 0; i < mChildCount; ++i)
         {
-            if (mpChildren[i].id() == task.id())
+            if (mpChildren[i]->task().id() == taskId)
             {
+                mpChildren[i]->setParent(nullptr);
                 if (i < mChildCount - 1)
                 {
                     // item in middle, swap with the last item

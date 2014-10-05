@@ -54,12 +54,12 @@ public:
     material_id id() const { return mId; }
 
     MaterialType type() const { return mType; }
-    Color color() const { return mColor; }
+    const Vec4 & color() const { return mColor; }
 
 private:
     material_id mId;
     MaterialType mType;
-    Color mColor;
+    Vec4 mColor;
 };
 
 

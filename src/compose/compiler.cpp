@@ -71,7 +71,7 @@ SymRec * symrec_create(SymType symType,
 
     if (pDataType && pDataType->type != kAST_DataType)
     {
-        PANIC("Custom Types Not Supported Yet");
+        COMP_ERROR(pAst->pParseData, "Custom Types Not Supported Yet");
         return nullptr;
     }
     DataType dataType = pDataType ? (DataType)pDataType->numi : kDT_Undefined;
@@ -112,7 +112,7 @@ SymTab* symtab_add_symbol(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseD
 
     if (pSymRecSearch)
     {
-        COMP_ERROR("Symbol already defined: %s", pSymRec->name);
+        COMP_ERROR(pParseData, "Symbol already defined: %s", pSymRec->name);
         return pSymTab;
     }
 
@@ -209,6 +209,7 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
 
     Ast * pAst = COMP_NEW(Ast);
 
+    pAst->pParseData = pParseData;
     pAst->type = astType;
     pAst->pParent = nullptr;
     pAst->pScope = parsedata_current_scope(pParseData);
@@ -271,7 +272,7 @@ static Ast * ast_create_block_def(const char * name,
     
     if (pReturnType && pReturnType->type != kAST_DataType)
     {
-        PANIC("Custom Types Not Supported Yet");
+        COMP_ERROR(pParseData, "Custom Types Not Supported Yet");
         return nullptr;
     }
     pAst->pSymRec = symrec_create(symType,
@@ -366,7 +367,7 @@ Ast * ast_create_property_def(const char * name, Ast * pDataType, Ast * pInitVal
 
     if (pDataType->type != kAST_DataType)
     {
-        PANIC("Custom Types Not Supported Yet");
+        COMP_ERROR(pParseData, "Custom Types Not Supported Yet");
         return nullptr;
     }
     pAst->pSymRec = symrec_create(kSYMT_Property,
@@ -388,7 +389,7 @@ Ast * ast_create_field_def(const char * name, Ast * pDataType, Ast * pInitVal, P
 
     if (pDataType->type != kAST_DataType)
     {
-        PANIC("Custom Types Not Supported Yet");
+        COMP_ERROR(pParseData, "Custom Types Not Supported Yet");
         return nullptr;
     }
     pAst->pSymRec = symrec_create(kSYMT_Field,
@@ -468,7 +469,7 @@ Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, Parse
 
     if (!pSymRec)
     {
-        COMP_ERROR("Unknown symbol reference in assignment: %s", name);
+        COMP_ERROR(pParseData, "Unknown symbol reference in assignment: %s", name);
         return pAst;
     }
 
@@ -476,7 +477,7 @@ Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, Parse
         pSymRec->type != kSYMT_Local &&
         pSymRec->type != kSYMT_Field)
     {
-        COMP_ERROR("Invalid use of symbol in assignment: %s", name);
+        COMP_ERROR(pParseData, "Invalid use of symbol in assignment: %s", name);
         return pAst;
     }   
 
@@ -497,11 +498,11 @@ Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData)
         {
             DataType paramDt = RAW_DT(ast_data_type(pParam));
             if (paramDt != kDT_int && paramDt != kDT_uint)
-                PANIC("Invalid data type in color initialization");
+                COMP_ERROR(pParseData, "Invalid data type in color initialization");
         }
         break;
     default:
-        PANIC("Invalid parameters for color initialization");
+        COMP_ERROR(pParseData, "Invalid parameters for color initialization");
         break;
     }
 
@@ -520,7 +521,7 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
         Ast * pParam = pParams->pChildren->nodes.front();
         DataType paramDt = RAW_DT(ast_data_type(pParam));
         if (paramDt != kDT_float && paramDt != kDT_vec3)
-            PANIC("Invalid data type in vec3 initialization");
+            COMP_ERROR(pParseData, "Invalid data type in vec3 initialization");
         break;
     }
     case 3:
@@ -529,12 +530,12 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
         {
             DataType paramDt = RAW_DT(ast_data_type(pParam));
             if (paramDt != kDT_float)
-                PANIC("Invalid data type in vec3 initialization");
+                COMP_ERROR(pParseData, "Invalid data type in vec3 initialization");
         }
         break;
     }
     default:
-        PANIC("Invalid parameters for vec3 initialization");
+        COMP_ERROR(pParseData, "Invalid parameters for vec3 initialization");
         break;
     }
 
@@ -553,7 +554,7 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
         Ast * pParam = pParams->pChildren->nodes.front();
         DataType paramDt = RAW_DT(ast_data_type(pParam));
         if (paramDt != kDT_float && paramDt != kDT_mat34)
-            PANIC("Invalid data type in mat34 initialization");
+            COMP_ERROR(pParseData, "Invalid data type in mat34 initialization");
         break;
     }
     case 12:
@@ -562,12 +563,12 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
         {
             DataType paramDt = RAW_DT(ast_data_type(pParam));
             if (paramDt != kDT_float)
-                PANIC("Invalid data type in mat34 initialization");
+                COMP_ERROR(pParseData, "Invalid data type in mat34 initialization");
         }
         break;
     }
     default:
-        PANIC("Invalid parameters for mat34 initialization");
+        COMP_ERROR(pParseData, "Invalid parameters for mat34 initialization");
         break;
     }
 
@@ -600,7 +601,7 @@ Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pPa
 
         if (pSymRec->type != kSYMT_Function)
         {
-            COMP_ERROR("Call to non-function symbol: %s", name);
+            COMP_ERROR(pParseData, "Call to non-function symbol: %s", name);
         }
         else
         {
@@ -611,7 +612,7 @@ Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pPa
     else
     {
         // check to see if this is a syscall
-        const ApiSignature * pSig = find_api(name);
+        const ApiSignature * pSig = find_api(name, pParseData);
         if (pSig)
         {
             pAst = ast_create(kAST_SystemCall, pParseData);
@@ -620,7 +621,7 @@ Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pPa
         }
         else
         {
-            COMP_ERROR("Unknown symbol reference: %s", name);
+            COMP_ERROR(pParseData, "Unknown symbol reference: %s", name);
             pAst = ast_create(kAST_FunctionCall, pParseData);
         }
     }
@@ -637,7 +638,7 @@ Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData)
 
     if (!pSymRec)
     {
-        COMP_ERROR("Unknown symbol reference: %s", name);
+        COMP_ERROR(pParseData, "Unknown symbol reference: %s", name);
         return pAst;
     }
 
@@ -646,7 +647,7 @@ Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData)
         pSymRec->type != kSYMT_Field &&
         pSymRec->type != kSYMT_Property)
     {
-        COMP_ERROR("Invalid use of symbol: %s", name);
+        COMP_ERROR(pParseData, "Invalid use of symbol: %s", name);
         return pAst;
     }   
 
@@ -873,10 +874,10 @@ DataType ast_data_type(const Ast * pAst)
         return ast_data_type(pAst->pRhs);
     else if (pAst->type == kAST_SystemCall)
     {
-        const ApiSignature * pSig = find_api(pAst->str);
+        const ApiSignature * pSig = find_api(pAst->str, pAst->pParseData);
         return pSig->returnType;
     }
-    PANIC("Cannot determine datatype for pAst, type: %d", pAst->type);
+    COMP_ERROR(pAst->pParseData, "Cannot determine datatype for pAst, type: %d", pAst->type);
     return kDT_Undefined;
 }
 
@@ -1048,7 +1049,7 @@ Scope * parsedata_pop_scope(ParseData * pParseData)
     }
     else
     {
-        COMP_ERROR("No more scopes to pop");
+        COMP_ERROR(pParseData, "No more scopes to pop");
     }
 
     pParseData->skipNextScope = false;
@@ -1071,6 +1072,8 @@ void parsedata_formatted_message(ParseData * pParseData,
                                  MessageType messageType,
                                  const char * format, ...)
 {
+    ASSERT(pParseData);
+    
     static const size_t kMessageMax = 1024;
     static thread_local char tMessage[kMessageMax];
 
@@ -1138,7 +1141,7 @@ ParseData * parse(ParseData * pParseData,
         length = read_file(pParseData->fullPath, &newSource);
         if (length <= 0)
         {
-            PANIC("Unable to read file");
+            COMP_ERROR(pParseData, "Unable to read file");
             return nullptr;
         }
         source = newSource;

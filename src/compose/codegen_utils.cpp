@@ -47,31 +47,32 @@ BlockInfo::BlockInfo(Ast * pAst)
 namespace gaen
 {
 
-    extern ApiSignature gApiSignatures[];
-    const ApiSignature * find_api(const char * name)
+extern ApiSignature gApiSignatures[];
+const ApiSignature * find_api(const char * name, ParseData * pParseData)
+{
+    static bool isInit = false;
+    static HashMap<kMEM_Compose, u32, const ApiSignature*> apiMap;
+    if (!isInit)
     {
-        static bool isInit = false;
-        static HashMap<kMEM_Compose, u32, const ApiSignature*> apiMap;
-        if (!isInit)
+        ApiSignature * pSig = &gApiSignatures[0];
+        while (pSig->nameHash != 0)
         {
-            ApiSignature * pSig = &gApiSignatures[0];
-            while (pSig->nameHash != 0)
-            {
-                apiMap[pSig->nameHash] = pSig;
-                pSig++;
-            }
-            isInit = true;
+            apiMap[pSig->nameHash] = pSig;
+            pSig++;
         }
-
-        u32 nameHash = gaen_hash(name);
-
-        auto it = apiMap.find(nameHash);
-        if (it == apiMap.end())
-        {
-            PANIC("Cannot find Compose system api: %u", nameHash);
-        }
-        return it->second;
+        isInit = true;
     }
+
+    u32 nameHash = gaen_hash(name);
+
+    auto it = apiMap.find(nameHash);
+    if (it == apiMap.end())
+    {
+        COMP_ERROR(pParseData, "Cannot find Compose system api: %u", nameHash);
+        return nullptr;
+    }
+    return it->second;
+}
 
 
 bool is_update_message_def(const Ast * pAst)
@@ -103,10 +104,13 @@ const Ast * find_component_members(const Ast * pAst)
             if (!pCompMembers)
                 pCompMembers = pChild;
             else
+            {
                 // Based on grammar, we currently allow multiple
                 // components sections in an entity.  We check for
                 // this error here for simplicity.
-                PANIC("More than one components section defined in entity");
+                COMP_ERROR(pAst->pParseData, "More than one components section defined in entity");
+                return nullptr;
+            }
         }
     }
     return pCompMembers;
@@ -115,15 +119,14 @@ const Ast * find_component_members(const Ast * pAst)
 u32 calc_cell_count(const Ast * pAst)
 {
     if (pAst->pSymRec)
-        return data_type_cell_count(pAst->pSymRec->dataType);
+        return data_type_cell_count(pAst->pSymRec->dataType, pAst->pParseData);
     else if (pAst->type == kAST_Hash)
         return 1;
-
-    PANIC("Unable to calculate cell count for Ast type: %d", pAst->type);
+    parsedata_formatted_message(pAst->pParseData, kMSGT_Error, "Unable to calculate cell count for Ast type: %d", pAst->type);
     return -1;
 }
 
-u32 data_type_cell_count(DataType dataType)
+u32 data_type_cell_count(DataType dataType, ParseData * pParseData)
 {
     switch (RAW_DT(dataType))
     {
@@ -132,6 +135,7 @@ u32 data_type_cell_count(DataType dataType)
     case kDT_float:
     case kDT_bool:
     case kDT_char:
+    case kDT_color:
         return 1;
     case kDT_vec3:
         return 3;
@@ -146,7 +150,7 @@ u32 data_type_cell_count(DataType dataType)
     case kDT_handle:
         return 8;
     default:
-        PANIC("Unknown cell count for datatype: %d", dataType);
+        COMP_ERROR(pParseData, "Unknown cell count for datatype: %d", dataType);
         return 0;
     }
 }
@@ -221,7 +225,7 @@ void block_pack_items(BlockInfos * pBlockInfos, bool usePayload)
         {
             pItem->isAssigned = true;
             unassignedItemCount--;
-            pItem->cellCount = data_type_cell_count(pItem->pAst->pSymRec->dataType);
+            pItem->cellCount = data_type_cell_count(pItem->pAst->pSymRec->dataType, pItem->pAst->pParseData);
             pItem->blockIndex = currBlock;
             pItem->cellIndex = currCell;
 

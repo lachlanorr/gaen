@@ -281,9 +281,9 @@ expr
 
     | literal   { $$ = $1; }
 
-    | COLOR '(' fun_params ')'  { $$ = ast_create_color_init($3, pParseData); }
-    | VEC3  '(' fun_params ')'  { $$ = ast_create_vec3_init($3, pParseData); }
-    | MAT34 '(' fun_params ')'  { $$ = ast_create_mat34_init($3, pParseData); }
+    | COLOR '{' fun_params '}'  { $$ = ast_create_color_init($3, pParseData); }
+    | VEC3  '{' fun_params '}'  { $$ = ast_create_vec3_init($3, pParseData); }
+    | MAT34 '{' fun_params '}'  { $$ = ast_create_mat34_init($3, pParseData); }
     
     | IDENTIFIER '(' fun_params ')'  { $$ = ast_create_function_call($1, $3, pParseData); }
     ;

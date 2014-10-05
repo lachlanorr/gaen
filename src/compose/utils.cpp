@@ -54,7 +54,7 @@ const char * path_join(const char * rootDir,
     size_t filenameLen = strlen(filename);
 
     if (rootLen + filenameLen + 2 >= FILENAME_MAX)
-        PANIC("Filename too long");
+        COMP_ERROR(pParseData, "Filename too long");
 
     char * dest = fullPath;
 
@@ -87,7 +87,7 @@ const char * path_filename(const char * fullPath,
     {
         if (strlen(lastSlash) <= 1)
         {
-            PANIC("fullPath ends with '/', that's no bueno!");
+            COMP_ERROR(pParseData, "fullPath ends with '/', that's no bueno!");
             return nullptr;
         }
         return parsedata_add_string(pParseData, lastSlash+1);
@@ -105,7 +105,7 @@ const char * full_path(const char * path,
 
     if (ret >= FILENAME_MAX)
     {
-        PANIC("Path too long");
+        COMP_ERROR(pParseData, "Path too long");
         return nullptr;
     }
 
@@ -113,7 +113,8 @@ const char * full_path(const char * path,
 
     return parsedata_add_string(pParseData, fullPath);
 #else
-    PANIC("Not implemented on this platform");
+    COMP_ERROR(pParseData, "Not implemented on this platform");
+    return nullptr;
 #endif
         
 }

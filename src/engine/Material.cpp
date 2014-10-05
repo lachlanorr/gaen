@@ -37,7 +37,7 @@ static std::atomic<material_id> sNextMaterialId(0);
 
 Material::Material(Color color)
   : mType(kMAT_Colored)
-  , mColor(color)
+  , mColor(color.toVec4())
 {
     mId = sNextMaterialId.fetch_add(1,std::memory_order_relaxed);
 }

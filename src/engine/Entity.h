@@ -55,8 +55,14 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    const Mat34 & localTransform() const { return mLocalTransform; }
-    const Mat34 & globalTransform() const { return mGlobalTransform; }
+    const Mat34 & transform() const { return mTransform; }
+    Mat34 worldTransform() const;
+    void setTransform(const Mat34 & mat);
+    void applyTransform(bool isLocal, const Mat34 & mat);
+
+    Entity * parent() { return mpParent; }
+    void setParent(Entity * pEntity);
+    const Mat34 & parentTransform() const;
 
 protected:
     Entity & entity() { return *this; }
@@ -71,8 +77,9 @@ protected:
     void removeBlocks(Block * pStart, u32 count);
     void removeComponent(u32 nameHash);
 
-    void insertChild(Task & task);
-    void removeChild(Task & task);
+    void insertChild(Entity * pEntity);
+    void removeChild(Entity * pEntity);
+    void removeChild(task_id taskId);
 
     void growComponents();
     void growBlocks(u32 minSizeIncrease);
@@ -88,8 +95,8 @@ protected:
     // entity Compose script.
     Task mScriptTask;
     
-    Mat34 mLocalTransform;
-    Mat34 mGlobalTransform;
+    Mat34 mTransform;
+    Mat34 mParentTransform;
 
     Component * mpComponents;
     u32 mComponentsMax;
@@ -99,7 +106,9 @@ protected:
     u32 mBlocksMax;
     u32 mBlockCount;
 
-    Task * mpChildren;
+    Entity * mpParent;
+
+    Entity ** mpChildren;
     u32 mChildrenMax;
     u32 mChildCount;
 };

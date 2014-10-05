@@ -62,9 +62,9 @@ extern "C" {
     while (YYID (0))
 
 
-#define COMP_ERROR(format, ...)   parsedata_formatted_message(pParseData,kMSGT_Error,format,##__VA_ARGS__)
-#define COMP_WARNING(format, ...) parsedata_formatted_message(pParseData,kMSGT_Warning,format,##__VA_ARGS__)
-#define COMP_INFO(format, ...)    parsedata_formatted_message(pParseData,kMSGT_Info,format,##__VA_ARGS__)
+#define COMP_ERROR(pParseData, format, ...)   parsedata_formatted_message(pParseData,kMSGT_Error,format,##__VA_ARGS__)
+#define COMP_WARNING(pParseData, format, ...) parsedata_formatted_message(pParseData,kMSGT_Warning,format,##__VA_ARGS__)
+#define COMP_INFO(pParseData, format, ...)    parsedata_formatted_message(pParseData,kMSGT_Info,format,##__VA_ARGS__)
 
 typedef enum
 {
@@ -225,9 +225,9 @@ typedef enum
 
 typedef enum
 {
-    kMSGT_Info,
-    kMSGT_Warning,
-    kMSGT_Error,
+    kMSGT_Error = 0,
+    kMSGT_Warning = 1,
+    kMSGT_Info = 2,
 } MessageType;
 
 typedef void(*MessageHandler)(MessageType messageType, const char * message, const char * filename, int line, int column);

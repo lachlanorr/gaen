@@ -54,7 +54,6 @@ Mat34 transform_rotate(const Vec3 & angles, const Entity & caller);
 u32 renderer_gen_uid(const Entity & caller);
 void renderer_insert_model_instance(const u32 & uid,
                                     Handle & modelHandle,
-                                    const Mat34 & transform,
                                     const Entity & caller);
 void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, const Entity & caller);
 void renderer_remove_model_instance(const u32 & uid, const Entity & caller);

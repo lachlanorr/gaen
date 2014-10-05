@@ -87,9 +87,9 @@ u32 renderer_gen_uid(const Entity & caller)
     static std::atomic<u32> sNextUid(1);
     return sNextUid.fetch_add(1, std::memory_order_relaxed);
 }
+
 void renderer_insert_model_instance(const u32 & uid,
                                     Handle & modelHandle,
-                                    const Mat34 & transform,
                                     const Entity & caller)
 {
     if (modelHandle.typeHash() != HASH::Model)
@@ -102,7 +102,7 @@ void renderer_insert_model_instance(const u32 & uid,
                                           uid);
     msgQW.setIsAssetManaged(true);
     msgQW.setModel((Model*)modelHandle.data());
-    msgQW.setWorldTransform(transform);
+    msgQW.setWorldTransform(caller.worldTransform());
 }
 
 void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, const Entity & caller)
