@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// model.cmp - Library functions related to creating models
+// lights.cmp - Various light types
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,7 +24,12 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-handle create_box(float width, float height)
+entity DirectionalLight
 {
-    return 0;
+    uint lightUid = $.renderer_gen_uid();
+
+    #init()
+    {
+        $.renderer_insert_light_directional(lightUid, vec3{0.1, 0.1, 0.2}, color{255, 255, 255, 255});
+    }
 }

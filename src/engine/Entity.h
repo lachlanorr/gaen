@@ -64,7 +64,13 @@ public:
     void setParent(Entity * pEntity);
     const Mat34 & parentTransform() const;
 
+    void stageEntity(Entity * pEntity);
+    void unstageEntity(Entity * pEntity);
+
 protected:
+    // Max entities that can be created before they're inserted into the engine
+    static const u32 kMaxEntityStage = 16;
+
     Entity & entity() { return *this; }
     
     Task& insertComponent(u32 nameHash, u32 index);
@@ -107,6 +113,17 @@ protected:
     u32 mBlockCount;
 
     Entity * mpParent;
+
+    // When entities are constructed by this entity, we must maintain
+    // pointers to them here.  Once they get inserted into the engine,
+    // they are no longer our responsibility and we don't have to
+    // clean them up, they'll get the "fin" message and delete
+    // themselves like all running entities.  But, there's the
+    // possibility that an entity is constructed but never added to
+    // the engine, in which case we must remember it so we can clean
+    // it up if we get cleaned up.
+    u32 mEntityStageCount;
+    Entity * mpEntityStage[kMaxEntityStage];
 
     Entity ** mpChildren;
     u32 mChildrenMax;

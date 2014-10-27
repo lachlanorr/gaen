@@ -52,7 +52,7 @@ static S unary_op(const Ast * pAst, const char* op);
 static S unary_op_post(const Ast * pAst, const char* op);
 static S assign(const Ast * pAst, const char * op);
 
-static S symref(const SymRec * pSymRec);
+static S symref(const SymRec * pSymRec, ParseData * pParseData);
 
 static S codegen_recurse(const Ast * pAst,
                          int indentLevel);
@@ -175,6 +175,8 @@ static const char * cpp_type_str(DataType dt, ParseData * pParseData)
         return IS_DT_CONST(dt) ? "const void" : "void";
     case kDT_handle:
         return IS_DT_CONST(dt) ? "const Handle" : "Handle";
+    case kDT_entity:
+        return IS_DT_CONST(dt) ? "const u32 /* entity id */" : "u32 /* entity id */";
     default:
         COMP_ERROR(pParseData, "cpp_type_str invalid DataType: %d", dt);
         return "";
@@ -264,12 +266,25 @@ static S unary_op_post(const Ast * pAst, const char* op)
 
 static S assign(const Ast * pAst, const char * op)
 {
-    return symref(pAst->pSymRec) + S(" ") + S(op) + S(" ") + codegen_recurse(pAst->pRhs, 0);
+    if (!pAst->pSymRec)
+    {
+        COMP_ERROR(pAst->pParseData, "Unknown symbol: %s", pAst->str);
+        return S("");
+    }
+
+    return symref(pAst->pSymRec, pAst->pParseData) + S(" ") + S(op) + S(" ") + codegen_recurse(pAst->pRhs, 0);
 }
 
-static S symref(const SymRec * pSymRec)
+static S symref(const SymRec * pSymRec, ParseData * pParseData)
 {
-    ASSERT(pSymRec);
+    if (!pSymRec)
+    {
+        // We shouldn't get here, as this error should have been
+        // handled/reported before symref is called, but here for
+        // safety.
+        COMP_ERROR(pParseData, "Null symrec");
+        return S("");
+    }
 
     S code;
 
@@ -417,7 +432,7 @@ static S init_data(const Ast * pAst, int indentLevel)
         SymRec * pSymRec = kv.second;
         if (is_prop_or_field(pSymRec))
         {
-            code += indent(indentLevel+1) + symref(pSymRec);
+            code += indent(indentLevel+1) + symref(pSymRec, pAst->pParseData);
             code += S(" = ");
 
             // Does the script initiialize this with a value?
@@ -903,7 +918,12 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_SymbolRef:
     {
-        return symref(pAst->pSymRec);
+        if (!pAst->pSymRec)
+        {
+            COMP_ERROR(pAst->pParseData, "Unknown symbol: %s", pAst->str);
+            return S("");
+        }
+        return symref(pAst->pSymRec, pAst->pParseData);
     }
     case kAST_SymbolDecl:
     {

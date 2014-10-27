@@ -69,9 +69,9 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <numf> FLOAT_LITERAL
 
 /* This type list must match the DataType enum in compiler.h */
-%token <dataType> VOID BOOL CHAR BYTE SHORT USHORT INT UINT LONG ULONG HALF FLOAT DOUBLE COLOR VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 HANDLE_
+%token <dataType> VOID BOOL CHAR BYTE SHORT USHORT INT UINT LONG ULONG HALF FLOAT DOUBLE COLOR VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 HANDLE_ ENTITY
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN ENTITY COMPONENT COMPONENTS IMPORT CONST
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS IMPORT CONST THIS NONE
 %right ELSE THEN
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
@@ -102,10 +102,10 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 
 %type <dataType> basic_type
 
-%type <pAst> type
+%type <pAst> type type_ent
 
 %type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
-%type <pAst> import_list import_stmt dotted_id dotted_id_part
+%type <pAst> import_list import_stmt dotted_id dotted_id_proc dotted_id_part
 %type <pAst> message_block message_list message_prop target_expr
 %type <pAst> prop_init_list prop_init component_block component_member_list component_member
 
@@ -128,12 +128,16 @@ import_stmt
     ;
 
 dotted_id
-    : dotted_id_part               { $$ = ast_append(kAST_DottedId, NULL, $1, pParseData); }
+    : dotted_id_proc  { $$ = ast_create_dotted_id($1, pParseData); }
+    ;
+
+dotted_id_proc
+    : dotted_id_part                { $$ = ast_append(kAST_DottedId, NULL, $1, pParseData); }
     | dotted_id '.' dotted_id_part  { $$ = ast_append(kAST_DottedId, $1, $3, pParseData); }
     ;
 
 dotted_id_part
-    : IDENTIFIER { $$ = ast_create_with_str(kAST_DottedIdPart, $1, pParseData); }
+    : IDENTIFIER { $$ = ast_create_with_str(kAST_DottedIdPart, kASTF_None, $1, pParseData); }
     ;
 
 def_list
@@ -141,10 +145,13 @@ def_list
     | def_list def
     ;
 
+/* Treat "entity" specially since it is overloaded to be used to define entities */
 def
-    : ENTITY IDENTIFIER message_block          { $$ = ast_create_entity_def($2, $3, pParseData); }
-    | COMPONENT IDENTIFIER message_block       { $$ = ast_create_component_def($2, $3, pParseData); }
-    | type IDENTIFIER '(' param_list ')' block { $$ = ast_create_function_def($2, $1, $6, pParseData); }
+    : ENTITY IDENTIFIER message_block                  { $$ = ast_create_entity_def($2, $3, pParseData); }
+    | COMPONENT IDENTIFIER message_block               { $$ = ast_create_component_def($2, $3, pParseData); }
+    | type IDENTIFIER '(' param_list ')' block         { $$ = ast_create_function_def($2, $1, $6, pParseData); }
+    | CONST ENTITY IDENTIFIER '(' param_list ')' block { $$ = ast_create_function_def($3, ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData), $7, pParseData); }
+    | ENTITY IDENTIFIER '(' param_list ')' block       { $$ = ast_create_function_def($2, ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData), $6, pParseData); }
     ;
 
 message_block
@@ -167,9 +174,9 @@ message_prop
     ;
 
 param_list
-    : /* empty */                       { $$ = parsedata_add_param(pParseData, NULL, NULL); }
-    | type IDENTIFIER                   { $$ = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, $1, $2, NULL)); }
-    | param_list ',' type IDENTIFIER    { $$ = parsedata_add_param(pParseData, $1, symrec_create(kSYMT_Param, $3, $4, NULL)); }
+    : /* empty */                           { $$ = parsedata_add_param(pParseData, NULL, NULL); }
+    | type_ent IDENTIFIER                   { $$ = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, $1, $2, NULL)); }
+    | param_list ',' type_ent IDENTIFIER    { $$ = parsedata_add_param(pParseData, $1, symrec_create(kSYMT_Param, $3, $4, NULL)); }
     ;
 
 component_block
@@ -184,7 +191,7 @@ component_member_list
 
 component_member
     : IDENTIFIER ';'                        { $$ = ast_create_component_member($1, ast_create(kAST_PropInit, pParseData), pParseData); }
-    | IDENTIFIER '(' prop_init_list ')' ';' { $$ = ast_create_component_member($1, $3, pParseData); }
+    | IDENTIFIER '{' prop_init_list '}' ';' { $$ = ast_create_component_member($1, $3, pParseData); }
     ;
 
 prop_init_list
@@ -238,8 +245,8 @@ target_expr
 expr
     : '(' expr ')'   { $$ = $2; }
 
-    | type IDENTIFIER          { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL)); }
-    | type IDENTIFIER '=' expr { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, $4)); }
+    | type_ent IDENTIFIER          { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL)); }
+    | type_ent IDENTIFIER '=' expr { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, $4)); }
     
     | cond_expr        { $$ = $1; }
     
@@ -284,8 +291,11 @@ expr
     | COLOR '{' fun_params '}'  { $$ = ast_create_color_init($3, pParseData); }
     | VEC3  '{' fun_params '}'  { $$ = ast_create_vec3_init($3, pParseData); }
     | MAT34 '{' fun_params '}'  { $$ = ast_create_mat34_init($3, pParseData); }
-    
-    | IDENTIFIER '(' fun_params ')'  { $$ = ast_create_function_call($1, $3, pParseData); }
+
+    | dotted_id '{' fun_params '}'  { $$ = ast_create_entity_or_struct_init($1, $3, pParseData); }
+    | dotted_id '(' fun_params ')'  { $$ = ast_create_function_call($1, $3, pParseData); }
+
+    | '$' '.' IDENTIFIER '(' fun_params ')'  { $$ = ast_create_system_api_call($3, $5, pParseData); }
     ;
 
 cond_expr
@@ -322,9 +332,15 @@ fun_params
     ;
 
 type
-    : CONST basic_type  { $$ = ast_create_with_numi(kAST_DataType, CONST_DT($2), pParseData); }
-    | basic_type        { $$ = ast_create_with_numi(kAST_DataType, $1, pParseData); }
-    | IDENTIFIER        { $$ = ast_create_with_str(kAST_CustomType, $1, pParseData); }
+    : CONST basic_type  { $$ = ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData); }
+    | basic_type        { $$ = ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData); }
+    | CONST dotted_id   { $$ = ast_create_custom_type(kASTF_Const, $2, pParseData); }
+    | dotted_id         { $$ = ast_create_custom_type(kASTF_None, $1, pParseData); }
+
+/* Treat "entity" type specially since it is overloaded with use of defining entities */
+type_ent
+    : CONST ENTITY  { $$ = ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData); }
+    | ENTITY        { $$ = ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData); }
 
 basic_type
     : CHAR

@@ -87,6 +87,7 @@ typedef enum
     kAST_ComponentMember,
     kAST_PropInitList,
     kAST_PropInit,
+    kAST_TypeId,
 
     kAST_Block,
     kAST_FunctionParams,
@@ -153,6 +154,9 @@ typedef enum
     kAST_Vec3Init,
     kAST_Vec4Init,
     kAST_Mat34Init,
+
+    kAST_EntityInit,
+    kAST_StructInit,
     
     kAST_IntLiteral,
     kAST_FloatLiteral,
@@ -164,6 +168,12 @@ typedef enum
     kAST_Return
 
 } AstType;
+
+typedef enum
+{
+    kASTF_None  = 0,
+    kASTF_Const = 1,
+} AstFlags;
 
 typedef enum
 {
@@ -217,7 +227,9 @@ typedef enum
 
     kDT_handle    = 21,
 
-    kDT_COUNT     = 22
+    kDT_entity    = 22,
+
+    kDT_COUNT     = 24
 
 } DataType;
 
@@ -260,8 +272,9 @@ AstList * astlist_append(AstList * pAstList, Ast * pAst);
 Ast * ast_create(AstType astType, ParseData * pParseData);
 Ast * ast_create_with_child_list(AstType astType, ParseData * pParseData);
 
-Ast * ast_create_with_str(AstType astType, const char * str, ParseData * pParseData);
-Ast * ast_create_with_numi(AstType astType, int numi, ParseData * pParseData);
+Ast * ast_create_with_str(AstType astType, AstFlags flags, const char * str, ParseData * pParseData);
+Ast * ast_create_with_numi(AstType astType, AstFlags flags, int numi, ParseData * pParseData);
+Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData);
 
 void ast_create_import_list(Ast * pImportList, ParseData * pParseData);
 Ast * ast_create_import_stmt(Ast * pDottedId, ParseData * pParseData);
@@ -277,6 +290,8 @@ Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData);
 Ast * ast_create_component_member(const char * name, Ast * pPropInitList, ParseData * pParseData);
 Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData);
 
+Ast * ast_create_custom_type(AstFlags flags, Ast * pTypeInfo, ParseData * pParseData);
+
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData);
 
 Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData);
@@ -289,10 +304,13 @@ Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData);
 
+Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData * pParseData);
+
 Ast * ast_create_int_literal(int numi, ParseData * pParseData);
 Ast * ast_create_float_literal(float numf, ParseData * pParseData);
 
-Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pParseData);
+Ast * ast_create_function_call(Ast * pFuncName, Ast * pParams, ParseData * pParseData);
+Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData * pParseData);
 Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData);
 
 Ast * ast_create_if(Ast * pCondition, Ast * pIfBody, Ast * pElseBody, ParseData * pParseData);
@@ -318,8 +336,12 @@ void ast_set_rhs(Ast * pParent, Ast * pRhs);
 DataType ast_data_type(const Ast * pAst);
 int are_types_compatible(DataType a, DataType b);
 
-ParseData * parsedata_create(const char * fullPath,
+ParseData * parsedata_create(const char * prefix,
+                             const char * fullPath,
                              MessageHandler messageHandler);
+void parsedata_destroy(ParseData * pParseData);
+const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dottedId);
+void parsedata_prep_paths(ParseData * pParseData, const char * fullPath);
 void *  parsedata_scanner(ParseData * pParseData);
 
 void parsedata_formatted_message(ParseData * pParseData,
@@ -340,6 +362,7 @@ SymRec* parsedata_find_symbol(ParseData * pParseData, const char * name);
 Scope* parsedata_current_scope(ParseData * pParseData);
 Scope* parsedata_push_scope(ParseData * pParseData);
 Scope* parsedata_push_stmt_scope(ParseData * pParseData);
+Scope* parsedata_push_top_level_stmt_scope(ParseData * pParseData);
 Scope* parsedata_pop_scope(ParseData * pParseData);
 void parsedata_handle_do_scope(ParseData * pParseData);
 
@@ -349,15 +372,18 @@ void parsedata_set_location(ParseData * pParseData,
                             int line,
                             int column);
 
+void parsedata_parse_import(ParseData * pParseData,
+                            const char * namespace_,
+                            const char * fullPath);
+
+
 void parse_init();
-ParseData * parse(ParseData * pParseData,
-                  const char * source,
+ParseData * parse(const char * source,
                   size_t length,
                   const char * fullPath,
                   MessageHandler messageHandler);
 
-ParseData * parse_file(ParseData * pParseData,
-                       const char * fullPath,
+ParseData * parse_file(const char * fullPath,
                        MessageHandler messageHandler);
 
 typedef struct YYLTYPE YYLTYPE;

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// WasdRot.cmp - rotate entity based on wasd keys
+// utils.cmp - Common utility functionality
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,6 +24,31 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+// Send a message to self entity at a certain interval
+component Timer
+{
+    float #timer_interval = 0.0;          // interval in seconds to send the timer message
+    uint #timer_message = 0;              // message to send with each timer message, useful if multiple timers are used in the same component
+
+    float last_notification = 0.0;
+
+    #update(float deltaSecs)
+    {
+        if (timer_interval > 0.0)
+        {
+            last_notification += deltaSecs;
+            if (last_notification >= timer_interval)
+            {
+                @#timer(timer_message);
+                last_notification = 0.0;
+            }
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+
+// Rotate a model when wasd keys are pressed
 component WasdRot
 {
     uint #wasdrot_modeluid = 0;
@@ -98,3 +123,5 @@ component WasdRot
         }
     }
 }
+
+//------------------------------------------------------------------------------

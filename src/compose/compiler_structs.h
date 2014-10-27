@@ -104,6 +104,7 @@ struct Ast
 {
     ParseData * pParseData;
     AstType type;
+    AstFlags flags;
     Ast* pParent;
     Scope* pScope;
     SymRec* pSymRec;
@@ -128,6 +129,12 @@ struct Scope
     SymTab * pSymTab;
 };
 
+struct Import
+{
+    const char * namespace_;
+    const ParseData * pParseData;
+};
+
 struct ParseData
 {
     Ast* pRootAst;
@@ -136,12 +143,17 @@ struct ParseData
     CompList<Scope*> scopeStack;
     CompSet<CompString> strings;
 
+    // ParseData structs from comilations of imports
+    CompList<Import> imports;
+
     // location info
     int line;
     int column;
 
     const char * fullPath;
     const char * filename;
+    const char * scriptsRootPath;
+    size_t scriptsRootPathLen;
     MessageHandler messageHandler;
 
     bool skipNextScope;

@@ -45,6 +45,8 @@ extern "C" {
 
 using namespace gaen;
 
+static char sEmptyStr[] = { '\0' };
+
 int parse_int(const char * pStr, int base)
 {
     i64 val = strtol(pStr, nullptr, base);
@@ -211,6 +213,7 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
 
     pAst->pParseData = pParseData;
     pAst->type = astType;
+    pAst->flags = kASTF_None;
     pAst->pParent = nullptr;
     pAst->pScope = parsedata_current_scope(pParseData);
     pAst->pSymRec = nullptr;
@@ -221,7 +224,7 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
 
     pAst->numi = 0;
     pAst->numf = 0;
-    pAst->str = nullptr;
+    pAst->str = sEmptyStr;
 
     pAst->pChildren = nullptr;
     pAst->fullPath = pParseData->fullPath;
@@ -238,18 +241,53 @@ Ast * ast_create_with_child_list(AstType astType, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_with_str(AstType astType, const char * str, ParseData * pParseData)
+Ast * ast_create_with_str(AstType astType, AstFlags flags, const char * str, ParseData * pParseData)
 {
     Ast * pAst = ast_create(astType, pParseData);
+    pAst->flags = flags;
     pAst->str = str;
     return pAst;
 }
 
-Ast * ast_create_with_numi(AstType astType, int numi, ParseData * pParseData)
+Ast * ast_create_with_numi(AstType astType, AstFlags flags, int numi, ParseData * pParseData)
 {
     Ast * pAst = ast_create(astType, pParseData);
+    pAst->flags = flags;
     pAst->numi = numi;
     return pAst;
+}
+
+Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData)
+{
+    ASSERT(pItems->type == kAST_DottedId);
+    ASSERT(pItems->pChildren);
+    ASSERT(pItems->pChildren->nodes.size() > 0);
+
+    // Add the reconstituted name as str member
+    
+    size_t len = 0;
+    for (Ast * pAst : pItems->pChildren->nodes)
+    {
+        ASSERT(pAst->str);
+        len += strlen(pAst->str) + 1; // +1 for dot, or null on last item
+    }
+
+    pItems->str = (char*)COMP_ALLOC(len);
+
+    char * pos = const_cast<char*>(pItems->str); // a rare instance of casting away const that I'm not going to hate myself over
+    *pos = '\0';
+    for (Ast * pAst : pItems->pChildren->nodes)
+    {
+        ASSERT(pAst->str);
+        strcpy(pos, pAst->str);
+        pos += strlen(pAst->str);
+        strcpy(pos, ".");
+        pos++;
+    }
+    pos--;
+    *pos = '\0';
+
+    return pItems;
 }
 
 static Ast * ast_create_block_def(const char * name,
@@ -295,8 +333,20 @@ void ast_create_import_list(Ast * pImportList, ParseData * pParseData)
 
 Ast * ast_create_import_stmt(Ast * pDottedId, ParseData * pParseData)
 {
+    ASSERT(pDottedId->str);
+    
     Ast * pAst = ast_create(kAST_ImportStmt, pParseData);
     pAst->pRhs = pDottedId;
+
+    const char * path = parsedata_dotted_to_path(pParseData, pDottedId->str);
+    if (!path)
+    {
+        COMP_ERROR(pParseData, "Failed to find import: %s", pDottedId->str);
+    }
+    
+    // Do the import
+    parsedata_parse_import(pParseData, pDottedId->str, path);
+
     return pAst;
 }
 
@@ -411,6 +461,14 @@ Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData)
 
 Ast * ast_create_component_member(const char * name, Ast * pPropInitList, ParseData * pParseData)
 {
+    SymRec* pCompSymRec = symtab_find_symbol_recursive(pPropInitList->pScope->pSymTab, name);
+
+    if (!pCompSymRec)
+    {
+        COMP_ERROR(pParseData, "Unknown component: %s, are you missing an import?", name);
+        return nullptr;
+    }
+
     Ast * pAst = ast_create(kAST_ComponentMember, pParseData);
     pAst->str = name;
     ast_set_rhs(pAst, pPropInitList);
@@ -422,6 +480,14 @@ Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData
     Ast * pAst = ast_create(kAST_PropInit, pParseData);
     pAst->str = name;
     ast_set_rhs(pAst, pVal);
+    return pAst;
+}
+
+Ast * ast_create_custom_type(AstFlags flags, Ast * pTypeInfo, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_CustomType, pParseData);
+    pAst->flags = flags;
+    ast_set_lhs(pAst, pTypeInfo);
     return pAst;
 }
 
@@ -463,31 +529,35 @@ Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * 
 
 Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, ParseData * pParseData)
 {
-    SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
-
     Ast * pAst = ast_create(astType, pParseData);
 
-    if (!pSymRec)
+    SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
+    // We may not have a pSymRec at this point, e.g. entity
+    // initialization syntax In those cases, we don't error here when
+    // we don't find the symbol, but will have to handle symbol lookup
+    // more explicitly further down the pipe.
+    if (pSymRec)
     {
-        COMP_ERROR(pParseData, "Unknown symbol reference in assignment: %s", name);
-        return pAst;
+        if (pSymRec->type != kSYMT_Param &&
+            pSymRec->type != kSYMT_Local &&
+            pSymRec->type != kSYMT_Field)
+        {
+            COMP_ERROR(pParseData, "Invalid use of symbol in assignment: %s", name);
+            return pAst;
+        }
+
+        pAst->pSymRec = pSymRec;
     }
 
-    if (pSymRec->type != kSYMT_Param &&
-        pSymRec->type != kSYMT_Local &&
-        pSymRec->type != kSYMT_Field)
-    {
-        COMP_ERROR(pParseData, "Invalid use of symbol in assignment: %s", name);
-        return pAst;
-    }   
-
-    pAst->pSymRec = pSymRec;
     ast_set_rhs(pAst, pRhs);
     return pAst;
 }
 
 Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData)
 {
+    // pop scope that got created by the lexer when encountering the '{'
+    parsedata_pop_scope(pParseData);
+
     Ast * pAst = ast_create(kAST_ColorInit, pParseData);
     ast_set_rhs(pAst, pParams);
 
@@ -511,6 +581,9 @@ Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData)
 
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
 {
+    // pop scope that got created by the lexer when encountering the '{'
+    parsedata_pop_scope(pParseData);
+
     Ast * pAst = ast_create(kAST_Vec3Init, pParseData);
     ast_set_rhs(pAst, pParams);
 
@@ -544,6 +617,9 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
 
 Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
 {
+    // pop scope that got created by the lexer when encountering the '{'
+    parsedata_pop_scope(pParseData);
+
     Ast * pAst = ast_create(kAST_Mat34Init, pParseData);
     ast_set_rhs(pAst, pParams);
 
@@ -575,6 +651,19 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData * pParseData)
+{
+    // LORRTEMP
+    return nullptr;
+
+    SymRec * pTypeSymRec = parsedata_find_symbol(pParseData, pDottedId->str);
+
+    Ast * pAst = ast_create(kAST_EntityInit, pParseData);
+
+    return pAst;
+
+}
+
 Ast * ast_create_int_literal(int numi, ParseData * pParseData)
 {
     Ast * pAst = ast_create(kAST_IntLiteral, pParseData);
@@ -589,11 +678,11 @@ Ast * ast_create_float_literal(float numf, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pParseData)
+Ast * ast_create_function_call(Ast * pDottedId, Ast * pParams, ParseData * pParseData)
 {
     Ast * pAst = nullptr;
 
-    SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
+    SymRec * pSymRec = parsedata_find_symbol(pParseData, pDottedId->str);
 
     if (pSymRec)
     {
@@ -601,7 +690,7 @@ Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pPa
 
         if (pSymRec->type != kSYMT_Function)
         {
-            COMP_ERROR(pParseData, "Call to non-function symbol: %s", name);
+            COMP_ERROR(pParseData, "Call to non-function symbol: %s", "NOT_IMPLEMENTED__NEED_TO_PRINT_pDottedId as string");
         }
         else
         {
@@ -611,23 +700,32 @@ Ast * ast_create_function_call(const char * name, Ast * pParams, ParseData * pPa
     }
     else
     {
-        // check to see if this is a syscall
-        const ApiSignature * pSig = find_api(name, pParseData);
-        if (pSig)
-        {
-            pAst = ast_create(kAST_SystemCall, pParseData);
-            pAst->str = name;
-            ast_set_rhs(pAst, pParams);
-        }
-        else
-        {
-            COMP_ERROR(pParseData, "Unknown symbol reference: %s", name);
-            pAst = ast_create(kAST_FunctionCall, pParseData);
-        }
+        COMP_ERROR(pParseData, "Unknown function: %s", "NOT_IMPLEMENTED__NEED_TO_PRINT_pDottedId as string");
+        return nullptr;
     }
 
     ASSERT(pAst);
     return pAst;
+}
+
+Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData * pParseData)
+{
+
+    // check to see if this is a syscall
+    const ApiSignature * pSig = find_api(pApiName, pParseData);
+    if (pSig)
+    {
+        Ast * pAst = ast_create(kAST_SystemCall, pParseData);
+        pAst->str = pApiName;
+        ast_set_rhs(pAst, pParams);
+        return pAst;
+    }
+    else
+    {
+        COMP_ERROR(pParseData, "Unknown system api reference: %s", pApiName);
+        return nullptr;
+    }
+
 }
 
 Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData)
@@ -930,9 +1028,6 @@ ParseData * parsedata_create(const char * fullPath,
     pParseData->hasErrors = false;
     pParseData->pScanner = nullptr;
 
-    pParseData->fullPath = gaen::full_path(fullPath, pParseData);
-    pParseData->filename = gaen::path_filename(pParseData->fullPath, pParseData);
-    
     pParseData->messageHandler = messageHandler;
 
     pParseData->pRootScope = scope_create();
@@ -941,6 +1036,8 @@ ParseData * parsedata_create(const char * fullPath,
     pParseData->pRootAst = ast_create(kAST_Root, pParseData);
 
     pParseData->pRootScope->pSymTab->pAst = pParseData->pRootAst;
+
+    parsedata_prep_paths(pParseData, fullPath);
 
     return pParseData;
 }
@@ -952,6 +1049,56 @@ void parsedata_destroy(ParseData * pParseData)
     {
         yylex_destroy(pParseData->pScanner);
     }
+}
+
+const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dottedId)
+{
+    ASSERT(dottedId);
+    ASSERT(pParseData->scriptsRootPath);
+    ASSERT(pParseData->scriptsRootPathLen == strlen(pParseData->scriptsRootPath));
+
+    size_t dottedIdLen = strlen(dottedId);
+    size_t pathLen = pParseData->scriptsRootPathLen + dottedIdLen + 4 + 1; // +4 for ".cmp", +1 for null
+    char * path = (char*)COMP_ALLOC(pathLen);
+
+    strcpy(path, pParseData->scriptsRootPath);
+    strcat(path, dottedId);
+
+    // replace dots with slashes
+    char * dotted = path + pParseData->scriptsRootPathLen;
+    for (int i = 0; i < dottedIdLen; ++i)
+    {
+        if (dotted[i] == '.')
+            dotted[i] = '/';
+    }
+
+    strcat(path, ".cmp");
+
+    return path;
+}
+
+void parsedata_prep_paths(ParseData * pParseData, const char * fullPath)
+{
+    pParseData->fullPath = gaen::full_path(fullPath, pParseData);
+    pParseData->filename = gaen::path_filename(pParseData->fullPath, pParseData);
+
+    static const char * kScriptsPath = "/scripts/cmp/";
+
+    const char * pLoc = strstr(pParseData->fullPath, kScriptsPath);
+    if (!pLoc)
+    {
+        COMP_ERROR(pParseData, "File doesn't appear to be in a scripts directory. By convention, all compose scripts must be within a .../scripts/cmp/... sub directory. File: %s", pParseData->fullPath);
+        return;
+    }
+
+    size_t fullPathLen = strlen(pParseData->fullPath);
+    size_t scriptsRootLen = (pLoc - pParseData->fullPath) + strlen(kScriptsPath);
+
+    char * scriptsRootPath = (char*)COMP_ALLOC(scriptsRootLen+1);
+    strncpy(scriptsRootPath, pParseData->fullPath, scriptsRootLen);
+    scriptsRootPath[scriptsRootLen] = '\0';
+    pParseData->scriptsRootPathLen = scriptsRootLen;
+    pParseData->scriptsRootPath = scriptsRootPath;
 }
 
 void * parsedata_scanner(ParseData * pParseData)
@@ -1038,6 +1185,15 @@ Scope* parsedata_push_stmt_scope(ParseData * pParseData)
     return pScope;
 }
 
+Scope* parsedata_push_top_level_stmt_scope(ParseData * pParseData)
+{
+    if (pParseData->scopeStack.size() == 1)
+    {
+        return parsedata_push_stmt_scope(pParseData);
+    }
+    return nullptr;
+}
+
 Scope * parsedata_pop_scope(ParseData * pParseData)
 {
     ASSERT(pParseData->scopeStack.size() >= 1);
@@ -1113,6 +1269,35 @@ void parsedata_set_location(ParseData * pParseData,
     pParseData->column = column;
 }
 
+void parsedata_parse_import(ParseData * pParseData,
+                            const char * namespace_,
+                            const char * fullPath)
+{
+    ParseData * pImportParseData = parse_file(fullPath, pParseData->messageHandler);
+
+    if (!pImportParseData)
+    {
+        COMP_ERROR(pParseData, "Failed to parse import: %s", fullPath);
+        return;
+    }
+    
+    Import imp;
+    imp.pParseData = pImportParseData;
+    if (!namespace_ || namespace_[0] == '\0')
+    {
+        imp.namespace_ = "";
+    }
+    else
+    {
+        char * pref = (char*)COMP_ALLOC(strlen(namespace_) + 1 + 1); // +1 for '.', +1 for null
+        strcpy(pref, namespace_);
+        strcat(pref, ".");
+        imp.namespace_ = pref;
+    }
+        
+    pParseData->imports.push_back(imp);
+}
+
 //------------------------------------------------------------------------------
 // ParseData (END)
 //------------------------------------------------------------------------------
@@ -1124,21 +1309,19 @@ void parse_init()
     //yydebug = 1;
 }
 
-ParseData * parse(ParseData * pParseData,
-                  const char * source,
+ParseData * parse(const char * source,
                   size_t length,
                   const char * fullPath,
                   MessageHandler messageHandler)
 {
     int ret;
 
-    if (!pParseData)
-        pParseData = parsedata_create(fullPath, messageHandler);
+    ParseData * pParseData = parsedata_create(fullPath, messageHandler);
 
     if (!source)
     {
         char * newSource = nullptr;
-        length = read_file(pParseData->fullPath, &newSource);
+        length = read_file(fullPath, &newSource);
         if (length <= 0)
         {
             COMP_ERROR(pParseData, "Unable to read file");
@@ -1164,11 +1347,10 @@ ParseData * parse(ParseData * pParseData,
     return pParseData;
 }   
 
-ParseData * parse_file(ParseData * pParseData,
-                       const char * fullPath,
+ParseData * parse_file(const char * fullPath,
                        MessageHandler messageHandler)
 {
-    return parse(nullptr, nullptr, 0, fullPath, messageHandler);
+    return parse(nullptr, 0, fullPath, messageHandler);
 }
 
 void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...)

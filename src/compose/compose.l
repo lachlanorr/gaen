@@ -71,7 +71,6 @@ ParseData * pParseData = yyextra;
 <COMMENT>([^*]|{CRLF})+|.
 <COMMENT><<EOF>>           { yyerror(yylloc, pParseData, "Unterminated comment"); return 0; }
 "//".*{CRLF}
-     
 
 "char"   { yylval->dataType = kDT_char;   return CHAR;   }
 "byte"   { yylval->dataType = kDT_byte;   return BYTE;   }
@@ -95,6 +94,9 @@ ParseData * pParseData = yyextra;
 "void"   { yylval->dataType = kDT_void;   return VOID;   }
 "handle" { yylval->dataType = kDT_handle; return HANDLE_; }
 
+"none"     { return NONE; }
+"this"     { return THIS; }
+
 "if"       { parsedata_push_stmt_scope(pParseData); return IF;     }
 "else"     { parsedata_push_stmt_scope(pParseData); return ELSE;   }
 "while"    { parsedata_push_stmt_scope(pParseData); return WHILE;  }
@@ -111,8 +113,8 @@ ParseData * pParseData = yyextra;
 
 "import"     { return IMPORT; }
 "components" { return COMPONENTS; }
-"entity"     { parsedata_push_stmt_scope(pParseData); return ENTITY; }
-"component"  { parsedata_push_stmt_scope(pParseData); return COMPONENT; }
+"entity"     { parsedata_push_top_level_stmt_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
+"component"  { parsedata_push_top_level_stmt_scope(pParseData); return COMPONENT; }
 
 "true"   { return TRUE; }
 "false"  { return FALSE; }
@@ -146,6 +148,7 @@ ParseData * pParseData = yyextra;
 
 "#" |
 "@" |
+"$" |
 "+" |
 "-" |
 "*" |

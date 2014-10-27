@@ -66,6 +66,14 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
     else
         mpBlocks = nullptr;
 
+    // Entity stage, we manage entities here that we've created but
+    // haven't yet been added to engien.
+    mEntityStageCount = 0;
+    for (u32 i = 0; i < kMaxEntityStage; ++i)
+    {
+        mpEntityStage[i] = 0;
+    }
+
     mTask = Task::create_updatable(this, nameHash);
 }
 
@@ -134,6 +142,38 @@ const Mat34 & Entity::parentTransform() const
     }
 }
 
+void Entity::stageEntity(Entity * pEntity)
+{
+    if (mEntityStageCount >= kMaxEntityStage)
+    {
+        PANIC("Unable to stage entity, stage is full, stage size: %u", kMaxEntityStage);
+        return;
+    }
+
+    mpEntityStage[mEntityStageCount] = pEntity;
+    ++mEntityStageCount;
+}
+ 
+void Entity::unstageEntity(Entity * pEntity)
+{
+    for (u32 i = 0; i < mEntityStageCount; ++i)
+    {
+        if (mpEntityStage[i] == pEntity)
+        {
+            // remove entity
+            mpEntityStage[i] = nullptr;
+            // if we're not the last, replace with the last
+            if (i < (mEntityStageCount-1))
+            {
+                mpEntityStage[i] = mpEntityStage[mEntityStageCount-1];
+                mpEntityStage[mEntityStageCount-1] = nullptr;
+            }
+            --mEntityStageCount;
+            return;
+        }
+    }
+    PANIC("Unable to unstage entity, not on stage: 0x%p", pEntity);
+}
 
 void Entity::update(f32 deltaSecs)
 {

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Box.cmp - box shape
+// shapes.cmp - Various simple shapes
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -26,19 +26,14 @@
 
 entity Box
 {
-
     vec3 #size = vec3{1.0, 1.0, 1.0};
-    color #col = color{255, 0, 0, 255};
+    color #diffuse = color{255, 0, 0, 255};
     handle model;
-    uint boxModelUid = renderer_gen_uid();
+    uint boxModelUid = $.renderer_gen_uid();
 
     #init()
     {
-        model = create_shape_box(size, col);
-        renderer_insert_model_instance(boxModelUid, model);
+        model = $.create_shape_box(size, diffuse);
+        $.renderer_insert_model_instance(boxModelUid, model);
     }
-
-    
-    
-
 }

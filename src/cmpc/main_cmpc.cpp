@@ -70,8 +70,7 @@ int main(int argc, char ** argv)
     }
 
     parse_init();
-    ParseData * pParseData = parse_file(nullptr,
-                                        argv[1],
+    ParseData * pParseData = parse_file(argv[1],
                                         &messageHandler);
 
     if (!pParseData || pParseData->hasErrors)

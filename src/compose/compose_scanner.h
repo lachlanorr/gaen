@@ -341,7 +341,7 @@ extern int yylex \
 #undef YY_DECL
 #endif
 
-#line 187 "compose.l"
+#line 190 "compose.l"
 
 
 #line 348 "compose_scanner.h"
