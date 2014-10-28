@@ -24,31 +24,25 @@
 SET (scripts_dir C:/code/gaen/src/scripts)
 
 SET (scripts_codegen_SOURCES
+  ${scripts_dir}/cmp/lights.cmp
+  ${scripts_dir}/cmp/shapes.cmp
   ${scripts_dir}/cmp/start.cmp
   ${scripts_dir}/cmp/test.cmp
-  ${scripts_dir}/cmp/lib/model.cmp
-  ${scripts_dir}/cmp/shapes/Box.cmp
-  ${scripts_dir}/cmp/utils/Timer.cmp
-  ${scripts_dir}/cmp/utils/WasdRot.cmp
+  ${scripts_dir}/cmp/utils.cmp
+  ${scripts_dir}/cpp/lights.cpp
+  ${scripts_dir}/cpp/shapes.cpp
   ${scripts_dir}/cpp/start.cpp
   ${scripts_dir}/cpp/test.cpp
-  ${scripts_dir}/cpp/lib/model.cpp
-  ${scripts_dir}/cpp/shapes/Box.cpp
-  ${scripts_dir}/cpp/utils/Timer.cpp
-  ${scripts_dir}/cpp/utils/WasdRot.cpp
-  ${scripts_dir}/cpp/lib/model.h
+  ${scripts_dir}/cpp/utils.cpp
 )
 
+IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/lights.cmp" )
+IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/shapes.cmp" )
 IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/start.cmp" )
 IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/test.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp/lib" "${scripts_dir}/cmp/lib/model.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp/shapes" "${scripts_dir}/cmp/shapes/Box.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp/utils" "${scripts_dir}/cmp/utils/Timer.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp/utils" "${scripts_dir}/cmp/utils/WasdRot.cmp" )
+IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/utils.cmp" )
+IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/lights.cpp" )
+IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/shapes.cpp" )
 IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/start.cpp" )
 IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/test.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp/lib" "${scripts_dir}/cpp/lib/model.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp/shapes" "${scripts_dir}/cpp/shapes/Box.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp/utils" "${scripts_dir}/cpp/utils/Timer.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp/utils" "${scripts_dir}/cpp/utils/WasdRot.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp/lib" "${scripts_dir}/cpp/lib/model.h" )
+IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/utils.cpp" )

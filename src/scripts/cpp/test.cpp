@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 4622b2a19801627772c77767626a0835
+// HASH: fa206f4e48dfcefc5de3d31a3bea2dbd
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -52,22 +52,11 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::set_property:
-            switch (_msg.payload.u)
-            {
-            case HASH::mat01:
-            {
-                u32 requiredBlockCount = 3;
-                if (_msg.blockCount >= requiredBlockCount)
-                {
-                    reinterpret_cast<Block*>(&mat01())[0] = msgAcc[0];
-                    reinterpret_cast<Block*>(&mat01())[1] = msgAcc[1];
-                    reinterpret_cast<Block*>(&mat01())[2] = msgAcc[2];
-                    return MessageResult::Consumed;
-                }
-            }
-            }
-            return MessageResult::Propogate; // Invalid property
+        case HASH::init:
+        {
+            u32 /* entity id */ box = /* LORRTODO: Add support for kAST_EntityInit Ast Type */;
+            return MessageResult::Consumed;
+        }
         }
         return MessageResult::Propogate;
 }
@@ -76,9 +65,8 @@ private:
     test(u32 childCount)
       : Entity(HASH::test, childCount, 36, 36)
     {
-        mat01() = Mat34(1.0f);
 
-        mBlockCount = 3;
+        mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::test);
     }
     test(const test&)              = delete;
@@ -86,10 +74,6 @@ private:
     test & operator=(const test&)  = delete;
     test & operator=(const test&&) = delete;
 
-    Mat34& mat01()
-    {
-        return *reinterpret_cast<Mat34*>(&mpBlocks[0].qCell);
-    }
 }; // class test
 
 } // namespace ent

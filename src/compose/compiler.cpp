@@ -96,11 +96,12 @@ SymRec * symrec_create(SymType symType,
 //------------------------------------------------------------------------------
 // SymTab
 //------------------------------------------------------------------------------
-SymTab* symtab_create()
+SymTab* symtab_create(ParseData * pParseData)
 {
     SymTab* pSymTab = COMP_NEW(SymTab);
     pSymTab->pParent = nullptr;
     pSymTab->pAst = nullptr;
+    pSymTab->pParseData = pParseData;
     return pSymTab;
 }
 
@@ -154,7 +155,22 @@ SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
     {
         return symtab_find_symbol_recursive(pSymTab->pParent, name);
     }
-
+    else
+    {
+        // We're in the root and haven't found the symbol.
+        // Try to find it in an imported symbol list.
+        for (const Import & import : pSymTab->pParseData->imports)
+        {
+            const char * pos = strstr(name, import.namespace_);
+            if (pos == name) // if name starts with namespace
+            {
+                const char * unqualifiedName = name + strlen(import.namespace_);
+                SymRec * pSymRec = symtab_find_symbol(import.pParseData->pRootScope->pSymTab, unqualifiedName);
+                if (pSymRec)
+                    return pSymRec;
+            }
+        }
+    }
     return nullptr;
 }
 
@@ -459,18 +475,18 @@ Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_component_member(const char * name, Ast * pPropInitList, ParseData * pParseData)
+Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseData * pParseData)
 {
-    SymRec* pCompSymRec = symtab_find_symbol_recursive(pPropInitList->pScope->pSymTab, name);
+    SymRec* pCompSymRec = symtab_find_symbol_recursive(pPropInitList->pScope->pSymTab, pDottedId->str);
 
     if (!pCompSymRec)
     {
-        COMP_ERROR(pParseData, "Unknown component: %s, are you missing an import?", name);
+        COMP_ERROR(pParseData, "Unknown component: %s, are you missing an import?", pDottedId->str);
         return nullptr;
     }
 
     Ast * pAst = ast_create(kAST_ComponentMember, pParseData);
-    pAst->str = name;
+    pAst->str = pDottedId->str;
     ast_set_rhs(pAst, pPropInitList);
     return pAst;
 }
@@ -653,12 +669,13 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
 
 Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData * pParseData)
 {
+    // pop scope that got created by the lexer when encountering the '{'
+    parsedata_pop_scope(pParseData);
+
     // LORRTEMP
-    return nullptr;
-
-    SymRec * pTypeSymRec = parsedata_find_symbol(pParseData, pDottedId->str);
-
     Ast * pAst = ast_create(kAST_EntityInit, pParseData);
+
+    //SymRec * pTypeSymRec = parsedata_find_symbol(pParseData, pDottedId->str);
 
     return pAst;
 
@@ -690,7 +707,9 @@ Ast * ast_create_function_call(Ast * pDottedId, Ast * pParams, ParseData * pPars
 
         if (pSymRec->type != kSYMT_Function)
         {
-            COMP_ERROR(pParseData, "Call to non-function symbol: %s", "NOT_IMPLEMENTED__NEED_TO_PRINT_pDottedId as string");
+            ASSERT(pDottedId && pDottedId->str);
+            COMP_ERROR(pParseData, "Call to non-function symbol: %s", pDottedId->str);
+            return nullptr;
         }
         else
         {
@@ -700,7 +719,8 @@ Ast * ast_create_function_call(Ast * pDottedId, Ast * pParams, ParseData * pPars
     }
     else
     {
-        COMP_ERROR(pParseData, "Unknown function: %s", "NOT_IMPLEMENTED__NEED_TO_PRINT_pDottedId as string");
+        ASSERT(pDottedId && pDottedId->str);
+        COMP_ERROR(pParseData, "Unknown function: %s", pDottedId->str);
         return nullptr;
     }
 
@@ -1003,11 +1023,11 @@ int are_types_compatible(DataType a, DataType b)
 //------------------------------------------------------------------------------
 // Scope
 //------------------------------------------------------------------------------
-Scope * scope_create()
+Scope * scope_create(ParseData * pParseData)
 {
     Scope * pScope = COMP_NEW(Scope);
     pScope->pAstList = astlist_create();
-    pScope->pSymTab = symtab_create();
+    pScope->pSymTab = symtab_create(pParseData);
 
     return pScope;
 }
@@ -1030,7 +1050,7 @@ ParseData * parsedata_create(const char * fullPath,
 
     pParseData->messageHandler = messageHandler;
 
-    pParseData->pRootScope = scope_create();
+    pParseData->pRootScope = scope_create(pParseData);
     pParseData->scopeStack.push_back(pParseData->pRootScope);
 
     pParseData->pRootAst = ast_create(kAST_Root, pParseData);
@@ -1160,7 +1180,7 @@ Scope* parsedata_push_scope(ParseData * pParseData)
     Scope * pScope = nullptr;
     if (!pParseData->skipNextScope)
     {
-        pScope = scope_create();
+        pScope = scope_create(pParseData);
 
         // make pParseData a child of the top of the stack
         pScope->pSymTab->pParent = pParseData->scopeStack.back()->pSymTab;

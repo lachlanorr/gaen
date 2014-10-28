@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 677d007b892e7c389b8b5321b86adc73
+// HASH: 4961ca9682e315b646fde13cf1206c96
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -54,15 +54,13 @@ public:
         {
         case HASH::init:
         {
-            system_api::renderer_insert_model_instance(boxModelUid(), boxModel(), entity());
-            system_api::renderer_insert_light_directional(lightUid(), Vec3(0.100000f, 0.100000f, 0.200000f), Color(255, 255, 255, 255), entity());
+            u32 /* entity id */ box = /* LORRTODO: Add support for kAST_EntityInit Ast Type */;
             return MessageResult::Consumed;
         }
         case HASH::timer:
         {
             if ((/*timer_msg*/msgAcc.message().payload.u == HASH::tick))
             {
-                angle() += 2.000000f;
             }
             return MessageResult::Consumed;
         }
@@ -75,12 +73,12 @@ private:
       : Entity(HASH::start, childCount, 36, 36)
     {
 
-        mBlockCount = 3;
+        mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::start);
 
-        // Component: Timer
+        // Component: utils.Timer
         {
-            Task & compTask = insertComponent(HASH::Timer, mComponentCount);
+            Task & compTask = insertComponent(HASH::utils.Timer, mComponentCount);
             // Init Property: timer_interval
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_interval));
@@ -94,39 +92,12 @@ private:
                 compTask.message(msgw.accessor());
             }
         }
-
-        // Component: WasdRot
-        {
-            Task & compTask = insertComponent(HASH::WasdRot, mComponentCount);
-            // Init Property: wasdrot_modeluid
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::wasdrot_modeluid));
-                msgw[0].cells[0].u = boxModelUid();
-                compTask.message(msgw.accessor());
-            }
-        }
     }
     start(const start&)              = delete;
     start(const start&&)             = delete;
     start & operator=(const start&)  = delete;
     start & operator=(const start&&) = delete;
 
-    f32& angle()
-    {
-        return mpBlocks[2].cells[0].f;
-    }
-    Handle& boxModel()
-    {
-        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
-    }
-    u32& boxModelUid()
-    {
-        return mpBlocks[2].cells[1].u;
-    }
-    u32& lightUid()
-    {
-        return mpBlocks[2].cells[2].u;
-    }
 }; // class start
 
 } // namespace ent

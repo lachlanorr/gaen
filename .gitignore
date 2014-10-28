@@ -6,3 +6,4 @@ build/**
 src/scripts/registration.cpp
 src/engine/hashes.h
 src/engine/hashes.cpp
+src/compose/compose_parser.output

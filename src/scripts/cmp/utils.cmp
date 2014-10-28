@@ -61,18 +61,18 @@ component WasdRot
 
     #init()
     {
-        watch_input_state(#forward, 0, #forward);
-        watch_input_state(#back, 0, #back);
-        watch_input_state(#left, 0, #left);
-        watch_input_state(#right, 0, #right);
+        $.watch_input_state(#forward, 0, #forward);
+        $.watch_input_state(#back, 0, #back);
+        $.watch_input_state(#left, 0, #left);
+        $.watch_input_state(#right, 0, #right);
     }
 
     #update(float deltaSecs)
     {
         pitch += pitching * deltaSecs * 100.0;
         yaw += yawing * deltaSecs * 100.0;
-        mat34 transform = transform_rotate(vec3{radians(pitch), radians(yaw), 0.0});
-        renderer_transform_model_instance(wasdrot_modeluid, transform);
+        mat34 transform = $.transform_rotate(vec3{$.radians(pitch), $.radians(yaw), 0.0});
+        $.renderer_transform_model_instance(wasdrot_modeluid, transform);
     }
 
     #forward(bool status)

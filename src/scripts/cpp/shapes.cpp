@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Timer.cpp - Auto-generated from Timer.cmp
+// shapes.cpp - Auto-generated from shapes.cmp
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 912237c349f150cb6c27adbb832c55cb
+// HASH: 1a4579cdbd0229f083b211817f155da6
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -35,104 +35,99 @@
 namespace gaen
 {
 
-namespace comp
+namespace ent
 {
 
-class Timer : public Component
+class Box : public Entity
 {
 public:
-    static Component * construct(void * place, Entity * pEntity)
+    static Entity * construct(u32 childCount)
     {
-        return new (place) Timer(pEntity);
+        return GNEW(kMEM_Engine, Box, childCount);
     }
     
-    void update(float deltaSecs)
-    {
-        if ((timer_interval() > 0.000000f))
-        {
-            last_notification() += deltaSecs;
-            if ((last_notification() >= timer_interval()))
-            {
-                {
-                    StackMessageBlockWriter<0> msgw(HASH::timer, kMessageFlag_None, mpEntity->task().id(), mpEntity->task().id(), to_cell(timer_message()));
-                    mpEntity->message(msgw.accessor());
-                }
-                last_notification() = 0.000000f;
-            }
-        }
-    }
-
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
-            timer_interval() = 0.000000f;
-            timer_message() = 0;
-            last_notification() = 0.000000f;
-            return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
             {
-            case HASH::timer_interval:
+            case HASH::diffuse:
             {
                 u32 requiredBlockCount = 1;
                 if (_msg.blockCount >= requiredBlockCount)
                 {
-                    reinterpret_cast<Block*>(&timer_interval())[0].cells[0] = msgAcc[0].cells[0];
+                    reinterpret_cast<Block*>(&diffuse())[0].cells[0] = msgAcc[0].cells[0];
                     return MessageResult::Consumed;
                 }
             }
-            case HASH::timer_message:
+            case HASH::size:
             {
                 u32 requiredBlockCount = 1;
                 if (_msg.blockCount >= requiredBlockCount)
                 {
-                    reinterpret_cast<Block*>(&timer_message())[0].cells[0] = msgAcc[0].cells[0];
+                    reinterpret_cast<Block*>(&size())[0].cells[0] = msgAcc[0].cells[0];
+                    reinterpret_cast<Block*>(&size())[0].cells[1] = msgAcc[0].cells[1];
+                    reinterpret_cast<Block*>(&size())[0].cells[2] = msgAcc[0].cells[2];
                     return MessageResult::Consumed;
                 }
             }
             }
             return MessageResult::Propogate; // Invalid property
+        case HASH::init:
+        {
+            model() = system_api::create_shape_box(size(), diffuse(), entity());
+            system_api::renderer_insert_model_instance(boxModelUid(), model(), entity());
+            return MessageResult::Consumed;
+        }
         }
         return MessageResult::Propogate;
 }
 
 private:
-    Timer(Entity * pEntity)
-      : Component(pEntity)
+    Box(u32 childCount)
+      : Entity(HASH::Box, childCount, 36, 36)
     {
-        mScriptTask = Task::create_updatable(this, HASH::Timer);
-        mBlockCount = 1;
-    }
-    Timer(const Timer&)              = delete;
-    Timer(const Timer&&)             = delete;
-    Timer & operator=(const Timer&)  = delete;
-    Timer & operator=(const Timer&&) = delete;
+        boxModelUid() = system_api::renderer_gen_uid(entity());
+        diffuse() = Color(255, 0, 0, 255);
+        model() = Handle::null();
+        size() = Vec3(1.000000f, 1.000000f, 1.000000f);
 
-    f32& timer_interval()
+        mBlockCount = 4;
+        mScriptTask = Task::create(this, HASH::Box);
+    }
+    Box(const Box&)              = delete;
+    Box(const Box&&)             = delete;
+    Box & operator=(const Box&)  = delete;
+    Box & operator=(const Box&&) = delete;
+
+    Vec3& size()
     {
-        return mpBlocks[0].cells[0].f;
+        return *reinterpret_cast<Vec3*>(&mpBlocks[2].qCell);
     }
-    u32& timer_message()
+    Color& diffuse()
     {
-        return mpBlocks[0].cells[1].u;
+        return mpBlocks[2].cells[3].color;
     }
-    f32& last_notification()
+    Handle& model()
     {
-        return mpBlocks[0].cells[2].f;
+        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
     }
+    u32& boxModelUid()
+    {
+        return mpBlocks[3].cells[0].u;
+    }
+}; // class Box
 
-}; // class Timer
+} // namespace ent
 
-} // namespace comp
-
-void register_component_Timer(Registry & registry)
+void register_entity_Box(Registry & registry)
 {
-    if (!registry.registerComponentConstructor(HASH::Timer, comp::Timer::construct))
-        PANIC("Unable to register component: Timer");
+    if (!registry.registerEntityConstructor(HASH::Box, ent::Box::construct))
+        PANIC("Unable to register entity: Box");
 }
 
 } // namespace gaen

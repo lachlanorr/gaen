@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// WasdRot.cpp - Auto-generated from WasdRot.cmp
+// utils.cpp - Auto-generated from utils.cmp
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: ebc0a9bfdf7fe552080383ef48567662
+// HASH: 5c77ba0b7cf31ccff8b3479d4e0d60be
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -34,6 +34,106 @@
 
 namespace gaen
 {
+
+namespace comp
+{
+
+class Timer : public Component
+{
+public:
+    static Component * construct(void * place, Entity * pEntity)
+    {
+        return new (place) Timer(pEntity);
+    }
+    
+    void update(float deltaSecs)
+    {
+        if ((timer_interval() > 0.000000f))
+        {
+            last_notification() += deltaSecs;
+            if ((last_notification() >= timer_interval()))
+            {
+                {
+                    StackMessageBlockWriter<0> msgw(HASH::timer, kMessageFlag_None, mpEntity->task().id(), mpEntity->task().id(), to_cell(timer_message()));
+                    mpEntity->message(msgw.accessor());
+                }
+                last_notification() = 0.000000f;
+            }
+        }
+    }
+
+    template <typename T>
+    MessageResult message(const T & msgAcc)
+    {
+        const Message & _msg = msgAcc.message();
+        switch(_msg.msgId)
+        {
+        case HASH::init_data:
+            last_notification() = 0.000000f;
+            timer_interval() = 0.000000f;
+            timer_message() = 0;
+            return MessageResult::Consumed;
+        case HASH::set_property:
+            switch (_msg.payload.u)
+            {
+            case HASH::timer_interval:
+            {
+                u32 requiredBlockCount = 1;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&timer_interval())[0].cells[0] = msgAcc[0].cells[0];
+                    return MessageResult::Consumed;
+                }
+            }
+            case HASH::timer_message:
+            {
+                u32 requiredBlockCount = 1;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&timer_message())[0].cells[0] = msgAcc[0].cells[0];
+                    return MessageResult::Consumed;
+                }
+            }
+            }
+            return MessageResult::Propogate; // Invalid property
+        }
+        return MessageResult::Propogate;
+}
+
+private:
+    Timer(Entity * pEntity)
+      : Component(pEntity)
+    {
+        mScriptTask = Task::create_updatable(this, HASH::Timer);
+        mBlockCount = 1;
+    }
+    Timer(const Timer&)              = delete;
+    Timer(const Timer&&)             = delete;
+    Timer & operator=(const Timer&)  = delete;
+    Timer & operator=(const Timer&&) = delete;
+
+    f32& timer_interval()
+    {
+        return mpBlocks[0].cells[0].f;
+    }
+    u32& timer_message()
+    {
+        return mpBlocks[0].cells[1].u;
+    }
+    f32& last_notification()
+    {
+        return mpBlocks[0].cells[2].f;
+    }
+
+}; // class Timer
+
+} // namespace comp
+
+void register_component_Timer(Registry & registry)
+{
+    if (!registry.registerComponentConstructor(HASH::Timer, comp::Timer::construct))
+        PANIC("Unable to register component: Timer");
+}
 
 namespace comp
 {
@@ -61,7 +161,26 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            pitch() = 0.000000f;
+            pitching() = 0.000000f;
+            wasdrot_modeluid() = 0;
+            yaw() = 0.000000f;
+            yawing() = 0.000000f;
             return MessageResult::Consumed;
+        case HASH::set_property:
+            switch (_msg.payload.u)
+            {
+            case HASH::wasdrot_modeluid:
+            {
+                u32 requiredBlockCount = 1;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&wasdrot_modeluid())[0].cells[0] = msgAcc[0].cells[0];
+                    return MessageResult::Consumed;
+                }
+            }
+            }
+            return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
             system_api::watch_input_state(HASH::forward, 0, HASH::forward, entity());

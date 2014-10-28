@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-import shapes;
+//import shapes;
 
 entity test
 {
@@ -32,6 +32,5 @@ entity test
     {
         entity box = shapes.Box{size    = vec3{2.0, 2.0, 2.0},
                                 diffuse = color{255, 0, 0, 255}};
-
     }
 }

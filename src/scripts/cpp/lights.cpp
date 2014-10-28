@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Box.cpp - Auto-generated from Box.cmp
+// lights.cpp - Auto-generated from lights.cmp
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: cf33bbf2446606976326901def083635
+// HASH: 6d6c648a4c2158c99aa5f1823db8930c
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -38,12 +38,12 @@ namespace gaen
 namespace ent
 {
 
-class Box : public Entity
+class DirectionalLight : public Entity
 {
 public:
     static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, Box, childCount);
+        return GNEW(kMEM_Engine, DirectionalLight, childCount);
     }
     
     template <typename T>
@@ -52,24 +52,9 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::set_property:
-            switch (_msg.payload.u)
-            {
-            case HASH::col:
-            {
-                u32 requiredBlockCount = 1;
-                if (_msg.blockCount >= requiredBlockCount)
-                {
-                    reinterpret_cast<Block*>(&col())[0].cells[0] = msgAcc[0].cells[0];
-                    return MessageResult::Consumed;
-                }
-            }
-            }
-            return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
-            model() = system_api::create_shape_box(size(), col(), entity());
-            system_api::renderer_insert_model_instance(boxModelUid(), model(), entity());
+            system_api::renderer_insert_light_directional(lightUid(), Vec3(0.100000f, 0.100000f, 0.200000f), Color(255, 255, 255, 255), entity());
             return MessageResult::Consumed;
         }
         }
@@ -77,45 +62,31 @@ public:
 }
 
 private:
-    Box(u32 childCount)
-      : Entity(HASH::Box, childCount, 36, 36)
+    DirectionalLight(u32 childCount)
+      : Entity(HASH::DirectionalLight, childCount, 36, 36)
     {
-        col() = Color(255, 0, 0, 255);
-        model() = Handle::null();
-        boxModelUid() = system_api::renderer_gen_uid(entity());
+        lightUid() = system_api::renderer_gen_uid(entity());
 
-        mBlockCount = 4;
-        mScriptTask = Task::create(this, HASH::Box);
+        mBlockCount = 1;
+        mScriptTask = Task::create(this, HASH::DirectionalLight);
     }
-    Box(const Box&)              = delete;
-    Box(const Box&&)             = delete;
-    Box & operator=(const Box&)  = delete;
-    Box & operator=(const Box&&) = delete;
+    DirectionalLight(const DirectionalLight&)              = delete;
+    DirectionalLight(const DirectionalLight&&)             = delete;
+    DirectionalLight & operator=(const DirectionalLight&)  = delete;
+    DirectionalLight & operator=(const DirectionalLight&&) = delete;
 
-    Vec3& size()
+    u32& lightUid()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[2].qCell);
+        return mpBlocks[0].cells[0].u;
     }
-    Color& col()
-    {
-        return mpBlocks[2].cells[3].color;
-    }
-    Handle& model()
-    {
-        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
-    }
-    u32& boxModelUid()
-    {
-        return mpBlocks[3].cells[0].u;
-    }
-}; // class Box
+}; // class DirectionalLight
 
 } // namespace ent
 
-void register_entity_Box(Registry & registry)
+void register_entity_DirectionalLight(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::Box, ent::Box::construct))
-        PANIC("Unable to register entity: Box");
+    if (!registry.registerEntityConstructor(HASH::DirectionalLight, ent::DirectionalLight::construct))
+        PANIC("Unable to register entity: DirectionalLight");
 }
 
 } // namespace gaen

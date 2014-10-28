@@ -287,7 +287,7 @@ Ast * ast_create_property_def(const char * name, Ast * pDataType, Ast * pInitVal
 Ast * ast_create_field_def(const char * name, Ast * pDataType, Ast * pInitVal, ParseData * pParseData);
 
 Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData);
-Ast * ast_create_component_member(const char * name, Ast * pPropInitList, ParseData * pParseData);
+Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseData * pParseData);
 Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData);
 
 Ast * ast_create_custom_type(AstFlags flags, Ast * pTypeInfo, ParseData * pParseData);

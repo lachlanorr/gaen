@@ -1119,6 +1119,15 @@ static S codegen_recurse(const Ast * pAst,
         return unary_op_post(pAst->pRhs, "--");
     }
 
+    case kAST_EntityInit:
+    {
+        return S("/* LORRTODO: Add support for kAST_EntityInit Ast Type */");
+    }
+    case kAST_StructInit:
+    {
+        return S("/* LORRTODO: Add support for kAST_StructInit Ast Type */");
+    }
+
     case kAST_IntLiteral:
     {
         static const u32 kScratchSize = 64;

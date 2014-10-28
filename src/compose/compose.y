@@ -190,8 +190,8 @@ component_member_list
     ;
 
 component_member
-    : IDENTIFIER ';'                        { $$ = ast_create_component_member($1, ast_create(kAST_PropInit, pParseData), pParseData); }
-    | IDENTIFIER '{' prop_init_list '}' ';' { $$ = ast_create_component_member($1, $3, pParseData); }
+    : dotted_id ';'                        { $$ = ast_create_component_member($1, ast_create(kAST_PropInit, pParseData), pParseData); }
+    | dotted_id '{' prop_init_list '}' ';' { $$ = ast_create_component_member($1, $3, pParseData); }
     ;
 
 prop_init_list
@@ -339,7 +339,8 @@ type
 
 /* Treat "entity" type specially since it is overloaded with use of defining entities */
 type_ent
-    : CONST ENTITY  { $$ = ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData); }
+    : type          { $$ = $1; }
+    | CONST ENTITY  { $$ = ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData); }
     | ENTITY        { $$ = ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData); }
 
 basic_type

@@ -291,9 +291,20 @@ BlockInfos * block_pack_message_params(Ast * pAst)
     return pBlockInfos;
 }
 
+u32 param_count(const CompList<SymRec*> & symRecs)
+{
+    u32 count = 0;
+    for (SymRec * pSymRec : symRecs)
+    {
+        if (pSymRec->type == kSYMT_Param)
+            ++count;
+    }
+    return count;
+}
+
 BlockInfos * block_pack_message_def_params(SymTab * pSymTab, ParseData * pParseData)
 {
-    u32 count = (u32)pSymTab->orderedSymRecs.size();
+    u32 count = (u32)param_count(pSymTab->orderedSymRecs);
 
     BlockInfos * pBlockInfos = COMP_NEW(BlockInfos);
 
