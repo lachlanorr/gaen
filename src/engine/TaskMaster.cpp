@@ -84,7 +84,7 @@ static void start_game_loop()
 
     LOG_INFO("Starting thread: %d", tid);
 
-    TaskMaster & tm = TaskMaster::task_master_for_thread(active_thread_id());
+    TaskMaster & tm = TaskMaster::task_master_for_active_thread();
 
     if (tm.isPrimary())
         tm.runPrimaryGameLoop();
@@ -110,11 +110,7 @@ void start_game_loops()
 Registry & get_registry()
 {
     ASSERT(sIsInit);
-
-    thread_id activeThreadId = active_thread_id();
-
-    ASSERT(activeThreadId < num_threads());
-    TaskMaster & tm = TaskMaster::task_master_for_thread(activeThreadId);
+    TaskMaster & tm = TaskMaster::task_master_for_active_thread();
     return tm.registry();
 }
 
@@ -125,12 +121,9 @@ MessageQueue & get_message_queue(u32 msgId,
 {
     ASSERT(sIsInit);
 
-    thread_id activeThreadId = active_thread_id();
-
     if (source != kMainThreadTaskId)
     {
-        ASSERT(activeThreadId < num_threads());
-        TaskMaster & tm = TaskMaster::task_master_for_thread(activeThreadId);
+        TaskMaster & tm = TaskMaster::task_master_for_active_thread();
         return tm.messageQueueForTarget(target);
     }
     else // main thread sent this message
@@ -168,6 +161,9 @@ void broadcast_message(u32 msgId,
     ASSERT(sIsInit);
     ASSERT(source != kMainThreadTaskId || active_thread_id() == kMainThreadId);
 
+    // LORRTEMP
+    Task * pTask = (Task*)pBlocks;
+
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
         MessageQueueWriter msgw(msgId,
@@ -182,6 +178,16 @@ void broadcast_message(u32 msgId,
             msgAcc[i] = pBlocks[i];
         }
     }
+}
+
+void broadcast_message(const MessageBlockAccessor & msgAcc)
+{
+    broadcast_message(msgAcc.message().msgId,
+                      msgAcc.message().flags,
+                      msgAcc.message().source,
+                      msgAcc.message().payload,
+                      msgAcc.message().blockCount,
+                      &msgAcc[0]);
 }
 
 void TaskMaster::init(thread_id tid)
@@ -263,6 +269,13 @@ TaskMaster & TaskMaster::task_master_for_thread(thread_id tid)
     return sTaskMasters[tid];
 }
 
+TaskMaster & TaskMaster::task_master_for_active_thread()
+{
+    thread_id activeThreadId = active_thread_id();
+    ASSERT(activeThreadId < num_threads());
+    return task_master_for_thread(activeThreadId);
+}
+
 MessageQueue & TaskMaster::messageQueueForTarget(task_id target)
 {
     thread_id targetThreadId;
@@ -273,6 +286,11 @@ MessageQueue & TaskMaster::messageQueueForTarget(task_id target)
         target == kInputMgrTaskId)
     {
         targetThreadId = kPrimaryThreadId;
+    }
+    else if (target < kMaxThreads)
+    {
+        // implicit thread id as target
+        targetThreadId = target;
     }
     else
     {
@@ -303,13 +321,19 @@ void TaskMaster::runPrimaryGameLoop()
 
     // LORRTODO - make start entity name dynamic based on command line args
     // Init the start entity now that we have a TaskMaster running.
-    Entity * pStartEntity = mRegistry.constructEntity(HASH::start, 32);
+    Entity * pStartEntity = mRegistry.constructEntity(HASH::init__start, 32);
+
     if (pStartEntity)
-        LOG_INFO("Start entity: %s", "start");
+        LOG_INFO("Start entity: %s", "init__start");
     else
-        LOG_ERROR("Unable to start entity: %s", "start");
+        LOG_ERROR("Unable to start entity: %s", "init__start");
+
     if (pStartEntity)
     {
+        // Send init message
+        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pStartEntity->task().id(), pStartEntity->task().id(), to_cell(0));
+        pStartEntity->message(msgBW.accessor());
+    
         insertTask(threadId(), pStartEntity->task());
     }
 
@@ -484,6 +508,7 @@ void TaskMaster::processMessages(MessageQueue & msgQueue)
 MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
 {
     const Message & msg = msgAcc.message();
+
     // Handle messages sent to us, the TaskMaster
     if (msg.target < num_threads())
     {

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// start.cpp - Auto-generated from start.cmp
+// init.cpp - Auto-generated from init.cmp
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 4961ca9682e315b646fde13cf1206c96
+// HASH: b31dbbd1eb69a6f248178022178a9c95
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -38,12 +38,39 @@ namespace gaen
 namespace ent
 {
 
-class start : public Entity
+class init__start : public Entity
 {
+private:
+// Entity initializer helper functions
+    task_id entity_init__init__shapes_Box__42_23()
+    {
+        Entity * pEnt = get_registry().constructEntity(HASH::shapes__Box, 8);
+        // Init Property: size
+        {
+            StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
+            *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(2.000000f, 2.000000f, 2.000000f);
+            pEnt->task().message(msgw.accessor());
+        }
+        // Init Property: diffuse
+        {
+            StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::diffuse));
+            msgw[0].cells[0].color = Color(255, 255, 0, 255);
+            pEnt->task().message(msgw.accessor());
+        }
+
+        // Send init message
+        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->message(msgBW.accessor());
+
+        stageEntity(pEnt);
+        return pEnt->task().id();
+    }
+
+
 public:
     static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, start, childCount);
+        return GNEW(kMEM_Engine, init__start, childCount);
     }
     
     template <typename T>
@@ -54,7 +81,8 @@ public:
         {
         case HASH::init:
         {
-            u32 /* entity id */ box = /* LORRTODO: Add support for kAST_EntityInit Ast Type */;
+            task_id box = entity_init__init__shapes_Box__42_23();
+            system_api::insert_task(box, entity());
             return MessageResult::Consumed;
         }
         case HASH::timer:
@@ -69,16 +97,16 @@ public:
 }
 
 private:
-    start(u32 childCount)
-      : Entity(HASH::start, childCount, 36, 36)
+    init__start(u32 childCount)
+      : Entity(HASH::init__start, childCount, 36, 36)
     {
 
         mBlockCount = 0;
-        mScriptTask = Task::create(this, HASH::start);
+        mScriptTask = Task::create(this, HASH::init__start);
 
         // Component: utils.Timer
         {
-            Task & compTask = insertComponent(HASH::utils.Timer, mComponentCount);
+            Task & compTask = insertComponent(HASH::utils__Timer, mComponentCount);
             // Init Property: timer_interval
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_interval));
@@ -93,19 +121,19 @@ private:
             }
         }
     }
-    start(const start&)              = delete;
-    start(const start&&)             = delete;
-    start & operator=(const start&)  = delete;
-    start & operator=(const start&&) = delete;
+    init__start(const init__start&)              = delete;
+    init__start(const init__start&&)             = delete;
+    init__start & operator=(const init__start&)  = delete;
+    init__start & operator=(const init__start&&) = delete;
 
-}; // class start
+}; // class init__start
 
 } // namespace ent
 
-void register_entity_start(Registry & registry)
+void register_entity__init__start(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::start, ent::start::construct))
-        PANIC("Unable to register entity: start");
+    if (!registry.registerEntityConstructor(HASH::init__start, ent::init__start::construct))
+        PANIC("Unable to register entity: init__start");
 }
 
 } // namespace gaen

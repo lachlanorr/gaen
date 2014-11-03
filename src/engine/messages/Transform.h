@@ -74,7 +74,7 @@ private:
 typedef TransformR<MessageQueueAccessor> TransformQR;
 typedef TransformR<MessageBlockAccessor> TransformBR;
 
-class TransformQW : protected MessageQueueWriter
+class TransformQW : public MessageQueueWriter
 {
 public:
     TransformQW(u32 msgId,
@@ -100,15 +100,13 @@ public:
     void setId(u32 val) { mMsgAcc.message().payload.u = val; }
 };
 
-class TransformBW : protected MessageBlockWriter
+class TransformBW : public MessageBlockWriter
 {
 public:
     TransformBW(u32 msgId,
                 u32 flags,
                 task_id source,
                 task_id target,
-                Block * pBlocks,
-                u32 blockCount,
                 u32 id)
       : MessageBlockWriter(msgId,
                            flags,

@@ -71,7 +71,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 /* This type list must match the DataType enum in compiler.h */
 %token <dataType> VOID BOOL CHAR BYTE SHORT USHORT INT UINT LONG ULONG HALF FLOAT DOUBLE COLOR VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 HANDLE_ ENTITY
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS IMPORT CONST THIS NONE
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS IMPORT AS CONST THIS NONE
 %right ELSE THEN
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
@@ -124,7 +124,7 @@ import_list
     ;
 
 import_stmt
-    : IMPORT dotted_id ';'  { $$ = ast_create_import_stmt($2, pParseData); }
+    : IMPORT dotted_id AS dotted_id ';'  { $$ = ast_create_import_stmt($2, $4, pParseData); }
     ;
 
 dotted_id
@@ -175,8 +175,8 @@ message_prop
 
 param_list
     : /* empty */                           { $$ = parsedata_add_param(pParseData, NULL, NULL); }
-    | type_ent IDENTIFIER                   { $$ = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, $1, $2, NULL)); }
-    | param_list ',' type_ent IDENTIFIER    { $$ = parsedata_add_param(pParseData, $1, symrec_create(kSYMT_Param, $3, $4, NULL)); }
+    | type_ent IDENTIFIER                   { $$ = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, $1, $2, NULL, pParseData)); }
+    | param_list ',' type_ent IDENTIFIER    { $$ = parsedata_add_param(pParseData, $1, symrec_create(kSYMT_Param, $3, $4, NULL, pParseData)); }
     ;
 
 component_block
@@ -245,8 +245,8 @@ target_expr
 expr
     : '(' expr ')'   { $$ = $2; }
 
-    | type_ent IDENTIFIER          { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL)); }
-    | type_ent IDENTIFIER '=' expr { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, $4)); }
+    | type_ent IDENTIFIER          { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL, pParseData)); }
+    | type_ent IDENTIFIER '=' expr { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, $4, pParseData)); }
     
     | cond_expr        { $$ = $1; }
     

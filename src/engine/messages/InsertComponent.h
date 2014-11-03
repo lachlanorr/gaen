@@ -57,7 +57,7 @@ private:
 typedef InsertComponentR<MessageQueueAccessor> InsertComponentQR;
 typedef InsertComponentR<MessageBlockAccessor> InsertComponentBR;
 
-class InsertComponentQW : protected MessageQueueWriter
+class InsertComponentQW : public MessageQueueWriter
 {
 public:
     InsertComponentQW(u32 msgId,
@@ -77,15 +77,13 @@ public:
     void setIndex(u32 val) { mMsgAcc[0].cells[0].u = val; }
 };
 
-class InsertComponentBW : protected MessageBlockWriter
+class InsertComponentBW : public MessageBlockWriter
 {
 public:
     InsertComponentBW(u32 msgId,
                       u32 flags,
                       task_id source,
                       task_id target,
-                      Block * pBlocks,
-                      u32 blockCount,
                       u32 nameHash)
       : MessageBlockWriter(msgId,
                            flags,

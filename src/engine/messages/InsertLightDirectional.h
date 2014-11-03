@@ -61,7 +61,7 @@ private:
 typedef InsertLightDirectionalR<MessageQueueAccessor> InsertLightDirectionalQR;
 typedef InsertLightDirectionalR<MessageBlockAccessor> InsertLightDirectionalBR;
 
-class InsertLightDirectionalQW : protected MessageQueueWriter
+class InsertLightDirectionalQW : public MessageQueueWriter
 {
 public:
     InsertLightDirectionalQW(u32 msgId,
@@ -82,15 +82,13 @@ public:
     void setUid(u32 val) { mMsgAcc.message().payload.u = val; }
 };
 
-class InsertLightDirectionalBW : protected MessageBlockWriter
+class InsertLightDirectionalBW : public MessageBlockWriter
 {
 public:
     InsertLightDirectionalBW(u32 msgId,
                              u32 flags,
                              task_id source,
                              task_id target,
-                             Block * pBlocks,
-                             u32 blockCount,
                              u32 uid)
       : MessageBlockWriter(msgId,
                            flags,

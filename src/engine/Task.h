@@ -37,12 +37,10 @@ namespace gaen
 // If you change the size in either of those structs, all of them must change.
 static const task_id kMaxTaskId = (1 << 28) - 1;
 
-// LORRTODO - do we still need this kRootTaskId?  We're no longer doing the tree thing
-static const task_id kRootTaskId         = 0; // A task with this as their parent is a top level, root task
+// Note: Target task id's less than kMaxThreads are implicitly considered as thread ids
+
 static const task_id kInvalidTaskId      = kMaxTaskId - 0; // 536870911
-
 static const task_id kMainThreadTaskId   = kMaxTaskId - 1; // 536870910, special task id used to refer to the main thread as a task
-
 static const task_id kRendererTaskId     = kMaxTaskId - 3; // 536870908
 static const task_id kInputMgrTaskId     = kMaxTaskId - 4; // 536870907
 

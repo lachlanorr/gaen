@@ -42,27 +42,29 @@ namespace gaen
 namespace system_api
 {
 
-f32 radians(const f32 & degrees, const Entity & caller);
-f32 degrees(const f32 & radians, const Entity & caller);
+void insert_task(const u32 & id, Entity & caller);
 
-Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & caller);
+f32 radians(const f32 & degrees, Entity & caller);
+f32 degrees(const f32 & radians, Entity & caller);
 
-void watch_input_state(const u32 & state, const u32 & deviceId, const u32 & message, const Entity & caller);
+Handle create_shape_box(const Vec3 & size, const Color & color, Entity & caller);
 
-Mat34 transform_rotate(const Vec3 & angles, const Entity & caller);
+void watch_input_state(const u32 & state, const u32 & deviceId, const u32 & message, Entity & caller);
 
-u32 renderer_gen_uid(const Entity & caller);
+Mat34 transform_rotate(const Vec3 & angles, Entity & caller);
+
+u32 renderer_gen_uid(Entity & caller);
 void renderer_insert_model_instance(const u32 & uid,
                                     Handle & modelHandle,
-                                    const Entity & caller);
-void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, const Entity & caller);
-void renderer_remove_model_instance(const u32 & uid, const Entity & caller);
+                                    Entity & caller);
+void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, Entity & caller);
+void renderer_remove_model_instance(const u32 & uid, Entity & caller);
 
 void renderer_insert_light_directional(const u32 & uid,
                                        const Vec3 & direction,
                                        const Color & color,
-                                       const Entity & caller);
-void renderer_remove_light_directional(const u32 & uid, const Entity & caller);
+                                       Entity & caller);
+void renderer_remove_light_directional(const u32 & uid, Entity & caller);
 
 }
 

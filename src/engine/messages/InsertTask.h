@@ -74,7 +74,7 @@ private:
 typedef InsertTaskR<MessageQueueAccessor> InsertTaskQR;
 typedef InsertTaskR<MessageBlockAccessor> InsertTaskBR;
 
-class InsertTaskQW : protected MessageQueueWriter
+class InsertTaskQW : public MessageQueueWriter
 {
 public:
     InsertTaskQW(u32 msgId,
@@ -100,15 +100,13 @@ public:
     void setOwner(thread_id val) { mMsgAcc.message().payload.u = *reinterpret_cast<const u32*>(&val); }
 };
 
-class InsertTaskBW : protected MessageBlockWriter
+class InsertTaskBW : public MessageBlockWriter
 {
 public:
     InsertTaskBW(u32 msgId,
                  u32 flags,
                  task_id source,
                  task_id target,
-                 Block * pBlocks,
-                 u32 blockCount,
                  thread_id owner)
       : MessageBlockWriter(msgId,
                            flags,

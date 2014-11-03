@@ -65,7 +65,7 @@ public:
     const Mat34 & parentTransform() const;
 
     void stageEntity(Entity * pEntity);
-    void unstageEntity(Entity * pEntity);
+    Entity * unstageEntity(task_id id);
 
 protected:
     // Max entities that can be created before they're inserted into the engine

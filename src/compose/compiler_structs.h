@@ -38,8 +38,10 @@ struct SymRec
     SymType type;
     DataType dataType;
     const char * name;
+    const char * full_name;
     Ast * pAst;
     SymTab * pSymTab;
+    SymTab * pSymTabInternal;
     u32 order;
 };
 
@@ -150,6 +152,7 @@ struct ParseData
     Ast* pRootAst;
     void * pScanner;
     Scope* pRootScope;
+    const char * namespace_;
     CompList<Scope*> scopeStack;
     CompSet<CompString> strings;
 

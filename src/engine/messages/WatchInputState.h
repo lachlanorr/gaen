@@ -59,7 +59,7 @@ private:
 typedef WatchInputStateR<MessageQueueAccessor> WatchInputStateQR;
 typedef WatchInputStateR<MessageBlockAccessor> WatchInputStateBR;
 
-class WatchInputStateQW : protected MessageQueueWriter
+class WatchInputStateQW : public MessageQueueWriter
 {
 public:
     WatchInputStateQW(u32 msgId,
@@ -80,15 +80,13 @@ public:
     void setDeviceId(u32 val) { mMsgAcc[0].cells[1].u = val; }
 };
 
-class WatchInputStateBW : protected MessageBlockWriter
+class WatchInputStateBW : public MessageBlockWriter
 {
 public:
     WatchInputStateBW(u32 msgId,
                       u32 flags,
                       task_id source,
                       task_id target,
-                      Block * pBlocks,
-                      u32 blockCount,
                       u32 state)
       : MessageBlockWriter(msgId,
                            flags,

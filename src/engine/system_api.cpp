@@ -32,6 +32,7 @@
 #include "engine/InputMgr.h"
 #include "engine/MessageWriter.h"
 #include "engine/messages/InsertModelInstance.h"
+#include "engine/messages/InsertTask.h"
 #include "engine/messages/Transform.h"
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/WatchInputState.h"
@@ -48,25 +49,41 @@ namespace gaen
 namespace system_api
 {
 
-f32 radians(const f32 & degrees, const Entity & caller)
+void insert_task(const u32 & id, Entity & caller)
+{
+    Entity * pEnt = caller.unstageEntity(id);
+    if (pEnt)
+    {
+        ASSERT(sizeof(Task) % kBlockSize == 0);
+        messages::InsertTaskBW msgw(HASH::insert_task,
+                                    kMessageFlag_None,
+                                    caller.task().id(),
+                                    active_thread_id(),
+                                    active_thread_id());
+        msgw.setTask(pEnt->task());
+        broadcast_message(msgw.accessor());
+    }
+}
+
+f32 radians(const f32 & degrees, Entity & caller)
 {
     return ::gaen::radians(degrees);
 }
 
-f32 degrees(const f32 & radians, const Entity & caller)
+f32 degrees(const f32 & radians, Entity & caller)
 {
     return ::gaen::degrees(radians);
 }
 
 
-Handle create_shape_box(const Vec3 & size, const Color & color, const Entity & caller)
+Handle create_shape_box(const Vec3 & size, const Color & color, Entity & caller)
 {
     Model * pModel = build_box(size, color);
 
     return Handle(HASH::Model, 0, 0, sizeof(Model), pModel, nullptr);
 }
 
-void watch_input_state(const u32 & state, const u32 & deviceId, const u32 & message, const Entity & caller)
+void watch_input_state(const u32 & state, const u32 & deviceId, const u32 & message, Entity & caller)
 {
     messages::WatchInputStateQW msgQW(HASH::watch_input_state,
                                       kMessageFlag_None,
@@ -77,12 +94,12 @@ void watch_input_state(const u32 & state, const u32 & deviceId, const u32 & mess
     msgQW.setMessage(message);
 }
 
-Mat34 transform_rotate(const Vec3 & angles, const Entity & caller)
+Mat34 transform_rotate(const Vec3 & angles, Entity & caller)
 {
     return Mat34::rotation(angles);
 }
 
-u32 renderer_gen_uid(const Entity & caller)
+u32 renderer_gen_uid(Entity & caller)
 {
     static std::atomic<u32> sNextUid(1);
     return sNextUid.fetch_add(1, std::memory_order_relaxed);
@@ -90,7 +107,7 @@ u32 renderer_gen_uid(const Entity & caller)
 
 void renderer_insert_model_instance(const u32 & uid,
                                     Handle & modelHandle,
-                                    const Entity & caller)
+                                    Entity & caller)
 {
     if (modelHandle.typeHash() != HASH::Model)
         PANIC("Invalid model handle");
@@ -105,7 +122,7 @@ void renderer_insert_model_instance(const u32 & uid,
     msgQW.setWorldTransform(caller.worldTransform());
 }
 
-void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, const Entity & caller)
+void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, Entity & caller)
 {
     messages::TransformQW msgQW(HASH::renderer_transform_model_instance,
                                 kMessageFlag_None,
@@ -115,7 +132,7 @@ void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform,
     msgQW.setTransform(transform);
 }
 
-void renderer_remove_model_instance(const u32 & uid, const Entity & caller)
+void renderer_remove_model_instance(const u32 & uid, Entity & caller)
 {
     MessageQueueWriter msgQW(HASH::renderer_remove_model_instance,
                              kMessageFlag_None,
@@ -125,7 +142,7 @@ void renderer_remove_model_instance(const u32 & uid, const Entity & caller)
                              0);
 }
 
-void renderer_insert_light_directional(const u32 & uid, const Vec3 & direction, const Color & color, const Entity & caller)
+void renderer_insert_light_directional(const u32 & uid, const Vec3 & direction, const Color & color, Entity & caller)
 {
     messages::InsertLightDirectionalQW msgQW(HASH::renderer_insert_light_directional,
                                              kMessageFlag_None,
@@ -136,7 +153,7 @@ void renderer_insert_light_directional(const u32 & uid, const Vec3 & direction, 
     msgQW.setColor(color);
 }
 
-void renderer_remove_light_directional(const u32 & uid, const Entity & caller)
+void renderer_remove_light_directional(const u32 & uid, Entity & caller)
 {
     MessageQueueWriter msgQW(HASH::renderer_remove_light_directional,
                              kMessageFlag_None,

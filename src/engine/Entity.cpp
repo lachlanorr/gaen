@@ -154,11 +154,13 @@ void Entity::stageEntity(Entity * pEntity)
     ++mEntityStageCount;
 }
  
-void Entity::unstageEntity(Entity * pEntity)
+Entity * Entity::unstageEntity(task_id id)
 {
     for (u32 i = 0; i < mEntityStageCount; ++i)
     {
-        if (mpEntityStage[i] == pEntity)
+        Entity * pEnt = mpEntityStage[i];
+        ASSERT(pEnt);
+        if (pEnt->task().id() == id)
         {
             // remove entity
             mpEntityStage[i] = nullptr;
@@ -169,10 +171,11 @@ void Entity::unstageEntity(Entity * pEntity)
                 mpEntityStage[mEntityStageCount-1] = nullptr;
             }
             --mEntityStageCount;
-            return;
+            return pEnt;
         }
     }
-    PANIC("Unable to unstage entity, not on stage: 0x%p", pEntity);
+    PANIC("Unable to unstage entity, not on stage: id = %u", id);
+    return nullptr;
 }
 
 void Entity::update(f32 deltaSecs)
@@ -196,7 +199,7 @@ MessageResult Entity::message(const T & msgAcc)
     case HASH::fin:
     {
         // fin messages are like destructors and should be handled specially.
-        // fin method will propogate fin to all tasks/entity children
+        // fin method will propagate fin to all tasks/entity children
         // and delete this entity.
 
         // Send fin message to all children entities
@@ -211,7 +214,7 @@ MessageResult Entity::message(const T & msgAcc)
             mpComponents[i].task().message(msgAcc);
         }
 
-        // Call our subclassed message routine
+        // Call our sub-classed message routine
         mScriptTask.message(msgAcc);
 
         // And finally, delete ourselves
@@ -332,6 +335,11 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
 
     Component * pLoc = &mpComponents[index];
     Component * pComp = get_registry().constructComponent(nameHash, pLoc, this);
+
+    // Send init message
+    StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pComp->task().id(), pComp->task().id(), to_cell(0));
+    pComp->task().message(msgBW.accessor());
+
 
     ASSERT(pComp);
     ASSERT(pComp == pLoc);

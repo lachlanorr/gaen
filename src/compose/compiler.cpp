@@ -27,6 +27,7 @@
 #include <cstdarg>
 #include <cstdlib>
 
+#include "core/hashing.h"
 #include "core/platutils.h"
 #include "engine/system_api.h"
 
@@ -61,13 +62,37 @@ float parse_float(const char * pStr)
     return val;
 }
 
+const char * parse_identifier(const char * str, ParseData * pParseData)
+{
+    if (!str || !str[0])
+    {
+        COMP_ERROR(pParseData, "Invalid empty identifier");
+    }
+    else if (str[0] == '_')
+    {
+        COMP_ERROR(pParseData, "Invalid idenfier with leading underscore: %s", str);
+    }
+    else
+    {
+        for (const char * c = str+1; *c; ++c)
+        {
+            if (*(c-1) == '_' && *c == '_')
+                COMP_ERROR(pParseData, "Invalid identifier with double underscores: %s", str);
+            if (*c == '_' && !*(c+1))
+                COMP_ERROR(pParseData, "Invalid identifier with trailing underscore: %s", str);
+        }
+    }
+    
+    return parsedata_add_string(pParseData, str);
+}
 //------------------------------------------------------------------------------
 // SymRec
 //------------------------------------------------------------------------------
 SymRec * symrec_create(SymType symType,
                        Ast * pDataType,
                        const char * name,
-                       Ast * pAst)
+                       Ast * pAst,
+                       ParseData * pParseData)
 {
     SymRec * pSymRec = COMP_NEW(SymRec);
 
@@ -84,6 +109,63 @@ SymRec * symrec_create(SymType symType,
     pSymRec->pAst = pAst;
 
     pSymRec->pSymTab = nullptr;
+
+    // For components and entities, fill in the "internal" symtab
+    // so we can easily track which properties are valid within.
+    // This is necessary when components or entities are being
+    // initialized with property values, we want to be able to
+    // error on invalid property names.
+    if (symType == kSYMT_Entity || 
+        symType == kSYMT_Component)
+    {
+        ASSERT(pParseData->scopeStack.size() > 0);
+        ASSERT(pParseData->scopeStack.back()->pSymTab->children.size() > 0);
+        pSymRec->pSymTabInternal = pParseData->scopeStack.back()->pSymTab->children.back();
+    }
+    else
+    {
+        pSymRec->pSymTabInternal = nullptr;
+    }
+
+    // For top level symbols, prepare the full_name, as it will
+    // be used to register the symbol.
+    switch (symType)
+    {
+    case kSYMT_Function:
+    case kSYMT_Entity:
+    case kSYMT_Component:
+    case kSYMT_Struct:
+    {
+        ASSERT(pAst && pAst->pParseData && pAst->pParseData->namespace_ && name);
+        // count the dots, since we'll be changing them to __
+        u32 dotCount = 0;
+        const char * p = pAst->pParseData->namespace_;
+        for (const char * c = pAst->pParseData->namespace_; *c; c++) 
+            if (*c == '.') 
+                dotCount++;
+        char * fname = (char*)COMP_ALLOC(strlen(pAst->pParseData->namespace_) + strlen(name) + dotCount + 1);
+
+        // replace all '.' with "__"
+        p = pAst->pParseData->namespace_;
+        char * dest = fname;
+        for (const char * c = pAst->pParseData->namespace_; *c; c++)            
+            if (*c != '.')
+                *dest++ = *c;
+            else
+            {
+                *dest++ = '_';
+                *dest++ = '_';
+            }
+        *dest = '\0';
+
+        strcat(fname, name);
+        pSymRec->full_name = fname;
+        break;
+    }
+    default:
+        pSymRec->full_name = nullptr;
+        break;
+    }
 
     return pSymRec;
 }
@@ -140,6 +222,33 @@ SymRec* symtab_find_symbol(SymTab* pSymTab, const char * name)
     return nullptr;
 }
 
+// check if name matches this import
+const char * namespace_match(const char * name, const Import & import)
+{
+    const char * dotPos = strrchr(name, '.');
+
+    // If there's no '.', this identifier for sure doesn't match this import
+    if (!dotPos)
+        return nullptr;
+
+    const char * unqualified = dotPos+1;
+    size_t unqualifiedLen = strlen(unqualified);
+
+    // Id ends with a '.', bad juju
+    if (unqualifiedLen == 0)
+        return nullptr;
+
+    size_t namespaceLen = dotPos - name;
+    bool namespaceMatch = (strncmp(import.namespace_, name, namespaceLen) == 0 ||
+                           strncmp(import.pParseData->namespace_, name, namespaceLen) == 0);
+
+    if (!namespaceMatch)
+        return nullptr;
+
+    // We have a match, return the unqualified name
+    return unqualified;
+}
+
 SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
 {
     ASSERT(pSymTab);
@@ -161,16 +270,47 @@ SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
         // Try to find it in an imported symbol list.
         for (const Import & import : pSymTab->pParseData->imports)
         {
-            const char * pos = strstr(name, import.namespace_);
-            if (pos == name) // if name starts with namespace
+            const char * unqualifiedName = namespace_match(name, import);
+            if (unqualifiedName) // if name starts with "import as" namespace, or the literal pParseData namespace
             {
-                const char * unqualifiedName = name + strlen(import.namespace_);
                 SymRec * pSymRec = symtab_find_symbol(import.pParseData->pRootScope->pSymTab, unqualifiedName);
                 if (pSymRec)
                     return pSymRec;
             }
         }
     }
+
+    // Ok, we haven't found the symbol anywhere, including explicit imports.
+    // Attempt to implicitly import the containing file.
+    {
+        const char * dotPos = strrchr(name, '.');
+        if (dotPos)
+        {
+            size_t importNameLen = dotPos - name;
+            if (importNameLen <= 1)
+                return nullptr; // seems like bad id, like it starts with a '.'
+
+            char * importName = (char*)COMP_ALLOC(importNameLen+1);
+            strncpy(importName, name, importNameLen);
+            importName[importNameLen] = '\0';
+
+            // we have a dot, attempt to load the file
+            const char * path = parsedata_dotted_to_path(pSymTab->pParseData, importName);
+            if (path)
+            {
+                // path seems possibly valid, continue with the import
+                const Import * pImport = parsedata_parse_import(pSymTab->pParseData, nullptr, path); // null for namespace, import will use implicit namespace of the file
+                if (pImport)
+                {
+                    const char * unqualifiedName = namespace_match(name, *pImport);
+                    SymRec * pSymRec = symtab_find_symbol(pImport->pParseData->pRootScope->pSymTab, unqualifiedName);
+                    if (pSymRec)
+                        return pSymRec;
+                }
+            }
+        }
+    }
+
     return nullptr;
 }
 
@@ -332,7 +472,8 @@ static Ast * ast_create_block_def(const char * name,
     pAst->pSymRec = symrec_create(symType,
                                   pReturnType,
                                   name,
-                                  pAst);
+                                  pAst,
+                                  pParseData);
 
     parsedata_add_local_symbol(pParseData, pAst->pSymRec);
 
@@ -347,21 +488,22 @@ void ast_create_import_list(Ast * pImportList, ParseData * pParseData)
     pParseData->pRootAst->pLhs = pImportList;
 }
 
-Ast * ast_create_import_stmt(Ast * pDottedId, ParseData * pParseData)
+Ast * ast_create_import_stmt(Ast * pImportDottedId, Ast * pAsDottedId, ParseData * pParseData)
 {
-    ASSERT(pDottedId->str);
+    ASSERT(pImportDottedId->str);
     
     Ast * pAst = ast_create(kAST_ImportStmt, pParseData);
-    pAst->pRhs = pDottedId;
+    ast_set_lhs(pAst, pImportDottedId);
+    ast_set_rhs(pAst, pAsDottedId);
 
-    const char * path = parsedata_dotted_to_path(pParseData, pDottedId->str);
+    const char * path = parsedata_dotted_to_path(pParseData, pImportDottedId->str);
     if (!path)
     {
-        COMP_ERROR(pParseData, "Failed to find import: %s", pDottedId->str);
+        COMP_ERROR(pParseData, "Failed to find import: %s", pImportDottedId->str);
     }
     
     // Do the import
-    parsedata_parse_import(pParseData, pDottedId->str, path);
+    parsedata_parse_import(pParseData, pAsDottedId->str, path);
 
     return pAst;
 }
@@ -439,7 +581,8 @@ Ast * ast_create_property_def(const char * name, Ast * pDataType, Ast * pInitVal
     pAst->pSymRec = symrec_create(kSYMT_Property,
                                   pDataType,
                                   name,
-                                  pInitVal);
+                                  pInitVal,
+                                  pParseData);
 
     Scope * pScope = pParseData->scopeStack.back();
     symtab_add_symbol(pScope->pSymTab, pAst->pSymRec, pParseData);
@@ -461,7 +604,8 @@ Ast * ast_create_field_def(const char * name, Ast * pDataType, Ast * pInitVal, P
     pAst->pSymRec = symrec_create(kSYMT_Field,
                                   pDataType,
                                   name,
-                                  pInitVal);
+                                  pInitVal,
+                                  pParseData);
 
     Scope * pScope = pParseData->scopeStack.back();
     symtab_add_symbol(pScope->pSymTab, pAst->pSymRec, pParseData);
@@ -487,6 +631,7 @@ Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseDat
 
     Ast * pAst = ast_create(kAST_ComponentMember, pParseData);
     pAst->str = pDottedId->str;
+    pAst->pSymRec = pCompSymRec;
     ast_set_rhs(pAst, pPropInitList);
     return pAst;
 }
@@ -564,7 +709,7 @@ Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, Parse
 
         pAst->pSymRec = pSymRec;
     }
-
+    pAst->str = name;
     ast_set_rhs(pAst, pRhs);
     return pAst;
 }
@@ -672,13 +817,45 @@ Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData
     // pop scope that got created by the lexer when encountering the '{'
     parsedata_pop_scope(pParseData);
 
-    // LORRTEMP
-    Ast * pAst = ast_create(kAST_EntityInit, pParseData);
+    SymRec * pSymRec = parsedata_find_symbol(pParseData, pDottedId->str);
 
-    //SymRec * pTypeSymRec = parsedata_find_symbol(pParseData, pDottedId->str);
+    Ast * pAst = nullptr;
+
+    if (!pSymRec)
+    {
+        COMP_ERROR(pParseData, "Unknown entity: %s", pDottedId->str);
+        return pAst;
+    }
+
+    if (pSymRec->type == kSYMT_Entity)
+    {
+       pAst = ast_create(kAST_EntityInit, pParseData);
+       pAst->str = pDottedId->str;
+       pAst->pSymRec = pSymRec;
+       ast_set_rhs(pAst, pParams);
+
+       // Build a unique hash for this entity init.
+       // We'll use this hash to name a function in codegen to create/init this entity.
+       // We use filename+col+line as a basis for the hash.
+       {
+           size_t initNameStrLen = strlen(pParseData->namespace_) + strlen(pDottedId->str) + 16;
+           char * initNameStr = (char*)COMP_ALLOC(initNameStrLen+1);
+           snprintf(initNameStr, initNameStrLen, "%s_%s__%d_%d", pParseData->namespace_, pDottedId->str, pParseData->line, pParseData->column);
+           // replace any '.' with '_'
+           char * p = initNameStr;
+           while (*p++) 
+               if (*p == '.')
+                   *p = '_';
+           pAst->str = initNameStr;
+       }
+    }
+    else
+    {
+        COMP_ERROR(pParseData, "Support for structs not yet implemented: %s", pDottedId->str);
+        return pAst;
+    }
 
     return pAst;
-
 }
 
 Ast * ast_create_int_literal(int numi, ParseData * pParseData)
@@ -1009,7 +1186,9 @@ int are_types_compatible(DataType a, DataType b)
     if (rawA == rawB)
         return 1;
     if (rawA == kDT_uint && rawB == kDT_int || 
-        rawA == kDT_int && rawB == kDT_uint)
+        rawA == kDT_int && rawB == kDT_uint ||
+        rawA == kDT_entity && rawB == kDT_uint ||
+        rawA == kDT_uint && rawB == kDT_entity)
         return 1;
     return 0;
 }
@@ -1097,10 +1276,43 @@ const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dotte
     return path;
 }
 
+static bool has_invalid_underscore(const char * str)
+{
+    if (!str || !str[0])
+        return false;
+    if (*str == '_')                          // "_" at start
+        return true;
+    for (const char * c = str+1; *c; c++)
+        if (*(c-1) == '_' && *c == '_')       // "__"
+            return true;
+        else if (*(c-1) == '.' && *c == '_')  // "._"
+            return true;
+        else if (*(c-1) == '_' && *c == '.')  // "_."
+            return true;
+        else if (*c == '_' && !*(c+1))        // "_" at end
+            return true;
+    return false;
+}
+
 void parsedata_prep_paths(ParseData * pParseData, const char * fullPath)
 {
     pParseData->fullPath = gaen::full_path(fullPath, pParseData);
     pParseData->filename = gaen::path_filename(pParseData->fullPath, pParseData);
+
+    if (has_invalid_underscore(pParseData->filename))
+    {
+        COMP_ERROR(pParseData, "Some portion of .cmp path has invalid underscores (double, leading, or trailing) on a directory or filename: %s", pParseData->fullPath);
+        return;
+    }
+
+    const char * dotPos = strrchr(pParseData->filename, '.');
+    if (!dotPos ||
+        strcmp(dotPos, ".cmp") != 0 ||
+        dotPos <= pParseData->filename) // ensure there's something before the '.'
+    {
+        COMP_ERROR(pParseData, "Invalid extension for Compose script, must be .cmp: %s", fullPath);
+        return;
+    }
 
     static const char * kScriptsPath = "/scripts/cmp/";
 
@@ -1119,6 +1331,33 @@ void parsedata_prep_paths(ParseData * pParseData, const char * fullPath)
     scriptsRootPath[scriptsRootLen] = '\0';
     pParseData->scriptsRootPathLen = scriptsRootLen;
     pParseData->scriptsRootPath = scriptsRootPath;
+
+    size_t namespaceLen = fullPathLen - scriptsRootLen;
+    ASSERT(namespaceLen > 3);
+    namespaceLen -= 3; // for "cmp", leave the '.' as we want our namespace to have a trailing '.'
+    char * namespace_ = (char*)COMP_ALLOC(namespaceLen + 1);
+    strncpy(namespace_, pParseData->fullPath + scriptsRootLen, namespaceLen);
+    namespace_[namespaceLen] = '\0';
+
+    // The only '.' character in the namespace should be at the end.
+    if (strchr(namespace_, '.') != namespace_ + namespaceLen - 1)
+    {
+        COMP_ERROR(pParseData, "'.' characters are invalid in file or directory names in .cmp paths: %s", pParseData->fullPath);
+        return;
+    }
+
+    char * p = namespace_;
+    while (*p++)
+        if (*p == '/')
+            *p = '.';
+    pParseData->namespace_ = namespace_;
+
+    // Check for double underscores or trailing/leading underscores
+    if (has_invalid_underscore(pParseData->namespace_))
+    {
+        COMP_ERROR(pParseData, "Some portion of .cmp path has invalid underscores (double, leading, or trailing) on a directory or filename: %s", pParseData->fullPath);
+        return;
+    }
 }
 
 void * parsedata_scanner(ParseData * pParseData)
@@ -1157,6 +1396,7 @@ Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
 
     Ast * pAst = ast_create(kAST_SymbolDecl, pParseData);
     pAst->pSymRec = pSymRec;
+    ast_set_rhs(pAst, pSymRec->pAst);
 
     Scope * pScope = pParseData->scopeStack.back();
 
@@ -1289,7 +1529,7 @@ void parsedata_set_location(ParseData * pParseData,
     pParseData->column = column;
 }
 
-void parsedata_parse_import(ParseData * pParseData,
+const Import * parsedata_parse_import(ParseData * pParseData,
                             const char * namespace_,
                             const char * fullPath)
 {
@@ -1298,14 +1538,14 @@ void parsedata_parse_import(ParseData * pParseData,
     if (!pImportParseData)
     {
         COMP_ERROR(pParseData, "Failed to parse import: %s", fullPath);
-        return;
+        return nullptr;
     }
     
     Import imp;
     imp.pParseData = pImportParseData;
     if (!namespace_ || namespace_[0] == '\0')
     {
-        imp.namespace_ = "";
+        imp.namespace_ = pParseData->namespace_; // if no namespace provided, use pParseData's namespace
     }
     else
     {
@@ -1316,6 +1556,8 @@ void parsedata_parse_import(ParseData * pParseData,
     }
         
     pParseData->imports.push_back(imp);
+
+    return &pParseData->imports.back();
 }
 
 //------------------------------------------------------------------------------
@@ -1341,12 +1583,13 @@ ParseData * parse(const char * source,
     if (!source)
     {
         char * newSource = nullptr;
-        length = read_file(fullPath, &newSource);
-        if (length <= 0)
+        i32 len = read_file(pParseData->fullPath, &newSource);
+        if (len <= 0)
         {
             COMP_ERROR(pParseData, "Unable to read file");
             return nullptr;
         }
+        length = len;
         source = newSource;
     }
 

@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 1a4579cdbd0229f083b211817f155da6
+// HASH: 3c061b4e72c6da7ff9deee470452fba9
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -38,12 +38,15 @@ namespace gaen
 namespace ent
 {
 
-class Box : public Entity
+class shapes__Box : public Entity
 {
+private:
+// Entity initializer helper functions
+
 public:
     static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, Box, childCount);
+        return GNEW(kMEM_Engine, shapes__Box, childCount);
     }
     
     template <typename T>
@@ -88,8 +91,8 @@ public:
 }
 
 private:
-    Box(u32 childCount)
-      : Entity(HASH::Box, childCount, 36, 36)
+    shapes__Box(u32 childCount)
+      : Entity(HASH::shapes__Box, childCount, 36, 36)
     {
         boxModelUid() = system_api::renderer_gen_uid(entity());
         diffuse() = Color(255, 0, 0, 255);
@@ -97,12 +100,12 @@ private:
         size() = Vec3(1.000000f, 1.000000f, 1.000000f);
 
         mBlockCount = 4;
-        mScriptTask = Task::create(this, HASH::Box);
+        mScriptTask = Task::create(this, HASH::shapes__Box);
     }
-    Box(const Box&)              = delete;
-    Box(const Box&&)             = delete;
-    Box & operator=(const Box&)  = delete;
-    Box & operator=(const Box&&) = delete;
+    shapes__Box(const shapes__Box&)              = delete;
+    shapes__Box(const shapes__Box&&)             = delete;
+    shapes__Box & operator=(const shapes__Box&)  = delete;
+    shapes__Box & operator=(const shapes__Box&&) = delete;
 
     Vec3& size()
     {
@@ -120,14 +123,14 @@ private:
     {
         return mpBlocks[3].cells[0].u;
     }
-}; // class Box
+}; // class shapes__Box
 
 } // namespace ent
 
-void register_entity_Box(Registry & registry)
+void register_entity__shapes__Box(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::Box, ent::Box::construct))
-        PANIC("Unable to register entity: Box");
+    if (!registry.registerEntityConstructor(HASH::shapes__Box, ent::shapes__Box::construct))
+        PANIC("Unable to register entity: shapes__Box");
 }
 
 } // namespace gaen

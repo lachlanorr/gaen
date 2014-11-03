@@ -181,6 +181,7 @@ typedef enum
     kSYMT_Function,
     kSYMT_Entity,
     kSYMT_Component,
+    kSYMT_Struct,
     kSYMT_Message,
     kSYMT_Property,
     kSYMT_Field,
@@ -250,14 +251,17 @@ typedef struct AstList AstList;
 typedef struct Ast Ast;
 typedef struct Scope Scope;
 typedef struct ParseData ParseData;
+typedef struct Import Import;
 
 int parse_int(const char * pStr, int base);
 float parse_float(const char * pStr);
+const char * parse_identifier(const char * str, ParseData * pParseData);
 
 SymRec * symrec_create(SymType symType,
                        Ast * pDataType,
                        const char * name,
-                       Ast * pAst);
+                       Ast * pAst,
+                       ParseData * pParseData);
 
 SymTab* symtab_create(ParseData * pParseData);
 SymTab* symtab_add_symbol(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseData);
@@ -277,7 +281,7 @@ Ast * ast_create_with_numi(AstType astType, AstFlags flags, int numi, ParseData 
 Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData);
 
 void ast_create_import_list(Ast * pImportList, ParseData * pParseData);
-Ast * ast_create_import_stmt(Ast * pDottedId, ParseData * pParseData);
+Ast * ast_create_import_stmt(Ast * pImportDottedId, Ast * pAsDottedId, ParseData * pParseData);
 Ast * ast_create_function_def(const char * name, Ast* pReturnType, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
@@ -372,9 +376,9 @@ void parsedata_set_location(ParseData * pParseData,
                             int line,
                             int column);
 
-void parsedata_parse_import(ParseData * pParseData,
-                            const char * namespace_,
-                            const char * fullPath);
+const Import * parsedata_parse_import(ParseData * pParseData,
+                                      const char * namespace_,
+                                      const char * fullPath);
 
 
 void parse_init();

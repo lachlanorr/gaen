@@ -73,6 +73,7 @@ void broadcast_message(u32 msgId,
                        cell payload = to_cell(0),
                        u32 blockCount = 0,
                        const Block * pBlocks = nullptr);
+void broadcast_message(const MessageBlockAccessor & msgAcc);
 
 class TaskMaster
 {
@@ -82,6 +83,7 @@ public:
     void cleanup();
 
     static TaskMaster & task_master_for_thread(thread_id tid);
+    static TaskMaster & task_master_for_active_thread();
     inline static TaskMaster & primary_task_master()
     {
         return task_master_for_thread(0);

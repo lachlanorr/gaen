@@ -37,8 +37,8 @@ typedef u32 task_id; // defined here since we are the root of the includes, and 
 
 static const u32 kMessageFlag_None     = 0;
 
-static const u32 kMessageFlag_Recurse  = 1 << 0; // message should be sent to all children (e.g. save_state)
-static const u32 kMessageFlag_Undoable = 1 << 1; // message originated from editor
+static const u32 kMessageFlag_Recurse   = 1 << 0; // message should be sent to all children (e.g. save_state)
+static const u32 kMessageFlag_Undoable  = 1 << 1; // message originated from editor
 
 static const u32 kMaxBlockCount = 2 << 4;
 

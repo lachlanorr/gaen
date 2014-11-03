@@ -85,35 +85,36 @@ extern int yydebug;
      COMPONENT = 294,
      COMPONENTS = 295,
      IMPORT = 296,
-     CONST = 297,
-     THIS = 298,
-     NONE = 299,
-     THEN = 300,
-     ELSE = 301,
-     OR_ASSIGN = 302,
-     XOR_ASSIGN = 303,
-     AND_ASSIGN = 304,
-     RSHIFT_ASSIGN = 305,
-     LSHIFT_ASSIGN = 306,
-     MOD_ASSIGN = 307,
-     DIV_ASSIGN = 308,
-     MUL_ASSIGN = 309,
-     SUB_ASSIGN = 310,
-     ADD_ASSIGN = 311,
-     OR = 312,
-     AND = 313,
-     NEQ = 314,
-     EQ = 315,
-     GTE = 316,
-     LTE = 317,
-     RSHIFT = 318,
-     LSHIFT = 319,
-     DEC = 320,
-     INC = 321,
-     UMINUS = 322,
-     POSTDEC = 323,
-     POSTINC = 324,
-     SCOPE = 325
+     AS = 297,
+     CONST = 298,
+     THIS = 299,
+     NONE = 300,
+     THEN = 301,
+     ELSE = 302,
+     OR_ASSIGN = 303,
+     XOR_ASSIGN = 304,
+     AND_ASSIGN = 305,
+     RSHIFT_ASSIGN = 306,
+     LSHIFT_ASSIGN = 307,
+     MOD_ASSIGN = 308,
+     DIV_ASSIGN = 309,
+     MUL_ASSIGN = 310,
+     SUB_ASSIGN = 311,
+     ADD_ASSIGN = 312,
+     OR = 313,
+     AND = 314,
+     NEQ = 315,
+     EQ = 316,
+     GTE = 317,
+     LTE = 318,
+     RSHIFT = 319,
+     LSHIFT = 320,
+     DEC = 321,
+     INC = 322,
+     UMINUS = 323,
+     POSTDEC = 324,
+     POSTINC = 325,
+     SCOPE = 326
    };
 #endif
 
@@ -133,7 +134,7 @@ typedef union YYSTYPE
 
 
 /* Line 2053 of yacc.c  */
-#line 137 "compose_parser.h"
+#line 138 "compose_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

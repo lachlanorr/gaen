@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 5c77ba0b7cf31ccff8b3479d4e0d60be
+// HASH: d700dfef276a8b491c0152c40c0048ea
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -38,12 +38,12 @@ namespace gaen
 namespace comp
 {
 
-class Timer : public Component
+class utils__Timer : public Component
 {
 public:
     static Component * construct(void * place, Entity * pEntity)
     {
-        return new (place) Timer(pEntity);
+        return new (place) utils__Timer(pEntity);
     }
     
     void update(float deltaSecs)
@@ -101,16 +101,16 @@ public:
 }
 
 private:
-    Timer(Entity * pEntity)
+    utils__Timer(Entity * pEntity)
       : Component(pEntity)
     {
-        mScriptTask = Task::create_updatable(this, HASH::Timer);
+        mScriptTask = Task::create_updatable(this, HASH::utils__Timer);
         mBlockCount = 1;
     }
-    Timer(const Timer&)              = delete;
-    Timer(const Timer&&)             = delete;
-    Timer & operator=(const Timer&)  = delete;
-    Timer & operator=(const Timer&&) = delete;
+    utils__Timer(const utils__Timer&)              = delete;
+    utils__Timer(const utils__Timer&&)             = delete;
+    utils__Timer & operator=(const utils__Timer&)  = delete;
+    utils__Timer & operator=(const utils__Timer&&) = delete;
 
     f32& timer_interval()
     {
@@ -125,25 +125,25 @@ private:
         return mpBlocks[0].cells[2].f;
     }
 
-}; // class Timer
+}; // class utils__Timer
 
 } // namespace comp
 
-void register_component_Timer(Registry & registry)
+void register_component__utils__Timer(Registry & registry)
 {
-    if (!registry.registerComponentConstructor(HASH::Timer, comp::Timer::construct))
-        PANIC("Unable to register component: Timer");
+    if (!registry.registerComponentConstructor(HASH::utils__Timer, comp::utils__Timer::construct))
+        PANIC("Unable to register component: utils__Timer");
 }
 
 namespace comp
 {
 
-class WasdRot : public Component
+class utils__WasdRot : public Component
 {
 public:
     static Component * construct(void * place, Entity * pEntity)
     {
-        return new (place) WasdRot(pEntity);
+        return new (place) utils__WasdRot(pEntity);
     }
     
     void update(float deltaSecs)
@@ -242,16 +242,16 @@ public:
 }
 
 private:
-    WasdRot(Entity * pEntity)
+    utils__WasdRot(Entity * pEntity)
       : Component(pEntity)
     {
-        mScriptTask = Task::create_updatable(this, HASH::WasdRot);
+        mScriptTask = Task::create_updatable(this, HASH::utils__WasdRot);
         mBlockCount = 2;
     }
-    WasdRot(const WasdRot&)              = delete;
-    WasdRot(const WasdRot&&)             = delete;
-    WasdRot & operator=(const WasdRot&)  = delete;
-    WasdRot & operator=(const WasdRot&&) = delete;
+    utils__WasdRot(const utils__WasdRot&)              = delete;
+    utils__WasdRot(const utils__WasdRot&&)             = delete;
+    utils__WasdRot & operator=(const utils__WasdRot&)  = delete;
+    utils__WasdRot & operator=(const utils__WasdRot&&) = delete;
 
     u32& wasdrot_modeluid()
     {
@@ -274,14 +274,14 @@ private:
         return mpBlocks[1].cells[0].f;
     }
 
-}; // class WasdRot
+}; // class utils__WasdRot
 
 } // namespace comp
 
-void register_component_WasdRot(Registry & registry)
+void register_component__utils__WasdRot(Registry & registry)
 {
-    if (!registry.registerComponentConstructor(HASH::WasdRot, comp::WasdRot::construct))
-        PANIC("Unable to register component: WasdRot");
+    if (!registry.registerComponentConstructor(HASH::utils__WasdRot, comp::utils__WasdRot::construct))
+        PANIC("Unable to register component: utils__WasdRot");
 }
 
 } // namespace gaen

@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 6d6c648a4c2158c99aa5f1823db8930c
+// HASH: 684fef631e0337680db294c72087287b
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -38,12 +38,15 @@ namespace gaen
 namespace ent
 {
 
-class DirectionalLight : public Entity
+class lights__DirectionalLight : public Entity
 {
+private:
+// Entity initializer helper functions
+
 public:
     static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, DirectionalLight, childCount);
+        return GNEW(kMEM_Engine, lights__DirectionalLight, childCount);
     }
     
     template <typename T>
@@ -62,31 +65,31 @@ public:
 }
 
 private:
-    DirectionalLight(u32 childCount)
-      : Entity(HASH::DirectionalLight, childCount, 36, 36)
+    lights__DirectionalLight(u32 childCount)
+      : Entity(HASH::lights__DirectionalLight, childCount, 36, 36)
     {
         lightUid() = system_api::renderer_gen_uid(entity());
 
         mBlockCount = 1;
-        mScriptTask = Task::create(this, HASH::DirectionalLight);
+        mScriptTask = Task::create(this, HASH::lights__DirectionalLight);
     }
-    DirectionalLight(const DirectionalLight&)              = delete;
-    DirectionalLight(const DirectionalLight&&)             = delete;
-    DirectionalLight & operator=(const DirectionalLight&)  = delete;
-    DirectionalLight & operator=(const DirectionalLight&&) = delete;
+    lights__DirectionalLight(const lights__DirectionalLight&)              = delete;
+    lights__DirectionalLight(const lights__DirectionalLight&&)             = delete;
+    lights__DirectionalLight & operator=(const lights__DirectionalLight&)  = delete;
+    lights__DirectionalLight & operator=(const lights__DirectionalLight&&) = delete;
 
     u32& lightUid()
     {
         return mpBlocks[0].cells[0].u;
     }
-}; // class DirectionalLight
+}; // class lights__DirectionalLight
 
 } // namespace ent
 
-void register_entity_DirectionalLight(Registry & registry)
+void register_entity__lights__DirectionalLight(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::DirectionalLight, ent::DirectionalLight::construct))
-        PANIC("Unable to register entity: DirectionalLight");
+    if (!registry.registerEntityConstructor(HASH::lights__DirectionalLight, ent::lights__DirectionalLight::construct))
+        PANIC("Unable to register entity: lights__DirectionalLight");
 }
 
 } // namespace gaen

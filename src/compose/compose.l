@@ -112,6 +112,7 @@ ParseData * pParseData = yyextra;
 "const"    { return CONST; }
 
 "import"     { return IMPORT; }
+"as"         { return AS; }
 "components" { return COMPONENTS; }
 "entity"     { parsedata_push_top_level_stmt_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
 "component"  { parsedata_push_top_level_stmt_scope(pParseData); return COMPONENT; }
@@ -181,7 +182,7 @@ ParseData * pParseData = yyextra;
 {D}*"."{D}+    { yylval->numf = parse_float(yytext); return FLOAT_LITERAL; }
 {D}+"."{D}*    { yylval->numf = parse_float(yytext); return FLOAT_LITERAL; }
 
-{L}({L}|{D})*  { yylval->str = parsedata_add_string(pParseData, yytext); return IDENTIFIER; }
+{L}({L}|{D})*  { yylval->str = parse_identifier(yytext, pParseData); return IDENTIFIER; }
 
 [ \t\v\r\n\f]   { }
 .               { yyerror(yylloc, pParseData, "Invalid character '%c'", *yytext); return 0; }

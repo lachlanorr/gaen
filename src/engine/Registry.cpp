@@ -61,10 +61,6 @@ Component * Registry::constructComponent(u32 nameHash, void * place, Entity * pE
 
     Component * pComponent = it->second(place, pEntity);
 
-    // Send init message
-    StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pComponent->task().id(), pComponent->task().id(), to_cell(0));
-    pComponent->task().message(msgBW.accessor());
-
     return pComponent;
 }
 
@@ -94,10 +90,6 @@ Entity * Registry::constructEntity(u32 nameHash, u32 childCount)
     }
     
     Entity * pEntity = it->second(childCount);
-
-    // Send init message
-    StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEntity->task().id(), pEntity->task().id(), to_cell(0));
-    pEntity->message(msgBW.accessor());
 
     return pEntity;
 }

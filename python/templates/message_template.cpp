@@ -54,7 +54,7 @@ private:
 typedef <<message_name>>R<MessageQueueAccessor> <<message_name>>QR;
 typedef <<message_name>>R<MessageBlockAccessor> <<message_name>>BR;
 
-class <<message_name>>QW : protected MessageQueueWriter
+class <<message_name>>QW : public MessageQueueWriter
 {
 public:
     <<message_name>>QW(u32 msgId,
@@ -72,15 +72,13 @@ public:
 <<writer_setters>>
 };
 
-class <<message_name>>BW : protected MessageBlockWriter
+class <<message_name>>BW : public MessageBlockWriter
 {
 public:
     <<message_name>>BW(u32 msgId,
     <<message_name_indent>> u32 flags,
     <<message_name_indent>> task_id source,
-    <<message_name_indent>> task_id target,
-    <<message_name_indent>> Block * pBlocks,
-    <<message_name_indent>> u32 blockCount<<payload_decl>>)
+    <<message_name_indent>> task_id target<<payload_decl>>)
       : MessageBlockWriter(msgId,
                            flags,
                            source,

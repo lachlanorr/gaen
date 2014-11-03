@@ -77,7 +77,7 @@ private:
 typedef InsertModelInstanceR<MessageQueueAccessor> InsertModelInstanceQR;
 typedef InsertModelInstanceR<MessageBlockAccessor> InsertModelInstanceBR;
 
-class InsertModelInstanceQW : protected MessageQueueWriter
+class InsertModelInstanceQW : public MessageQueueWriter
 {
 public:
     InsertModelInstanceQW(u32 msgId,
@@ -105,15 +105,13 @@ public:
     void setIsAssetManaged(bool val) { mMsgAcc[3].cells[2].b = val; }
 };
 
-class InsertModelInstanceBW : protected MessageBlockWriter
+class InsertModelInstanceBW : public MessageBlockWriter
 {
 public:
     InsertModelInstanceBW(u32 msgId,
                           u32 flags,
                           task_id source,
                           task_id target,
-                          Block * pBlocks,
-                          u32 blockCount,
                           u32 uid)
       : MessageBlockWriter(msgId,
                            flags,

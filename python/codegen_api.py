@@ -133,10 +133,10 @@ def api_start_regex():
     return r'^[\s]*' + type_regex() + r'[\s]+([a-zA-Z0-9_]+)\(.*$'
 
 def append_if_api(line, api_strs):
-    if line.endswith("const Entity & caller);"):
+    if line.endswith(", Entity & caller);") or line.endswith("(Entity & caller);"):
         api_strs.append(line)
     elif line != 'ApiResult get_last_result();':
-        print "Apparent API not being passed a 'const Entity & caller' as last parameter: " + line
+        print "Apparent API not being passed an 'Entity & caller' as last parameter: " + line
 
 def get_api_strs(lines):
     in_call = False

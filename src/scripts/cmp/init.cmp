@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// start.cmp - startup script, run by default if no other entity is specified
+// init.cmp - startup script, run by default if no other entity is specified
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,8 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-import utils;
-
 entity start
 {
     components
@@ -41,9 +39,9 @@ entity start
                 size=vec{2.0, 2.0, 2.0},
                 col=color{255, 0, 0, 255}};*/
 
-        entity box = Box{size=vec{2.0, 2.0, 2.0},
-                         col=color{255, 0, 0, 255}};
-        
+        entity box = shapes.Box{size=vec3{2.0, 2.0, 2.0},
+                                diffuse=color{255, 255, 0, 255}};
+        $.insert_task(box);
     }
 
     #timer(uint timer_msg)
