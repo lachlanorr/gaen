@@ -33,7 +33,7 @@
 #include "engine/MessageWriter.h"
 #include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/InsertTask.h"
-#include "engine/messages/Transform.h"
+#include "engine/messages/TransformId.h"
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/WatchInputState.h"
 
@@ -119,16 +119,16 @@ void renderer_insert_model_instance(const u32 & uid,
                                           uid);
     msgQW.setIsAssetManaged(true);
     msgQW.setModel((Model*)modelHandle.data());
-    msgQW.setWorldTransform(caller.worldTransform());
+    msgQW.setTransform(caller.transform());
 }
 
 void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, Entity & caller)
 {
-    messages::TransformQW msgQW(HASH::renderer_transform_model_instance,
-                                kMessageFlag_None,
-                                caller.task().id(),
-                                kRendererTaskId,
-                                uid);
+    messages::TransformIdQW msgQW(HASH::renderer_transform_model_instance,
+                                  kMessageFlag_None,
+                                  caller.task().id(),
+                                  kRendererTaskId,
+                                  uid);
     msgQW.setTransform(transform);
 }
 

@@ -24,11 +24,11 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-entity test
+entity start
 {
     #init()
     {
-        entity box_1 = shapes.Box{size    = vec3{2.0, 2.0, 2.0},
-                                  diffuse = color{255, 0, 0, 255}};
+        mat34 trans;
+        @#transform(true, trans);
     }
 }

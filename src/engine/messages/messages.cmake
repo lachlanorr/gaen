@@ -30,5 +30,6 @@ SET (engine_messages_SOURCES
   messages/InsertModelInstance.h
   messages/InsertTask.h
   messages/Transform.h
+  messages/TransformId.h
   messages/WatchInputState.h
 )

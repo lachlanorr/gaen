@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-entity DirectionalLight
+component Directional
 {
     uint lightUid = $.renderer_gen_uid();
 

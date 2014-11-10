@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-entity Box
+component Box
 {
     vec3 #size = vec3{1.0, 1.0, 1.0};
     color #diffuse = color{255, 0, 0, 255};
@@ -35,5 +35,10 @@ entity Box
     {
         model = $.create_shape_box(size, diffuse);
         $.renderer_insert_model_instance(boxModelUid, model);
+    }
+
+    #update_transform()
+    {
+        $.renderer_transform_model_instance(boxModelUid, transform);
     }
 }

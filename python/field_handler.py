@@ -50,18 +50,23 @@ class cellField(BaseField):
     cell_count = 1
 
 class i32Field(cellField):
+    raw_type = 'i32'
     union_type = 'i'
 
 class u32Field(cellField):
+    raw_type = 'u32'
     union_type = 'u'
 
 class f32Field(cellField):
+    raw_type = 'f32'
     union_type = 'f'
     
 class boolField(cellField):
+    raw_type = 'bool'
     union_type = 'b'
     
 class ColorField(cellField):
+    raw_type = 'Color'
     union_type = 'color'
     includes = cellField.includes + ['engine/Color.h']
 
@@ -74,12 +79,15 @@ class dcellField(BaseField):
     cell_count = 2
 
 class i64Field(dcellField):
+    raw_type = 'i64'
     union_type = 'i'
     
 class u64Field(dcellField):
+    raw_type = 'u64'
     union_type = 'u'
     
 class f64Field(dcellField):
+    raw_type = 'f64'
     union_type = 'f'
     
 class PointerField(dcellField):
@@ -192,7 +200,7 @@ class FieldHandlerType(type):
 
             if not hasattr(field, 'type_name'):
                 field.type_name = field_class_name[:-5]
-                
+
             for inc in field.includes:
                 if inc not in includes:
                     includes.append(inc)

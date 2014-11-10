@@ -483,7 +483,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
         SymRec * pSymRec = symtab_find_symbol(pPropsSymTab, pPropInit->str);
         if (!pSymRec || pSymRec->type != kSYMT_Property)
         {
-            COMP_ERROR(pAst->pParseData, "Invalid property %s", pPropInit->str);
+            COMP_ERROR(pAst->pParseData, "Invalid property: '%s'", pPropInit->str);
         }
 
         code += I + S("// Init Property: ") + S(pPropInit->str) + ("\n");
@@ -627,27 +627,39 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("\n");
         }
 
+
         // Message handlers
+        S msgCode = S("");
+        for (Ast * pMsg : pAst->pChildren->nodes)
+        {
+            msgCode += message_def(pMsg, indentLevel + 2);
+        }
+        S propCode = set_property_handlers(pAst, indentLevel + 2);
+
         code += I + S("    template <typename T>\n");
         code += I + S("    MessageResult message(const T & msgAcc)\n");
         code += I + S("    {\n");
-        code += I + S("        const Message & _msg = msgAcc.message();\n");
-        code += I + S("        switch(_msg.msgId)\n");
-        code += I + S("        {\n");
-
-        // property setters
-        code += set_property_handlers(pAst, indentLevel + 2);
-
-        // explicit message handlers
-        for (Ast * pMsg : pAst->pChildren->nodes)
+        // Only insert message related code if there are message handlers to add
+        if (msgCode.size() > 0 || propCode.size() > 0)
         {
-            code += message_def(pMsg, indentLevel + 2);
-        }
+            code += I + S("        const Message & _msg = msgAcc.message();\n");
+            code += I + S("        switch(_msg.msgId)\n");
+            code += I + S("        {\n");
 
-        code += I + S("        }\n");
+            // property setters
+            code += propCode;
+
+            // explicit message handlers
+            code += msgCode;
+
+            code += I + S("        }\n");
+        }
         code += I + S("        return MessageResult::Propogate;\n");
-        code += I + S("}\n");
+        code += I + S("    }\n");
         code += I + S("\n");
+
+
+
 
         code += I + S("private:\n");
 
@@ -1215,6 +1227,11 @@ static S codegen_recurse(const Ast * pAst,
         return S("/* LORRTODO: Add support for kAST_StructInit Ast Type */");
     }
 
+    case kAST_Transform:
+    {
+        return S("transform()");
+    }
+
     case kAST_IntLiteral:
     {
         static const u32 kScratchSize = 64;
@@ -1258,17 +1275,17 @@ static S codegen_recurse(const Ast * pAst,
             code += indent(indentLevel+1);
             char scratch[kScratchSize+1];
             snprintf(scratch,
-                kScratchSize,
-                "StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mpEntity->task().id(), ",
-                pAst->pBlockInfos->blockCount,
-                pAst->str);
+                     kScratchSize,
+                     "StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, entity().task().id(), ",
+                     pAst->pBlockInfos->blockCount,
+                     pAst->str);
 
             code += S(scratch);
 
             if (pAst->pLhs == 0)
-                code += S("mpEntity->task().id()");
+                code += S("entity().task().id()");
             else
-                code += codegen_recurse(pAst->pLhs, indentLevel);
+                code += codegen_recurse(pAst->pLhs, 0);
 
             code += S(", to_cell(");
 
@@ -1276,12 +1293,30 @@ static S codegen_recurse(const Ast * pAst,
             if (pPayload)
                 code += codegen_recurse(pPayload->pAst, indentLevel);
             else
-                code += S("0");
+                code += S("0 /* no payload */");
 
             code += S("));\n");
 
+            // Set non-payload message data into message body
+            for (const BlockInfo & bi : pAst->pBlockInfos->items)
+            {
+                if (!bi.isPayload)
+                {
+                    code += indent(indentLevel+1);
+                    snprintf(scratch,
+                             kScratchSize,
+                             "*reinterpret_cast<%s*>(&msgw[%d].cells[%d]) = ",
+                             cpp_type_str(ast_data_type(bi.pAst), pAst->pParseData),
+                             bi.blockIndex,
+                             bi.cellIndex);
+                    code += S(scratch);
+                    code += codegen_recurse(bi.pAst, 0);
+                    code += ";\n";
+                }
+            }
+
             // Send stack message bock directly to our entity
-            code += indent(indentLevel+1) + S("mpEntity->message(msgw.accessor());\n");
+            code += indent(indentLevel+1) + S("entity().message(msgw.accessor());\n");
         }
         else
         {

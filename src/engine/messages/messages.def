@@ -19,6 +19,11 @@ class InsertComponent(FieldHandler):
 
 # Transform and entity
 class Transform(FieldHandler):
+    isLocal   = boolField(payload=True)
+    transform = Mat34Field()
+
+# Transform and entity
+class TransformId(FieldHandler):
     id        = u32Field(payload=True)
     transform = Mat34Field()
 
@@ -27,7 +32,7 @@ class InsertModelInstance(FieldHandler):
     pModel          = PointerField(type_name='Model *',
                                    includes=['engine/Model.h'])
     isAssetManaged  = boolField()
-    worldTransform  = Mat34Field()
+    transform  = Mat34Field()
     
 
 class InsertLightDirectional(FieldHandler):

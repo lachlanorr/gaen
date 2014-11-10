@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 3c061b4e72c6da7ff9deee470452fba9
+// HASH: 0a015b2fbb2d7556425c8034d4e6b5dc
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -35,18 +35,15 @@
 namespace gaen
 {
 
-namespace ent
+namespace comp
 {
 
-class shapes__Box : public Entity
+class shapes__Box : public Component
 {
-private:
-// Entity initializer helper functions
-
 public:
-    static Entity * construct(u32 childCount)
+    static Component * construct(void * place, Entity * pEntity)
     {
-        return GNEW(kMEM_Engine, shapes__Box, childCount);
+        return new (place) shapes__Box(pEntity);
     }
     
     template <typename T>
@@ -55,6 +52,12 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
+        case HASH::init_data:
+            boxModelUid() = system_api::renderer_gen_uid(entity());
+            diffuse() = Color(255, 0, 0, 255);
+            model() = Handle::null();
+            size() = Vec3(1.000000f, 1.000000f, 1.000000f);
+            return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
             {
@@ -86,21 +89,21 @@ public:
             system_api::renderer_insert_model_instance(boxModelUid(), model(), entity());
             return MessageResult::Consumed;
         }
+        case HASH::update_transform:
+        {
+            system_api::renderer_transform_model_instance(boxModelUid(), transform(), entity());
+            return MessageResult::Consumed;
+        }
         }
         return MessageResult::Propogate;
 }
 
 private:
-    shapes__Box(u32 childCount)
-      : Entity(HASH::shapes__Box, childCount, 36, 36)
+    shapes__Box(Entity * pEntity)
+      : Component(pEntity)
     {
-        boxModelUid() = system_api::renderer_gen_uid(entity());
-        diffuse() = Color(255, 0, 0, 255);
-        model() = Handle::null();
-        size() = Vec3(1.000000f, 1.000000f, 1.000000f);
-
-        mBlockCount = 4;
         mScriptTask = Task::create(this, HASH::shapes__Box);
+        mBlockCount = 4;
     }
     shapes__Box(const shapes__Box&)              = delete;
     shapes__Box(const shapes__Box&&)             = delete;
@@ -123,14 +126,15 @@ private:
     {
         return mpBlocks[3].cells[0].u;
     }
+
 }; // class shapes__Box
 
-} // namespace ent
+} // namespace comp
 
-void register_entity__shapes__Box(Registry & registry)
+void register_component__shapes__Box(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::shapes__Box, ent::shapes__Box::construct))
-        PANIC("Unable to register entity: shapes__Box");
+    if (!registry.registerComponentConstructor(HASH::shapes__Box, comp::shapes__Box::construct))
+        PANIC("Unable to register component: shapes__Box");
 }
 
 } // namespace gaen

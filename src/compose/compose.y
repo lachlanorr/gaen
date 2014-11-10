@@ -64,17 +64,17 @@ freely, subject to the following restrictions:
 static void yyprint(FILE * file, int type, YYSTYPE value);
 %}
 
-%token <str> IDENTIFIER
+%token <str> IDENTIFIER HASH
 %token <numi> INT_LITERAL TRUE FALSE
 %token <numf> FLOAT_LITERAL
 
 /* This type list must match the DataType enum in compiler.h */
 %token <dataType> VOID BOOL CHAR BYTE SHORT USHORT INT UINT LONG ULONG HALF FLOAT DOUBLE COLOR VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 HANDLE_ ENTITY
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS IMPORT AS CONST THIS NONE
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS USING AS CONST THIS NONE
 %right ELSE THEN
 
-%right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN
+%right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN TRANSFORM
 
 %left <pAst> OR
 %left <pAst> AND
@@ -90,7 +90,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %left <pAst> '+' '-'
 %left <pAst> '*' '/' '%'
 
-%right <pAst> INC DEC '!' '~' '#'
+%right <pAst> INC DEC '!' '~'
 %right <pAst> UMINUS
 
 %left <pAst> '.'
@@ -105,7 +105,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %type <pAst> type type_ent
 
 %type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
-%type <pAst> import_list import_stmt dotted_id dotted_id_proc dotted_id_part
+%type <pAst> using_list using_stmt dotted_id dotted_id_proc dotted_id_part
 %type <pAst> message_block message_list message_prop target_expr
 %type <pAst> prop_init_list prop_init component_block component_member_list component_member
 
@@ -115,16 +115,16 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 
 cmp_file
     : def_list
-    | import_list def_list  { ast_create_import_list($1, pParseData); }
+    | using_list def_list  { ast_create_using_list($1, pParseData); }
     ;
 
-import_list
-    : import_stmt             { $$ = ast_append(kAST_ImportList, NULL, $1, pParseData); }
-    | import_list import_stmt { $$ = ast_append(kAST_ImportList, $1, $2, pParseData); }
+using_list
+    : using_stmt             { $$ = ast_append(kAST_UsingList, NULL, $1, pParseData); }
+    | using_list using_stmt { $$ = ast_append(kAST_UsingList, $1, $2, pParseData); }
     ;
 
-import_stmt
-    : IMPORT dotted_id AS dotted_id ';'  { $$ = ast_create_import_stmt($2, $4, pParseData); }
+using_stmt
+    : USING dotted_id AS dotted_id ';'  { $$ = ast_create_using_stmt($2, $4, pParseData); }
     ;
 
 dotted_id
@@ -165,12 +165,12 @@ message_list
     ;
  
 message_prop
-    : '#' IDENTIFIER '(' param_list ')' block { $$ = ast_create_message_def($2, $4, $6, pParseData); }
-    | type '#' IDENTIFIER '=' expr ';'        { $$ = ast_create_property_def($3, $1, $5, pParseData); }
-    | type '#' IDENTIFIER ';'                 { $$ = ast_create_property_def($3, $1, NULL, pParseData); }
-    | type IDENTIFIER '=' expr ';'            { $$ = ast_create_field_def($2, $1, $4, pParseData); }
-    | type IDENTIFIER ';'                     { $$ = ast_create_field_def($2, $1, NULL, pParseData); }
-    | COMPONENTS component_block              { $$ = ast_create_component_members($2, pParseData); }
+    : HASH '(' param_list ')' block  { $$ = ast_create_message_def($1, $3, $5, pParseData); }
+    | type HASH '=' expr ';'         { $$ = ast_create_property_def($2, $1, $4, pParseData); }
+    | type HASH ';'                  { $$ = ast_create_property_def($2, $1, NULL, pParseData); }
+    | type IDENTIFIER '=' expr ';'   { $$ = ast_create_field_def($2, $1, $4, pParseData); }
+    | type IDENTIFIER ';'            { $$ = ast_create_field_def($2, $1, NULL, pParseData); }
+    | COMPONENTS component_block     { $$ = ast_create_component_members($2, pParseData); }
     ;
 
 param_list
@@ -215,16 +215,16 @@ stmt_list
     ;
  
 stmt
-    : IF '(' cond_expr ')' stmt %prec THEN         { $$ = ast_create_if($3, $5, NULL, pParseData); }
-    | IF '(' cond_expr ')' stmt ELSE stmt { $$ = ast_create_if($3, $5, $7,   pParseData); }
+    : IF '(' expr ')' stmt %prec THEN         { $$ = ast_create_if($3, $5, NULL, pParseData); }
+    | IF '(' expr ')' stmt ELSE stmt { $$ = ast_create_if($3, $5, $7,   pParseData); }
 
-    | WHILE '(' cond_expr ')' stmt         { $$ = ast_create_while($3, $5, pParseData); }
-    | DO do_stmt WHILE '(' cond_expr ')' ';'  { $$ = ast_create_dowhile($5, $2, pParseData); }
+    | WHILE '(' expr ')' stmt         { $$ = ast_create_while($3, $5, pParseData); }
+    | DO do_stmt WHILE '(' expr ')' ';'  { $$ = ast_create_dowhile($5, $2, pParseData); }
 
     | FOR '(' expr_or_empty ';' cond_expr_or_empty ';' expr_or_empty ')' stmt { $$ = ast_create_for($3, $5, $7, $9, pParseData); }
 
-    | '@' target_expr '#' IDENTIFIER '=' expr ';'            { $$ = ast_create_property_set($2, $4, $6, pParseData); }
-    | '@' target_expr '#' IDENTIFIER '(' fun_params ')' ';'  { $$ = ast_create_message_send($2, $4, $6, pParseData); }
+    | '@' target_expr HASH '=' expr ';'            { $$ = ast_create_property_set($2, $3, $5, pParseData); }
+    | '@' target_expr HASH '(' fun_params ')' ';'  { $$ = ast_create_message_send($2, $3, $5, pParseData); }
 
     | RETURN expr ';'  { $$ = ast_create_return($2, pParseData); }
 
@@ -279,7 +279,7 @@ expr
     | '~' expr              { $$ = ast_create_unary_op(kAST_Complement, $2, pParseData); }
     | '-' expr %prec UMINUS { $$ = ast_create_unary_op(kAST_Negate,     $2, pParseData); }
 
-    | '#' IDENTIFIER        { $$ = ast_create_hash($2, pParseData); }
+    | HASH                   { $$ = ast_create_hash($1, pParseData); }
 
     | INC expr               { $$ = ast_create_unary_op(kAST_PreInc, $2, pParseData); }
     | DEC expr               { $$ = ast_create_unary_op(kAST_PreDec, $2, pParseData); }
@@ -296,6 +296,8 @@ expr
     | dotted_id '(' fun_params ')'  { $$ = ast_create_function_call($1, $3, pParseData); }
 
     | '$' '.' IDENTIFIER '(' fun_params ')'  { $$ = ast_create_system_api_call($3, $5, pParseData); }
+
+    | TRANSFORM  { $$ = ast_create(kAST_Transform, pParseData); }
     ;
 
 cond_expr

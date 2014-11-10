@@ -47,9 +47,9 @@ static const task_id kInputMgrTaskId     = kMaxTaskId - 4; // 536870907
 enum class TaskStatus : u8
 {
     Initializing = 0,
-    Paused,
-    Running,
-    Dead
+    Paused = 1,
+    Running = 2,
+    Dead = 3
 };
 
 enum class TaskPermissions : u8

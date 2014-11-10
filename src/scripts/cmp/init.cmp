@@ -24,24 +24,39 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+entity Box
+{
+    components
+    {
+        shapes.Box{size    = vec3{2.0, 2.0, 2.0},
+                   diffuse = color{255, 255, 0, 255}};
+        utils.WasdRot{};        
+    }
+}
+
+entity Light
+{
+    components
+    {
+        lights.Directional{};
+    }
+}
+
 entity start
 {
     components
     {
         utils.Timer{timer_interval = 0.016,
-                    timer_message = #tick};
+                    timer_message  = #tick};
     }
 
     #init()
     {
-/*        DirectionalLight light{none};
-        Box box{none,
-                size=vec{2.0, 2.0, 2.0},
-                col=color{255, 0, 0, 255}};*/
+        entity box = Box{};
+        entity light = Light{};
 
-        entity box = shapes.Box{size=vec3{2.0, 2.0, 2.0},
-                                diffuse=color{255, 255, 0, 255}};
         $.insert_task(box);
+        $.insert_task(light);
     }
 
     #timer(uint timer_msg)

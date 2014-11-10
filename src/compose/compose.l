@@ -111,11 +111,13 @@ ParseData * pParseData = yyextra;
 
 "const"    { return CONST; }
 
-"import"     { return IMPORT; }
+"using"     { return USING; }
 "as"         { return AS; }
 "components" { return COMPONENTS; }
 "entity"     { parsedata_push_top_level_stmt_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
 "component"  { parsedata_push_top_level_stmt_scope(pParseData); return COMPONENT; }
+
+"transform"  { return TRANSFORM; }
 
 "true"   { return TRUE; }
 "false"  { return FALSE; }
@@ -147,7 +149,6 @@ ParseData * pParseData = yyextra;
 "^="   { return XOR_ASSIGN; }
 "|="   { return OR_ASSIGN; }
 
-"#" |
 "@" |
 "$" |
 "+" |
@@ -174,6 +175,8 @@ ParseData * pParseData = yyextra;
 
 "{"    { parsedata_push_scope(pParseData); return yytext[0]; }
 "}"    { return yytext[0]; }
+
+#{L}({L}|{D})* { yylval->str = parse_identifier(yytext+1, pParseData); return HASH; }
 
 0[xX]{H}+      { yylval->numi = parse_int(yytext, 16); return INT_LITERAL; }
 0{D}+          { yylval->numi = parse_int(yytext, 8);  return INT_LITERAL; }

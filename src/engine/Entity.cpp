@@ -32,6 +32,7 @@
 #include "engine/Registry.h"
 
 #include "engine/messages/InsertComponent.h"
+#include "engine/messages/Transform.h"
 
 #include "engine/Entity.h"
 
@@ -42,6 +43,7 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
   : mpParent(nullptr)
 {
     mTransform = Mat34::identity();
+    mIsTransformDirty = false;
 
     mChildrenMax = childrenMax;
     mChildCount = 0;
@@ -84,18 +86,10 @@ Entity::~Entity()
     GFREE(mpComponents);
 }
 
-Mat34 Entity::worldTransform() const
-{
-    if (!mpParent)
-        return mTransform;
-    else
-        return mpParent->transform() * mTransform;
-}
-
 void Entity::setTransform(const Mat34 & mat)
 {
+    mIsTransformDirty = true;
     mTransform = mat;
-    // LORRTODO - pass new transform to children
 }
 
 void Entity::applyTransform(bool isLocal, const Mat34 & mat)
@@ -181,7 +175,7 @@ Entity * Entity::unstageEntity(task_id id)
 void Entity::update(f32 deltaSecs)
 {
     mScriptTask.update(deltaSecs);
-    
+
     // send update our components
     for (u32 i = 0; i < mComponentCount; ++i)
         mpComponents[i].task().update(deltaSecs);
@@ -189,6 +183,40 @@ void Entity::update(f32 deltaSecs)
     // send update to our child entities
     for (u32 i = 0; i < mChildCount; ++i)
         mpChildren[i]->update(deltaSecs);
+
+    // Now, if there has been any change to the transform,
+    // notify components and child entities.
+    // This has to happen in a separate stage to the update
+    // loops above since one of the updates may have altered
+    // our transform.
+    if (mIsTransformDirty)
+    {
+        // send update our components
+        for (u32 i = 0; i < mComponentCount; ++i)
+        {
+            Task & t = mpComponents[i].task();
+            StackMessageBlockWriter<0> msgw(HASH::update_transform,
+                kMessageFlag_ForcePropogate,
+                mTask.id(),
+                t.id(),
+                to_cell(0));
+            t.message(msgw.accessor());
+        }
+
+        // send update to our child entities
+        for (u32 i = 0; i < mChildCount; ++i)
+        {
+            Entity * pEnt = mpChildren[i];
+            StackMessageBlockWriter<0> msgw(HASH::update_transform,
+                kMessageFlag_ForcePropogate,
+                mTask.id(),
+                pEnt->task().id(),
+                to_cell(0));
+            pEnt->message(msgw.accessor());
+        }
+
+        mIsTransformDirty = false;
+    }
 }
 
 template <typename T>
@@ -247,13 +275,19 @@ MessageResult Entity::message(const T & msgAcc)
         PANIC("TODO");
         break;
     }
+    case HASH::transform:
+    {
+        messages::TransformR<T> msgr(msgAcc);
+        applyTransform(msgr.isLocal(), msgr.transform());
+        return MessageResult::Consumed;
+    }
     }
 
     MessageResult res;
 
     // Call our subclassed message routine
     res = mScriptTask.message(msgAcc);
-    if (res == MessageResult::Consumed)
+    if (res == MessageResult::Consumed && !msgAcc.message().ForcePropogate())
         return MessageResult::Consumed;
     
 
@@ -261,7 +295,7 @@ MessageResult Entity::message(const T & msgAcc)
     for (u32 i = 0; i < mComponentCount; ++i)
     {
         res = mpComponents[i].task().message(msgAcc);
-        if (res == MessageResult::Consumed)
+        if (res == MessageResult::Consumed && !msgAcc.message().ForcePropogate())
             return MessageResult::Consumed;
     }
 
@@ -336,11 +370,6 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
     Component * pLoc = &mpComponents[index];
     Component * pComp = get_registry().constructComponent(nameHash, pLoc, this);
 
-    // Send init message
-    StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pComp->task().id(), pComp->task().id(), to_cell(0));
-    pComp->task().message(msgBW.accessor());
-
-
     ASSERT(pComp);
     ASSERT(pComp == pLoc);
 
@@ -355,8 +384,13 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
 
     mComponentCount++;
 
+    // Send int_data message
     StackMessageBlockWriter<0> initDataMsgw(HASH::init_data, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(pComp->task().id()));
     pComp->task().message(initDataMsgw.accessor());
+
+    // Send init message
+    StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pComp->task().id(), pComp->task().id(), to_cell(0));
+    pComp->task().message(msgBW.accessor());
 
     return pComp->task();
 }

@@ -33,7 +33,7 @@
 
 #include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/InsertLightDirectional.h"
-#include "engine/messages/Transform.h"
+#include "engine/messages/TransformId.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/RendererGL.h"
@@ -266,8 +266,8 @@ void RendererGL::render()
         Material & mat = matMeshInst.pMaterialMesh->material();
 
         static Mat4 view = Mat4::translation(Vec3(0.0f, 0.0f, -5.0f));
-        Mat4 mvp = mProjection * view * matMeshInst.pModelInstance->worldTransform;
-        Mat3 normalTrans = Mat3(view * matMeshInst.pModelInstance->worldTransform);
+        Mat4 mvp = mProjection * view * matMeshInst.pModelInstance->transform;
+        Mat3 normalTrans = Mat3(view * matMeshInst.pModelInstance->transform);
 
         glUniformMatrix4fv(sMVPUniform, 1, 0, mvp.elems);
         glUniformMatrix3fv(sNormalUniform, 1, 0, normalTrans.elems);
@@ -294,16 +294,16 @@ MessageResult RendererGL::message(const T & msgAcc)
         mpModelMgr->insertModelInstance(msgAcc.message().source,
                                         msgr.uid(),
                                         msgr.model(),
-                                        msgr.worldTransform(),
+                                        msgr.transform(),
                                         msgr.isAssetManaged());
         break;
     }
     case HASH::renderer_transform_model_instance:
     {
-        messages::TransformR<T> msgr(msgAcc);
+        messages::TransformIdR<T> msgr(msgAcc);
         ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.id());
         ASSERT(pModelInst);
-        pModelInst->worldTransform = msgr.transform();
+        pModelInst->transform = msgr.transform();
         break;
     }
     case HASH::renderer_remove_model_instance:

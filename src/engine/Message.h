@@ -37,8 +37,8 @@ typedef u32 task_id; // defined here since we are the root of the includes, and 
 
 static const u32 kMessageFlag_None     = 0;
 
-static const u32 kMessageFlag_Recurse   = 1 << 0; // message should be sent to all children (e.g. save_state)
-static const u32 kMessageFlag_Undoable  = 1 << 1; // message originated from editor
+static const u32 kMessageFlag_ForcePropogate  = 1 << 0; // message should be sent to all children (e.g. save_state), regardless of handlers returning "Consumed" result
+static const u32 kMessageFlag_Editor     = 1 << 1;      // message originated from editor
 
 static const u32 kMaxBlockCount = 2 << 4;
 
@@ -77,6 +77,9 @@ struct Message
                source        < (2 << 28) &&
                target        < (2 << 28));
     }
+
+    bool ForcePropogate() const { return (flags & kMessageFlag_ForcePropogate) != 0; }
+    bool FromEditor() const { return (flags & kMessageFlag_Editor) != 0; }
 };
 
 // 16 bytes is pretty key to the principles of the message passing system.

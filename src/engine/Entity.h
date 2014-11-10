@@ -56,7 +56,6 @@ public:
     MessageResult message(const T& msgAcc);
 
     const Mat34 & transform() const { return mTransform; }
-    Mat34 worldTransform() const;
     void setTransform(const Mat34 & mat);
     void applyTransform(bool isLocal, const Mat34 & mat);
 
@@ -71,6 +70,9 @@ protected:
     // Max entities that can be created before they're inserted into the engine
     static const u32 kMaxEntityStage = 16;
 
+    // Make "entity()" consistent in Component and Entity to simplify
+    // the c++ codegen
+    const Entity & entity() const { return *this; }
     Entity & entity() { return *this; }
     
     Task& insertComponent(u32 nameHash, u32 index);
@@ -100,7 +102,8 @@ protected:
     // Task representing Entity "sub class" created by writing an
     // entity Compose script.
     Task mScriptTask;
-    
+
+    bool mIsTransformDirty;
     Mat34 mTransform;
     Mat34 mParentTransform;
 

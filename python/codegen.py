@@ -167,7 +167,7 @@ class ScriptInfo(object):
             self.cppSourceHash = md5.new(self.cppSource).hexdigest();
             return True
         else:
-            print serr
+            print serr,
             return False
 
     def _should_write_cpp(self):
@@ -239,10 +239,11 @@ def write_registration_cpp(script_infos):
     registration_lines = []
     registration_call_lines = []
     for si in script_infos:
-        m = re.search(r'void ((register_(entity|component)_([^\s]+))\([^\)]*\))\n', si.cppOutput)
-        if m:
-            registration_lines.append(m.group(1) + ';')
-            registration_call_lines.append(m.group(2) + '(registry);')
+        for line in si.cppOutput.splitlines():
+            m = re.search(r'void ((register_(entity|component)_([^\s]+))\([^\)]*\))', line)
+            if m:
+                registration_lines.append(m.group(1) + ';')
+                registration_call_lines.append(m.group(2) + '(registry);')
 
     reg_cpp_path = registration_cpp_path()
     extern_cpp = '\n'.join(['extern void ' + i for i in sorted(registration_lines)])
@@ -282,6 +283,7 @@ def main():
     cmp_files = []
     cpp_files = []
     h_files = []
+    has_errors = False;
     for root, dirs, files in os.walk(SCRIPTS_DIR):
         for f in files:
             pospath = posixpath.join(root.replace('\\', '/'), f)
@@ -296,8 +298,11 @@ def main():
                         h_files.append(si.hFullPath)
             except:
                 print "ERROR: %s failed to compile" % pospath
-    write_registration_cpp(script_infos)
-    write_cmake(cmp_files, cpp_files, h_files)
+                has_errors = True;
+
+    if not has_errors:
+        write_registration_cpp(script_infos)
+        write_cmake(cmp_files, cpp_files, h_files)
     
 
 if __name__=='__main__':

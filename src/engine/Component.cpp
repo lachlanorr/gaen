@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Component.h - Core functionality all components must have
+// Component.cpp - Core functionality all components must have
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,51 +24,19 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_COMPONENT_H
-#define GAEN_ENGINE_COMPONENT_H
+#include "engine/stdafx.h"
 
-#include "engine/Message.h"
-#include "engine/Task.h"
+#include "engine/Entity.h"
+#include "engine/Component.h"
 
 namespace gaen
 {
 
-enum class PropertyGroup
+const Mat34 & Component::transform() const
 {
-    Current,
-    Initial
-};
+    ASSERT(mpEntity);
+    return mpEntity->transform();
+}
 
-struct ComponentDesc;
-
-// Base component, basically a way for all components
-// to have a pointer to their ComponentDesc.
-class Component
-{
-    friend class Entity;
-public:
-    Component(Entity * pEntity)
-      : mIsInit(0)
-      , mpEntity(pEntity){}
-
-    Task & task() { return mScriptTask; }
-
-protected:
-    const Entity & entity() const { return *mpEntity; }
-    Entity & entity() { return *mpEntity; }
-
-    const Mat34 & transform() const;
-    
-    Task mScriptTask;
-    Entity * mpEntity;
-    Block *mpBlocks;
-    u32 mBlockCount:24;
-    u32 mIsInit:8;
-    u8 PADDING__[12];
-};
-
-static_assert(sizeof(Component) == 64, "Component unexpected size");
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_ENGINE_COMPONENT_H

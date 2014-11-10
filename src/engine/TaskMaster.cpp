@@ -66,7 +66,7 @@ void fin_task_masters()
 {
     ASSERT(sIsInit);
     broadcast_message(HASH::fin,
-                      kMessageFlag_None,
+                      kMessageFlag_ForcePropogate,
                       kMainThreadTaskId);
     join_all_threads();
 }

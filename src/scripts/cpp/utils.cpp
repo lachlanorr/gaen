@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: d700dfef276a8b491c0152c40c0048ea
+// HASH: 2e9e3acad7d041520bd1fad99829d424
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -54,8 +54,8 @@ public:
             if ((last_notification() >= timer_interval()))
             {
                 {
-                    StackMessageBlockWriter<0> msgw(HASH::timer, kMessageFlag_None, mpEntity->task().id(), mpEntity->task().id(), to_cell(timer_message()));
-                    mpEntity->message(msgw.accessor());
+                    StackMessageBlockWriter<0> msgw(HASH::timer, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(timer_message()));
+                    entity().message(msgw.accessor());
                 }
                 last_notification() = 0.000000f;
             }
@@ -148,10 +148,17 @@ public:
     
     void update(float deltaSecs)
     {
-        pitch() += ((pitching() * deltaSecs) * 100.000000f);
-        yaw() += ((yawing() * deltaSecs) * 100.000000f);
-        Mat34 transform = system_api::transform_rotate(Vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.000000f), entity());
-        system_api::renderer_transform_model_instance(wasdrot_modeluid(), transform, entity());
+        if (((pitching() != 0.000000f) || (yawing() != 0.000000f)))
+        {
+            pitch() += ((pitching() * deltaSecs) * 100.000000f);
+            yaw() += ((yawing() * deltaSecs) * 100.000000f);
+            Mat34 trans = system_api::transform_rotate(Vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.000000f), entity());
+            {
+                StackMessageBlockWriter<3> msgw(HASH::transform, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(0));
+                *reinterpret_cast<Mat34*>(&msgw[0].cells[0]) = trans;
+                entity().message(msgw.accessor());
+            }
+        }
     }
 
     template <typename T>
@@ -163,24 +170,9 @@ public:
         case HASH::init_data:
             pitch() = 0.000000f;
             pitching() = 0.000000f;
-            wasdrot_modeluid() = 0;
             yaw() = 0.000000f;
             yawing() = 0.000000f;
             return MessageResult::Consumed;
-        case HASH::set_property:
-            switch (_msg.payload.u)
-            {
-            case HASH::wasdrot_modeluid:
-            {
-                u32 requiredBlockCount = 1;
-                if (_msg.blockCount >= requiredBlockCount)
-                {
-                    reinterpret_cast<Block*>(&wasdrot_modeluid())[0].cells[0] = msgAcc[0].cells[0];
-                    return MessageResult::Consumed;
-                }
-            }
-            }
-            return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
             system_api::watch_input_state(HASH::forward, 0, HASH::forward, entity());
@@ -246,32 +238,28 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create_updatable(this, HASH::utils__WasdRot);
-        mBlockCount = 2;
+        mBlockCount = 1;
     }
     utils__WasdRot(const utils__WasdRot&)              = delete;
     utils__WasdRot(const utils__WasdRot&&)             = delete;
     utils__WasdRot & operator=(const utils__WasdRot&)  = delete;
     utils__WasdRot & operator=(const utils__WasdRot&&) = delete;
 
-    u32& wasdrot_modeluid()
-    {
-        return mpBlocks[0].cells[0].u;
-    }
     f32& yawing()
     {
-        return mpBlocks[0].cells[1].f;
+        return mpBlocks[0].cells[0].f;
     }
     f32& yaw()
     {
-        return mpBlocks[0].cells[2].f;
+        return mpBlocks[0].cells[1].f;
     }
     f32& pitching()
     {
-        return mpBlocks[0].cells[3].f;
+        return mpBlocks[0].cells[2].f;
     }
     f32& pitch()
     {
-        return mpBlocks[1].cells[0].f;
+        return mpBlocks[0].cells[3].f;
     }
 
 }; // class utils__WasdRot

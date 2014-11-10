@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 5b74e3e0d2eb8730d80480a75fa2ae6b
+// HASH: 6c19c74201592030fea67693f0c911e5
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -38,39 +38,15 @@ namespace gaen
 namespace ent
 {
 
-class test__test : public Entity
+class test__start : public Entity
 {
 private:
 // Entity initializer helper functions
-    task_id entity_init__test__shapes_Box__31_25()
-    {
-        Entity * pEnt = get_registry().constructEntity(HASH::shapes__Box, 8);
-        // Init Property: size
-        {
-            StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
-            *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(2.000000f, 2.000000f, 2.000000f);
-            pEnt->task().message(msgw.accessor());
-        }
-        // Init Property: diffuse
-        {
-            StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::diffuse));
-            msgw[0].cells[0].color = Color(255, 0, 0, 255);
-            pEnt->task().message(msgw.accessor());
-        }
-
-        // Send init message
-        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->message(msgBW.accessor());
-
-        stageEntity(pEnt);
-        return pEnt->task().id();
-    }
-
 
 public:
     static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, test__test, childCount);
+        return GNEW(kMEM_Engine, test__start, childCount);
     }
     
     template <typename T>
@@ -81,34 +57,39 @@ public:
         {
         case HASH::init:
         {
-            task_id box_1 = entity_init__test__shapes_Box__31_25();
+            Mat34 trans;
+            {
+                StackMessageBlockWriter<3> msgw(HASH::transform, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(1));
+                *reinterpret_cast<Mat34*>(&msgw[0].cells[0]) = trans;
+                entity().message(msgw.accessor());
+            }
             return MessageResult::Consumed;
         }
         }
         return MessageResult::Propogate;
-}
+    }
 
 private:
-    test__test(u32 childCount)
-      : Entity(HASH::test__test, childCount, 36, 36)
+    test__start(u32 childCount)
+      : Entity(HASH::test__start, childCount, 36, 36)
     {
 
         mBlockCount = 0;
-        mScriptTask = Task::create(this, HASH::test__test);
+        mScriptTask = Task::create(this, HASH::test__start);
     }
-    test__test(const test__test&)              = delete;
-    test__test(const test__test&&)             = delete;
-    test__test & operator=(const test__test&)  = delete;
-    test__test & operator=(const test__test&&) = delete;
+    test__start(const test__start&)              = delete;
+    test__start(const test__start&&)             = delete;
+    test__start & operator=(const test__start&)  = delete;
+    test__start & operator=(const test__start&&) = delete;
 
-}; // class test__test
+}; // class test__start
 
 } // namespace ent
 
-void register_entity__test__test(Registry & registry)
+void register_entity__test__start(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::test__test, ent::test__test::construct))
-        PANIC("Unable to register entity: test__test");
+    if (!registry.registerEntityConstructor(HASH::test__start, ent::test__start::construct))
+        PANIC("Unable to register entity: test__start");
 }
 
 } // namespace gaen

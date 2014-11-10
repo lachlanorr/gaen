@@ -61,7 +61,7 @@ public:
     }
 
     const Mat34 & transform() const { return *mpTransform; }
-    u32 id() const { return mMsgAcc.message().payload.u; }
+    bool isLocal() const { return mMsgAcc.message().payload.b; }
         
 private:
     const T & mMsgAcc;
@@ -81,12 +81,12 @@ public:
                 u32 flags,
                 task_id source,
                 task_id target,
-                u32 id)
+                bool isLocal)
       : MessageQueueWriter(msgId,
                            flags,
                            source,
                            target,
-                           to_cell(id),
+                           to_cell(*reinterpret_cast<const u32*>(&isLocal)),
                            3)
     {}
     
@@ -97,7 +97,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
-    void setId(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setIsLocal(bool val) { mMsgAcc.message().payload.b = val; }
 };
 
 class TransformBW : public MessageBlockWriter
@@ -107,12 +107,12 @@ public:
                 u32 flags,
                 task_id source,
                 task_id target,
-                u32 id)
+                bool isLocal)
       : MessageBlockWriter(msgId,
                            flags,
                            source,
                            target,
-                           to_cell(id),
+                           to_cell(*reinterpret_cast<const u32*>(&isLocal)),
                            3,
                            mBlocks)
     {}
@@ -124,7 +124,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
-    void setId(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setIsLocal(bool val) { mMsgAcc.message().payload.b = val; }
 
 private:
     Block mBlocks[3 + 1]; // +1 for header

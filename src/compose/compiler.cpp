@@ -222,12 +222,12 @@ SymRec* symtab_find_symbol(SymTab* pSymTab, const char * name)
     return nullptr;
 }
 
-// check if name matches this import
-const char * namespace_match(const char * name, const Import & import)
+// check if name matches this using
+const char * namespace_match(const char * name, const Using & using_)
 {
     const char * dotPos = strrchr(name, '.');
 
-    // If there's no '.', this identifier for sure doesn't match this import
+    // If there's no '.', this identifier for sure doesn't match this using
     if (!dotPos)
         return nullptr;
 
@@ -239,8 +239,8 @@ const char * namespace_match(const char * name, const Import & import)
         return nullptr;
 
     size_t namespaceLen = dotPos - name;
-    bool namespaceMatch = (strncmp(import.namespace_, name, namespaceLen) == 0 ||
-                           strncmp(import.pParseData->namespace_, name, namespaceLen) == 0);
+    bool namespaceMatch = (strncmp(using_.namespace_, name, namespaceLen) == 0 ||
+                           strncmp(using_.pParseData->namespace_, name, namespaceLen) == 0);
 
     if (!namespaceMatch)
         return nullptr;
@@ -267,43 +267,43 @@ SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
     else
     {
         // We're in the root and haven't found the symbol.
-        // Try to find it in an imported symbol list.
-        for (const Import & import : pSymTab->pParseData->imports)
+        // Try to find it in an using'ed symbol list.
+        for (const Using & using_ : pSymTab->pParseData->usings)
         {
-            const char * unqualifiedName = namespace_match(name, import);
-            if (unqualifiedName) // if name starts with "import as" namespace, or the literal pParseData namespace
+            const char * unqualifiedName = namespace_match(name, using_);
+            if (unqualifiedName) // if name starts with "using as" namespace, or the literal pParseData namespace
             {
-                SymRec * pSymRec = symtab_find_symbol(import.pParseData->pRootScope->pSymTab, unqualifiedName);
+                SymRec * pSymRec = symtab_find_symbol(using_.pParseData->pRootScope->pSymTab, unqualifiedName);
                 if (pSymRec)
                     return pSymRec;
             }
         }
     }
 
-    // Ok, we haven't found the symbol anywhere, including explicit imports.
-    // Attempt to implicitly import the containing file.
+    // Ok, we haven't found the symbol anywhere, including explicit usings.
+    // Attempt to implicitly using the containing file.
     {
         const char * dotPos = strrchr(name, '.');
         if (dotPos)
         {
-            size_t importNameLen = dotPos - name;
-            if (importNameLen <= 1)
+            size_t usingNameLen = dotPos - name;
+            if (usingNameLen <= 1)
                 return nullptr; // seems like bad id, like it starts with a '.'
 
-            char * importName = (char*)COMP_ALLOC(importNameLen+1);
-            strncpy(importName, name, importNameLen);
-            importName[importNameLen] = '\0';
+            char * usingName = (char*)COMP_ALLOC(usingNameLen+1);
+            strncpy(usingName, name, usingNameLen);
+            usingName[usingNameLen] = '\0';
 
             // we have a dot, attempt to load the file
-            const char * path = parsedata_dotted_to_path(pSymTab->pParseData, importName);
+            const char * path = parsedata_dotted_to_path(pSymTab->pParseData, usingName);
             if (path)
             {
-                // path seems possibly valid, continue with the import
-                const Import * pImport = parsedata_parse_import(pSymTab->pParseData, nullptr, path); // null for namespace, import will use implicit namespace of the file
-                if (pImport)
+                // path seems possibly valid, continue with the using
+                const Using * pUsing = parsedata_parse_using(pSymTab->pParseData, nullptr, path); // null for namespace, using will use implicit namespace of the file
+                if (pUsing)
                 {
-                    const char * unqualifiedName = namespace_match(name, *pImport);
-                    SymRec * pSymRec = symtab_find_symbol(pImport->pParseData->pRootScope->pSymTab, unqualifiedName);
+                    const char * unqualifiedName = namespace_match(name, *pUsing);
+                    SymRec * pSymRec = symtab_find_symbol(pUsing->pParseData->pRootScope->pSymTab, unqualifiedName);
                     if (pSymRec)
                         return pSymRec;
                 }
@@ -483,27 +483,27 @@ static Ast * ast_create_block_def(const char * name,
     return pAst;
 }
 
-void ast_create_import_list(Ast * pImportList, ParseData * pParseData)
+void ast_create_using_list(Ast * pUsingList, ParseData * pParseData)
 {
-    pParseData->pRootAst->pLhs = pImportList;
+    pParseData->pRootAst->pLhs = pUsingList;
 }
 
-Ast * ast_create_import_stmt(Ast * pImportDottedId, Ast * pAsDottedId, ParseData * pParseData)
+Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData * pParseData)
 {
-    ASSERT(pImportDottedId->str);
+    ASSERT(pUsingDottedId->str);
     
-    Ast * pAst = ast_create(kAST_ImportStmt, pParseData);
-    ast_set_lhs(pAst, pImportDottedId);
+    Ast * pAst = ast_create(kAST_UsingStmt, pParseData);
+    ast_set_lhs(pAst, pUsingDottedId);
     ast_set_rhs(pAst, pAsDottedId);
 
-    const char * path = parsedata_dotted_to_path(pParseData, pImportDottedId->str);
+    const char * path = parsedata_dotted_to_path(pParseData, pUsingDottedId->str);
     if (!path)
     {
-        COMP_ERROR(pParseData, "Failed to find import: %s", pImportDottedId->str);
+        COMP_ERROR(pParseData, "Failed to find using: %s", pUsingDottedId->str);
     }
     
-    // Do the import
-    parsedata_parse_import(pParseData, pAsDottedId->str, path);
+    // Do the using
+    parsedata_parse_using(pParseData, pAsDottedId->str, path);
 
     return pAst;
 }
@@ -625,7 +625,7 @@ Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseDat
 
     if (!pCompSymRec)
     {
-        COMP_ERROR(pParseData, "Unknown component: %s, are you missing an import?", pDottedId->str);
+        COMP_ERROR(pParseData, "Unknown component: %s", pDottedId->str);
         return nullptr;
     }
 
@@ -1165,6 +1165,8 @@ DataType ast_data_type(const Ast * pAst)
         return kDT_vec4;
     else if (pAst->type == kAST_Mat34Init)
         return kDT_mat34;
+    else if (pAst->type == kAST_Transform)
+        return kDT_mat34;
     else if (pAst->type == kAST_Negate)
         return ast_data_type(pAst->pRhs);
     else if (pAst->type == kAST_SystemCall)
@@ -1529,23 +1531,23 @@ void parsedata_set_location(ParseData * pParseData,
     pParseData->column = column;
 }
 
-const Import * parsedata_parse_import(ParseData * pParseData,
+const Using * parsedata_parse_using(ParseData * pParseData,
                             const char * namespace_,
                             const char * fullPath)
 {
-    ParseData * pImportParseData = parse_file(fullPath, pParseData->messageHandler);
+    ParseData * pUsingParseData = parse_file(fullPath, pParseData->messageHandler);
 
-    if (!pImportParseData)
+    if (!pUsingParseData)
     {
-        COMP_ERROR(pParseData, "Failed to parse import: %s", fullPath);
+        COMP_ERROR(pParseData, "Failed to parse using: %s", fullPath);
         return nullptr;
     }
     
-    Import imp;
-    imp.pParseData = pImportParseData;
+    Using imp;
+    imp.pParseData = pUsingParseData;
     if (!namespace_ || namespace_[0] == '\0')
     {
-        imp.namespace_ = pParseData->namespace_; // if no namespace provided, use pParseData's namespace
+        imp.namespace_ = pUsingParseData->namespace_; // if no namespace provided, use namespace of parsed using
     }
     else
     {
@@ -1555,9 +1557,9 @@ const Import * parsedata_parse_import(ParseData * pParseData,
         imp.namespace_ = pref;
     }
         
-    pParseData->imports.push_back(imp);
+    pParseData->usings.push_back(imp);
 
-    return &pParseData->imports.back();
+    return &pParseData->usings.back();
 }
 
 //------------------------------------------------------------------------------

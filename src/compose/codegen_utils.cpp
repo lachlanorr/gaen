@@ -120,7 +120,8 @@ u32 calc_cell_count(const Ast * pAst)
 {
     if (pAst->pSymRec)
         return data_type_cell_count(pAst->pSymRec->dataType, pAst->pParseData);
-    else if (pAst->type == kAST_Hash)
+    else if (pAst->type == kAST_Hash ||
+             pAst->type == kAST_IntLiteral)
         return 1;
     parsedata_formatted_message(pAst->pParseData, kMSGT_Error, "Unable to calculate cell count for Ast type: %d", pAst->type);
     return -1;

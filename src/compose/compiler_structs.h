@@ -141,7 +141,7 @@ struct Scope
     SymTab * pSymTab;
 };
 
-struct Import
+struct Using
 {
     const char * namespace_;
     const ParseData * pParseData;
@@ -156,8 +156,8 @@ struct ParseData
     CompList<Scope*> scopeStack;
     CompSet<CompString> strings;
 
-    // ParseData structs from comilations of imports
-    CompList<Import> imports;
+    // ParseData structs from compilations of usings
+    CompList<Using> usings;
 
     // location info
     int line;

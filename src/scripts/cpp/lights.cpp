@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 684fef631e0337680db294c72087287b
+// HASH: b3deeb4321679227abb0f165463c0020
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -35,18 +35,15 @@
 namespace gaen
 {
 
-namespace ent
+namespace comp
 {
 
-class lights__DirectionalLight : public Entity
+class lights__Directional : public Component
 {
-private:
-// Entity initializer helper functions
-
 public:
-    static Entity * construct(u32 childCount)
+    static Component * construct(void * place, Entity * pEntity)
     {
-        return GNEW(kMEM_Engine, lights__DirectionalLight, childCount);
+        return new (place) lights__Directional(pEntity);
     }
     
     template <typename T>
@@ -55,6 +52,9 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
+        case HASH::init_data:
+            lightUid() = system_api::renderer_gen_uid(entity());
+            return MessageResult::Consumed;
         case HASH::init:
         {
             system_api::renderer_insert_light_directional(lightUid(), Vec3(0.100000f, 0.100000f, 0.200000f), Color(255, 255, 255, 255), entity());
@@ -65,31 +65,30 @@ public:
 }
 
 private:
-    lights__DirectionalLight(u32 childCount)
-      : Entity(HASH::lights__DirectionalLight, childCount, 36, 36)
+    lights__Directional(Entity * pEntity)
+      : Component(pEntity)
     {
-        lightUid() = system_api::renderer_gen_uid(entity());
-
+        mScriptTask = Task::create(this, HASH::lights__Directional);
         mBlockCount = 1;
-        mScriptTask = Task::create(this, HASH::lights__DirectionalLight);
     }
-    lights__DirectionalLight(const lights__DirectionalLight&)              = delete;
-    lights__DirectionalLight(const lights__DirectionalLight&&)             = delete;
-    lights__DirectionalLight & operator=(const lights__DirectionalLight&)  = delete;
-    lights__DirectionalLight & operator=(const lights__DirectionalLight&&) = delete;
+    lights__Directional(const lights__Directional&)              = delete;
+    lights__Directional(const lights__Directional&&)             = delete;
+    lights__Directional & operator=(const lights__Directional&)  = delete;
+    lights__Directional & operator=(const lights__Directional&&) = delete;
 
     u32& lightUid()
     {
         return mpBlocks[0].cells[0].u;
     }
-}; // class lights__DirectionalLight
 
-} // namespace ent
+}; // class lights__Directional
 
-void register_entity__lights__DirectionalLight(Registry & registry)
+} // namespace comp
+
+void register_component__lights__Directional(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::lights__DirectionalLight, ent::lights__DirectionalLight::construct))
-        PANIC("Unable to register entity: lights__DirectionalLight");
+    if (!registry.registerComponentConstructor(HASH::lights__Directional, comp::lights__Directional::construct))
+        PANIC("Unable to register component: lights__Directional");
 }
 
 } // namespace gaen

@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: b31dbbd1eb69a6f248178022178a9c95
+// HASH: 9e59ba0707be5b4cf9b5dc257aaff239
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -38,25 +38,192 @@ namespace gaen
 namespace ent
 {
 
+class init__Box : public Entity
+{
+private:
+// Entity initializer helper functions
+
+
+    task_id entity_init__init__Box__55_23()
+    {
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Box, 8);
+
+        // Send init message
+        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->message(msgBW.accessor());
+
+        stageEntity(pEnt);
+        return pEnt->task().id();
+    }
+
+    task_id entity_init__init__Light__56_25()
+    {
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
+
+        // Send init message
+        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->message(msgBW.accessor());
+
+        stageEntity(pEnt);
+        return pEnt->task().id();
+    }
+
+
+public:
+    static Entity * construct(u32 childCount)
+    {
+        return GNEW(kMEM_Engine, init__Box, childCount);
+    }
+    
+    template <typename T>
+    MessageResult message(const T & msgAcc)
+    {
+        return MessageResult::Propogate;
+    }
+
+private:
+    init__Box(u32 childCount)
+      : Entity(HASH::init__Box, childCount, 36, 36)
+    {
+
+        mBlockCount = 0;
+        mScriptTask = Task::create(this, HASH::init__Box);
+
+        // Component: shapes.Box
+        {
+            Task & compTask = insertComponent(HASH::shapes__Box, mComponentCount);
+            // Init Property: size
+            {
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
+                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(2.000000f, 2.000000f, 2.000000f);
+                compTask.message(msgw.accessor());
+            }
+            // Init Property: diffuse
+            {
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::diffuse));
+                msgw[0].cells[0].color = Color(255, 255, 0, 255);
+                compTask.message(msgw.accessor());
+            }
+        }
+
+        // Component: utils.WasdRot
+        {
+            Task & compTask = insertComponent(HASH::utils__WasdRot, mComponentCount);
+        }
+    }
+    init__Box(const init__Box&)              = delete;
+    init__Box(const init__Box&&)             = delete;
+    init__Box & operator=(const init__Box&)  = delete;
+    init__Box & operator=(const init__Box&&) = delete;
+
+}; // class init__Box
+
+} // namespace ent
+
+void register_entity__init__Box(Registry & registry)
+{
+    if (!registry.registerEntityConstructor(HASH::init__Box, ent::init__Box::construct))
+        PANIC("Unable to register entity: init__Box");
+}
+
+namespace ent
+{
+
+class init__Light : public Entity
+{
+private:
+// Entity initializer helper functions
+
+
+    task_id entity_init__init__Box__55_23()
+    {
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Box, 8);
+
+        // Send init message
+        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->message(msgBW.accessor());
+
+        stageEntity(pEnt);
+        return pEnt->task().id();
+    }
+
+    task_id entity_init__init__Light__56_25()
+    {
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
+
+        // Send init message
+        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->message(msgBW.accessor());
+
+        stageEntity(pEnt);
+        return pEnt->task().id();
+    }
+
+
+public:
+    static Entity * construct(u32 childCount)
+    {
+        return GNEW(kMEM_Engine, init__Light, childCount);
+    }
+    
+    template <typename T>
+    MessageResult message(const T & msgAcc)
+    {
+        return MessageResult::Propogate;
+    }
+
+private:
+    init__Light(u32 childCount)
+      : Entity(HASH::init__Light, childCount, 36, 36)
+    {
+
+        mBlockCount = 0;
+        mScriptTask = Task::create(this, HASH::init__Light);
+
+        // Component: lights.Directional
+        {
+            Task & compTask = insertComponent(HASH::lights__Directional, mComponentCount);
+        }
+    }
+    init__Light(const init__Light&)              = delete;
+    init__Light(const init__Light&&)             = delete;
+    init__Light & operator=(const init__Light&)  = delete;
+    init__Light & operator=(const init__Light&&) = delete;
+
+}; // class init__Light
+
+} // namespace ent
+
+void register_entity__init__Light(Registry & registry)
+{
+    if (!registry.registerEntityConstructor(HASH::init__Light, ent::init__Light::construct))
+        PANIC("Unable to register entity: init__Light");
+}
+
+namespace ent
+{
+
 class init__start : public Entity
 {
 private:
 // Entity initializer helper functions
-    task_id entity_init__init__shapes_Box__42_23()
+
+
+    task_id entity_init__init__Box__55_23()
     {
-        Entity * pEnt = get_registry().constructEntity(HASH::shapes__Box, 8);
-        // Init Property: size
-        {
-            StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
-            *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(2.000000f, 2.000000f, 2.000000f);
-            pEnt->task().message(msgw.accessor());
-        }
-        // Init Property: diffuse
-        {
-            StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::diffuse));
-            msgw[0].cells[0].color = Color(255, 255, 0, 255);
-            pEnt->task().message(msgw.accessor());
-        }
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Box, 8);
+
+        // Send init message
+        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->message(msgBW.accessor());
+
+        stageEntity(pEnt);
+        return pEnt->task().id();
+    }
+
+    task_id entity_init__init__Light__56_25()
+    {
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
 
         // Send init message
         StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
@@ -81,8 +248,10 @@ public:
         {
         case HASH::init:
         {
-            task_id box = entity_init__init__shapes_Box__42_23();
+            task_id box = entity_init__init__Box__55_23();
+            task_id light = entity_init__init__Light__56_25();
             system_api::insert_task(box, entity());
+            system_api::insert_task(light, entity());
             return MessageResult::Consumed;
         }
         case HASH::timer:
@@ -94,7 +263,7 @@ public:
         }
         }
         return MessageResult::Propogate;
-}
+    }
 
 private:
     init__start(u32 childCount)

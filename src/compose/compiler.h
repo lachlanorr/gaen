@@ -72,8 +72,8 @@ typedef enum
 
     kAST_Root,
 
-    kAST_ImportList,
-    kAST_ImportStmt,
+    kAST_UsingList,
+    kAST_UsingStmt,
     kAST_DottedId,
     kAST_DottedIdPart,
     kAST_FunctionDef,
@@ -100,6 +100,8 @@ typedef enum
     kAST_CustomType,
 
     kAST_SimpleStmt,
+
+    kAST_Transform,
 
     kAST_If,
     kAST_While,
@@ -251,7 +253,7 @@ typedef struct AstList AstList;
 typedef struct Ast Ast;
 typedef struct Scope Scope;
 typedef struct ParseData ParseData;
-typedef struct Import Import;
+typedef struct Using Using;
 
 int parse_int(const char * pStr, int base);
 float parse_float(const char * pStr);
@@ -280,8 +282,8 @@ Ast * ast_create_with_str(AstType astType, AstFlags flags, const char * str, Par
 Ast * ast_create_with_numi(AstType astType, AstFlags flags, int numi, ParseData * pParseData);
 Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData);
 
-void ast_create_import_list(Ast * pImportList, ParseData * pParseData);
-Ast * ast_create_import_stmt(Ast * pImportDottedId, Ast * pAsDottedId, ParseData * pParseData);
+void ast_create_using_list(Ast * pUsingList, ParseData * pParseData);
+Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData * pParseData);
 Ast * ast_create_function_def(const char * name, Ast* pReturnType, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
@@ -376,9 +378,9 @@ void parsedata_set_location(ParseData * pParseData,
                             int line,
                             int column);
 
-const Import * parsedata_parse_import(ParseData * pParseData,
-                                      const char * namespace_,
-                                      const char * fullPath);
+const Using * parsedata_parse_using(ParseData * pParseData,
+                                    const char * namespace_,
+                                    const char * fullPath);
 
 
 void parse_init();

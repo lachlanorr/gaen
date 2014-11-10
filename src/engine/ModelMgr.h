@@ -45,14 +45,14 @@ struct ModelInstance
     ModelInstance(task_id owner,
                   u32 uid,
                   Model * pModel,
-                  const Mat34 & worldTransform)
+                  const Mat34 & transform)
       : ruid(owner, uid)
-      , worldTransform(worldTransform)
+      , transform(transform)
       , pModel(pModel)
     {}
         
     Ruid ruid;
-    Mat34 worldTransform;
+    Mat34 transform;
     Model * pModel;
 };
     

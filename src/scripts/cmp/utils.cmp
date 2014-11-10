@@ -51,8 +51,6 @@ component Timer
 // Rotate a model when wasd keys are pressed
 component WasdRot
 {
-    uint #wasdrot_modeluid = 0;
-
     float yawing = 0.0;
     float yaw = 0.0;
 
@@ -69,10 +67,13 @@ component WasdRot
 
     #update(float deltaSecs)
     {
-        pitch += pitching * deltaSecs * 100.0;
-        yaw += yawing * deltaSecs * 100.0;
-        mat34 transform = $.transform_rotate(vec3{$.radians(pitch), $.radians(yaw), 0.0});
-        $.renderer_transform_model_instance(wasdrot_modeluid, transform);
+        if (pitching != 0.0 || yawing != 0.0)
+        {
+            pitch += pitching * deltaSecs * 100.0;
+            yaw += yawing * deltaSecs * 100.0;
+            mat34 trans = $.transform_rotate(vec3{$.radians(pitch), $.radians(yaw), 0.0});
+            @#transform(false, trans);
+        }
     }
 
     #forward(bool status)
