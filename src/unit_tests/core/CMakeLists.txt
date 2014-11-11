@@ -29,7 +29,6 @@ SET (test_core_SOURCES
   main_testcore.cpp
   test_gamevars.cpp
   test_gamevars_aux.cpp
-  test_math.cpp
   test_mem.cpp
   test_ringbuffers.cpp
   ${gtest_dir}/gtest/gtest-all.cc
