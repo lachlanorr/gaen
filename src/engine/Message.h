@@ -38,7 +38,7 @@ typedef u32 task_id; // defined here since we are the root of the includes, and 
 static const u32 kMessageFlag_None     = 0;
 
 static const u32 kMessageFlag_ForcePropogate  = 1 << 0; // message should be sent to all children (e.g. save_state), regardless of handlers returning "Consumed" result
-static const u32 kMessageFlag_Editor     = 1 << 1;      // message originated from editor
+static const u32 kMessageFlag_Editor          = 1 << 1; // message originated from editor
 
 static const u32 kMaxBlockCount = 2 << 4;
 

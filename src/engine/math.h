@@ -377,7 +377,7 @@ inline Vec4::Vec4(const Vec3 &vec3, f32 w)
 
 inline f32 Vec4::length() const 
 { 
-    return sqrt(x()*x() + y()*y() + z()*z() + w()*w());
+    return sqrt(x()*x() + y()*y() + z()*z());
 }
 
 inline void Vec4::normalize()
