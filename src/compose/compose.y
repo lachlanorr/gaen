@@ -64,7 +64,7 @@ freely, subject to the following restrictions:
 static void yyprint(FILE * file, int type, YYSTYPE value);
 %}
 
-%token <str> IDENTIFIER HASH
+%token <str> IDENTIFIER HASH STRING_LITERAL
 %token <numi> INT_LITERAL TRUE FALSE
 %token <numf> FLOAT_LITERAL
 
@@ -248,6 +248,8 @@ expr
     | type_ent IDENTIFIER          { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL, pParseData)); }
     | type_ent IDENTIFIER '=' expr { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, $4, pParseData)); }
     
+    | STRING_LITERAL { $$ = ast_create_string_literal($1, pParseData); }
+
     | cond_expr        { $$ = $1; }
     
     | expr '+' expr    { $$ = ast_create_binary_op(kAST_Add,    $1, $3, pParseData); }

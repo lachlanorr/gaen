@@ -872,6 +872,13 @@ Ast * ast_create_float_literal(float numf, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_string_literal(const char * str, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_StringLiteral, pParseData);
+    pAst->str = str;
+    return pAst;
+}
+
 Ast * ast_create_function_call(Ast * pDottedId, Ast * pParams, ParseData * pParseData)
 {
     Ast * pAst = nullptr;

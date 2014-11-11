@@ -28,7 +28,7 @@ entity start
 {
     #init()
     {
-        mat34 trans;
-        @#transform(true, trans);
+        "abcd
+         efg";
     }
 }

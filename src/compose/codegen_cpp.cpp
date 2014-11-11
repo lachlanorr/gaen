@@ -474,69 +474,75 @@ static S message_def(const Ast * pAst, int indentLevel)
 
 static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char * taskName, int indentLevel)
 {
-    ASSERT(pAst && pAst->pChildren);
-
     S code = S("");
-    for (Ast * pPropInit : pAst->pChildren->nodes)
+    if (pAst && pAst->pChildren)
     {
-        // Ensure the property is valid
-        SymRec * pSymRec = symtab_find_symbol(pPropsSymTab, pPropInit->str);
-        if (!pSymRec || pSymRec->type != kSYMT_Property)
+        for (Ast * pPropInit : pAst->pChildren->nodes)
         {
-            COMP_ERROR(pAst->pParseData, "Invalid property: '%s'", pPropInit->str);
-        }
+            // Ensure the property is valid
+            SymRec * pSymRec = symtab_find_symbol(pPropsSymTab, pPropInit->str);
+            if (!pSymRec || pSymRec->type != kSYMT_Property)
+            {
+                COMP_ERROR(pAst->pParseData, "Invalid property: '%s'", pPropInit->str);
+            }
 
-        code += I + S("// Init Property: ") + S(pPropInit->str) + ("\n");
-        code += I + S("{\n");
-        DataType rhsDataType = ast_data_type(pPropInit->pRhs);
-        u32 valCellCount = data_type_cell_count(rhsDataType, pAst->pParseData);
-        u32 blockCount = block_count(1 + valCellCount); // +1 for property name hash
-        static const u32 kScratchSize = 256;
-        char scratch[kScratchSize+1];
-        snprintf(scratch,
-            kScratchSize,
-            "    StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::%s));\n",
-            blockCount,
-            "set_property",
-            pPropInit->str);
-        code += I + S(scratch);
-        DataType dt = ast_data_type(pPropInit->pRhs);
-        switch (dt)
-        {
-        case kDT_float:
-            code += I + S("    msgw[0].cells[0].f = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
-            break;
-        case kDT_int:
-            code += I + S("    msgw[0].cells[0].i = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
-            break;
-        case kDT_uint:
-            code += I + S("    msgw[0].cells[0].u = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
-            break;
-        case kDT_color:
-            code += I + S("    msgw[0].cells[0].color = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
-            break;
-        case kDT_vec2:
-        case kDT_vec3:
-        case kDT_vec4:
-        case kDT_mat3:
-        case kDT_mat34:
-        case kDT_mat4:
-            code += I + S("    *reinterpret_cast<") + S(cpp_type_str(dt, pAst->pParseData)) + S("*>(&msgw[0].cells[0].u) = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
-            break;
-        default:
-            COMP_ERROR(pAst->pParseData, "Unsupported type for codegen component property init, type: %d", pPropInit->pRhs->type);
+            code += I + S("// Init Property: ") + S(pPropInit->str) + ("\n");
+            code += I + S("{\n");
+            DataType rhsDataType = ast_data_type(pPropInit->pRhs);
+            u32 valCellCount = data_type_cell_count(rhsDataType, pAst->pParseData);
+            u32 blockCount = block_count(1 + valCellCount); // +1 for property name hash
+            static const u32 kScratchSize = 256;
+            char scratch[kScratchSize+1];
+            snprintf(scratch,
+                     kScratchSize,
+                     "    StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::%s));\n",
+                     blockCount,
+                     "set_property",
+                     pPropInit->str);
+            code += I + S(scratch);
+            DataType dt = ast_data_type(pPropInit->pRhs);
+            switch (dt)
+            {
+            case kDT_float:
+                code += I + S("    msgw[0].cells[0].f = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
+                break;
+            case kDT_int:
+                code += I + S("    msgw[0].cells[0].i = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
+                break;
+            case kDT_uint:
+                code += I + S("    msgw[0].cells[0].u = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
+                break;
+            case kDT_color:
+                code += I + S("    msgw[0].cells[0].color = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
+                break;
+            case kDT_vec2:
+            case kDT_vec3:
+            case kDT_vec4:
+            case kDT_mat3:
+            case kDT_mat34:
+            case kDT_mat4:
+                code += I + S("    *reinterpret_cast<") + S(cpp_type_str(dt, pAst->pParseData)) + S("*>(&msgw[0].cells[0].u) = ") + codegen_recurse(pPropInit->pRhs, indentLevel);
+                break;
+            default:
+                COMP_ERROR(pAst->pParseData, "Unsupported type for codegen component property init, type: %d", pPropInit->pRhs->type);
+            }
+            code += S(";\n");
+            // Future work... support for multi cell values
+            //code += S("            cell * pCellDestStart = &msgw[0].cells[0]\n");
+            //code += S("            cell * pCellSrcStart = 
+            code += I + S("    ") + S(taskName) + S(".message(msgw.accessor());\n");
+            code += I + S("}\n");
         }
-        code += S(";\n");
-        // Future work... support for multi cell values
-        //code += S("            cell * pCellDestStart = &msgw[0].cells[0]\n");
-        //code += S("            cell * pCellSrcStart = 
-        code += I + S("    ") + S(taskName) + S(".message(msgw.accessor());\n");
-        code += I + S("}\n");
     }
+
+    code += I + S("// Send init message\n");
+    code += I + S("StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, ") + S(taskName) + S(".id(), ") + S(taskName) + S(".id(), to_cell(0));\n");
+    code += I + S(taskName) + S(".message(msgBW.accessor());\n");
+
     return code;
 }
 
-static S codegen_entity_inits_recurse(Ast * pAst)
+static S codegen_entity_inits_recurse(const Ast * pAst)
 {
     S code = S("");
 
@@ -555,10 +561,6 @@ static S codegen_entity_inits_recurse(Ast * pAst)
         code += I + S("    Entity * pEnt = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->full_name) + S(", 8);") + LF;
         code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEnt->task()", indentLevel + 1);
         code += LF;
-        code += I + S("    // Send init message") + LF;
-        code += I + S("    StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));")+ LF;
-        code += I + S("    pEnt->message(msgBW.accessor());") + LF;
-        code += LF;
         code += I + S("    stageEntity(pEnt);") + LF;
         code += I + S("    return pEnt->task().id();") + LF;
         code += I + S("}") + LF;
@@ -576,17 +578,22 @@ static S codegen_entity_inits_recurse(Ast * pAst)
     return code;
 }
 
-static S codegen_entity_inits(ParseData * pParseData)
+static S codegen_entity_inits(const Ast * pAst)
 {
-    S entityInits = S("private:\n");
-    entityInits += S("// Entity initializer helper functions\n");
-    for (Ast * pAst : pParseData->pRootAst->pChildren->nodes)
+    S entityInits = S("");
+
+    for (Ast * pAst : pAst->pChildren->nodes)
     {
         // only process top level AST nodes from the primary file
-        if (pAst->fullPath == pParseData->fullPath)
+        if (pAst->fullPath == pAst->pParseData->fullPath)
         {
-            entityInits += codegen_entity_inits_recurse(pAst) + LF;
+            entityInits += codegen_entity_inits_recurse(pAst);
         }
+    }
+
+    if (entityInits.size() > 0)
+    {
+        entityInits = S("private:\n    // Entity initializer helper functions\n") + entityInits + LF;
     }
 
     return entityInits;
@@ -611,7 +618,7 @@ static S codegen_recurse(const Ast * pAst,
         S code("namespace ent\n{\n\n");
         code += I + S("class ") + entName + S(" : public Entity\n{\n");
 
-        code += codegen_entity_inits(pAst->pParseData);
+        code += codegen_entity_inits(pAst);
 
         code += I + S("public:\n");
         code += I + S("    static Entity * construct(u32 childCount)\n");
@@ -702,11 +709,9 @@ static S codegen_recurse(const Ast * pAst,
                 code += I + S("        // Component: ") + S(pCompMember->str) + ("\n");
                 code += I + S("        {\n");
                 code += I + S("            Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->full_name) + S(", mComponentCount);\n");
-                if (pCompMember->pRhs && pCompMember->pRhs->pChildren)
-                {
-                    ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
-                    code += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", indentLevel + 3);
-                }
+                ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
+                code += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", indentLevel + 3);
+
                 code += S("        }\n");
             }
         }

@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 6c19c74201592030fea67693f0c911e5
+// HASH: 0766c451a662c792172a83e9ea4d2977
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/MessageWriter.h"
@@ -40,9 +40,6 @@ namespace ent
 
 class test__start : public Entity
 {
-private:
-// Entity initializer helper functions
-
 public:
     static Entity * construct(u32 childCount)
     {
@@ -57,12 +54,7 @@ public:
         {
         case HASH::init:
         {
-            Mat34 trans;
-            {
-                StackMessageBlockWriter<3> msgw(HASH::transform, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(1));
-                *reinterpret_cast<Mat34*>(&msgw[0].cells[0]) = trans;
-                entity().message(msgw.accessor());
-            }
+            ;
             return MessageResult::Consumed;
         }
         }

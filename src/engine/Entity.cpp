@@ -388,10 +388,6 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
     StackMessageBlockWriter<0> initDataMsgw(HASH::init_data, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(pComp->task().id()));
     pComp->task().message(initDataMsgw.accessor());
 
-    // Send init message
-    StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pComp->task().id(), pComp->task().id(), to_cell(0));
-    pComp->task().message(msgBW.accessor());
-
     return pComp->task();
 }
 

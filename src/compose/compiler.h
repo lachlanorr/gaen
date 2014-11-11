@@ -314,6 +314,7 @@ Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData
 
 Ast * ast_create_int_literal(int numi, ParseData * pParseData);
 Ast * ast_create_float_literal(float numf, ParseData * pParseData);
+Ast * ast_create_string_literal(const char * str, ParseData * pParseData);
 
 Ast * ast_create_function_call(Ast * pFuncName, Ast * pParams, ParseData * pParseData);
 Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData * pParseData);
