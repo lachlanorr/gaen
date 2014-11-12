@@ -87,7 +87,7 @@ public:
     Chunk(u8 chunkIdx);
 
     // Allocate and return u16 block data index.
-    // Returns -1 if no space.
+    // Returns Address::kInvalidIdx if no space.
     u8 alloc(u8 blockCount);
     void free(u8 blockIdx);
 
@@ -103,12 +103,14 @@ static const u32 kMaxStringLength = (Chunk::kBlocksPerChunk - 1) * kBlockSize + 
 
 struct Address
 {
+    static const u8 kInvalidIdx = 255;
+
     u8 chunkIdx;
     u8 blockIdx;
 
     Address()
-      : chunkIdx(-1)
-      , blockIdx(-1) {}
+      : chunkIdx(kInvalidIdx)
+      , blockIdx(kInvalidIdx) {}
 
     Address(u8 chunkIdx, u8 blockIdx)
       : chunkIdx(chunkIdx)
@@ -122,6 +124,7 @@ public:
     static const u32 kChunkCount = 16;
 
     BlockMemory();
+    ~BlockMemory();
     
     Address alloc(u8 blockCount);
     void free(Address addr);

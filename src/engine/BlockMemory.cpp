@@ -35,6 +35,8 @@ namespace gaen
 
 void BlockData::init()
 {
+    type = kBKTY_COUNT;
+    blockCount = 0;
     isAllocated = 0;
     isInitial = 0;
 }
@@ -51,12 +53,11 @@ Chunk::Chunk(u8 chunkIdx)
 u8 Chunk::alloc(u8 blockCount)
 {
     ASSERT(blockCount < kBlocksPerChunk);
-    if (blockCount < mHeader.freeCount)
-        return -1;
+    if (blockCount > mHeader.freeCount)
+        return Address::kInvalidIdx;
 
-    u16 idx = 0;
     u32 foundBlocks = 0;
-    while (idx < kBlocksPerChunk - blockCount)
+    for (u16 idx = 0; idx < kBlocksPerChunk; ++idx)
     {
         BlockData & bd = mBlocks[idx];
         if (!bd.isAllocated)
@@ -75,15 +76,17 @@ u8 Chunk::alloc(u8 blockCount)
             u8 startIdx = idx - foundBlocks + 1;
 
             mBlocks[startIdx].isInitial = 1;
+            mBlocks[startIdx].blockCount = blockCount;
             for (u32 i = 0; i < foundBlocks; ++i)
             {
-                mBlocks[i].isAllocated = 1;
+                mBlocks[startIdx+i].isAllocated = 1;
             }
+            mHeader.freeCount -= blockCount;
             return startIdx;
         }
     }
 
-    return -1;
+    return Address::kInvalidIdx;
 }
 
 void Chunk::free(u8 blockIdx)
@@ -91,12 +94,15 @@ void Chunk::free(u8 blockIdx)
     ASSERT(blockIdx < kBlocksPerChunk);
     BlockData & bd = mBlocks[blockIdx];
     ASSERT(bd.isAllocated && bd.isInitial);
+    ASSERT(bd.blockCount <= (kBlocksPerChunk - blockIdx));
+    u32 blockCount = bd.blockCount;
     bd.isInitial = 0; // to pass assert below
-    for (u32 i = 0; i < bd.blockCount; ++i)
+    for (u32 i = 0; i < blockCount; ++i)
     {
-        ASSERT(mBlocks[i].isAllocated && !mBlocks[i].isInitial);
-        mBlocks[i].init();
+        ASSERT(mBlocks[blockIdx+i].isAllocated && !mBlocks[blockIdx+i].isInitial);
+        mBlocks[blockIdx+i].init();
     }
+    mHeader.freeCount += blockCount;
 }
 
 //------------------------------------------------------------------------------
@@ -107,9 +113,21 @@ BlockMemory::BlockMemory()
     
 }
 
+BlockMemory::~BlockMemory()
+{
+    for (u32 chunkIdx = 0; chunkIdx < kChunkCount; ++chunkIdx)
+    {
+        if (mChunks[chunkIdx])
+        {
+            GDELETE(mChunks[chunkIdx]);
+            mChunks[chunkIdx] = nullptr;
+        }
+    }
+}
+
 Address BlockMemory::alloc(u8 blockCount)
 {
-    u32 firstEmptyChunk = -1;
+    u8 firstEmptyChunk = Address::kInvalidIdx;
 
     ASSERT(blockCount > 0 && blockCount <= Chunk::kBlocksPerChunk);
 
@@ -118,7 +136,7 @@ Address BlockMemory::alloc(u8 blockCount)
         Chunk * pBc = mChunks[chunkIdx];
         if (!pBc)
         {
-            if (firstEmptyChunk == -1)
+            if (firstEmptyChunk == Address::kInvalidIdx)
             {
                 // save this for later if we fail to
                 // find any available space in non-empty
@@ -129,7 +147,7 @@ Address BlockMemory::alloc(u8 blockCount)
         else
         {
             u8 blockIdx = pBc->alloc(blockCount);
-            if (blockIdx != -1)
+            if (blockIdx != Address::kInvalidIdx)
             {
                 return Address(chunkIdx, blockIdx);
             }
@@ -138,12 +156,12 @@ Address BlockMemory::alloc(u8 blockCount)
 
     // no available space in allocated block chuncks,
     // see if we can allocate a new one
-    if (firstEmptyChunk != -1)
+    if (firstEmptyChunk != Address::kInvalidIdx)
     {
         ASSERT(firstEmptyChunk < kChunkCount && !mChunks[firstEmptyChunk]);
         mChunks[firstEmptyChunk] = GNEW(kMEM_Engine, Chunk, firstEmptyChunk);
         u8 blockIdx = mChunks[firstEmptyChunk]->alloc(blockCount);
-        ASSERT(blockIdx != -1);
+        ASSERT(blockIdx != Address::kInvalidIdx);
         return Address(firstEmptyChunk, blockIdx);
     }
     else

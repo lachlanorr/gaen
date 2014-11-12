@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// test_math.cpp - Tests for core/mem memory manager
+// test_math.cpp - Tests for math routines
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr

@@ -26,7 +26,14 @@
 
 #include <gtest/gtest.h>
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+#include "core/mem.h"
+#include "core/threading.h"
+
+int main(int argc, char **argv)
+{
+    gaen::init_threading(2);
+    gaen::init_memory_manager("16:100,64:100,256:100,1024:100,4096:100");
+
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

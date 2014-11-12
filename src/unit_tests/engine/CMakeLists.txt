@@ -26,6 +26,7 @@
 
 SET (test_engine_SOURCES
   main_testengine.cpp
+  test_blockmemory.cpp
   test_math.cpp
   test_task.cpp
   ${gtest_dir}/gtest/gtest-all.cc

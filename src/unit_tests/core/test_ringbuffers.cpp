@@ -40,8 +40,6 @@ TEST(RingBuffers, SpscRingBuffer)
         u64 u;
     };
 
-    init_threading(1);
-
     const size_t kQSize = 4;
 
     SpscRingBuffer<Data> q(kQSize, kMEM_Unspecified);
