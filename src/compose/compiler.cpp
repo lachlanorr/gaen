@@ -875,7 +875,75 @@ Ast * ast_create_float_literal(float numf, ParseData * pParseData)
 Ast * ast_create_string_literal(const char * str, ParseData * pParseData)
 {
     Ast * pAst = ast_create(kAST_StringLiteral, pParseData);
-    pAst->str = str;
+    size_t strLength = strlen(str);
+    ASSERT(str[0] == '"' && str[strLength-1] == '"');
+    const char * s = str + 1;
+    char * d = (char*)COMP_ALLOC(strLength - 2 + 1); // -2 for leading/trailing '"', +1 for null termination
+    pAst->str = d;
+
+    while (*s)
+    {
+        if (*s == '\\')
+        {
+            switch(s[1])
+            {
+            case 'a':
+                *d = 0x07; // Alarm (Beep, Bell)
+                break;
+            case 'b':
+                *d = 0x08; // Backspace
+                break;
+            case 'f':
+                *d = 0x0c; // Formfeed
+                break;
+            case 'n':
+                *d = 0x0a; // Newline
+                break;
+            case 'r':
+                *d = 0x0a; // Newline
+                // \r\n get converted to just a single \n
+                if (s[2] == '\n')
+                    s++;
+                break;
+            case 't':
+                *d = 0x09; // Horizontal Tab
+                break;
+            case 'v':
+                *d = 0x0B; // Vertical Tab
+                break;
+            case '\\':
+                *d = '\\'; // Backslash
+                break;
+            case '\'':
+                *d = '\''; // Single quotation mark
+                break;
+            case '"':
+                *d = '"'; // Double quotation mark
+                break;
+            case '?':
+                *d = '?'; // Question mark
+                break;
+            default:
+                *d = '\\';
+                d++;
+                *d = s[1]; 
+                break;
+            }
+            s++; // extra ++ to get past '\'
+        }
+        else
+        {
+            *d = *s;
+        }
+        s++;
+        d++;
+    }
+
+    // null terminate over the trailing '"'
+    d--;
+    ASSERT(*d == '"');
+    *d = '\0';
+
     return pAst;
 }
 

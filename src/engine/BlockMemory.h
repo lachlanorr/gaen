@@ -43,6 +43,19 @@ enum BlockType
 // 12 characters left after string header data in first BlockData
 static const u32 kCharsInFirstBlock = 12;
 
+struct String
+{
+    u16 charCount;
+    char chars[kCharsInFirstBlock];
+
+    const char * c_str() const
+    {
+        ASSERT(chars[charCount-1] == '\0');
+        return &chars[0];
+    }
+private:
+};
+
 struct BlockData
 {
     u16 type:4;
@@ -53,11 +66,7 @@ struct BlockData
 
     union
     {
-        struct string
-        {
-            u16 charCount;
-            u8 chars[kCharsInFirstBlock];
-        } string;
+        String string;
       
         // add additional types here, like "list" and "dict"
     } data;
@@ -91,6 +100,7 @@ public:
     u8 alloc(u8 blockCount);
     void free(u8 blockIdx);
 
+    BlockData & blockData(u8 blockIdx) { return mBlocks[blockIdx]; }
 private:
     ChunkHeader mHeader;
     BlockData mBlocks[kBlocksPerChunk];
@@ -125,10 +135,14 @@ public:
 
     BlockMemory();
     ~BlockMemory();
+
+    String * allocString(u16 charCount);
     
     Address alloc(u8 blockCount);
     void free(Address addr);
 private:
+    BlockData & blockData(Address & addr);
+
     Chunk * mChunks[kChunkCount];
 };
 

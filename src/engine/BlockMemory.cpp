@@ -125,6 +125,20 @@ BlockMemory::~BlockMemory()
     }
 }
 
+String * BlockMemory::allocString(u16 charCount)
+{
+    u16 charCountWithNull = charCount + 1;
+    u8 blockCount = (u8)(charCountWithNull / kBlockSize + (charCountWithNull % kBlockSize ? 1 : 0));
+    Address addr = alloc(blockCount);
+    if (addr.blockIdx != Address::kInvalidIdx)
+    {
+        BlockData & bd = blockData(addr);
+        bd.data.string.charCount = charCount;
+        bd.data.string.chars[charCount] = '\0';
+    }
+    return nullptr;
+}
+
 Address BlockMemory::alloc(u8 blockCount)
 {
     u8 firstEmptyChunk = Address::kInvalidIdx;
@@ -178,6 +192,14 @@ void BlockMemory::free(Address addr)
     Chunk * pChunk = mChunks[addr.chunkIdx];
     ASSERT(pChunk);
     pChunk->free(addr.blockIdx);
+}
+
+BlockData & BlockMemory::blockData(Address & addr)
+{
+    ASSERT(addr.chunkIdx < kChunkCount && addr.blockIdx < Chunk::kBlocksPerChunk);
+    Chunk * pChunk = mChunks[addr.chunkIdx];
+    ASSERT(pChunk);
+    return pChunk->blockData(addr.blockIdx);
 }
 
 } // namespace gaen

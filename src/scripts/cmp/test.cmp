@@ -28,7 +28,7 @@ entity start
 {
     #init()
     {
-        "abcd
+        "ab\tcd
          efg";
     }
 }
