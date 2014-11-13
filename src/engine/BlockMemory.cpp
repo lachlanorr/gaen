@@ -33,18 +33,20 @@
 namespace gaen
 {
 
-void BlockData::init()
+BlockData * BlockData::from_string(String * pString)
 {
-    type = kBKTY_COUNT;
-    blockCount = 0;
-    isAllocated = 0;
-    isInitial = 0;
+    BlockData * pBd = reinterpret_cast<BlockData*>(reinterpret_cast<u16*>(pString) - 1);
+    ASSERT(pBd->type == kBKTY_String);
+    return pBd;
 }
+
 
 Chunk::Chunk(u8 chunkIdx)
 {
+    mHeader.magic = kMagic;
     mHeader.freeCount = kBlocksPerChunk;
     mHeader.chunkIdx = chunkIdx;
+    mHeader.needsCollection = false;
 
     for (u32 i = 0; i < kBlocksPerChunk; ++i)
         mBlocks[i].init();
@@ -52,6 +54,8 @@ Chunk::Chunk(u8 chunkIdx)
 
 u8 Chunk::alloc(u8 blockCount)
 {
+    mHeader.needsCollection = true;
+
     ASSERT(blockCount < kBlocksPerChunk);
     if (blockCount > mHeader.freeCount)
         return Address::kInvalidIdx;
@@ -105,12 +109,73 @@ void Chunk::free(u8 blockIdx)
     mHeader.freeCount += blockCount;
 }
 
+Chunk * Chunk::from_block_data(BlockData * pBd)
+{
+    // This math works because we've aligned the Chunk to
+    // sizeof(Chunk) when allocating.
+    Chunk * pChunk = (Chunk*)((std::intptr_t)pBd - ((std::intptr_t)pBd % sizeof(Chunk)));
+    ASSERT(pChunk->mHeader.magic == kMagic); // sanity check our magic number
+    return pChunk;
+}
+
+u8 Chunk::indexFromBlockData(BlockData * pBd)
+{
+    ASSERT(pBd >= &mBlocks[0] && pBd <= &mBlocks[kBlocksPerChunk-1]);
+    return (u8)(pBd - &mBlocks[0]);
+}
+
+void Chunk::addRef(u8 blockIdx)
+{
+    BlockData & bd = blockData(blockIdx);
+    ASSERT(bd.refCount < BlockData::kMaxRefCount);
+    bd.refCount++;
+}
+
+void Chunk::release(u8 blockIdx)
+{
+    BlockData & bd = blockData(blockIdx);
+    ASSERT(bd.refCount > 0);
+    bd.refCount--;
+    if (bd.refCount == 0)
+        mHeader.needsCollection = true;
+}
+
+void Chunk::collect()
+{
+    if (mHeader.needsCollection)
+    {
+        for (u32 blockIdx = 0; blockIdx < kBlocksPerChunk; ++blockIdx)
+        {
+            BlockData & bd = mBlocks[blockIdx];
+            if (bd.isInitial && bd.isAllocated && bd.refCount == 0)
+                this->free(blockIdx);
+        }
+        mHeader.needsCollection = false;
+    }
+}
+
+u32 Chunk::availableBlocks()
+{
+    return mHeader.freeCount;
+}
+
+u32 Chunk::usedBlocks()
+{
+    return totalBlocks() - mHeader.freeCount;
+}
+
+u32 Chunk::totalBlocks()
+{
+    return kBlocksPerChunk;
+}
+
+
 //------------------------------------------------------------------------------
 
 BlockMemory::BlockMemory()
 {
     memset(mChunks, 0, sizeof(mChunks));
-    
+    mNeedsCollection = false;
 }
 
 BlockMemory::~BlockMemory()
@@ -125,7 +190,7 @@ BlockMemory::~BlockMemory()
     }
 }
 
-String * BlockMemory::allocString(u16 charCount)
+String * BlockMemory::stringAlloc(u16 charCount)
 {
     u16 charCountWithNull = charCount + 1;
     u8 blockCount = (u8)(charCountWithNull / kBlockSize + (charCountWithNull % kBlockSize ? 1 : 0));
@@ -139,16 +204,36 @@ String * BlockMemory::allocString(u16 charCount)
     return nullptr;
 }
 
+void BlockMemory::stringAddRef(String * pString)
+{
+    BlockData * pBd = BlockData::from_string(pString);
+    Chunk * pChunk = Chunk::from_block_data(pBd);
+    u8 blockIdx = pChunk->indexFromBlockData(pBd);
+
+    addRef(Address(pChunk->chunkIdx(), blockIdx));
+}
+
+void BlockMemory::stringRelease(String * pString)
+{
+    BlockData * pBd = BlockData::from_string(pString);
+    Chunk * pChunk = Chunk::from_block_data(pBd);
+    u8 blockIdx = pChunk->indexFromBlockData(pBd);
+
+    release(Address(pChunk->chunkIdx(), blockIdx));
+}
+
+
 Address BlockMemory::alloc(u8 blockCount)
 {
+    mNeedsCollection = true;
     u8 firstEmptyChunk = Address::kInvalidIdx;
 
     ASSERT(blockCount > 0 && blockCount <= Chunk::kBlocksPerChunk);
 
     for (u32 chunkIdx = 0; chunkIdx < kChunkCount; ++chunkIdx)
     {
-        Chunk * pBc = mChunks[chunkIdx];
-        if (!pBc)
+        Chunk * pChunk = mChunks[chunkIdx];
+        if (!pChunk)
         {
             if (firstEmptyChunk == Address::kInvalidIdx)
             {
@@ -160,7 +245,7 @@ Address BlockMemory::alloc(u8 blockCount)
         }
         else
         {
-            u8 blockIdx = pBc->alloc(blockCount);
+            u8 blockIdx = pChunk->alloc(blockCount);
             if (blockIdx != Address::kInvalidIdx)
             {
                 return Address(chunkIdx, blockIdx);
@@ -173,7 +258,12 @@ Address BlockMemory::alloc(u8 blockCount)
     if (firstEmptyChunk != Address::kInvalidIdx)
     {
         ASSERT(firstEmptyChunk < kChunkCount && !mChunks[firstEmptyChunk]);
-        mChunks[firstEmptyChunk] = GNEW(kMEM_Engine, Chunk, firstEmptyChunk);
+
+        // Alloc aligned to size of Chunk so we can get to start of
+        // chunk easily from a block within the chunk without having
+        // to store chunk pointer or index at every block.
+        mChunks[firstEmptyChunk] = GNEW_ALIGNED(kMEM_Engine, Chunk, sizeof(Chunk), firstEmptyChunk);
+
         u8 blockIdx = mChunks[firstEmptyChunk]->alloc(blockCount);
         ASSERT(blockIdx != Address::kInvalidIdx);
         return Address(firstEmptyChunk, blockIdx);
@@ -192,6 +282,59 @@ void BlockMemory::free(Address addr)
     Chunk * pChunk = mChunks[addr.chunkIdx];
     ASSERT(pChunk);
     pChunk->free(addr.blockIdx);
+}
+
+void BlockMemory::addRef(Address addr)
+{
+    ASSERT(mChunks[addr.chunkIdx]);
+    mChunks[addr.chunkIdx]->addRef(addr.blockIdx);
+}
+
+void BlockMemory::release(Address addr)
+{
+    ASSERT(mChunks[addr.chunkIdx]);
+    mChunks[addr.chunkIdx]->release(addr.blockIdx);
+    mNeedsCollection |= mChunks[addr.chunkIdx]->needsCollection();
+}
+
+void BlockMemory::collect()
+{
+    if (mNeedsCollection)
+    {
+        for (u32 chunkIdx = 0; chunkIdx < kChunkCount; ++chunkIdx)
+        {
+            Chunk * pChunk = mChunks[chunkIdx];
+            if (pChunk)
+            {
+                pChunk->collect();
+            }
+        }
+        mNeedsCollection = false;
+    }
+}
+
+u32 BlockMemory::availableBlocks()
+{
+    u32 available = 0;
+    for (u32 chunkIdx = 0; chunkIdx < kChunkCount; ++chunkIdx)
+    {
+        Chunk * pChunk = mChunks[chunkIdx];
+        if (!pChunk)
+            available += Chunk::kBlocksPerChunk;
+        else
+            available += pChunk->availableBlocks();
+    }
+    return available;
+}
+
+u32 BlockMemory::usedBlocks()
+{
+    return totalBlocks() - availableBlocks();
+}
+
+u32 BlockMemory::totalBlocks()
+{
+    return kChunkCount * Chunk::kBlocksPerChunk;
 }
 
 BlockData & BlockMemory::blockData(Address & addr)

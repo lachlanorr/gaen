@@ -35,9 +35,10 @@ namespace gaen
 
 enum BlockType
 {
-    kBKTY_String,
+    kBKTY_Uninitialized = 0,
 
-    kBKTY_COUNT
+    kBKTY_String        = 1,
+
 };
 
 // 12 characters left after string header data in first BlockData
@@ -58,11 +59,13 @@ private:
 
 struct BlockData
 {
+    static const u16 kMaxRefCount = 15;
+
     u16 type:4;
     u16 blockCount:6;  // changing this affects kBlocksPerChunk
     u16 isAllocated:1;
     u16 isInitial:1;   // is the initial block of an allocated series of blocks
-    u16 PADDING:4;
+    u16 refCount:4;
 
     union
     {
@@ -71,7 +74,9 @@ struct BlockData
         // add additional types here, like "list" and "dict"
     } data;
 
-    void init();
+    static BlockData * from_string(String * pString);
+
+    void init() { *reinterpret_cast<u16*>(this) = 0; }
 };
 
 static_assert(sizeof(BlockData) == sizeof(Block), "BlockData must be same size as a Block");
@@ -81,9 +86,11 @@ static_assert(sizeof(BlockData) == 16, "BlockData must be same size as a Block")
 
 struct ChunkHeader
 {
+    u32 magic;
     u8 freeCount;
     u8 chunkIdx;
-    u8 PADDING[14];
+    bool needsCollection;
+    u8 PADDING[9];
 };
 
 static_assert(sizeof(ChunkHeader) == sizeof(Block), "ChunkHeader must be same size as a Block");
@@ -95,13 +102,34 @@ public:
 
     Chunk(u8 chunkIdx);
 
+    u8 chunkIdx() { return mHeader.chunkIdx; }
+
     // Allocate and return u16 block data index.
     // Returns Address::kInvalidIdx if no space.
     u8 alloc(u8 blockCount);
     void free(u8 blockIdx);
 
-    BlockData & blockData(u8 blockIdx) { return mBlocks[blockIdx]; }
+    BlockData & blockData(u8 blockIdx)
+    {
+        ASSERT(blockIdx < kBlocksPerChunk);
+        return mBlocks[blockIdx];
+    }
+
+    static Chunk * from_block_data(BlockData * pBd);
+    u8 indexFromBlockData(BlockData * pBd);
+
+    void addRef(u8 blockIdx);
+    void release(u8 blockIdx);
+
+    bool needsCollection() { return mHeader.needsCollection; }
+    void collect();
+
+    u32 availableBlocks();
+    u32 usedBlocks();
+    u32 totalBlocks();
 private:
+    static const u32 kMagic = 0xb70cb70c;
+
     ChunkHeader mHeader;
     BlockData mBlocks[kBlocksPerChunk];
 };
@@ -136,13 +164,25 @@ public:
     BlockMemory();
     ~BlockMemory();
 
-    String * allocString(u16 charCount);
+    String * stringAlloc(u16 charCount);
+    void stringAddRef(String * pString);
+    void stringRelease(String * pString);
     
     Address alloc(u8 blockCount);
     void free(Address addr);
+
+    void addRef(Address addr);
+    void release(Address addr);
+
+    void collect();
+
+    u32 availableBlocks();
+    u32 usedBlocks();
+    u32 totalBlocks();
 private:
     BlockData & blockData(Address & addr);
 
+    bool mNeedsCollection;
     Chunk * mChunks[kChunkCount];
 };
 

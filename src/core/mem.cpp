@@ -138,13 +138,14 @@ void MemMgr::fin()
     mIsInit = false;
 }
 
-void * MemMgr::allocate(size_t count)
+void * MemMgr::allocate(size_t count, u32 alignment)
 {
     // LORRTODO
 
 #if IS_PLATFORM_WIN32
-    void * pMem = _aligned_malloc(count, 16);
+    void * pMem = _aligned_malloc(count, alignment);
 #else
+    PANIC("Need to utilize aligned alloc on all platforms");
     void * pMem = malloc(count);
 #endif
 
