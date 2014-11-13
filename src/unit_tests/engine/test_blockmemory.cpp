@@ -30,7 +30,7 @@
 
 using namespace gaen;
 
-TEST(BlockMemoryTest, Usage)
+TEST(BlockMemoryTest, AllocCollect)
 {
     BlockMemory bm;
 
@@ -48,6 +48,24 @@ TEST(BlockMemoryTest, Usage)
     EXPECT_EQ(addr1.chunkIdx, 0);
     EXPECT_EQ(addr1.blockIdx, 0);
 
+    bm.collect();
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks);
+
+    addr1 = bm.alloc(62);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 62);
+    EXPECT_EQ(addr1.chunkIdx, 0);
+    EXPECT_EQ(addr1.blockIdx, 0);
+
+    bm.addRef(addr1);
+    bm.collect();
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 62);
+    bm.addRef(addr1);
+    bm.collect();
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 62);
+    bm.release(addr1);
+    bm.collect();
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 62);
+    bm.release(addr1);
     bm.collect();
     EXPECT_EQ(bm.availableBlocks(), totalBlocks);
 
@@ -116,3 +134,61 @@ TEST(BlockMemoryTest, Usage)
     EXPECT_EQ(bm.availableBlocks(), totalBlocks);
 }
 
+TEST(BlockMemoryTest, String)
+{
+    BlockMemory bm;
+
+    // These tests assume this kBlockPerChunk
+    EXPECT_EQ(63, Chunk::kBlocksPerChunk);
+
+    u32 totalBlocks = bm.totalBlocks();
+    u32 availableBlocks = bm.availableBlocks();
+
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks);
+
+    String * str1 = bm.stringAlloc(kMaxStringLength);
+    EXPECT_EQ(str1->charCount, kMaxStringLength);
+    EXPECT_EQ(str1->chars[kMaxStringLength], '\0');
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 63);
+
+    bm.collect();
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks);
+
+    str1 = bm.stringAlloc(kMaxStringLength);
+    EXPECT_EQ(str1->charCount, kMaxStringLength);
+    EXPECT_EQ(str1->chars[kMaxStringLength], '\0');
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 63);
+
+    String * str2 = bm.stringAlloc(kMaxStringLength-kBlockSize);
+    EXPECT_EQ(str2->charCount, kMaxStringLength-kBlockSize);
+    EXPECT_EQ(str2->chars[kMaxStringLength-kBlockSize], '\0');
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 63 - 62);
+
+    String * str3 = bm.stringAlloc(kBlockSize-1);
+    EXPECT_EQ(str3->charCount, kBlockSize-1);
+    EXPECT_EQ(str3->chars[kBlockSize-1], '\0');
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 63 - 62 - 1);
+
+    bm.stringAddRef(str1);
+    bm.stringAddRef(str2);
+    bm.stringAddRef(str3);
+    bm.collect();
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 63 - 62 - 1);
+
+    bm.stringRelease(str1);
+    bm.collect();
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 62 - 1);
+
+    bm.stringRelease(str2);
+    bm.collect();
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 1);
+
+    str1 = bm.stringAlloc(kMaxStringLength);
+    EXPECT_EQ(str1->charCount, kMaxStringLength);
+    EXPECT_EQ(str1->chars[kMaxStringLength], '\0');
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 63 - 1);
+
+    bm.stringRelease(str3);
+    bm.collect();
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks);
+}

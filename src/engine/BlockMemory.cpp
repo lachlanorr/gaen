@@ -56,7 +56,7 @@ u8 Chunk::alloc(u8 blockCount)
 {
     mHeader.needsCollection = true;
 
-    ASSERT(blockCount < kBlocksPerChunk);
+    ASSERT(blockCount <= kBlocksPerChunk);
     if (blockCount > mHeader.freeCount)
         return Address::kInvalidIdx;
 
@@ -198,8 +198,10 @@ String * BlockMemory::stringAlloc(u16 charCount)
     if (addr.blockIdx != Address::kInvalidIdx)
     {
         BlockData & bd = blockData(addr);
+        bd.type = kBKTY_String;
         bd.data.string.charCount = charCount;
         bd.data.string.chars[charCount] = '\0';
+        return &bd.data.string;
     }
     return nullptr;
 }
