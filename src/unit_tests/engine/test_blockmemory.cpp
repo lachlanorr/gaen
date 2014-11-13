@@ -37,53 +37,82 @@ TEST(BlockMemoryTest, Usage)
     // These tests assume this kBlockPerChunk
     EXPECT_EQ(63, Chunk::kBlocksPerChunk);
 
+    u32 totalBlocks = bm.totalBlocks();
+    u32 availableBlocks = bm.availableBlocks();
+
+    EXPECT_EQ(totalBlocks, availableBlocks);
+    EXPECT_EQ(totalBlocks, 1008);
+
     Address addr1 = bm.alloc(62);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 62);
+    EXPECT_EQ(addr1.chunkIdx, 0);
+    EXPECT_EQ(addr1.blockIdx, 0);
+
+    bm.collect();
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks);
+
+    addr1 = bm.alloc(62);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 62);
     EXPECT_EQ(addr1.chunkIdx, 0);
     EXPECT_EQ(addr1.blockIdx, 0);
 
     Address addr2 = bm.alloc(2);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 62 - 2);
     EXPECT_EQ(addr2.chunkIdx, 1);
     EXPECT_EQ(addr2.blockIdx, 0);
 
     Address addr3 = bm.alloc(1);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 62 - 2 - 1);
     EXPECT_EQ(addr3.chunkIdx, 0);
     EXPECT_EQ(addr3.blockIdx, 62);
 
     bm.free(addr3);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 62 - 2);
     Address addr4 = bm.alloc(1);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 62 - 2 - 1);
     EXPECT_EQ(addr4.chunkIdx, 0);
     EXPECT_EQ(addr4.blockIdx, 62);
 
     bm.free(addr1);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 2 - 1);
     Address addr5 = bm.alloc(30);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 2 - 1 - 30);
     EXPECT_EQ(addr5.chunkIdx, 0);
     EXPECT_EQ(addr5.blockIdx, 0);
 
     Address addr6 = bm.alloc(32);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 2 - 1 - 30 - 32);
     EXPECT_EQ(addr6.chunkIdx, 0);
     EXPECT_EQ(addr6.blockIdx, 30);
 
     Address addr7 = bm.alloc(62);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 2 - 1 - 30 - 32 - 62);
     EXPECT_EQ(addr7.chunkIdx, 2);
     EXPECT_EQ(addr7.blockIdx, 0);
 
     Address addr8 = bm.alloc(10);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 2 - 1 - 30 - 32 - 62 - 10);
     EXPECT_EQ(addr8.chunkIdx, 1);
     EXPECT_EQ(addr8.blockIdx, 2);
 
     Address addr9 = bm.alloc(10);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 2 - 1 - 30 - 32 - 62 - 10 - 10);
     EXPECT_EQ(addr9.chunkIdx, 1);
     EXPECT_EQ(addr9.blockIdx, 12);
 
     Address addr10 = bm.alloc(41);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 2 - 1 - 30 - 32 - 62 - 10 - 10 - 41);
     EXPECT_EQ(addr10.chunkIdx, 1);
     EXPECT_EQ(addr10.blockIdx, 22);
 
     bm.free(addr8);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 2 - 1 - 30 - 32 - 62 - 10 - 41);
     Address addr11 = bm.alloc(10);
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks - 2 - 1 - 30 - 32 - 62 - 10 - 10 - 41);
     EXPECT_EQ(addr11.chunkIdx, 1);
     EXPECT_EQ(addr11.blockIdx, 2);
 
-
+    bm.collect();
+    EXPECT_EQ(bm.availableBlocks(), totalBlocks);
 }
 
