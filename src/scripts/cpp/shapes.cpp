@@ -21,9 +21,10 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 0a015b2fbb2d7556425c8034d4e6b5dc
+// HASH: e9727fe8cdaa0ab347f9009ac96b6385
 #include "engine/hashes.h"
 #include "engine/Block.h"
+#include "engine/BlockMemory.h"
 #include "engine/MessageWriter.h"
 #include "engine/Task.h"
 #include "engine/Handle.h"
@@ -114,18 +115,22 @@ private:
     {
         return *reinterpret_cast<Vec3*>(&mpBlocks[2].qCell);
     }
+
     Color& diffuse()
     {
         return mpBlocks[2].cells[3].color;
     }
+
     Handle& model()
     {
         return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
     }
+
     u32& boxModelUid()
     {
         return mpBlocks[3].cells[0].u;
     }
+
 
 }; // class shapes__Box
 

@@ -33,7 +33,7 @@
 namespace gaen
 {
 
-BlockData * BlockData::from_string(String * pString)
+BlockData * BlockData::from_string(BlockString * pString)
 {
     BlockData * pBd = reinterpret_cast<BlockData*>(reinterpret_cast<u16*>(pString) - 1);
     ASSERT(pBd->type == kBKTY_String);
@@ -190,40 +190,34 @@ BlockMemory::~BlockMemory()
     }
 }
 
-String * BlockMemory::stringAlloc(u16 charCount)
+CmpString BlockMemory::stringAlloc(u16 charCount)
 {
     u16 charCountWithNull = charCount + 1;
     u8 blockCount = (u8)(charCountWithNull / kBlockSize + (charCountWithNull % kBlockSize ? 1 : 0));
     Address addr = alloc(blockCount);
+
     if (addr.blockIdx != Address::kInvalidIdx)
     {
         BlockData & bd = blockData(addr);
         bd.type = kBKTY_String;
         bd.data.string.charCount = charCount;
         bd.data.string.chars[charCount] = '\0';
-        return &bd.data.string;
+        return CmpString(&bd);
     }
-    return nullptr;
+    else
+    {
+        PANIC("Failed to allocate string of size %d", charCount);
+        return CmpString(nullptr);
+    }
 }
 
-void BlockMemory::stringAddRef(String * pString)
+CmpString BlockMemory::stringAlloc(const char * val)
 {
-    BlockData * pBd = BlockData::from_string(pString);
-    Chunk * pChunk = Chunk::from_block_data(pBd);
-    u8 blockIdx = pChunk->indexFromBlockData(pBd);
-
-    addRef(Address(pChunk->chunkIdx(), blockIdx));
+    ASSERT(val);
+    CmpString str = stringAlloc((u16)strlen(val));
+    strcpy(str.c_str(), val);
+    return str;
 }
-
-void BlockMemory::stringRelease(String * pString)
-{
-    BlockData * pBd = BlockData::from_string(pString);
-    Chunk * pChunk = Chunk::from_block_data(pBd);
-    u8 blockIdx = pChunk->indexFromBlockData(pBd);
-
-    release(Address(pChunk->chunkIdx(), blockIdx));
-}
-
 
 Address BlockMemory::alloc(u8 blockCount)
 {
@@ -297,6 +291,24 @@ void BlockMemory::release(Address addr)
     ASSERT(mChunks[addr.chunkIdx]);
     mChunks[addr.chunkIdx]->release(addr.blockIdx);
     mNeedsCollection |= mChunks[addr.chunkIdx]->needsCollection();
+}
+
+void BlockMemory::addRef(const CmpString & str)
+{
+    BlockData * pBd = str.mpBlockData;
+    Chunk * pChunk = Chunk::from_block_data(pBd);
+    u8 blockIdx = pChunk->indexFromBlockData(pBd);
+
+    addRef(Address(pChunk->chunkIdx(), blockIdx));
+}
+
+void BlockMemory::release(const CmpString & str)
+{
+    BlockData * pBd = str.mpBlockData;
+    Chunk * pChunk = Chunk::from_block_data(pBd);
+    u8 blockIdx = pChunk->indexFromBlockData(pBd);
+
+    release(Address(pChunk->chunkIdx(), blockIdx));
 }
 
 void BlockMemory::collect()

@@ -44,7 +44,7 @@ enum BlockType
 // 12 characters left after string header data in first BlockData
 static const u32 kCharsInFirstBlock = 12;
 
-struct String
+struct BlockString
 {
     u16 charCount;
     char chars[kCharsInFirstBlock];
@@ -69,12 +69,12 @@ struct BlockData
 
     union
     {
-        String string;
+        BlockString string;
       
         // add additional types here, like "list" and "dict"
     } data;
 
-    static BlockData * from_string(String * pString);
+    static BlockData * from_string(BlockString * pString);
 
     void init() { *reinterpret_cast<u16*>(this) = 0; }
 };
@@ -156,6 +156,25 @@ struct Address
 
 };
 
+//------------------------------------------------------------------------------
+
+class CmpString
+{
+    friend class BlockMemory;
+public:
+    CmpString(BlockData * pBlockData)
+      : mpBlockData(pBlockData) { ASSERT(pBlockData->type == kBKTY_String); }
+
+    char * c_str() { return &mpBlockData->data.string.chars[0]; }
+    const char * c_str() const { return &mpBlockData->data.string.chars[0]; }
+    u16 size() { return mpBlockData->data.string.charCount; }
+
+private:
+    BlockData * mpBlockData;
+};
+
+//------------------------------------------------------------------------------
+
 class BlockMemory
 {
 public:
@@ -164,15 +183,16 @@ public:
     BlockMemory();
     ~BlockMemory();
 
-    String * stringAlloc(u16 charCount);
-    void stringAddRef(String * pString);
-    void stringRelease(String * pString);
+    CmpString stringAlloc(u16 charCount);
+    CmpString stringAlloc(const char * val);
     
     Address alloc(u8 blockCount);
     void free(Address addr);
 
     void addRef(Address addr);
     void release(Address addr);
+    void addRef(const CmpString & str);
+    void release(const CmpString & str);
 
     void collect();
 

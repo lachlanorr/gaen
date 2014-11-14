@@ -46,6 +46,8 @@ extern "C" {
 
 using namespace gaen;
 
+static_assert(kDT_COUNT == 24, "Make sure DataType enum ids look right... seems they have changed");
+
 static char sEmptyStr[] = { '\0' };
 
 int parse_int(const char * pStr, int base)
@@ -1230,6 +1232,8 @@ DataType ast_data_type(const Ast * pAst)
         return kDT_float;
     else if (pAst->type == kAST_IntLiteral)
         return kDT_int;
+    else if (pAst->type == kAST_StringLiteral)
+        return kDT_string;
     else if (pAst->type == kAST_ColorInit)
         return kDT_color;
     else if (pAst->type == kAST_Vec2Init)
@@ -1268,6 +1272,11 @@ int are_types_compatible(DataType a, DataType b)
         rawA == kDT_uint && rawB == kDT_entity)
         return 1;
     return 0;
+}
+
+int is_ref_counted_type(DataType dt)
+{
+    return (dt == kDT_string ? 1 : 0);
 }
 
 //------------------------------------------------------------------------------

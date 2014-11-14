@@ -232,11 +232,12 @@ typedef enum
 
     kDT_entity    = 22,
 
-    kDT_COUNT     = 24
+    // Dynamic data structures
+    kDT_string    = 23,
+
+    kDT_COUNT
 
 } DataType;
-
-
 
 typedef enum
 {
@@ -342,6 +343,7 @@ void ast_set_rhs(Ast * pParent, Ast * pRhs);
 
 DataType ast_data_type(const Ast * pAst);
 int are_types_compatible(DataType a, DataType b);
+int is_ref_counted_type(DataType dt);
 
 ParseData * parsedata_create(const char * prefix,
                              const char * fullPath,

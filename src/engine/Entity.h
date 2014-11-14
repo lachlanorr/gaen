@@ -38,6 +38,8 @@
 namespace gaen
 {
 
+class BlockMemory;
+
 class Entity
 {
 public:
@@ -65,6 +67,9 @@ public:
 
     void stageEntity(Entity * pEntity);
     Entity * unstageEntity(task_id id);
+
+    BlockMemory & blockMemory();
+    void collect();
 
 protected:
     // Max entities that can be created before they're inserted into the engine
@@ -131,6 +136,9 @@ protected:
     Entity ** mpChildren;
     u32 mChildrenMax;
     u32 mChildCount;
+
+    // Dynamic memory for scripts
+    BlockMemory * mpBlockMemory;
 };
 
 } // namespcae gaen

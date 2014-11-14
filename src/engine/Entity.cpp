@@ -28,6 +28,7 @@
 
 #include "core/mem.h"
 #include "core/logging.h"
+#include "engine/BlockMemory.h"
 #include "engine/hashes.h"
 #include "engine/Registry.h"
 
@@ -41,6 +42,7 @@ namespace gaen
 
 Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
   : mpParent(nullptr)
+  , mpBlockMemory(nullptr)
 {
     mTransform = Mat34::identity();
     mIsTransformDirty = false;
@@ -172,6 +174,22 @@ Entity * Entity::unstageEntity(task_id id)
     return nullptr;
 }
 
+BlockMemory & Entity::blockMemory()
+{
+    // We don't allocate until we need, as many entities will
+    // never need BlockMemory.
+    if (!mpBlockMemory)
+        mpBlockMemory = GNEW(kMEM_Engine, BlockMemory);
+
+    return *mpBlockMemory;
+}
+
+void Entity::collect()
+{
+    if (mpBlockMemory)
+        mpBlockMemory->collect();
+}
+
 void Entity::update(f32 deltaSecs)
 {
     mScriptTask.update(deltaSecs);
@@ -217,6 +235,9 @@ void Entity::update(f32 deltaSecs)
 
         mIsTransformDirty = false;
     }
+
+    // Collect any unused BlockMemory
+    collect();
 }
 
 template <typename T>

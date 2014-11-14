@@ -26,9 +26,11 @@
 
 entity start
 {
+    string #sProp = "prop val as string";
+    string sField;
+
     #init()
     {
-        "ab\tcd
-         efg";
+        sField = "def";
     }
 }

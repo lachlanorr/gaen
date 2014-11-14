@@ -28,6 +28,7 @@
 
 #include "engine/hashes.h"
 #include "engine/Block.h"
+#include "engine/BlockMemory.h"
 #include "compose/system_api_meta.h"
 #include "compose/codegen_cpp.h"
 #include "compose/compiler_structs.h"
@@ -177,6 +178,8 @@ static const char * cpp_type_str(DataType dt, ParseData * pParseData)
         return IS_DT_CONST(dt) ? "const Handle" : "Handle";
     case kDT_entity:
         return IS_DT_CONST(dt) ? "const task_id" : "task_id";
+    case kDT_string:
+        return IS_DT_CONST(dt) ? "const CmpString" : "CmpString";
     default:
         COMP_ERROR(pParseData, "cpp_type_str invalid DataType: %d", dt);
         return "";
@@ -203,6 +206,68 @@ static const char * cell_field_str(DataType dt, ParseData * pParseData)
         COMP_ERROR(pParseData, "cell_field_str invalid DataType: %d", dt);
         return "";
     }
+}
+
+void encode_string(char * enc, size_t encSize, const char * str)
+{
+    char * encMax = enc + encSize;
+    char * d = enc;
+    const char * s = str;
+
+    *d++ = '"';
+
+    while (*s)
+    {
+        if (d >= encMax-1)
+            break;
+        switch (*s)
+        {
+        case 0x07: // Alarm (Beep, Bell)
+            *d++ = '\\';
+            *d = 'a';
+            break;
+        case 0x08: // Backspace
+            *d++ = '\\';
+            *d = 'b';
+            break;
+        case 0x0c: // Formfeed
+            *d++ = '\\';
+            *d = 'f';
+            break;
+        case 0x0a: // Newline
+            *d++ = '\\';
+            *d = 'n';
+            break;
+        case 0x0d: // Carriage Return
+            *d++ = '\\';
+            *d = 'r';
+            break;
+        case 0x09: // Horizontal Tab
+            *d++ = '\\';
+            *d = 't';
+            break;
+        case 0x0B: // Vertical Tab
+            *d++ = '\\';
+            *d = 'v';
+            break;
+        case '\\': // Backslash
+            *d++ = '\\';
+            *d = '\\';
+            break;
+        case '"': // Double quotation mark
+            *d++ = '\\';
+            *d = '"';
+            break;
+        default:
+            *d = *s;
+            break;
+        }
+        s++;
+        d++;
+    }
+
+    *d++ = '"';
+    *d = '\0';
 }
 
 static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo, const char * blockVarName, ParseData * pParseData)
@@ -241,6 +306,9 @@ static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo,
             ASSERT(blockInfo.cellIndex == 0);
             snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].qCell)", cpp_type_str(dataType, pParseData), blockVarName, blockInfo.blockIndex);
             return S(scratch);
+        case kDT_string:
+            snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].cells[%u])", cpp_type_str(dataType, pParseData), blockVarName, blockInfo.blockIndex, blockInfo.cellIndex);
+            return S(scratch);
         default:
             COMP_ERROR(pParseData, "Invalid dataType: %d", dataType);
             return S("");
@@ -272,7 +340,21 @@ static S assign(const Ast * pAst, const char * op)
         return S("");
     }
 
-    return symref(pAst->pSymRec, pAst->pParseData) + S(" ") + S(op) + S(" ") + codegen_recurse(pAst->pRhs, 0);
+
+    if (!is_ref_counted_type(pAst->pSymRec->dataType))
+    {
+        return symref(pAst->pSymRec, pAst->pParseData) + S(" ") + S(op) + S(" ") + codegen_recurse(pAst->pRhs, 0);
+    }
+    else
+    {
+        if (strcmp(op, "=") != 0)
+        {
+            COMP_ERROR(pAst->pParseData, "Invalid assignment op %s for dataType %d", op, pAst->pSymRec->dataType);
+            return S("");
+        }
+        // call set function for ref counted types so addref/release can be done properly
+        return S("set_") + S(pAst->pSymRec->name) + S("(") + codegen_recurse(pAst->pRhs, 0) + S(")");
+    }
 }
 
 static S symref(const SymRec * pSymRec, ParseData * pParseData)
@@ -416,6 +498,8 @@ static S data_type_init_value(DataType dataType, ParseData * pParseData)
         return S("Mat4(1.0f)");
     case kDT_handle:
         return S("Handle::null()");
+    case kDT_string:
+        return S("entity().blockMemory().stringAlloc(\"\")");
     default:
         COMP_ERROR(pParseData, "Unknown initial value for datatype: %d", dataType);
         return S("");
@@ -432,20 +516,39 @@ static S init_data(const Ast * pAst, int indentLevel)
         SymRec * pSymRec = kv.second;
         if (is_prop_or_field(pSymRec))
         {
-            code += indent(indentLevel+1) + symref(pSymRec, pAst->pParseData);
-            code += S(" = ");
+            if (!is_ref_counted_type(pSymRec->dataType))
+            {
+                code += indent(indentLevel+1) + symref(pSymRec, pAst->pParseData);
+                code += S(" = ");
 
-            // Does the script initiialize this with a value?
-            if (pSymRec->pAst)
-            {
-                code += codegen_recurse(pSymRec->pAst, 0);
+                // Does the script initiialize this with a value?
+                if (pSymRec->pAst)
+                {
+                    code += codegen_recurse(pSymRec->pAst, 0);
+                }
+                else
+                {
+                    // initialzie with a default value based on the type
+                    code += data_type_init_value(pSymRec->dataType, pAst->pParseData);
+                }
+                code += S(";\n");
             }
-            else
+            else // ref counted go through set methods so we can addref/release properly
             {
-                // initialzie with a default value based on the type
-                code += data_type_init_value(pSymRec->dataType, pAst->pParseData);
+                code += I + S("    set_") + pSymRec->name + S("(");
+
+                // Does the script initialize this with a value?
+                if (pSymRec->pAst)
+                {
+                    code += codegen_recurse(pSymRec->pAst, 0);
+                }
+                else
+                {
+                    // initialize with a default value based on the type
+                    code += data_type_init_value(pSymRec->dataType, pAst->pParseData);
+                }
+                code += S(");\n");
             }
-            code += S(";\n");
         }
     }
     return code;
@@ -910,11 +1013,33 @@ static S codegen_recurse(const Ast * pAst,
         }
 
         S propName = S(pAst->pSymRec->name);
+        S typeStr = S(cpp_type_str(RAW_DT(ast_data_type(pAst)), pAst->pParseData));
+        S assignedVar = S("mIs_") + propName + S("_Assigned");
+        int isRefCounted = is_ref_counted_type(ast_data_type(pAst));
 
-        S code = I + S(cpp_type_str(RAW_DT(ast_data_type(pAst)), pAst->pParseData)) + S("& ") + propName + S("()\n");
+        S code = I + typeStr + S("& ") + propName + S("()\n");
         code += I + S("{\n");
         code += I + S("    return ") + property_block_accessor(ast_data_type(pAst), *pBlockInfo, "mpBlocks", pAst->pParseData) + S(";\n");
         code += I + S("}\n");
+
+        if (isRefCounted)
+        {
+            code += I + S("bool ") + assignedVar + S(" = false;\n");
+            code += I + S("void set_") + propName + S("(") + typeStr + S("& rhs)\n");
+            code += I + S("{\n");
+            code += I + S("    if (") + assignedVar + S(")\n");
+            code += I + S("    {\n");
+            code += I + S("        entity().blockMemory().release(") + propName + S("());\n");
+            code += I + S("    }\n");
+            code += I + S("    else\n");
+            code += I + S("    {\n");
+            code += I + S("        ") + assignedVar + S(" = true;\n");
+            code += I + S("    }\n");
+            code += I + S("    ") + propName + S("() = rhs;\n");
+            code += I + S("    entity().blockMemory().addRef(") + propName + S("());\n");
+            code += I + S("}\n");
+        }
+        code += LF;
 
         return code;
     }
@@ -1255,7 +1380,10 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_StringLiteral:
     {
-        return S("");
+        static const u32 kScratchSize = kMaxStringLength;
+        char scratch[kScratchSize+1];
+        encode_string(scratch, kScratchSize, pAst->str);
+        return S("entity().blockMemory().stringAlloc(") + S(scratch) + S(")");
     }
 
 //    case kAST_Identifier:
@@ -1427,6 +1555,7 @@ CodeCpp codegen_cpp(ParseData * pParseData)
     
     codeCpp.code += S("#include \"engine/hashes.h\"\n");
     codeCpp.code += S("#include \"engine/Block.h\"\n");
+    codeCpp.code += S("#include \"engine/BlockMemory.h\"\n");
     codeCpp.code += S("#include \"engine/MessageWriter.h\"\n");
     codeCpp.code += S("#include \"engine/Task.h\"\n");
     codeCpp.code += S("#include \"engine/Handle.h\"\n");

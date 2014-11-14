@@ -21,9 +21,10 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 0766c451a662c792172a83e9ea4d2977
+// HASH: 3a534e68d3866031bfce5e1cf732977a
 #include "engine/hashes.h"
 #include "engine/Block.h"
+#include "engine/BlockMemory.h"
 #include "engine/MessageWriter.h"
 #include "engine/Task.h"
 #include "engine/Handle.h"
@@ -52,9 +53,24 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
+        case HASH::set_property:
+            switch (_msg.payload.u)
+            {
+            case HASH::sProp:
+            {
+                u32 requiredBlockCount = 1;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&sProp())[0].cells[0] = msgAcc[0].cells[0];
+                    reinterpret_cast<Block*>(&sProp())[0].cells[1] = msgAcc[0].cells[1];
+                    return MessageResult::Consumed;
+                }
+            }
+            }
+            return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
-            ;
+            set_sField(entity().blockMemory().stringAlloc("def"));
             return MessageResult::Consumed;
         }
         }
@@ -65,14 +81,54 @@ private:
     test__start(u32 childCount)
       : Entity(HASH::test__start, childCount, 36, 36)
     {
+        set_sField(entity().blockMemory().stringAlloc(""));
+        set_sProp(entity().blockMemory().stringAlloc("prop val as string"));
 
-        mBlockCount = 0;
+        mBlockCount = 1;
         mScriptTask = Task::create(this, HASH::test__start);
     }
     test__start(const test__start&)              = delete;
     test__start(const test__start&&)             = delete;
     test__start & operator=(const test__start&)  = delete;
     test__start & operator=(const test__start&&) = delete;
+
+    CmpString& sProp()
+    {
+        return *reinterpret_cast<CmpString*>(&mpBlocks[0].cells[0]);
+    }
+    bool mIs_sProp_Assigned = false;
+    void set_sProp(CmpString& rhs)
+    {
+        if (mIs_sProp_Assigned)
+        {
+            entity().blockMemory().release(sProp());
+        }
+        else
+        {
+            mIs_sProp_Assigned = true;
+        }
+        sProp() = rhs;
+        entity().blockMemory().addRef(sProp());
+    }
+
+    CmpString& sField()
+    {
+        return *reinterpret_cast<CmpString*>(&mpBlocks[0].cells[2]);
+    }
+    bool mIs_sField_Assigned = false;
+    void set_sField(CmpString& rhs)
+    {
+        if (mIs_sField_Assigned)
+        {
+            entity().blockMemory().release(sField());
+        }
+        else
+        {
+            mIs_sField_Assigned = true;
+        }
+        sField() = rhs;
+        entity().blockMemory().addRef(sField());
+    }
 
 }; // class test__start
 

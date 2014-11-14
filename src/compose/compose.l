@@ -93,6 +93,7 @@ ParseData * pParseData = yyextra;
 "mat4"   { yylval->dataType = kDT_mat4;   return MAT4;   }
 "void"   { yylval->dataType = kDT_void;   return VOID;   }
 "handle" { yylval->dataType = kDT_handle; return HANDLE_; }
+"string" { yylval->dataType = kDT_string; return STRING; }
 
 "none"     { return NONE; }
 "this"     { return THIS; }

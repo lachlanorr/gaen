@@ -21,9 +21,10 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 2e9e3acad7d041520bd1fad99829d424
+// HASH: fae30de7d64a8cb73d90791136ad7871
 #include "engine/hashes.h"
 #include "engine/Block.h"
+#include "engine/BlockMemory.h"
 #include "engine/MessageWriter.h"
 #include "engine/Task.h"
 #include "engine/Handle.h"
@@ -116,14 +117,17 @@ private:
     {
         return mpBlocks[0].cells[0].f;
     }
+
     u32& timer_message()
     {
         return mpBlocks[0].cells[1].u;
     }
+
     f32& last_notification()
     {
         return mpBlocks[0].cells[2].f;
     }
+
 
 }; // class utils__Timer
 
@@ -249,18 +253,22 @@ private:
     {
         return mpBlocks[0].cells[0].f;
     }
+
     f32& yaw()
     {
         return mpBlocks[0].cells[1].f;
     }
+
     f32& pitching()
     {
         return mpBlocks[0].cells[2].f;
     }
+
     f32& pitch()
     {
         return mpBlocks[0].cells[3].f;
     }
+
 
 }; // class utils__WasdRot
 

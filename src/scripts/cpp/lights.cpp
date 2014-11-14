@@ -21,9 +21,10 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: b3deeb4321679227abb0f165463c0020
+// HASH: 2915410cfa7c210600d840c9d3322e0f
 #include "engine/hashes.h"
 #include "engine/Block.h"
+#include "engine/BlockMemory.h"
 #include "engine/MessageWriter.h"
 #include "engine/Task.h"
 #include "engine/Handle.h"
@@ -80,6 +81,7 @@ private:
     {
         return mpBlocks[0].cells[0].u;
     }
+
 
 }; // class lights__Directional
 

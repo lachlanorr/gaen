@@ -150,6 +150,8 @@ u32 data_type_cell_count(DataType dataType, ParseData * pParseData)
         return 16;
     case kDT_handle:
         return 8;
+    case kDT_string:
+        return 2;    // for pointer
     default:
         COMP_ERROR(pParseData, "Unknown cell count for datatype: %d", dataType);
         return 0;
@@ -180,7 +182,9 @@ static BlockInfo * find_next_fit(CompVector<BlockInfo> & items,
         if (item.isAssigned)
             continue;
 
-        if (item.cellCount > 1 && currCell != 0)
+        if (item.cellCount > 2 && currCell != 0)
+            continue;
+        else if (item.cellCount == 2 && currCell >= 3)
             continue;
 
         return &item;
