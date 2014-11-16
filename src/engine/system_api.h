@@ -30,6 +30,7 @@
 #include "engine/Handle.h"
 #include "engine/Model.h"
 #include "engine/Entity.h"
+#include "engine/BlockMemory.h"
 
 namespace gaen
 {
@@ -41,6 +42,8 @@ namespace gaen
 
 namespace system_api
 {
+
+void print(const CmpString & str, Entity & caller);
 
 void insert_task(const u32 & id, Entity & caller);
 

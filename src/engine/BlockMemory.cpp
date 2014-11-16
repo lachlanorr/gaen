@@ -213,10 +213,16 @@ CmpString BlockMemory::stringAlloc(u16 charCount)
 
 CmpString BlockMemory::stringAlloc(const char * val)
 {
-    ASSERT(val);
-    CmpString str = stringAlloc((u16)strlen(val));
-    strcpy(str.c_str(), val);
-    return str;
+    if (!val) // never allow nulls, just empty
+    {
+        return stringAlloc((u16)0);
+    }
+    else
+    {
+        CmpString str = stringAlloc((u16)strlen(val));
+        strcpy(str.c_str(), val);
+        return str;
+    }
 }
 
 Address BlockMemory::alloc(u8 blockCount)

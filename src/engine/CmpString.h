@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// test.cmp - Scratch file for testing new language features
+// CmpString.h - String class used through BlockMemory in Compose scripts
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,15 +24,56 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-entity start
-{
-    string #sProp = "prop val as string";
-    string sField;
+#ifndef GAEN_ENGINE_CMPSTRING_H
+#define GAEN_ENGINE_CMPSTRING_H
 
-    #init()
-    {
-        sField = string{};
-        sField = string{1.2};
-        sField = string{"def %0.2f", 1.2};
-    }
-}
+#include "engine/BlockData.h"
+
+namespace gaen
+{
+
+class BlockMemory;
+
+class CmpString
+{
+    friend class BlockMemory;
+public:
+    CmpString(BlockData * pBlockData);
+
+    char * c_str() { return &mpBlockData->data.string.chars[0]; }
+    const char * c_str() const { return &mpBlockData->data.string.chars[0]; }
+    u16 size() { return mpBlockData->data.string.charCount; }
+
+private:
+    BlockData * mpBlockData;
+};
+
+
+//------------------------------------------------------------------------------
+
+struct FormatSpecifier
+{
+    const char * begin;
+    const char * end;
+
+    u32 width;
+    u32 precision;
+
+    char type;
+
+    // flags
+    u8 flagMinus:1;
+    u8 flagPlus:1;
+    u8 flagSpace:1;
+    u8 flagHash:1;
+    u8 flagZero:1;
+    u8 PADDING:3;
+};
+
+const char * find_next_specifier(FormatSpecifier * pFs, const char * str);
+
+
+} // namespace gaen
+
+#endif // #ifndef GAEN_ENGINE_CMPSTRING_H
+

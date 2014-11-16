@@ -98,8 +98,6 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %right '(' '[' '{'
 %left  ')' ']' '}'
 
-%left <pAst> SCOPE
-
 %type <dataType> basic_type
 
 %type <pAst> type type_ent
@@ -293,6 +291,7 @@ expr
     | COLOR '{' fun_params '}'  { $$ = ast_create_color_init($3, pParseData); }
     | VEC3  '{' fun_params '}'  { $$ = ast_create_vec3_init($3, pParseData); }
     | MAT34 '{' fun_params '}'  { $$ = ast_create_mat34_init($3, pParseData); }
+    | STRING '{' fun_params '}' { $$ = ast_create_string_init($3, pParseData); }
 
     | dotted_id '{' fun_params '}'  { $$ = ast_create_entity_or_struct_init($1, $3, pParseData); }
     | dotted_id '(' fun_params ')'  { $$ = ast_create_function_call($1, $3, pParseData); }

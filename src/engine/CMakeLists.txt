@@ -28,8 +28,11 @@ INCLUDE (messages/messages.cmake)
 
 SET (engine_SOURCES
   Block.h
+  BlockData.h
   BlockMemory.cpp
   BlockMemory.h
+  CmpString.cpp
+  CmpString.h
   Color.h
   Component.cpp
   Component.h

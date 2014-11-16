@@ -123,8 +123,6 @@ ParseData * pParseData = yyextra;
 "true"   { return TRUE; }
 "false"  { return FALSE; }
 
-"::"   { return SCOPE; }
-
 "=="   { return EQ; }
 "!="   { return NEQ; }
 "<="   { return LTE; }

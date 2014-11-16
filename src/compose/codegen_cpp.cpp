@@ -1385,7 +1385,16 @@ static S codegen_recurse(const Ast * pAst,
         encode_string(scratch, kScratchSize, pAst->str);
         return S("entity().blockMemory().stringAlloc(") + S(scratch) + S(")");
     }
-
+    case kAST_StringInit:
+    {
+        PANIC("Not Implemented");
+        return S("");
+    }
+    case kAST_StringFormat:
+    {
+        PANIC("Not Implemented");
+        return S("");
+    }
 //    case kAST_Identifier:
 //    {
 //    }

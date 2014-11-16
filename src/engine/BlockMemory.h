@@ -27,60 +27,11 @@
 #ifndef GAEN_ENGINE_BLOCKMEMORY_H
 #define GAEN_ENGINE_BLOCKMEMORY_H
 
-#include "core/base_defines.h"
-#include "engine/Block.h"
+#include "engine/BlockData.h"
+#include "engine/CmpString.h"
 
 namespace gaen
 {
-
-enum BlockType
-{
-    kBKTY_Uninitialized = 0,
-
-    kBKTY_String        = 1,
-
-};
-
-// 12 characters left after string header data in first BlockData
-static const u32 kCharsInFirstBlock = 12;
-
-struct BlockString
-{
-    u16 charCount;
-    char chars[kCharsInFirstBlock];
-
-    const char * c_str() const
-    {
-        ASSERT(chars[charCount-1] == '\0');
-        return &chars[0];
-    }
-private:
-};
-
-struct BlockData
-{
-    static const u16 kMaxRefCount = 15;
-
-    u16 type:4;
-    u16 blockCount:6;  // changing this affects kBlocksPerChunk
-    u16 isAllocated:1;
-    u16 isInitial:1;   // is the initial block of an allocated series of blocks
-    u16 refCount:4;
-
-    union
-    {
-        BlockString string;
-      
-        // add additional types here, like "list" and "dict"
-    } data;
-
-    static BlockData * from_string(BlockString * pString);
-
-    void init() { *reinterpret_cast<u16*>(this) = 0; }
-};
-
-static_assert(sizeof(BlockData) == sizeof(Block), "BlockData must be same size as a Block");
-static_assert(sizeof(BlockData) == 16, "BlockData must be same size as a Block");
 
 //------------------------------------------------------------------------------
 
@@ -154,23 +105,6 @@ struct Address
       : chunkIdx(chunkIdx)
       , blockIdx(blockIdx) {}
 
-};
-
-//------------------------------------------------------------------------------
-
-class CmpString
-{
-    friend class BlockMemory;
-public:
-    CmpString(BlockData * pBlockData)
-      : mpBlockData(pBlockData) { ASSERT(pBlockData->type == kBKTY_String); }
-
-    char * c_str() { return &mpBlockData->data.string.chars[0]; }
-    const char * c_str() const { return &mpBlockData->data.string.chars[0]; }
-    u16 size() { return mpBlockData->data.string.charCount; }
-
-private:
-    BlockData * mpBlockData;
 };
 
 //------------------------------------------------------------------------------

@@ -117,8 +117,7 @@ extern int yydebug;
      INC = 326,
      UMINUS = 327,
      POSTDEC = 328,
-     POSTINC = 329,
-     SCOPE = 330
+     POSTINC = 329
    };
 #endif
 
@@ -138,7 +137,7 @@ typedef union YYSTYPE
 
 
 /* Line 2053 of yacc.c  */
-#line 142 "compose_parser.h"
+#line 141 "compose_parser.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

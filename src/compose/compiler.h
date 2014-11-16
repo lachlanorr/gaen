@@ -156,6 +156,8 @@ typedef enum
     kAST_Vec3Init,
     kAST_Vec4Init,
     kAST_Mat34Init,
+    kAST_StringInit,
+    kAST_StringFormat,
 
     kAST_EntityInit,
     kAST_StructInit,
@@ -310,6 +312,7 @@ Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, Parse
 Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData);
 
 Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData * pParseData);
 

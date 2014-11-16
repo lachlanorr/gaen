@@ -26,6 +26,7 @@
 #include "engine/stdafx.h"
 
 #include "core/mem.h"
+#include "core/logging.h"
 #include "engine/hashes.h"
 #include "engine/math.h"
 #include "engine/shapes.h"
@@ -48,6 +49,11 @@ namespace gaen
 
 namespace system_api
 {
+
+void print(const CmpString & str, Entity & caller)
+{
+    LOG_INFO(str.c_str());
+}
 
 void insert_task(const u32 & id, Entity & caller)
 {

@@ -814,6 +814,66 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
+{
+    if (!pParams->pChildren || pParams->pChildren->nodes.size() == 0)
+    {
+        // no params, just a blank string
+        Ast * pAst = ast_create(kAST_StringInit, pParseData);
+        return pAst;
+    }
+    else if (pParams->pChildren->nodes.size() == 1)
+    {
+        Ast * pChild = pParams->pChildren->nodes.front();
+        DataType dtChild = ast_data_type(pChild);
+        switch (dtChild)
+        {
+        case kDT_bool:
+        case kDT_char:
+        case kDT_byte:
+        case kDT_short:
+        case kDT_ushort:
+        case kDT_int:
+        case kDT_uint:
+        case kDT_long:
+        case kDT_ulong:
+        case kDT_half:
+        case kDT_float:
+        case kDT_double:
+        case kDT_color:
+        case kDT_vec2:
+        case kDT_vec3:
+        case kDT_vec4:
+        case kDT_mat3:
+        case kDT_mat34:
+        case kDT_mat4:
+        case kDT_string:
+        {
+            Ast * pAst = ast_create(kAST_StringInit, pParseData);
+            ast_set_rhs(pAst, pChild);
+            return pAst;
+        }
+        default:
+            COMP_ERROR(pParseData, "Unable to convert data type %d to string", dtChild);
+            return nullptr;
+        }
+    }
+    else
+    {
+        // multiple children, only valid if first is a string
+        Ast * pFirstChild = pParams->pChildren->nodes.front();
+        DataType dtFirstChild = ast_data_type(pFirstChild);
+        if (dtFirstChild != kDT_string)
+        {
+            COMP_ERROR(pParseData, "First parameter expected to be a format string");
+            return nullptr;
+        }
+        Ast * pAst = ast_create(kAST_StringFormat, pParseData);
+        ast_add_children(pAst, pParams->pChildren);
+        return pAst;
+    }
+}
+
 Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData * pParseData)
 {
     // pop scope that got created by the lexer when encountering the '{'
@@ -1226,33 +1286,38 @@ DataType ast_data_type(const Ast * pAst)
 {
     if (pAst->pSymRec)
         return pAst->pSymRec->dataType;
-    else if (pAst->type == kAST_Hash)
-        return kDT_uint;
-    else if (pAst->type == kAST_FloatLiteral)
-        return kDT_float;
-    else if (pAst->type == kAST_IntLiteral)
-        return kDT_int;
-    else if (pAst->type == kAST_StringLiteral)
-        return kDT_string;
-    else if (pAst->type == kAST_ColorInit)
-        return kDT_color;
-    else if (pAst->type == kAST_Vec2Init)
-        return kDT_vec2;
-    else if (pAst->type == kAST_Vec3Init)
-        return kDT_vec3;
-    else if (pAst->type == kAST_Vec4Init)
-        return kDT_vec4;
-    else if (pAst->type == kAST_Mat34Init)
-        return kDT_mat34;
-    else if (pAst->type == kAST_Transform)
-        return kDT_mat34;
-    else if (pAst->type == kAST_Negate)
-        return ast_data_type(pAst->pRhs);
-    else if (pAst->type == kAST_SystemCall)
+
+    switch (pAst->type)
     {
+    case kAST_Hash:
+        return kDT_uint;
+    case kAST_FloatLiteral:
+        return kDT_float;
+    case kAST_IntLiteral:
+        return kDT_int;
+    case kAST_StringLiteral:
+    case kAST_StringInit:
+    case kAST_StringFormat:
+        return kDT_string;
+    case kAST_ColorInit:
+        return kDT_color;
+    case kAST_Vec2Init:
+        return kDT_vec2;
+    case kAST_Vec3Init:
+        return kDT_vec3;
+    case kAST_Vec4Init:
+        return kDT_vec4;
+    case kAST_Mat34Init:
+        return kDT_mat34;
+    case kAST_Transform:
+        return kDT_mat34;
+    case kAST_Negate:
+        return ast_data_type(pAst->pRhs);
+    case kAST_SystemCall:
         const ApiSignature * pSig = find_api(pAst->str, pAst->pParseData);
         return pSig->returnType;
     }
+
     COMP_ERROR(pAst->pParseData, "Cannot determine datatype for pAst, type: %d", pAst->type);
     return kDT_Undefined;
 }

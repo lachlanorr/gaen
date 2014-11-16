@@ -26,6 +26,7 @@
 
 #include <gtest/gtest.h>
 
+#include "engine/CmpString.h"
 #include "engine/BlockMemory.h"
 
 using namespace gaen;
@@ -192,3 +193,365 @@ TEST(BlockMemoryTest, CmpString)
     bm.collect();
     EXPECT_EQ(bm.availableBlocks(), totalBlocks);
 }
+
+TEST(CmpStringTest, format_next_specifier)
+{
+    FormatSpecifier fs;
+    const char * ret;
+    const char * fmt;
+
+    ret = find_next_specifier(&fs, nullptr);
+    EXPECT_EQ(ret, nullptr);
+
+    ret = find_next_specifier(&fs, "");
+    EXPECT_EQ(ret, nullptr);
+
+
+    fmt = "%y"; // invalid specifier 
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, nullptr);
+    EXPECT_EQ(fs.begin, nullptr);
+    EXPECT_EQ(fs.end, nullptr);
+    EXPECT_EQ(fs.type, '\0');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+    fmt = "abc%y"; // invalid specifier 
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, nullptr);
+    EXPECT_EQ(fs.begin, nullptr);
+    EXPECT_EQ(fs.end, nullptr);
+    EXPECT_EQ(fs.type, '\0');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+    fmt = "%ydef"; // invalid specifier 
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, nullptr);
+    EXPECT_EQ(fs.begin, nullptr);
+    EXPECT_EQ(fs.end, nullptr);
+    EXPECT_EQ(fs.type, '\0');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+    fmt = "abc%ydef"; // invalid specifier 
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, nullptr);
+    EXPECT_EQ(fs.begin, nullptr);
+    EXPECT_EQ(fs.end, nullptr);
+    EXPECT_EQ(fs.type, '\0');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+    
+    fmt = "%%";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 2);
+    EXPECT_EQ(fs.begin, fmt);
+    EXPECT_EQ(fs.end, fmt + 2);
+    EXPECT_EQ(fs.type, '%');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+    fmt = "abc%%";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 5);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 5);
+    EXPECT_EQ(fs.type, '%');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+    fmt = "%%def";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 2);
+    EXPECT_EQ(fs.begin, fmt);
+    EXPECT_EQ(fs.end, fmt + 2);
+    EXPECT_EQ(fs.type, '%');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+    fmt = "abc%%def";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 5);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 5);
+    EXPECT_EQ(fs.type, '%');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+
+
+
+    fmt = "%d";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 2);
+    EXPECT_EQ(fs.begin,     fmt);
+    EXPECT_EQ(fs.end,       fmt + 2);
+    EXPECT_EQ(fs.type,      'd');
+    EXPECT_EQ(fs.width,      0);
+    EXPECT_EQ(fs.precision,  0);
+    EXPECT_EQ(fs.flagMinus,  0);
+    EXPECT_EQ(fs.flagPlus,   0);
+    EXPECT_EQ(fs.flagSpace,  0);
+    EXPECT_EQ(fs.flagHash,   0);
+    EXPECT_EQ(fs.flagZero,   0);
+
+    fmt = "abc%d";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 5);
+    EXPECT_EQ(fs.begin,     fmt + 3);
+    EXPECT_EQ(fs.end,       fmt + 5);
+    EXPECT_EQ(fs.type,      'd');
+    EXPECT_EQ(fs.width,      0);
+    EXPECT_EQ(fs.precision,  0);
+    EXPECT_EQ(fs.flagMinus,  0);
+    EXPECT_EQ(fs.flagPlus,   0);
+    EXPECT_EQ(fs.flagSpace,  0);
+    EXPECT_EQ(fs.flagHash,   0);
+    EXPECT_EQ(fs.flagZero,   0);
+
+    fmt = "%ddef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 2);
+    EXPECT_EQ(fs.begin,     fmt);
+    EXPECT_EQ(fs.end,       fmt + 2);
+    EXPECT_EQ(fs.type,      'd');
+    EXPECT_EQ(fs.width,      0);
+    EXPECT_EQ(fs.precision,  0);
+    EXPECT_EQ(fs.flagMinus,  0);
+    EXPECT_EQ(fs.flagPlus,   0);
+    EXPECT_EQ(fs.flagSpace,  0);
+    EXPECT_EQ(fs.flagHash,   0);
+    EXPECT_EQ(fs.flagZero,   0);
+
+    fmt = "abc%ddef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 5);
+    EXPECT_EQ(fs.begin,     fmt + 3);
+    EXPECT_EQ(fs.end,       fmt + 5);
+    EXPECT_EQ(fs.type,      'd');
+    EXPECT_EQ(fs.width,      0);
+    EXPECT_EQ(fs.precision,  0);
+    EXPECT_EQ(fs.flagMinus,  0);
+    EXPECT_EQ(fs.flagPlus,   0);
+    EXPECT_EQ(fs.flagSpace,  0);
+    EXPECT_EQ(fs.flagHash,   0);
+    EXPECT_EQ(fs.flagZero,   0);
+
+
+    fmt = "abc%0ddef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 6);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 6);
+    EXPECT_EQ(fs.type, 'd');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 1);
+
+
+    fmt = "abc%00ddef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 7);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 7);
+    EXPECT_EQ(fs.type, 'd');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 1);
+
+    fmt = "abc%+-00ddef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 9);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 9);
+    EXPECT_EQ(fs.type, 'd');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 1);
+    EXPECT_EQ(fs.flagPlus, 1);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 1);
+
+
+    fmt = "abc%+-0 0ddef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 10);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 10);
+    EXPECT_EQ(fs.type, 'd');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 1);
+    EXPECT_EQ(fs.flagPlus, 1);
+    EXPECT_EQ(fs.flagSpace, 1);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 1);
+
+    fmt = "abc%#ddef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 6);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 6);
+    EXPECT_EQ(fs.type, 'd');
+    EXPECT_EQ(fs.width, 0);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 1);
+    EXPECT_EQ(fs.flagZero, 0);
+
+
+
+    fmt = "abc%#04fdef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 8);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 8);
+    EXPECT_EQ(fs.type, 'f');
+    EXPECT_EQ(fs.width, 4);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 1);
+    EXPECT_EQ(fs.flagZero, 1);
+
+    fmt = "abc%0127fdef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 9);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 9);
+    EXPECT_EQ(fs.type, 'f');
+    EXPECT_EQ(fs.width, 127);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 1);
+
+
+    fmt = "abc%128.fdef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 9);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 9);
+    EXPECT_EQ(fs.type, 'f');
+    EXPECT_EQ(fs.width, 128);
+    EXPECT_EQ(fs.precision, 0);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+    fmt = "abc%#0127.034fdef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 14);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 14);
+    EXPECT_EQ(fs.type, 'f');
+    EXPECT_EQ(fs.width, 127);
+    EXPECT_EQ(fs.precision, 34);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 1);
+    EXPECT_EQ(fs.flagZero, 1);
+
+    fmt = "abc%127.34fdef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 11);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 11);
+    EXPECT_EQ(fs.type, 'f');
+    EXPECT_EQ(fs.width, 127);
+    EXPECT_EQ(fs.precision, 34);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+    fmt = "abc%129.34fdef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 11);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 11);
+    EXPECT_EQ(fs.type, 'f');
+    EXPECT_EQ(fs.width, 128);
+    EXPECT_EQ(fs.precision, 34);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+    fmt = "abc%129.1402391fdef";
+    ret = find_next_specifier(&fs, fmt);
+    EXPECT_EQ(ret, fmt + 16);
+    EXPECT_EQ(fs.begin, fmt + 3);
+    EXPECT_EQ(fs.end, fmt + 16);
+    EXPECT_EQ(fs.type, 'f');
+    EXPECT_EQ(fs.width, 128);
+    EXPECT_EQ(fs.precision, 128);
+    EXPECT_EQ(fs.flagMinus, 0);
+    EXPECT_EQ(fs.flagPlus, 0);
+    EXPECT_EQ(fs.flagSpace, 0);
+    EXPECT_EQ(fs.flagHash, 0);
+    EXPECT_EQ(fs.flagZero, 0);
+
+}
+
