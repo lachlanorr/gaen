@@ -1380,7 +1380,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_StringLiteral:
     {
-        static const u32 kScratchSize = kMaxStringLength;
+        static const u32 kScratchSize = kMaxCmpStringLength;
         char scratch[kScratchSize+1];
         encode_string(scratch, kScratchSize, pAst->str);
         return S("entity().blockMemory().stringAlloc(") + S(scratch) + S(")");

@@ -86,7 +86,7 @@ private:
 };
 
 // max string is length of chunk
-static const u32 kMaxStringLength = (Chunk::kBlocksPerChunk - 1) * kBlockSize + kCharsInFirstBlock - 1; // -1 for null terminator
+static const u32 kMaxCmpStringLength = (Chunk::kBlocksPerChunk - 1) * kBlockSize + kCharsInFirstBlock - 1; // -1 for null terminator
 
 //------------------------------------------------------------------------------
 
