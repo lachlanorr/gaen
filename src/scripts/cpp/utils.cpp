@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: fae30de7d64a8cb73d90791136ad7871
+// HASH: 66ffb143fc7b9d6dfde048bb1cdc8a0d
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -49,7 +49,7 @@ public:
     
     void update(float deltaSecs)
     {
-        if ((timer_interval() > 0.000000f))
+        if ((timer_interval() > 0.00000000e+000f))
         {
             last_notification() += deltaSecs;
             if ((last_notification() >= timer_interval()))
@@ -58,7 +58,7 @@ public:
                     StackMessageBlockWriter<0> msgw(HASH::timer, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(timer_message()));
                     entity().message(msgw.accessor());
                 }
-                last_notification() = 0.000000f;
+                last_notification() = 0.00000000e+000f;
             }
         }
     }
@@ -70,8 +70,8 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            last_notification() = 0.000000f;
-            timer_interval() = 0.000000f;
+            last_notification() = 0.00000000e+000f;
+            timer_interval() = 0.00000000e+000f;
             timer_message() = 0;
             return MessageResult::Consumed;
         case HASH::set_property:
@@ -152,11 +152,11 @@ public:
     
     void update(float deltaSecs)
     {
-        if (((pitching() != 0.000000f) || (yawing() != 0.000000f)))
+        if (((pitching() != 0.00000000e+000f) || (yawing() != 0.00000000e+000f)))
         {
-            pitch() += ((pitching() * deltaSecs) * 100.000000f);
-            yaw() += ((yawing() * deltaSecs) * 100.000000f);
-            Mat34 trans = system_api::transform_rotate(Vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.000000f), entity());
+            pitch() += ((pitching() * deltaSecs) * 1.00000000e+002f);
+            yaw() += ((yawing() * deltaSecs) * 1.00000000e+002f);
+            Mat34 trans = system_api::transform_rotate(Vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.00000000e+000f), entity());
             {
                 StackMessageBlockWriter<3> msgw(HASH::transform, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(0));
                 *reinterpret_cast<Mat34*>(&msgw[0].cells[0]) = trans;
@@ -172,10 +172,10 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            pitch() = 0.000000f;
-            pitching() = 0.000000f;
-            yaw() = 0.000000f;
-            yawing() = 0.000000f;
+            pitch() = 0.00000000e+000f;
+            pitching() = 0.00000000e+000f;
+            yaw() = 0.00000000e+000f;
+            yawing() = 0.00000000e+000f;
             return MessageResult::Consumed;
         case HASH::init:
         {
@@ -189,11 +189,11 @@ public:
         {
             if (/*status*/msgAcc.message().payload.b)
             {
-                pitching() = 1.000000f;
+                pitching() = 1.00000000e+000f;
             }
             else
             {
-                pitching() = 0.000000f;
+                pitching() = 0.00000000e+000f;
             }
             return MessageResult::Consumed;
         }
@@ -201,11 +201,11 @@ public:
         {
             if (/*status*/msgAcc.message().payload.b)
             {
-                pitching() = -(1.000000f);
+                pitching() = -(1.00000000e+000f);
             }
             else
             {
-                pitching() = 0.000000f;
+                pitching() = 0.00000000e+000f;
             }
             return MessageResult::Consumed;
         }
@@ -213,11 +213,11 @@ public:
         {
             if (/*status*/msgAcc.message().payload.b)
             {
-                yawing() = 1.000000f;
+                yawing() = 1.00000000e+000f;
             }
             else
             {
-                yawing() = 0.000000f;
+                yawing() = 0.00000000e+000f;
             }
             return MessageResult::Consumed;
         }
@@ -225,11 +225,11 @@ public:
         {
             if (/*status*/msgAcc.message().payload.b)
             {
-                yawing() = -(1.000000f);
+                yawing() = -(1.00000000e+000f);
             }
             else
             {
-                yawing() = 0.000000f;
+                yawing() = 0.00000000e+000f;
             }
             return MessageResult::Consumed;
         }

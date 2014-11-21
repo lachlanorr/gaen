@@ -28,6 +28,7 @@
 
 #include "engine/CmpString.h"
 #include "engine/BlockMemory.h"
+#include "compose/comp_string.h"
 
 using namespace gaen;
 

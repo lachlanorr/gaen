@@ -41,6 +41,7 @@ ADD_EXECUTABLE (testengine
 TARGET_LINK_LIBRARIES (testengine
   core
   engine
+  compose
   ${PLATFORM_LINK_LIBS}
 )
 

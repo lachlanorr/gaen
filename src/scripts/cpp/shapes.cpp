@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: e9727fe8cdaa0ab347f9009ac96b6385
+// HASH: 2f21395f29a6801e53ab4f312d499953
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -57,7 +57,7 @@ public:
             boxModelUid() = system_api::renderer_gen_uid(entity());
             diffuse() = Color(255, 0, 0, 255);
             model() = Handle::null();
-            size() = Vec3(1.000000f, 1.000000f, 1.000000f);
+            size() = Vec3(1.00000000e+000f, 1.00000000e+000f, 1.00000000e+000f);
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)

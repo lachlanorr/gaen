@@ -645,7 +645,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
     return code;
 }
 
-static S codegen_entity_inits_recurse(const Ast * pAst)
+static S codegen_helper_funcs_recurse(const Ast * pAst)
 {
     S code = S("");
 
@@ -654,7 +654,9 @@ static S codegen_entity_inits_recurse(const Ast * pAst)
 
     int indentLevel = 1;
 
-    if (pAst->type == kAST_EntityInit)
+    switch (pAst->type)
+    {
+    case kAST_EntityInit:
     {
         ASSERT(pAst->pSymRec && pAst->pSymRec->full_name && pAst->pSymRec->pSymTabInternal);
         ASSERT(pAst->pRhs);
@@ -668,20 +670,22 @@ static S codegen_entity_inits_recurse(const Ast * pAst)
         code += I + S("    return pEnt->task().id();") + LF;
         code += I + S("}") + LF;
         code += LF;
+        break;
+    }
     }
 
-    code += codegen_entity_inits_recurse(pAst->pLhs);
-    code += codegen_entity_inits_recurse(pAst->pMid);
-    code += codegen_entity_inits_recurse(pAst->pRhs);
+    code += codegen_helper_funcs_recurse(pAst->pLhs);
+    code += codegen_helper_funcs_recurse(pAst->pMid);
+    code += codegen_helper_funcs_recurse(pAst->pRhs);
 
     if (pAst->pChildren)
     for (Ast * pChild : pAst->pChildren->nodes)
-        code += codegen_entity_inits_recurse(pChild);
+        code += codegen_helper_funcs_recurse(pChild);
 
     return code;
 }
 
-static S codegen_entity_inits(const Ast * pAst)
+static S codegen_helper_funcs(const Ast * pAst)
 {
     S entityInits = S("");
 
@@ -690,13 +694,13 @@ static S codegen_entity_inits(const Ast * pAst)
         // only process top level AST nodes from the primary file
         if (pAst->fullPath == pAst->pParseData->fullPath)
         {
-            entityInits += codegen_entity_inits_recurse(pAst);
+            entityInits += codegen_helper_funcs_recurse(pAst);
         }
     }
 
     if (entityInits.size() > 0)
     {
-        entityInits = S("private:\n    // Entity initializer helper functions\n") + entityInits + LF;
+        entityInits = S("private:\n    // Helper functions\n") + entityInits + LF;
     }
 
     return entityInits;
@@ -706,6 +710,9 @@ static S codegen_recurse(const Ast * pAst,
                          int indentLevel)
 {
     ASSERT(pAst);
+
+    static const u32 kScratchSize = kMaxCmpStringLength;
+    static thread_local char scratch[kScratchSize+1];
 
     switch (pAst->type)
     {
@@ -721,7 +728,7 @@ static S codegen_recurse(const Ast * pAst,
         S code("namespace ent\n{\n\n");
         code += I + S("class ") + entName + S(" : public Entity\n{\n");
 
-        code += codegen_entity_inits(pAst);
+        code += codegen_helper_funcs(pAst);
 
         code += I + S("public:\n");
         code += I + S("    static Entity * construct(u32 childCount)\n");
@@ -783,8 +790,6 @@ static S codegen_recurse(const Ast * pAst,
 
         // Initialize mBlockSize
         {
-            static const u32 kScratchSize = 32;
-            char scratch[kScratchSize+1];
             scratch[kScratchSize] = '\0'; // sanity null terminator
             ASSERT(pAst->pBlockInfos);
             snprintf(scratch, kScratchSize, "%d", pAst->pBlockInfos->blockCount);
@@ -863,6 +868,8 @@ static S codegen_recurse(const Ast * pAst,
         S code("namespace comp\n{\n\n");
         code += I + S("class ") + compName + S(" : public Component\n{\n");
         
+        code += codegen_helper_funcs(pAst);
+
         code += I + S("public:\n");
         code += I + S("    static Component * construct(void * place, Entity * pEntity)\n");
         code += I + S("    {\n");
@@ -920,8 +927,6 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("        mScriptTask = Task::create(this, HASH::") + compName + S(");\n");
         }
         {
-            static const u32 kScratchSize = 32;
-            char scratch[kScratchSize+1];
             scratch[kScratchSize] = '\0'; // sanity null terminator
             ASSERT(pAst->pBlockInfos);
             snprintf(scratch, kScratchSize, "%d", pAst->pBlockInfos->blockCount);
@@ -1364,24 +1369,18 @@ static S codegen_recurse(const Ast * pAst,
 
     case kAST_IntLiteral:
     {
-        static const u32 kScratchSize = 64;
-        char scratch[kScratchSize+1];
         scratch[kScratchSize] = '\0'; // sanity null terminator
         snprintf(scratch, kScratchSize, "%d", pAst->numi);
         return S(scratch);
     }
     case kAST_FloatLiteral:
     {
-        static const u32 kScratchSize = 64;
-        char scratch[kScratchSize+1];
         scratch[kScratchSize] = '\0'; // sanity null terminator
-        snprintf(scratch, kScratchSize, "%ff", pAst->numf);
+        snprintf(scratch, kScratchSize, "%1.8ef", pAst->numf);
         return S(scratch);
     }
     case kAST_StringLiteral:
     {
-        static const u32 kScratchSize = kMaxCmpStringLength;
-        char scratch[kScratchSize+1];
         encode_string(scratch, kScratchSize, pAst->str);
         return S("entity().blockMemory().stringAlloc(") + S(scratch) + S(")");
     }
@@ -1392,8 +1391,27 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_StringFormat:
     {
-        PANIC("Not Implemented");
-        return S("");
+        ASSERT(pAst->pChildren && pAst->pChildren->nodes.size() > 1 && pAst->pChildren->nodes.front()->type == kAST_StringLiteral);
+        S code("");
+        for (Ast * pChild : pAst->pChildren->nodes)
+        {
+            if (pChild == pAst->pChildren->nodes.front())
+            {
+                snprintf(scratch, kScratchSize, "entity().blockMemory().stringFormat(\"%s\"", pChild->str);
+                code += S(scratch);
+            }
+            else
+            {
+                code += codegen_recurse(pChild, 0);
+            }
+
+            if (pChild != pAst->pChildren->nodes.back())
+            {
+                code += S(", ");
+            }
+        }
+        code += S(")");
+        return code;
     }
 //    case kAST_Identifier:
 //    {
@@ -1405,8 +1423,6 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_MessageSend:
     {
-        static const u32 kScratchSize = 255;
-
         S code;
         code += I + S("{\n");
 
@@ -1415,7 +1431,6 @@ static S codegen_recurse(const Ast * pAst,
         if (!pAst->pLhs) // send to our own entity
         {
             code += indent(indentLevel+1);
-            char scratch[kScratchSize+1];
             snprintf(scratch,
                      kScratchSize,
                      "StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, entity().task().id(), ",

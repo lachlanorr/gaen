@@ -225,6 +225,32 @@ CmpString BlockMemory::stringAlloc(const char * val)
     }
 }
 
+CmpString BlockMemory::stringFormat(const char* format, ...)
+{
+    static thread_local char scratch[kMaxCmpStringLength+1];
+
+    va_list ap;
+
+    va_start(ap, format);
+    int count = vsnprintf(scratch, kMaxCmpStringLength, format, ap);
+    va_end(ap);
+
+    if (count < 0 || count > kMaxCmpStringLength)
+    {
+        PANIC("Badly formed format string, or too long to format");
+        return CmpString(nullptr);
+    }
+
+    // we succeeded in formatting the string
+    scratch[count] = '\0';
+
+    CmpString str = stringAlloc(count);
+    strcpy(str.c_str(), scratch);
+    str.c_str()[count] = '\0';
+
+    return str;
+}
+
 Address BlockMemory::alloc(u8 blockCount)
 {
     mNeedsCollection = true;

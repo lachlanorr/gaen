@@ -26,13 +26,8 @@
 
 entity start
 {
-    string #sProp = "prop val as string";
-    string sField;
-
     #init()
     {
-        sField = string{};
-        sField = string{1.2};
-        sField = string{"def %0.2f", 1.2};
+        string s = string{"float: %0.2f, int: %d", 1.2, 10};
     }
 }

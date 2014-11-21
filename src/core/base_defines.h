@@ -110,6 +110,7 @@ T maxval(const T& lhs, const T& rhs)
 #define thread_local __declspec(thread)
 #define noexcept 
 #define snprintf c99_snprintf
+#define vsnprintf c99_vsnprintf
 int c99_snprintf(char* str, size_t size, const char* format, ...);
 int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap);
 #endif

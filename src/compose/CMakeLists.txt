@@ -31,6 +31,8 @@ SET (compose_SOURCES
   codegen_utils.h
   comp_mem.cpp
   comp_mem.h
+  comp_string.cpp
+  comp_string.h
   compiler.cpp
   compiler.h
   compiler_structs.h

@@ -119,6 +119,7 @@ public:
 
     CmpString stringAlloc(u16 charCount);
     CmpString stringAlloc(const char * val);
+    CmpString stringFormat(const char* format, ...);
     
     Address alloc(u8 blockCount);
     void free(Address addr);

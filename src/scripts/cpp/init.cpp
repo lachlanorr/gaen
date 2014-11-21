@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: a8dd2626cbc2b4b53dd9f04605406716
+// HASH: 7377fff165835c1358ea4c05f2482bbf
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -67,7 +67,7 @@ private:
             // Init Property: size
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
-                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(3.000000f, 2.000000f, 1.000000f);
+                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(3.00000000e+000f, 2.00000000e+000f, 1.00000000e+000f);
                 compTask.message(msgw.accessor());
             }
             // Init Property: diffuse
@@ -158,7 +158,7 @@ namespace ent
 class init__start : public Entity
 {
 private:
-    // Entity initializer helper functions
+    // Helper functions
     task_id entity_init__init__Box__55_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Box, 8);
@@ -227,7 +227,7 @@ private:
             // Init Property: timer_interval
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_interval));
-                msgw[0].cells[0].f = 0.016000f;
+                msgw[0].cells[0].f = 1.60000008e-002f;
                 compTask.message(msgw.accessor());
             }
             // Init Property: timer_message

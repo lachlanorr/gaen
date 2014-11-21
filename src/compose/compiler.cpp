@@ -32,6 +32,7 @@
 #include "engine/system_api.h"
 
 #include "compose/compiler.h"
+#include "compose/comp_string.h"
 #include "compose/compiler_structs.h"
 #include "compose/codegen_utils.h"
 #include "compose/utils.h"
@@ -623,6 +624,12 @@ Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData)
 
 Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseData * pParseData)
 {
+    if (pPropInitList->type == kAST_PropInitList)
+    {
+        // implies there was a '{' '}' provided, so we don't need to pop the scope
+        parsedata_pop_scope(pParseData);
+    }
+
     SymRec* pCompSymRec = symtab_find_symbol_recursive(pPropInitList->pScope->pSymTab, pDottedId->str);
 
     if (!pCompSymRec)
@@ -863,13 +870,138 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
         // multiple children, only valid if first is a string
         Ast * pFirstChild = pParams->pChildren->nodes.front();
         DataType dtFirstChild = ast_data_type(pFirstChild);
-        if (dtFirstChild != kDT_string)
+        if (pFirstChild->type != kAST_StringLiteral)
         {
-            COMP_ERROR(pParseData, "First parameter expected to be a format string");
+            COMP_ERROR(pParseData, "First parameter expected to be a format string literal");
             return nullptr;
         }
+
+        // Sanity check the format string and make sure it appears valid
+        // for the provided parameters. Incidentally, this is why we
+        // require a string literal, and don't accept an arbitrary string
+        // Ast. It's not possible to codegen reasonable C++ that runtime
+        // checks the validity of the parameters.
+        const char * format = pFirstChild->str;
+        const char * formatEnd = format + strlen(format);
+
+        u32 paramCount = (u32)(pParams->pChildren->nodes.size() - 1);
+        auto paramStart = pParams->pChildren->nodes.begin();
+        paramStart++; // to skip past format string
+        auto paramEnd = pParams->pChildren->nodes.end();
+        auto paramIt = paramStart;
+
+        const char * p = format;
+
+        // Iterate once to collect the FormatSpecifiers and make sure
+        // format string and parameter counts are compatible.
+        u32 i = 0;
+        while (i < paramCount)
+        {
+            FormatSpecifier fspec = find_next_specifier(p);
+
+            if (!fspec.begin)
+            {
+                COMP_ERROR(pParseData, "Too few arguments provided in format string: %s", format);
+                return nullptr;
+            }
+            ASSERT(fspec.end && fspec.end > fspec.begin);
+            if (fspec.end > formatEnd)
+            {
+                COMP_ERROR(pParseData, "Error processing format string: %s", format);
+                return nullptr;
+            }
+
+            if (fspec.flagStarWidth)
+            {
+                if (!is_integral_type(ast_data_type(*paramIt)))
+                {
+                    COMP_ERROR(pParseData, "integral type expected in position %u for %s", i, format);
+                    return nullptr;
+                }
+                i++;
+                paramIt++;
+                if (i > paramCount || (i < paramCount && paramIt == paramEnd))
+                {
+                    COMP_ERROR(pParseData, "Too few arguments provided in format string: %s", format);
+                    return nullptr;
+                }
+            }
+
+            if (fspec.flagStarPrecision)
+            {
+                if (!is_integral_type(ast_data_type(*paramIt)))
+                {
+                    COMP_ERROR(pParseData, "integral type expected in position %u for %s", i, format);
+                    return nullptr;
+                }
+                i++;
+                paramIt++;
+                if (i > paramCount || (i < paramCount && paramIt == paramEnd))
+                {
+                    COMP_ERROR(pParseData, "Too few arguments provided in format string: %s", format);
+                    return nullptr;
+                }
+            }
+
+            switch (fspec.type)
+            {
+            case 'd':
+            case 'i':
+            case 'u':
+            case 'x':
+            case 'X':
+            case 'o':
+                if (!is_integral_type(ast_data_type(*paramIt)))
+                {
+                    COMP_ERROR(pParseData, "integral parameter expected in position %u for %s", i, format);
+                    return nullptr;
+                }
+                break;
+
+            case 'c':
+                if (ast_data_type(*paramIt) != kDT_char)
+                {
+                    COMP_ERROR(pParseData, "char parameter expected in position %u for %s", i, format);
+                    return nullptr;
+                }
+                break;
+
+            case 'f':
+            case 'F':
+            case 'e':
+            case 'E':
+            case 'g':
+            case 'G':
+                if (ast_data_type(*paramIt) != kDT_float)
+                {
+                    COMP_ERROR(pParseData, "float parameter expected in position %u for %s", i, format);
+                    return nullptr;
+                }
+                break;
+            }
+
+            i++;
+            paramIt++;
+            if (i > paramCount || (i < paramCount && paramIt == paramEnd))
+            {
+                COMP_ERROR(pParseData, "Too few arguments provided in format string: %s", format);
+                return nullptr;
+            }
+
+            p = fspec.end;
+        }
+
+        if (i != paramCount || paramIt != paramEnd)
+        {
+            COMP_ERROR(pParseData, "Invalid number of arguments provided in format string: %s", format);
+            return nullptr;
+        }
+
+        // Ok, we've sanity checked about as well as we can at compile time.
+
         Ast * pAst = ast_create(kAST_StringFormat, pParseData);
         ast_add_children(pAst, pParams->pChildren);
+
         return pAst;
     }
 }
@@ -1343,6 +1475,12 @@ int is_ref_counted_type(DataType dt)
 {
     return (dt == kDT_string ? 1 : 0);
 }
+
+int is_integral_type(DataType dt)
+{
+    return (dt == kDT_int || dt== kDT_uint) ? 1 : 0;
+}
+
 
 //------------------------------------------------------------------------------
 // Ast (END)
