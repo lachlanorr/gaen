@@ -28,5 +28,32 @@ SET (gtest_dir ${ext_dir}/gtest-1.7.0)
 
 INCLUDE_DIRECTORIES (${gtest_dir})
 
-ADD_SUBDIRECTORY (core)
-ADD_SUBDIRECTORY (engine)
+SET (unit_test_SOURCES
+  BaseFixture.h
+  main_testcore.cpp
+  test_gamevars.cpp
+  test_gamevars_aux.cpp
+  test_mem.cpp
+  test_ringbuffers.cpp
+  test_blockmemory.cpp
+  test_math.cpp
+  test_task.cpp
+  ${gtest_dir}/gtest/gtest-all.cc
+  )
+
+
+IDE_SOURCE_PROPERTIES( "/" "${unit_test_SOURCES}")
+
+ADD_EXECUTABLE (unit_tests
+  ${unit_test_SOURCES}
+  )
+
+TARGET_LINK_LIBRARIES (unit_tests
+  core
+  engine
+  compose
+  ${PLATFORM_LINK_LIBS}
+)
+
+package (unit_tests)
+

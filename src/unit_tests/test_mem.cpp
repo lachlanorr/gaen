@@ -38,11 +38,11 @@ class TestClass
 public:
     TestClass()
     {
-        printf("Constructor called");
+        printf("Constructor called\n");
     }
     ~TestClass()
     {
-        printf("Destructor called");
+        printf("Destructor called\n");
     }
 };
 
