@@ -40,6 +40,21 @@ BlockData * BlockData::from_string(BlockString * pString)
     return pBd;
 }
 
+u16 BlockData::validate_block_data(const Block * pBlock, BlockType type)
+{
+    const BlockData * pBlockData = reinterpret_cast<const BlockData*>(pBlock);
+    if (pBlockData->type != type ||
+        !pBlockData->isAllocated ||
+        !pBlockData->isInitial ||
+        pBlockData->refCount != 0)
+        return 0;
+    if (pBlockData->type == kBKTY_String &&
+        pBlockData->blockCount > Chunk::kBlocksPerChunk)
+        return 0;
+
+    return pBlockData->blockCount;
+}
+
 
 Chunk::Chunk(u8 chunkIdx)
 {
@@ -71,6 +86,8 @@ u8 Chunk::alloc(u8 blockCount)
         else
         {
             foundBlocks = 0;
+            idx += bd.blockCount - 1; // for loop will add the 1 back
+            continue;
         }
 
         if (foundBlocks >= blockCount)
@@ -103,7 +120,6 @@ void Chunk::free(u8 blockIdx)
     bd.isInitial = 0; // to pass assert below
     for (u32 i = 0; i < blockCount; ++i)
     {
-        ASSERT(mBlocks[blockIdx+i].isAllocated && !mBlocks[blockIdx+i].isInitial);
         mBlocks[blockIdx+i].init();
     }
     mHeader.freeCount += blockCount;
@@ -193,7 +209,15 @@ BlockMemory::~BlockMemory()
 CmpString BlockMemory::stringAlloc(u16 charCount)
 {
     u16 charCountWithNull = charCount + 1;
-    u8 blockCount = (u8)(charCountWithNull / kBlockSize + (charCountWithNull % kBlockSize ? 1 : 0));
+
+    u8 blockCount = 1;
+
+    if (charCountWithNull > kCharsInFirstBlock)
+    {
+        u16 charCountNextBlocks = charCountWithNull - kCharsInFirstBlock;
+        blockCount += (u8)(charCountNextBlocks / kBlockSize + (charCountNextBlocks % kBlockSize ? 1 : 0));
+    }
+
     Address addr = alloc(blockCount);
 
     if (addr.blockIdx != Address::kInvalidIdx)
@@ -249,6 +273,24 @@ CmpString BlockMemory::stringFormat(const char* format, ...)
     str.c_str()[count] = '\0';
 
     return str;
+}
+
+CmpString BlockMemory::string(Address & addr)
+{
+    BlockData & bd = blockData(addr);
+    return CmpString(&bd);
+}
+
+Address BlockMemory::allocCopy(const BlockData * pSrc)
+{
+    Address addr = alloc(pSrc->blockCount);
+    BlockData & bd = blockData(addr);
+
+    BlockData * pDst = &bd;
+    for (u32 blockIdx = 0; blockIdx < pSrc->blockCount; ++blockIdx)
+        pDst[blockIdx] = pSrc[blockIdx];
+
+    return addr;
 }
 
 Address BlockMemory::alloc(u8 blockCount)

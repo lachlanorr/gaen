@@ -346,7 +346,7 @@ void ast_set_rhs(Ast * pParent, Ast * pRhs);
 
 DataType ast_data_type(const Ast * pAst);
 int are_types_compatible(DataType a, DataType b);
-int is_ref_counted_type(DataType dt);
+int is_block_memory_type(DataType dt);
 int is_integral_type(DataType dt);
 
 ParseData * parsedata_create(const char * prefix,

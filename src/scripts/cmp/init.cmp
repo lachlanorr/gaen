@@ -44,25 +44,20 @@ entity Light
 
 entity start
 {
-    components
-    {
-        utils.Timer{timer_interval = 0.016,
-                    timer_message  = #tick};
-    }
-
     #init()
     {
+        string s = string{"float: %0.2f, int: %d, and make sure we're larger than one block", 1.2, 10};
+
+        entity t = test.Test{};
+        $.insert_task(t);
+        
+        @t#msg1(5, s, "a short one", 1.2, vec3{1.0, 2.0, 3.0}, "this is another string that is larger than one block, and then some more");
+
+
         entity box = Box{};
         entity light = Light{};
 
         $.insert_task(box);
         $.insert_task(light);
-    }
-
-    #timer(uint timer_msg)
-    {
-        if (timer_msg == #tick)
-        {
-        }
     }
 }

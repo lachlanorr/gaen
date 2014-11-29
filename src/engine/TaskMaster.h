@@ -62,7 +62,7 @@ void start_game_loops();
 Registry & get_registry();
 
 // Get the correct message queue against which you should queue
-MessageQueue & get_message_queue(u32 msgId,
+MessageQueue * get_message_queue(u32 msgId,
                                  u32 flags,
                                  task_id source,
                                  task_id target);
@@ -105,7 +105,7 @@ public:
         return *mTaskMasterMessageQueues[active_thread_id()];
     }
 
-    MessageQueue & messageQueueForTarget(task_id target);
+    MessageQueue * messageQueueForTarget(task_id target);
 
     Registry & registry() { return mRegistry; }
 

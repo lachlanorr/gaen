@@ -24,10 +24,12 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-entity start
+entity Test
 {
-    #init()
+    #msg1(int i, string s1, string s2, float f, vec3 v, string s3)
     {
-        string s = string{"float: %0.2f, int: %d", 1.2, 10};
+        $.print(s1);
+        $.print(s2);
+        $.print(s3);
     }
 }

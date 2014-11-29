@@ -27,6 +27,7 @@
 #ifndef GAEN_ENGINE_BLOCKDATA_H
 #define GAEN_ENGINE_BLOCKDATA_H
 
+#include "compose/compiler.h"
 #include "engine/Block.h"
 
 namespace gaen
@@ -37,6 +38,18 @@ enum BlockType
     kBKTY_Uninitialized = 0,
     kBKTY_String        = 1
 };
+
+inline const char * compose_type_to_block_type(DataType dt)
+{
+    switch (dt)
+    {
+    case kDT_string:
+        return "kBKTY_String";
+    default:
+        PANIC("Invalid data type: %d", dt);
+        return nullptr;
+    }
+}
 
 // 12 characters left after string header data in first BlockData
 static const u32 kCharsInFirstBlock = 12;
@@ -72,6 +85,8 @@ struct BlockData
     } data;
 
     static BlockData * from_string(BlockString * pString);
+
+    static u16 validate_block_data(const Block * pBlock, BlockType type);
 
     void init() { *reinterpret_cast<u16*>(this) = 0; }
 };

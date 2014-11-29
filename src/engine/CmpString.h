@@ -43,6 +43,32 @@ public:
     char * c_str()             { ASSERT(mpBlockData); return &mpBlockData->data.string.chars[0]; }
     const char * c_str() const { ASSERT(mpBlockData); return &mpBlockData->data.string.chars[0]; }
     u16 size()                 { ASSERT(mpBlockData); return mpBlockData->data.string.charCount; }
+    u16 blockCount()           { ASSERT(mpBlockData); return mpBlockData->blockCount; }
+
+    template <typename T>
+    void writeMessage(T & msgAcc, u32 startIndex)
+    {
+        ASSERT(mpBlockData);
+
+        for (u32 i = 0; i < mpBlockData->blockCount; ++i)
+        {
+            static_assert(sizeof(Block) == sizeof(BlockData), "Block and BlockData must have same size");
+            msgAcc[startIndex + i] = *reinterpret_cast<Block*>(&mpBlockData[i]);
+        }
+
+        // fix up header
+        BlockData * pBlockData = reinterpret_cast<BlockData*>(&msgAcc[startIndex]);
+        pBlockData->refCount = 0;
+    }
+
+    template <typename T>
+    static bool is_string_message(const T & msgAcc, u32 startIndex)
+    {
+        const BlockData * pBd = reinterpret_cast<const BlockData*>(&msgAcc[startIndex]);
+        return (pBd->type == kBKTY_String &&
+                pBd->blockCount <= msgAcc.available() &&
+                pBd->blockCount < Chunk::kBlocksPerChunk);
+    }
 
 private:
     BlockData * mpBlockData;

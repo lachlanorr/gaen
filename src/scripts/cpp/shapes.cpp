@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 2f21395f29a6801e53ab4f312d499953
+// HASH: d598a5712d5945c595d8db96584704d7
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -70,6 +70,7 @@ public:
                     reinterpret_cast<Block*>(&diffuse())[0].cells[0] = msgAcc[0].cells[0];
                     return MessageResult::Consumed;
                 }
+                break;
             }
             case HASH::size:
             {
@@ -81,17 +82,20 @@ public:
                     reinterpret_cast<Block*>(&size())[0].cells[2] = msgAcc[0].cells[2];
                     return MessageResult::Consumed;
                 }
+                break;
             }
             }
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
+            // Params look compatible, message body follows
             model() = system_api::create_shape_box(size(), diffuse(), entity());
             system_api::renderer_insert_model_instance(boxModelUid(), model(), entity());
             return MessageResult::Consumed;
         }
         case HASH::update_transform:
         {
+            // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(boxModelUid(), transform(), entity());
             return MessageResult::Consumed;
         }

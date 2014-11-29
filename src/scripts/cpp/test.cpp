@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 688b5bcac76283e45219a3c0459e6479
+// HASH: c1a1e6c9d683df2bbd0c51beb0b8ebb4
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -39,12 +39,12 @@ namespace gaen
 namespace ent
 {
 
-class test__start : public Entity
+class test__Test : public Entity
 {
 public:
     static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, test__start, childCount);
+        return GNEW(kMEM_Engine, test__Test, childCount);
     }
     
     template <typename T>
@@ -53,9 +53,36 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init:
+        case HASH::msg1:
         {
-            CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d", 1.20000005e+000f, 10);
+            // Verify params look compatible with this message type
+            u32 expectedBlockSize = 1; // BlockCount without BlockMemory params
+            if (expectedBlockSize > msgAcc.available())
+                return MessageResult::Propogate;
+
+            // Check that block memory params exist in the message
+            u16 blockMemCount = 0;
+
+            blockMemCount = BlockData::validate_block_data(&msgAcc[expectedBlockSize], kBKTY_String);
+            expectedBlockSize += blockMemCount;
+            if (blockMemCount == 0 || expectedBlockSize > msgAcc.available())
+                return MessageResult::Propogate;
+
+            blockMemCount = BlockData::validate_block_data(&msgAcc[expectedBlockSize], kBKTY_String);
+            expectedBlockSize += blockMemCount;
+            if (blockMemCount == 0 || expectedBlockSize > msgAcc.available())
+                return MessageResult::Propogate;
+
+            blockMemCount = BlockData::validate_block_data(&msgAcc[expectedBlockSize], kBKTY_String);
+            expectedBlockSize += blockMemCount;
+            if (blockMemCount == 0 || expectedBlockSize > msgAcc.available())
+                return MessageResult::Propogate;
+
+
+            // Params look compatible, message body follows
+            system_api::print(entity().blockMemory().stringReadMessage(msgAcc, 1, 0), entity());
+            system_api::print(entity().blockMemory().stringReadMessage(msgAcc, 1, 1), entity());
+            system_api::print(entity().blockMemory().stringReadMessage(msgAcc, 1, 2), entity());
             return MessageResult::Consumed;
         }
         }
@@ -63,26 +90,25 @@ public:
     }
 
 private:
-    test__start(u32 childCount)
-      : Entity(HASH::test__start, childCount, 36, 36)
+    test__Test(u32 childCount)
+      : Entity(HASH::test__Test, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-
         mBlockCount = 0;
-        mScriptTask = Task::create(this, HASH::test__start);
+        mScriptTask = Task::create(this, HASH::test__Test);
     }
-    test__start(const test__start&)              = delete;
-    test__start(const test__start&&)             = delete;
-    test__start & operator=(const test__start&)  = delete;
-    test__start & operator=(const test__start&&) = delete;
+    test__Test(const test__Test&)              = delete;
+    test__Test(const test__Test&&)             = delete;
+    test__Test & operator=(const test__Test&)  = delete;
+    test__Test & operator=(const test__Test&&) = delete;
 
-}; // class test__start
+}; // class test__Test
 
 } // namespace ent
 
-void register_entity__test__start(Registry & registry)
+void register_entity__test__Test(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::test__start, ent::test__start::construct))
-        PANIC("Unable to register entity: test__start");
+    if (!registry.registerEntityConstructor(HASH::test__Test, ent::test__Test::construct))
+        PANIC("Unable to register entity: test__Test");
 }
 
 } // namespace gaen

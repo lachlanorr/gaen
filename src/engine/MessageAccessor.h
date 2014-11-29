@@ -66,6 +66,11 @@ public:
         return message_to_block(mAccessor[index+1]); // +1 to skip past header
     }
 
+    u32 available() const
+    {
+        return mAccessor.available();
+    }
+
 private:
     mutable SpscRingBuffer<Message>::Accessor mAccessor;
 };
@@ -106,6 +111,11 @@ public:
     {
         ASSERT(index < mBlockCount);
         return mpBlocks[index+1]; // +1 to skip past header
+    }
+
+    u32 available() const
+    {
+        return mBlockCount;
     }
 
 private:

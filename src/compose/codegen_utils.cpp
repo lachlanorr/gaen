@@ -36,12 +36,15 @@
 BlockInfo::BlockInfo(Ast * pAst)
   : pAst(pAst)
   , blockIndex(0)
+  , blockMemoryIndex(-1)
   , cellIndex(0)
   , cellCount(0)
   , isPayload(false)
   , isAssigned(false)
 {
     cellCount = gaen::calc_cell_count(pAst);
+    dataType = RAW_DT(ast_data_type(pAst));
+    isBlockMemoryType = is_block_memory_type(dataType) ? true : false;
 }
 
 namespace gaen
@@ -118,13 +121,8 @@ const Ast * find_component_members(const Ast * pAst)
 
 u32 calc_cell_count(const Ast * pAst)
 {
-    if (pAst->pSymRec)
-        return data_type_cell_count(pAst->pSymRec->dataType, pAst->pParseData);
-    else if (pAst->type == kAST_Hash ||
-             pAst->type == kAST_IntLiteral)
-        return 1;
-    parsedata_formatted_message(pAst->pParseData, kMSGT_Error, "Unable to calculate cell count for Ast type: %d", pAst->type);
-    return -1;
+    DataType dt = pAst->pSymRec ? pAst->pSymRec->dataType : ast_data_type(pAst);
+    return data_type_cell_count(dt, pAst->pParseData);
 }
 
 u32 data_type_cell_count(DataType dataType, ParseData * pParseData)
@@ -151,7 +149,7 @@ u32 data_type_cell_count(DataType dataType, ParseData * pParseData)
     case kDT_handle:
         return 8;
     case kDT_string:
-        return 2;    // for pointer
+        return 2;    // for pimpl pointer of CmpString
     default:
         COMP_ERROR(pParseData, "Unknown cell count for datatype: %d", dataType);
         return 0;
@@ -171,7 +169,8 @@ u32 props_and_fields_count(const Ast * pAst)
 }
 
 static BlockInfo * find_next_fit(CompVector<BlockInfo> & items,
-                                 u32 currCell)
+                                 u32 currCell,
+                                 bool packForMessage)
 {
     ASSERT(currCell < kCellsPerBlock);
 
@@ -180,6 +179,9 @@ static BlockInfo * find_next_fit(CompVector<BlockInfo> & items,
     for (BlockInfo & item : items)
     {
         if (item.isAssigned)
+            continue;
+
+        if (packForMessage && item.isBlockMemoryType)
             continue;
 
         if (item.cellCount > 2 && currCell != 0)
@@ -192,33 +194,70 @@ static BlockInfo * find_next_fit(CompVector<BlockInfo> & items,
     return nullptr;
 }
 
-void block_pack_items(BlockInfos * pBlockInfos, bool usePayload)
+void block_pack_items(BlockInfos * pBlockInfos, bool packForMessage)
 {
-    std::stable_sort(pBlockInfos->items.begin(),
-                     pBlockInfos->items.end(),
-                     [](const BlockInfo & a, const BlockInfo & b)
-                     { return a.cellCount > b.cellCount; });
+    if (packForMessage)
+    {
+        // for messages, ensure block memory items come at the end
+        std::stable_sort(pBlockInfos->items.begin(),
+                         pBlockInfos->items.end(),
+                         [](const BlockInfo & a, const BlockInfo & b)
+                         {
+                             if (a.isBlockMemoryType && !b.isBlockMemoryType)
+                                 return false;
+                             else if (!a.isBlockMemoryType && b.isBlockMemoryType)
+                                 return true;
+                             else
+                                 return a.cellCount > b.cellCount;
+                         });
+    }
+    else
+    {
+        // for non-messages, pack block memory items with the rest
+        std::stable_sort(pBlockInfos->items.begin(),
+                         pBlockInfos->items.end(),
+                         [](const BlockInfo & a, const BlockInfo & b)
+                         { return a.cellCount > b.cellCount; });
+    }
 
     u32 unassignedItemCount = (u32)pBlockInfos->items.size();
+    if (packForMessage)
+    {
+        // remove block memory items from unassignedItemCount
+        pBlockInfos->blockMemoryItemCount = 0;
+        for (BlockInfo & bi : pBlockInfos->items)
+        {
+            if (bi.isBlockMemoryType)
+            {
+                --unassignedItemCount;
+                bi.blockMemoryIndex = pBlockInfos->blockMemoryItemCount;
+                ++pBlockInfos->blockMemoryItemCount;
+            }
+        }
+    }
 
     u32 currBlock = 0;
     u32 currCell = 0;
 
-    if (usePayload)
+    if (packForMessage)
     {
-        // last item should have smallest cell count
-        BlockInfo & bi = pBlockInfos->items[pBlockInfos->items.size()-1];
-        if (bi.cellCount == 1)
+        // Messages use the payload of the first block for a 1 cell
+        // value if possible.
+        for (BlockInfo & bi : pBlockInfos->items)
         {
-            bi.isAssigned = true;
-            bi.isPayload = true;
-            unassignedItemCount--;
+            if (bi.cellCount == 1)
+            {
+                bi.isAssigned = true;
+                bi.isPayload = true;
+                unassignedItemCount--;
+                break;
+            }
         }
     }
 
     while (unassignedItemCount > 0)
     {
-        BlockInfo * pItem = find_next_fit(pBlockInfos->items, currCell);
+        BlockInfo * pItem = find_next_fit(pBlockInfos->items, currCell, packForMessage);
 
         if (!pItem)
         {
@@ -230,7 +269,7 @@ void block_pack_items(BlockInfos * pBlockInfos, bool usePayload)
         {
             pItem->isAssigned = true;
             unassignedItemCount--;
-            pItem->cellCount = data_type_cell_count(pItem->pAst->pSymRec->dataType, pItem->pAst->pParseData);
+            pItem->cellCount = calc_cell_count(pItem->pAst);
             pItem->blockIndex = currBlock;
             pItem->cellIndex = currCell;
 

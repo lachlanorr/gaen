@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 66ffb143fc7b9d6dfde048bb1cdc8a0d
+// HASH: b3911d9637ab952f46b7eeb1b08dc749
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -54,9 +54,17 @@ public:
             last_notification() += deltaSecs;
             if ((last_notification() >= timer_interval()))
             {
-                {
-                    StackMessageBlockWriter<0> msgw(HASH::timer, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(timer_message()));
-                    entity().message(msgw.accessor());
+                { // Send Message Block
+                    // Compute block size, incorporating any BlockMemory parameters dynamically
+                    u32 blockCount = 0;
+
+                    // Prepare the queue writer
+                    MessageQueueWriter msgw(HASH::timer, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(timer_message()), blockCount);
+
+                    u32 startIndex = 0; // location in message to copy block memory items to
+                    // Write parameters to message
+
+                    // MessageQueueWriter will send message through RAII when this scope is exited
                 }
                 last_notification() = 0.00000000e+000f;
             }
@@ -85,6 +93,7 @@ public:
                     reinterpret_cast<Block*>(&timer_interval())[0].cells[0] = msgAcc[0].cells[0];
                     return MessageResult::Consumed;
                 }
+                break;
             }
             case HASH::timer_message:
             {
@@ -94,6 +103,7 @@ public:
                     reinterpret_cast<Block*>(&timer_message())[0].cells[0] = msgAcc[0].cells[0];
                     return MessageResult::Consumed;
                 }
+                break;
             }
             }
             return MessageResult::Propogate; // Invalid property
@@ -157,10 +167,18 @@ public:
             pitch() += ((pitching() * deltaSecs) * 1.00000000e+002f);
             yaw() += ((yawing() * deltaSecs) * 1.00000000e+002f);
             Mat34 trans = system_api::transform_rotate(Vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.00000000e+000f), entity());
-            {
-                StackMessageBlockWriter<3> msgw(HASH::transform, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(0));
+            { // Send Message Block
+                // Compute block size, incorporating any BlockMemory parameters dynamically
+                u32 blockCount = 3;
+
+                // Prepare the queue writer
+                MessageQueueWriter msgw(HASH::transform, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(0), blockCount);
+
+                u32 startIndex = 3; // location in message to copy block memory items to
+                // Write parameters to message
                 *reinterpret_cast<Mat34*>(&msgw[0].cells[0]) = trans;
-                entity().message(msgw.accessor());
+
+                // MessageQueueWriter will send message through RAII when this scope is exited
             }
         }
     }
@@ -179,6 +197,7 @@ public:
             return MessageResult::Consumed;
         case HASH::init:
         {
+            // Params look compatible, message body follows
             system_api::watch_input_state(HASH::forward, 0, HASH::forward, entity());
             system_api::watch_input_state(HASH::back, 0, HASH::back, entity());
             system_api::watch_input_state(HASH::left, 0, HASH::left, entity());
@@ -187,6 +206,7 @@ public:
         }
         case HASH::forward:
         {
+            // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
                 pitching() = 1.00000000e+000f;
@@ -199,6 +219,7 @@ public:
         }
         case HASH::back:
         {
+            // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
                 pitching() = -(1.00000000e+000f);
@@ -211,6 +232,7 @@ public:
         }
         case HASH::left:
         {
+            // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
                 yawing() = 1.00000000e+000f;
@@ -223,6 +245,7 @@ public:
         }
         case HASH::right:
         {
+            // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
                 yawing() = -(1.00000000e+000f);

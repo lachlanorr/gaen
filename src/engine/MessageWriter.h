@@ -33,7 +33,7 @@
 namespace gaen
 {
 
-// Base class that wll writers should inherit from.
+// Base class that all writers should inherit from.
 // Handles the message queue book keeping.
 class MessageQueueWriter
 {
@@ -45,7 +45,7 @@ public:
                        cell payload,
                        u32 blockCount)
     {
-        mpMsgQueue = &get_message_queue(msgId, flags, source, target);
+        mpMsgQueue = get_message_queue(msgId, flags, source, target);
         mpMsgQueue->pushBegin(&mMsgAcc,
                               msgId,
                               flags,
@@ -69,6 +69,16 @@ public:
     }
 
     MessageQueueAccessor & accessor() { return mMsgAcc; }
+
+    Block & operator[] (u32 index)
+    {
+        return mMsgAcc[index];
+    }
+
+    const Block & operator[] (u32 index) const
+    {
+        return mMsgAcc[index];
+    }
 
 protected:
     MessageQueue * mpMsgQueue;
@@ -95,6 +105,17 @@ public:
     }
 
     MessageBlockAccessor accessor() { return mMsgAcc; }
+
+    // Access blocks of message
+    Block & operator[] (u32 index)
+    {
+        return mMsgAcc[index];
+    }
+
+    const Block & operator[] (u32 index) const
+    {
+        return mMsgAcc[index];
+    }
 
 protected:
     MessageBlockAccessor mMsgAcc;
@@ -130,6 +151,7 @@ public:
 private:
     Block mBlocks[blockCount + 1]; // +1 for header
 };
+
 
 } // namespace gaen
 

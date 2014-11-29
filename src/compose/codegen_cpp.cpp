@@ -42,6 +42,9 @@ namespace gaen
 #define S String<kMEM_Compose>
 #define LF S("\n")
 #define I indent(indentLevel)
+#define I1 indent(indentLevel+1)
+#define I2 indent(indentLevel+2)
+#define I3 indent(indentLevel+3)
 
 static S indent(u32 level);
 static const char * type_str(DataType dt);
@@ -341,7 +344,7 @@ static S assign(const Ast * pAst, const char * op)
     }
 
 
-    if (!is_ref_counted_type(pAst->pSymRec->dataType))
+    if (!is_block_memory_type(pAst->pSymRec->dataType))
     {
         return symref(pAst->pSymRec, pAst->pParseData) + S(" ") + S(op) + S(" ") + codegen_recurse(pAst->pRhs, 0);
     }
@@ -359,6 +362,9 @@ static S assign(const Ast * pAst, const char * op)
 
 static S symref(const SymRec * pSymRec, ParseData * pParseData)
 {
+    static const u32 kScratchSize = 256;
+    char scratch[kScratchSize+1];
+
     if (!pSymRec)
     {
         // We shouldn't get here, as this error should have been
@@ -373,7 +379,30 @@ static S symref(const SymRec * pSymRec, ParseData * pParseData)
     if (pSymRec->type == kSYMT_MessageParam)
     {
         const BlockInfo * pBlockInfo = pSymRec->pAst->pBlockInfos->find(pSymRec->pAst);
-        code = S("/*") + S(pSymRec->name) + S("*/") + property_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc", pSymRec->pAst->pParseData);
+        if (!pBlockInfo->isBlockMemoryType)
+        {
+            code = S("/*") + S(pSymRec->name) + S("*/") + property_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc", pSymRec->pAst->pParseData);
+        }
+        else
+        {
+            switch (pBlockInfo->dataType)
+            {
+            case kDT_string:
+                ASSERT(pBlockInfo->blockMemoryIndex != -1);
+
+                snprintf(scratch,
+                         kScratchSize,
+                         "entity().blockMemory().stringReadMessage(msgAcc, %u, %u)",
+                         pSymRec->pAst->pBlockInfos->blockCount,
+                         pBlockInfo->blockMemoryIndex);
+                code = S(scratch);
+                break;
+            default:
+                PANIC("Unsupported DataType: %u", pBlockInfo->dataType);
+                code = S("");
+                break;
+            }
+        }
     }
     else
     {
@@ -408,9 +437,9 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
 
     if (hasProperty)
     {
-        code += indent(indentLevel) + S("case HASH::") + S("set_property:\n");
-        code += indent(indentLevel+1) + S("switch (_msg.payload.u)\n");
-        code += indent(indentLevel+1) + S("{\n");
+        code += I + S("case HASH::") + S("set_property:\n");
+        code += I1 + S("switch (_msg.payload.u)\n");
+        code += I1 + S("{\n");
         for (const auto & kv : pAst->pScope->pSymTab->dict)
         {
             SymRec * pSymRec = kv.second;
@@ -423,53 +452,74 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                 u32 cellCount = data_type_cell_count(dt, pAst->pParseData);
                 u32 blockCount = block_count(cellCount);
 
-                code += indent(indentLevel+1) + S("case HASH::") + S(pSymRec->name) + S(":\n");
-                code += indent(indentLevel+1) + S("{\n");
-                snprintf(scratch, kScratchSize, "u32 requiredBlockCount = %d;\n", blockCount);
-                code += indent(indentLevel+2) + S(scratch);
-                code += indent(indentLevel+2) + S("if (_msg.blockCount >= requiredBlockCount)\n");
-                code += indent(indentLevel+2) + S("{\n");
-
-                u32 fullBlocksToCopy = blockCount;
-                if (cellCount % kCellsPerBlock != 0)
-                    fullBlocksToCopy--;
-
-                // copy full blocks
-                for (u32 i = 0; i < fullBlocksToCopy; ++i)
+                code += I1 + S("case HASH::") + S(pSymRec->name) + S(":\n");
+                code += I1 + S("{\n");
+                if (!is_block_memory_type(dt))
                 {
-                    snprintf(scratch,
-                             kScratchSize,
-                             "reinterpret_cast<Block*>(&%s())[%d] = msgAcc[%d];\n",
-                             pSymRec->name,
-                             i,
-                             i);
-                    code += indent(indentLevel+3) + S(scratch);
-                }
-                // copy remaining cells from last block
-                if (fullBlocksToCopy < blockCount)
-                {
-                    u32 lastBlockIdx = blockCount - 1;
-                    u32 cellsToCopy = cellCount % kCellsPerBlock;
-                    for (u32 i = 0; i < cellsToCopy; ++i)
+                    snprintf(scratch, kScratchSize, "u32 requiredBlockCount = %d;\n", blockCount);
+                    code += I2 + S(scratch);
+                    code += I2 + S("if (_msg.blockCount >= requiredBlockCount)\n");
+                    code += I2 + S("{\n");
+
+                    u32 fullBlocksToCopy = blockCount;
+                    if (cellCount % kCellsPerBlock != 0)
+                        fullBlocksToCopy--;
+
+                    // copy full blocks
+                    for (u32 i = 0; i < fullBlocksToCopy; ++i)
                     {
                         snprintf(scratch,
                                  kScratchSize,
-                                 "reinterpret_cast<Block*>(&%s())[%d].cells[%d] = msgAcc[%d].cells[%d];\n",
+                                 "reinterpret_cast<Block*>(&%s())[%d] = msgAcc[%d];\n",
                                  pSymRec->name,
-                                 lastBlockIdx,
                                  i,
-                                 lastBlockIdx,
                                  i);
-                        code += indent(indentLevel+3) + S(scratch);
+                        code += I3 + S(scratch);
                     }
+                    // copy remaining cells from last block
+                    if (fullBlocksToCopy < blockCount)
+                    {
+                        u32 lastBlockIdx = blockCount - 1;
+                        u32 cellsToCopy = cellCount % kCellsPerBlock;
+                        for (u32 i = 0; i < cellsToCopy; ++i)
+                        {
+                            snprintf(scratch,
+                                     kScratchSize,
+                                     "reinterpret_cast<Block*>(&%s())[%d].cells[%d] = msgAcc[%d].cells[%d];\n",
+                                     pSymRec->name,
+                                     lastBlockIdx,
+                                     i,
+                                     lastBlockIdx,
+                                     i);
+                            code += I3 + S(scratch);
+                        }
+                    }
+                    code += I3 + S("return MessageResult::Consumed;\n");
+                    code += I2 + S("}\n");
+                    code += I2 + S("break;\n");
+                    code += I1 + S("}\n");
                 }
-                code += indent(indentLevel+3) + S("return MessageResult::Consumed;\n");
-                code += indent(indentLevel+2) + S("}\n");
-                code += indent(indentLevel+1) + S("}\n");
+                else // block memory type
+                {
+                    // This is a BlockMemory type, like a string, list, or dict.
+                    // Size is dynamic and must be read from first block.
+                    code += I2 + S("if (_msg.blockCount < 1) break; // not enough even for BlockData header\n");
+                    code += I2 + S("const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[0]);\n");
+                    code += I2 + S("if (pBlockData->type != ") + S(compose_type_to_block_type(dt)) + S(") break; // incorrect BlockData type\n");
+                    code += I2 + S("u32 requiredBlockCount = pBlockData->blockCount;\n");
+                    code += I2 + S("if (_msg.blockCount >= requiredBlockCount)\n");
+                    code += I2 + S("{\n");
+                    code += I2 + S("    Address addr = entity().blockMemory().allocCopy(pBlockData);\n");
+                    code += I2 + S("    set_") + S(pSymRec->name) + S("(entity().blockMemory().string(addr));\n");
+                    code += I2 + S("    return MessageResult::Consumed;\n");
+                    code += I2 + S("}\n");
+                    code += I2 + S("break;\n");
+                    code += I1 + S("}\n");
+                }
             }
         }
-        code += indent(indentLevel+1) + S("}\n");
-        code += indent(indentLevel+1) + S("return MessageResult::Propogate; // Invalid property\n");
+        code += I1 + S("}\n");
+        code += I1 + S("return MessageResult::Propogate; // Invalid property\n");
     }
     return code;
 }
@@ -516,9 +566,9 @@ static S init_data(const Ast * pAst, int indentLevel)
         SymRec * pSymRec = kv.second;
         if (is_prop_or_field(pSymRec))
         {
-            if (!is_ref_counted_type(pSymRec->dataType))
+            if (!is_block_memory_type(pSymRec->dataType))
             {
-                code += indent(indentLevel+1) + symref(pSymRec, pAst->pParseData);
+                code += I1 + symref(pSymRec, pAst->pParseData);
                 code += S(" = ");
 
                 // Does the script initiialize this with a value?
@@ -558,12 +608,59 @@ static S message_def(const Ast * pAst, int indentLevel)
 {
     S code;
 
+    static const u32 kScratchSize = 256;
+    char scratch[kScratchSize+1];
+
     if (pAst->type == kAST_MessageDef &&
         pAst->pSymRec &&
         0 != strcmp(pAst->pSymRec->name, "update"))
     {
         code += I + S("case HASH::") + S(pAst->str) + S(":\n");
         code += I + S("{\n");
+
+        if (pAst->pBlockInfos->blockCount > 0 ||
+            pAst->pBlockInfos->blockMemoryItemCount > 0)
+        {
+            code += I1 + S("// Verify params look compatible with this message type\n");
+            snprintf(scratch,
+                     kScratchSize,
+                     "u32 expectedBlockSize = %d; // BlockCount without BlockMemory params\n",
+                     pAst->pBlockInfos->blockCount);
+            code += I1 + S(scratch);
+        }
+        if (pAst->pBlockInfos->blockCount > 0)
+        {
+            code += I1 + S("if (expectedBlockSize > msgAcc.available())\n");
+            code += I1 + S("    return MessageResult::Propogate;\n");
+            code += LF;
+        }
+
+        if (pAst->pBlockInfos->blockMemoryItemCount > 0)
+        {
+            code += I1 + S("// Check that block memory params exist in the message\n");
+            code += I1 + S("u16 blockMemCount = 0;\n");
+
+            code += LF;
+            for (const BlockInfo & bi : pAst->pBlockInfos->items)
+            {
+                if (bi.isBlockMemoryType)
+                {
+                    snprintf(scratch,
+                             kScratchSize,
+                             "blockMemCount = BlockData::validate_block_data(&msgAcc[expectedBlockSize], %s);\n",
+                             compose_type_to_block_type(bi.dataType));
+                    code += I1 + S(scratch);
+                    code += I1 + S("expectedBlockSize += blockMemCount;\n");
+
+                    code += I1 + S("if (blockMemCount == 0 || expectedBlockSize > msgAcc.available())\n");
+                    code += I1 + S("    return MessageResult::Propogate;\n");
+                    code += LF;
+                }
+            }
+            code += LF;
+        }
+
+        code += I1 + S("// Params look compatible, message body follows\n");
         for (Ast * pChild : pAst->pChildren->nodes)
         {
             code += codegen_recurse(pChild, indentLevel + 1);
@@ -775,18 +872,14 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    }\n");
         code += I + S("\n");
 
-
-
-
         code += I + S("private:\n");
 
         // Constructor
         code += I + S("    ") + entName + S("(u32 childCount)\n");
-        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36)\n");
+        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n"); 
         code += I + S("    {\n");
         // Initialize fields and properties
         code += init_data(pAst, indentLevel + 1);
-        code += S("\n");
 
         // Initialize mBlockSize
         {
@@ -1020,7 +1113,7 @@ static S codegen_recurse(const Ast * pAst,
         S propName = S(pAst->pSymRec->name);
         S typeStr = S(cpp_type_str(RAW_DT(ast_data_type(pAst)), pAst->pParseData));
         S assignedVar = S("mIs_") + propName + S("_Assigned");
-        int isRefCounted = is_ref_counted_type(ast_data_type(pAst));
+        int isRefCounted = is_block_memory_type(ast_data_type(pAst));
 
         S code = I + typeStr + S("& ") + propName + S("()\n");
         code += I + S("{\n");
@@ -1413,72 +1506,130 @@ static S codegen_recurse(const Ast * pAst,
         code += S(")");
         return code;
     }
-//    case kAST_Identifier:
-//    {
-//    }
-
+    case kAST_Identifier:
+    {
+        return S(pAst->str);
+    }
     case kAST_PropertySet:
     {
+        PANIC("Not implemented");
         return S("");
     }
     case kAST_MessageSend:
     {
         S code;
-        code += I + S("{\n");
+        code += I + S("{ // Send Message Block\n");
 
         ASSERT(pAst->pBlockInfos);
 
-        if (!pAst->pLhs) // send to our own entity
+        // Determine our blockCount
+        // If we have BlockMemory params, those have to be
+        // added in at runtime.
+        code += I1 + S("// Compute block size, incorporating any BlockMemory parameters dynamically\n");
+        snprintf(scratch, kScratchSize, "u32 blockCount = %u;\n", pAst->pBlockInfos->blockCount);
+        code += I1 + S(scratch);
+        
+        // Add in blocks for BlockMemory params
+        u32 bmId = 0;
+        for (const BlockInfo & bi : pAst->pBlockInfos->items)
         {
-            code += indent(indentLevel+1);
-            snprintf(scratch,
-                     kScratchSize,
-                     "StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, entity().task().id(), ",
-                     pAst->pBlockInfos->blockCount,
-                     pAst->str);
-
-            code += S(scratch);
-
-            if (pAst->pLhs == 0)
-                code += S("entity().task().id()");
-            else
-                code += codegen_recurse(pAst->pLhs, 0);
-
-            code += S(", to_cell(");
-
-            const BlockInfo * pPayload = pAst->pBlockInfos->find_payload();
-            if (pPayload)
-                code += codegen_recurse(pPayload->pAst, indentLevel);
-            else
-                code += S("0 /* no payload */");
-
-            code += S("));\n");
-
-            // Set non-payload message data into message body
-            for (const BlockInfo & bi : pAst->pBlockInfos->items)
+            if (bi.isBlockMemoryType)
             {
-                if (!bi.isPayload)
-                {
-                    code += indent(indentLevel+1);
-                    snprintf(scratch,
-                             kScratchSize,
-                             "*reinterpret_cast<%s*>(&msgw[%d].cells[%d]) = ",
-                             cpp_type_str(ast_data_type(bi.pAst), pAst->pParseData),
-                             bi.blockIndex,
-                             bi.cellIndex);
-                    code += S(scratch);
-                    code += codegen_recurse(bi.pAst, 0);
-                    code += ";\n";
-                }
-            }
+                // declare a local variable to hold value of block memory item
+                snprintf(scratch,
+                         kScratchSize,
+                         "%s bmParam%u = %s;\n",
+                         cpp_type_str(bi.dataType, pAst->pParseData),
+                         bmId,
+                         codegen_recurse(bi.pAst, 0).c_str());
+                code += I1 + S(scratch);
 
-            // Send stack message bock directly to our entity
-            code += indent(indentLevel+1) + S("entity().message(msgw.accessor());\n");
+                // add this local's block count to our total
+                snprintf(scratch,
+                         kScratchSize,
+                         "blockCount += bmParam%u.blockCount();\n",
+                         bmId);
+
+                code += I1 + S(scratch);
+                ++bmId;
+            }
         }
+
+        code += LF;
+
+        // do we have a payload?
+        const BlockInfo * pPayload = pAst->pBlockInfos->find_payload();
+        S payload;
+        if (pPayload)
+            payload = codegen_recurse(pPayload->pAst, indentLevel);
         else
+            payload =  S("0 /* no payload */");
+
+        S target;
+        if (pAst->pLhs == 0)
+            target = S("entity().task().id()");
+        else
+            target = codegen_recurse(pAst->pLhs, 0);
+
+        code += I1 + S("// Prepare the queue writer\n");
+        snprintf(scratch,
+                 kScratchSize,
+                 "MessageQueueWriter msgw(HASH::%s, kMessageFlag_None, entity().task().id(), %s, to_cell(%s), blockCount);\n",
+                 pAst->str,
+                 target.c_str(),
+                 payload.c_str());
+
+        code += I1 + S(scratch);
+        code += LF;
+
+        snprintf(scratch,
+                 kScratchSize,
+                 "u32 startIndex = %u; // location in message to copy block memory items to\n",
+                 pAst->pBlockInfos->blockCount);
+        code += I1 + S(scratch);
+        
+        // Set non-payload message data into message body
+        code += I1 + S("// Write parameters to message\n");
+        bmId = 0;
+        for (const BlockInfo & bi : pAst->pBlockInfos->items)
         {
-            COMP_ERROR(pAst->pParseData, "Specific target not implemented yet");
+            // NOTE: All block memory items are at the end of the BlockInfos
+            // since they were sorted as such.
+            if (bi.isBlockMemoryType)
+            {
+                snprintf(scratch,
+                         kScratchSize,
+                         "bmParam%u.writeMessage(msgw, startIndex);\n",
+                         bmId);
+                code += I1 + S(scratch);
+
+                snprintf(scratch,
+                         kScratchSize,
+                         "startIndex += bmParam%u.blockCount();\n",
+                         bmId);
+                code += I1 + S(scratch);
+
+                ++bmId;
+            }
+            else if (!bi.isPayload)
+            {
+                ASSERT_MSG(bmId == 0, "BlockMemory param placed in message before regular param");
+                snprintf(scratch,
+                         kScratchSize,
+                         "*reinterpret_cast<%s*>(&msgw[%d].cells[%d]) = ",
+                         cpp_type_str(ast_data_type(bi.pAst), pAst->pParseData),
+                         bi.blockIndex,
+                         bi.cellIndex);
+                code += I1 + S(scratch);
+                code += codegen_recurse(bi.pAst, 0);
+                code += ";\n";
+            }
         }
+
+        code += LF;
+
+        // Send stack message bock directly to our entity
+        code += I1 + S("// MessageQueueWriter will send message through RAII when this scope is exited\n");
 
         code += I + S("}\n");
         return code;

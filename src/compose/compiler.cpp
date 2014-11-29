@@ -823,6 +823,9 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
 
 Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
 {
+    // pop scope that got created by the lexer when encountering the '{'
+    parsedata_pop_scope(pParseData);
+
     if (!pParams->pChildren || pParams->pChildren->nodes.size() == 0)
     {
         // no params, just a blank string
@@ -1471,7 +1474,7 @@ int are_types_compatible(DataType a, DataType b)
     return 0;
 }
 
-int is_ref_counted_type(DataType dt)
+int is_block_memory_type(DataType dt)
 {
     return (dt == kDT_string ? 1 : 0);
 }

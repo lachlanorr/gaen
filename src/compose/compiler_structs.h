@@ -73,11 +73,14 @@ struct AstList
 struct BlockInfo
 {
     Ast * pAst;
+    DataType dataType;
     u32 blockIndex;
+    u32 blockMemoryIndex;
     u32 cellIndex;
     u32 cellCount;
     bool isPayload;
     bool isAssigned;
+    bool isBlockMemoryType;
 
     BlockInfo(Ast * pAst);
 };
@@ -85,10 +88,12 @@ struct BlockInfo
 struct BlockInfos
 {
     u32 blockCount;
+    u32 blockMemoryItemCount;
     CompVector<BlockInfo> items;
 
     BlockInfos()
       : blockCount(0)
+      , blockMemoryItemCount(0)
     {}
 
     const BlockInfo * find(const Ast * pAst) const

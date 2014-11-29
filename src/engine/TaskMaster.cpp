@@ -114,7 +114,7 @@ Registry & get_registry()
     return tm.registry();
 }
 
-MessageQueue & get_message_queue(u32 msgId,
+MessageQueue * get_message_queue(u32 msgId,
                                  u32 flags,
                                  task_id source,
                                  task_id target)
@@ -124,7 +124,19 @@ MessageQueue & get_message_queue(u32 msgId,
     if (source != kMainThreadTaskId)
     {
         TaskMaster & tm = TaskMaster::task_master_for_active_thread();
-        return tm.messageQueueForTarget(target);
+        MessageQueue * pMsgQ = tm.messageQueueForTarget(target);
+        if (pMsgQ)
+        {
+            return pMsgQ;
+        }
+        else
+        {
+            // Default to the message queue of the active thread's
+            // task master.  In some cases, if a task was just created
+            // but hasn't been inserted, it is valid for this
+            // scenario.
+            return &tm.taskMasterMessageQueue();
+        }
     }
     else // main thread sent this message
     {
@@ -147,7 +159,7 @@ MessageQueue & get_message_queue(u32 msgId,
         ASSERT(targetThreadId != -1);
 
         TaskMaster & tm = TaskMaster::task_master_for_thread(targetThreadId);
-        return tm.mainMessageQueue();
+        return &tm.mainMessageQueue();
     }
 }
 
@@ -276,7 +288,7 @@ TaskMaster & TaskMaster::task_master_for_active_thread()
     return task_master_for_thread(activeThreadId);
 }
 
-MessageQueue & TaskMaster::messageQueueForTarget(task_id target)
+MessageQueue * TaskMaster::messageQueueForTarget(task_id target)
 {
     thread_id targetThreadId;
 
@@ -297,15 +309,24 @@ MessageQueue & TaskMaster::messageQueueForTarget(task_id target)
         // Lookup the task in our map to see which task manager it
         // belongs to.
         TaskOwnerMap::iterator it = mTaskOwnerMap.find(target);
+
         if (it == mTaskOwnerMap.end())
-            PANIC("queueMessage to unknown target task_id %d", target);
+        {
+            // This task_id isn't registered with any task masters.
+            // This can sometimes happen if the task was just created
+            // and the insert_task message hasn't propogated through
+            // yet. Callers of this method should decide what to do in
+            // these cases, as it is not always an error to get
+            // nullptr returned from here.
+            return nullptr;
+        }
 
         targetThreadId = it->second;
     }
 
     ASSERT(targetThreadId < num_threads());
     TaskMaster & targetTaskMaster = TaskMaster::task_master_for_thread(targetThreadId);
-    return targetTaskMaster.taskMasterMessageQueue();
+    return &targetTaskMaster.taskMasterMessageQueue();
 }
 
 void TaskMaster::runPrimaryGameLoop()
@@ -568,22 +589,30 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
         else
         {
             // We don't own this task, attempt to forward the message
-            MessageQueue & msgQ = messageQueueForTarget(msg.target);
+            MessageQueue * pMsgQ = messageQueueForTarget(msg.target);
+
+            if (!pMsgQ)
+            {
+                // Message directed to task we're not tracking, throw it away
+                LOG_INFO("Message to non-existent target; source: %u, target: %u, msgId: %u", msg.source, msg.target, msg.msgId);
+                return MessageResult::Consumed;
+            }
+
             MessageQueueAccessor msgAccNew;
-            msgQ.pushBegin(&msgAccNew,
-                           msg.msgId,
-                           msg.flags,
-                           msg.source,
-                           msg.target,
-                           msg.payload,
-                           msg.blockCount);
+            pMsgQ->pushBegin(&msgAccNew,
+                             msg.msgId,
+                             msg.flags,
+                             msg.source,
+                             msg.target,
+                             msg.payload,
+                             msg.blockCount);
 
             for (u32 i = 0; i < msg.blockCount; ++i)
             {
                 msgAccNew[i] = msgAcc[i];
             }
 
-            msgQ.pushCommit(msgAcc);
+            pMsgQ->pushCommit(msgAcc);
         }
     }
     

@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 7377fff165835c1358ea4c05f2482bbf
+// HASH: 05a15e3aac6831281ecdf4ddf9f30c5d
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -55,9 +55,8 @@ public:
 
 private:
     init__Box(u32 childCount)
-      : Entity(HASH::init__Box, childCount, 36, 36)
+      : Entity(HASH::init__Box, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__Box);
 
@@ -123,9 +122,8 @@ public:
 
 private:
     init__Light(u32 childCount)
-      : Entity(HASH::init__Light, childCount, 36, 36)
+      : Entity(HASH::init__Light, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__Light);
 
@@ -159,7 +157,18 @@ class init__start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__Box__55_23()
+    task_id entity_init__init__test_Test__51_21()
+    {
+        Entity * pEnt = get_registry().constructEntity(HASH::test__Test, 8);
+        // Send init message
+        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgBW.accessor());
+
+        stageEntity(pEnt);
+        return pEnt->task().id();
+    }
+
+    task_id entity_init__init__Box__57_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Box, 8);
         // Send init message
@@ -170,7 +179,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Light__56_25()
+    task_id entity_init__init__Light__58_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
         // Send init message
@@ -196,17 +205,40 @@ public:
         {
         case HASH::init:
         {
-            task_id box = entity_init__init__Box__55_23();
-            task_id light = entity_init__init__Light__56_25();
+            // Params look compatible, message body follows
+            CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+000f, 10);
+            task_id t = entity_init__init__test_Test__51_21();
+            system_api::insert_task(t, entity());
+            { // Send Message Block
+                // Compute block size, incorporating any BlockMemory parameters dynamically
+                u32 blockCount = 1;
+                CmpString bmParam0 = s;
+                blockCount += bmParam0.blockCount();
+                CmpString bmParam1 = entity().blockMemory().stringAlloc("a short one");
+                blockCount += bmParam1.blockCount();
+                CmpString bmParam2 = entity().blockMemory().stringAlloc("this is another string that is larger than one block, and then some more");
+                blockCount += bmParam2.blockCount();
+
+                // Prepare the queue writer
+                MessageQueueWriter msgw(HASH::msg1, kMessageFlag_None, entity().task().id(), t, to_cell(5), blockCount);
+
+                u32 startIndex = 1; // location in message to copy block memory items to
+                // Write parameters to message
+                *reinterpret_cast<Vec3*>(&msgw[0].cells[0]) = Vec3(1.00000000e+000f, 2.00000000e+000f, 3.00000000e+000f);
+                *reinterpret_cast<f32*>(&msgw[0].cells[3]) = 1.20000005e+000f;
+                bmParam0.writeMessage(msgw, startIndex);
+                startIndex += bmParam0.blockCount();
+                bmParam1.writeMessage(msgw, startIndex);
+                startIndex += bmParam1.blockCount();
+                bmParam2.writeMessage(msgw, startIndex);
+                startIndex += bmParam2.blockCount();
+
+                // MessageQueueWriter will send message through RAII when this scope is exited
+            }
+            task_id box = entity_init__init__Box__57_23();
+            task_id light = entity_init__init__Light__58_25();
             system_api::insert_task(box, entity());
             system_api::insert_task(light, entity());
-            return MessageResult::Consumed;
-        }
-        case HASH::timer:
-        {
-            if ((/*timer_msg*/msgAcc.message().payload.u == HASH::tick))
-            {
-            }
             return MessageResult::Consumed;
         }
         }
@@ -215,31 +247,10 @@ public:
 
 private:
     init__start(u32 childCount)
-      : Entity(HASH::init__start, childCount, 36, 36)
+      : Entity(HASH::init__start, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__start);
-
-        // Component: utils.Timer
-        {
-            Task & compTask = insertComponent(HASH::utils__Timer, mComponentCount);
-            // Init Property: timer_interval
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_interval));
-                msgw[0].cells[0].f = 1.60000008e-002f;
-                compTask.message(msgw.accessor());
-            }
-            // Init Property: timer_message
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_message));
-                msgw[0].cells[0].u = HASH::tick;
-                compTask.message(msgw.accessor());
-            }
-            // Send init message
-            StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgBW.accessor());
-        }
     }
     init__start(const init__start&)              = delete;
     init__start(const init__start&&)             = delete;

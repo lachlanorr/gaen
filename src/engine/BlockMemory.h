@@ -120,7 +120,34 @@ public:
     CmpString stringAlloc(u16 charCount);
     CmpString stringAlloc(const char * val);
     CmpString stringFormat(const char* format, ...);
+    CmpString string(Address & addr);
+
+    template <typename T>
+    CmpString stringReadMessage(const T & msgAcc, u32 startIndex, u32 blockMemoryIndex)
+    {
+        for (u32 i = 0; i < blockMemoryIndex; ++i)
+        {
+            const BlockData * pBd = reinterpret_cast<const BlockData*>(&msgAcc[startIndex]);
+            startIndex += pBd->blockCount;
+            ASSERT(startIndex < msgAcc.available());
+        }
+
+        ASSERT(CmpString::is_string_message(msgAcc, startIndex));
+        const BlockData * pBd = reinterpret_cast<const BlockData*>(&msgAcc[startIndex]);
+
+        Address addr = alloc(pBd->blockCount);
+        BlockData * pBdDest = &mChunks[addr.chunkIdx]->blockData(addr.blockIdx);
+        for (u32 i = 0; i < pBd->blockCount; ++i)
+        {
+            pBdDest[i] = *reinterpret_cast<const BlockData*>(&msgAcc[startIndex + i]);
+        }
+
+        return string(addr);
+    }
+
+
     
+    Address allocCopy(const BlockData * pSrc);
     Address alloc(u8 blockCount);
     void free(Address addr);
 
