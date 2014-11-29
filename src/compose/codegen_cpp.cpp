@@ -1512,7 +1512,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_PropertySet:
     {
-        PANIC("Not implemented");
+        PANIC("kAST_PropertySet should have been converted to a kAST_MessageSend during parsing!!!");
         return S("");
     }
     case kAST_MessageSend:
@@ -1582,11 +1582,14 @@ static S codegen_recurse(const Ast * pAst,
         code += I1 + S(scratch);
         code += LF;
 
-        snprintf(scratch,
-                 kScratchSize,
-                 "u32 startIndex = %u; // location in message to copy block memory items to\n",
-                 pAst->pBlockInfos->blockCount);
-        code += I1 + S(scratch);
+        if (pAst->pBlockInfos->blockMemoryItemCount > 0)
+        {
+            snprintf(scratch,
+                     kScratchSize,
+                     "u32 startIndex = %u; // location in message to which to copy block memory items\n",
+                     pAst->pBlockInfos->blockCount);
+            code += I1 + S(scratch);
+        }
         
         // Set non-payload message data into message body
         code += I1 + S("// Write parameters to message\n");

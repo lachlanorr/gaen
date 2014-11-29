@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: b3911d9637ab952f46b7eeb1b08dc749
+// HASH: ee01f7fc0da702619bac80593545afaf
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -61,7 +61,6 @@ public:
                     // Prepare the queue writer
                     MessageQueueWriter msgw(HASH::timer, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(timer_message()), blockCount);
 
-                    u32 startIndex = 0; // location in message to copy block memory items to
                     // Write parameters to message
 
                     // MessageQueueWriter will send message through RAII when this scope is exited
@@ -174,7 +173,6 @@ public:
                 // Prepare the queue writer
                 MessageQueueWriter msgw(HASH::transform, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(0), blockCount);
 
-                u32 startIndex = 3; // location in message to copy block memory items to
                 // Write parameters to message
                 *reinterpret_cast<Mat34*>(&msgw[0].cells[0]) = trans;
 

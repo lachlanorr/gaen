@@ -1336,12 +1336,17 @@ Ast * ast_create_identifier(const char * name, ParseData * pParseData)
 
 Ast * ast_create_property_set(Ast *pTarget, const char * propertyStr, Ast *pRhs, ParseData *pParseData)
 {
-    Ast * pAst = ast_create(kAST_PropertySet, pParseData);
-    pAst->str = propertyStr;
-    ast_set_lhs(pAst, pTarget);
-    ast_set_rhs(pAst, pRhs);
+    // "@tid#prop = 5;" is really just sugar for "@tid#set_property(#prop, 5);"
+    // So, we mimic this set_property form and pass along through normal
+    // asg_create_message_send processing.
 
-    return pAst;
+    Ast * pParams = ast_create(kAST_FunctionParams, pParseData);
+    Ast * pMsgType = ast_create_hash(propertyStr, pParseData);
+
+    ast_add_child(pParams, pMsgType);
+    ast_add_child(pParams, pRhs);
+
+    return ast_create_message_send(pTarget, "set_property", pParams, pParseData);
 }
 
 Ast * ast_create_message_send(Ast *pTarget, const char * messageStr, Ast *pParams, ParseData *pParseData)

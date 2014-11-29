@@ -26,10 +26,11 @@
 
 entity Test
 {
+    int #prop1;
+    string #prop2;
+    
     #msg1(int i, string s1, string s2, float f, vec3 v, string s3)
     {
-        $.print(s1);
-        $.print(s2);
-        $.print(s3);
+        $.print(string{"prop1 = %d", prop1});
     }
 }

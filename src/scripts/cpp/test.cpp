@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: c1a1e6c9d683df2bbd0c51beb0b8ebb4
+// HASH: b43b5ef41dd797b255ec3ae01e248d19
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -53,6 +53,35 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
+        case HASH::set_property:
+            switch (_msg.payload.u)
+            {
+            case HASH::prop1:
+            {
+                u32 requiredBlockCount = 1;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&prop1())[0].cells[0] = msgAcc[0].cells[0];
+                    return MessageResult::Consumed;
+                }
+                break;
+            }
+            case HASH::prop2:
+            {
+                if (_msg.blockCount < 1) break; // not enough even for BlockData header
+                const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[0]);
+                if (pBlockData->type != kBKTY_String) break; // incorrect BlockData type
+                u32 requiredBlockCount = pBlockData->blockCount;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    Address addr = entity().blockMemory().allocCopy(pBlockData);
+                    set_prop2(entity().blockMemory().string(addr));
+                    return MessageResult::Consumed;
+                }
+                break;
+            }
+            }
+            return MessageResult::Propogate; // Invalid property
         case HASH::msg1:
         {
             // Verify params look compatible with this message type
@@ -80,9 +109,7 @@ public:
 
 
             // Params look compatible, message body follows
-            system_api::print(entity().blockMemory().stringReadMessage(msgAcc, 1, 0), entity());
-            system_api::print(entity().blockMemory().stringReadMessage(msgAcc, 1, 1), entity());
-            system_api::print(entity().blockMemory().stringReadMessage(msgAcc, 1, 2), entity());
+            system_api::print(entity().blockMemory().stringFormat("prop1 = %d", prop1()), entity());
             return MessageResult::Consumed;
         }
         }
@@ -93,13 +120,39 @@ private:
     test__Test(u32 childCount)
       : Entity(HASH::test__Test, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-        mBlockCount = 0;
+        prop1() = 0;
+        set_prop2(entity().blockMemory().stringAlloc(""));
+        mBlockCount = 1;
         mScriptTask = Task::create(this, HASH::test__Test);
     }
     test__Test(const test__Test&)              = delete;
     test__Test(const test__Test&&)             = delete;
     test__Test & operator=(const test__Test&)  = delete;
     test__Test & operator=(const test__Test&&) = delete;
+
+    i32& prop1()
+    {
+        return mpBlocks[0].cells[2].i;
+    }
+
+    CmpString& prop2()
+    {
+        return *reinterpret_cast<CmpString*>(&mpBlocks[0].cells[0]);
+    }
+    bool mIs_prop2_Assigned = false;
+    void set_prop2(CmpString& rhs)
+    {
+        if (mIs_prop2_Assigned)
+        {
+            entity().blockMemory().release(prop2());
+        }
+        else
+        {
+            mIs_prop2_Assigned = true;
+        }
+        prop2() = rhs;
+        entity().blockMemory().addRef(prop2());
+    }
 
 }; // class test__Test
 
