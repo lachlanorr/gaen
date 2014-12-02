@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// test.cmp - Scratch file for testing new language features
+// MessageWriter.cpp - Generic message queue writer class for simple messages
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,18 +24,26 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-entity Test
-{
-    int #prop1 = 20;
-    string #prop2 = "abc";
-    
-    #msg1(int i, string s1, string s2, float f, vec3 v, string s3)
-    {
-        $.print(string{"prop1 = %d", prop1});
-    }
+#include "engine/stdafx.h"
 
-    #init()
-    {
-        $.print(string{"prop1 = %d, prop2 = \"%s\"", prop1, prop2});
-    }
+#include "engine/MessageWriter.h"
+
+namespace gaen
+{
+
+thread_local Block ThreadLocalMessageBlockWriter::mBlocks[kMaxThreadLocalBlockCount + 1];
+
+ThreadLocalMessageBlockWriter::ThreadLocalMessageBlockWriter(u32 msgId,
+                                                             u32 flags,
+                                                             task_id source,
+                                                             task_id target,
+                                                             cell payload,
+                                                             u32 blockCount)
+  : MessageBlockWriter(msgId, flags, source, target, payload, blockCount, mBlocks)
+{
+    if (blockCount > kMaxThreadLocalBlockCount)
+        PANIC("Insufficient thread local storage for %u blocks", blockCount);
 }
+
+
+} // namespace gaen

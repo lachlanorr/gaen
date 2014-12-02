@@ -57,7 +57,8 @@ static bool is_type_specifier(char c)
             c == 'x' ||
             c == 'X' ||
             c == 'o' ||
-            c == 'c');
+            c == 'c' ||
+            c == 's');
 }
 
 // Sanity lengths for badly formed strings

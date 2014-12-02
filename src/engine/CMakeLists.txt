@@ -57,6 +57,7 @@ SET (engine_SOURCES
   Message.h
   MessageAccessor.h
   MessageQueue.h
+  MessageWriter.cpp
   MessageWriter.h
   Model.cpp
   Model.h

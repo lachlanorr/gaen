@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: b43b5ef41dd797b255ec3ae01e248d19
+// HASH: a79e5b7fbeca534830ffc0d426848852
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -112,6 +112,12 @@ public:
             system_api::print(entity().blockMemory().stringFormat("prop1 = %d", prop1()), entity());
             return MessageResult::Consumed;
         }
+        case HASH::init:
+        {
+            // Params look compatible, message body follows
+            system_api::print(entity().blockMemory().stringFormat("prop1 = %d, prop2 = \"%s\"", prop1(), prop2().c_str()), entity());
+            return MessageResult::Consumed;
+        }
         }
         return MessageResult::Propogate;
     }
@@ -120,8 +126,8 @@ private:
     test__Test(u32 childCount)
       : Entity(HASH::test__Test, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-        prop1() = 0;
-        set_prop2(entity().blockMemory().stringAlloc(""));
+        prop1() = 20;
+        set_prop2(entity().blockMemory().stringAlloc("abc"));
         mBlockCount = 1;
         mScriptTask = Task::create(this, HASH::test__Test);
     }
