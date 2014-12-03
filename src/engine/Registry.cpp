@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Registry.h - Central factory for components and entities
+// Registry.cpp - Central factory for components and entities
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr

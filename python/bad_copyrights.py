@@ -116,13 +116,13 @@ CPP_HEADER = (r"//--------------------------------------------------------------
               r"//------------------------------------------------------------------------------\n")
 
 
-HEADERS = [(re.compile(r'^.*\.(h|c|cpp)$'),                CPP_HEADER),
+HEADERS = [(re.compile(r'^.*\.(h|c|cpp|cmp)$'),                CPP_HEADER),
            (re.compile(r'^.*\.(y|l)$'),                    C_HEADER),
            (re.compile(r'^.*\.py$'),                       SCRIPT_HEADER),
            (re.compile(r'^.*(CMakeLists.txt|\.cmake)$'),   SCRIPT_HEADER),
           ]
            
-EXCLUDE_DIR_RE = re.compile(r'^.*(/external/|/build/).*$')
+EXCLUDE_DIR_RE = re.compile(r'^.*(/external/|/build/|/python/templates/|/compose/compose_(parser|scanner)\.).*$')
 
 def expected_header(path):
     fname = posixpath.split(path)[1]

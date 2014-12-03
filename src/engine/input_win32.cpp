@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// keycodes.cpp - Converts platform key codes to Gaen keycode hashes
+// input_win32.cpp - Converts platform key codes to Gaen keycode hashes
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr

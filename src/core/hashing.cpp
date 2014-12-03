@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// hasing.h - Various hash functions
+// hashing.cpp - Various hash functions
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr

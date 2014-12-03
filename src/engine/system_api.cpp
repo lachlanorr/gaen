@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// system_api.h - C functionas available to Compose scripts
+// system_api.cpp - C functionas available to Compose scripts
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
