@@ -99,7 +99,7 @@ def hashes_h_construct(hash_list):
 
 def hashes_initializations(hash_list):
     max_len = max_hash_name_len(hash_list)
-    return ''.join(['    ASSERT(HASH::hash_func("%s")%s == HASH::%s);\n' % (h[0],' ' * (max_len-len(h[0])),h[0]) for h in hash_list])
+    return ''.join(['    if (HASH::hash_func("%s")%s != HASH::%s) %s PANIC("Hash mismatch between Python and C++");\n' % (h[0],' ' * (max_len-len(h[0])),h[0],' ' * (max_len-len(h[0]))) for h in hash_list])
 
 def hashes_cpp_construct(hash_list):
     return HASHES_CPP_TEMPLATE.replace('<<hashes_map_insertions>>', hashes_initializations(hash_list))
