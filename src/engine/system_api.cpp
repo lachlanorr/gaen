@@ -55,6 +55,11 @@ void print(const CmpString & str, Entity & caller)
     LOG_INFO(str.c_str());
 }
 
+CmpString hashstr(const u32 & hash, Entity & caller)
+{
+    return caller.blockMemory().stringAlloc(HASH::reverse_hash(hash));
+}
+
 void insert_task(const u32 & id, Entity & caller)
 {
     Entity * pEnt = caller.unstageEntity(id);
@@ -86,7 +91,7 @@ Handle create_shape_box(const Vec3 & size, const Color & color, Entity & caller)
 {
     Model * pModel = build_box(size, color);
 
-    return Handle(HASH::Model, 0, 0, sizeof(Model), pModel, nullptr);
+    return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
 }
 
 void watch_input_state(const u32 & state, const u32 & deviceId, const u32 & message, Entity & caller)
@@ -115,7 +120,7 @@ void renderer_insert_model_instance(const u32 & uid,
                                     Handle & modelHandle,
                                     Entity & caller)
 {
-    if (modelHandle.typeHash() != HASH::Model)
+    if (modelHandle.typeHash() != HASH::model)
         PANIC("Invalid model handle");
 
     messages::InsertModelInstanceQW msgQW(HASH::renderer_insert_model_instance,

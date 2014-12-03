@@ -21,7 +21,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 5922278cff80b7da99ced3f5e87e2edc
+// HASH: 40d4abc214449a501b5d93fe46b045d7
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -157,7 +157,7 @@ class init__start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__test_Test__51_21()
+    task_id entity_init__init__test_Test__52_21()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::test__Test, 8);
         // Init Property: prop1
@@ -181,7 +181,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Box__61_23()
+    task_id entity_init__init__Box__62_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Box, 8);
         // Send init message
@@ -192,7 +192,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Light__62_25()
+    task_id entity_init__init__Light__63_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
         // Send init message
@@ -219,11 +219,12 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
+            system_api::print(system_api::hashstr(HASH::this_isATEST, entity()), entity());
             CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+000f, 10);
-            task_id t = entity_init__init__test_Test__51_21();
+            task_id t = entity_init__init__test_Test__52_21();
             system_api::insert_task(t, entity());
-            task_id box = entity_init__init__Box__61_23();
-            task_id light = entity_init__init__Light__62_25();
+            task_id box = entity_init__init__Box__62_23();
+            task_id light = entity_init__init__Light__63_25();
             system_api::insert_task(box, entity());
             system_api::insert_task(light, entity());
             return MessageResult::Consumed;

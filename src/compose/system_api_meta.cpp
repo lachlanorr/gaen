@@ -32,6 +32,7 @@ namespace gaen
 
 ApiSignature gApiSignatures[] = {
                                     { HASH::print, kDT_void, { CONST_DT(kDT_string) } },
+                                    { HASH::hashstr, kDT_string, { CONST_DT(kDT_uint) } },
                                     { HASH::insert_task, kDT_void, { CONST_DT(kDT_uint) } },
                                     { HASH::radians, kDT_float, { CONST_DT(kDT_float) } },
                                     { HASH::degrees, kDT_float, { CONST_DT(kDT_float) } },

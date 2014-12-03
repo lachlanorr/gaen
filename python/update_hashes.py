@@ -48,6 +48,7 @@ def fnv32a(s):
 # These are members of FNV class, which we don't want to confuse with
 # references to precalculated FNV hashses.
 EXCLUDE_PATTERNS = ['HASH::hash_func',
+                    'HASH::reverse_hash',
                     ]
                     
 def process_file(path):
@@ -98,7 +99,7 @@ def hashes_h_construct(hash_list):
 
 def hashes_initializations(hash_list):
     max_len = max_hash_name_len(hash_list)
-    return ''.join(['    ASSERT(HASH_FUNC("%s")%s == HASH::%s);\n' % (h[0],' ' * (max_len-len(h[0])),h[0]) for h in hash_list])
+    return ''.join(['    ASSERT(HASH::hash_func("%s")%s == HASH::%s);\n' % (h[0],' ' * (max_len-len(h[0])),h[0]) for h in hash_list])
 
 def hashes_cpp_construct(hash_list):
     return HASHES_CPP_TEMPLATE.replace('<<hashes_map_insertions>>', hashes_initializations(hash_list))
@@ -169,6 +170,7 @@ HASHES_H_TEMPLATE = ('//--------------------------------------------------------
                   '{\n'
                   'public:\n'
                   '    static u32 hash_func(const char * str);\n'
+                  '    static const char * HASH::reverse_hash(u32 hash);\n'
                   '\n'
                   '    // Pre calculated hashes.\n'
                   '    // Generated with update_hashes.py, which gets run\n'
@@ -225,19 +227,23 @@ HASHES_CPP_TEMPLATE = ('//------------------------------------------------------
                     '{\n'
                     '\n'
                     '#if HAS(TRACK_HASHES)\n'
+                    'typedef HashMap<kMEM_Debug, u32, String<kMEM_Debug>> TrackMap;\n'
+                    'static std::mutex sTrackMapMutex;\n'
+                    'static TrackMap sTrackMap;\n'
                     '// Insert all our precalculated hashes into sTrackMap so we will know\n'
                     '// if we encounter conflicts in dynamically calculated hashes.  Also,\n'
                     '// verify the precalculted hashes match what our C++ version returns.\n'
-                    'typedef HashMap<kMEM_Debug, u32, String<kMEM_Debug>> TrackMap;\n'
-                    'TrackMap build_initial_track_map()\n'
+                    'bool build_initial_track_map()\n'
                     '{\n'
-                    '    TrackMap tm;\n'
-                    '    tm.rehash(8192);\n'
+                    '    sTrackMap.rehash(8192);\n'
                     '<<hashes_map_insertions>>'
-                    '    return tm;\n'
+                    '    return true;\n'   
                     '}\n'
-                    'static std::mutex sTrackMapMutex;\n'
-                    'static TrackMap sTrackMap = build_initial_track_map();\n'
+                    '\n'
+                    'namespace\n'
+                    '{\n'
+                    '    bool ret = build_initial_track_map();\n'   
+                    '}\n'
                     '#endif // #if HAS(TRACK_HASHES)\n'
                     '\n'
                     'u32 HASH::hash_func(const char *str)\n'
@@ -268,6 +274,26 @@ HASHES_CPP_TEMPLATE = ('//------------------------------------------------------
                     '\n'
                     '    // return our new hash value\n'
                     '    return hval;\n'
+                    '}\n'
+                    '\n'
+                    'const char * HASH::reverse_hash(u32 hash)\n'
+                    '{\n'
+                    '#if HAS(TRACK_HASHES)\n'
+                    '    {\n'
+                    '        std::lock_guard<std::mutex> lock(sTrackMapMutex);\n'
+                    '        auto it = sTrackMap.find(hash);\n'
+                    '        if (it != sTrackMap.end())\n'
+                    '        {\n'
+                    '            return it->second.c_str();\n'
+                    '        }\n'
+                    '        else\n'
+                    '        {\n'
+                    '            return "HASH_NOT_FOUND";\n'
+                    '        }\n'
+                    '    }\n'
+                    '#else  // #if HAS(TRACK_HASHES)\n'
+                    '    return "HASH_TRACKING_NOT_ENABLED";\n'
+                    '#endif // #if HAS(TRACK_HASHES)\n'
                     '}\n'
                     '\n'
                     '} // namespace gaen\n'

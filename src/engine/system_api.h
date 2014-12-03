@@ -44,6 +44,7 @@ namespace system_api
 {
 
 void print(const CmpString & str, Entity & caller);
+CmpString hashstr(const u32 & hash, Entity & caller);
 
 void insert_task(const u32 & id, Entity & caller);
 
