@@ -28,7 +28,10 @@
 
 # Standard include paths
 INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR})
-INCLUDE_DIRECTORIES (${ext_dir}/opengl-4.3)
+
+IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  INCLUDE_DIRECTORIES (${ext_dir}/opengl-4.3)
+ENDIF()
 
 
 # Packaging

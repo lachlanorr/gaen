@@ -164,13 +164,16 @@ def get_api_strs(lines):
     return api_strs
 
 def parse_param(param_str):
-    items = param_str.split('&')
-    if len(items) != 2:
-        raise Exception("Param not passed by reference: " + param_str)
+    items = param_str.split('&') # for const params
+    is_ref = len(items) == 2
+    if not is_ref: # param isn't a reference
+        items = param_str.rsplit(' ', 1)
     items = items[0].split() + items[1].split()
     const = ''
-    if items[0] == 'const' or items[1] == 'const':
+    has_const = items[0] == 'const' or items[1] == 'const'
+    if not is_ref or has_const:
         const = 'const '
+    if has_const:
         items.remove('const')
     if len(items) != 2:
         raise Exception("Param contains too many tokens: " + param_str)

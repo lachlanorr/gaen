@@ -173,9 +173,6 @@ void broadcast_message(u32 msgId,
     ASSERT(sIsInit);
     ASSERT(source != kMainThreadTaskId || active_thread_id() == kMainThreadId);
 
-    // LORRTEMP
-    Task * pTask = (Task*)pBlocks;
-
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
         MessageQueueWriter msgw(msgId,

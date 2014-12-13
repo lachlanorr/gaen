@@ -27,6 +27,9 @@
 #ifndef GAEN_RENDERERGL_STDAFX_H
 #define GAEN_RENDERERGL_STDAFX_H
 
+// LORRTODO - Check if we still need this. It breaks osx build.
+#if IS_PLATFORM_WIN32
 #include <GL/glcorearb.h>
+#endif
 
 #endif // #ifndef GAEN_RENDERER_STDAFX_H

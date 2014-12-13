@@ -50,17 +50,17 @@ namespace gaen
 namespace system_api
 {
 
-void print(const CmpString & str, Entity & caller)
+void print(CmpString str, Entity & caller)
 {
     LOG_INFO(str.c_str());
 }
 
-CmpString hashstr(const u32 & hash, Entity & caller)
+CmpString hashstr(u32 hash, Entity & caller)
 {
     return caller.blockMemory().stringAlloc(HASH::reverse_hash(hash));
 }
 
-void insert_task(const u32 & id, Entity & caller)
+void insert_task(u32 id, Entity & caller)
 {
     Entity * pEnt = caller.unstageEntity(id);
     if (pEnt)
@@ -76,25 +76,25 @@ void insert_task(const u32 & id, Entity & caller)
     }
 }
 
-f32 radians(const f32 & degrees, Entity & caller)
+f32 radians(f32 degrees, Entity & caller)
 {
     return ::gaen::radians(degrees);
 }
 
-f32 degrees(const f32 & radians, Entity & caller)
+f32 degrees(f32 radians, Entity & caller)
 {
     return ::gaen::degrees(radians);
 }
 
 
-Handle create_shape_box(const Vec3 & size, const Color & color, Entity & caller)
+Handle create_shape_box(const Vec3 & size, Color color, Entity & caller)
 {
     Model * pModel = build_box(size, color);
 
     return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
 }
 
-void watch_input_state(const u32 & state, const u32 & deviceId, const u32 & message, Entity & caller)
+void watch_input_state(u32 state, u32 deviceId, u32 message, Entity & caller)
 {
     messages::WatchInputStateQW msgQW(HASH::watch_input_state,
                                       kMessageFlag_None,
@@ -116,7 +116,7 @@ u32 renderer_gen_uid(Entity & caller)
     return sNextUid.fetch_add(1, std::memory_order_relaxed);
 }
 
-void renderer_insert_model_instance(const u32 & uid,
+void renderer_insert_model_instance(u32 uid,
                                     Handle & modelHandle,
                                     Entity & caller)
 {
@@ -133,7 +133,7 @@ void renderer_insert_model_instance(const u32 & uid,
     msgQW.setTransform(caller.transform());
 }
 
-void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, Entity & caller)
+void renderer_transform_model_instance(u32  uid, const Mat34 & transform, Entity & caller)
 {
     messages::TransformIdQW msgQW(HASH::renderer_transform_model_instance,
                                   kMessageFlag_None,
@@ -143,7 +143,7 @@ void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform,
     msgQW.setTransform(transform);
 }
 
-void renderer_remove_model_instance(const u32 & uid, Entity & caller)
+void renderer_remove_model_instance(u32  uid, Entity & caller)
 {
     MessageQueueWriter msgQW(HASH::renderer_remove_model_instance,
                              kMessageFlag_None,
@@ -153,7 +153,7 @@ void renderer_remove_model_instance(const u32 & uid, Entity & caller)
                              0);
 }
 
-void renderer_insert_light_directional(const u32 & uid, const Vec3 & direction, const Color & color, Entity & caller)
+void renderer_insert_light_directional(u32  uid, const Vec3 & direction, Color color, Entity & caller)
 {
     messages::InsertLightDirectionalQW msgQW(HASH::renderer_insert_light_directional,
                                              kMessageFlag_None,
@@ -164,7 +164,7 @@ void renderer_insert_light_directional(const u32 & uid, const Vec3 & direction, 
     msgQW.setColor(color);
 }
 
-void renderer_remove_light_directional(const u32 & uid, Entity & caller)
+void renderer_remove_light_directional(u32  uid, Entity & caller)
 {
     MessageQueueWriter msgQW(HASH::renderer_remove_light_directional,
                              kMessageFlag_None,

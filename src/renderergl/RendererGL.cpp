@@ -344,10 +344,6 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
         glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
         glBufferData(GL_ARRAY_BUFFER, mesh.vertsSize(), mesh.verts(), GL_STATIC_DRAW);
 
-        // LORRTEMP
-        u32 vertsSize = mesh.vertsSize();
-        f32 * pVerts = mesh.verts();
-
         // position
         glVertexAttribPointer(0 /* eAttrib_position */, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)0);
         glEnableVertexAttribArray(0); // eAttrib_Position

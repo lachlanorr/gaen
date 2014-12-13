@@ -43,32 +43,32 @@ namespace gaen
 namespace system_api
 {
 
-void print(const CmpString & str, Entity & caller);
-CmpString hashstr(const u32 & hash, Entity & caller);
+void print(CmpString str, Entity & caller);
+CmpString hashstr(u32 hash, Entity & caller);
 
-void insert_task(const u32 & id, Entity & caller);
+void insert_task(u32 id, Entity & caller);
 
-f32 radians(const f32 & degrees, Entity & caller);
-f32 degrees(const f32 & radians, Entity & caller);
+f32 radians(f32 degrees, Entity & caller);
+f32 degrees(f32 radians, Entity & caller);
 
-Handle create_shape_box(const Vec3 & size, const Color & color, Entity & caller);
+Handle create_shape_box(const Vec3 & size, Color color, Entity & caller);
 
-void watch_input_state(const u32 & state, const u32 & deviceId, const u32 & message, Entity & caller);
+void watch_input_state(u32 state, u32 deviceId, u32 message, Entity & caller);
 
 Mat34 transform_rotate(const Vec3 & angles, Entity & caller);
 
 u32 renderer_gen_uid(Entity & caller);
-void renderer_insert_model_instance(const u32 & uid,
+void renderer_insert_model_instance(u32 uid,
                                     Handle & modelHandle,
                                     Entity & caller);
-void renderer_transform_model_instance(const u32 & uid, const Mat34 & transform, Entity & caller);
-void renderer_remove_model_instance(const u32 & uid, Entity & caller);
+void renderer_transform_model_instance(u32 uid, const Mat34 & transform, Entity & caller);
+void renderer_remove_model_instance(u32 uid, Entity & caller);
 
-void renderer_insert_light_directional(const u32 & uid,
+void renderer_insert_light_directional(u32 uid,
                                        const Vec3 & direction,
-                                       const Color & color,
+                                       Color color,
                                        Entity & caller);
-void renderer_remove_light_directional(const u32 & uid, Entity & caller);
+void renderer_remove_light_directional(u32 uid, Entity & caller);
 
 }
 
