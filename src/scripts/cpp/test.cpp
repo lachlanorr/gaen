@@ -149,7 +149,7 @@ private:
         return *reinterpret_cast<CmpString*>(&mpBlocks[0].cells[0]);
     }
     bool mIs_prop2_Assigned = false;
-    void set_prop2(CmpString& rhs)
+    void set_prop2(const CmpString& rhs)
     {
         if (mIs_prop2_Assigned)
         {

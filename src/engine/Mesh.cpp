@@ -50,7 +50,6 @@ Mesh * Mesh::cast(u8 * pData, size_t dataSize)
         PANIC("Mesh dataSize too small");
 
     u32 vertStride = pMesh->vertStride();
-    u32 primitiveStride = pMesh->primStride();
 
     if (dataSize != pMesh->totalSize())
         PANIC("Mesh invalid dataSize");

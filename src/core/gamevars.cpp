@@ -78,7 +78,7 @@ bool set_gamevar_with_command(const char * command)
     {
     case GameVarType::Int:
     {
-        i32 ival = strtol(val, &endNum, 10);
+        i32 ival = (i32)strtol(val, &endNum, 10);
         if (endNum != commandEnd ||
             !pGameVar->isValidVal(ival))
             return false;

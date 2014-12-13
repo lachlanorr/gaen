@@ -47,6 +47,9 @@ struct AllocHeader
 
 static_assert(sizeof(AllocHeader) == 16, "AllocHeader not 16 bytes, must be to maintain alignments");
 
+/*
+// LORRTODO - figure out a memory allocation solution
+
 static const size_t kAllocHeaderSize = sizeof(AllocHeader);
 
 static const char * sMemTypeText[] = {"Unspecified",
@@ -62,9 +65,6 @@ static const char * sMemTypeText[] = {"Unspecified",
 static_assert(sizeof(sMemTypeText) / sizeof(char*) == kMEM_COUNT,
               "sMemTypeText should have the same number of entries as MemType enum");
 
-
-/*
-// LORRTODO - figure out a memory allocation solution
 
 //------------------------------------------------------------------------------
 // MemPool

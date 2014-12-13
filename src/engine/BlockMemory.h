@@ -49,8 +49,6 @@ static_assert(sizeof(ChunkHeader) == sizeof(Block), "ChunkHeader must be same si
 class Chunk
 {
 public:
-    static const u32 kBlocksPerChunk = 63; // changing this affects BlockData::blockCount
-
     Chunk(u8 chunkIdx);
 
     u8 chunkIdx() { return mHeader.chunkIdx; }
@@ -86,7 +84,7 @@ private:
 };
 
 // max string is length of chunk
-static const u32 kMaxCmpStringLength = (Chunk::kBlocksPerChunk - 1) * kBlockSize + kCharsInFirstBlock - 1; // -1 for null terminator
+static const u32 kMaxCmpStringLength = (kBlocksPerChunk - 1) * kBlockSize + kCharsInFirstBlock - 1; // -1 for null terminator
 
 //------------------------------------------------------------------------------
 

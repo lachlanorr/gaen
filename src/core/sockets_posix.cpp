@@ -96,12 +96,12 @@ bool sock_sendto(Sock sock,
     sockaddr_in winAddr;
     prep_sock_addr(&winAddr, ip, port);
     
-    int sendSize = sendto(sock,
-                          reinterpret_cast<const char*>(pData),
-                          dataSize,
-                          0,
-                          reinterpret_cast<sockaddr*>(&winAddr),
-                          sizeof(sockaddr_in));
+    int sendSize = (int)sendto(sock,
+                               reinterpret_cast<const char*>(pData),
+                               dataSize,
+                               0,
+                               reinterpret_cast<sockaddr*>(&winAddr),
+                               sizeof(sockaddr_in));
     
     if (sendSize == -1)
     {
@@ -126,12 +126,12 @@ bool sock_recvfrom(Sock sock,
     sockaddr_in sockAddr;
     socklen_t sockAddrSize = sizeof(sockaddr_in);
 
-    int recvSize = recvfrom(sock,
-                            reinterpret_cast<char*>(pData),
-                            dataSize,
-                            0,
-                            reinterpret_cast<sockaddr*>(&sockAddr),
-                            &sockAddrSize);
+    int recvSize = (int)recvfrom(sock,
+                                 reinterpret_cast<char*>(pData),
+                                 dataSize,
+                                 0,
+                                 reinterpret_cast<sockaddr*>(&sockAddr),
+                                 &sockAddrSize);
 
     if (recvSize == -1)
     {

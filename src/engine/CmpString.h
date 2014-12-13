@@ -67,7 +67,7 @@ public:
         const BlockData * pBd = reinterpret_cast<const BlockData*>(&msgAcc[startIndex]);
         return (pBd->type == kBKTY_String &&
                 pBd->blockCount <= msgAcc.available() &&
-                pBd->blockCount < Chunk::kBlocksPerChunk);
+                pBd->blockCount < kBlocksPerChunk);
     }
 
 private:

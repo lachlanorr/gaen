@@ -26,6 +26,8 @@
 
 #include "engine/stdafx.h"
 
+#include "engine/input.h"
+
 namespace gaen
 {
 
@@ -37,3 +39,5 @@ KeyInput convert_key_input(void * pKeyInfo)
 
     return keyInput;
 }
+
+} // namespace gaen

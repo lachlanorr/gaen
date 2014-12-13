@@ -39,6 +39,10 @@ enum BlockType
     kBKTY_String        = 1
 };
 
+// 12 characters left after string header data in first BlockData
+static const u32 kCharsInFirstBlock = 12;
+static const u32 kBlocksPerChunk = 63; // changing this affects BlockData::blockCount
+
 inline const char * compose_type_to_block_type(DataType dt)
 {
     switch (dt)
@@ -50,9 +54,6 @@ inline const char * compose_type_to_block_type(DataType dt)
         return nullptr;
     }
 }
-
-// 12 characters left after string header data in first BlockData
-static const u32 kCharsInFirstBlock = 12;
 
 struct BlockString
 {

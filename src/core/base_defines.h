@@ -113,7 +113,11 @@ T maxval(const T& lhs, const T& rhs)
 #define vsnprintf c99_vsnprintf
 int c99_snprintf(char* str, size_t size, const char* format, ...);
 int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap);
+#elif IS_PLATFORM_OSX
+#define thread_local __thread
 #endif
+
+
 
 // Platform specific way to halt on assert and breatk into debugger.
 // If you want to override about/break functions (as you might in unit
@@ -213,7 +217,7 @@ typedef float           f32;
 typedef double          f64;
 
 #define GAEN_4CC(a, b, c, d) ((d) << 24 | (c) << 16 | (b) << 8 | (a))
-#define BYTESWAP32(val) ((((val) >> 24) & 0xff) | (((val) >> 8)  & 0xff00) | (((val) << 8)  & 0xff0000) | (((val) << 24) & 0xff000000))
+#define BYTESWAP32(val) ((((val) >> 24) & 0xff) | (((val) >> 8)  & 0xff00) | (((u32)(val) << 8)  & 0xff0000) | (((u32)(val) << 24) & 0xff000000))
 
 // Align a value to specified alignment.  Useful to ensure memory
 // alignment in custom allocators and things like that.

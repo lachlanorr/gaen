@@ -69,7 +69,7 @@ private:
     void registerKeyToState(KeyCode keyCode, u32 stateHash);
     void registerStateListener(u32 stateHash, TaskMessage taskMessage);
 
-    HashMap<kMEM_Engine, KeyCode, Vector<kMEM_Engine, u32>> mKeyToStateMap;
+    HashMap<kMEM_Engine, KeyCode, Vector<kMEM_Engine, u32>, std::hash<int>> mKeyToStateMap;
     HashMap<kMEM_Engine, u32, Vector<kMEM_Engine, TaskMessage>> mStateListenerMap;
 
 };

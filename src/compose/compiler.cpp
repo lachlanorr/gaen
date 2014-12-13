@@ -872,7 +872,6 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
     {
         // multiple children, only valid if first is a string
         Ast * pFirstChild = pParams->pChildren->nodes.front();
-        DataType dtFirstChild = ast_data_type(pFirstChild);
         if (pFirstChild->type != kAST_StringLiteral)
         {
             COMP_ERROR(pParseData, "First parameter expected to be a format string literal");
@@ -1454,12 +1453,16 @@ DataType ast_data_type(const Ast * pAst)
     case kAST_Negate:
         return ast_data_type(pAst->pRhs);
     case kAST_SystemCall:
+    {
         const ApiSignature * pSig = find_api(pAst->str, pAst->pParseData);
         return pSig->returnType;
     }
-
-    COMP_ERROR(pAst->pParseData, "Cannot determine datatype for pAst, type: %d", pAst->type);
-    return kDT_Undefined;
+    default:
+    {
+        COMP_ERROR(pAst->pParseData, "Cannot determine datatype for pAst, type: %d", pAst->type);
+        return kDT_Undefined;
+    }
+    }
 }
 
 int are_types_compatible(DataType a, DataType b)
@@ -1471,10 +1474,10 @@ int are_types_compatible(DataType a, DataType b)
     DataType rawB = RAW_DT(b);
     if (rawA == rawB)
         return 1;
-    if (rawA == kDT_uint && rawB == kDT_int || 
-        rawA == kDT_int && rawB == kDT_uint ||
-        rawA == kDT_entity && rawB == kDT_uint ||
-        rawA == kDT_uint && rawB == kDT_entity)
+    if ((rawA == kDT_uint   && rawB == kDT_int)  || 
+        (rawA == kDT_int    && rawB == kDT_uint) ||
+        (rawA == kDT_entity && rawB == kDT_uint) ||
+        (rawA == kDT_uint   && rawB == kDT_entity))
         return 1;
     return 0;
 }

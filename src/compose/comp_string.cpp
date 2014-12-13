@@ -214,8 +214,8 @@ FormatSize * corrected_size(FormatSpecifier * pFs, i32 size)
     size += zeroPadding;
     if (pFs->width > size)
     {
-        i32 spacePadding = 0;
         if (pFs->width > size)
+        {
             if (pFs->flagZero)
                 pFs->size = FormatSize(pFs->width,
                                        0,
@@ -224,6 +224,7 @@ FormatSize * corrected_size(FormatSpecifier * pFs, i32 size)
                 pFs->size = FormatSize(pFs->width,
                                        pFs->width - size,
                                        zeroPadding);
+        }
     }
     else
         pFs->size = FormatSize(size, 0, zeroPadding);

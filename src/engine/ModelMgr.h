@@ -198,7 +198,7 @@ public:
                              bool isAssetManaged)
     {
         // Insert into mModelMap if necessary
-        ModelMap::iterator modelIt = mModelMap.find(pModel->id());
+        typename ModelMap::iterator modelIt = mModelMap.find(pModel->id());
         if (modelIt == mModelMap.end())
         {
             mModelMap.emplace(pModel->id(), make_ref_counted(pModel, ModelDeleter(isAssetManaged)));
@@ -270,7 +270,7 @@ public:
         mModelInstanceMap.erase(modelInstanceIt);
 
         // Remove from into mModelMap
-        ModelMap::iterator modelIt = mModelMap.find(pModel->id());
+        typename ModelMap::iterator modelIt = mModelMap.find(pModel->id());
         if (modelIt != mModelMap.end())
         {
             modelIt->second.release();
@@ -348,7 +348,7 @@ private:
     void insertMaterial(Material * pMaterial,
                         bool isAssetManaged)
     {
-        MaterialMap::iterator materialIt = mMaterialMap.find(pMaterial->id());
+        typename MaterialMap::iterator materialIt = mMaterialMap.find(pMaterial->id());
 
         if (materialIt == mMaterialMap.end())
         {
@@ -362,7 +362,7 @@ private:
     
     void removeMaterial(Material * pMaterial)
     {
-        MaterialMap::iterator materialIt = mMaterialMap.find(pMaterial->id());
+        typename MaterialMap::iterator materialIt = mMaterialMap.find(pMaterial->id());
 
         if (materialIt != mMaterialMap.end())
         {

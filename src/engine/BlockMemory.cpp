@@ -49,7 +49,7 @@ u16 BlockData::validate_block_data(const Block * pBlock, BlockType type)
         pBlockData->refCount != 0)
         return 0;
     if (pBlockData->type == kBKTY_String &&
-        pBlockData->blockCount > Chunk::kBlocksPerChunk)
+        pBlockData->blockCount > kBlocksPerChunk)
         return 0;
 
     return pBlockData->blockCount;
@@ -298,7 +298,7 @@ Address BlockMemory::alloc(u8 blockCount)
     mNeedsCollection = true;
     u8 firstEmptyChunk = Address::kInvalidIdx;
 
-    ASSERT(blockCount > 0 && blockCount <= Chunk::kBlocksPerChunk);
+    ASSERT(blockCount > 0 && blockCount <= kBlocksPerChunk);
 
     for (u32 chunkIdx = 0; chunkIdx < kChunkCount; ++chunkIdx)
     {
@@ -348,7 +348,7 @@ Address BlockMemory::alloc(u8 blockCount)
 
 void BlockMemory::free(Address addr)
 {
-    ASSERT(addr.chunkIdx < kChunkCount && addr.blockIdx < Chunk::kBlocksPerChunk);
+    ASSERT(addr.chunkIdx < kChunkCount && addr.blockIdx < kBlocksPerChunk);
     Chunk * pChunk = mChunks[addr.chunkIdx];
     ASSERT(pChunk);
     pChunk->free(addr.blockIdx);
@@ -408,7 +408,7 @@ u32 BlockMemory::availableBlocks()
     {
         Chunk * pChunk = mChunks[chunkIdx];
         if (!pChunk)
-            available += Chunk::kBlocksPerChunk;
+            available += kBlocksPerChunk;
         else
             available += pChunk->availableBlocks();
     }
@@ -422,12 +422,12 @@ u32 BlockMemory::usedBlocks()
 
 u32 BlockMemory::totalBlocks()
 {
-    return kChunkCount * Chunk::kBlocksPerChunk;
+    return kChunkCount * kBlocksPerChunk;
 }
 
 BlockData & BlockMemory::blockData(Address & addr)
 {
-    ASSERT(addr.chunkIdx < kChunkCount && addr.blockIdx < Chunk::kBlocksPerChunk);
+    ASSERT(addr.chunkIdx < kChunkCount && addr.blockIdx < kBlocksPerChunk);
     Chunk * pChunk = mChunks[addr.chunkIdx];
     ASSERT(pChunk);
     return pChunk->blockData(addr.blockIdx);

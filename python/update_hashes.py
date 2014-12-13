@@ -170,7 +170,7 @@ HASHES_H_TEMPLATE = ('//--------------------------------------------------------
                   '{\n'
                   'public:\n'
                   '    static u32 hash_func(const char * str);\n'
-                  '    static const char * HASH::reverse_hash(u32 hash);\n'
+                  '    static const char * reverse_hash(u32 hash);\n'
                   '\n'
                   '    // Pre calculated hashes.\n'
                   '    // Generated with update_hashes.py, which gets run\n'

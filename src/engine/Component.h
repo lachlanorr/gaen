@@ -41,6 +41,8 @@ enum class PropertyGroup
 
 struct ComponentDesc;
 
+class Entity;
+
 // Base component, basically a way for all components
 // to have a pointer to their ComponentDesc.
 class Component
@@ -48,8 +50,8 @@ class Component
     friend class Entity;
 public:
     Component(Entity * pEntity)
-      : mIsInit(0)
-      , mpEntity(pEntity){}
+      : mpEntity(pEntity)
+      , mIsInit(0) {}
 
     Task & task() { return mScriptTask; }
 

@@ -44,7 +44,6 @@ SET (src_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 # wrappers.
 IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # using Clang
-  INCLUDE (${cmake_dir}/gcc.cmake)
   ADD_DEFINITIONS("-DIS_COMPILER_CLANG=1")
 ELSEIF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   # using GCC

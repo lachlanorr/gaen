@@ -48,7 +48,7 @@ struct SymRec
 // Custom comparator for our "char*" map
 struct StrcmpComp
 {
-   bool operator()(char const *lhs, char const *rhs)
+   bool operator() (char const *lhs, char const *rhs) const
    {
       return strcmp(lhs, rhs) < 0;
    }

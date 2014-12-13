@@ -104,7 +104,7 @@ public:
         mMsgAcc.message() = Message(msgId, flags, source, target, payload, blockCount);
     }
 
-    MessageBlockAccessor accessor() { return mMsgAcc; }
+    MessageBlockAccessor & accessor() { return mMsgAcc; }
 
     // Access blocks of message
     Block & operator[] (u32 index)
