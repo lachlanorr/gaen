@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Delete any builds that have been made.
 # This is the nuclear option, bootstrap.sh (or cmake manually) must be

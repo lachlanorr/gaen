@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Run this first on a clean system to prepare Gaen build.
 
