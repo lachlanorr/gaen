@@ -116,7 +116,7 @@ CPP_HEADER = (r"//--------------------------------------------------------------
               r"//------------------------------------------------------------------------------\n")
 
 
-HEADERS = [(re.compile(r'^.*\.(h|c|cpp|cmp)$'),                CPP_HEADER),
+HEADERS = [(re.compile(r'^.*\.(h|c|cpp|cmp)$'),            CPP_HEADER),
            (re.compile(r'^.*\.(y|l)$'),                    C_HEADER),
            (re.compile(r'^.*\.py$'),                       SCRIPT_HEADER),
            (re.compile(r'^.*(CMakeLists.txt|\.cmake)$'),   SCRIPT_HEADER),

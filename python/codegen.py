@@ -85,6 +85,9 @@ def gaen_dir():
 def default_scripts_dir():
     return posixpath.join(gaen_dir(), 'src/scripts')
 
+def cmake_scripts_dir():
+    return "${CMAKE_CURRENT_SOURCE_DIR}"
+
 def modification_time(filename):
     t = os.path.getmtime(filename)
     return datetime.datetime.fromtimestamp(t)
@@ -216,6 +219,7 @@ def find_cmpc():
 
 CMPC = find_cmpc()
 SCRIPTS_DIR = default_scripts_dir()
+CMAKE_SCRIPTS_DIR = cmake_scripts_dir()
 
 
 def license_text(comment_chars):
@@ -263,7 +267,7 @@ def write_cmake(cmp_files, cpp_files, h_files):
     ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (posixpath.split(r.lstrip())[0].replace('${scripts_dir}/cpp', '/cpp'), r.lstrip()) for r in cpp_rel_files]
     ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (posixpath.split(r.lstrip())[0].replace('${scripts_dir}/cpp', '/cpp'), r.lstrip()) for r in h_rel_files]
     template = CMAKE_TEMPLATE
-    template = template.replace('<<scripts_dir>>', SCRIPTS_DIR)
+    template = template.replace('<<scripts_dir>>', CMAKE_SCRIPTS_DIR)
     template = template.replace('<<license>>', CMAKE_LICENSE)
     template = template.replace('<<files>>', '\n'.join(cmp_rel_files + cpp_rel_files + h_rel_files))
     template = template.replace('<<ide_source_props>>', '\n'.join(ide_src_props))
