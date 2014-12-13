@@ -24,7 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (scripts_dir C:/code/gaen/src/scripts)
+SET (scripts_dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 SET (scripts_codegen_SOURCES
   ${scripts_dir}/cmp/init.cmp
