@@ -3,7 +3,14 @@ setcc.sh
 build/**
 *.pyc
 *.codegen
-src/scripts/registration.cpp
+
+# LORRTODO - Adding registration.cpp back for now.
+# New clones of the repo need this file before they
+# can run cmake, and you can't generate this file
+# until you can build the Compose compiler.
+# This needs more thought.
+#src/scripts/registration.cpp
+
 src/engine/hashes.h
 src/engine/hashes.cpp
 src/compose/compose_parser.output
