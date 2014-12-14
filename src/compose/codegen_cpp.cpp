@@ -47,7 +47,6 @@ namespace gaen
 #define I3 indent(indentLevel+3)
 
 static S indent(u32 level);
-static const char * type_str(DataType dt);
 static const char * cpp_type_str(DataType dt, ParseData * pParseData);
 static const char * cell_field_str(DataType dt, ParseData * pParseData);
 static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo, const char * blockVarName, ParseData * pParseData);
@@ -79,58 +78,6 @@ static S indent(u32 level)
         level = kMaxLevel - 1;
 
     return S(sIndents[level]);
-}
-
-static const char * type_str(DataType dt, ParseData * pParseData)
-{
-    switch (RAW_DT(dt))
-    {
-    case kDT_char:
-        return IS_DT_CONST(dt) ? "const char" : "char";
-    case kDT_byte:
-        return IS_DT_CONST(dt) ? "const byte" : "byte";
-    case kDT_short:
-        return IS_DT_CONST(dt) ? "const short" : "short";
-    case kDT_ushort:
-        return IS_DT_CONST(dt) ? "const ushort" : "ushort";
-    case kDT_int:
-        return IS_DT_CONST(dt) ? "const int" : "int";
-    case kDT_uint:
-        return IS_DT_CONST(dt) ? "const uint" : "uint";
-    case kDT_long:
-        return IS_DT_CONST(dt) ? "const long" : "long";
-    case kDT_ulong:
-        return IS_DT_CONST(dt) ? "const ulong" : "ulong";
-    case kDT_half:
-        return IS_DT_CONST(dt) ? "const half" : "half";
-    case kDT_float:
-        return IS_DT_CONST(dt) ? "const float" : "float";
-    case kDT_double:
-        return IS_DT_CONST(dt) ? "const double" : "double";
-    case kDT_bool:
-        return IS_DT_CONST(dt) ? "const bool" : "bool";
-    case kDT_color:
-        return IS_DT_CONST(dt) ? "const color" : "color";
-    case kDT_vec2:
-        return IS_DT_CONST(dt) ? "const vec2" : "vec2";
-    case kDT_vec3:
-        return IS_DT_CONST(dt) ? "const vec3" : "vec3";
-    case kDT_vec4:
-        return IS_DT_CONST(dt) ? "const vec4" : "vec4";
-    case kDT_mat3:
-        return IS_DT_CONST(dt) ? "const mat3" : "mat3";
-    case kDT_mat34:
-        return IS_DT_CONST(dt) ? "const mat34" : "mat34";
-    case kDT_mat4:
-        return IS_DT_CONST(dt) ? "const mat4" : "mat4";
-    case kDT_void:
-        return IS_DT_CONST(dt) ? "const void" : "void";
-    case kDT_handle:
-        return IS_DT_CONST(dt) ? "const handle" : "handle";
-    default:
-        COMP_ERROR(pParseData, "type_str invalid DataType: %d", dt);
-        return "";
-    }
 }
 
 static const char * cpp_type_str(DataType dt, ParseData * pParseData)
@@ -789,6 +736,8 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
         code += LF;
         break;
     }
+    default:
+        break;
     }
 
     code += codegen_helper_funcs_recurse(pAst->pLhs);

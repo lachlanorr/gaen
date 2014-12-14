@@ -144,6 +144,10 @@ void * MemMgr::allocate(size_t count, u32 alignment)
 
 #if IS_PLATFORM_WIN32
     void * pMem = _aligned_malloc(count, alignment);
+#elif IS_PLATFORM_OSX
+    void * pMem = nullptr;
+    int retval = posix_memalign(&pMem, alignment, count);
+    ASSERT(retval == 0);
 #else
     PANIC("Need to utilize aligned alloc on all platforms");
     void * pMem = malloc(count);

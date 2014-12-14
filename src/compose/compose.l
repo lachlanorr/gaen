@@ -32,6 +32,8 @@ freely, subject to the following restrictions:
 %option never-interactive nounistd
 %option noyywrap
 %option noyyalloc noyyrealloc noyyfree
+%option noinput
+%option nounput
 %option outfile="compose_scanner.c" header-file="compose_scanner.h"
 %option extra-type="ParseData*"
 

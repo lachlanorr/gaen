@@ -173,8 +173,6 @@ static BlockInfo * find_next_fit(CompVector<BlockInfo> & items,
                                  bool packForMessage)
 {
     ASSERT(currCell < kCellsPerBlock);
-
-    u32 cellsRemaining = kCellsPerBlock - currCell;
     
     for (BlockInfo & item : items)
     {

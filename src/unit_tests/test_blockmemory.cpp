@@ -37,7 +37,7 @@ TEST(BlockMemoryTest, AllocCollect)
     BlockMemory bm;
 
     // These tests assume this kBlockPerChunk
-    EXPECT_EQ(63, Chunk::kBlocksPerChunk);
+    EXPECT_EQ(63, kBlocksPerChunk);
 
     u32 totalBlocks = bm.totalBlocks();
     u32 availableBlocks = bm.availableBlocks();
@@ -141,10 +141,9 @@ TEST(BlockMemoryTest, CmpString)
     BlockMemory bm;
 
     // These tests assume this kBlockPerChunk
-    EXPECT_EQ(63, Chunk::kBlocksPerChunk);
+    EXPECT_EQ(63, kBlocksPerChunk);
 
     u32 totalBlocks = bm.totalBlocks();
-    u32 availableBlocks = bm.availableBlocks();
 
     EXPECT_EQ(bm.availableBlocks(), totalBlocks);
 
