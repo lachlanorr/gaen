@@ -28,12 +28,16 @@
 
 #include "gaen/gaen.h"
 #include "engine/hashes.h"
-int main(int argc, char ** argv)
-{
-    [NSAutoreleasePool new];
-    [NSApplication sharedApplication];
-    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
+
+@interface AppDelegate : NSObject <NSApplicationDelegate>
+@property (assign) id pool;
+@property (assign) id window;
+@end
+
+@implementation AppDelegate
+- (void)applicationDidFinishLaunching:(NSNotification *)aNotification
+{
     id menubar = [[NSMenu new] autorelease];
     id appMenuItem = [[NSMenuItem new] autorelease];
     [menubar addItem:appMenuItem];
@@ -47,23 +51,43 @@ int main(int argc, char ** argv)
     [appMenu addItem:quitMenuItem];
     [appMenuItem setSubmenu:appMenu];
 
-    id window = [[[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 200, 200)
-        styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO]
-            autorelease];
-    [window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
-    [window setTitle:appName];
-    [window makeKeyAndOrderFront:nil];
-    [window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
+    _window = [[[NSWindow alloc]
+               initWithContentRect:NSMakeRect(0, 0, 1080, 720)
+               styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO]
+              retain];
+    [_window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
+    [_window setTitle:appName];
+    [_window makeKeyAndOrderFront:nil];
+    [_window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
+    [_window makeMainWindow];
+}
+
+
+- (void)applicationWillTerminate:(NSNotification *)aNotification
+{
+
+}
+@end
+
+
+int main(int argc, char ** argv)
+{
+    [NSAutoreleasePool new];
+
+    [NSApplication sharedApplication];
+    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+
+    id appDelegate = [[AppDelegate alloc] init];
+    [NSApp setDelegate:appDelegate];
+    [NSApp activateIgnoringOtherApps:YES];
+    [NSApp run];
+    return 0;
 
     // Initialize gaen
 //    gaen::init_gaen(argc, argv);
 //    gaen::fnv h = gaen::HASH::fnv1a_32("abc");
 
-    [NSApp activateIgnoringOtherApps:YES];
-    [NSApp run];
-
     // Finalize gaen
 //    gaen::fin_gaen();
-
-    return 0;
 }
+
