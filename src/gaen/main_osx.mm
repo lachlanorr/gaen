@@ -25,16 +25,29 @@
 //------------------------------------------------------------------------------
 
 #import <Cocoa/Cocoa.h>
+#include <OpenGL/gl3.h>
 
 #include "gaen/gaen.h"
-#include "engine/hashes.h"
 
+//------------------------------------------------------------------------------
+
+@interface GLView : NSOpenGLView
+@end
+@implementation GLView
+- (void) drawRect: (NSRect) bounds
+{
+    glClearColor(0, 0, 0, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glFlush();
+}
+@end
+
+//------------------------------------------------------------------------------
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 @property (assign) id pool;
 @property (assign) id window;
 @end
-
 @implementation AppDelegate
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
@@ -55,11 +68,16 @@
                initWithContentRect:NSMakeRect(0, 0, 1080, 720)
                styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO]
               retain];
+
+    GLView *view = [[GLView alloc] initWithFrame:NSMakeRect(0, 0, 1080, 720)];
+    [[_window contentView] addSubview:view];
+
     [_window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
     [_window setTitle:appName];
+
     [_window makeKeyAndOrderFront:nil];
     [_window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
-    [_window makeMainWindow];
+
 }
 
 
@@ -69,6 +87,7 @@
 }
 @end
 
+//------------------------------------------------------------------------------
 
 int main(int argc, char ** argv)
 {
