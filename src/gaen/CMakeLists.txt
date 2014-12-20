@@ -38,38 +38,17 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     main_osx.mm
     )
 
-  SET (XIB_FILE
-    MainMenu.xib
-    )
-
   SET(MACOSX_BUNDLE_BUNDLE_NAME Gaen)
 
   ADD_EXECUTABLE(gaen MACOSX_BUNDLE
     ${gaen_SOURCES}
-    ${XIB_FILE}
     )
-
-  SET_SOURCE_FILES_PROPERTIES(
-    ${XIB_FILE}
-    PROPERTIES
-    MACOSX_PACKAGE_LOCATION
-    Resources
-    )
-
-#  SET_TARGET_PROPERTIES(gaen
-#                        PROPERTIES
-#                        MACOSX_BUNDLE
-#                        TRUE)
-  SET_TARGET_PROPERTIES(gaen
-                        PROPERTIES
-                        MACOSX_BUNDLE_INFO_PLIST
-                        ${CMAKE_CURRENT_SOURCE_DIR}/gaenInfo.plist)
 
   # Copy bundle to package dir
   ADD_CUSTOM_COMMAND(
     TARGET gaen
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/gaen.app ${packaged_dir}/gaen.app
+    COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:gaen>/../../../gaen.app ${packaged_dir}/gaen.app
     )
 
 ELSEIF (WIN32)

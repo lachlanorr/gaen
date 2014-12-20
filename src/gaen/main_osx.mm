@@ -30,8 +30,6 @@
 #include "engine/hashes.h"
 int main(int argc, char ** argv)
 {
-
-
     [NSAutoreleasePool new];
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
@@ -60,6 +58,7 @@ int main(int argc, char ** argv)
     // Initialize gaen
 //    gaen::init_gaen(argc, argv);
 //    gaen::fnv h = gaen::HASH::fnv1a_32("abc");
+
     [NSApp activateIgnoringOtherApps:YES];
     [NSApp run];
 
