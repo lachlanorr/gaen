@@ -41,7 +41,7 @@ extern "C" {
 #define YYLLOC_DEFAULT(Current, Rhs, N)                                 \
     do                                                                  \
       {                                                                 \
-      if (YYID (N))                                                     \
+      if (N)                                                            \
         {                                                               \
           (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;        \
           (Current).first_column = YYRHSLOC (Rhs, 1).first_column;      \
@@ -59,7 +59,7 @@ extern "C" {
                               (Current).first_line,                     \
                               (Current).first_column);                  \
        }                                                                \
-    while (YYID (0))
+    while (0)
 
 
 #define COMP_ERROR(pParseData, format, ...)   parsedata_formatted_message(pParseData,kMSGT_Error,format,##__VA_ARGS__)
