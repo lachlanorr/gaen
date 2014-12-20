@@ -26,6 +26,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
 
 #include "core/base_defines.h"
 
@@ -99,8 +100,8 @@ const char * full_path(const char * path,
                        ParseData* pParseData)
 {
     ASSERT(path);
-#if IS_PLATFORM_WIN32    
     static thread_local char fullPath[FILENAME_MAX];
+#if IS_PLATFORM_WIN32
     DWORD ret = GetFullPathNameA(path, FILENAME_MAX, fullPath, nullptr);
 
     if (ret >= FILENAME_MAX)
@@ -113,8 +114,13 @@ const char * full_path(const char * path,
 
     return parsedata_add_string(pParseData, fullPath);
 #else
-    COMP_ERROR(pParseData, "Not implemented on this platform");
-    return nullptr;
+    if (!realpath(path, fullPath))
+    {
+        COMP_ERROR(pParseData, "Failed to find the realpath of %s", path);
+        return nullptr;
+    }
+
+    return parsedata_add_string(pParseData, fullPath);
 #endif
         
 }

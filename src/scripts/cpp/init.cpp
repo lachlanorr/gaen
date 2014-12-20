@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 40d4abc214449a501b5d93fe46b045d7
+// HASH: 23c9d792f6fcdfe11c999a8f742b4bae
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -69,7 +69,7 @@ private:
             // Init Property: size
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
-                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(3.00000000e+000f, 2.00000000e+000f, 1.00000000e+000f);
+                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(3.00000000e+00f, 2.00000000e+00f, 1.00000000e+00f);
                 compTask.message(msgw.accessor());
             }
             // Init Property: diffuse
@@ -223,7 +223,7 @@ public:
         {
             // Params look compatible, message body follows
             system_api::print(system_api::hashstr(HASH::this_isATEST, entity()), entity());
-            CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+000f, 10);
+            CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+00f, 10);
             task_id t = entity_init__init__test_Test__52_21();
             system_api::insert_task(t, entity());
             task_id box = entity_init__init__Box__62_23();

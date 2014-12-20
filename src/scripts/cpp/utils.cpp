@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: ee01f7fc0da702619bac80593545afaf
+// HASH: 2559ae1158440abc763f6ffa69c13750
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -52,7 +52,7 @@ public:
     
     void update(float deltaSecs)
     {
-        if ((timer_interval() > 0.00000000e+000f))
+        if ((timer_interval() > 0.00000000e+00f))
         {
             last_notification() += deltaSecs;
             if ((last_notification() >= timer_interval()))
@@ -68,7 +68,7 @@ public:
 
                     // MessageQueueWriter will send message through RAII when this scope is exited
                 }
-                last_notification() = 0.00000000e+000f;
+                last_notification() = 0.00000000e+00f;
             }
         }
     }
@@ -80,8 +80,8 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            last_notification() = 0.00000000e+000f;
-            timer_interval() = 0.00000000e+000f;
+            last_notification() = 0.00000000e+00f;
+            timer_interval() = 0.00000000e+00f;
             timer_message() = 0;
             return MessageResult::Consumed;
         case HASH::set_property:
@@ -164,11 +164,11 @@ public:
     
     void update(float deltaSecs)
     {
-        if (((pitching() != 0.00000000e+000f) || (yawing() != 0.00000000e+000f)))
+        if (((pitching() != 0.00000000e+00f) || (yawing() != 0.00000000e+00f)))
         {
-            pitch() += ((pitching() * deltaSecs) * 1.00000000e+002f);
-            yaw() += ((yawing() * deltaSecs) * 1.00000000e+002f);
-            Mat34 trans = system_api::transform_rotate(Vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.00000000e+000f), entity());
+            pitch() += ((pitching() * deltaSecs) * 1.00000000e+02f);
+            yaw() += ((yawing() * deltaSecs) * 1.00000000e+02f);
+            Mat34 trans = system_api::transform_rotate(Vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.00000000e+00f), entity());
             { // Send Message Block
                 // Compute block size, incorporating any BlockMemory parameters dynamically
                 u32 blockCount = 3;
@@ -191,10 +191,10 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            pitch() = 0.00000000e+000f;
-            pitching() = 0.00000000e+000f;
-            yaw() = 0.00000000e+000f;
-            yawing() = 0.00000000e+000f;
+            pitch() = 0.00000000e+00f;
+            pitching() = 0.00000000e+00f;
+            yaw() = 0.00000000e+00f;
+            yawing() = 0.00000000e+00f;
             return MessageResult::Consumed;
         case HASH::init:
         {
@@ -210,11 +210,11 @@ public:
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
-                pitching() = 1.00000000e+000f;
+                pitching() = 1.00000000e+00f;
             }
             else
             {
-                pitching() = 0.00000000e+000f;
+                pitching() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
         }
@@ -223,11 +223,11 @@ public:
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
-                pitching() = -(1.00000000e+000f);
+                pitching() = -(1.00000000e+00f);
             }
             else
             {
-                pitching() = 0.00000000e+000f;
+                pitching() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
         }
@@ -236,11 +236,11 @@ public:
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
-                yawing() = 1.00000000e+000f;
+                yawing() = 1.00000000e+00f;
             }
             else
             {
-                yawing() = 0.00000000e+000f;
+                yawing() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
         }
@@ -249,11 +249,11 @@ public:
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
-                yawing() = -(1.00000000e+000f);
+                yawing() = -(1.00000000e+00f);
             }
             else
             {
-                yawing() = 0.00000000e+000f;
+                yawing() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
         }

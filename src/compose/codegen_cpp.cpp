@@ -1092,7 +1092,7 @@ static S codegen_recurse(const Ast * pAst,
         if (isRefCounted)
         {
             code += I + S("bool ") + assignedVar + S(" = false;\n");
-            code += I + S("void set_") + propName + S("(") + typeStr + S("& rhs)\n");
+            code += I + S("void set_") + propName + S("(const ") + typeStr + S("& rhs)\n");
             code += I + S("{\n");
             code += I + S("    if (") + assignedVar + S(")\n");
             code += I + S("    {\n");

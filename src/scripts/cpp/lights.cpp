@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: ee54427b5512a0c837ef4af93d5f55cd
+// HASH: 8f057167207002a9568c82069ef6e242
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -62,7 +62,7 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            system_api::renderer_insert_light_directional(lightUid(), Vec3(1.00000001e-001f, 1.00000001e-001f, 2.00000003e-001f), Color(255, 255, 255, 255), entity());
+            system_api::renderer_insert_light_directional(lightUid(), Vec3(1.00000001e-01f, 1.00000001e-01f, 2.00000003e-01f), Color(255, 255, 255, 255), entity());
             return MessageResult::Consumed;
         }
         }
