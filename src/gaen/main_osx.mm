@@ -32,7 +32,7 @@ int main(int argc, char ** argv)
 {
 
 
-/*    [NSAutoreleasePool new];
+    [NSAutoreleasePool new];
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
@@ -56,15 +56,15 @@ int main(int argc, char ** argv)
     [window setTitle:appName];
     [window makeKeyAndOrderFront:nil];
     [window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
-*/  
+
     // Initialize gaen
-    gaen::init_gaen(argc, argv);
+//    gaen::init_gaen(argc, argv);
 //    gaen::fnv h = gaen::HASH::fnv1a_32("abc");
-//    [NSApp activateIgnoringOtherApps:YES];
-    //[NSApp run];
+    [NSApp activateIgnoringOtherApps:YES];
+    [NSApp run];
 
     // Finalize gaen
-    gaen::fin_gaen();
+//    gaen::fin_gaen();
 
     return 0;
 }

@@ -37,11 +37,34 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     ${gaen_SOURCES}
     main_osx.mm
     )
+
+  SET (XIB_FILE
+    MainMenu.xib
+    )
+
   SET(MACOSX_BUNDLE_BUNDLE_NAME Gaen)
+
   ADD_EXECUTABLE(gaen MACOSX_BUNDLE
     ${gaen_SOURCES}
+    ${XIB_FILE}
     )
-  SET_TARGET_PROPERTIES(gaen PROPERTIES MACOSX_BUNDLE TRUE)
+
+  SET_SOURCE_FILES_PROPERTIES(
+    ${XIB_FILE}
+    PROPERTIES
+    MACOSX_PACKAGE_LOCATION
+    Resources
+    )
+
+#  SET_TARGET_PROPERTIES(gaen
+#                        PROPERTIES
+#                        MACOSX_BUNDLE
+#                        TRUE)
+  SET_TARGET_PROPERTIES(gaen
+                        PROPERTIES
+                        MACOSX_BUNDLE_INFO_PLIST
+                        ${CMAKE_CURRENT_SOURCE_DIR}/gaenInfo.plist)
+
   # Copy bundle to package dir
   ADD_CUSTOM_COMMAND(
     TARGET gaen
@@ -54,12 +77,13 @@ ELSEIF (WIN32)
     ${gaen_SOURCES}
     main_win32.cpp
     )
-  IDE_SOURCE_PROPERTIES( "/" "${gaen_SOURCES}")
   ADD_EXECUTABLE(gaen WIN32
     ${gaen_SOURCES}
     )
   package (gaen)
 ENDIF ()
+
+IDE_SOURCE_PROPERTIES( "/" "${gaen_SOURCES}")
 
 # LORRTODO - Make samples project only get added with a command switch. Don't add it by default.
 TARGET_LINK_LIBRARIES (gaen
