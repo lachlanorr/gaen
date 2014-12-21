@@ -33,15 +33,112 @@
 
 //------------------------------------------------------------------------------
 
-@interface GLView : NSOpenGLView
-@end
-@implementation GLView
-- (void) drawRect: (NSRect) bounds
+@interface OpenGLView : NSView
 {
-//    glClearColor(0, 0, 0, 0);
-//    glClear(GL_COLOR_BUFFER_BIT);
-//    glFlush();
+  @private
+    NSOpenGLContext*     _openGLContext;
+    NSOpenGLPixelFormat* _pixelFormat;
 }
+@end
+@implementation OpenGLView
++ (NSOpenGLPixelFormat*)defaultPixelFormat
+{
+    NSOpenGLPixelFormatAttribute attrs[] =
+        {
+            NSOpenGLPFADoubleBuffer,
+            0
+        };
+    NSOpenGLPixelFormat * pixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:attrs];
+    return pixelFormat;
+}
+
+- (id)initWithFrame:(NSRect)frameRect
+{
+    return [self initWithFrame:frameRect pixelFormat:nil];
+}
+
+- (id)initWithFrame:(NSRect)frameRect pixelFormat:(NSOpenGLPixelFormat*)format
+{
+    self = [super initWithFrame:frameRect];
+    if (self != nil)
+    {
+        if (format != nil)
+            _pixelFormat = [format retain];
+        else
+            _pixelFormat = [OpenGLView defaultPixelFormat];
+        
+        _openGLContext = [[NSOpenGLContext alloc] initWithFormat:_pixelFormat shareContext:nil];
+        [_openGLContext setView:self];
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                              selector:@selector(surfaceNeedsUpdate:)
+                                              name:NSViewGlobalFrameDidChangeNotification
+                                              object:self];
+    }
+    return self;    
+}
+
+- (void) surfaceNeedsUpdate:(NSNotification*)notification
+{
+   [self update];
+}
+
+- (void)lockFocus
+{
+    NSOpenGLContext* context = [self openGLContext];
+ 
+    [super lockFocus];
+    if ([context view] != self) {
+        [context setView:self];
+    }
+    [context makeCurrentContext];
+}
+
+- (void)setOpenGLContext:(NSOpenGLContext*)context
+{
+    _openGLContext = context;
+}
+
+- (NSOpenGLContext*)openGLContext
+{
+    return _openGLContext;
+}
+
+- (void)clearGLContext
+{
+    [NSOpenGLContext clearCurrentContext];
+}
+
+- (void)prepareOpenGL
+{
+}
+
+- (void)update
+{
+    [_openGLContext update];
+}
+
+- (void)setPixelFormat:(NSOpenGLPixelFormat*)pixelFormat
+{
+    _pixelFormat = pixelFormat;
+}
+
+- (NSOpenGLPixelFormat*)pixelFormat
+{
+    return _pixelFormat;
+}
+
+-(void) drawRect
+{
+    [_openGLContext makeCurrentContext];
+
+    glClearColor(1.0f, 0, 0, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glFlush();
+
+    [_openGLContext flushBuffer];
+}
+
 @end
 
 //------------------------------------------------------------------------------
@@ -77,7 +174,7 @@
                styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO]
               retain];
 
-    GLView *view = [[GLView alloc] initWithFrame:NSMakeRect(0, 0, kScreenWidth, kScreenHeight)];
+    OpenGLView *view = [[OpenGLView alloc] initWithFrame:NSMakeRect(0, 0, kScreenWidth, kScreenHeight)];
     [[_window contentView] addSubview:view];
 
     [_window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
@@ -94,11 +191,13 @@
     Task rendererTask = Task::create(&renderer, HASH::renderer);
     set_renderer(rendererTask);
 
+    [view drawRect];
+    
     // NOTE: From this point forward, methods on sRenderer should not
     // be called directly.  Interaction with the renderer should only
     // be made with messages sent to the primary TaskMaster.
 
-    start_game_loops();
+    //start_game_loops();
 
 }
 
