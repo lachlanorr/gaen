@@ -42,6 +42,13 @@ SET (unit_test_SOURCES
   )
 
 
+# Clang gives harmelss warning about unused variable kPathSeparator.
+# Supress it here.
+IF ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+  SET_SOURCE_FILES_PROPERTIES(${gtest_dir}/gtest/gtest-all.cc PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
+ENDIF()
+
+
 IDE_SOURCE_PROPERTIES( "/" "${unit_test_SOURCES}")
 
 ADD_EXECUTABLE (unit_tests
