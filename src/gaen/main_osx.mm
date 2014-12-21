@@ -27,6 +27,8 @@
 #import <Cocoa/Cocoa.h>
 #include <OpenGL/gl3.h>
 
+#include "engine/renderer_api.h"
+#include "renderergl/RendererGL.h"
 #include "gaen/gaen.h"
 
 //------------------------------------------------------------------------------
@@ -36,21 +38,27 @@
 @implementation GLView
 - (void) drawRect: (NSRect) bounds
 {
-    glClearColor(0, 0, 0, 0);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glFlush();
+//    glClearColor(0, 0, 0, 0);
+//    glClear(GL_COLOR_BUFFER_BIT);
+//    glFlush();
 }
 @end
 
 //------------------------------------------------------------------------------
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
+@property (assign) int argc;
+@property (assign) char ** argv;
 @property (assign) id pool;
 @property (assign) id window;
 @end
 @implementation AppDelegate
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
+    using namespace gaen;
+    static const u32 kScreenWidth = 1080;
+    static const u32 kScreenHeight = 720;
+
     id menubar = [[NSMenu new] autorelease];
     id appMenuItem = [[NSMenuItem new] autorelease];
     [menubar addItem:appMenuItem];
@@ -65,11 +73,11 @@
     [appMenuItem setSubmenu:appMenu];
 
     _window = [[[NSWindow alloc]
-               initWithContentRect:NSMakeRect(0, 0, 1080, 720)
+               initWithContentRect:NSMakeRect(0, 0, kScreenWidth, kScreenHeight)
                styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO]
               retain];
 
-    GLView *view = [[GLView alloc] initWithFrame:NSMakeRect(0, 0, 1080, 720)];
+    GLView *view = [[GLView alloc] initWithFrame:NSMakeRect(0, 0, kScreenWidth, kScreenHeight)];
     [[_window contentView] addSubview:view];
 
     [_window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
@@ -77,13 +85,27 @@
 
     [_window makeKeyAndOrderFront:nil];
     [_window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
+    
+
+    init_gaen(_argc, _argv);
+
+    RendererGL renderer;
+    renderer.init(0, 0, kScreenWidth, kScreenHeight);
+    Task rendererTask = Task::create(&renderer, HASH::renderer);
+    set_renderer(rendererTask);
+
+    // NOTE: From this point forward, methods on sRenderer should not
+    // be called directly.  Interaction with the renderer should only
+    // be made with messages sent to the primary TaskMaster.
+
+    start_game_loops();
 
 }
 
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
-
+    gaen::fin_gaen();
 }
 @end
 
@@ -96,17 +118,13 @@ int main(int argc, char ** argv)
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
-    id appDelegate = [[AppDelegate alloc] init];
-    [NSApp setDelegate:appDelegate];
+    AppDelegate * appDelegate = [[AppDelegate alloc] init];
+    appDelegate.argc = argc;
+    appDelegate.argv = argv;
+    
+    [NSApp setDelegate:(id)appDelegate];
     [NSApp activateIgnoringOtherApps:YES];
     [NSApp run];
     return 0;
-
-    // Initialize gaen
-//    gaen::init_gaen(argc, argv);
-//    gaen::fnv h = gaen::HASH::fnv1a_32("abc");
-
-    // Finalize gaen
-//    gaen::fin_gaen();
 }
 
