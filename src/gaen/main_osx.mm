@@ -148,6 +148,7 @@
 @property (assign) char ** argv;
 @property (assign) id pool;
 @property (assign) id window;
+@property (assign) OpenGLView * view;
 @end
 @implementation AppDelegate
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
@@ -174,8 +175,8 @@
                styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO]
               retain];
 
-    OpenGLView *view = [[OpenGLView alloc] initWithFrame:NSMakeRect(0, 0, kScreenWidth, kScreenHeight)];
-    [[_window contentView] addSubview:view];
+    _view = [[[OpenGLView alloc] initWithFrame:NSMakeRect(0, 0, kScreenWidth, kScreenHeight)] retain];
+    [[_window contentView] addSubview:_view];
 
     [_window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
     [_window setTitle:appName];
@@ -187,17 +188,17 @@
     init_gaen(_argc, _argv);
 
     RendererGL renderer;
-    renderer.init(0, 0, kScreenWidth, kScreenHeight);
+    renderer.init(_view.openGLContext, nullptr, kScreenWidth, kScreenHeight);
     Task rendererTask = Task::create(&renderer, HASH::renderer);
     set_renderer(rendererTask);
 
-    [view drawRect];
+    //[view drawRect];
     
     // NOTE: From this point forward, methods on sRenderer should not
     // be called directly.  Interaction with the renderer should only
     // be made with messages sent to the primary TaskMaster.
 
-    //start_game_loops();
+    start_game_loops();
 
 }
 

@@ -24,6 +24,9 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#import <Cocoa/Cocoa.h>
+#import <OpenGL/gl3.h>
+
 #include "renderergl/stdafx.h"
 
 #include "core/base_defines.h"
@@ -38,6 +41,8 @@ void RendererGL::initRenderDevice()
 {
     ASSERT(mIsInit);
 
+    printf("mDeviceContext = %p\n", mDeviceContext);
+    [(id)mDeviceContext makeCurrentContext];
     // LORRTODO - figure out if we need this on osx
 }
 
@@ -45,6 +50,7 @@ void RendererGL::endFrame()
 {
     ASSERT(mIsInit);
 
+    [(id)mDeviceContext flushBuffer];
     // LORRTODO - figure out if we need this on osx
 }
 

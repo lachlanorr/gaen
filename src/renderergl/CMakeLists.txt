@@ -30,7 +30,7 @@ SET (renderergl_SOURCES
   renderer_api.cpp
   RendererGL.h
   RendererGL.cpp
-  RendererGL_${platform}.cpp
+  RendererGL_${platform}.${platform_ext}
   )
 
 IF (WIN32)

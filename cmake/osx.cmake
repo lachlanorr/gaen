@@ -25,6 +25,7 @@
 #-------------------------------------------------------------------------------
 
 SET (platform "osx")
+SET (platform_ext "mm")
 
 MACRO (IDE_SOURCE_PROPERTIES source_path sources)
   STRING (REPLACE "/" "\\\\" source_group_path ${source_path} )

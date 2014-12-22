@@ -49,8 +49,8 @@ typedef HGLRC render_context;
 namespace gaen
 {
 // LORRTODO - Set these properly for OSX, for now I just don't want to see the noisy error
-typedef u32 device_context;
-typedef u32 render_context;
+typedef void* device_context;
+typedef void* render_context;
 }
 #else // #if IS_PLATFORM_OSX
 #error Need to implement a similar concept on other platforms

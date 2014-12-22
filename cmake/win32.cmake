@@ -25,6 +25,7 @@
 #-------------------------------------------------------------------------------
 
 SET (platform "win32")
+SET (platform_ext "cpp")
 SET (net_platform "win32")
 
 SET(PLATFORM_LINK_LIBS

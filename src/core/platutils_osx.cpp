@@ -37,8 +37,8 @@ namespace gaen
 static const u64 kNanoPerMicro = 1000;
 static const f64 kMicrosPerSec = 1000000.0;
 
-static u64 sStartTimeAbsolute = 0;
-static mach_timebase_info_data_t sTimebaseInfoMicros = {0, 0};
+static thread_local u64 sStartTimeAbsolute = 0;
+static thread_local mach_timebase_info_data_t sTimebaseInfoMicros = {0, 0};
 
 void init_time()
 {
