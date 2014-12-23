@@ -64,6 +64,7 @@ void RendererGL::fin()
 }
 
 static const char * sVertShaderCode = 
+#if GL3
     "#version 330 core\n"
 
     "in vec4 vPosition;\n"
@@ -91,8 +92,32 @@ static const char * sVertShaderCode =
     "    //vColor = vec4(1.0, 1.0, 0.0, 0.6);\n"
     "    gl_Position = umMVP * vPosition;\n"
     "}\n";
+#else
+    "attribute vec4 vPosition;\n"
+    "attribute vec3 vNormal;\n"
+
+    "uniform mat4 umMVP;\n"
+    "uniform mat3 umNormal;\n"
+    "uniform vec4 uvColor;\n"
+    "uniform vec3 uvLightDirection;\n"
+    "uniform vec4 uvLightColor;\n"
+
+    "varying vec4 vColor;\n"
+
+    "void main()\n"
+    "{\n"
+    "    vec3 normalTrans = normalize(umNormal * vNormal);\n"
+    "    float intensity = max(dot(normalTrans, uvLightDirection), 0.0);\n"
+    "    intensity += min(intensity + 0.3, 1.0);\n"
+    "    vColor = intensity * uvColor;\n"
+    "    gl_Position = umMVP * vPosition;\n"
+    "}\n";
+#endif
+
+
 
 static const char * sFragShaderCode =
+#if GL3
     "#version 330 core\n"
 
     "in vec4 vColor;\n"
@@ -102,6 +127,16 @@ static const char * sFragShaderCode =
     "{\n"
     "    color = vColor;\n"
     "}\n";
+#else
+    "//#version 210 core\n"
+
+    "varying vec4 vColor;\n"
+
+    "void main()\n"
+    "{\n"
+    "    gl_FragColor = vColor;\n"
+    "}\n";
+#endif
 
 static GLuint sProgramId = -1;
 static GLint sMVPUniform = -1;
@@ -158,11 +193,12 @@ static bool build_program(GLuint * pProgramId,
     glAttachShader(programId, vertShader);
     glAttachShader(programId, fragShader);
 
+#if !GL3
     // bind attribute locations
-    //glBindAttribLocation(programId, 0, "position");
-    //glBindAttribLocation(programId, 1, "uv");
-    //--//glBindAttribLocation(programId, eAttrib_Normal, "normal");
-
+    glBindAttribLocation(programId, 0, "vPosition");
+    glBindAttribLocation(programId, 1, "vNormal");
+#endif
+    
     // link program
     GLint status;
     glLinkProgram(programId);
@@ -272,10 +308,22 @@ void RendererGL::render()
         glUniformMatrix4fv(sMVPUniform, 1, 0, mvp.elems);
         glUniformMatrix3fv(sNormalUniform, 1, 0, normalTrans.elems);
         glUniform4fv(sColorUniform, 1, mat.color().elems);
-
+#if GL3
         glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
+#else
+        glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
+        // position
+        glVertexAttribPointer(0 /* eAttrib_position */, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)0);
+        glEnableVertexAttribArray(0); // eAttrib_Position
+        
+        // normal
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)12);
+        glEnableVertexAttribArray(1);
 
-        glDrawElements(GL_TRIANGLES, mesh.indexCount(), GL_UNSIGNED_SHORT, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_PrimBuffer));
+#endif
+
+        glDrawElements(GL_TRIANGLES, mesh.indexCount(), GL_UNSIGNED_SHORT, (void*)0);
 
         ++meshIt;
     }
@@ -331,19 +379,22 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
 {
     Mesh & mesh = matMesh.mesh();
 
+#if GL3
     if (mesh.rendererReserved(kMSHR_VAO) == -1)
     {
         glGenVertexArrays(1, &mesh.rendererReserved(kMSHR_VAO));
     }
 
     glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
-
+#endif
+    
     if (mesh.rendererReserved(kMSHR_VertBuffer) == -1)
     {
         glGenBuffers(1, &mesh.rendererReserved(kMSHR_VertBuffer));
         glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
         glBufferData(GL_ARRAY_BUFFER, mesh.vertsSize(), mesh.verts(), GL_STATIC_DRAW);
 
+#if GL3
         // position
         glVertexAttribPointer(0 /* eAttrib_position */, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)0);
         glEnableVertexAttribArray(0); // eAttrib_Position
@@ -351,7 +402,7 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
         // normal
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)12);
         glEnableVertexAttribArray(1);
-
+#endif
     }
 
     if (mesh.rendererReserved(kMSHR_PrimBuffer) == -1)
@@ -361,7 +412,9 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.primsSize(), mesh.prims(), GL_STATIC_DRAW);
     }
 
+#if GL3
     glBindVertexArray(0);
+#endif
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
