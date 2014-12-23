@@ -28,6 +28,7 @@
 #include <OpenGL/gl3.h>
 
 #include "engine/renderer_api.h"
+#include "engine/input.h"
 #include "renderergl/RendererGL.h"
 #include "gaen/gaen.h"
 
@@ -148,6 +149,7 @@
 @property (assign) char ** argv;
 @property (assign) NSWindow * pWindow;
 @property (assign) OpenGLView * pView;
+@property (assign) NSEvent * pEventMonitor;
 @property (assign) gaen::RendererGL * pRenderer;
 @end
 @implementation AppDelegate
@@ -185,6 +187,34 @@
     [_pWindow setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
     
 
+
+
+    // Start watching events
+    _pEventMonitor = [NSEvent addLocalMonitorForEventsMatchingMask:
+            (NSLeftMouseDownMask | NSRightMouseDownMask | NSOtherMouseDownMask | NSKeyDownMask | NSKeyUpMask)
+            handler:^(NSEvent *pIncomingEvent)
+    {
+        NSEvent *pResult = pIncomingEvent;
+        NSWindow *pTargetWindowForEvent = [pIncomingEvent window];
+        if (pTargetWindowForEvent == _pWindow)
+        {
+            NSEventType evtType = [pIncomingEvent type];
+
+            if (evtType == NSKeyDown || evtType == NSKeyUp)
+            {
+                KeyInput keyInput;
+                keyInput.keyCode = [pIncomingEvent keyCode];
+                keyInput.keyEvent = evtType == NSKeyDown ? 1 : 0;
+                keyInput.deviceId = 0;
+                process_key_input(&keyInput);
+            }
+        }
+        return pResult;
+    }];
+
+
+
+
     init_gaen(_argc, _argv);
 
     _pRenderer = GNEW(kMEM_Renderer, RendererGL);
@@ -200,9 +230,16 @@
 {
     gaen::fin_gaen();
     GDELETE(_pRenderer);
+
+    // Remove event monitor
+    [NSEvent removeMonitor:_pEventMonitor];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowWillCloseNotification object:_pWindow];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:NSApplicationDidResignActiveNotification object:nil];
+
     [_pView release];
     [_pWindow release];
 }
+
 @end
 
 //------------------------------------------------------------------------------

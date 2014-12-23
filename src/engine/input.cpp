@@ -32,7 +32,7 @@
 namespace gaen
 {
 
-void process_key_input(void * pKeyInfo)
+void process_key_input(const void * pKeyInfo)
 {
     KeyInput keyInput = convert_key_input(pKeyInfo);
 

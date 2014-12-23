@@ -189,8 +189,8 @@ inline cell to_cell(KeyInput val)
 // void* to accomodate different platforms structs/values for key code
 // information.
 
-void process_key_input(void * pKeyInfo);
-KeyInput convert_key_input(void * pKeyInfo);
+void process_key_input(const void * pKeyInfo);
+KeyInput convert_key_input(const void * pKeyInfo);
 
 } // namespace gaen
 

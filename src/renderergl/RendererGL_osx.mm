@@ -41,9 +41,7 @@ void RendererGL::initRenderDevice()
 {
     ASSERT(mIsInit);
 
-    printf("mDeviceContext = %p\n", mDeviceContext);
     [(id)mDeviceContext makeCurrentContext];
-    // LORRTODO - figure out if we need this on osx
 }
 
 void RendererGL::endFrame()
@@ -51,7 +49,6 @@ void RendererGL::endFrame()
     ASSERT(mIsInit);
 
     [(id)mDeviceContext flushBuffer];
-    // LORRTODO - figure out if we need this on osx
 }
 
 } // namespace gaen

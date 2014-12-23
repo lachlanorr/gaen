@@ -44,7 +44,7 @@ SET (engine_SOURCES
   hashes.cpp
   hashes.h
   input.cpp
-  input_${platform}.cpp
+  input_${platform}.${platform_ext}
   input.h
   InputMgr.cpp
   InputMgr.h
