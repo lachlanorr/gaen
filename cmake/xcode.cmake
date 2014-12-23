@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# osx.cmake - OSX specific settings used in CMakeLists.txt files
+# clang.cmake - Clang specific settings used in CMakeLists.txt files
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014 Lachlan Orr
@@ -24,16 +24,20 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (platform "osx")
+SET (platform_ext "mm")
 
-INCLUDE (${cmake_dir}/xcode.cmake)
+MACRO (IDE_SOURCE_PROPERTIES source_path sources)
+  STRING (REPLACE "/" "\\\\" source_group_path ${source_path} )
+  SOURCE_GROUP (${source_group_path} FILES ${sources})
+ENDMACRO (IDE_SOURCE_PROPERTIES NAME sources)
 
-FIND_LIBRARY(COCOA_LIBRARY Cocoa)
+#SET(CMAKE_CXX_FLAGS                "-Wall -std=c++11 -fno-exceptions -framework Cocoa")
+SET(CMAKE_CXX_FLAGS_DEBUG  "${CMAKE_CXX_FLAGS_DEBUG} -DIS_BUILD_Debug=1")
+#SET(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
+SET(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} -DIS_BUILD_Release=1")
 
-FIND_PACKAGE(OpenGL REQUIRED)
-INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
+SET (CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvm.clang.1_0")
+SET (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++0x")
+SET (CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 
-SET(PLATFORM_LINK_LIBS
-  ${COCOA_LIBRARY}
-  ${OPENGL_LIBRARIES}
-  )
+SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")

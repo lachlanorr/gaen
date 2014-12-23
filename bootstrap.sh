@@ -6,12 +6,49 @@ BUILD_ROOT=$GAEN_ROOT/build
 
 [ -d "$BUILD_ROOT" ] || mkdir -p "$BUILD_ROOT"
 
+elementIn () {
+    local e
+    for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
+    return 1
+}
 
 if [ "$(uname)" == "Darwin" ]; then
     # for OSX, we just use xcode and allow it to manage configs
     cd $BUILD_ROOT
-    cmake -G Xcode ${GAEN_ROOT}
 
+    PLATFORM_TYPES=( osx ios ios-sim )
+
+    if [ -z "$1" ]
+    then
+        PLATFORM_TYPE=osx
+    else
+        PLATFORM_TYPE=$1
+    fi
+
+    if ! elementIn "$PLATFORM_TYPE" "${PLATFORM_TYPES[@]}"
+    then
+        echo Invalid platform type \"$PLATFORM_TYPE\", must be one of:
+        printf "  %s\n" "${PLATFORM_TYPES[@]}"
+        exit 1
+    fi
+
+    if [ "$PLATFORM_TYPE" == "osx" ]
+    then
+        cmake -G Xcode ${GAEN_ROOT}
+        exit 0
+    elif [ "$PLATFORM_TYPE" == "ios" ]
+    then
+        cmake -D CMAKE_TOOLCHAIN_FILE=${GAEN_ROOT}/external/ios-cmake/iOS.cmake -G Xcode ${GAEN_ROOT}
+        exit 0
+    elif [ "$PLATFORM_TYPE" == "ios-sim" ]
+    then
+        cmake -D CMAKE_TOOLCHAIN_FILE=${GAEN_ROOT}/external/ios-cmake/iOS.cmake -D IOS_PLATFORM=SIMULATOR -G Xcode ${GAEN_ROOT}
+        exit 0
+    else
+        echo Invalid platform type \"$PLATFORM_TYPE\", must be one of:
+        printf "  %s\n" "${PLATFORM_TYPES[@]}"
+        exit 1
+    fi
 else
     # for other unices, we default to makefiles
 
@@ -26,13 +63,6 @@ else
         echo Using custom cc defined in setcc.sh
         source ${GAEN_ROOT}/setcc.sh
     fi
-
-
-    elementIn () {
-        local e
-        for e in "${@:2}"; do [[ "$e" == "$1" ]] && return 0; done
-        return 1
-    }
 
 
     if [ -z "$1" ]
