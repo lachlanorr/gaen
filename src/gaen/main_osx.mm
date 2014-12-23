@@ -146,9 +146,9 @@
 @interface AppDelegate : NSObject <NSApplicationDelegate>
 @property (assign) int argc;
 @property (assign) char ** argv;
-@property (assign) id pool;
-@property (assign) id window;
-@property (assign) OpenGLView * view;
+@property (assign) NSWindow * pWindow;
+@property (assign) OpenGLView * pView;
+@property (assign) gaen::RendererGL * pRenderer;
 @end
 @implementation AppDelegate
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
@@ -170,42 +170,38 @@
     [appMenu addItem:quitMenuItem];
     [appMenuItem setSubmenu:appMenu];
 
-    _window = [[[NSWindow alloc]
+    _pWindow = [[[NSWindow alloc]
                initWithContentRect:NSMakeRect(0, 0, kScreenWidth, kScreenHeight)
                styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO]
               retain];
 
-    _view = [[[OpenGLView alloc] initWithFrame:NSMakeRect(0, 0, kScreenWidth, kScreenHeight)] retain];
-    [[_window contentView] addSubview:_view];
+    _pView = [[[OpenGLView alloc] initWithFrame:NSMakeRect(0, 0, kScreenWidth, kScreenHeight)] retain];
+    [[_pWindow contentView] addSubview:_pView];
 
-    [_window cascadeTopLeftFromPoint:NSMakePoint(20,20)];
-    [_window setTitle:appName];
+    [_pWindow cascadeTopLeftFromPoint:NSMakePoint(20,20)];
+    [_pWindow setTitle:appName];
 
-    [_window makeKeyAndOrderFront:nil];
-    [_window setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
+    [_pWindow makeKeyAndOrderFront:nil];
+    [_pWindow setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
     
 
     init_gaen(_argc, _argv);
 
-    RendererGL renderer;
-    renderer.init(_view.openGLContext, nullptr, kScreenWidth, kScreenHeight);
-    Task rendererTask = Task::create(&renderer, HASH::renderer);
+    _pRenderer = GNEW(kMEM_Renderer, RendererGL);
+    _pRenderer->init(_pView.openGLContext, nullptr, kScreenWidth, kScreenHeight);
+    Task rendererTask = Task::create(_pRenderer, HASH::renderer);
     set_renderer(rendererTask);
 
-    //[view drawRect];
-    
-    // NOTE: From this point forward, methods on sRenderer should not
-    // be called directly.  Interaction with the renderer should only
-    // be made with messages sent to the primary TaskMaster.
-
     start_game_loops();
-
 }
 
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
 {
     gaen::fin_gaen();
+    GDELETE(_pRenderer);
+    [_pView release];
+    [_pWindow release];
 }
 @end
 
