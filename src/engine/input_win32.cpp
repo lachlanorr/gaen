@@ -77,7 +77,7 @@ namespace gaen
 static HashMap<kMEM_Engine, u32, KeyCode> sKeyMap;
 static HashMap<kMEM_Engine, HANDLE, u32> sDeviceIdMap;
 
-KeyInput convert_key_input(void * pKeyInfo)
+KeyInput convert_key_input(const void * pKeyInfo)
 {
     // initialize if first time called
     if (sKeyMap.size() == 0)
