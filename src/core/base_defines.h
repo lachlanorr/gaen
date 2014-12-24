@@ -115,6 +115,8 @@ int c99_snprintf(char* str, size_t size, const char* format, ...);
 int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap);
 #elif IS_PLATFORM_OSX
 #define thread_local __thread
+#elif IS_PLATFORM_IOS
+#define thread_local __declspec(thread)
 #endif
 
 

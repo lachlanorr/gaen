@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# CMakeLists.txt - Build script
+# osx.cmake - OSX specific settings used in CMakeLists.txt files
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014 Lachlan Orr
@@ -24,41 +24,16 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
+SET (platform "ios")
 
-SET (core_SOURCES
-  base_defines.cpp
-  base_defines.h
-  gamevars.cpp
-  gamevars.h
-  hashing.cpp
-  hashing.h
-  HashMap.h
-  HashSet.h
-  List.h
-  log_message.h
-  logging.cpp
-  logging.h
-  Map.h
-  mem.cpp
-  mem.h
-  platutils.cpp
-  platutils.h
-  platutils_${platform}.cpp
-  RefCounted.h
-  sockets.cpp
-  sockets.h
-  sockets_${net_platform}.cpp
-  SpscRingBuffer.h
-  String.h
-  threading.cpp
-  threading.h
-  ThreadLocal.h
-  Vector.h
-  )
+INCLUDE (${cmake_dir}/xcode.cmake)
 
-MSVC_PRECOMPILED_HEADER (core core_SOURCES)
-IDE_SOURCE_PROPERTIES( "/" "${core_SOURCES}")
+#FIND_LIBRARY(COCOA_LIBRARY Cocoa)
 
-ADD_LIBRARY (core
-  ${core_SOURCES}
-  )
+#FIND_PACKAGE(OpenGL REQUIRED)
+#INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR}
+
+#SET(PLATFORM_LINK_LIBS
+#  ${COCOA_LIBRARY}
+#  ${OPENGL_LIBRARIES}
+#  )

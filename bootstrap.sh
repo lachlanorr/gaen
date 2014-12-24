@@ -32,18 +32,20 @@ if [ "$(uname)" == "Darwin" ]; then
         exit 1
     fi
 
+    PLATFORM_DIR="$BUILD_ROOT/${PLATFORM_TYPE}"
+
+    [ -d "$PLATFORM_DIR" ] || mkdir -p "$PLATFORM_DIR"
+    cd $PLATFORM_DIR
+
     if [ "$PLATFORM_TYPE" == "osx" ]
     then
         cmake -G Xcode ${GAEN_ROOT}
-        exit 0
     elif [ "$PLATFORM_TYPE" == "ios" ]
     then
-        cmake -D CMAKE_TOOLCHAIN_FILE=${GAEN_ROOT}/external/ios-cmake/iOS.cmake -G Xcode ${GAEN_ROOT}
-        exit 0
+        cmake -D CMAKE_TOOLCHAIN_FILE=${GAEN_ROOT}/external/ios-cmake/iOS.cmake -D IOS_ARCH=arm7 -G Xcode ${GAEN_ROOT}
     elif [ "$PLATFORM_TYPE" == "ios-sim" ]
     then
         cmake -D CMAKE_TOOLCHAIN_FILE=${GAEN_ROOT}/external/ios-cmake/iOS.cmake -D IOS_PLATFORM=SIMULATOR -G Xcode ${GAEN_ROOT}
-        exit 0
     else
         echo Invalid platform type \"$PLATFORM_TYPE\", must be one of:
         printf "  %s\n" "${PLATFORM_TYPES[@]}"

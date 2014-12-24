@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# clang.cmake - Clang specific settings used in CMakeLists.txt files
+# xcode.cmake - Xcode specific settings used in CMakeLists.txt files
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014 Lachlan Orr
