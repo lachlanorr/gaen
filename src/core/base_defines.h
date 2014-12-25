@@ -76,6 +76,38 @@ namespace gaen
 
 // LORRTODO - Check to make sure we're amd64... we're using intrinsics and assuming little endian
 
+#if IS_PLATFORM_WIN32
+ #ifdef _WIN64
+  #define WORD_SIZE_64BIT HAS_X
+  #define WORD_SIZE_32BIT HAS__
+ #else
+  #define WORD_SIZE_64BIT HAS__
+  #define WORD_SIZE_32BIT HAS_X
+ #endif
+#elif IS_PLATFORM_OSX
+ #ifdef __x86_64__
+  #define WORD_SIZE_64BIT HAS_X
+  #define WORD_SIZE_32BIT HAS__
+ #else
+  #define WORD_SIZE_64BIT HAS__
+  #define WORD_SIZE_32BIT HAS_X
+ #endif
+#else
+ #error Need macros for word size for this platform
+#endif
+
+#if HAS(WORD_SIZE_32BIT)
+#define PAD_IF_32BIT u32 PAD_FOR_32BIT;
+#define PAD_IF_32BIT_A u32 PAD_FOR_32BIT_A;
+#define PAD_IF_32BIT_B u32 PAD_FOR_32BIT_B;
+#define PAD_IF_32BIT_C u32 PAD_FOR_32BIT_C;
+#else
+#define PAD_IF_32BIT
+#define PAD_IF_32BIT_A
+#define PAD_IF_32BIT_B
+#define PAD_IF_32BIT_C
+#endif
+
 // Debug and RelWithDebInfo are considered Dev builds.  This means
 // they will log and support console connections and compile asserts.
 #if IS_BUILD_Debug || IS_BUILD_RelWithDebInfo
@@ -105,6 +137,8 @@ T maxval(const T& lhs, const T& rhs)
 {
     return lhs > rhs ? lhs : rhs;
 }
+
+
 
 #if IS_PLATFORM_WIN32
 #define thread_local __declspec(thread)

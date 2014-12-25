@@ -59,7 +59,9 @@ private:
     u32 mOwnerTaskId;
     u32 mDataSize;
     void * mpData;
+    PAD_IF_32BIT_A
     HandleFreeFunc mpFreeFunc;
+    PAD_IF_32BIT_B
 };
 
 // We have 4 extra bytes for padding, but 32 will keep these

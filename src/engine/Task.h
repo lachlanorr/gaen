@@ -222,10 +222,12 @@ private:
     u32 mNameHash;           // storage for a name hash, typically an entity or component name
 
     MessageQueueStub mpMessageQueueStub; // address of message method
+    PAD_IF_32BIT_A
     i32 mMessageBlockStubOffset;         // offset in bytes from MessageQueueStub pointer to MessageBlockStub pointer
     i32 mUpdateStubOffset;               // offset in bytes from MessageQueueStub pointer to UpdateStub pointer
 
     void* mpThat;                     // pointer to class instance that has the real update/message methods
+    PAD_IF_32BIT_B
 
     template <class T>
     static void update_stub(void* pThat, f32 deltaSecs)

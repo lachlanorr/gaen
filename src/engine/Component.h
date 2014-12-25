@@ -63,7 +63,9 @@ protected:
     
     Task mScriptTask;
     Entity * mpEntity;
+    PAD_IF_32BIT_A
     Block *mpBlocks;
+    PAD_IF_32BIT_B
     u32 mBlockCount:24;
     u32 mIsInit:8;
     u8 PADDING__[12];
