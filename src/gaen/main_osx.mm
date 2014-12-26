@@ -145,14 +145,25 @@
 //------------------------------------------------------------------------------
 
 @interface AppDelegate : NSObject <NSApplicationDelegate>
-@property (assign) int argc;
-@property (assign) char ** argv;
-@property (assign) NSWindow * pWindow;
-@property (assign) OpenGLView * pView;
-@property (assign) NSEvent * pEventMonitor;
-@property (assign) gaen::RendererGL * pRenderer;
+{
+@private
+    int _argc;
+    char ** _argv;
+    NSWindow * _pWindow;
+    OpenGLView * _pView;
+    NSEvent * _pEventMonitor;
+    gaen::RendererGL * _pRenderer;
+}
 @end
 @implementation AppDelegate
+- (id)initWithArgc:(int)argc Argv:(char**)argv
+{
+    id selfId = [super init];
+    _argc = argc;
+    _argv = argv;
+    return selfId;
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     using namespace gaen;
@@ -251,9 +262,7 @@ int main(int argc, char ** argv)
     [NSApplication sharedApplication];
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
-    AppDelegate * appDelegate = [[AppDelegate alloc] init];
-    appDelegate.argc = argc;
-    appDelegate.argv = argv;
+    AppDelegate * appDelegate = [[AppDelegate alloc] initWithArgc:argc Argv:argv];
     
     [NSApp setDelegate:(id)appDelegate];
     [NSApp activateIgnoringOtherApps:YES];
