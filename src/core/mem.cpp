@@ -42,6 +42,7 @@ class MemPool;
 struct AllocHeader
 {
     class MemPool * pMemPool;
+    PAD_IF_32BIT
     char padding[8];
 };
 

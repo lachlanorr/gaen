@@ -39,6 +39,7 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif // #ifndef WIN32_LEAN_AND_MEAN
+#define OPENGL3 HAS_X
 #include <windows.h>
 namespace gaen
 {
@@ -46,6 +47,7 @@ typedef HDC device_context;
 typedef HGLRC render_context;
 }
 #elif IS_PLATFORM_OSX // #if IS_PLATFORM_WIN32
+#define OPENGL3 HAS__
 namespace gaen
 {
 // LORRTODO - Set these properly for OSX, for now I just don't want to see the noisy error

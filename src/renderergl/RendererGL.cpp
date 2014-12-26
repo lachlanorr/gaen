@@ -64,7 +64,7 @@ void RendererGL::fin()
 }
 
 static const char * sVertShaderCode = 
-#if GL3
+#if HAS(OPENGL3)
     "#version 330 core\n"
 
     "in vec4 vPosition;\n"
@@ -117,7 +117,7 @@ static const char * sVertShaderCode =
 
 
 static const char * sFragShaderCode =
-#if GL3
+#if HAS(OPENGL3)
     "#version 330 core\n"
 
     "in vec4 vColor;\n"
@@ -193,7 +193,7 @@ static bool build_program(GLuint * pProgramId,
     glAttachShader(programId, vertShader);
     glAttachShader(programId, fragShader);
 
-#if !GL3
+#if !HAS(OPENGL3)
     // bind attribute locations
     glBindAttribLocation(programId, 0, "vPosition");
     glBindAttribLocation(programId, 1, "vNormal");
@@ -308,7 +308,7 @@ void RendererGL::render()
         glUniformMatrix4fv(sMVPUniform, 1, 0, mvp.elems);
         glUniformMatrix3fv(sNormalUniform, 1, 0, normalTrans.elems);
         glUniform4fv(sColorUniform, 1, mat.color().elems);
-#if GL3
+#if HAS(OPENGL3)
         glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
 #else
         glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
@@ -379,7 +379,7 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
 {
     Mesh & mesh = matMesh.mesh();
 
-#if GL3
+#if HAS(OPENGL3)
     if (mesh.rendererReserved(kMSHR_VAO) == -1)
     {
         glGenVertexArrays(1, &mesh.rendererReserved(kMSHR_VAO));
@@ -394,7 +394,7 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
         glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
         glBufferData(GL_ARRAY_BUFFER, mesh.vertsSize(), mesh.verts(), GL_STATIC_DRAW);
 
-#if GL3
+#if HAS(OPENGL3)
         // position
         glVertexAttribPointer(0 /* eAttrib_position */, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)0);
         glEnableVertexAttribArray(0); // eAttrib_Position
@@ -412,7 +412,7 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.primsSize(), mesh.prims(), GL_STATIC_DRAW);
     }
 
-#if GL3
+#if HAS(OPENGL3)
     glBindVertexArray(0);
 #endif
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

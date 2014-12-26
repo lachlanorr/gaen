@@ -1565,7 +1565,7 @@ const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dotte
 
     // replace dots with slashes
     char * dotted = path + pParseData->scriptsRootPathLen;
-    for (int i = 0; i < dottedIdLen; ++i)
+    for (size_t i = 0; i < dottedIdLen; ++i)
     {
         if (dotted[i] == '.')
             dotted[i] = '/';
