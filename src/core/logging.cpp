@@ -31,6 +31,7 @@
 #include <cstdio>
 #include <algorithm>
 
+#include "core/thread_local.h"
 #include "core/platutils.h"
 #include "core/sockets.h"
 #include "core/logging.h"
@@ -87,17 +88,23 @@ void Logger::log(LogSeverity severity, const char * message)
     ASSERT(mIsInit);
     ASSERT(message);
 
-    static thread_local LogMessage tLogMessage;
+    TL(LogMessage, tLogMessage);
 
-    tLogMessage.header.time = now();
-    tLogMessage.header.sev = severity;
+    // Necessary to pull out of TreadLocal class.
+    // Once we get thread local keyword in iOS, we
+    // can abandon the ThreadLocal class and this line
+    // will become un-necessary.
+    LogMessage &lm = tLogMessage;
+
+    lm.header.time = now();
+    lm.header.sev = severity;
 
     size_t msgLen = maxval(kMaxLogMessageSize-1, strlen(message) + 1);
-    strncpy(tLogMessage.msg, message, msgLen-1);
-    tLogMessage.msg[msgLen-1] = '\0';
+    strncpy(lm.msg, message, msgLen-1);
+    lm.msg[msgLen-1] = '\0';
 
     sock_sendto(mSock,
-                reinterpret_cast<u8*>(&tLogMessage),
+                reinterpret_cast<u8*>(&lm),
                 sizeof(LogMessageHeader) + msgLen,
                 mServerIp,
                 kLoggingPort);
@@ -112,7 +119,7 @@ void logf(LogSeverity severity, const char * format, ...)
         return;
     }
 
-    static thread_local char tMessage[kMaxLogMessageSize];
+    TLARRAY(char, tMessage, kMaxLogMessageSize);
 
     va_list argptr;
     va_start(argptr, format);

@@ -26,6 +26,8 @@
 
 #include <algorithm>
 
+#include "core/thread_local.h"
+#include "core/List.h"
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -33,8 +35,6 @@
 #include "compose/codegen_cpp.h"
 #include "compose/compiler_structs.h"
 #include "compose/codegen_utils.h"
-
-#include "core/List.h"
 
 namespace gaen
 {
@@ -778,7 +778,7 @@ static S codegen_recurse(const Ast * pAst,
     ASSERT(pAst);
 
     static const u32 kScratchSize = kMaxCmpStringLength;
-    static thread_local char scratch[kScratchSize+1];
+    TLARRAY(char, scratch, kScratchSize+1);
 
     switch (pAst->type)
     {

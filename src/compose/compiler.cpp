@@ -29,6 +29,7 @@
 
 #include "core/hashing.h"
 #include "core/platutils.h"
+#include "core/thread_local.h"
 #include "engine/system_api.h"
 
 #include "compose/compiler.h"
@@ -1791,7 +1792,7 @@ void parsedata_formatted_message(ParseData * pParseData,
     ASSERT(pParseData);
     
     static const size_t kMessageMax = 1024;
-    static thread_local char tMessage[kMessageMax];
+    TLARRAY(char, tMessage, kMessageMax);
 
     pParseData->hasErrors = true;
 

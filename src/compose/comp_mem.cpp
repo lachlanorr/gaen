@@ -29,6 +29,7 @@
 
 #include "core/base_defines.h"
 #include "core/mem.h"
+#include "core/thread_local.h"
 
 #include "compose/comp_mem.h"
 
@@ -45,7 +46,7 @@ struct CompMemInfo
 
 static CompMemInfo * mem_info()
 {
-    static thread_local CompMemInfo * spMemInfo = nullptr;
+    TL(CompMemInfo*, spMemInfo) = nullptr;
 
     if (!spMemInfo)
     {

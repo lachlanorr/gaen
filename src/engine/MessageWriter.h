@@ -165,21 +165,8 @@ public:
                                   u32 blockCount);
 
     // Access blocks of message
-    Block & operator[] (u32 index)
-    {
-        ASSERT(index < mMsgAcc.available());
-        return mBlocks[index+1]; // +1 to skip past header
-    }
-
-    const Block & operator[] (u32 index) const
-    {
-        ASSERT(index < mMsgAcc.available());
-        return mBlocks[index+1]; // +1 to skip past header
-    }
-
-private:
-    static const u32 kMaxThreadLocalBlockCount = 64;
-    static thread_local Block mBlocks[]; // +1 for header
+    Block & operator[] (u32 index);
+    const Block & operator[] (u32 index) const;
 };
 
 } // namespace gaen

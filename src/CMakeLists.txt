@@ -50,16 +50,19 @@ ENDMACRO (package)
 
 
 # Subdirs
+
+#libs
 ADD_SUBDIRECTORY (core)
 ADD_SUBDIRECTORY (engine)
 ADD_SUBDIRECTORY (scripts)
 ADD_SUBDIRECTORY (renderergl)
 ADD_SUBDIRECTORY (samples)
 ADD_SUBDIRECTORY (compose)
-ADD_SUBDIRECTORY (cmpc)
 
-ADD_SUBDIRECTORY (gaen)
-
-ADD_SUBDIRECTORY (gac)
-ADD_SUBDIRECTORY (unit_tests)
-
+#exes
+IF (NOT IOS)
+  ADD_SUBDIRECTORY (cmpc)
+  ADD_SUBDIRECTORY (gaen)
+  ADD_SUBDIRECTORY (gac)
+  ADD_SUBDIRECTORY (unit_tests)
+ENDIF()

@@ -52,7 +52,7 @@ SET (core_SOURCES
   String.h
   threading.cpp
   threading.h
-  ThreadLocal.h
+  thread_local.h
   Vector.h
   )
 

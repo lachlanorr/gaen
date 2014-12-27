@@ -1,0 +1,192 @@
+//------------------------------------------------------------------------------
+// thread_local.h - Thread local storage
+//
+// Gaen Concurrency Engine - http://gaen.org
+// Copyright (c) 2014 Lachlan Orr
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+//   1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+//
+//   2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+//
+//   3. This notice may not be removed or altered from any source
+//   distribution.
+//------------------------------------------------------------------------------
+
+#ifndef GAEN_CORE_THREAD_LOCAL_H
+#define GAEN_CORE_THREAD_LOCAL_H
+
+
+// Special thread local handling.
+// GCC     - thread_local works: as C++11 promises
+// Windows - __declspec(thread): almost the same thing
+// Clang   - __thread: almost the same thing
+// iOS     - Our own ThreadLocal class: baling wire, duct tape, misery
+#if IS_PLATFORM_WIN32
+#define TL(T, S) static __declspec(thread) T S
+#define TLARRAY(T, S, N) static __declspec(thread) T S[N]
+#elif IS_PLATFORM_OSX
+#define TL(T, S) static __thread T S
+#define TLARRAY(T, S, N) static __thread T S[N]
+#elif IS_PLATFORM_IOS
+#define TL(T, S) ThreadLocal<T, __COUNTER__> S
+#define TLARRAY(T, S, N) ThreadLocalArray<T, N, __COUNTER__> S
+#else
+#define TL(T, S) static thread_local T S
+#define TLARRAY(T, S, N) static thread_local T S[N]
+#endif
+
+
+#if IS_PLATFORM_IOS
+
+// IOS ThreadLocal support
+// When that platform supports thread_local, or __thread,
+// we can get rid of this stuff. But for now, we wrap the
+// posix thread local stuff with this class and for the
+// most part it acts a lot like a thread_local declared
+// variable syntactically.
+
+// The 'int ID' template param is to ensure each template
+// isntantiation is unique, which is accomplished by passing
+// in __COUNTER__ for that param. See TL and TLARRAY macro
+// definitions in base_defines.h.
+
+#include <pthread.h>
+
+#include "core/base_defines.h"
+#include "core/mem.h"
+
+namespace gaen
+{
+
+template <typename T, int ID>
+class ThreadLocal
+{
+public:
+    typedef T DataType_t;
+
+    ThreadLocal()
+    {
+        init();
+    }
+
+    ThreadLocal(const T & val)
+    {
+        init();
+        set_value(val);
+    }
+
+    T& operator=(const T& rhs)
+    {
+        set_value(rhs);
+        return get_value();
+    }
+
+    operator T&()
+    {
+        return get_value();
+    }
+
+private:
+    static void init()
+    {
+        static pthread_once_t sOnce = PTHREAD_ONCE_INIT;
+        pthread_once(&sOnce, key_create);
+    }
+
+    static void key_create()
+    {
+        pthread_key_create(&sKey, 0);
+    }
+
+    static T* get_pointer()
+    {
+        T* pVal = reinterpret_cast<T*>(pthread_getspecific(sKey));
+        if (pVal == nullptr)
+            pVal = reinterpret_cast<T*>(GALLOC(kMEM_Engine, sizeof(T)));
+        return pVal;
+    }
+
+    static T& get_value()
+    {
+        return *get_pointer();
+    }
+
+    static void set_value(const T & val)
+    {
+        *get_pointer() = val;
+    }
+
+    static pthread_key_t sKey;
+};
+
+
+
+template <typename T, size_t N, int ID>
+class ThreadLocalArray
+{
+public:
+    typedef T DataType_t;
+    static const size_t kCount = N;
+    static const size_t kSize = N * sizeof(T);
+
+    ThreadLocalArray()
+    {
+        init();
+    }
+
+    operator T*()
+    {
+        return get_pointer();
+    }
+
+    T& operator[] (int idx)
+    {
+        return get_value(idx);
+    }
+
+public:
+    static void init()
+    {
+        static pthread_once_t sOnce = PTHREAD_ONCE_INIT;
+        pthread_once(&sOnce, key_create);
+    }
+
+    static void key_create()
+    {
+        pthread_key_create(&sKey, 0);
+    }
+
+    static T* get_pointer()
+    {
+        T* pVal = reinterpret_cast<T*>(pthread_getspecific(sKey));
+        if (pVal == nullptr)
+            pVal = reinterpret_cast<T*>(GALLOC(kMEM_Engine, sizeof(T) * N));
+        return pVal;
+    }
+
+    static T& get_value(size_t idx)
+    {
+        return get_pointer()[idx];
+    }
+
+    static pthread_key_t sKey;
+    
+};
+
+} // namespace gaen
+
+#endif // #if IS_PLATFORM_IOS
+
+#endif // #ifndef GAEN_CORE_THREAD_LOCAL_H

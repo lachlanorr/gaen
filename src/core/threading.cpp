@@ -29,8 +29,9 @@
 #include <cstring>
 #include <atomic>
 
-#include "core/threading.h"
+#include "core/thread_local.h"
 #include "core/logging.h"
+#include "core/threading.h"
 
 namespace gaen
 {
@@ -41,7 +42,7 @@ static bool sIsThreadingInit = false;
 static ThreadInfo sThreadInfos[kMaxThreads];
 
 // Thread local variables
-static thread_local thread_id tThreadId = kInvalidThreadId;
+TL(thread_id, tThreadId) = kInvalidThreadId;
 
 
 static thread_id next_available_thread_id()

@@ -33,14 +33,15 @@
 #endif
 #include <windows.h>
 
+#include "core/thread_local.h"
 #include "core/threading.h"
 #include "core/platutils.h"
 
 namespace gaen
 {
 
-static thread_local i64 sStartTimeTicks = 0;
-static thread_local f32 sFrequencyRatio = 0.0f;
+TL(i64, sStartTimeTicks) = 0;
+TL(f32, sFrequencyRatio) = 0.0f;
 
 void init_time()
 {

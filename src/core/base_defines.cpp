@@ -33,6 +33,7 @@
 #include <cstdlib>
 
 #include "core/base_defines.h"
+#include "core/thread_local.h"
 
 namespace gaen
 {
@@ -87,19 +88,24 @@ void report_failure(const char * condition,
                     ...)
 {
     // Thread storage to print our message.
-    static thread_local char tMessage[kMaxMessageSize];
-    static thread_local char tFailureMessage[kMaxFailureMessageSize];
+    TLARRAY(char, tMessage, kMaxMessageSize);
+    TLARRAY(char, tFailureMessage, kMaxFailureMessageSize);
     
     va_list argptr;
     va_start(argptr, format);
 
     if (format && format[0] != '\0')
     {
+#if !IS_PLATFORM_IOS
         int ret = vsnprintf(tMessage, kMaxMessageSize-1, format, argptr);
+#else
+        // LORRTODO - Implement replacement for vsnprintf on ios, or wait for Apple to catch up to C++11
+        int ret = std::vsprintf(tMessage, format, argptr);
+#endif
         
         if (ret <= 0)
         {
-            strncpy(tMessage, "report_failure was unable to format message", kMaxMessageSize-1);
+            std::strncpy(tMessage, "report_failure was unable to format message", kMaxMessageSize-1);
         }
     }
     else
@@ -120,7 +126,7 @@ void report_failure(const char * condition,
                  condition,
                  file,
                  line,
-                 tMessage);
+                 (const char*)tMessage);
     }
     else
     {

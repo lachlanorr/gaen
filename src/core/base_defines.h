@@ -84,7 +84,7 @@ namespace gaen
   #define WORD_SIZE_64BIT HAS__
   #define WORD_SIZE_32BIT HAS_X
  #endif
-#elif IS_PLATFORM_OSX
+#elif IS_PLATFORM_OSX || IS_PLATFORM_IOS
  #ifdef __x86_64__
   #define WORD_SIZE_64BIT HAS_X
   #define WORD_SIZE_32BIT HAS__
@@ -138,22 +138,14 @@ T maxval(const T& lhs, const T& rhs)
     return lhs > rhs ? lhs : rhs;
 }
 
-
-
+// Some replacement defs for things missing in win32
 #if IS_PLATFORM_WIN32
-#define thread_local __declspec(thread)
 #define noexcept 
 #define snprintf c99_snprintf
 #define vsnprintf c99_vsnprintf
 int c99_snprintf(char* str, size_t size, const char* format, ...);
 int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap);
-#elif IS_PLATFORM_OSX
-#define thread_local __thread
-#elif IS_PLATFORM_IOS
-#define thread_local __declspec(thread)
 #endif
-
-
 
 // Platform specific way to halt on assert and breatk into debugger.
 // If you want to override about/break functions (as you might in unit

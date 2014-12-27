@@ -29,6 +29,7 @@
 #include <sys/sysctl.h>
 #include <mach/mach_time.h>
 
+#include "core/thread_local.h"
 #include "core/platutils.h"
 
 namespace gaen
@@ -37,30 +38,33 @@ namespace gaen
 static const u64 kNanoPerMicro = 1000;
 static const f64 kMicrosPerSec = 1000000.0;
 
-static thread_local u64 sStartTimeAbsolute = 0;
-static thread_local mach_timebase_info_data_t sTimebaseInfoMicros = {0, 0};
+TL(u64, sStartTimeAbsolute) = 0;
+TL(u32, sTimebaseNumer) = 0;
+TL(u32, sTimebaseDenom) = 0;
 
 void init_time()
 {
     ASSERT(sStartTimeAbsolute == 0);
-    ASSERT(sTimebaseInfoMicros.denom == 0);
 
     sStartTimeAbsolute = mach_absolute_time();
 
-    mach_timebase_info(&sTimebaseInfoMicros);
+    mach_timebase_info_data_t timebaseInfo = {0, 0};
+    mach_timebase_info(&timebaseInfo);
+
+    sTimebaseNumer = timebaseInfo.numer;
     // Now adjust nanos to micros... no need to do the multiply each time
-    sTimebaseInfoMicros.denom *= kNanoPerMicro;
+    sTimebaseDenom = timebaseInfo.denom *= kNanoPerMicro;
 }
 
 f32 now()
 {
     ASSERT_MSG(sStartTimeAbsolute != 0, "init_time_utils must be called first");
-    ASSERT_MSG(sTimebaseInfoMicros.denom != 0, "init_time_utils must be called first");
+    ASSERT_MSG(sTimebaseDenom != 0, "init_time_utils must be called first");
     
     u64 nowAbsolute = mach_absolute_time();
     u64 deltaAbsolute = nowAbsolute - sStartTimeAbsolute;
 
-    u64 deltaMicros = deltaAbsolute * sTimebaseInfoMicros.numer / sTimebaseInfoMicros.denom;
+    u64 deltaMicros = deltaAbsolute * sTimebaseNumer / sTimebaseDenom;
 
     return static_cast<f32>(deltaMicros / kMicrosPerSec);
 }

@@ -29,6 +29,7 @@
 #include <cstdlib>
 
 #include "core/base_defines.h"
+#include "core/thread_local.h"
 
 #include "compose/compiler.h"
 
@@ -49,7 +50,7 @@ const char * path_join(const char * rootDir,
     ASSERT(rootDir);
     ASSERT(filename);
     
-    static thread_local char fullPath[FILENAME_MAX];
+    TLARRAY(char, fullPath, FILENAME_MAX);
 
     size_t rootLen = strlen(rootDir);
     size_t filenameLen = strlen(filename);
@@ -100,7 +101,7 @@ const char * full_path(const char * path,
                        ParseData* pParseData)
 {
     ASSERT(path);
-    static thread_local char fullPath[FILENAME_MAX];
+    TLARRAY(char, fullPath, FILENAME_MAX);
 #if IS_PLATFORM_WIN32
     DWORD ret = GetFullPathNameA(path, FILENAME_MAX, fullPath, nullptr);
 

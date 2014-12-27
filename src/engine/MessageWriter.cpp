@@ -26,12 +26,14 @@
 
 #include "engine/stdafx.h"
 
+#include "core/thread_local.h"
 #include "engine/MessageWriter.h"
 
 namespace gaen
 {
 
-thread_local Block ThreadLocalMessageBlockWriter::mBlocks[kMaxThreadLocalBlockCount + 1];
+static const u32 kMaxThreadLocalBlockCount = 64;
+TLARRAY(Block, sBlocks, kMaxThreadLocalBlockCount + 1);
 
 ThreadLocalMessageBlockWriter::ThreadLocalMessageBlockWriter(u32 msgId,
                                                              u32 flags,
@@ -39,10 +41,23 @@ ThreadLocalMessageBlockWriter::ThreadLocalMessageBlockWriter(u32 msgId,
                                                              task_id target,
                                                              cell payload,
                                                              u32 blockCount)
-  : MessageBlockWriter(msgId, flags, source, target, payload, blockCount, mBlocks)
+  : MessageBlockWriter(msgId, flags, source, target, payload, blockCount, sBlocks)
 {
     if (blockCount > kMaxThreadLocalBlockCount)
         PANIC("Insufficient thread local storage for %u blocks", blockCount);
+}
+
+// Access blocks of message
+Block & ThreadLocalMessageBlockWriter::operator[] (u32 index)
+{
+    ASSERT(index < mMsgAcc.available());
+    return sBlocks[index+1]; // +1 to skip past header
+}
+
+const Block & ThreadLocalMessageBlockWriter::operator[] (u32 index) const
+{
+    ASSERT(index < mMsgAcc.available());
+    return sBlocks[index+1]; // +1 to skip past header
 }
 
 

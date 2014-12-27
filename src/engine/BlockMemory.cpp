@@ -27,6 +27,7 @@
 #include "engine/stdafx.h"
 
 #include "core/mem.h"
+#include "core/thread_local.h"
 
 #include "engine/BlockMemory.h"
 
@@ -251,7 +252,7 @@ CmpString BlockMemory::stringAlloc(const char * val)
 
 CmpString BlockMemory::stringFormat(const char* format, ...)
 {
-    static thread_local char scratch[kMaxCmpStringLength+1];
+    TLARRAY(char, scratch, kMaxCmpStringLength+1);
 
     va_list ap;
 
