@@ -41,14 +41,14 @@ void RendererGL::initRenderDevice()
 {
     ASSERT(mIsInit);
 
-    [(id)mDeviceContext makeCurrentContext];
+    [(id)mRenderContext makeCurrentContext];
 }
 
 void RendererGL::endFrame()
 {
     ASSERT(mIsInit);
 
-    [(id)mDeviceContext flushBuffer];
+    [(id)mRenderContext flushBuffer];
 }
 
 } // namespace gaen

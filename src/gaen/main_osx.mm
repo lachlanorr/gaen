@@ -229,7 +229,7 @@
     init_gaen(_argc, _argv);
 
     _pRenderer = GNEW(kMEM_Renderer, RendererGL);
-    _pRenderer->init(_pView.openGLContext, nullptr, kScreenWidth, kScreenHeight);
+    _pRenderer->init(nullptr, _pView.openGLContext, kScreenWidth, kScreenHeight);
     Task rendererTask = Task::create(_pRenderer, HASH::renderer);
     set_renderer(rendererTask);
 

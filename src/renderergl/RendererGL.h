@@ -46,7 +46,7 @@ namespace gaen
 typedef HDC device_context;
 typedef HGLRC render_context;
 }
-#elif IS_PLATFORM_OSX // #if IS_PLATFORM_WIN32
+#elif IS_PLATFORM_OSX || IS_PLATFORM_IOS // #if IS_PLATFORM_WIN32
 #define OPENGL3 HAS__
 namespace gaen
 {
@@ -54,7 +54,7 @@ namespace gaen
 typedef void* device_context;
 typedef void* render_context;
 }
-#else // #if IS_PLATFORM_OSX
+#else // #if IS_PLATFORM_OSX || IS_PLATFORM_IOS
 #error Need to implement a similar concept on other platforms
 #endif
 
