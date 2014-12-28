@@ -281,7 +281,7 @@ void RendererGL::render()
     ASSERT(mIsInit);
 
     glClear(GL_COLOR_BUFFER_BIT);
-    glClearDepth(1.0f);
+    GL_CLEAR_DEPTH(1.0f);
 
     ModelMgr<RendererGL>::MeshIterator meshIt = mpModelMgr->begin();
     ModelMgr<RendererGL>::MeshIterator meshItEnd = mpModelMgr->end();

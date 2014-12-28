@@ -48,15 +48,17 @@ static CompMemInfo * mem_info()
 {
     TL(CompMemInfo*, spMemInfo) = nullptr;
 
-    if (!spMemInfo)
+    CompMemInfo * pMemInfo = (CompMemInfo*)spMemInfo;
+
+    if (!pMemInfo)
     {
-        spMemInfo = GNEW(kMEM_Compose, CompMemInfo);
-        spMemInfo->pBuffer = static_cast<u8*>(GALLOC(kMEM_Compose, kCompMemSize));
-        spMemInfo->pCurrent = spMemInfo->pBuffer;
-        spMemInfo->pEnd = spMemInfo->pBuffer + kCompMemSize;
+        pMemInfo = GNEW(kMEM_Compose, CompMemInfo);
+        pMemInfo->pBuffer = static_cast<u8*>(GALLOC(kMEM_Compose, kCompMemSize));
+        pMemInfo->pCurrent = pMemInfo->pBuffer;
+        pMemInfo->pEnd = pMemInfo->pBuffer + kCompMemSize;
     }
 
-    return spMemInfo;
+    return pMemInfo;
 }
 
 void * comp_alloc(size_t count)

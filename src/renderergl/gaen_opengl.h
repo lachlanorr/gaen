@@ -30,11 +30,38 @@
 #include "core/base_defines.h"
 
 #if IS_PLATFORM_WIN32
-#include "renderergl/win32gl.h"
+ #ifndef WIN32_LEAN_AND_MEAN
+  #define WIN32_LEAN_AND_MEAN
+ #endif // #ifndef WIN32_LEAN_AND_MEAN
+ #include <windows.h>
+ #include "renderergl/win32gl.h"
+ namespace gaen
+ {
+ typedef HDC device_context;
+ typedef HGLRC render_context;
+ }
+ #define OPENGL3 HAS_X
+ #define GL_CLEAR_DEPTH glClearDepth
 #elif IS_PLATFORM_OSX
-#include <OpenGL/gl3.h>
+ #include <OpenGL/gl3.h>
+ namespace gaen
+ {
+ typedef void* device_context;
+ typedef void* render_context;
+ }
+ #define OPENGL3 HAS__
+ #define GL_CLEAR_DEPTH glClearDepth
+#elif IS_PLATFORM_IOS
+ #include <OpenGLES/ES3/gl.h>
+ namespace gaen
+ {
+ typedef void* device_context;
+ typedef void* render_context;
+ }
+ #define OPENGL3 HAS_X
+ #define GL_CLEAR_DEPTH glClearDepthf
 #else
-// LORRTODO - Include appropriate open gl header for other platforms
+#error Need to implement a similar concepts on other platforms
 #endif
 
 #endif // #ifndef GAEN_GAEN_OPENGL_H

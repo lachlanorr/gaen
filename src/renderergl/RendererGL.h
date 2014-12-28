@@ -35,28 +35,7 @@
 #include "engine/ModelMgr.h"
 #include "engine/renderer_structs.h"
 
-#if IS_PLATFORM_WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif // #ifndef WIN32_LEAN_AND_MEAN
-#define OPENGL3 HAS_X
-#include <windows.h>
-namespace gaen
-{
-typedef HDC device_context;
-typedef HGLRC render_context;
-}
-#elif IS_PLATFORM_OSX || IS_PLATFORM_IOS // #if IS_PLATFORM_WIN32
-#define OPENGL3 HAS__
-namespace gaen
-{
-// LORRTODO - Set these properly for OSX, for now I just don't want to see the noisy error
-typedef void* device_context;
-typedef void* render_context;
-}
-#else // #if IS_PLATFORM_OSX || IS_PLATFORM_IOS
-#error Need to implement a similar concept on other platforms
-#endif
+#include "renderergl/gaen_opengl.h"
 
 namespace gaen
 {
