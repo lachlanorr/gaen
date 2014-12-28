@@ -129,17 +129,6 @@
     return _pixelFormat;
 }
 
--(void) drawRect
-{
-    [_openGLContext makeCurrentContext];
-
-    glClearColor(1.0f, 0, 0, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glFlush();
-
-    [_openGLContext flushBuffer];
-}
-
 @end
 
 //------------------------------------------------------------------------------
