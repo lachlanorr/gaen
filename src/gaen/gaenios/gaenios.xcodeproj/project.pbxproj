@@ -13,18 +13,7 @@
 		06698C061A509F960029AD30 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 06698C041A509F960029AD30 /* Main.storyboard */; };
 		06698C081A509F960029AD30 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 06698C071A509F960029AD30 /* Images.xcassets */; };
 		06698C0B1A509F960029AD30 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 06698C091A509F960029AD30 /* LaunchScreen.xib */; };
-		06698C171A509F960029AD30 /* gaeniosTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 06698C161A509F960029AD30 /* gaeniosTests.m */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		06698C111A509F960029AD30 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 06698BEF1A509F960029AD30 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 06698BF61A509F960029AD30;
-			remoteInfo = gaenios;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		06698BF71A509F960029AD30 /* gaenios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gaenios.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -37,20 +26,10 @@
 		06698C051A509F960029AD30 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		06698C071A509F960029AD30 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		06698C0A1A509F960029AD30 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
-		06698C101A509F960029AD30 /* gaeniosTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = gaeniosTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		06698C151A509F960029AD30 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		06698C161A509F960029AD30 /* gaeniosTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = gaeniosTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		06698BF41A509F960029AD30 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		06698C0D1A509F960029AD30 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -64,7 +43,6 @@
 			isa = PBXGroup;
 			children = (
 				06698BF91A509F960029AD30 /* gaenios */,
-				06698C131A509F960029AD30 /* gaeniosTests */,
 				06698BF81A509F960029AD30 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -73,7 +51,6 @@
 			isa = PBXGroup;
 			children = (
 				06698BF71A509F960029AD30 /* gaenios.app */,
-				06698C101A509F960029AD30 /* gaeniosTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -102,23 +79,6 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		06698C131A509F960029AD30 /* gaeniosTests */ = {
-			isa = PBXGroup;
-			children = (
-				06698C161A509F960029AD30 /* gaeniosTests.m */,
-				06698C141A509F960029AD30 /* Supporting Files */,
-			);
-			path = gaeniosTests;
-			sourceTree = "<group>";
-		};
-		06698C141A509F960029AD30 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				06698C151A509F960029AD30 /* Info.plist */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -139,24 +99,6 @@
 			productReference = 06698BF71A509F960029AD30 /* gaenios.app */;
 			productType = "com.apple.product-type.application";
 		};
-		06698C0F1A509F960029AD30 /* gaeniosTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 06698C1D1A509F960029AD30 /* Build configuration list for PBXNativeTarget "gaeniosTests" */;
-			buildPhases = (
-				06698C0C1A509F960029AD30 /* Sources */,
-				06698C0D1A509F960029AD30 /* Frameworks */,
-				06698C0E1A509F960029AD30 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				06698C121A509F960029AD30 /* PBXTargetDependency */,
-			);
-			name = gaeniosTests;
-			productName = gaeniosTests;
-			productReference = 06698C101A509F960029AD30 /* gaeniosTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -168,10 +110,6 @@
 				TargetAttributes = {
 					06698BF61A509F960029AD30 = {
 						CreatedOnToolsVersion = 6.1.1;
-					};
-					06698C0F1A509F960029AD30 = {
-						CreatedOnToolsVersion = 6.1.1;
-						TestTargetID = 06698BF61A509F960029AD30;
 					};
 				};
 			};
@@ -189,7 +127,6 @@
 			projectRoot = "";
 			targets = (
 				06698BF61A509F960029AD30 /* gaenios */,
-				06698C0F1A509F960029AD30 /* gaeniosTests */,
 			);
 		};
 /* End PBXProject section */
@@ -202,13 +139,6 @@
 				06698C061A509F960029AD30 /* Main.storyboard in Resources */,
 				06698C0B1A509F960029AD30 /* LaunchScreen.xib in Resources */,
 				06698C081A509F960029AD30 /* Images.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		06698C0E1A509F960029AD30 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -225,23 +155,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		06698C0C1A509F960029AD30 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				06698C171A509F960029AD30 /* gaeniosTests.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		06698C121A509F960029AD30 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 06698BF61A509F960029AD30 /* gaenios */;
-			targetProxy = 06698C111A509F960029AD30 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		06698C041A509F960029AD30 /* Main.storyboard */ = {
@@ -361,40 +275,6 @@
 			};
 			name = Release;
 		};
-		06698C1E1A509F960029AD30 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
-					"$(inherited)",
-				);
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = gaeniosTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/gaenios.app/gaenios";
-			};
-			name = Debug;
-		};
-		06698C1F1A509F960029AD30 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(SDKROOT)/Developer/Library/Frameworks",
-					"$(inherited)",
-				);
-				INFOPLIST_FILE = gaeniosTests/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/gaenios.app/gaenios";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -414,14 +294,7 @@
 				06698C1C1A509F960029AD30 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-		};
-		06698C1D1A509F960029AD30 /* Build configuration list for PBXNativeTarget "gaeniosTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				06698C1E1A509F960029AD30 /* Debug */,
-				06698C1F1A509F960029AD30 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
