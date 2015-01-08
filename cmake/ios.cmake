@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# osx.cmake - OSX specific settings used in CMakeLists.txt files
+# ios.cmake - iOS specific settings used in CMakeLists.txt files
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014 Lachlan Orr

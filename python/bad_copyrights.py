@@ -36,7 +36,7 @@ import re
 
 
 SCRIPT_HEADER = (r"#-------------------------------------------------------------------------------\n"
-                 r"# %s - [A-Z].+[^\.]\n"
+                 r"# %s - .+[^\.]\n"
                  r"#\n"
                  r"# Gaen Concurrency Engine - http://gaen\.org\n"
                  r"# Copyright \(c\) 2014 Lachlan Orr\n"
@@ -63,7 +63,7 @@ SCRIPT_HEADER = (r"#------------------------------------------------------------
 
 
 C_HEADER = (r"/\*------------------------------------------------------------------------------\n"
-            r"%s - [A-Z].+[^\.]\n"
+            r"%s - .+[^\.]\n"
             r"\n"
             r"Gaen Concurrency Engine - http://gaen\.org\n"
             r"Copyright \(c\) 2014 Lachlan Orr\n"
@@ -90,7 +90,7 @@ C_HEADER = (r"/\*---------------------------------------------------------------
 
 
 CPP_HEADER = (r"//------------------------------------------------------------------------------\n"
-              r"// %s - [A-Z].+[^\.]\n"
+              r"// %s - .+[^\.]\n"
               r"//\n"
               r"// Gaen Concurrency Engine - http://gaen\.org\n"
               r"// Copyright \(c\) 2014 Lachlan Orr\n"
@@ -116,7 +116,7 @@ CPP_HEADER = (r"//--------------------------------------------------------------
               r"//------------------------------------------------------------------------------\n")
 
 
-HEADERS = [(re.compile(r'^.*\.(h|c|cpp|cmp)$'),            CPP_HEADER),
+HEADERS = [(re.compile(r'^.*\.(h|c|cpp|cmp|m|mm)$'),       CPP_HEADER),
            (re.compile(r'^.*\.(y|l)$'),                    C_HEADER),
            (re.compile(r'^.*\.py$'),                       SCRIPT_HEADER),
            (re.compile(r'^.*(CMakeLists.txt|\.cmake)$'),   SCRIPT_HEADER),

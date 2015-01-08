@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// RendererGL_osx.cpp - OpenGL Renderer
+// RendererGL_osx.mm - OpenGL Renderer
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
