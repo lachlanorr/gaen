@@ -30,6 +30,10 @@ IF(IOS)
        ${CMAKE_CURRENT_SOURCE_DIR}/gaenios/gaenios.xcodeproj
        DESTINATION
        ${CMAKE_BINARY_DIR})
+  FILE(COPY
+       ${CMAKE_CURRENT_SOURCE_DIR}/gaenios/gaenios.xcworkspace
+       DESTINATION
+       ${CMAKE_BINARY_DIR})
   EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_CURRENT_SOURCE_DIR}/gaenios/gaenios ${CMAKE_BINARY_DIR}/gaenios)
 
 ELSE(IOS)
