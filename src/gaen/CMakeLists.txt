@@ -25,52 +25,61 @@
 #-------------------------------------------------------------------------------
 
 
-SET (gaen_SOURCES
-  gaen.cpp
-  gaen.h
-  )
+IF(IOS)
+  FILE(COPY
+       ${CMAKE_CURRENT_SOURCE_DIR}/gaenios/gaenios.xcodeproj
+       DESTINATION
+       ${CMAKE_BINARY_DIR})
+  EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_CURRENT_SOURCE_DIR}/gaenios/gaenios ${CMAKE_BINARY_DIR}/gaenios)
 
+ELSE(IOS)
 
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  # OSX
   SET (gaen_SOURCES
-    ${gaen_SOURCES}
-    main_osx.mm
+    gaen.cpp
+    gaen.h
     )
 
-  SET(MACOSX_BUNDLE_BUNDLE_NAME Gaen)
 
-  ADD_EXECUTABLE(gaen MACOSX_BUNDLE
-    ${gaen_SOURCES}
+  IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    # OSX
+    SET (gaen_SOURCES
+      ${gaen_SOURCES}
+      main_osx.mm
+      )
+
+    SET(MACOSX_BUNDLE_BUNDLE_NAME Gaen)
+
+    ADD_EXECUTABLE(gaen MACOSX_BUNDLE
+      ${gaen_SOURCES}
+      )
+
+    # Copy bundle to package dir
+    ADD_CUSTOM_COMMAND(
+      TARGET gaen
+      POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:gaen>/../../../gaen.app ${packaged_dir}/gaen.app
+      )
+
+  ELSEIF (WIN32)
+    SET (gaen_SOURCES
+      ${gaen_SOURCES}
+      main_win32.cpp
+      )
+    ADD_EXECUTABLE(gaen WIN32
+      ${gaen_SOURCES}
+      )
+    package (gaen)
+  ENDIF (WIN32)
+
+  IDE_SOURCE_PROPERTIES( "/" "${gaen_SOURCES}")
+
+  TARGET_LINK_LIBRARIES (gaen
+    core
+    engine
+    renderergl
+    scripts
+    samples
+    ${PLATFORM_LINK_LIBS}
     )
 
-  # Copy bundle to package dir
-  ADD_CUSTOM_COMMAND(
-    TARGET gaen
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:gaen>/../../../gaen.app ${packaged_dir}/gaen.app
-    )
-
-ELSEIF (WIN32)
-  SET (gaen_SOURCES
-    ${gaen_SOURCES}
-    main_win32.cpp
-    )
-  ADD_EXECUTABLE(gaen WIN32
-    ${gaen_SOURCES}
-    )
-  package (gaen)
-ENDIF ()
-
-IDE_SOURCE_PROPERTIES( "/" "${gaen_SOURCES}")
-
-# LORRTODO - Make samples project only get added with a command switch. Don't add it by default.
-TARGET_LINK_LIBRARIES (gaen
-  core
-  engine
-  renderergl
-  scripts
-  samples
-  ${PLATFORM_LINK_LIBS}
-  )
-
+ENDIF(IOS)
