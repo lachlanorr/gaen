@@ -4,4 +4,7 @@
    <FileRef
       location = "container:gaenios.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "container:gaen.xcodeproj">
+   </FileRef>
 </Workspace>
