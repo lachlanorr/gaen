@@ -15,6 +15,44 @@
 		06698C0B1A509F960029AD30 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 06698C091A509F960029AD30 /* LaunchScreen.xib */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		0697326B1A6141120047B0FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 4ED5BE965FB14D65B53D580B;
+			remoteInfo = core;
+		};
+		0697326D1A6141120047B0FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 33146569CE05463FAEC144F2;
+			remoteInfo = engine;
+		};
+		0697326F1A6141120047B0FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 6B492BD9ED37436ABFDB6183;
+			remoteInfo = scripts;
+		};
+		069732711A6141120047B0FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FB72B4AEA73E4422921F74E0;
+			remoteInfo = renderergl;
+		};
+		069732731A6141120047B0FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = EB0C123D61BB404CBD9009FB;
+			remoteInfo = compose;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		06698BF71A509F960029AD30 /* gaenios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gaenios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		06698BFB1A509F960029AD30 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -26,6 +64,7 @@
 		06698C051A509F960029AD30 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		06698C071A509F960029AD30 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		06698C0A1A509F960029AD30 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
+		0697325F1A6141120047B0FE /* gaen.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = gaen.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +81,7 @@
 		06698BEE1A509F960029AD30 = {
 			isa = PBXGroup;
 			children = (
+				0697325F1A6141120047B0FE /* gaen.xcodeproj */,
 				06698BF91A509F960029AD30 /* gaenios */,
 				06698BF81A509F960029AD30 /* Products */,
 			);
@@ -77,6 +117,18 @@
 				06698BFC1A509F960029AD30 /* main.m */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		069732601A6141120047B0FE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0697326C1A6141120047B0FE /* libcore.a */,
+				0697326E1A6141120047B0FE /* libengine.a */,
+				069732701A6141120047B0FE /* libscripts.a */,
+				069732721A6141120047B0FE /* librenderergl.a */,
+				069732741A6141120047B0FE /* libcompose.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -124,12 +176,56 @@
 			mainGroup = 06698BEE1A509F960029AD30;
 			productRefGroup = 06698BF81A509F960029AD30 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 069732601A6141120047B0FE /* Products */;
+					ProjectRef = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				06698BF61A509F960029AD30 /* gaenios */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		0697326C1A6141120047B0FE /* libcore.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcore.a;
+			remoteRef = 0697326B1A6141120047B0FE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		0697326E1A6141120047B0FE /* libengine.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libengine.a;
+			remoteRef = 0697326D1A6141120047B0FE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		069732701A6141120047B0FE /* libscripts.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libscripts.a;
+			remoteRef = 0697326F1A6141120047B0FE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		069732721A6141120047B0FE /* librenderergl.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = librenderergl.a;
+			remoteRef = 069732711A6141120047B0FE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		069732741A6141120047B0FE /* libcompose.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libcompose.a;
+			remoteRef = 069732731A6141120047B0FE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		06698BF51A509F960029AD30 /* Resources */ = {
