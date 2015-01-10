@@ -51,6 +51,41 @@
 			remoteGlobalIDString = EB0C123D61BB404CBD9009FB;
 			remoteInfo = compose;
 		};
+		0697328A1A61444F0047B0FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = A05248D40D8341B3854BB8AE;
+			remoteInfo = core;
+		};
+		069732951A6144530047B0FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = C68C5C5668634A7E836375E8;
+			remoteInfo = engine;
+		};
+		069732971A6144570047B0FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BA876BA3BDA4CB1919505DE;
+			remoteInfo = renderergl;
+		};
+		069732991A61445A0047B0FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7A36A6EF954C4FF78C2039D9;
+			remoteInfo = scripts;
+		};
+		0697329B1A61445E0047B0FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 790D9B3D65584AC5BDA41D9E;
+			remoteInfo = compose;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -145,6 +180,11 @@
 			buildRules = (
 			);
 			dependencies = (
+				0697328B1A61444F0047B0FE /* PBXTargetDependency */,
+				069732961A6144530047B0FE /* PBXTargetDependency */,
+				069732981A6144570047B0FE /* PBXTargetDependency */,
+				0697329A1A61445A0047B0FE /* PBXTargetDependency */,
+				0697329C1A61445E0047B0FE /* PBXTargetDependency */,
 			);
 			name = gaenios;
 			productName = gaenios;
@@ -252,6 +292,34 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0697328B1A61444F0047B0FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = core;
+			targetProxy = 0697328A1A61444F0047B0FE /* PBXContainerItemProxy */;
+		};
+		069732961A6144530047B0FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = engine;
+			targetProxy = 069732951A6144530047B0FE /* PBXContainerItemProxy */;
+		};
+		069732981A6144570047B0FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = renderergl;
+			targetProxy = 069732971A6144570047B0FE /* PBXContainerItemProxy */;
+		};
+		0697329A1A61445A0047B0FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = scripts;
+			targetProxy = 069732991A61445A0047B0FE /* PBXContainerItemProxy */;
+		};
+		0697329C1A61445E0047B0FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = compose;
+			targetProxy = 0697329B1A61445E0047B0FE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		06698C041A509F960029AD30 /* Main.storyboard */ = {
