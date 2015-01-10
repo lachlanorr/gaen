@@ -78,7 +78,6 @@ ELSE(IOS)
     engine
     renderergl
     scripts
-    samples
     ${PLATFORM_LINK_LIBS}
     )
 
