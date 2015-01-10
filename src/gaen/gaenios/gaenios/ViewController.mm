@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// ViewController.m - ViewController routine for iOS gaen app
+// ViewController.mm - ViewController routine for iOS gaen app
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "renderergl/gaen_opengl.h"
+
 #import "ViewController.h"
 
 @interface ViewController ()
@@ -34,7 +36,19 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+
+    // Create an OpenGL ES context and assign it to the view loaded from storyboard
+    GLKView *view = (GLKView *)self.SDFSDView;
+
+    view.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    
+    // Configure renderbuffers created by the view
+    view.drawableColorFormat = GLKViewDrawableColorFormatRGBA8888;
+    view.drawableDepthFormat = GLKViewDrawableDepthFormat24;
+    view.drawableStencilFormat = GLKViewDrawableStencilFormat8;
+    
+    // Enable multisampling
+    view.drawableMultisample = GLKViewDrawableMultisample4X;
 }
 
 - (void)didReceiveMemoryWarning {
