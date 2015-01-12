@@ -7,9 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		06698BFD1A509F960029AD30 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 06698BFC1A509F960029AD30 /* main.m */; };
-		06698C001A509F960029AD30 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 06698BFF1A509F960029AD30 /* AppDelegate.m */; };
-		06698C031A509F960029AD30 /* ViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 06698C021A509F960029AD30 /* ViewController.m */; };
+		065599261A6343F1007EEF9C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 065599251A6343F1007EEF9C /* UIKit.framework */; };
+		065599201A63422A007EEF9C /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0655991F1A63422A007EEF9C /* GLKit.framework */; };
+		0655992A1A634473007EEF9C /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 065599291A634473007EEF9C /* OpenGLES.framework */; };
+		06698BFD1A509F960029AD30 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 06698BFC1A509F960029AD30 /* main.mm */; };
+		06698C001A509F960029AD30 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 06698BFF1A509F960029AD30 /* AppDelegate.mm */; };
+		06698C031A509F960029AD30 /* ViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 06698C021A509F960029AD30 /* ViewController.mm */; };
 		06698C061A509F960029AD30 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 06698C041A509F960029AD30 /* Main.storyboard */; };
 		06698C081A509F960029AD30 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 06698C071A509F960029AD30 /* Images.xcassets */; };
 		06698C0B1A509F960029AD30 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 06698C091A509F960029AD30 /* LaunchScreen.xib */; };
@@ -55,45 +58,48 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = A05248D40D8341B3854BB8AE;
+			remoteGlobalIDString = 5BC97E24083949ED93416AED;
 			remoteInfo = core;
 		};
 		069732951A6144530047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = C68C5C5668634A7E836375E8;
+			remoteGlobalIDString = 1BCAA32034BD48CE8FD7EC90;
 			remoteInfo = engine;
 		};
 		069732971A6144570047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 5BA876BA3BDA4CB1919505DE;
+			remoteGlobalIDString = B09D6B1F1B1843A4BDD2BD46;
 			remoteInfo = renderergl;
 		};
 		069732991A61445A0047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7A36A6EF954C4FF78C2039D9;
+			remoteGlobalIDString = B4346A4ADAAB4D15BBF7C888;
 			remoteInfo = scripts;
 		};
 		0697329B1A61445E0047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 790D9B3D65584AC5BDA41D9E;
+			remoteGlobalIDString = D04BEB6A8E0149CCA6C96718;
 			remoteInfo = compose;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		065599251A6343F1007EEF9C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		0655991F1A63422A007EEF9C /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		065599291A634473007EEF9C /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		06698BF71A509F960029AD30 /* gaenios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gaenios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		06698BFB1A509F960029AD30 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		06698BFC1A509F960029AD30 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		06698BFC1A509F960029AD30 /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.mm; sourceTree = "<group>"; };
 		06698BFE1A509F960029AD30 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		06698BFF1A509F960029AD30 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		06698BFF1A509F960029AD30 /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.mm; sourceTree = "<group>"; };
 		06698C011A509F960029AD30 /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		06698C021A509F960029AD30 /* ViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.mm; sourceTree = "<group>"; };
 		06698C051A509F960029AD30 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -107,6 +113,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				065599261A6343F1007EEF9C /* UIKit.framework in Frameworks */,
+				065599201A63422A007EEF9C /* GLKit.framework in Frameworks */,
+				0655992A1A634473007EEF9C /* OpenGLES.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -116,6 +125,9 @@
 		06698BEE1A509F960029AD30 = {
 			isa = PBXGroup;
 			children = (
+				065599251A6343F1007EEF9C /* UIKit.framework */,
+				0655991F1A63422A007EEF9C /* GLKit.framework */,
+				065599291A634473007EEF9C /* OpenGLES.framework */,
 				0697325F1A6141120047B0FE /* gaen.xcodeproj */,
 				06698BF91A509F960029AD30 /* gaenios */,
 				06698BF81A509F960029AD30 /* Products */,
@@ -134,7 +146,7 @@
 			isa = PBXGroup;
 			children = (
 				06698BFE1A509F960029AD30 /* AppDelegate.h */,
-				06698BFF1A509F960029AD30 /* AppDelegate.m */,
+				06698BFF1A509F960029AD30 /* AppDelegate.mm */,
 				06698C011A509F960029AD30 /* ViewController.h */,
 				06698C021A509F960029AD30 /* ViewController.mm */,
 				06698C041A509F960029AD30 /* Main.storyboard */,
@@ -149,7 +161,7 @@
 			isa = PBXGroup;
 			children = (
 				06698BFB1A509F960029AD30 /* Info.plist */,
-				06698BFC1A509F960029AD30 /* main.m */,
+				06698BFC1A509F960029AD30 /* main.mm */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -286,8 +298,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				06698C031A509F960029AD30 /* ViewController.mm in Sources */,
-				06698C001A509F960029AD30 /* AppDelegate.m in Sources */,
-				06698BFD1A509F960029AD30 /* main.m in Sources */,
+				06698C001A509F960029AD30 /* AppDelegate.mm in Sources */,
+				06698BFD1A509F960029AD30 /* main.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -423,8 +435,29 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				GCC_C_LANGUAGE_STANDARD = c11;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					"'IS_PLATFORM_IOS=1'",
+					"'IS_PLATFORM_POSIX=1'",
+				);
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					../../src,
+				);
 				INFOPLIST_FILE = gaenios/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_CFLAGS = "-std=c11";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-fvisibility=hidden",
+					"-fvisibility-inlines-hidden",
+					"-DIS_BUILD_Debug=1",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -433,8 +466,29 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				GCC_C_LANGUAGE_STANDARD = c11;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"'CMAKE_INTDIR=\"$(CONFIGURATION)$(EFFECTIVE_PLATFORM_NAME)\"'",
+					"'IS_PLATFORM_IOS=1'",
+					"'IS_PLATFORM_POSIX=1'",
+				);
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+					../../src,
+				);
 				INFOPLIST_FILE = gaenios/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				OTHER_CFLAGS = "-std=c11";
+				OTHER_CPLUSPLUSFLAGS = (
+					"-fvisibility=hidden",
+					"-fvisibility-inlines-hidden",
+					"-DIS_BUILD_Release=1",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#import <GLKit/GLKit.h>
+
 #include "renderergl/gaen_opengl.h"
 
 #import "ViewController.h"
@@ -38,7 +40,7 @@
     [super viewDidLoad];
 
     // Create an OpenGL ES context and assign it to the view loaded from storyboard
-    GLKView *view = (GLKView *)self.SDFSDView;
+    GLKView *view = (GLKView *)self.view;
 
     view.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     
