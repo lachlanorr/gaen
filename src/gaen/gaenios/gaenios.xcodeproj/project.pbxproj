@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		065599261A6343F1007EEF9C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 065599251A6343F1007EEF9C /* UIKit.framework */; };
 		065599201A63422A007EEF9C /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0655991F1A63422A007EEF9C /* GLKit.framework */; };
+		065599261A6343F1007EEF9C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 065599251A6343F1007EEF9C /* UIKit.framework */; };
 		0655992A1A634473007EEF9C /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 065599291A634473007EEF9C /* OpenGLES.framework */; };
 		06698BFD1A509F960029AD30 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 06698BFC1A509F960029AD30 /* main.mm */; };
 		06698C001A509F960029AD30 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 06698BFF1A509F960029AD30 /* AppDelegate.mm */; };
@@ -58,42 +58,42 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 5BC97E24083949ED93416AED;
+			remoteGlobalIDString = CCC4351DC7294E10BBC201DA;
 			remoteInfo = core;
 		};
 		069732951A6144530047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1BCAA32034BD48CE8FD7EC90;
+			remoteGlobalIDString = 4293346A5F6A4420A7022F96;
 			remoteInfo = engine;
 		};
 		069732971A6144570047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = B09D6B1F1B1843A4BDD2BD46;
+			remoteGlobalIDString = 1B51A66B30994CF9B5EF8E01;
 			remoteInfo = renderergl;
 		};
 		069732991A61445A0047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = B4346A4ADAAB4D15BBF7C888;
+			remoteGlobalIDString = FD516C902AD646BC8BF118BA;
 			remoteInfo = scripts;
 		};
 		0697329B1A61445E0047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D04BEB6A8E0149CCA6C96718;
+			remoteGlobalIDString = 7181D713C37942CFA7BD90BD;
 			remoteInfo = compose;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		065599251A6343F1007EEF9C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		0655991F1A63422A007EEF9C /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		065599251A6343F1007EEF9C /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		065599291A634473007EEF9C /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		06698BF71A509F960029AD30 /* gaenios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = gaenios.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		06698BFB1A509F960029AD30 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -459,6 +459,7 @@
 					"-DIS_BUILD_Debug=1",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SYMROOT = "$(PROJECT_DIR)";
 			};
 			name = Debug;
 		};
@@ -490,6 +491,7 @@
 					"-DIS_BUILD_Release=1",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SYMROOT = "$(PROJECT_DIR)";
 			};
 			name = Release;
 		};
