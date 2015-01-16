@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		064A2B021A6892CA00FF4ED5 /* libcompose.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 069732741A6141120047B0FE /* libcompose.a */; };
+		064A2B031A6892CA00FF4ED5 /* libcore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0697326C1A6141120047B0FE /* libcore.a */; };
+		064A2B041A6892CA00FF4ED5 /* libengine.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0697326E1A6141120047B0FE /* libengine.a */; };
+		064A2B051A6892CA00FF4ED5 /* librenderergl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 069732721A6141120047B0FE /* librenderergl.a */; };
+		064A2B061A6892CA00FF4ED5 /* libscripts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 069732701A6141120047B0FE /* libscripts.a */; };
 		065599201A63422A007EEF9C /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0655991F1A63422A007EEF9C /* GLKit.framework */; };
 		065599261A6343F1007EEF9C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 065599251A6343F1007EEF9C /* UIKit.framework */; };
 		0655992A1A634473007EEF9C /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 065599291A634473007EEF9C /* OpenGLES.framework */; };
@@ -58,35 +63,35 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = CCC4351DC7294E10BBC201DA;
+			remoteGlobalIDString = 63F2836A729C4C75A1525DB3;
 			remoteInfo = core;
 		};
 		069732951A6144530047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 4293346A5F6A4420A7022F96;
+			remoteGlobalIDString = D8F5F0111398465D9D2EF29B;
 			remoteInfo = engine;
 		};
 		069732971A6144570047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1B51A66B30994CF9B5EF8E01;
+			remoteGlobalIDString = 59E6526FE46B40BB90E87500;
 			remoteInfo = renderergl;
 		};
 		069732991A61445A0047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = FD516C902AD646BC8BF118BA;
+			remoteGlobalIDString = BEDC561CCB714A938FEDA54A;
 			remoteInfo = scripts;
 		};
 		0697329B1A61445E0047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7181D713C37942CFA7BD90BD;
+			remoteGlobalIDString = F4204EF646D14C76859C7831;
 			remoteInfo = compose;
 		};
 /* End PBXContainerItemProxy section */
@@ -113,6 +118,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				064A2B031A6892CA00FF4ED5 /* libcore.a in Frameworks */,
+				064A2B041A6892CA00FF4ED5 /* libengine.a in Frameworks */,
+				064A2B051A6892CA00FF4ED5 /* librenderergl.a in Frameworks */,
+				064A2B061A6892CA00FF4ED5 /* libscripts.a in Frameworks */,
+				064A2B021A6892CA00FF4ED5 /* libcompose.a in Frameworks */,
 				065599261A6343F1007EEF9C /* UIKit.framework in Frameworks */,
 				065599201A63422A007EEF9C /* GLKit.framework in Frameworks */,
 				0655992A1A634473007EEF9C /* OpenGLES.framework in Frameworks */,

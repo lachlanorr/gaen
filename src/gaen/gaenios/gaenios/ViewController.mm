@@ -28,6 +28,11 @@
 
 #include "renderergl/gaen_opengl.h"
 
+#include "engine/renderer_api.h"
+#include "engine/input.h"
+#include "renderergl/RendererGL.h"
+#include "gaen/gaen.h"
+
 #import "ViewController.h"
 
 @interface ViewController ()
@@ -35,8 +40,13 @@
 @end
 
 @implementation ViewController
+{
+    gaen::RendererGL * _pRenderer;
+}
+- (void)viewDidLoad
+{
+    using namespace gaen;
 
-- (void)viewDidLoad {
     [super viewDidLoad];
 
     // Create an OpenGL ES context and assign it to the view loaded from storyboard
@@ -51,6 +61,8 @@
     
     // Enable multisampling
     view.drawableMultisample = GLKViewDrawableMultisample4X;
+
+    _pRenderer = GNEW(kMEM_Renderer, RendererGL);
 }
 
 - (void)didReceiveMemoryWarning {
