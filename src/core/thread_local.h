@@ -130,7 +130,8 @@ private:
 
     static pthread_key_t sKey;
 };
-
+template <typename T, int ID>
+pthread_key_t ThreadLocal<T, ID>::sKey = 0;
 
 
 template <typename T, size_t N, int ID>
@@ -184,6 +185,8 @@ public:
     static pthread_key_t sKey;
     
 };
+template <typename T, size_t N, int ID>
+pthread_key_t ThreadLocalArray<T, N, ID>::sKey = 0;
 
 } // namespace gaen
 
