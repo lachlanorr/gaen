@@ -38,11 +38,7 @@ namespace gaen
 void init_gaen(int argc, char ** argv);
 
 // Set the renderer for the primary taskmaster
-void set_renderer(const Task & rendererTask)
-{
-    TaskMaster & tm = TaskMaster::primary_task_master();
-    tm.setRenderer(rendererTask);
-}
+void set_renderer(const Task & rendererTask);
 
 // Call this to shutdown TaskMasters when app wants to close
 void fin_gaen();

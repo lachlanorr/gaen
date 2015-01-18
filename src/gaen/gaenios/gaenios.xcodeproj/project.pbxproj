@@ -21,6 +21,7 @@
 		06698C061A509F960029AD30 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 06698C041A509F960029AD30 /* Main.storyboard */; };
 		06698C081A509F960029AD30 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 06698C071A509F960029AD30 /* Images.xcassets */; };
 		06698C0B1A509F960029AD30 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 06698C091A509F960029AD30 /* LaunchScreen.xib */; };
+		06BBB2521A6ABF1800EC7A5E /* gaen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 06BBB2501A6ABF1800EC7A5E /* gaen.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,35 +64,35 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 63F2836A729C4C75A1525DB3;
+			remoteGlobalIDString = BA709A6145F247D1BB1C532C;
 			remoteInfo = core;
 		};
 		069732951A6144530047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D8F5F0111398465D9D2EF29B;
+			remoteGlobalIDString = 84BDD9085B554EEB8F9C1F13;
 			remoteInfo = engine;
 		};
 		069732971A6144570047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 59E6526FE46B40BB90E87500;
+			remoteGlobalIDString = C1C7F1E017624E5389D11A53;
 			remoteInfo = renderergl;
 		};
 		069732991A61445A0047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = BEDC561CCB714A938FEDA54A;
+			remoteGlobalIDString = B7CA07A5821E46F5B1186336;
 			remoteInfo = scripts;
 		};
 		0697329B1A61445E0047B0FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 0697325F1A6141120047B0FE /* gaen.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = F4204EF646D14C76859C7831;
+			remoteGlobalIDString = C1496AF6558443B5B470ECC5;
 			remoteInfo = compose;
 		};
 /* End PBXContainerItemProxy section */
@@ -111,6 +112,8 @@
 		06698C071A509F960029AD30 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		06698C0A1A509F960029AD30 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
 		0697325F1A6141120047B0FE /* gaen.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = gaen.xcodeproj; sourceTree = "<group>"; };
+		06BBB2501A6ABF1800EC7A5E /* gaen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = gaen.cpp; path = ../../../src/gaen/gaen.cpp; sourceTree = "<group>"; };
+		06BBB2511A6ABF1800EC7A5E /* gaen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = gaen.h; path = ../../../src/gaen/gaen.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -155,6 +158,8 @@
 		06698BF91A509F960029AD30 /* gaenios */ = {
 			isa = PBXGroup;
 			children = (
+				06BBB2501A6ABF1800EC7A5E /* gaen.cpp */,
+				06BBB2511A6ABF1800EC7A5E /* gaen.h */,
 				06698BFE1A509F960029AD30 /* AppDelegate.h */,
 				06698BFF1A509F960029AD30 /* AppDelegate.mm */,
 				06698C011A509F960029AD30 /* ViewController.h */,
@@ -307,6 +312,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				06BBB2521A6ABF1800EC7A5E /* gaen.cpp in Sources */,
 				06698C031A509F960029AD30 /* ViewController.mm in Sources */,
 				06698C001A509F960029AD30 /* AppDelegate.mm in Sources */,
 				06698BFD1A509F960029AD30 /* main.mm in Sources */,

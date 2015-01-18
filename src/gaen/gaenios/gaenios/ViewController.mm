@@ -35,14 +35,13 @@
 
 #import "ViewController.h"
 
+gaen::RendererGL * g_pRenderer = nullptr;
+
 @interface ViewController ()
 
 @end
 
 @implementation ViewController
-{
-    gaen::RendererGL * _pRenderer;
-}
 - (void)viewDidLoad
 {
     using namespace gaen;
@@ -62,7 +61,16 @@
     // Enable multisampling
     view.drawableMultisample = GLKViewDrawableMultisample4X;
 
-    _pRenderer = GNEW(kMEM_Renderer, RendererGL);
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    CGFloat screenWidth = screenRect.size.width;
+    CGFloat screenHeight = screenRect.size.height;
+
+    g_pRenderer = GNEW(kMEM_Renderer, RendererGL);
+    g_pRenderer->init(nullptr, (__bridge void*)view.context, screenWidth, screenHeight);
+    Task rendererTask = Task::create(g_pRenderer, HASH::renderer);
+    set_renderer(rendererTask);
+
+    start_game_loops();
 }
 
 - (void)didReceiveMemoryWarning {

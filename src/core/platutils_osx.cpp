@@ -44,7 +44,7 @@ TL(u32, sTimebaseDenom) = 0;
 
 void init_time()
 {
-    ASSERT(sStartTimeAbsolute == 0);
+    ASSERT(sStartTimeAbsolute == (u64)0);
 
     sStartTimeAbsolute = mach_absolute_time();
 

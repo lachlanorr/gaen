@@ -145,7 +145,7 @@ void * MemMgr::allocate(size_t count, u32 alignment)
 
 #if IS_PLATFORM_WIN32
     void * pMem = _aligned_malloc(count, alignment);
-#elif IS_PLATFORM_OSX
+#elif IS_PLATFORM_OSX || IS_PLATFORM_IOS
     void * pMem = nullptr;
     int retval = posix_memalign(&pMem, alignment, count);
     ASSERT(retval == 0);

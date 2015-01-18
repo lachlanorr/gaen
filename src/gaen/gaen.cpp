@@ -189,6 +189,12 @@ void init_gaen(int argc, char ** argv)
     init_task_masters();
 }
 
+void set_renderer(const Task & rendererTask)
+{
+    TaskMaster & tm = TaskMaster::primary_task_master();
+    tm.setRenderer(rendererTask);
+}
+
 void fin_gaen()
 {
     fin_task_masters();

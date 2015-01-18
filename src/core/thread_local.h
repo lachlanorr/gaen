@@ -93,6 +93,11 @@ public:
         return get_value();
     }
 
+    bool operator==(const T& rhs)
+    {
+        return get_value() == rhs;
+    }
+
     operator T&()
     {
         return get_value();

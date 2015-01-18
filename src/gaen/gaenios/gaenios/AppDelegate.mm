@@ -24,7 +24,16 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "renderergl/RendererGL.h"
+
+#include "gaen/gaen.h"
+
 #import "AppDelegate.h"
+
+extern int g_argc;
+extern char ** g_argv;
+
+extern gaen::RendererGL * g_pRenderer;
 
 @interface AppDelegate ()
 
@@ -35,6 +44,8 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+
+    gaen::init_gaen(g_argc, g_argv);
     return YES;
 }
 
@@ -58,6 +69,8 @@
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    gaen::fin_gaen();
+    GDELETE(g_pRenderer);
 }
 
 @end
