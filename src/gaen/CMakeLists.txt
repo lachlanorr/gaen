@@ -69,7 +69,7 @@ ELSE(IOS)
       ${gaen_SOURCES}
       )
     package (gaen)
-  ENDIF (WIN32)
+  ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
   IDE_SOURCE_PROPERTIES( "/" "${gaen_SOURCES}")
 

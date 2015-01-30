@@ -92,8 +92,10 @@ static const char * sVertShaderCode =
     "    //vColor = vec4(1.0, 1.0, 0.0, 0.6);\n"
     "    gl_Position = umMVP * vPosition;\n"
     "}\n";
-#else
+#else //#if HAS(OPENGL3)
+ #if IS_PLATFORM_IOS
     "precision mediump float;\n"
+ #endif
     "attribute vec4 vPosition;\n"
     "attribute vec3 vNormal;\n"
 
@@ -113,7 +115,7 @@ static const char * sVertShaderCode =
     "    vColor = intensity * uvColor;\n"
     "    gl_Position = umMVP * vPosition;\n"
     "}\n";
-#endif
+#endif // #else //#if HAS(OPENGL3)
 
 
 
@@ -128,9 +130,10 @@ static const char * sFragShaderCode =
     "{\n"
     "    color = vColor;\n"
     "}\n";
-#else
-    "//#version 210 core\n"
+#else // #if HAS(OPENGL3)
+ #if IS_PLATFORM_IOS
     "precision mediump float;\n"
+ #endif
 
     "varying vec4 vColor;\n"
 
@@ -138,7 +141,7 @@ static const char * sFragShaderCode =
     "{\n"
     "    gl_FragColor = vColor;\n"
     "}\n";
-#endif
+#endif // #else // #if HAS(OPENGL3)
 
 static GLuint sProgramId = -1;
 static GLint sMVPUniform = -1;
