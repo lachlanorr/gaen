@@ -58,7 +58,7 @@
  typedef void* device_context;
  typedef void* render_context;
  }
- #define OPENGL3 HAS_X
+ #define OPENGL3 HAS__
  #define GL_CLEAR_DEPTH glClearDepthf
 #else
 #error Need to implement a similar concepts on other platforms

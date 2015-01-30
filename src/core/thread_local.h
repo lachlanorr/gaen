@@ -83,12 +83,14 @@ public:
 
     ThreadLocal(T val)
     {
+        //printf("%d/%d(%x) - Construct: %u\n", ID, Line, pthread_mach_thread_np(pthread_self()), *(u32*)&val);
         sInitVal = val;
         init();
     }
 
     T& operator=(T rhs)
     {
+        //printf("%d/%d(%x) - Assignment: %u\n", ID, Line, pthread_mach_thread_np(pthread_self()), *(u32*)&rhs);
         set_value(rhs);
         return get_value();
     }
@@ -96,6 +98,11 @@ public:
     bool operator==(T rhs)
     {
         return get_value() == rhs;
+    }
+
+    bool operator!=(T rhs)
+    {
+        return get_value() != rhs;
     }
 
     operator T&()
@@ -113,7 +120,7 @@ private:
     static void key_create()
     {
         pthread_key_create(&sKey, 0);
-        set_value(sInitVal);
+        //printf("%d/%d(%x) - key_create: %u\n", ID, Line, pthread_mach_thread_np(pthread_self()), *(u32*)&sInitVal);
     }
 
     static T* get_pointer()
@@ -122,9 +129,11 @@ private:
         if (pVal == nullptr)
         {
             pVal = reinterpret_cast<T*>(GALLOC(kMEM_Engine, sizeof(T)));
+            *pVal = sInitVal;
             int retval = pthread_setspecific(sKey, pVal);
             ASSERT(retval == 0);
         }
+        //printf("%d/%d(%x) - get_pointer: %u\n", ID, Line, pthread_mach_thread_np(pthread_self()), *(u32*)pVal);
         return pVal;
     }
 
@@ -135,6 +144,7 @@ private:
 
     static void set_value(T val)
     {
+        //printf("%d/%d(%x) - set_value: %u\n", ID, Line, pthread_mach_thread_np(pthread_self()), *(u32*)&val);
         *get_pointer() = val;
     }
 

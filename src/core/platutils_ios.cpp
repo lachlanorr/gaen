@@ -58,8 +58,8 @@ void init_time()
 
 f32 now()
 {
-    ASSERT_MSG(sStartTimeAbsolute != 0, "init_time_utils must be called first");
-    ASSERT_MSG(sTimebaseDenom != 0, "init_time_utils must be called first");
+    ASSERT_MSG(sStartTimeAbsolute != (u64)0, "init_time_utils must be called first");
+    ASSERT_MSG(sTimebaseDenom != (u32)0, "init_time_utils must be called first");
 
     u64 nowAbsolute = mach_absolute_time();
     u64 deltaAbsolute = nowAbsolute - sStartTimeAbsolute;

@@ -87,6 +87,13 @@ void report_failure(const char * condition,
                     const char * format,
                     ...)
 {
+
+// Asserts not working nicely on iOS... pending investigation,
+// but for now just print. Feels like college.
+#if !IS_PLATFORM_IOS
+    printf("FAILURE: %s(%d) - %s\n", file, line, condition);
+#endif
+
     // Thread storage to print our message.
     TLARRAY(char, tMessage, kMaxMessageSize);
     TLARRAY(char, tFailureMessage, kMaxFailureMessageSize);

@@ -93,6 +93,7 @@ static const char * sVertShaderCode =
     "    gl_Position = umMVP * vPosition;\n"
     "}\n";
 #else
+    "precision mediump float;\n"
     "attribute vec4 vPosition;\n"
     "attribute vec3 vNormal;\n"
 
@@ -129,6 +130,7 @@ static const char * sFragShaderCode =
     "}\n";
 #else
     "//#version 210 core\n"
+    "precision mediump float;\n"
 
     "varying vec4 vColor;\n"
 
