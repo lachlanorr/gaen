@@ -40,8 +40,8 @@
 #define TL(T, S) static __thread T S
 #define TLARRAY(T, S, N) static __thread T S[N]
 #elif IS_PLATFORM_IOS
-#define TL(T, S) ThreadLocal<T, __COUNTER__> S
-#define TLARRAY(T, S, N) ThreadLocalArray<T, N, __COUNTER__> S
+#define TL(T, S) ThreadLocal<T, __COUNTER__, __LINE__> S
+#define TLARRAY(T, S, N) ThreadLocalArray<T, N, __COUNTER__, __LINE__> S
 #else
 #define TL(T, S) static thread_local T S
 #define TLARRAY(T, S, N) static thread_local T S[N]
@@ -70,7 +70,7 @@
 namespace gaen
 {
 
-template <typename T, int ID>
+template <typename T, int ID, int Line>
 class ThreadLocal
 {
 public:
@@ -81,19 +81,19 @@ public:
         init();
     }
 
-    ThreadLocal(const T & val)
+    ThreadLocal(T val)
     {
+        sInitVal = val;
         init();
-        set_value(val);
     }
 
-    T& operator=(const T& rhs)
+    T& operator=(T rhs)
     {
         set_value(rhs);
         return get_value();
     }
 
-    bool operator==(const T& rhs)
+    bool operator==(T rhs)
     {
         return get_value() == rhs;
     }
@@ -113,13 +113,18 @@ private:
     static void key_create()
     {
         pthread_key_create(&sKey, 0);
+        set_value(sInitVal);
     }
 
     static T* get_pointer()
     {
         T* pVal = reinterpret_cast<T*>(pthread_getspecific(sKey));
         if (pVal == nullptr)
+        {
             pVal = reinterpret_cast<T*>(GALLOC(kMEM_Engine, sizeof(T)));
+            int retval = pthread_setspecific(sKey, pVal);
+            ASSERT(retval == 0);
+        }
         return pVal;
     }
 
@@ -128,18 +133,21 @@ private:
         return *get_pointer();
     }
 
-    static void set_value(const T & val)
+    static void set_value(T val)
     {
         *get_pointer() = val;
     }
 
     static pthread_key_t sKey;
+    static T sInitVal;
 };
-template <typename T, int ID>
-pthread_key_t ThreadLocal<T, ID>::sKey = 0;
+template <typename T, int ID, int Line>
+pthread_key_t ThreadLocal<T, ID, Line>::sKey = 0;
+template <typename T, int ID, int Line>
+T ThreadLocal<T, ID, Line>::sInitVal;
 
 
-template <typename T, size_t N, int ID>
+template <typename T, size_t N, int ID, int Line>
 class ThreadLocalArray
 {
 public:
@@ -190,8 +198,8 @@ public:
     static pthread_key_t sKey;
     
 };
-template <typename T, size_t N, int ID>
-pthread_key_t ThreadLocalArray<T, N, ID>::sKey = 0;
+template <typename T, size_t N, int ID, int Line>
+pthread_key_t ThreadLocalArray<T, N, ID, Line>::sKey = 0;
 
 } // namespace gaen
 

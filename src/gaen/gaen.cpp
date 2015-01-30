@@ -115,7 +115,7 @@ static void parse_args(int argc,
                 printHelpAndExit();
             case 't':
             {
-                u32 numThreads = strtoul(argv[i+1], nullptr, 10);
+                u32 numThreads = (u32)strtoul(argv[i+1], nullptr, 10);
                 if (numThreads < kMinThreads ||
                     numThreads > core_count())
                 {

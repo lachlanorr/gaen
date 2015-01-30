@@ -94,45 +94,4 @@ void set_thread_affinity(u32 coreId)
     return; 
 }
 
-// LORRTODO - Move these to their platform files when necessary
-///* Linux */ 
-//#include <sched.h> 
-//int sched_getaffinity(pid_t pid, unsigned int cpusetsize, cpu_set_t 
-//*mask); 
-//
-//static inline int num_processors() 
-//{ 
-//        unsigned int bit; 
-//        int np; 
-//        cpu_set_t aff; 
-//        memset(&aff, 0, sizeof(aff) ); 
-//        sched_getaffinity(0, sizeof(aff), &aff ); 
-//        for(np = 0, bit = 0; bit < 8*sizeof(aff); bit++) 
-//                np += (((char *)&aff)[bit / 8] >> (bit % 8)) & 1; 
-//        return np; 
-//} 
-//
-//
-///* Mac OS X */ 
-//#include <sys/types.h> 
-//#include <sys/sysctl.h> 
-//static inline int num_processors() 
-//{ 
-//        int np = 1; 
-//        size_t length = sizeof( np ); 
-//        sysctlbyname("hw.ncpu", &np, &length, NULL, 0); 
-//        return np; 
-//} 
-//
-//
-///* Windows NT */ 
-//#include <windows.h> 
-//static inline int num_processors() 
-//{ 
-//        SYSTEM_INFO info; 
-//        GetSystemInfo(&info); 
-//        return info.dwNumberOfProcessors; 
-//} 
-
-
 } //namespace gaen
