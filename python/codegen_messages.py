@@ -36,13 +36,13 @@ TYPE_TO_UNION = { 'u32': 'u',
 def read_file_data(path):
     if not os.path.exists(path):
         return None
-    with open(path, 'rb') as f:
+    with open(path, 'r') as f:
         return f.read()
 
 def replace_file_if_different(path, data):
     if read_file_data(path) != data:
         print 'Writing ' + path
-        with open(path, 'wb') as out_f:
+        with open(path, 'w') as out_f:
             out_f.write(data)
 
 def python_path():

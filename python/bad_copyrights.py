@@ -132,7 +132,7 @@ def expected_header(path):
     return None
 
 def verify_header(path, exphdr):
-    with open(path, 'rb') as f:
+    with open(path, 'r') as f:
         data = f.read()
         return re.search(exphdr, data, re.MULTILINE)
 

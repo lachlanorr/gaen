@@ -226,7 +226,7 @@ def write_metadata():
     old_data = read_file(system_api_meta_cpp_path())
     if new_data != old_data:
         print "Writing " + system_api_meta_cpp_path()
-        with open(system_api_meta_cpp_path(), 'wb') as f:
+        with open(system_api_meta_cpp_path(), 'w') as f:
             f.write(new_data)
 
 if __name__=='__main__':
