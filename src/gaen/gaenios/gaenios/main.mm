@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// main.m - Main routine for iOS gaen app
+// main.mm - Main routine for iOS gaen app
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr

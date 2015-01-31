@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// AppDelegate.m - Application delegate for gaen iOS app
+// AppDelegate.mm - Application delegate for gaen iOS app
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014 Lachlan Orr
