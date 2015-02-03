@@ -1,0 +1,104 @@
+//------------------------------------------------------------------------------
+
+// Send a message to self entity at a certain interval
+component Timer
+{
+    float #timer_interval = 0.0;          // interval in seconds to send the timer message
+    uint #timer_message = 0;              // message to send with each timer message, useful if multiple timers are used in the same component
+
+    float last_notification = 0.0;
+
+    #update(float deltaSecs)
+    {
+        if (timer_interval > 0.0)
+        {
+            last_notification += deltaSecs;
+            if (last_notification >= timer_interval)
+            {
+                @#timer(timer_message);
+                last_notification = 0.0;
+            }
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+
+// Rotate a model when wasd keys are pressed
+component WasdRot
+{
+    float yawing = 0.0;
+    float yaw = 0.0;
+
+    float pitching = 0.0;
+    float pitch = 0.0;
+
+    #init()
+    {
+        $.watch_input_state(#forward, 0, #forward);
+        $.watch_input_state(#back, 0, #back);
+        $.watch_input_state(#left, 0, #left);
+        $.watch_input_state(#right, 0, #right);
+    }
+
+    #update(float deltaSecs)
+    {
+        if (pitching != 0.0 || yawing != 0.0)
+        {
+            pitch += pitching * deltaSecs * 100.0;
+            yaw += yawing * deltaSecs * 100.0;
+            mat34 trans = $.transform_rotate(vec3{$.radians(pitch), $.radians(yaw), 0.0});
+            @#transform(false, trans);
+        }
+    }
+
+    #forward(bool status)
+    {
+        if (status)
+        {
+            pitching = 1.0;
+        }
+        else
+        {
+            pitching = 0.0;
+        }
+    }
+
+    #back(bool status)
+    {
+        if (status)
+        {
+            pitching = -1.0;
+        }
+        else
+        {
+            pitching = 0.0;
+        }
+    }
+
+    #left(bool status)
+    {
+        if (status)
+        {
+            yawing = 1.0;
+        }
+        else
+        {
+            yawing = 0.0;
+        }
+    }
+
+    #right(bool status)
+    {
+        if (status)
+        {
+            yawing = -1.0;
+        }
+        else
+        {
+            yawing = 0.0;
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
