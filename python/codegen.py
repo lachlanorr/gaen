@@ -82,8 +82,21 @@ def gaen_dir():
     scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
     return posixpath.split(scriptdir)[0]
 
+def project_dir():
+    return posixpath.split(gaen_dir())[0]
+
+def is_project():
+    project_scripts_dir = posixpath.join(project_dir(), 'src', 'scripts')
+    return posixpath.exists(project_scripts_dir)
+
+def root_dir():
+    if is_project():
+        return project_dir()
+    else:
+        return gaen_dir()
+
 def default_scripts_dir():
-    return posixpath.join(gaen_dir(), 'src/scripts')
+    return posixpath.join(root_dir(), 'src', 'scripts')
 
 def cmake_scripts_dir():
     return "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -211,7 +224,7 @@ class ScriptInfo(object):
         
 
 def find_cmpc():
-    for root, dirs, files in os.walk(gaen_dir()):
+    for root, dirs, files in os.walk(root_dir()):
         for f in files:
             if root.endswith('packaged') and f in ['cmpc.exe', 'cmpc']:
                 return posixpath.join(root.replace('\\', '/'), f)
@@ -271,7 +284,7 @@ def write_cmake(cmp_files, cpp_files, h_files):
     template = template.replace('<<license>>', CMAKE_LICENSE)
     template = template.replace('<<files>>', '\n'.join(cmp_rel_files + cpp_rel_files + h_rel_files))
     template = template.replace('<<ide_source_props>>', '\n'.join(ide_src_props))
-    cmake_path = posixpath.join(gaen_dir(), 'src/scripts/codegen.cmake')
+    cmake_path = posixpath.join(root_dir(), 'src/scripts/codegen.cmake')
     if not os.path.exists(cmake_path) or read_file(cmake_path) != template:
         print "Writing %s" % cmake_path
         write_file(cmake_path, template)

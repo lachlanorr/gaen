@@ -2,5 +2,8 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8.12)
 
 PROJECT (<<PROJECT_NAME>>)
 
+SET (cmake_dir ${CMAKE_CURRENT_SOURCE_DIR}/gaen/cmake)
+INCLUDE (${cmake_dir}/core_defs.cmake)
+
 ADD_SUBDIRECTORY(gaen)
 ADD_SUBDIRECTORY(src)

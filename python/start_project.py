@@ -92,12 +92,12 @@ def bootstrap_msg():
 def main():
     check_dir()
 
-    print "Starting new project %s" % project_name()
+    print "Starting new project '%s' in current directory..." % project_name()
     i = raw_input("Continue? [Y/n] ")
 
     if i == '' or i.lower() == 'y':
         proc_templates()
-        print 'Gaen project %s created in current directory, %s.' % (project_name(), bootstrap_msg())
+        print "Gaen project '%s' created in current directory, %s." % (project_name(), bootstrap_msg())
     
 if __name__=='__main__':
     main()
