@@ -34,6 +34,12 @@ IF(IOS)
 
 ELSE(IOS)
 
+  # allow projects to override the "exe_name"
+  # to suit their needs
+  IF ("${exe_name}" EQUAL "")
+    SET (exe_name gaen)
+  ENDIF ()
+
   SET (gaen_SOURCES
     gaen.cpp
     gaen.h
@@ -49,13 +55,13 @@ ELSE(IOS)
 
     SET(MACOSX_BUNDLE_BUNDLE_NAME Gaen)
 
-    ADD_EXECUTABLE(gaen MACOSX_BUNDLE
+    ADD_EXECUTABLE(${exe_name} MACOSX_BUNDLE
       ${gaen_SOURCES}
       )
 
     # Copy bundle to package dir
     ADD_CUSTOM_COMMAND(
-      TARGET gaen
+      TARGET ${exe_name}
       POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:gaen>/../../../gaen.app ${packaged_dir}/gaen.app
       )
@@ -65,15 +71,15 @@ ELSE(IOS)
       ${gaen_SOURCES}
       main_win32.cpp
       )
-    ADD_EXECUTABLE(gaen WIN32
+    ADD_EXECUTABLE(${exe_name} WIN32
       ${gaen_SOURCES}
       )
-    package (gaen)
+    package ("${exe_name}")
   ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
   IDE_SOURCE_PROPERTIES( "/" "${gaen_SOURCES}")
 
-  TARGET_LINK_LIBRARIES (gaen
+  TARGET_LINK_LIBRARIES (${exe_name}
     core
     engine
     renderergl
