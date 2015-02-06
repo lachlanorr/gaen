@@ -74,6 +74,16 @@ def src_dir():
     srcdir = os.path.join(gaendir, 'src')
     return srcdir
 
+def project_src_dir():
+    scriptdir = os.path.split(os.path.abspath(__file__))[0]
+    gaendir = os.path.split(scriptdir)[0]
+    projectdir = os.path.split(gaendir)[0]
+    project_srcdir = os.path.join(projectdir, 'src')
+    if os.path.exists(project_srcdir):
+        return project_srcdir
+    else:
+        return None
+
 def hashes_h_path():
     return os.path.join(src_dir(), 'engine/hashes.h')
 
@@ -82,6 +92,9 @@ def hashes_cpp_path():
 
 def build_hash_list():
     hash_list = process_dir(src_dir())
+    psrc = project_src_dir()
+    if psrc:
+        hash_list += process_dir(psrc)
     hash_list = [hash[len("HASH::"):] for hash in hash_list]
     hash_list = sorted(set(hash_list), key=lambda s: s.lower())
     hash_list = [(hash, fnv32a(hash)) for hash in hash_list]

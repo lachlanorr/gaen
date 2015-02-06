@@ -83,11 +83,11 @@ def check_dir():
 
 def bootstrap_msg():
     if os.name == 'nt':
-        return 'run bootstrap.bat to generate Visual Studio solution'
+        return 'Run bootstrap.bat to generate Visual Studio solution.'
     elif os.name == 'mac':
-        return 'run bootstrap.sh to generate Xcode project'
+        return 'Run bootstrap.sh to generate Xcode project.'
     else:
-        return 'run bootstrap.sh to generate make file'
+        return 'Run bootstrap.sh to generate make file.'
 
 def main():
     check_dir()
@@ -97,7 +97,9 @@ def main():
 
     if i == '' or i.lower() == 'y':
         proc_templates()
-        print "Gaen project '%s' created in current directory, %s." % (project_name(), bootstrap_msg())
+        print
+        print "Gaen project '%s' created in current directory." % project_name()
+        print bootstrap_msg()
     
 if __name__=='__main__':
     main()

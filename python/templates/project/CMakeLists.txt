@@ -5,5 +5,7 @@ PROJECT (<<PROJECT_NAME>>)
 SET (cmake_dir ${CMAKE_CURRENT_SOURCE_DIR}/gaen/cmake)
 INCLUDE (${cmake_dir}/core_defs.cmake)
 
+INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR}/gaen/src)
+
 ADD_SUBDIRECTORY(gaen)
 ADD_SUBDIRECTORY(src)

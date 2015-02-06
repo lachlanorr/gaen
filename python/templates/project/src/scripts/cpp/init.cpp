@@ -1,8 +1,8 @@
 //------------------------------------------------------------------------------
-// start.cpp - Auto-generated from start.cmp
+// init.cpp - Auto-generated from init.cmp
 //------------------------------------------------------------------------------
 
-// HASH: 7e3556ab45e1771bf92032fc16f3bb7d
+// HASH: ef3932870f9f66b1cb70a1bc9c5d3e92
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -20,12 +20,12 @@ namespace gaen
 namespace ent
 {
 
-class start__Box : public Entity
+class init__Box : public Entity
 {
 public:
     static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, start__Box, childCount);
+        return GNEW(kMEM_Engine, init__Box, childCount);
     }
     
     template <typename T>
@@ -35,11 +35,11 @@ public:
     }
 
 private:
-    start__Box(u32 childCount)
-      : Entity(HASH::start__Box, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+    init__Box(u32 childCount)
+      : Entity(HASH::init__Box, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
         mBlockCount = 0;
-        mScriptTask = Task::create(this, HASH::start__Box);
+        mScriptTask = Task::create(this, HASH::init__Box);
 
         // Component: gaen.shapes.Box
         {
@@ -69,30 +69,30 @@ private:
             compTask.message(msgBW.accessor());
         }
     }
-    start__Box(const start__Box&)              = delete;
-    start__Box(const start__Box&&)             = delete;
-    start__Box & operator=(const start__Box&)  = delete;
-    start__Box & operator=(const start__Box&&) = delete;
+    init__Box(const init__Box&)              = delete;
+    init__Box(const init__Box&&)             = delete;
+    init__Box & operator=(const init__Box&)  = delete;
+    init__Box & operator=(const init__Box&&) = delete;
 
-}; // class start__Box
+}; // class init__Box
 
 } // namespace ent
 
-void register_entity__start__Box(Registry & registry)
+void register_entity__init__Box(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::start__Box, ent::start__Box::construct))
-        PANIC("Unable to register entity: start__Box");
+    if (!registry.registerEntityConstructor(HASH::init__Box, ent::init__Box::construct))
+        PANIC("Unable to register entity: init__Box");
 }
 
 namespace ent
 {
 
-class start__Light : public Entity
+class init__Light : public Entity
 {
 public:
     static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, start__Light, childCount);
+        return GNEW(kMEM_Engine, init__Light, childCount);
     }
     
     template <typename T>
@@ -102,11 +102,11 @@ public:
     }
 
 private:
-    start__Light(u32 childCount)
-      : Entity(HASH::start__Light, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+    init__Light(u32 childCount)
+      : Entity(HASH::init__Light, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
         mBlockCount = 0;
-        mScriptTask = Task::create(this, HASH::start__Light);
+        mScriptTask = Task::create(this, HASH::init__Light);
 
         // Component: gaen.lights.Directional
         {
@@ -116,31 +116,31 @@ private:
             compTask.message(msgBW.accessor());
         }
     }
-    start__Light(const start__Light&)              = delete;
-    start__Light(const start__Light&&)             = delete;
-    start__Light & operator=(const start__Light&)  = delete;
-    start__Light & operator=(const start__Light&&) = delete;
+    init__Light(const init__Light&)              = delete;
+    init__Light(const init__Light&&)             = delete;
+    init__Light & operator=(const init__Light&)  = delete;
+    init__Light & operator=(const init__Light&&) = delete;
 
-}; // class start__Light
+}; // class init__Light
 
 } // namespace ent
 
-void register_entity__start__Light(Registry & registry)
+void register_entity__init__Light(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::start__Light, ent::start__Light::construct))
-        PANIC("Unable to register entity: start__Light");
+    if (!registry.registerEntityConstructor(HASH::init__Light, ent::init__Light::construct))
+        PANIC("Unable to register entity: init__Light");
 }
 
 namespace ent
 {
 
-class start__start : public Entity
+class init__start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__start__Box__24_23()
+    task_id entity_init__init__Box__24_23()
     {
-        Entity * pEnt = get_registry().constructEntity(HASH::start__Box, 8);
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Box, 8);
         // Send init message
         StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
         pEnt->task().message(msgBW.accessor());
@@ -149,9 +149,9 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__start__Light__25_25()
+    task_id entity_init__init__Light__25_25()
     {
-        Entity * pEnt = get_registry().constructEntity(HASH::start__Light, 8);
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
         // Send init message
         StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
         pEnt->task().message(msgBW.accessor());
@@ -164,7 +164,7 @@ private:
 public:
     static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, start__start, childCount);
+        return GNEW(kMEM_Engine, init__start, childCount);
     }
     
     template <typename T>
@@ -176,8 +176,8 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            task_id box = entity_init__start__Box__24_23();
-            task_id light = entity_init__start__Light__25_25();
+            task_id box = entity_init__init__Box__24_23();
+            task_id light = entity_init__init__Light__25_25();
             system_api::insert_task(box, entity());
             system_api::insert_task(light, entity());
             return MessageResult::Consumed;
@@ -187,25 +187,25 @@ public:
     }
 
 private:
-    start__start(u32 childCount)
-      : Entity(HASH::start__start, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+    init__start(u32 childCount)
+      : Entity(HASH::init__start, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
         mBlockCount = 0;
-        mScriptTask = Task::create(this, HASH::start__start);
+        mScriptTask = Task::create(this, HASH::init__start);
     }
-    start__start(const start__start&)              = delete;
-    start__start(const start__start&&)             = delete;
-    start__start & operator=(const start__start&)  = delete;
-    start__start & operator=(const start__start&&) = delete;
+    init__start(const init__start&)              = delete;
+    init__start(const init__start&&)             = delete;
+    init__start & operator=(const init__start&)  = delete;
+    init__start & operator=(const init__start&&) = delete;
 
-}; // class start__start
+}; // class init__start
 
 } // namespace ent
 
-void register_entity__start__start(Registry & registry)
+void register_entity__init__start(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::start__start, ent::start__start::construct))
-        PANIC("Unable to register entity: start__start");
+    if (!registry.registerEntityConstructor(HASH::init__start, ent::init__start::construct))
+        PANIC("Unable to register entity: init__start");
 }
 
 } // namespace gaen
