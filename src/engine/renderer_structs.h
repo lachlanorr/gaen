@@ -2,7 +2,7 @@
 // renderer_structs.h - Structures shared by renderers and the engine
 //
 // Gaen Concurrency Engine - http://gaen.org
-// Copyright (c) 2014 Lachlan Orr
+// Copyright (c) 2014-2015 Lachlan Orr
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages

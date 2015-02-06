@@ -4,7 +4,7 @@
 # start_project.py - Start a new project based on gaen engine
 #
 # Gaen Concurrency Engine - http://gaen.org
-# Copyright (c) 2014 Lachlan Orr
+# Copyright (c) 2014-2015 Lachlan Orr
 #
 # This software is provided 'as-is', without any express or implied
 # warranty. In no event will the authors be held liable for any damages
