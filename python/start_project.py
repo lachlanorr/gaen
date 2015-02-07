@@ -69,6 +69,7 @@ def proc_templates():
         for f in files:
             in_f = os.path.join(root, f)
             out_f = in_f.replace(template_dir(), project_dir())
+            out_f = out_f.replace("PROJECT_NAME", project_name())
             fill_template(in_f, out_f)
 
 def err_and_exit(msg, code):
