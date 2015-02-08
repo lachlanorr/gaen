@@ -83,14 +83,17 @@ def gaen_dir():
     scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
     return posixpath.split(scriptdir)[0]
 
+def is_project():
+    return posixpath.exists(posixpath.join(gaen_dir(), '..', 'src', 'script'))
+
 def project_dir():
-    return posixpath.split(gaen_dir())[0]
+    if is_project():
+        return posixpath.split(gaen_dir())[0]
+    else:
+        return gaen_dir()
 
 def project_scripts_dir():
     return posixpath.join(project_dir(), 'src', 'scripts')
-
-def is_project():
-    return posixpath.exists(project_scripts_dir())
 
 def root_dir():
     if is_project():
@@ -309,7 +312,6 @@ def find_source_files(scripts_dir, source_files):
         for f in files:
             if f.endswith('cmp'):
                 source_files.append(posixpath.join(root.replace('\\', '/'), f))
-    return source_files
 
 def main():
     # run codegen_api first so the compiler has the latest api

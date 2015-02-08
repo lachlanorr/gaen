@@ -25,4 +25,28 @@
 #-------------------------------------------------------------------------------
 
 SET (scripts_dir ${CMAKE_CURRENT_SOURCE_DIR})
+SET (gaen_scripts_dir ${CMAKE_SOURCE_DIR}/gaen/src/scripts/cmp/gaen)
 
+SET (scripts_codegen_SOURCES
+  ${scripts_dir}/cmp/init.cmp
+  ${scripts_dir}/cmp/test.cmp
+  ${scripts_dir}/cmp/gaen/lights.cmp
+  ${scripts_dir}/cmp/gaen/shapes.cmp
+  ${scripts_dir}/cmp/gaen/utils.cmp
+  ${scripts_dir}/cpp/init.cpp
+  ${scripts_dir}/cpp/test.cpp
+  ${scripts_dir}/cpp/gaen/lights.cpp
+  ${scripts_dir}/cpp/gaen/shapes.cpp
+  ${scripts_dir}/cpp/gaen/utils.cpp
+)
+
+IDE_SOURCE_PROPERTIES( "None" "${scripts_dir}/cmp/init.cmp" )
+IDE_SOURCE_PROPERTIES( "None" "${scripts_dir}/cmp/test.cmp" )
+IDE_SOURCE_PROPERTIES( "None" "${scripts_dir}/cmp/gaen/lights.cmp" )
+IDE_SOURCE_PROPERTIES( "None" "${scripts_dir}/cmp/gaen/shapes.cmp" )
+IDE_SOURCE_PROPERTIES( "None" "${scripts_dir}/cmp/gaen/utils.cmp" )
+IDE_SOURCE_PROPERTIES( "None" "${scripts_dir}/cpp/init.cpp" )
+IDE_SOURCE_PROPERTIES( "None" "${scripts_dir}/cpp/test.cpp" )
+IDE_SOURCE_PROPERTIES( "None" "${scripts_dir}/cpp/gaen/lights.cpp" )
+IDE_SOURCE_PROPERTIES( "None" "${scripts_dir}/cpp/gaen/shapes.cpp" )
+IDE_SOURCE_PROPERTIES( "None" "${scripts_dir}/cpp/gaen/utils.cpp" )

@@ -1559,8 +1559,8 @@ const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dotte
     ASSERT(pParseData->scriptsRootPath);
     ASSERT(pParseData->scriptsRootPathLen == strlen(pParseData->scriptsRootPath));
 
-    static const char * kGaenDir = "gaen/";
-    static const size_t kGaenDirLen = strlen(kGaenDir);
+    #define GAEN_DIR "gaen/"
+    static const size_t kGaenDirLen = strlen(GAEN_DIR);
 
     size_t dottedIdLen = strlen(dottedId);
     size_t pathLen = pParseData->scriptsRootPathLen + dottedIdLen + 4 + 1 + kGaenDirLen; // +4 for ".cmp", +1 for null, +5 for potential "gaen/" insert
@@ -1583,11 +1583,12 @@ const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dotte
     // scripts directory.  The "gaen" namespace is special cased to
     // always pull from the engine's scripts directory, and not from
     // project specific scripts.
+    char * scriptsPathStart = strstr(path, kScriptsPath);
     char * relstart = path + pParseData->scriptsRootPathLen;
-    if (0 == strncmp(relstart, kGaenDir, kGaenDirLen))
+    if (scriptsPathStart > (path + kGaenDirLen) &&                                        // scriptsPathStart might have "/gaen/" before it
+        0 != strncmp(scriptsPathStart - kGaenDirLen, "/" GAEN_DIR, kGaenDirLen+1) &&  // scriptsPathStart is preceded by "/gaen/"
+        0 == strncmp(relstart, GAEN_DIR, kGaenDirLen))                                    // the script itself is from the 'gaen' namespace
     {
-        char * scriptsPathStart = strstr(path, kScriptsPath);
-
         if (!scriptsPathStart) // sanity check
         {
             PANIC("Scripts path \"%s\" not found in file being compiled", kScriptsPath);
@@ -1603,7 +1604,7 @@ const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dotte
                 --lastPos;
             }
             // splice in our "gaen/" dir
-            strncpy(lastPos+1, kGaenDir, kGaenDirLen);
+            strncpy(lastPos+1, GAEN_DIR, kGaenDirLen);
         }
     }
 
