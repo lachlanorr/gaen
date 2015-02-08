@@ -50,6 +50,7 @@ CMAKE_TEMPLATE = '''\
 #-------------------------------------------------------------------------------
 
 SET (scripts_dir <<scripts_dir>>)
+SET (gaen_scripts_dir ${CMAKE_SOURCE_DIR}/gaen/src/scripts/cmp/gaen)
 
 SET (scripts_codegen_SOURCES
 <<files>>

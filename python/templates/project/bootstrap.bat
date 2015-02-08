@@ -39,3 +39,24 @@ if "%PLAT%"=="win32" (
 )
 
 
+:: Build cmpc so we can run codegen.py and boostrap our scripts
+call "%VS120COMNTOOLS%\vsvars32.bat"
+msbuild "%BUILD_DIR%\gaen\src\cmpc\cmpc.vcxproj"
+
+:: Do the .cmp -> .cpp codegen
+python "%~dp0\gaen\python\codegen.py"
+
+:: Re-run cmake since the compiled scripts have been added to
+:: the cmake files.
+if "%PLAT%"=="win64" (
+    cmake -G "Visual Studio 12 Win64" %<<PROJECT_NAME_UPPER>>_ROOT%
+)
+if "%PLAT%"=="win32" (
+    cmake -G "Visual Studio 12" %<<PROJECT_NAME_UPPER>>_ROOT%
+)
+
+echo.
+echo Bootstrapping complete.
+echo Visual Studio solution: %BUILD_DIR%\<<PROJECT_NAME>>.sln
+echo.
+

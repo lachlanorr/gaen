@@ -7,23 +7,8 @@
 namespace gaen
 {
 
-extern void register_component__gaen__lights__Directional(Registry & registry);
-extern void register_component__gaen__shapes__Box(Registry & registry);
-extern void register_component__gaen__utils__Timer(Registry & registry);
-extern void register_component__gaen__utils__WasdRot(Registry & registry);
-extern void register_entity__init__Box(Registry & registry);
-extern void register_entity__init__Light(Registry & registry);
-extern void register_entity__init__start(Registry & registry);
-
 void register_all_entities_and_components(Registry & registry)
 {
-    register_component__gaen__lights__Directional(registry);
-    register_component__gaen__shapes__Box(registry);
-    register_component__gaen__utils__Timer(registry);
-    register_component__gaen__utils__WasdRot(registry);
-    register_entity__init__Box(registry);
-    register_entity__init__Light(registry);
-    register_entity__init__start(registry);
 }
 
 } // namespace gaen
