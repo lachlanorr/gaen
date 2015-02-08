@@ -1,9 +1,0 @@
-component Directional
-{
-    uint lightUid = $.renderer_gen_uid();
-
-    #init()
-    {
-        $.renderer_insert_light_directional(lightUid, vec3{0.1, 0.1, 0.2}, color{255, 255, 255, 255});
-    }
-}

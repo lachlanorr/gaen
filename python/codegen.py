@@ -85,9 +85,11 @@ def gaen_dir():
 def project_dir():
     return posixpath.split(gaen_dir())[0]
 
+def project_scripts_dir():
+    return posixpath.join(project_dir(), 'src', 'scripts')
+
 def is_project():
-    project_scripts_dir = posixpath.join(project_dir(), 'src', 'scripts')
-    return posixpath.exists(project_scripts_dir)
+    return posixpath.exists(project_scripts_dir())
 
 def root_dir():
     if is_project():
@@ -95,8 +97,10 @@ def root_dir():
     else:
         return gaen_dir()
 
-def default_scripts_dir():
-    return posixpath.join(root_dir(), 'src', 'scripts')
+def gaen_scripts_dir():
+    if not is_project():
+        raise Exception("gaen_scripts_dir() doesn't make sense when not a project")
+    return posixpath.join(gaen_dir(), 'src', 'scripts', 'cmp', 'gaen')
 
 def cmake_scripts_dir():
     return "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -169,6 +173,7 @@ class ScriptInfo(object):
 
 
     def _compile(self):
+        print '%s %s' % (CMPC, self.cmpFullPath)
         p = subprocess.Popen([CMPC, self.cmpFullPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         sout, serr = p.communicate()
         if p.returncode == 0:
@@ -231,12 +236,9 @@ def find_cmpc():
     return None
 
 CMPC = find_cmpc()
-SCRIPTS_DIR = default_scripts_dir()
-CMAKE_SCRIPTS_DIR = cmake_scripts_dir()
-
 
 def license_text(comment_chars):
-    lic_path = posixpath.join(SCRIPTS_DIR, 'license.txt')
+    lic_path = posixpath.join(project_scripts_dir(), 'license.txt')
     if not os.path.exists(lic_path):
         return ''
     else:
@@ -250,7 +252,7 @@ CPP_LICENSE = license_text('//')
 CMAKE_LICENSE = license_text('#')
 
 def registration_cpp_path():
-    return posixpath.join(default_scripts_dir(), "registration.cpp")
+    return posixpath.join(project_scripts_dir(), "registration.cpp")
 
 def write_registration_cpp(script_infos):
     registration_lines = []
@@ -272,15 +274,27 @@ def write_registration_cpp(script_infos):
         write_file(reg_cpp_path, reg_cpp)
 
 
+def cmakeify_script_path(p):
+    if project_scripts_dir() in p:
+        return p.replace(project_scripts_dir(), '  ${scripts_dir}')
+    elif gaen_scripts_dir() in p:
+        return p.replace(gaen_scripts_dir(), '  ${gaen_scripts_dir}')
+    return p
+
+def strip_scripts_dir(p):
+    dirpath = posixpath.split(p.lstrip())[0]
+    dirpath = dirpath.replace('${scripts_dir}', '')
+    dirpath = dirpath.replace('${gaen_scripts_dir}', '')
+
 def write_cmake(cmp_files, cpp_files, h_files):
-    cmp_rel_files = [f.replace(SCRIPTS_DIR, '  ${scripts_dir}') for f in cmp_files]
-    cpp_rel_files = [f.replace(SCRIPTS_DIR, '  ${scripts_dir}') for f in cpp_files]
-    h_rel_files = [f.replace(SCRIPTS_DIR, '  ${scripts_dir}') for f in h_files]
-    ide_src_props = ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (posixpath.split(r.lstrip())[0].replace('${scripts_dir}/cmp', '/cmp'), r.lstrip()) for r in cmp_rel_files]
-    ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (posixpath.split(r.lstrip())[0].replace('${scripts_dir}/cpp', '/cpp'), r.lstrip()) for r in cpp_rel_files]
-    ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (posixpath.split(r.lstrip())[0].replace('${scripts_dir}/cpp', '/cpp'), r.lstrip()) for r in h_rel_files]
+    cmp_rel_files = [cmakeify_script_path(f) for f in cmp_files]
+    cpp_rel_files = [cmakeify_script_path(f) for f in cpp_files]
+    h_rel_files = [cmakeify_script_path(f) for f in h_files]
+    ide_src_props = ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (strip_scripts_dir(r), r.lstrip()) for r in cmp_rel_files]
+    ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (strip_scripts_dir(r), r.lstrip()) for r in cpp_rel_files]
+    ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (strip_scripts_dir(r), r.lstrip()) for r in h_rel_files]
     template = CMAKE_TEMPLATE
-    template = template.replace('<<scripts_dir>>', CMAKE_SCRIPTS_DIR)
+    template = template.replace('<<scripts_dir>>', cmake_scripts_dir())
     template = template.replace('<<license>>', CMAKE_LICENSE)
     template = template.replace('<<files>>', '\n'.join(cmp_rel_files + cpp_rel_files + h_rel_files))
     template = template.replace('<<ide_source_props>>', '\n'.join(ide_src_props))
@@ -288,6 +302,13 @@ def write_cmake(cmp_files, cpp_files, h_files):
     if not os.path.exists(cmake_path) or read_file(cmake_path) != template:
         print "Writing %s" % cmake_path
         write_file(cmake_path, template)
+
+def find_source_files(scripts_dir, source_files):
+    for root, dirs, files in os.walk(scripts_dir):
+        for f in files:
+            if f.endswith('cmp'):
+                source_files.append(posixpath.join(root.replace('\\', '/'), f))
+    return source_files
 
 def main():
     # run codegen_api first so the compiler has the latest api
@@ -302,21 +323,25 @@ def main():
     cpp_files = []
     h_files = []
     has_errors = False;
-    for root, dirs, files in os.walk(SCRIPTS_DIR):
-        for f in files:
-            pospath = posixpath.join(root.replace('\\', '/'), f)
-            try:
-                if f.endswith('.cmp'):
-                    si = ScriptInfo(pospath)
-                    si.write_cpp()
-                    script_infos.append(si)
-                    cmp_files.append(si.cmpFullPath)
-                    cpp_files.append(si.cppFullPath)
-                    if (si.hSource is not None):
-                        h_files.append(si.hFullPath)
-            except:
-                print "ERROR: %s failed to compile" % pospath
-                has_errors = True;
+
+    source_files = []
+    find_source_files(project_scripts_dir(), source_files)
+    if is_project():
+        find_source_files(gaen_scripts_dir(), source_files)
+
+    for f in source_files:
+        try:
+            if f.endswith('.cmp'):
+                si = ScriptInfo(f)
+                si.write_cpp()
+                script_infos.append(si)
+                cmp_files.append(si.cmpFullPath)
+                cpp_files.append(si.cppFullPath)
+                if (si.hSource is not None):
+                    h_files.append(si.hFullPath)
+        except:
+            print "ERROR: %s failed to compile" % f
+            has_errors = True;
 
     if not has_errors:
         write_registration_cpp(script_infos)

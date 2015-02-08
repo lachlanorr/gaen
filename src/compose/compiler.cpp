@@ -50,6 +50,8 @@ using namespace gaen;
 
 static_assert(kDT_COUNT == 24, "Make sure DataType enum ids look right... seems they have changed");
 
+static const char * kScriptsPath = "/src/scripts/cmp/";
+
 static char sEmptyStr[] = { '\0' };
 
 int parse_int(const char * pStr, int base)
@@ -1557,8 +1559,11 @@ const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dotte
     ASSERT(pParseData->scriptsRootPath);
     ASSERT(pParseData->scriptsRootPathLen == strlen(pParseData->scriptsRootPath));
 
+    static const char * kGaenDir = "gaen/";
+    static const size_t kGaenDirLen = strlen(kGaenDir);
+
     size_t dottedIdLen = strlen(dottedId);
-    size_t pathLen = pParseData->scriptsRootPathLen + dottedIdLen + 4 + 1; // +4 for ".cmp", +1 for null
+    size_t pathLen = pParseData->scriptsRootPathLen + dottedIdLen + 4 + 1 + kGaenDirLen; // +4 for ".cmp", +1 for null, +5 for potential "gaen/" insert
     char * path = (char*)COMP_ALLOC(pathLen);
 
     strcpy(path, pParseData->scriptsRootPath);
@@ -1573,6 +1578,34 @@ const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dotte
     }
 
     strcat(path, ".cmp");
+
+    // If it's a "gaen" script, make sure to pull it from the gaen
+    // scripts directory.  The "gaen" namespace is special cased to
+    // always pull from the engine's scripts directory, and not from
+    // project specific scripts.
+    char * relstart = path + pParseData->scriptsRootPathLen;
+    if (0 == strncmp(relstart, kGaenDir, kGaenDirLen))
+    {
+        char * scriptsPathStart = strstr(path, kScriptsPath);
+
+        if (!scriptsPathStart) // sanity check
+        {
+            PANIC("Scripts path \"%s\" not found in file being compiled", kScriptsPath);
+        }
+        else
+        {
+            // shift everything over 5 chars, and insert "gaen/"
+            char * lastPos = path + strlen(path);
+            ASSERT(lastPos + kGaenDirLen < path + pathLen); // make sure we allocated enough space
+            while (lastPos > scriptsPathStart)
+            {
+                lastPos[kGaenDirLen] = lastPos[0];
+                --lastPos;
+            }
+            // splice in our "gaen/" dir
+            strncpy(lastPos+1, kGaenDir, kGaenDirLen);
+        }
+    }
 
     return path;
 }
@@ -1614,8 +1647,6 @@ void parsedata_prep_paths(ParseData * pParseData, const char * fullPath)
         COMP_ERROR(pParseData, "Invalid extension for Compose script, must be .cmp: %s", fullPath);
         return;
     }
-
-    static const char * kScriptsPath = "/scripts/cmp/";
 
     const char * pLoc = strstr(pParseData->fullPath, kScriptsPath);
     if (!pLoc)

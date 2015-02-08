@@ -26,26 +26,3 @@
 
 SET (scripts_dir ${CMAKE_CURRENT_SOURCE_DIR})
 
-SET (scripts_codegen_SOURCES
-  ${scripts_dir}/cmp/init.cmp
-  ${scripts_dir}/cmp/lights.cmp
-  ${scripts_dir}/cmp/shapes.cmp
-  ${scripts_dir}/cmp/test.cmp
-  ${scripts_dir}/cmp/utils.cmp
-  ${scripts_dir}/cpp/init.cpp
-  ${scripts_dir}/cpp/lights.cpp
-  ${scripts_dir}/cpp/shapes.cpp
-  ${scripts_dir}/cpp/test.cpp
-  ${scripts_dir}/cpp/utils.cpp
-)
-
-IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/init.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/lights.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/shapes.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/test.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/utils.cmp" )
-IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/init.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/lights.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/shapes.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/test.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/utils.cpp" )

@@ -1,30 +1,8 @@
 //------------------------------------------------------------------------------
 // utils.cpp - Auto-generated from utils.cmp
-//
-// Gaen Concurrency Engine - http://gaen.org
-// Copyright (c) 2014-2015 Lachlan Orr
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-//   1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-//
-//   2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-//
-//   3. This notice may not be removed or altered from any source
-//   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 2559ae1158440abc763f6ffa69c13750
+// HASH: 63b183db6680d026f3f07b049331ae7f
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -42,12 +20,12 @@ namespace gaen
 namespace comp
 {
 
-class utils__Timer : public Component
+class gaen__utils__Timer : public Component
 {
 public:
     static Component * construct(void * place, Entity * pEntity)
     {
-        return new (place) utils__Timer(pEntity);
+        return new (place) gaen__utils__Timer(pEntity);
     }
     
     void update(float deltaSecs)
@@ -114,16 +92,16 @@ public:
 }
 
 private:
-    utils__Timer(Entity * pEntity)
+    gaen__utils__Timer(Entity * pEntity)
       : Component(pEntity)
     {
-        mScriptTask = Task::create_updatable(this, HASH::utils__Timer);
+        mScriptTask = Task::create_updatable(this, HASH::gaen__utils__Timer);
         mBlockCount = 1;
     }
-    utils__Timer(const utils__Timer&)              = delete;
-    utils__Timer(const utils__Timer&&)             = delete;
-    utils__Timer & operator=(const utils__Timer&)  = delete;
-    utils__Timer & operator=(const utils__Timer&&) = delete;
+    gaen__utils__Timer(const gaen__utils__Timer&)              = delete;
+    gaen__utils__Timer(const gaen__utils__Timer&&)             = delete;
+    gaen__utils__Timer & operator=(const gaen__utils__Timer&)  = delete;
+    gaen__utils__Timer & operator=(const gaen__utils__Timer&&) = delete;
 
     f32& timer_interval()
     {
@@ -141,25 +119,25 @@ private:
     }
 
 
-}; // class utils__Timer
+}; // class gaen__utils__Timer
 
 } // namespace comp
 
-void register_component__utils__Timer(Registry & registry)
+void register_component__gaen__utils__Timer(Registry & registry)
 {
-    if (!registry.registerComponentConstructor(HASH::utils__Timer, comp::utils__Timer::construct))
-        PANIC("Unable to register component: utils__Timer");
+    if (!registry.registerComponentConstructor(HASH::gaen__utils__Timer, comp::gaen__utils__Timer::construct))
+        PANIC("Unable to register component: gaen__utils__Timer");
 }
 
 namespace comp
 {
 
-class utils__WasdRot : public Component
+class gaen__utils__WasdRot : public Component
 {
 public:
     static Component * construct(void * place, Entity * pEntity)
     {
-        return new (place) utils__WasdRot(pEntity);
+        return new (place) gaen__utils__WasdRot(pEntity);
     }
     
     void update(float deltaSecs)
@@ -262,16 +240,16 @@ public:
 }
 
 private:
-    utils__WasdRot(Entity * pEntity)
+    gaen__utils__WasdRot(Entity * pEntity)
       : Component(pEntity)
     {
-        mScriptTask = Task::create_updatable(this, HASH::utils__WasdRot);
+        mScriptTask = Task::create_updatable(this, HASH::gaen__utils__WasdRot);
         mBlockCount = 1;
     }
-    utils__WasdRot(const utils__WasdRot&)              = delete;
-    utils__WasdRot(const utils__WasdRot&&)             = delete;
-    utils__WasdRot & operator=(const utils__WasdRot&)  = delete;
-    utils__WasdRot & operator=(const utils__WasdRot&&) = delete;
+    gaen__utils__WasdRot(const gaen__utils__WasdRot&)              = delete;
+    gaen__utils__WasdRot(const gaen__utils__WasdRot&&)             = delete;
+    gaen__utils__WasdRot & operator=(const gaen__utils__WasdRot&)  = delete;
+    gaen__utils__WasdRot & operator=(const gaen__utils__WasdRot&&) = delete;
 
     f32& yawing()
     {
@@ -294,14 +272,14 @@ private:
     }
 
 
-}; // class utils__WasdRot
+}; // class gaen__utils__WasdRot
 
 } // namespace comp
 
-void register_component__utils__WasdRot(Registry & registry)
+void register_component__gaen__utils__WasdRot(Registry & registry)
 {
-    if (!registry.registerComponentConstructor(HASH::utils__WasdRot, comp::utils__WasdRot::construct))
-        PANIC("Unable to register component: utils__WasdRot");
+    if (!registry.registerComponentConstructor(HASH::gaen__utils__WasdRot, comp::gaen__utils__WasdRot::construct))
+        PANIC("Unable to register component: gaen__utils__WasdRot");
 }
 
 } // namespace gaen

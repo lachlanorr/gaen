@@ -1,30 +1,8 @@
 //------------------------------------------------------------------------------
 // shapes.cpp - Auto-generated from shapes.cmp
-//
-// Gaen Concurrency Engine - http://gaen.org
-// Copyright (c) 2014-2015 Lachlan Orr
-//
-// This software is provided 'as-is', without any express or implied
-// warranty. In no event will the authors be held liable for any damages
-// arising from the use of this software.
-//
-// Permission is granted to anyone to use this software for any purpose,
-// including commercial applications, and to alter it and redistribute it
-// freely, subject to the following restrictions:
-//
-//   1. The origin of this software must not be misrepresented; you must not
-//   claim that you wrote the original software. If you use this software
-//   in a product, an acknowledgment in the product documentation would be
-//   appreciated but is not required.
-//
-//   2. Altered source versions must be plainly marked as such, and must not be
-//   misrepresented as being the original software.
-//
-//   3. This notice may not be removed or altered from any source
-//   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: b0cf1b2e0d25307c126046bcac1b65ec
+// HASH: ae2a807842f9a127a444b35e9d3d7360
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -42,12 +20,12 @@ namespace gaen
 namespace comp
 {
 
-class shapes__Box : public Component
+class gaen__shapes__Box : public Component
 {
 public:
     static Component * construct(void * place, Entity * pEntity)
     {
-        return new (place) shapes__Box(pEntity);
+        return new (place) gaen__shapes__Box(pEntity);
     }
     
     template <typename T>
@@ -107,16 +85,16 @@ public:
 }
 
 private:
-    shapes__Box(Entity * pEntity)
+    gaen__shapes__Box(Entity * pEntity)
       : Component(pEntity)
     {
-        mScriptTask = Task::create(this, HASH::shapes__Box);
+        mScriptTask = Task::create(this, HASH::gaen__shapes__Box);
         mBlockCount = 4;
     }
-    shapes__Box(const shapes__Box&)              = delete;
-    shapes__Box(const shapes__Box&&)             = delete;
-    shapes__Box & operator=(const shapes__Box&)  = delete;
-    shapes__Box & operator=(const shapes__Box&&) = delete;
+    gaen__shapes__Box(const gaen__shapes__Box&)              = delete;
+    gaen__shapes__Box(const gaen__shapes__Box&&)             = delete;
+    gaen__shapes__Box & operator=(const gaen__shapes__Box&)  = delete;
+    gaen__shapes__Box & operator=(const gaen__shapes__Box&&) = delete;
 
     Vec3& size()
     {
@@ -139,14 +117,14 @@ private:
     }
 
 
-}; // class shapes__Box
+}; // class gaen__shapes__Box
 
 } // namespace comp
 
-void register_component__shapes__Box(Registry & registry)
+void register_component__gaen__shapes__Box(Registry & registry)
 {
-    if (!registry.registerComponentConstructor(HASH::shapes__Box, comp::shapes__Box::construct))
-        PANIC("Unable to register component: shapes__Box");
+    if (!registry.registerComponentConstructor(HASH::gaen__shapes__Box, comp::gaen__shapes__Box::construct))
+        PANIC("Unable to register component: gaen__shapes__Box");
 }
 
 } // namespace gaen
