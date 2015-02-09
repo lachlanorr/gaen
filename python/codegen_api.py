@@ -27,6 +27,7 @@
 #-------------------------------------------------------------------------------
 
 import os
+import sys
 import posixpath
 import re
 
@@ -56,7 +57,6 @@ META_TEMPLATE = '''\
 //   3. This notice may not be removed or altered from any source
 //   distribution.
 //------------------------------------------------------------------------------
-#include "engine/stdafx.h"
 
 #include "compose/system_api_meta.h"
 
@@ -76,11 +76,32 @@ def gaen_dir():
     scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
     return posixpath.split(scriptdir)[0]
 
+def is_project():
+    if '-n' in sys.argv or '--noproject' in sys.argv:
+        return False
+    else:
+        return posixpath.exists(posixpath.join(gaen_dir(), '..', 'src', 'scripts'))
+
+def project_dir():
+    return posixpath.split(gaen_dir())[0]
+
+def project_name():
+    return posixpath.split(project_dir())[1]
+
+def gaen_src_dir():
+    return posixpath.join(gaen_dir(), 'src')
+
+def project_src_dir():
+    return posixpath.join(project_dir(), 'src')
+
 def system_api_h_path():
     return posixpath.join(gaen_dir(), "src/engine/system_api.h")
 
 def system_api_meta_cpp_path():
-    return posixpath.join(gaen_dir(), "src/compose/system_api_meta.cpp")
+    if is_project():
+        return posixpath.join(project_dir(), 'src', project_name() + '_lib', 'system_api_meta.cpp')
+    else:
+        return posixpath.join(gaen_dir(), "src/compose/system_api_meta.cpp")
 
 
 def codegen_cpp_cpp_path():
@@ -123,8 +144,35 @@ CPP_TYPES, COMPOSE_TYPES = read_types()
 CPP_TO_COMPOSE_TYPE = dict(zip(CPP_TYPES, COMPOSE_TYPES))
 COMPOSE_TO_CPP_TYPE = dict(zip(COMPOSE_TYPES, CPP_TYPES))
 
+def get_api_lines_in_file(in_path):
+    with open(in_path) as in_f:
+        data = in_f.read()
+
+    # Only pull out the lines within the gaen::system_api namespace.
+    # This regex will not be perfect, but if users adhere to the coding standards
+    # of the rest of the gaen library, this will work well enough. The alternative
+    # is parsing C++, which is overkill really.
+    m = re.match('.*^namespace\s+gaen\s*{.*^namespace\s+system_api\s*{([^}]*)}.*', data, re.MULTILINE | re.DOTALL)
+
+    if not m:
+        return []
+        
+    data = m.group(1).strip()
+    return [line.rstrip() for line in data.splitlines()]
+
+def get_api_lines_in_dir(dir_path):
+    lines = []
+    for root, dirs, files in os.walk(dir_path):
+        for f in files:
+            if f.endswith('.h'):
+                lines += get_api_lines_in_file(os.path.join(root, f))
+    return lines
+
 def get_api_lines():
-    return [line.rstrip() for line in open(system_api_h_path())]
+    lines = get_api_lines_in_dir(gaen_src_dir())
+    if is_project():
+        lines += get_api_lines_in_dir(project_src_dir())
+    return lines
 
 def type_regex():
     return '(' + '|'.join(CPP_TYPES) + ')'
@@ -216,9 +264,12 @@ def build_metadata():
     return META_TEMPLATE.replace("<<api_sigs>>", (',\n' + indent).join(api_decls) + ',')
 
 def read_file(filename):
-    f = open(filename, 'r')
-    d = f.read()
-    f.close()
+    if os.path.exists(filename):
+        f = open(filename, 'r')
+        d = f.read()
+        f.close()
+    else:
+        d = ''
     return d
 
 def write_metadata():

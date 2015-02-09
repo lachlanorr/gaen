@@ -73,11 +73,16 @@ ELSE(IOS)
 
   IDE_SOURCE_PROPERTIES( "/" "${gaen_SOURCES}")
 
+  IF (EXISTS "${CMAKE_SOURCE_DIR}/src/${CMAKE_PROJECT_NAME}_lib")
+    SET (PROJECT_LINK_LIBS ${CMAKE_PROJECT_NAME}_lib)
+  ENDIF()
+
   TARGET_LINK_LIBRARIES (${CMAKE_PROJECT_NAME}
     core
     engine
     renderergl
     scripts
+    ${PROJECT_LINK_LIBS}
     ${PLATFORM_LINK_LIBS}
     )
 

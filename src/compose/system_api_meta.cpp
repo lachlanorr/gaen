@@ -23,7 +23,6 @@
 //   3. This notice may not be removed or altered from any source
 //   distribution.
 //------------------------------------------------------------------------------
-#include "engine/stdafx.h"
 
 #include "compose/system_api_meta.h"
 

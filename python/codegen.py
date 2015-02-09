@@ -295,8 +295,11 @@ def cmakeify_script_path(p):
 
 def strip_scripts_dir(p):
     dirpath = posixpath.split(p.lstrip())[0]
+    dirpath = dirpath.replace('${gaen_namespace_dir}', '/cmp/gaen')
+    dirpath = dirpath.replace(gaen_scripts_dir(), '')
     dirpath = dirpath.replace('${scripts_dir}', '')
-    dirpath = dirpath.replace('${gaen_namespace_dir}', '')
+    dirpath = dirpath.replace(project_scripts_dir(), '')
+    return dirpath
 
 def write_cmake(cmp_files, cpp_files, h_files):
     cmp_rel_files = [cmakeify_script_path(f) for f in cmp_files]

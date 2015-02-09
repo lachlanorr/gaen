@@ -21,9 +21,16 @@ entity start
 {
     #init()
     {
+        // Simple test of sample fibonacci api function call.
+        // This is for illustration only, to show you how to
+        // create your own api calls.
+        $.print(string{"$.fibonacci(7) = %u", $.fibonacci(7)});
+
+        // Make box and light entities
         entity box = Box{};
         entity light = Light{};
 
+        // Insert the entities into the engine
         $.insert_task(box);
         $.insert_task(light);
     }

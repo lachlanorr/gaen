@@ -17,6 +17,8 @@
 namespace gaen
 {
 
+// All Compose api calls must be declared in the
+// gaen::system_api namespace
 namespace system_api
 {
 
