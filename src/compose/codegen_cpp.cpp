@@ -1720,7 +1720,17 @@ CodeCpp codegen_cpp(ParseData * pParseData)
     codeCpp.code += S("#include \"engine/Registry.h\"\n");
     codeCpp.code += S("#include \"engine/Component.h\"\n");
     codeCpp.code += S("#include \"engine/Entity.h\"\n");
-    codeCpp.code += S("#include \"engine/system_api.h\"\n");
+
+    if (pParseData->pApiIncludes)
+    {
+        for (const CompString & inc : *pParseData->pApiIncludes)
+        {
+            codeCpp.code += S("#include \"");
+            codeCpp.code += S(inc.c_str());
+            codeCpp.code += S("\"\n");
+        }
+    }
+
     codeCpp.code += LF;
 
     codeCpp.code += S("namespace gaen\n{\n\n");

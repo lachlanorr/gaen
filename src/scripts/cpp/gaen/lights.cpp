@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 9308f1b12e09ba4a971ccaa7a8aa6581
+// HASH: f1119b32a44c7f11be7fcfae9a956037
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -35,6 +35,7 @@
 #include "engine/Component.h"
 #include "engine/Entity.h"
 #include "engine/system_api.h"
+#include "eleven_lib/eleven_api.h"
 
 namespace gaen
 {

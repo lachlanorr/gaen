@@ -1522,6 +1522,7 @@ Scope * scope_create(ParseData * pParseData)
 // ParseData
 //------------------------------------------------------------------------------
 ParseData * parsedata_create(const char * fullPath,
+                             CompList<CompString> * pApiIncludes,
                              MessageHandler messageHandler)
 {
     ParseData * pParseData = COMP_NEW(ParseData);
@@ -1538,6 +1539,8 @@ ParseData * parsedata_create(const char * fullPath,
     pParseData->pRootAst = ast_create(kAST_Root, pParseData);
 
     pParseData->pRootScope->pSymTab->pAst = pParseData->pRootAst;
+
+    pParseData->pApiIncludes = pApiIncludes;
 
     parsedata_prep_paths(pParseData, fullPath);
 
@@ -1863,10 +1866,10 @@ void parsedata_set_location(ParseData * pParseData,
 }
 
 const Using * parsedata_parse_using(ParseData * pParseData,
-                            const char * namespace_,
-                            const char * fullPath)
+                                    const char * namespace_,
+                                    const char * fullPath)
 {
-    ParseData * pUsingParseData = parse_file(fullPath, pParseData->messageHandler);
+    ParseData * pUsingParseData = parse_file(fullPath, pParseData->pApiIncludes, pParseData->messageHandler);
 
     if (!pUsingParseData)
     {
@@ -1907,11 +1910,12 @@ void parse_init()
 ParseData * parse(const char * source,
                   size_t length,
                   const char * fullPath,
+                  CompList<CompString> * pApiIncludes,
                   MessageHandler messageHandler)
 {
     int ret;
 
-    ParseData * pParseData = parsedata_create(fullPath, messageHandler);
+    ParseData * pParseData = parsedata_create(fullPath, pApiIncludes, messageHandler);
 
     if (!source)
     {
@@ -1943,12 +1947,6 @@ ParseData * parse(const char * source,
     return pParseData;
 }   
 
-ParseData * parse_file(const char * fullPath,
-                       MessageHandler messageHandler)
-{
-    return parse(nullptr, 0, fullPath, messageHandler);
-}
-
 void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...)
 {
     va_list argptr;
@@ -1972,3 +1970,14 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 {
     // no freeing with comp_mem.h manager
 }
+
+namespace gaen
+{
+    ParseData * parse_file(const char * fullPath,
+                           CompList<CompString> * pApiIncludes,
+                           MessageHandler messageHandler)
+    {
+        return parse(nullptr, 0, fullPath, pApiIncludes, messageHandler);
+    }
+
+} // namespace gaen

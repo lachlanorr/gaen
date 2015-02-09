@@ -32,6 +32,7 @@
 #include "compose/compiler.h"
 #include "compose/compiler_structs.h"
 #include "compose/codegen_cpp.h"
+#include "compose/comp_mem.h"
 
 namespace gaen
 {
@@ -59,6 +60,12 @@ void messageHandler(MessageType messageType,
 
 } // namespace gaen
 
+void usage_and_exit()
+{
+    printf("Usage: cmpc [-i api_header] input_cmp_file\n");
+    exit(1);
+}
+
 int main(int argc, char ** argv)
 {
     using namespace gaen;
@@ -72,12 +79,35 @@ int main(int argc, char ** argv)
 
     if (argc < 2)
     {
-        printf("Usage: cmpc input_cmp_file\n");
-        exit(1);
+        usage_and_exit();
     }
 
+    gaen::CompList<gaen::CompString> includes;
+
+    // parse command line args
+    for (i32 i = 1; i < argc - 2; ++i)
+    {
+        if (argv[i][0] == '-' || argv[i][0] == '/')
+        {
+            switch (argv[i][1])
+            {
+            case 'i':
+                // add file to include api list
+                includes.push_back(argv[i+1]);
+                i++;
+                break;
+            default:
+                usage_and_exit();
+                break;
+            }
+        }
+    }
+
+    const char * inFile = argv[argc-1];
+
     parse_init();
-    ParseData * pParseData = parse_file(argv[1],
+    ParseData * pParseData = parse_file(inFile,
+                                        &includes,
                                         &messageHandler);
 
     if (!pParseData || pParseData->hasErrors)
