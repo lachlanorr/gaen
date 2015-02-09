@@ -25,7 +25,7 @@
 #-------------------------------------------------------------------------------
 
 SET (scripts_dir ${CMAKE_CURRENT_SOURCE_DIR})
-SET (gaen_scripts_dir ${CMAKE_SOURCE_DIR}/gaen/src/scripts/cmp/gaen)
+SET (gaen_namespace_dir ${CMAKE_SOURCE_DIR}/gaen/src/scripts/cmp/gaen)
 
 SET (scripts_codegen_SOURCES
   ${scripts_dir}/cmp/init.cmp
