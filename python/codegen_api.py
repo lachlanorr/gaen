@@ -160,19 +160,26 @@ def get_api_lines_in_file(in_path):
     data = m.group(1).strip()
     return [line.rstrip() for line in data.splitlines()]
 
-def get_api_lines_in_dir(dir_path):
-    lines = []
+def get_api_lines_in_dir(dir_path, lines, includes):
     for root, dirs, files in os.walk(dir_path):
         for f in files:
             if f.endswith('.h'):
-                lines += get_api_lines_in_file(os.path.join(root, f))
-    return lines
+                full_path= os.path.join(root, f)
+                api_lines = get_api_lines_in_file(full_path)
+                if len(api_lines):
+                    lines += api_lines
+                    pathdir = os.path.split(full_path)[0]
+                    fname = os.path.split(full_path)[1]
+                    lastdir = os.path.split(pathdir)[1]
+                    includes.append(posixpath.join(lastdir, fname))
 
 def get_api_lines():
-    lines = get_api_lines_in_dir(gaen_src_dir())
+    lines = []
+    includes = []
+    get_api_lines_in_dir(gaen_src_dir(), lines, includes)
     if is_project():
-        lines += get_api_lines_in_dir(project_src_dir())
-    return lines
+        get_api_lines_in_dir(project_src_dir(), lines, includes)
+    return lines, includes
 
 def type_regex():
     return '(' + '|'.join(CPP_TYPES) + ')'
@@ -257,11 +264,11 @@ def api_decl(parsed_api):
                                          ', '.join([api_type_decl(p[1]) for p in parsed_api[2]]))
 
 def build_metadata():
-    lines = get_api_lines()
+    lines, includes = get_api_lines()
     api_strs = get_api_strs(lines)
     api_decls = [api_decl(parse_api_str(api_str)) for api_str in api_strs]
     indent = ' ' * 36
-    return META_TEMPLATE.replace("<<api_sigs>>", (',\n' + indent).join(api_decls) + ',')
+    return META_TEMPLATE.replace("<<api_sigs>>", (',\n' + indent).join(api_decls) + ','), includes
 
 def read_file(filename):
     if os.path.exists(filename):
@@ -273,12 +280,13 @@ def read_file(filename):
     return d
 
 def write_metadata():
-    new_data = build_metadata()
+    new_data, includes = build_metadata()
     old_data = read_file(system_api_meta_cpp_path())
     if new_data != old_data:
         print "Writing " + system_api_meta_cpp_path()
         with open(system_api_meta_cpp_path(), 'w') as f:
             f.write(new_data)
+    return includes
 
 if __name__=='__main__':
     write_metadata()

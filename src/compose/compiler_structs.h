@@ -176,6 +176,8 @@ struct ParseData
 
     bool skipNextScope;
     bool hasErrors;
+
+    CompList<CompString> * pApiIncludes;
 };
 
 #endif // #ifndef GAEN_COMPOSE_COMPILER_STRUCTS_H

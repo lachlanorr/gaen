@@ -158,7 +158,7 @@ def write_file(filename, data):
     
 
 class ScriptInfo(object):
-    def __init__(self, cmpFullPath):
+    def __init__(self, cmpFullPath, includes):
         self.cmpFullPath = cmpFullPath
         self.cppFullPath = cmpFullPath.replace('/cmp/', '/cpp/').replace('.cmp', '.cpp')
         self.hFullPath = self.cppFullPath.replace('.cpp', '.h')
@@ -178,7 +178,7 @@ class ScriptInfo(object):
             self.hOutputOld, self.hSourceOld, self.hSourceOldHash = read_cpp_file(self.hFullPath)
             self.hSourceOldHashActual = md5.new(self.hSourceOld).hexdigest()
 
-        self._compile()
+        self._compile(includes)
 
         self.cppOutput = TEMPLATE % (self.cppFilename, self.cmpFilename, license_text('//', self.cppFullPath), self.cppSourceHash, self.cppSource)
 
@@ -186,9 +186,15 @@ class ScriptInfo(object):
             self.hOutput = TEMPLATE % (self.hFilename, self.cmpFilename, license_text('//', self.hFullPath), self.hSourceHash, self.hSource)
 
 
-    def _compile(self):
-        print '%s %s' % (CMPC, self.cmpFullPath)
-        p = subprocess.Popen([CMPC, self.cmpFullPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    def _compile(self, includes):
+        args = [CMPC]
+        for inc in includes:
+            args += ['-i', inc]
+        args.append(self.cmpFullPath)
+        for arg in args:
+            print arg,
+        print
+        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         sout, serr = p.communicate()
         if p.returncode == 0:
             output = sout.replace('\r\n', '\n')
@@ -327,7 +333,7 @@ def find_source_files(scripts_dir, source_files):
 def main():
     # run codegen_api first so the compiler has the latest api
     # metadata to work against.
-    codegen_api.write_metadata()
+    includes = codegen_api.write_metadata()
 
     if CMPC is None:
         print "ERROR: cmpc not found, do you need to build?"
@@ -346,7 +352,7 @@ def main():
     for f in source_files:
         try:
             if f.endswith('.cmp'):
-                si = ScriptInfo(f)
+                si = ScriptInfo(f, includes)
                 si.write_cpp()
                 script_infos.append(si)
                 cmp_files.append(si.cmpFullPath)

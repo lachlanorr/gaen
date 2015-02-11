@@ -1,0 +1,12 @@
+gaen
+
+setcc.sh
+build
+*.pyc
+*.codegen
+
+# apple stuff
+.DS_Store
+.Trashes
+*.swp
+

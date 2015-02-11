@@ -349,9 +349,6 @@ int are_types_compatible(DataType a, DataType b);
 int is_block_memory_type(DataType dt);
 int is_integral_type(DataType dt);
 
-ParseData * parsedata_create(const char * prefix,
-                             const char * fullPath,
-                             MessageHandler messageHandler);
 void parsedata_destroy(ParseData * pParseData);
 const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dottedId);
 void parsedata_prep_paths(ParseData * pParseData, const char * fullPath);
@@ -391,19 +388,22 @@ const Using * parsedata_parse_using(ParseData * pParseData,
 
 
 void parse_init();
-ParseData * parse(const char * source,
-                  size_t length,
-                  const char * fullPath,
-                  MessageHandler messageHandler);
-
-ParseData * parse_file(const char * fullPath,
-                       MessageHandler messageHandler);
 
 typedef struct YYLTYPE YYLTYPE;
 void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...);
 
 #ifdef __cplusplus
 } // extern "C"
+
+#include "compose/comp_mem.h"
+namespace gaen
+{
+
+ParseData * parse_file(const char * fullPath,
+                       CompList<CompString> * pIncludes,
+                       MessageHandler messageHandler);
+
+} // namespace gaen
 #endif
 
 #endif // #ifndef GAEN_COMPOSE_COMPILER_H

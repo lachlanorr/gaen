@@ -1,5 +1,5 @@
 setcc.sh
-build/**
+build
 *.pyc
 *.codegen
 
