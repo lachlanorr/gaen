@@ -5,74 +5,45 @@ concurrency.
 Game designers create components and entities and designate data
 dependencies. The engine load balances these entities across all
 available cores. Running on a machine with more cores will
-automatically improve performance without any code modifications.
+automatically improve CPU bound performance without any code
+modifications.
 
 Gaen is licensed under the terms of the [[http://en.wikipedia.org/wiki/Zlib_License][zlib License]].
 
-**  Compose Scripting Language
+Check out [[http://gaen.org][gaen.org]] for more gory details, but here's the
+gist.
+
+** Compose Scripting Language
 To enable rapid prototyping and empower non-C++ programmers to create
 with Gaen, there is Compose. It is a C-like language with lots of
 syntactic sugar around components, entities and message passing. It
 eliminates the boiler plate verbosity that comes with forcing C++ into
 a message passing, component based model.
 
-The language can be interpreted in a VM for rapid prototyping, or
-compiled into C++ for maximum performance after the scripts have been
-written and tested.
+The language is designed to get compiled into C++. Plans for a VM
+are in the works, but right now you run the cmpc compiler to
+covert your .cmp files to .cpp files.
+
+In shipping game code, this is what you want since the C++ compiler
+will give you great performance gains over an interpreted scripting
+language. However, it is pretty darn useful to prototype scripts
+without stopping/starting your game, and as such a VM is in the works
+so that Gaen can support the best of both worlds. You will use
+dynamic scripting while edit/debug/testing scripts, and compile
+to C++ when they are more nailed down.
 
 ** Platforms
-Active development is for Windows, but the engine is designed to run
-on OSX and Linux as well. Development started on OSX, so support is
-pretty well established there. Linux will require some porting of
-small chunks of isolated code. AMD64 is assumed, but it should not be
-too hard to move to another 64 bit architecture.
+Active development is for Windows, and that platform will generally
+always be functional. The engine is designed for 64 bit, but a 32 bit
+builds work as well.
+
+OSX and iOS are also supported. Linux support is forthcoming. I don't
+expect there to be any issues with the port, as going to OSX has made
+me work through most of the Posix required changes. But, alas, I
+haven't ported to Linux yet.
 
 [[http://en.wikipedia.org/wiki/C++11][C++11]] features are used extensively, so you must have a recent
-compiler.  On Windows this means VC 2013 or above. On OSX and Linux,
-GCC 4.8 is recommended.
-
-** Building
-The build system is CMake based, which makes possible the generation
-of VS Projects on Windows and make files on OSX and Linux. To run
-CMake, run either bootstrap.bat or bootstrap.sh from the gaen
-directory and it will place generated files in gaen/build. To
-completely clean the build and start from scratch, run clean.bat or
-clean.sh.
-
-*** Building on OSX Mavericks
-OSX is using makefiles and not Xcode. I found it a bit obtuse to get
-C++11 compiler support in Xcode, so I abandoned the effort. I also do
-not appreciate the cruft Xcode places in the generated bundle. The
-package that comes out of the makefile process is much cleaner. CMake
-enables the generation of Xcode projects, but the compiler issues will
-have to be solved.
-
-**** Notes on building in OSX Mavericks
-1. Install GCC 4.8 through homebrew.
-2. Add a setcc.sh in root gaen directory containing something like:
-   #+BEGIN_SRC sh
-   export CC=/usr/local/bin/gcc-4.8
-   export CXX=/usr/local/bin/g++-4.8
-   #+END_SRC
-3. Run bootstrap.sh
-4. Make in build/Debug
-
-You may need to apply this patch to /usr/include/sys/cdefs.h:
-
-#+BEGIN_SRC shell
---- /usr/include/sys/cdefs.h.original	2014-01-11 20:47:05.000000000 -0600
-+++ /usr/include/sys/cdefs.h	2014-01-11 20:48:51.000000000 -0600
-@@ -216,7 +216,7 @@
-
- #if __STDC_VERSION__ >= 199901L && (!defined(__GNUC__) || defined(__clang__))
- # define __header_inline           inline
--#elif defined(__GNUC__) && defined(__GNUC_STDC_INLINE__)
-+#elif defined(__GNUC__) && defined(__GNUC_STDC_INLINE__) && !defined(__cplusplus)
- # define __header_inline           extern __inline __attribute__((__gnu_inline__))
- #elif defined(__GNUC__)
- # define __header_inline           extern __inline
-#+END_SRC
-
-***** To use gdb on Mavericks, read this. What a pain, Apple:
-http://wiki.lazarus.freepascal.org/GDB_on_OS_X_Mavericks_and_Xcode_5
+compiler.  On Windows this means VC 2013 or above. On OSX, the most
+recent Xcode will serve you well. On Linux, this will mean at least
+GCC 4.8.
 
