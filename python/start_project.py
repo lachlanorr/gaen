@@ -28,6 +28,8 @@
 
 import sys
 import os
+import subprocess
+import re
 
 def script_dir():
     return os.path.split(os.path.abspath(__file__))[0]
@@ -44,8 +46,18 @@ def project_dir():
 def project_name():
     return os.path.split(project_dir())[1]
 
+def get_git_remote():
+    wd = os.getcwd()
+    os.chdir(script_dir())
+    o = subprocess.check_output(['git', 'remote', '-vv'])
+    os.chdir(wd)
+    o = o.splitlines()[0]
+    o = o.split()[1]
+    return re.sub('/[^@]+@', '//', o)
+
 REPLACEMENTS = { 'PROJECT_NAME': project_name(),
-                 'PROJECT_NAME_UPPER': project_name().upper()
+                 'PROJECT_NAME_UPPER': project_name().upper(),
+                 'GAEN_GIT_REMOTE': get_git_remote()
 }
 
 def write_file(out_f, data):

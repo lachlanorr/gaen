@@ -6,6 +6,13 @@ SETLOCAL
 :: Change to root dir
 CD /d %~dp0
 
+:: Clone gaen if it doesn't exist. This will need to happen for
+:: anyone who has cloned the project specific repository and is running
+:: bootstrap.bat for the first time.
+IF NOT EXIST .\gaen (
+  git clone <<GAEN_GIT_REMOTE>> gaen
+)
+
 :: Write root directory to main <<PROJECT_NAME_UPPER>>_ROOT env var
 FOR /f "tokens=1" %%B in ('CHDIR') do set <<PROJECT_NAME_UPPER>>_ROOT=%%B
 
