@@ -801,7 +801,7 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    {\n");
         code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount);\n");
         code += I + S("    }\n");
-        code += I + S("    \n");
+        code += I + S("\n");
 
         // Update method, if we have one
         if (pUpdateDef)

@@ -60,7 +60,7 @@ CmpString hashstr(u32 hash, Entity & caller)
     return caller.blockMemory().stringAlloc(HASH::reverse_hash(hash));
 }
 
-void insert_task(u32 id, Entity & caller)
+void insert_entity(u32 id, Entity & caller)
 {
     Entity * pEnt = caller.unstageEntity(id);
     if (pEnt)

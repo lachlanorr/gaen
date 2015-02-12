@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 49d371d617b3a37b7de0b7bb2c467f11
+// HASH: dbbea7949275e61f081f346d2b993068
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -49,7 +49,7 @@ public:
     {
         return GNEW(kMEM_Engine, test__Test, childCount);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {

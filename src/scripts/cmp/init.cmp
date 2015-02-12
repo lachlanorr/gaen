@@ -50,7 +50,7 @@ entity start
         string s = string{"float: %0.2f, int: %d, and make sure we're larger than one block", 1.2, 10};
 
         entity t = test.Test{prop1 = 500, prop2 = "new value"};
-        $.insert_task(t);
+        $.insert_entity(t);
 
 /*
         @t#prop1 = 5;
@@ -62,7 +62,7 @@ entity start
         entity box = Box{};
         entity light = Light{};
 
-        $.insert_task(box);
-        $.insert_task(light);
+        $.insert_entity(box);
+        $.insert_entity(light);
     }
 }

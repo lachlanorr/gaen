@@ -51,7 +51,6 @@ CMAKE_TEMPLATE = '''\
 #-------------------------------------------------------------------------------
 
 SET (scripts_dir <<scripts_dir>>)
-SET (gaen_namespace_dir ${CMAKE_SOURCE_DIR}/gaen/src/scripts/cmp/gaen)
 
 SET (scripts_codegen_SOURCES
 <<files>>
@@ -99,9 +98,6 @@ def project_dir():
 def project_scripts_dir():
     return posixpath.join(project_dir(), 'src', 'scripts')
 
-def gaen_scripts_dir():
-    return posixpath.join(gaen_dir(), 'src', 'scripts')
-
 def root_dir():
     if is_project():
         return project_dir()
@@ -110,11 +106,6 @@ def root_dir():
 
 def build_dir():
     return posixpath.join(root_dir(), 'build')
-
-def gaen_namespace_dir():
-    if not is_project():
-        raise Exception("gaen_namespace_dir() doesn't make sense when not a project")
-    return posixpath.join(gaen_dir(), 'src', 'scripts', 'cmp', 'gaen')
 
 def cmake_scripts_dir():
     return "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -258,10 +249,7 @@ def find_cmpc():
 CMPC = find_cmpc()
 
 def license_text(comment_chars, file_path):
-    if file_path.startswith(gaen_scripts_dir()):
-        lic_path = posixpath.join(gaen_scripts_dir(), 'license.txt')
-    else:
-        lic_path = posixpath.join(project_scripts_dir(), 'license.txt')
+    lic_path = posixpath.join(project_scripts_dir(), 'license.txt')
     if not os.path.exists(lic_path):
         return ''
     else:
@@ -295,14 +283,10 @@ def write_registration_cpp(script_infos):
 def cmakeify_script_path(p):
     if project_scripts_dir() in p:
         return p.replace(project_scripts_dir(), '  ${scripts_dir}')
-    elif gaen_namespace_dir() in p:
-        return p.replace(gaen_namespace_dir(), '  ${gaen_namespace_dir}')
     return p
 
 def strip_scripts_dir(p):
     dirpath = posixpath.split(p.lstrip())[0]
-    dirpath = dirpath.replace('${gaen_namespace_dir}', '/cmp/gaen')
-    dirpath = dirpath.replace(gaen_scripts_dir(), '')
     dirpath = dirpath.replace('${scripts_dir}', '')
     dirpath = dirpath.replace(project_scripts_dir(), '')
     return dirpath
@@ -346,8 +330,6 @@ def main():
 
     source_files = []
     find_source_files(project_scripts_dir(), source_files)
-    if is_project():
-        find_source_files(gaen_namespace_dir(), source_files)
 
     for f in source_files:
         try:

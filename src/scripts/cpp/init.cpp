@@ -225,11 +225,11 @@ public:
             system_api::print(system_api::hashstr(HASH::this_isATEST, entity()), entity());
             CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+00f, 10);
             task_id t = entity_init__init__test_Test__52_21();
-            system_api::insert_task(t, entity());
+            system_api::insert_entity(t, entity());
             task_id box = entity_init__init__Box__62_23();
             task_id light = entity_init__init__Light__63_25();
-            system_api::insert_task(box, entity());
-            system_api::insert_task(light, entity());
+            system_api::insert_entity(box, entity());
+            system_api::insert_entity(light, entity());
             return MessageResult::Consumed;
         }
         }
