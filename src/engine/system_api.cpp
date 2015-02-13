@@ -87,13 +87,6 @@ f32 degrees(f32 radians, Entity & caller)
 }
 
 
-Handle create_shape_box(const Vec3 & size, Color color, Entity & caller)
-{
-    Model * pModel = build_box(size, color);
-
-    return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
-}
-
 void watch_input_state(u32 state, u32 deviceId, u32 message, Entity & caller)
 {
     messages::WatchInputStateQW msgQW(HASH::watch_input_state,

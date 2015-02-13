@@ -71,7 +71,7 @@ const ApiSignature * find_api(const char * name, ParseData * pParseData)
     auto it = apiMap.find(nameHash);
     if (it == apiMap.end())
     {
-        COMP_ERROR(pParseData, "Cannot find Compose system api: $.%s", name);
+        COMP_ERROR(pParseData, "Cannot find system api: $.%s", name);
         return nullptr;
     }
     return it->second;

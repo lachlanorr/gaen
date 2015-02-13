@@ -27,6 +27,7 @@
 #include "engine/stdafx.h"
 
 #include "engine/shapes.h"
+#include "engine/hashes.h"
 
 namespace gaen
 {
@@ -45,9 +46,9 @@ ShapeBuilder::ShapeBuilder(Mesh * pMesh)
 }
 
 
-void ShapeBuilder::pushTri(const Vec3 & p0,
-                           const Vec3 & p1,
-                           const Vec3 & p2)
+void ShapeBuilder::addTri(const Vec3 & p0,
+                          const Vec3 & p1,
+                          const Vec3 & p2)
 {
     if (mCurrVertex + 3 > mMesh.vertCount())
         PANIC("Vertex array overrun during pushTri");
@@ -79,17 +80,17 @@ void ShapeBuilder::pushTri(const Vec3 & p0,
     mCurrPrimitive += 1;
 }
 
-void ShapeBuilder::pushTri(const Vec3 * pPoints)
+void ShapeBuilder::addTri(const Vec3 * pPoints)
 {
-    pushTri(pPoints[0],
+    addTri(pPoints[0],
             pPoints[1],
             pPoints[2]);
 }
         
-void ShapeBuilder::pushQuad(const Vec3 & p0,
-                            const Vec3 & p1,
-                            const Vec3 & p2,
-                            const Vec3 & p3)
+void ShapeBuilder::addQuad(const Vec3 & p0,
+                           const Vec3 & p1,
+                           const Vec3 & p2,
+                           const Vec3 & p3)
 {
     if (mCurrVertex + 4 > mMesh.vertCount())
         PANIC("Vertex array overrun during pushQuad");
@@ -106,7 +107,7 @@ void ShapeBuilder::pushQuad(const Vec3 & p0,
     Vec3 vecNorm = triNormal(p0, p1, p2);
     Vec3 vecNorm2 = triNormal(p3, p0, p2);
 
-    ASSERT(vecNorm == vecNorm2);
+    //ASSERT(vecNorm == vecNorm2);
 
     pVert[0].position = p0;
     pVert[0].normal = vecNorm;
@@ -132,16 +133,16 @@ void ShapeBuilder::pushQuad(const Vec3 & p0,
     mCurrPrimitive += 2;
 }
 
-void ShapeBuilder::pushQuad(const Vec3 * pPoints)
+void ShapeBuilder::addQuad(const Vec3 * pPoints)
 {
-    pushQuad(pPoints[0],
+    addQuad(pPoints[0],
              pPoints[1],
              pPoints[2],
              pPoints[3]);
 }
 
 
-void ShapeBuilder::pushMesh(const Mesh & mesh)
+void ShapeBuilder::addMesh(const Mesh & mesh)
 {
     if (mesh.vertType() != kVERT_PosNorm)
         PANIC("ShapeBuilder only appends meshes with vertices of type kVERT_PosNorm");
@@ -182,37 +183,8 @@ void ShapeBuilder::pushMesh(const Mesh & mesh)
 // ShapeBuilder (END)
 //------------------------------------------------------------------------------
 
-Mesh * buildTriMesh(f32 width, f32 height)
-{
-    Mesh * pMesh = Mesh::create(kVERT_PosNorm, 3, kPRIM_Triangle, 1);
-    ShapeBuilder sb(pMesh);
-    
-    f32 widthHalf = width * 0.5f;
-    f32 heightHalf = height * 0.5f;
-
-    Vec3 p0(0.0f, 0.0f, heightHalf);
-    Vec3 p1(-widthHalf, 0.0f, -heightHalf);
-    Vec3 p2(widthHalf, 0.0f, -heightHalf);
-    
-
-    sb.pushTri(p0, p1, p2);
-    
-    return pMesh;
-}
-
-Model * buildTriModel(f32 width, f32 height, Color color)
-{
-    Material * pMat = GNEW(kMEM_Texture, Material, color);
-    Mesh * pMesh = buildTriMesh(width, height);
-
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
-
-    return pModel;
-}
-
 Model * build_box(const Vec3 & size, Color color)
 {
-    Material * pMat = GNEW(kMEM_Texture, Material, color);
     Mesh * pMesh = Mesh::create(kVERT_PosNorm, 24, kPRIM_Triangle, 12);
 
     ShapeBuilder builder(pMesh);
@@ -227,27 +199,174 @@ Model * build_box(const Vec3 & size, Color color)
     f32 zmin = -zmax;
 
     // Front
-    builder.pushQuad(Vec3(xmin, ymax, zmax), Vec3(xmin, ymin, zmax), Vec3(xmax, ymin, zmax), Vec3(xmax, ymax, zmax));
+    builder.addQuad(Vec3(xmin, ymax, zmax), Vec3(xmin, ymin, zmax), Vec3(xmax, ymin, zmax), Vec3(xmax, ymax, zmax));
 
     // Bottom
-    builder.pushQuad(Vec3(xmin, ymin, zmax), Vec3(xmin, ymin, zmin), Vec3(xmax, ymin, zmin), Vec3(xmax, ymin, zmax));
+    builder.addQuad(Vec3(xmin, ymin, zmax), Vec3(xmin, ymin, zmin), Vec3(xmax, ymin, zmin), Vec3(xmax, ymin, zmax));
 
     // Back
-    builder.pushQuad(Vec3(xmin, ymin, zmin), Vec3(xmin, ymax, zmin), Vec3(xmax, ymax, zmin), Vec3(xmax, ymin, zmin));
+    builder.addQuad(Vec3(xmin, ymin, zmin), Vec3(xmin, ymax, zmin), Vec3(xmax, ymax, zmin), Vec3(xmax, ymin, zmin));
 
     // Top
-    builder.pushQuad(Vec3(xmax, ymax, zmax), Vec3(xmax, ymax, zmin), Vec3(xmin, ymax, zmin), Vec3(xmin, ymax, zmax));
+    builder.addQuad(Vec3(xmax, ymax, zmax), Vec3(xmax, ymax, zmin), Vec3(xmin, ymax, zmin), Vec3(xmin, ymax, zmax));
 
     // Left
-    builder.pushQuad(Vec3(xmin, ymax, zmax), Vec3(xmin, ymax, zmin), Vec3(xmin, ymin, zmin), Vec3(xmin, ymin, zmax));
+    builder.addQuad(Vec3(xmin, ymax, zmax), Vec3(xmin, ymax, zmin), Vec3(xmin, ymin, zmin), Vec3(xmin, ymin, zmax));
 
     // Right
-    builder.pushQuad(Vec3(xmax, ymin, zmax), Vec3(xmax, ymin, zmin), Vec3(xmax, ymax, zmin), Vec3(xmax, ymax, zmax));
+    builder.addQuad(Vec3(xmax, ymin, zmax), Vec3(xmax, ymin, zmin), Vec3(xmax, ymax, zmin), Vec3(xmax, ymax, zmax));
 
+    Material * pMat = GNEW(kMEM_Texture, Material, color);
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }
 
+// Lathe around y axis
+Mesh * lathe_points(const Vec2 * pPoints, u32 count, u32 slices)
+{
+    ASSERT(slices > 2);
+
+    u32 triCount = (count - 3) * slices * 2;
+    // If it's a closed surface, we'll not need a quad
+    // on the ends of each slice.
+    triCount += slices * (pPoints[0].x() == 0.0f ? 1 : 2);
+    triCount += slices * (pPoints[count-1].x() == 0.0f ? 1 : 2);
+
+    Mesh * pMesh = Mesh::create(kVERT_PosNorm, triCount * 3, kPRIM_Triangle, triCount);
+
+    ShapeBuilder builder(pMesh);
+
+    f32 fullArc = radians(360.0f);
+    f32 arcPart = fullArc / slices;
+
+    for (u32 s = 0; s < slices; ++s)
+    {
+        f32 arc0 = arcPart * s;
+        f32 arc1 = s < (slices-1) ? arc0 + arcPart : 0.0f; // last arc1 connects back to 0 arc
+
+        for (u32 i = 0; i < count-1; ++i)
+        {
+            Vec4 p0(pPoints[i]);
+            Vec4 p1(pPoints[i+1]);
+
+            Mat34 rotMat0 = Mat34::rotation(Vec3(0.0f, arc0, 0.0f));
+            Mat34 rotMat1 = Mat34::rotation(Vec3(0.0f, arc1, 0.0f));
+
+            Vec4 p0_0 = Mat34::multiply(rotMat0, p0);
+            Vec4 p1_0 = Mat34::multiply(rotMat0, p1);
+
+            Vec4 p0_1 = Mat34::multiply(rotMat1, p0);
+            Vec4 p1_1 = Mat34::multiply(rotMat1, p1);
+
+            // If first or last, make a tri
+            if (p0_0 == p0_1) // first, do a tri
+            {
+                builder.addTri(p0_0, p1_0, p1_1);
+            }
+            else if (p1_0 == p1_1) // last, do a tri
+            {
+                builder.addTri(p0_0, p1_0, p0_1);
+            }
+            else
+            {
+                builder.addQuad(p0_0, p1_0, p1_1, p0_1);
+            }
+        }
+    }
+
+    return pMesh;
+}
+
+Model * build_cone(const Vec3 & size, u32 slices, Color color)
+{
+    // build a 2d set of points to lathe
+    Vec2 points[3];
+
+    float halfX = abs(size.x()) / 2.0f;
+    float halfY = abs(size.y()) / 2.0f;
+
+    points[0] = Vec2(0.0f, halfY);
+    points[1] = Vec2(halfX, -halfY);
+    points[2] = Vec2(0.0f, -halfY);
+
+    Mesh * pMesh = lathe_points(points, 3, slices);
+
+    Material * pMat = GNEW(kMEM_Texture, Material, color);
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
+    return pModel;
+}
+
+Model * build_cylinder(const Vec3 & size, u32 slices, Color color)
+{
+    // build a 2d set of points to lathe
+    Vec2 points[4];
+
+    float halfX = abs(size.x()) / 2.0f;
+    float halfY = abs(size.y()) / 2.0f;
+
+    points[0] = Vec2(0.0f, halfY);
+    points[1] = Vec2(halfX, halfY);
+    points[2] = Vec2(halfX, -halfY);
+    points[3] = Vec2(0.0f, -halfY);
+
+    Mesh * pMesh = lathe_points(points, 4, slices);
+
+    Material * pMat = GNEW(kMEM_Texture, Material, color);
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
+    return pModel;
+}
+
+Model * build_sphere(const Vec3 & size, u32 slices, u32 sections, Color color)
+{
+    // build a 2d set of points to lathe
+    u32 pointCount = sections+1;
+    Vec2 * points = static_cast<Vec2*>(GALLOC(kMEM_Model, sizeof(Vec2) * pointCount));
+
+    f32 fullArc = radians(180.0f);
+    f32 sectionArc = fullArc / sections;
+
+    float halfY = abs(size.y()) / 2.0f;
+    points[0] = Vec2(0.0f, halfY);
+    for (u32 i = 1; i < pointCount-1; ++i)
+    {
+        Mat2 rotMat = Mat2::rotation(i * sectionArc);
+        points[i] = Mat2::multiply(rotMat, points[0]);
+    }
+    points[pointCount-1] = Vec2(0.0f, -halfY);
+
+    Mesh * pMesh = lathe_points(points, pointCount, slices);
+
+    Material * pMat = GNEW(kMEM_Texture, Material, color);
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
+    return pModel;
+}
+
+namespace system_api
+{
+    Handle create_shape_box(const Vec3 & size, Color color, Entity & caller)
+    {
+        Model * pModel = build_box(size, color);
+        return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
+    }
+
+    Handle create_shape_cone(const Vec3 & size, u32 slices, Color color, Entity & caller)
+    {
+        Model * pModel = build_cone(size, slices, color);
+        return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
+    }
+
+    Handle create_shape_cylinder(const Vec3 & size, u32 slices, Color color, Entity & caller)
+    {
+        Model * pModel = build_cylinder(size, slices, color);
+        return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
+    }
+
+    Handle create_shape_sphere(const Vec3 & size, u32 slices, u32 sections, Color color, Entity & caller)
+    {
+        Model * pModel = build_sphere(size, slices, sections, color);
+        return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
+    }
+}
 
 } // namespace gaen
 

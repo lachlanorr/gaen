@@ -1721,6 +1721,8 @@ CodeCpp codegen_cpp(ParseData * pParseData)
     codeCpp.code += S("#include \"engine/Component.h\"\n");
     codeCpp.code += S("#include \"engine/Entity.h\"\n");
 
+    codeCpp.code += S("\n");
+    codeCpp.code += S("// system_api declarations\n");
     if (pParseData->pApiIncludes)
     {
         for (const CompString & inc : *pParseData->pApiIncludes)

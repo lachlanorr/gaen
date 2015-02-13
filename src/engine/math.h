@@ -44,13 +44,29 @@ inline bool is_fp_eq(f32 actual, f32 expected) { return (actual >= expected - kF
 f32 invSqrt(const f32 x);
 f32 fastSqrt(const f32 x);
 
+struct Vec2
+{
+    Vec2() = default;
+    Vec2(f32 x, f32 y);
+    Vec2(const struct Vec3 & rhs);
+    Vec2(const struct Vec4 & rhs);
+
+    f32 & x();
+    f32 & y();
+
+    const f32 & x() const;
+    const f32 & y() const;
+
+    f32 elems[2];
+};
 
 struct Vec3
 {
     // constructors
     Vec3() = default;
     Vec3(f32 x, f32 y, f32 z);
-    Vec3(const struct Vec4 &rhs);
+    Vec3(const struct Vec2 &vec2);
+    Vec3(const struct Vec4 &vec4);
 
     f32 length() const;
     void normalize();
@@ -83,7 +99,10 @@ struct Vec4
 {
     Vec4() = default;
     Vec4(f32 x, f32 y, f32 z, f32 w);
+    Vec4(const Vec3 &vec3);
     Vec4(const Vec3 &vec3, f32 w);
+    Vec4(const Vec2 &vec2);
+    Vec4(const Vec2 &vec2, f32 w);
 
     f32 length() const;
     void normalize();
@@ -107,6 +126,25 @@ struct Vec4
     static Vec4 normalize(const Vec4 &vec4);
     static f32 dot(const Vec3 &lhs, const Vec3 &rhs);
     static Vec4 cross(const Vec4 &lhs, const Vec4 &rhs);
+
+    f32 elems[4];
+};
+
+struct Mat2
+{
+    Mat2();
+    Mat2(f32 diag);
+    Mat2(f32 e0, f32 e1,
+         f32 e2, f32 e3);
+
+    static const Mat2 & zero();
+    static const Mat2 & identity();
+
+    static Vec2 multiply(const Mat2 & mat2, const Vec2 & vec2);
+    static Mat2 rotation(f32 angle);
+
+    f32 & operator[](size_t idx);
+    const f32 & operator[](size_t idx) const;
 
     f32 elems[4];
 };
@@ -249,6 +287,47 @@ inline f32 fastSqrt(const f32 x)
     return x * invSqrt(x);
 }
 
+//--------------------------------------
+// Vec2 inlined methods
+//--------------------------------------
+inline Vec2::Vec2(f32 x, f32 y)
+{
+    elems[0] = x;
+    elems[1] = y;
+}
+
+inline Vec2::Vec2(const struct Vec3 & vec3)
+{
+    elems[0] = vec3.x();
+    elems[1] = vec3.y();
+}
+
+inline Vec2::Vec2(const struct Vec4 & vec4)
+{
+    elems[0] = vec4.x();
+    elems[1] = vec4.y();
+}
+
+inline f32 & Vec2::x()
+{
+    return elems[0];
+}
+
+inline f32 & Vec2::y()
+{
+    return elems[1];
+}
+
+inline const f32 & Vec2::x() const
+{
+    return elems[0];
+}
+
+inline const f32 & Vec2::y() const
+{
+    return elems[1];
+}
+
 
 //--------------------------------------
 // Vec3 inlined methods
@@ -260,11 +339,18 @@ inline Vec3::Vec3(f32 x, f32 y, f32 z)
     elems[2] = z;
 }
 
+inline Vec3::Vec3(const Vec2 &vec2)
+{
+    elems[0] = vec2.x();
+    elems[1] = vec2.y();
+    elems[2] = 0.0f;
+}
+
 inline Vec3::Vec3(const Vec4 &vec4)
 {
-    elems[0] = vec4.elems[0];
-    elems[1] = vec4.elems[1];
-    elems[2] = vec4.elems[2];
+    elems[0] = vec4.x();
+    elems[1] = vec4.y();
+    elems[2] = vec4.z();
 }
 
 inline f32 Vec3::length() const
@@ -367,6 +453,30 @@ inline Vec4::Vec4(f32 x, f32 y, f32 z, f32 w)
     elems[3] = w;
 }
 
+inline Vec4::Vec4(const Vec2 &vec2)
+{
+    elems[0] = vec2.x();
+    elems[1] = vec2.y();
+    elems[2] = 0.0f;
+    elems[3] = 1.0f;
+}
+
+inline Vec4::Vec4(const Vec2 &vec2, f32 w)
+{
+    elems[0] = vec2.x();
+    elems[1] = vec2.y();
+    elems[2] = 0.0f;
+    elems[3] = w;
+}
+
+inline Vec4::Vec4(const Vec3 &vec3)
+{
+    elems[0] = vec3.x();
+    elems[1] = vec3.y();
+    elems[2] = vec3.z();
+    elems[3] = 1.0f;
+}
+
 inline Vec4::Vec4(const Vec3 &vec3, f32 w)
 {
     elems[0] = vec3.x();
@@ -458,22 +568,68 @@ inline Vec4 Vec4::cross(const Vec4 &lhs, const Vec4 &rhs)
 
 
 //--------------------------------------
+// Mat2 inlined methods
+//--------------------------------------
+inline Mat2::Mat2() {}
+inline Mat2::Mat2(f32 diag)
+{
+    elems[0] = diag;
+    elems[1] = 0.0f;
+
+    elems[2] = 0.0f;
+    elems[3] = diag;
+}
+inline Mat2::Mat2(f32 e0, f32 e1,
+                  f32 e2, f32 e3)
+{
+    elems[0] = e0;
+    elems[1] = e1;
+
+    elems[2] = e2;
+    elems[3] = e3;
+}
+
+inline const Mat2 & Mat2::zero()
+{
+    static Mat2 zero2{0.0f};
+    return zero2;
+}
+
+inline const Mat2 & Mat2::identity()
+{
+    static Mat2 ident2{1.0f};
+    return ident2;
+}
+
+inline f32 & Mat2::operator[](size_t idx)
+{
+    ASSERT(idx < 4);
+    return elems[idx];
+}
+
+inline const f32 & Mat2::operator[](size_t idx) const
+{
+    ASSERT(idx < 4);
+    return elems[idx];
+}
+
+//--------------------------------------
 // Mat3 inlined methods
 //--------------------------------------
 inline Mat3::Mat3() {}
 inline Mat3::Mat3(f32 diag)
 {
-    elems[0] = 1.0f;
+    elems[0] = diag;
     elems[1] = 0.0f;
     elems[2] = 0.0f;
 
     elems[3] = 0.0f;
-    elems[4] = 1.0f;
+    elems[4] = diag;
     elems[5] = 0.0f;
 
     elems[6] = 0.0f;
     elems[7] = 0.0f;
-    elems[8] = 1.0f;
+    elems[8] = diag;
 }
 inline Mat3::Mat3(f32 e0, f32 e1, f32 e2,
                   f32 e3, f32 e4, f32 e5,
@@ -524,17 +680,13 @@ inline Mat3::Mat3(const Mat4 & mat4)
 
 inline const Mat3 & Mat3::zero()
 {
-    static Mat3 zero3{0.0f, 0.0f, 0.0f,
-                      0.0f, 0.0f, 0.0f,
-                      0.0f, 0.0f, 0.0f};
+    static Mat3 zero3{0.0f};
     return zero3;
 }
 
 inline const Mat3 & Mat3::identity()
 {
-    static Mat3 ident3{1.0f, 0.0f, 0.0f,
-                       0.0f, 1.0f, 0.0f,
-                       0.0f, 0.0f, 1.0f};
+    static Mat3 ident3{1.0f};
     return ident3;
 }
 
@@ -556,17 +708,17 @@ inline const f32 & Mat3::operator[](size_t idx) const
 inline Mat34::Mat34() {}
 inline Mat34::Mat34(f32 diag)
 {
-    elems[0]  = 1.0f;
+    elems[0]  = diag;
     elems[1]  = 0.0f;
     elems[2]  = 0.0f;
 
     elems[3]  = 0.0f;
-    elems[4]  = 1.0f;
+    elems[4]  = diag;
     elems[5]  = 0.0f;
 
     elems[6]  = 0.0f;
     elems[7]  = 0.0f;
-    elems[8]  = 1.0f;
+    elems[8]  = diag;
 
     elems[9]  = 0.0f;
     elems[10] = 0.0f;
@@ -620,19 +772,13 @@ inline Mat34::Mat34(const Mat4 & mat4)
 
 inline const Mat34 & Mat34::zero()
 {
-    static Mat34 zero34{0.0f, 0.0f, 0.0f,
-                        0.0f, 0.0f, 0.0f,
-                        0.0f, 0.0f, 0.0f,
-                        0.0f, 0.0f, 0.0f};
+    static Mat34 zero34{0.0f};
     return zero34;
 }
 
 inline const Mat34 & Mat34::identity()
 {
-    static Mat34 ident34{1.0f, 0.0f, 0.0f,
-                         0.0f, 1.0f, 0.0f,
-                         0.0f, 0.0f, 1.0f,
-                         0.0f, 0.0f, 0.0f};
+    static Mat34 ident34{1.0f};
     return ident34;
 }
 
@@ -759,19 +905,13 @@ inline Mat4::Mat4(const Mat34 & mat34)
 
 inline const Mat4 & Mat4::zero()
 {
-    static Mat4 zero4{0.0f, 0.0f, 0.0f, 0.0f,
-                      0.0f, 0.0f, 0.0f, 0.0f,
-                      0.0f, 0.0f, 0.0f, 0.0f,
-                      0.0f, 0.0f, 0.0f, 0.0f};
+    static Mat4 zero4{0.0f};
     return zero4;
 }
 
 inline const Mat4 & Mat4::identity()
 {
-    static Mat4 ident4{1.0f, 0.0f, 0.0f, 0.0f,
-                       0.0f, 1.0f, 0.0f, 0.0f,
-                       0.0f, 0.0f, 1.0f, 0.0f,
-                       0.0f, 0.0f, 0.0f, 1.0f};
+    static Mat4 ident4{1.0f};
     return ident4;
 }
 

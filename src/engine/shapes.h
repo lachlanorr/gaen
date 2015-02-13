@@ -29,6 +29,7 @@
 
 #include "engine/Mesh.h"
 #include "engine/Model.h"
+#include "engine/Handle.h"
 
 namespace gaen
 {
@@ -38,18 +39,18 @@ class ShapeBuilder
 public:
     ShapeBuilder(Mesh * pMesh);
 
-    void pushTri(const Vec3 & p0,
+    void addTri(const Vec3 & p0,
                  const Vec3 & p1,
                  const Vec3 & p2);
-    void pushTri(const Vec3 * pPoints);
+    void addTri(const Vec3 * pPoints);
 
-    void pushQuad(const Vec3 & p0,
+    void addQuad(const Vec3 & p0,
                   const Vec3 & p1,
                   const Vec3 & p2,
                   const Vec3 & p3);
-    void pushQuad(const Vec3 * pPoints);
+    void addQuad(const Vec3 * pPoints);
 
-    void pushMesh(const Mesh & mesh);
+    void addMesh(const Mesh & mesh);
 
     Mesh & mesh() { return mMesh; }
     u32 currVertex() { return mCurrVertex; }
@@ -62,12 +63,20 @@ private:
 };
 
 
-Mesh * buildTriMesh(f32 width, f32 height);
-
-Model * buildTriModel(f32 width, f32 height, Color color);
-
-
 Model * build_box(const Vec3 & size, Color color);
+Model * build_cone(const Vec3 & size, Color color);
+Model * build_cylinder(const Vec3 & size, u32 slices, Color color);
+
+
+// Compose wrappers
+class Entity;
+namespace system_api
+{
+    Handle create_shape_box(const Vec3 & size, Color color, Entity & caller);
+    Handle create_shape_cone(const Vec3 & size, u32 slices, Color color, Entity & caller);
+    Handle create_shape_cylinder(const Vec3 & size, u32 slices, Color color, Entity & caller);
+    Handle create_shape_sphere(const Vec3 & size, u32 slices, u32 sections, Color color, Entity & caller);
+}
 
 } // namespace gaen
 

@@ -51,8 +51,6 @@ void insert_entity(u32 id, Entity & caller);
 f32 radians(f32 degrees, Entity & caller);
 f32 degrees(f32 radians, Entity & caller);
 
-Handle create_shape_box(const Vec3 & size, Color color, Entity & caller);
-
 void watch_input_state(u32 state, u32 deviceId, u32 message, Entity & caller);
 
 Mat34 transform_rotate(const Vec3 & angles, Entity & caller);

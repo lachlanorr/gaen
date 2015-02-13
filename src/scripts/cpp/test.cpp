@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: dbbea7949275e61f081f346d2b993068
+// HASH: b072723a725c51bb71e293e07e98f26c
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -34,6 +34,9 @@
 #include "engine/Registry.h"
 #include "engine/Component.h"
 #include "engine/Entity.h"
+
+// system_api declarations
+#include "engine/shapes.h"
 #include "engine/system_api.h"
 
 namespace gaen

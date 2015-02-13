@@ -24,12 +24,22 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-entity Box
+entity Shape
 {
     components
     {
-        gaen.shapes.Box{size    = vec3{3.0, 2.0, 1.0},
-                        diffuse = color{255, 255, 0, 255}};
+/*        gaen.shapes.Box{size    = vec3{3.0, 2.0, 1.0},
+                        diffuse = color{255, 255, 0, 255}};*/
+/*        gaen.shapes.Cone{size    = vec3{1.0, 1.0, 1.0},
+                         slices  = 16,
+                         diffuse = color{255, 255, 0, 255}};*/
+/*        gaen.shapes.Cylinder{size    = vec3{1.0, 1.0, 1.0},
+                             slices  = 16,
+                             diffuse = color{255, 255, 0, 255}};*/
+        gaen.shapes.Sphere{size    = vec3{1.0, 1.0, 1.0},
+                           slices  = 32,
+                           sections = 16,
+                           diffuse = color{255, 255, 0, 255}};
         gaen.utils.WasdRot{};        
     }
 }
@@ -46,11 +56,11 @@ entity start
 {
     #init()
     {
-        $.print($.hashstr(#this_isATEST));
-        string s = string{"float: %0.2f, int: %d, and make sure we're larger than one block", 1.2, 10};
+//        $.print($.hashstr(#this_isATEST));
+//        string s = string{"float: %0.2f, int: %d, and make sure we're larger than one block", 1.2, 10};
 
-        entity t = test.Test{prop1 = 500, prop2 = "new value"};
-        $.insert_entity(t);
+//        entity t = test.Test{prop1 = 500, prop2 = "new value"};
+//        $.insert_entity(t);
 
 /*
         @t#prop1 = 5;
@@ -59,10 +69,10 @@ entity start
         @t#msg1(5, s, "a short one", 1.2, vec3{1.0, 2.0, 3.0}, "this is another string that is larger than one block, and then some more");
 */
 
-        entity box = Box{};
+        entity shape = Shape{};
         entity light = Light{};
 
-        $.insert_entity(box);
+        $.insert_entity(shape);
         $.insert_entity(light);
     }
 }

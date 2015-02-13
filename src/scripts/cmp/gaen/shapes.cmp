@@ -29,16 +29,77 @@ component Box
     vec3 #size = vec3{1.0, 1.0, 1.0};
     color #diffuse = color{255, 0, 0, 255};
     handle model;
-    uint boxModelUid = $.renderer_gen_uid();
+    uint modelUid = $.renderer_gen_uid();
 
     #init()
     {
         model = $.create_shape_box(size, diffuse);
-        $.renderer_insert_model_instance(boxModelUid, model);
+        $.renderer_insert_model_instance(modelUid, model);
     }
 
     #update_transform()
     {
-        $.renderer_transform_model_instance(boxModelUid, transform);
+        $.renderer_transform_model_instance(modelUid, transform);
+    }
+}
+
+component Cone
+{
+    vec3 #size = vec3{1.0, 1.0, 1.0};
+    uint #slices = 16;
+    color #diffuse = color{255, 0, 0, 255};
+    handle model;
+    uint modelUid = $.renderer_gen_uid();
+
+    #init()
+    {
+        model = $.create_shape_cone(size, slices, diffuse);
+        $.renderer_insert_model_instance(modelUid, model);
+    }
+
+    #update_transform()
+    {
+        $.renderer_transform_model_instance(modelUid, transform);
+    }
+}
+
+component Cylinder
+{
+    vec3 #size = vec3{1.0, 1.0, 1.0};
+    uint #slices = 16;
+    color #diffuse = color{255, 0, 0, 255};
+    handle model;
+    uint modelUid = $.renderer_gen_uid();
+
+    #init()
+    {
+        model = $.create_shape_cylinder(size, slices, diffuse);
+        $.renderer_insert_model_instance(modelUid, model);
+    }
+
+    #update_transform()
+    {
+        $.renderer_transform_model_instance(modelUid, transform);
+    }
+}
+
+component Sphere
+{
+    vec3 #size = vec3{1.0, 1.0, 1.0};
+    uint #sections = 16;
+    uint #slices = 16;
+    color #diffuse = color{255, 0, 0, 255};
+    handle model;
+    uint modelUid = $.renderer_gen_uid();
+
+    #init()
+    {
+        model = $.create_shape_sphere(size, slices, sections, diffuse);
+        $.renderer_insert_model_instance(modelUid, model);
+    }
+
+    #update_transform()
+    {
+        $.renderer_transform_model_instance(modelUid, transform);
     }
 }

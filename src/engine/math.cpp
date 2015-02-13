@@ -32,6 +32,27 @@ namespace gaen
 {
 
 //------------------------------------------------------------------------------
+// Mat2 methods
+//------------------------------------------------------------------------------
+Vec2 Mat2::multiply(const Mat2 & mat2, const Vec2 & vec2)
+{
+    Vec2 newVec;
+    newVec.x() = mat2[0] * vec2.x() +
+                 mat2[1] * vec2.y();
+    newVec.y() = mat2[2] * vec2.x() +
+                 mat2[3] * vec2.y();
+    return newVec;
+}
+
+Mat2 Mat2::rotation(f32 angle)
+{
+    f32 cosAngle = cos(angle);
+    f32 sinAngle = sin(angle);
+
+    return Mat2{cosAngle, sinAngle, -sinAngle, cosAngle};
+}
+
+//------------------------------------------------------------------------------
 // Mat3 methods
 //------------------------------------------------------------------------------
 f32 Mat3::determinant(const Mat3 & mat3)

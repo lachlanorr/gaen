@@ -44,6 +44,7 @@ namespace gaen
 {
 extern void register_all_entities_and_components(Registry & registry);
 
+// LORRTODO - Choose good message queue sizes here
 static const u32 kMaxMainMessages = 4096;
 static const u32 kMaxTaskMasterMessages = 4096;
 

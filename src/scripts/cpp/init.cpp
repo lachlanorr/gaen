@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: d23decb9e29ba5962f1f697d37cc9276
+// HASH: 7aa4f2e6ba2461536005b1551a736e84
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -34,6 +34,9 @@
 #include "engine/Registry.h"
 #include "engine/Component.h"
 #include "engine/Entity.h"
+
+// system_api declarations
+#include "engine/shapes.h"
 #include "engine/system_api.h"
 
 namespace gaen
@@ -42,12 +45,12 @@ namespace gaen
 namespace ent
 {
 
-class init__Box : public Entity
+class init__Shape : public Entity
 {
 public:
     static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, init__Box, childCount);
+        return GNEW(kMEM_Engine, init__Shape, childCount);
     }
 
     template <typename T>
@@ -57,19 +60,31 @@ public:
     }
 
 private:
-    init__Box(u32 childCount)
-      : Entity(HASH::init__Box, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+    init__Shape(u32 childCount)
+      : Entity(HASH::init__Shape, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
         mBlockCount = 0;
-        mScriptTask = Task::create(this, HASH::init__Box);
+        mScriptTask = Task::create(this, HASH::init__Shape);
 
-        // Component: gaen.shapes.Box
+        // Component: gaen.shapes.Sphere
         {
-            Task & compTask = insertComponent(HASH::gaen__shapes__Box, mComponentCount);
+            Task & compTask = insertComponent(HASH::gaen__shapes__Sphere, mComponentCount);
             // Init Property: size
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
-                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(3.00000000e+00f, 2.00000000e+00f, 1.00000000e+00f);
+                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+                compTask.message(msgw.accessor());
+            }
+            // Init Property: slices
+            {
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::slices));
+                msgw[0].cells[0].i = 32;
+                compTask.message(msgw.accessor());
+            }
+            // Init Property: sections
+            {
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::sections));
+                msgw[0].cells[0].i = 16;
                 compTask.message(msgw.accessor());
             }
             // Init Property: diffuse
@@ -91,19 +106,19 @@ private:
             compTask.message(msgBW.accessor());
         }
     }
-    init__Box(const init__Box&)              = delete;
-    init__Box(const init__Box&&)             = delete;
-    init__Box & operator=(const init__Box&)  = delete;
-    init__Box & operator=(const init__Box&&) = delete;
+    init__Shape(const init__Shape&)              = delete;
+    init__Shape(const init__Shape&&)             = delete;
+    init__Shape & operator=(const init__Shape&)  = delete;
+    init__Shape & operator=(const init__Shape&&) = delete;
 
-}; // class init__Box
+}; // class init__Shape
 
 } // namespace ent
 
-void register_entity__init__Box(Registry & registry)
+void register_entity__init__Shape(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::init__Box, ent::init__Box::construct))
-        PANIC("Unable to register entity: init__Box");
+    if (!registry.registerEntityConstructor(HASH::init__Shape, ent::init__Shape::construct))
+        PANIC("Unable to register entity: init__Shape");
 }
 
 namespace ent
@@ -160,22 +175,9 @@ class init__start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__test_Test__52_21()
+    task_id entity_init__init__Shape__72_25()
     {
-        Entity * pEnt = get_registry().constructEntity(HASH::test__Test, 8);
-        // Init Property: prop1
-        {
-            StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop1));
-            msgw[0].cells[0].i = 500;
-            pEnt->task().message(msgw.accessor());
-        }
-        // Init Property: prop2
-        {
-            CmpString val = entity().blockMemory().stringAlloc("new value");
-            ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop2), val.blockCount());
-            val.writeMessage(msgw.accessor(), 0);
-            pEnt->task().message(msgw.accessor());
-        }
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Shape, 8);
         // Send init message
         StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
         pEnt->task().message(msgBW.accessor());
@@ -184,18 +186,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Box__62_23()
-    {
-        Entity * pEnt = get_registry().constructEntity(HASH::init__Box, 8);
-        // Send init message
-        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgBW.accessor());
-
-        stageEntity(pEnt);
-        return pEnt->task().id();
-    }
-
-    task_id entity_init__init__Light__63_25()
+    task_id entity_init__init__Light__73_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
         // Send init message
@@ -222,13 +213,9 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            system_api::print(system_api::hashstr(HASH::this_isATEST, entity()), entity());
-            CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+00f, 10);
-            task_id t = entity_init__init__test_Test__52_21();
-            system_api::insert_entity(t, entity());
-            task_id box = entity_init__init__Box__62_23();
-            task_id light = entity_init__init__Light__63_25();
-            system_api::insert_entity(box, entity());
+            task_id shape = entity_init__init__Shape__72_25();
+            task_id light = entity_init__init__Light__73_25();
+            system_api::insert_entity(shape, entity());
             system_api::insert_entity(light, entity());
             return MessageResult::Consumed;
         }
