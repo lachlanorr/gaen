@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 27adc0ce80d57a5a8cc77ef5189041fc
+// HASH: d23decb9e29ba5962f1f697d37cc9276
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -49,7 +49,7 @@ public:
     {
         return GNEW(kMEM_Engine, init__Box, childCount);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
@@ -116,7 +116,7 @@ public:
     {
         return GNEW(kMEM_Engine, init__Light, childCount);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
@@ -212,7 +212,7 @@ public:
     {
         return GNEW(kMEM_Engine, init__start, childCount);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
