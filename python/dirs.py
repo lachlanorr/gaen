@@ -29,10 +29,6 @@
 import os
 import sys
 
-def __project_info_file():
-    gaen_parent = os.path.split(GAEN_DIR)[0]
-    return os.path.join(gaen_parent, 'gaen_project.info')
-
 def __is_project():
     if '-n' in sys.argv or '--noproject' in sys.argv:
         return False
@@ -41,7 +37,7 @@ def __is_project():
 
 def __project_dir():
     if IS_PROJECT:
-        return os.path.split(GAEN_DIR)[0]
+        return GAEN_PARENT_DIR
     else:
         return GAEN_DIR
 
@@ -62,9 +58,10 @@ def __system_api_meta_cpp_path():
 SCRIPT_DIR        = os.path.split(os.path.abspath(__file__))[0]
 TEMPLATE_DIR      = os.path.join(SCRIPT_DIR, 'templates', 'project')
 GAEN_DIR          = os.path.split(SCRIPT_DIR)[0]
+GAEN_PARENT_DIR   = os.path.split(GAEN_DIR)[0]
 GAEN_SRC_DIR      = os.path.join(GAEN_DIR, 'src')
 CODEGEN_CPP_CPP_FILE = os.path.join(GAEN_SRC_DIR, 'compose', 'codegen_cpp.cpp')
-PROJECT_INFO_FILE = __project_info_file()
+PROJECT_INFO_FILE = os.path.join(GAEN_PARENT_DIR, 'gaen_project.info')
 IS_PROJECT        = __is_project()
 PROJECT_DIR       = __project_dir()
 PROJECT_SRC_DIR   = os.path.join(PROJECT_DIR, 'src')

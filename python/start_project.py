@@ -47,7 +47,7 @@ def project_name():
         return sys.argv[1]
     else:
         # use directory name
-        return os.path.split(dirs.GAEN_DIR)[0]
+        return os.path.split(dirs.GAEN_PARENT_DIR)[1]
 
 REPLACEMENTS = { 'PROJECT_NAME': project_name(),
                  'PROJECT_NAME_UPPER': project_name().upper(),
@@ -71,11 +71,20 @@ def fill_template(in_file, out_file):
     write_file(out_file, content)
 
 def proc_templates():
-    for root, dirs, files in os.walk(dirs.TEMPLATE_DIR):
+    for root, _, files in os.walk(dirs.TEMPLATE_DIR):
         for f in files:
             in_f = os.path.join(root, f)
-            out_f = in_f.replace(dirs.TEMPLATE_DIR, dirs.PROJECT_DIR)
+            out_f = in_f.replace(dirs.TEMPLATE_DIR, dirs.GAEN_PARENT_DIR)
             out_f = out_f.replace("PROJECT_NAME", project_name())
+            fill_template(in_f, out_f)
+
+def copy_gaen_scripts():
+    gaen_cmp_subdir = os.path.join('src', 'scripts', 'cmp', 'gaen')
+    gaen_cmp_dir = os.path.join(dirs.GAEN_DIR, gaen_cmp_subdir)
+    for root, _, files in os.walk(gaen_cmp_dir):
+        for f in files:
+            in_f = os.path.join(root, f)
+            out_f = in_f.replace(gaen_cmp_dir, os.path.join(dirs.GAEN_PARENT_DIR, gaen_cmp_subdir))
             fill_template(in_f, out_f)
 
 def err_and_exit(msg, code):
@@ -83,9 +92,9 @@ def err_and_exit(msg, code):
     sys.exit(code)
 
 def check_dir():
-    if os.path.abspath(os.path.curdir) != dirs.PROJECT_DIR:
+    if os.path.abspath(os.path.curdir) != dirs.GAEN_PARENT_DIR:
         err_and_exit("start_project.py must be run from the parent directory of a checked out gaen repository", 2)
-    if os.listdir(dirs.PROJECT_DIR) != ['gaen']:
+    if os.listdir(dirs.GAEN_PARENT_DIR) != ['gaen']:
         err_and_exit("start_project.py must be run from a directory containing only a 'gaen' sub directory, and nothing else", 1)
 
 def bootstrap_msg():
@@ -104,6 +113,7 @@ def main():
 
     if i == '' or i.lower() == 'y':
         proc_templates()
+        copy_gaen_scripts()
         print
         print "Gaen project '%s' created in current directory." % project_name()
         print bootstrap_msg()

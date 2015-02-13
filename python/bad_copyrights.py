@@ -4,7 +4,7 @@
 # bad_copyrights.py - Check for copyright headers in source files
 #
 # Gaen Concurrency Engine - http://gaen.org
-# Copyright (c) 2014-2015-2015 Lachlan Orr
+# Copyright (c) 2014-2015 Lachlan Orr
 #
 # This software is provided 'as-is', without any express or implied
 # warranty. In no event will the authors be held liable for any damages
@@ -27,7 +27,8 @@
 #-------------------------------------------------------------------------------
 
 '''
-Prints out source file paths that are missing copyright/license message.
+Prints out source file paths that are missing standard gaen
+copyright/license message.
 '''
 
 import os
