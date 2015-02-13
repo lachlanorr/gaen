@@ -1,5 +1,5 @@
 gaen
-!src/scripts/cmp/gaen
+!src/**/gaen
 
 setcc.sh
 build
