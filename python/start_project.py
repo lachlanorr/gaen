@@ -31,29 +31,23 @@ import os
 import subprocess
 import re
 
-def script_dir():
-    return os.path.split(os.path.abspath(__file__))[0]
-
-def template_dir():
-    return os.path.join(script_dir(), 'templates', 'project')
-
-def gaen_dir():
-    return os.path.split(script_dir())[0]
-    
-def project_dir():
-    return os.path.split(gaen_dir())[0]
-
-def project_name():
-    return os.path.split(project_dir())[1]
+import dirs
 
 def get_git_remote():
     wd = os.getcwd()
-    os.chdir(script_dir())
+    os.chdir(dirs.SCRIPT_DIR)
     o = subprocess.check_output(['git', 'remote', '-vv'])
     os.chdir(wd)
     o = o.splitlines()[0]
     o = o.split()[1]
     return re.sub('/[^@]+@', '//', o)
+
+def project_name():
+    if len(sys.argv) > 1:
+        return sys.argv[1]
+    else:
+        # use directory name
+        return os.path.split(dirs.GAEN_DIR)[0]
 
 REPLACEMENTS = { 'PROJECT_NAME': project_name(),
                  'PROJECT_NAME_UPPER': project_name().upper(),
@@ -77,10 +71,10 @@ def fill_template(in_file, out_file):
     write_file(out_file, content)
 
 def proc_templates():
-    for root, dirs, files in os.walk(template_dir()):
+    for root, dirs, files in os.walk(dirs.TEMPLATE_DIR):
         for f in files:
             in_f = os.path.join(root, f)
-            out_f = in_f.replace(template_dir(), project_dir())
+            out_f = in_f.replace(dirs.TEMPLATE_DIR, dirs.PROJECT_DIR)
             out_f = out_f.replace("PROJECT_NAME", project_name())
             fill_template(in_f, out_f)
 
@@ -89,9 +83,9 @@ def err_and_exit(msg, code):
     sys.exit(code)
 
 def check_dir():
-    if os.path.abspath(os.path.curdir) != project_dir():
+    if os.path.abspath(os.path.curdir) != dirs.PROJECT_DIR:
         err_and_exit("start_project.py must be run from the parent directory of a checked out gaen repository", 2)
-    if os.listdir(project_dir()) != ['gaen']:
+    if os.listdir(dirs.PROJECT_DIR) != ['gaen']:
         err_and_exit("start_project.py must be run from a directory containing only a 'gaen' sub directory, and nothing else", 1)
 
 def bootstrap_msg():

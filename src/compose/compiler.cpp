@@ -1891,7 +1891,7 @@ ParseData * parse(const char * source,
         i32 len = read_file(pParseData->fullPath, &newSource);
         if (len <= 0)
         {
-            COMP_ERROR(pParseData, "Unable to read file");
+            COMP_ERROR(pParseData, "Unable to read file: %s", pParseData->fullPath);
             return nullptr;
         }
         length = len;

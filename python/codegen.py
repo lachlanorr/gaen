@@ -36,6 +36,7 @@ import datetime
 import re
 
 import codegen_api
+import dirs
 
 TEMPLATE = '''\
 //------------------------------------------------------------------------------
@@ -78,34 +79,6 @@ void register_all_entities_and_components(Registry & registry)
 
 } // namespace gaen
 '''
-
-def gaen_dir():
-    scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
-    return posixpath.split(scriptdir)[0]
-
-def is_project():
-    if '-n' in sys.argv or '--noproject' in sys.argv:
-        return False
-    else:
-        return posixpath.exists(posixpath.join(gaen_dir(), '..', 'src', 'scripts'))
-
-def project_dir():
-    if is_project():
-        return posixpath.split(gaen_dir())[0]
-    else:
-        return gaen_dir()
-
-def project_scripts_dir():
-    return posixpath.join(project_dir(), 'src', 'scripts')
-
-def root_dir():
-    if is_project():
-        return project_dir()
-    else:
-        return gaen_dir()
-
-def build_dir():
-    return posixpath.join(root_dir(), 'build')
 
 def cmake_scripts_dir():
     return "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -240,7 +213,7 @@ class ScriptInfo(object):
         
 
 def find_cmpc():
-    for root, dirs, files in os.walk(build_dir()):
+    for root, _, files in os.walk(dirs.BUILD_DIR_P):
         for f in files:
             if root.endswith('packaged') and f in ['cmpc.exe', 'cmpc']:
                 return posixpath.join(root.replace('\\', '/'), f)
@@ -249,7 +222,7 @@ def find_cmpc():
 CMPC = find_cmpc()
 
 def license_text(comment_chars, file_path):
-    lic_path = posixpath.join(project_scripts_dir(), 'license.txt')
+    lic_path = posixpath.join(dirs.CMP_SCRIPTS_DIR_P, 'license.txt')
     if not os.path.exists(lic_path):
         return ''
     else:
@@ -258,7 +231,7 @@ def license_text(comment_chars, file_path):
         
         
 def registration_cpp_path():
-    return posixpath.join(project_scripts_dir(), "registration.cpp")
+    return posixpath.join(dirs.CMP_SCRIPTS_DIR_P, "registration.cpp")
 
 def write_registration_cpp(script_infos):
     registration_lines = []
@@ -281,14 +254,14 @@ def write_registration_cpp(script_infos):
 
 
 def cmakeify_script_path(p):
-    if project_scripts_dir() in p:
-        return p.replace(project_scripts_dir(), '  ${scripts_dir}')
+    if dirs.CMP_SCRIPTS_DIR_P in p:
+        return p.replace(dirs.CMP_SCRIPTS_DIR_P, '  ${scripts_dir}')
     return p
 
 def strip_scripts_dir(p):
     dirpath = posixpath.split(p.lstrip())[0]
     dirpath = dirpath.replace('${scripts_dir}', '')
-    dirpath = dirpath.replace(project_scripts_dir(), '')
+    dirpath = dirpath.replace(dirs.CMP_SCRIPTS_DIR_P, '')
     return dirpath
 
 def write_cmake(cmp_files, cpp_files, h_files):
@@ -298,7 +271,7 @@ def write_cmake(cmp_files, cpp_files, h_files):
     ide_src_props = ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (strip_scripts_dir(r), r.lstrip()) for r in cmp_rel_files]
     ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (strip_scripts_dir(r), r.lstrip()) for r in cpp_rel_files]
     ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (strip_scripts_dir(r), r.lstrip()) for r in h_rel_files]
-    cmake_path = posixpath.join(root_dir(), 'src/scripts/codegen.cmake')
+    cmake_path = posixpath.join(dirs.PROJECT_DIR_P, 'src/scripts/codegen.cmake')
     template = CMAKE_TEMPLATE
     template = template.replace('<<scripts_dir>>', cmake_scripts_dir())
     template = template.replace('<<license>>', license_text('#', cmake_path))
@@ -309,7 +282,7 @@ def write_cmake(cmp_files, cpp_files, h_files):
         write_file(cmake_path, template)
 
 def find_source_files(scripts_dir, source_files):
-    for root, dirs, files in os.walk(scripts_dir):
+    for root, _, files in os.walk(scripts_dir):
         for f in files:
             if f.endswith('cmp'):
                 source_files.append(posixpath.join(root.replace('\\', '/'), f))
@@ -329,7 +302,7 @@ def main():
     has_errors = False;
 
     source_files = []
-    find_source_files(project_scripts_dir(), source_files)
+    find_source_files(dirs.CMP_SCRIPTS_DIR_P, source_files)
 
     for f in source_files:
         try:
