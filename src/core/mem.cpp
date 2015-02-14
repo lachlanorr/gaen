@@ -160,7 +160,6 @@ void * MemMgr::allocate(size_t count, u32 alignment)
 
 void MemMgr::deallocate(void * ptr)
 {
-    // LORRTODO
     ASSERT(ptr);
 #if IS_PLATFORM_WIN32
     _aligned_free(ptr);

@@ -80,6 +80,18 @@ public:
         return mMsgAcc[index];
     }
 
+    template<typename T>
+    void insertBlocks(u32 startIndex, const T & val)
+    {
+        ASSERT_MSG(sizeof(T) >= kBlockSize, "insertBlocks only valid for values larger than one block size");
+        u32 blockCount = (sizeof(T) / kBlockSize) + (sizeof(T) % kBlockSize > 0 ? 1 : 0);
+        const Block * pValBlocks = reinterpret_cast<const Block*>(&val);
+        for (u32 i = 0; i < blockCount; ++i)
+        {
+            mMsgAcc[startIndex+i] = pValBlocks[i];
+        }
+    }
+
 protected:
     MessageQueue * mpMsgQueue;
     MessageQueueAccessor mMsgAcc;

@@ -1597,15 +1597,29 @@ static S codegen_recurse(const Ast * pAst,
             else if (!bi.isPayload)
             {
                 ASSERT_MSG(bmId == 0, "BlockMemory param placed in message before regular param");
-                snprintf(scratch,
-                         kScratchSize,
-                         "*reinterpret_cast<%s*>(&msgw[%d].cells[%d]) = ",
-                         cpp_type_str(ast_data_type(bi.pAst), pAst->pParseData),
-                         bi.blockIndex,
-                         bi.cellIndex);
-                code += I1 + S(scratch);
-                code += codegen_recurse(bi.pAst, 0);
-                code += ";\n";
+
+                if (pAst->pBlockInfos->blockCount <= 1)
+                {
+                    snprintf(scratch,
+                             kScratchSize,
+                             "*reinterpret_cast<%s*>(&msgw[%d].cells[%d]) = ",
+                             cpp_type_str(ast_data_type(bi.pAst), pAst->pParseData),
+                             bi.blockIndex,
+                             bi.cellIndex);
+                    code += I1 + S(scratch);
+                    code += codegen_recurse(bi.pAst, 0);
+                    code += ";\n";
+                }
+                else
+                {
+                    S val = codegen_recurse(bi.pAst, 0);
+                    snprintf(scratch,
+                             kScratchSize,
+                             "msgw.insertBlocks(%d, %s);\n",
+                             bi.blockIndex,
+                             val.c_str());
+                    code += I1 + S(scratch);
+                }
             }
         }
 

@@ -165,9 +165,9 @@ TEST(BlockMemoryTest, CmpString)
     EXPECT_EQ(str2.c_str()[kMaxCmpStringLength-kBlockSize], '\0');
     EXPECT_EQ(bm.availableBlocks(), totalBlocks - 63 - 62);
 
-    CmpString str3 = bm.stringAlloc(kBlockSize-1);
-    EXPECT_EQ(str3.size(), kBlockSize-1);
-    EXPECT_EQ(str3.c_str()[kBlockSize-1], '\0');
+    CmpString str3 = bm.stringAlloc(kCharsInFirstBlock-1);
+    EXPECT_EQ(str3.size(), kCharsInFirstBlock-1);
+    EXPECT_EQ(str3.c_str()[kCharsInFirstBlock-1], '\0');
     EXPECT_EQ(bm.availableBlocks(), totalBlocks - 63 - 62 - 1);
 
     bm.addRef(str1);

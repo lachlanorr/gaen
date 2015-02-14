@@ -28,6 +28,7 @@
 
 #include "core/threading.h"
 #include "core/SpscRingBuffer.h"
+#include "engine/MessageQueue.h"
 
 TEST(RingBuffers, SpscRingBuffer)
 {
@@ -119,5 +120,80 @@ TEST(RingBuffers, SpscRingBuffer)
     EXPECT_EQ(&d2, &ddd2);
     EXPECT_EQ(&d3, &ddd3);
 
+
+}
+
+TEST(RingBuffers, MessageQueue)
+{
+    using namespace gaen;
+
+    // Some data for us to fill messages with
+    Block blkSampleABCD;
+    blkSampleABCD.dCells[0].u = 0xABABABABCDCDCDCD;
+    blkSampleABCD.dCells[1].u = 0xABCDABCDABCDABCD;
+
+    Block blkSampleCDEF;
+    blkSampleCDEF.dCells[0].u = 0xCDCDCDCDEFEFEFEF;
+    blkSampleCDEF.dCells[1].u = 0xCDEFCDEFCDEFCDEF;
+
+
+    // Use a small queue, in this case enough for 4 blocks (64 bytes)
+    MessageQueue mq(5);
+
+    // Push and pop a 3 block message
+    {
+        MessageQueueAccessor mqacc;
+        mq.pushBegin(&mqacc, 1, 0, 12, 13, to_cell(20), 2);
+
+        Message & msg = mqacc.message();
+        mqacc[0] = blkSampleABCD;
+        mqacc[1] = blkSampleCDEF;
+
+        Block & blk0 = mqacc[0];
+        EXPECT_EQ(blk0.dCells[0].u, 0xABABABABCDCDCDCD);
+        EXPECT_EQ(blk0.dCells[1].u, 0xABCDABCDABCDABCD);
+
+        Block & blk1 = mqacc[1];
+        EXPECT_EQ(blk1.dCells[0].u, 0xCDCDCDCDEFEFEFEF);
+        EXPECT_EQ(blk1.dCells[1].u, 0xCDEFCDEFCDEFCDEF);
+
+        MessageQueueAccessor mqacc2;
+        bool popRes0 = mq.popBegin(&mqacc2);
+        EXPECT_FALSE(popRes0);
+
+        mq.pushCommit(mqacc);
+
+        bool popRes1 = mq.popBegin(&mqacc2);
+        EXPECT_TRUE(popRes1);
+        mq.popCommit(mqacc2);
+    }
+
+    // Push and pop another 3 block message
+    {
+        MessageQueueAccessor mqacc;
+        mq.pushBegin(&mqacc, 1, 0, 12, 13, to_cell(20), 2);
+
+        Message & msg = mqacc.message();
+        mqacc[0] = blkSampleABCD;
+        mqacc[1] = blkSampleCDEF;
+
+        Block & blk0 = mqacc[0];
+        EXPECT_EQ(blk0.dCells[0].u, 0xABABABABCDCDCDCD);
+        EXPECT_EQ(blk0.dCells[1].u, 0xABCDABCDABCDABCD);
+
+        Block & blk1 = mqacc[1];
+        EXPECT_EQ(blk1.dCells[0].u, 0xCDCDCDCDEFEFEFEF);
+        EXPECT_EQ(blk1.dCells[1].u, 0xCDEFCDEFCDEFCDEF);
+
+        MessageQueueAccessor mqacc2;
+        bool popRes0 = mq.popBegin(&mqacc2);
+        EXPECT_FALSE(popRes0);
+
+        mq.pushCommit(mqacc);
+
+        bool popRes1 = mq.popBegin(&mqacc2);
+        EXPECT_TRUE(popRes1);
+        mq.popCommit(mqacc2);
+    }
 
 }

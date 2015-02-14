@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: eff4c3af274c0af23aa83a77651c32a2
+// HASH: dc53bb4ce324e0bed1d42ba41e363393
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -180,7 +180,7 @@ public:
                 MessageQueueWriter msgw(HASH::transform, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(0), blockCount);
 
                 // Write parameters to message
-                *reinterpret_cast<Mat34*>(&msgw[0].cells[0]) = trans;
+                msgw.insertBlocks(0, trans);
 
                 // MessageQueueWriter will send message through RAII when this scope is exited
             }
