@@ -65,13 +65,13 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %}
 
 %token <str> IDENTIFIER HASH STRING_LITERAL
-%token <numi> INT_LITERAL TRUE FALSE
+%token <numi> INT_LITERAL TRUE_ FALSE_
 %token <numf> FLOAT_LITERAL
 
 /* This type list must match the DataType enum in compiler.h */
-%token <dataType> VOID BOOL CHAR BYTE SHORT USHORT INT UINT LONG ULONG HALF FLOAT DOUBLE COLOR VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 HANDLE_ ENTITY STRING
+%token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 HANDLE_ ENTITY STRING
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS USING AS CONST THIS NONE
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS USING AS CONST_ THIS__ NONE
 %right ELSE THEN
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN TRANSFORM
@@ -145,11 +145,11 @@ def_list
 
 /* Treat "entity" specially since it is overloaded to be used to define entities */
 def
-    : ENTITY IDENTIFIER message_block                  { $$ = ast_create_entity_def($2, $3, pParseData); }
-    | COMPONENT IDENTIFIER message_block               { $$ = ast_create_component_def($2, $3, pParseData); }
-    | type IDENTIFIER '(' param_list ')' block         { $$ = ast_create_function_def($2, $1, $6, pParseData); }
-    | CONST ENTITY IDENTIFIER '(' param_list ')' block { $$ = ast_create_function_def($3, ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData), $7, pParseData); }
-    | ENTITY IDENTIFIER '(' param_list ')' block       { $$ = ast_create_function_def($2, ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData), $6, pParseData); }
+    : ENTITY IDENTIFIER message_block                   { $$ = ast_create_entity_def($2, $3, pParseData); }
+    | COMPONENT IDENTIFIER message_block                { $$ = ast_create_component_def($2, $3, pParseData); }
+    | type IDENTIFIER '(' param_list ')' block          { $$ = ast_create_function_def($2, $1, $6, pParseData); }
+    | CONST_ ENTITY IDENTIFIER '(' param_list ')' block { $$ = ast_create_function_def($3, ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData), $7, pParseData); }
+    | ENTITY IDENTIFIER '(' param_list ')' block        { $$ = ast_create_function_def($2, ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData), $6, pParseData); }
     ;
 
 message_block
@@ -314,8 +314,8 @@ cond_expr
 literal
     : INT_LITERAL   { $$ = ast_create_int_literal($1, pParseData); }
     | FLOAT_LITERAL { $$ = ast_create_float_literal($1, pParseData); }
-    | TRUE          { $$ = ast_create_int_literal(1, pParseData); }
-    | FALSE         { $$ = ast_create_int_literal(0, pParseData); }
+    | TRUE_         { $$ = ast_create_int_literal(1, pParseData); }
+    | FALSE_        { $$ = ast_create_int_literal(0, pParseData); }
     ;
 
 expr_or_empty
@@ -335,30 +335,30 @@ fun_params
     ;
 
 type
-    : CONST basic_type  { $$ = ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData); }
-    | basic_type        { $$ = ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData); }
-    | CONST dotted_id   { $$ = ast_create_custom_type(kASTF_Const, $2, pParseData); }
-    | dotted_id         { $$ = ast_create_custom_type(kASTF_None, $1, pParseData); }
+    : CONST_ basic_type  { $$ = ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData); }
+    | basic_type         { $$ = ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData); }
+    | CONST_ dotted_id   { $$ = ast_create_custom_type(kASTF_Const, $2, pParseData); }
+    | dotted_id          { $$ = ast_create_custom_type(kASTF_None, $1, pParseData); }
 
 /* Treat "entity" type specially since it is overloaded with use of defining entities */
 type_ent
-    : type          { $$ = $1; }
-    | CONST ENTITY  { $$ = ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData); }
-    | ENTITY        { $$ = ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData); }
+    : type           { $$ = $1; }
+    | CONST_ ENTITY  { $$ = ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData); }
+    | ENTITY         { $$ = ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData); }
 
 basic_type
-    : CHAR
-    | BYTE
-    | SHORT
-    | USHORT
-    | INT
-    | UINT
-    | LONG
-    | ULONG
-    | HALF
-    | FLOAT
-    | DOUBLE
-    | BOOL
+    : CHAR_
+    | BYTE_
+    | SHORT_
+    | USHORT_
+    | INT_
+    | UINT_
+    | LONG_
+    | ULONG_
+    | HALF_
+    | FLOAT_
+    | DOUBLE_
+    | BOOL_
     | COLOR
     | VEC2
     | VEC3
@@ -366,7 +366,7 @@ basic_type
     | MAT3
     | MAT34
     | MAT4
-    | VOID
+    | VOID_
     | HANDLE_
     | STRING
     ;

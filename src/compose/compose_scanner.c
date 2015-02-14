@@ -1043,102 +1043,102 @@ YY_RULE_SETUP
 case 5:
 YY_RULE_SETUP
 #line 77 "compose.l"
-{ yylval->dataType = kDT_char;   return CHAR;   }
+{ yylval->dataType = kDT_char;   return CHAR_;   }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 78 "compose.l"
-{ yylval->dataType = kDT_byte;   return BYTE;   }
+{ yylval->dataType = kDT_byte;   return BYTE_;   }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
 #line 79 "compose.l"
-{ yylval->dataType = kDT_short;  return SHORT;  }
+{ yylval->dataType = kDT_short;  return SHORT_;  }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
 #line 80 "compose.l"
-{ yylval->dataType = kDT_ushort; return USHORT; }
+{ yylval->dataType = kDT_ushort; return USHORT_; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
 #line 81 "compose.l"
-{ yylval->dataType = kDT_int;    return INT;    }
+{ yylval->dataType = kDT_int;    return INT_;    }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 82 "compose.l"
-{ yylval->dataType = kDT_uint;   return UINT;   }
+{ yylval->dataType = kDT_uint;   return UINT_;   }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
 #line 83 "compose.l"
-{ yylval->dataType = kDT_long;   return LONG;   }
+{ yylval->dataType = kDT_long;   return LONG_;   }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 84 "compose.l"
-{ yylval->dataType = kDT_ulong;  return ULONG;  }
+{ yylval->dataType = kDT_ulong;  return ULONG_;  }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
 #line 85 "compose.l"
-{ yylval->dataType = kDT_half;   return HALF;   }
+{ yylval->dataType = kDT_half;   return HALF_;   }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 86 "compose.l"
-{ yylval->dataType = kDT_float;  return FLOAT;  }
+{ yylval->dataType = kDT_float;  return FLOAT_;  }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 87 "compose.l"
-{ yylval->dataType = kDT_double; return DOUBLE; }
+{ yylval->dataType = kDT_double; return DOUBLE_; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 88 "compose.l"
-{ yylval->dataType = kDT_bool;   return BOOL;   }
+{ yylval->dataType = kDT_bool;   return BOOL_;   }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 89 "compose.l"
-{ yylval->dataType = kDT_color;  return COLOR;  }
+{ yylval->dataType = kDT_color;  return COLOR;   }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 90 "compose.l"
-{ yylval->dataType = kDT_vec2;   return VEC2;   }
+{ yylval->dataType = kDT_vec2;   return VEC2;    }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 91 "compose.l"
-{ yylval->dataType = kDT_vec3;   return VEC3;   }
+{ yylval->dataType = kDT_vec3;   return VEC3;    }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 92 "compose.l"
-{ yylval->dataType = kDT_vec4;   return VEC4;   }
+{ yylval->dataType = kDT_vec4;   return VEC4;    }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 93 "compose.l"
-{ yylval->dataType = kDT_mat3;   return MAT3;   }
+{ yylval->dataType = kDT_mat3;   return MAT3;    }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 94 "compose.l"
-{ yylval->dataType = kDT_mat34;  return MAT34;  }
+{ yylval->dataType = kDT_mat34;  return MAT34;   }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 95 "compose.l"
-{ yylval->dataType = kDT_mat4;   return MAT4;   }
+{ yylval->dataType = kDT_mat4;   return MAT4;    }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 96 "compose.l"
-{ yylval->dataType = kDT_void;   return VOID;   }
+{ yylval->dataType = kDT_void;   return VOID_;   }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
@@ -1148,7 +1148,7 @@ YY_RULE_SETUP
 case 26:
 YY_RULE_SETUP
 #line 98 "compose.l"
-{ yylval->dataType = kDT_string; return STRING; }
+{ yylval->dataType = kDT_string; return STRING;  }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
@@ -1158,7 +1158,7 @@ YY_RULE_SETUP
 case 28:
 YY_RULE_SETUP
 #line 101 "compose.l"
-{ return THIS; }
+{ return THIS__; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
@@ -1213,7 +1213,7 @@ YY_RULE_SETUP
 case 39:
 YY_RULE_SETUP
 #line 115 "compose.l"
-{ return CONST; }
+{ return CONST_; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
@@ -1248,12 +1248,12 @@ YY_RULE_SETUP
 case 46:
 YY_RULE_SETUP
 #line 125 "compose.l"
-{ return TRUE; }
+{ return TRUE_; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
 #line 126 "compose.l"
-{ return FALSE; }
+{ return FALSE_; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP

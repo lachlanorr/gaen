@@ -74,31 +74,31 @@ ParseData * pParseData = yyextra;
 <COMMENT><<EOF>>           { yyerror(yylloc, pParseData, "Unterminated comment"); return 0; }
 "//".*{CRLF}
 
-"char"   { yylval->dataType = kDT_char;   return CHAR;   }
-"byte"   { yylval->dataType = kDT_byte;   return BYTE;   }
-"short"  { yylval->dataType = kDT_short;  return SHORT;  }
-"ushort" { yylval->dataType = kDT_ushort; return USHORT; }
-"int"    { yylval->dataType = kDT_int;    return INT;    }
-"uint"   { yylval->dataType = kDT_uint;   return UINT;   }
-"long"   { yylval->dataType = kDT_long;   return LONG;   }
-"ulong"  { yylval->dataType = kDT_ulong;  return ULONG;  }
-"half"   { yylval->dataType = kDT_half;   return HALF;   }
-"float"  { yylval->dataType = kDT_float;  return FLOAT;  }
-"double" { yylval->dataType = kDT_double; return DOUBLE; }
-"bool"   { yylval->dataType = kDT_bool;   return BOOL;   }
-"color"  { yylval->dataType = kDT_color;  return COLOR;  }
-"vec2"   { yylval->dataType = kDT_vec2;   return VEC2;   }
-"vec3"   { yylval->dataType = kDT_vec3;   return VEC3;   }
-"vec4"   { yylval->dataType = kDT_vec4;   return VEC4;   }
-"mat3"   { yylval->dataType = kDT_mat3;   return MAT3;   }
-"mat34"  { yylval->dataType = kDT_mat34;  return MAT34;  }
-"mat4"   { yylval->dataType = kDT_mat4;   return MAT4;   }
-"void"   { yylval->dataType = kDT_void;   return VOID;   }
+"char"   { yylval->dataType = kDT_char;   return CHAR_;   }
+"byte"   { yylval->dataType = kDT_byte;   return BYTE_;   }
+"short"  { yylval->dataType = kDT_short;  return SHORT_;  }
+"ushort" { yylval->dataType = kDT_ushort; return USHORT_; }
+"int"    { yylval->dataType = kDT_int;    return INT_;    }
+"uint"   { yylval->dataType = kDT_uint;   return UINT_;   }
+"long"   { yylval->dataType = kDT_long;   return LONG_;   }
+"ulong"  { yylval->dataType = kDT_ulong;  return ULONG_;  }
+"half"   { yylval->dataType = kDT_half;   return HALF_;   }
+"float"  { yylval->dataType = kDT_float;  return FLOAT_;  }
+"double" { yylval->dataType = kDT_double; return DOUBLE_; }
+"bool"   { yylval->dataType = kDT_bool;   return BOOL_;   }
+"color"  { yylval->dataType = kDT_color;  return COLOR;   }
+"vec2"   { yylval->dataType = kDT_vec2;   return VEC2;    }
+"vec3"   { yylval->dataType = kDT_vec3;   return VEC3;    }
+"vec4"   { yylval->dataType = kDT_vec4;   return VEC4;    }
+"mat3"   { yylval->dataType = kDT_mat3;   return MAT3;    }
+"mat34"  { yylval->dataType = kDT_mat34;  return MAT34;   }
+"mat4"   { yylval->dataType = kDT_mat4;   return MAT4;    }
+"void"   { yylval->dataType = kDT_void;   return VOID_;   }
 "handle" { yylval->dataType = kDT_handle; return HANDLE_; }
-"string" { yylval->dataType = kDT_string; return STRING; }
+"string" { yylval->dataType = kDT_string; return STRING;  }
 
 "none"     { return NONE; }
-"this"     { return THIS; }
+"this"     { return THIS__; }
 
 "if"       { parsedata_push_stmt_scope(pParseData); return IF;     }
 "else"     { parsedata_push_stmt_scope(pParseData); return ELSE;   }
@@ -112,7 +112,7 @@ ParseData * pParseData = yyextra;
 "break"    { return BREAK;   }
 "return"   { return RETURN;  }
 
-"const"    { return CONST; }
+"const"    { return CONST_; }
 
 "using"     { return USING; }
 "as"         { return AS; }
@@ -122,8 +122,8 @@ ParseData * pParseData = yyextra;
 
 "transform"  { return TRANSFORM; }
 
-"true"   { return TRUE; }
-"false"  { return FALSE; }
+"true"   { return TRUE_; }
+"false"  { return FALSE_; }
 
 "=="   { return EQ; }
 "!="   { return NEQ; }
