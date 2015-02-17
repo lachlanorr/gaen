@@ -39,6 +39,8 @@
 namespace gaen
 {
 
+static const u32 kMaxFilePath = 255;
+
 // Initialize any platform specific stuff required for calling time funcs
 void init_time();
 
@@ -61,6 +63,17 @@ void set_thread_affinity(u32 coreId);
 // Read entire contents of file and place in allocated output buffer.
 // Caller must GFREE output buffer.
 i32 read_file(const char * path, char ** output);
+
+// All of these file system functions assume a path with '/' separators, 
+// even on windows.
+bool file_exists(const char * filePath);
+bool dir_exists(const char * dirPath);
+
+// Get parent directory of file_path
+void parent_directory(char * dirPath, const char * filePath);
+
+// Make all directories specified in path
+void make_directories(const char * dirPath);
 
 } // namespace gaen
 

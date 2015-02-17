@@ -32,7 +32,6 @@
 #include <malloc.h>
 #endif
 
-#include "core/threading.h"
 #include "core/mem.h"
 
 namespace gaen
@@ -127,7 +126,6 @@ void MemPool::deallocate(void * ptr)
 void MemMgr::init(const char * memPoolInit)
 {
     ASSERT(!mIsInit);
-    ASSERT(is_threading_init());
 
     mIsInit = true;
 }

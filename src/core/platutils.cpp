@@ -118,6 +118,20 @@ i32 read_file(const char * path, char ** output)
     return length;
 }
 
+void parent_directory(char * dirPath, const char * filePath)
+{
+    const char * lastSep = strrchr(filePath, '/');
+    if (!lastSep)
+    {
+        dirPath[0] = '\0';
+    }
+    else
+    {
+        size_t copyLen = lastSep - filePath;
+        strncpy(dirPath, filePath, copyLen);
+        dirPath[copyLen] = '\0';
+    }
+}
 
 } // namespace gaen
 

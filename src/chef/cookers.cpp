@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.h - Precompiled headers
+// cookers.cpp - Cookers for various asset types
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,32 +24,34 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CORE_STDAFX_H
-#define GAEN_CORE_STDAFX_H
+#include "core/base_defines.h"
+#include "core/Config.h"
 
-#include <cfloat>
-#include <csignal>
-#include <cstdarg>
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include "chef/Chef.h"
+#include "chef/cookers.h"
 
-#include <algorithm>
-#include <atomic>
-#include <list>
-#include <map>
-#include <memory>
-#include <new>
-#include <string>
-#include <thread>
-#include <type_traits>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <vector>
-#include <iostream>
-#include <fstream>
+namespace gaen
+{
 
-#endif // #ifndef GAEN_CORE_STDAFX_H
+class CookerFnt : public Cooker
+{
+public:    
+    const char * rawExt() { return "fnt"; }
+    const char * cookedExt() { return "gfnt"; }
+    
+    void cook(const char * platform, std::istream & input, std::ostream & output)
+    {
+        Config<kMEM_Chef> conf;
+        conf.read(input);
+
+        // cook the image file dependency
+        Chef::cook(platform, conf.get("image"));
+    }
+};
+    
+void register_cookers()
+{
+    REGISTER_COOKER(CookerFnt);
+}
+
+} // namespace gaen

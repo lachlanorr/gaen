@@ -24,43 +24,23 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-
-SET (core_SOURCES
-  base_defines.cpp
-  base_defines.h
-  Config.cpp
-  Config.h
-  gamevars.cpp
-  gamevars.h
-  hashing.cpp
-  hashing.h
-  HashMap.h
-  HashSet.h
-  List.h
-  log_message.h
-  logging.cpp
-  logging.h
-  Map.h
-  mem.cpp
-  mem.h
-  platutils.cpp
-  platutils.h
-  platutils_${platform}.cpp
-  RefCounted.h
-  sockets.cpp
-  sockets.h
-  sockets_${net_platform}.cpp
-  SpscRingBuffer.h
-  String.h
-  threading.cpp
-  threading.h
-  thread_local.h
-  Vector.h
+SET (chef_SOURCES
+  Chef.cpp
+  Chef.h
+  cookers.cpp
+  cookers.h
+  main_chef.cpp
   )
 
-MSVC_PRECOMPILED_HEADER (core core_SOURCES)
-IDE_SOURCE_PROPERTIES( "/" "${core_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/" "${chef_SOURCES}")
 
-ADD_LIBRARY (core
-  ${core_SOURCES}
+ADD_EXECUTABLE (chef
+  ${chef_SOURCES}
   )
+
+TARGET_LINK_LIBRARIES (chef
+  core
+  ${PLATFORM_LINK_LIBS}
+  )
+
+package (chef)

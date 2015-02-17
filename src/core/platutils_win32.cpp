@@ -106,6 +106,56 @@ void set_thread_affinity(u32 coreId)
     ASSERT_MSG(ret == (1 << platform_core_count()) - 1, "Gaen process doesn't have access to all cores, this is not currently supported");
 }
 
+bool file_exists(const char * filePath)
+{
+    DWORD dwAttrib = GetFileAttributesA(filePath);
+
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES && 
+            !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+bool dir_exists(const char * filePath)
+{
+    DWORD dwAttrib = GetFileAttributesA(filePath);
+
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
+            (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+void make_directories(const char * dirPath)
+{
+    if (!dirPath || *dirPath == '\0')
+        return;
+
+    char scratch[kMaxFilePath];
+
+    if (file_exists(dirPath))
+    {
+        PANIC("Directory name collides with already existing file: %s", dirPath);
+        return;
+    }
+    else if (dir_exists(dirPath))
+    {
+        return;
+    }
+    else
+    {
+        // make any of our necessary parent directories
+        parent_directory(scratch, dirPath);
+        make_directories(scratch);
+
+        // make ourselves
+        BOOL retval = CreateDirectoryA(dirPath, NULL);
+        if (!retval)
+        {
+            PANIC("Failed to create directory: %s", dirPath);
+        }
+    }
+}
+
+
+
+
 // LORRTODO - Move these to their platform files when necessary
 ///* Linux */ 
 //#include <sched.h> 

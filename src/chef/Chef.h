@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.h - Precompiled headers
+// Chef.h - Class to manage asset cookers
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,32 +24,54 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CORE_STDAFX_H
-#define GAEN_CORE_STDAFX_H
+#ifndef GAEN_CHEF_CHEF_H
+#define GAEN_CHEF_CHEF_H
 
-#include <cfloat>
-#include <csignal>
-#include <cstdarg>
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-
-#include <algorithm>
-#include <atomic>
-#include <list>
 #include <map>
-#include <memory>
-#include <new>
 #include <string>
-#include <thread>
-#include <type_traits>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <vector>
 #include <iostream>
 #include <fstream>
 
-#endif // #ifndef GAEN_CORE_STDAFX_H
+#include "core/mem.h"
+
+#define REGISTER_COOKER(x) Chef::register_cooker(GNEW(kMEM_Chef, x))
+
+namespace gaen
+{
+
+class Cooker
+{
+public:
+    virtual const char * rawExt() = 0;
+    virtual const char * cookedExt() = 0;
+    virtual void cook(const char * platform, std::istream & input, std::ostream & output) = 0;
+};
+
+
+class Chef
+{
+public:
+    Chef();
+    ~Chef();
+    
+    static void cook(const char * platform, const char * rawFile);
+    static bool register_cooker(Cooker * pCooker);
+    static bool is_valid_platform(const char * platform);
+    static const char * get_ext(const char * file);
+
+private:
+    void cookAsset(const char * platform, const char * rawFile);
+    bool registerCooker(Cooker * pCooker);
+
+    static void prep_paths(char * inFile, char * outFile, const char * platform, const char * rawFile, Cooker * pCooker);
+
+    // map for raw extension to cooker
+    std::map<std::string, Cooker*> mRawExtToCooker;
+
+    // map for cooked extension to cooker
+    std::map<std::string, Cooker*> mCookedExtToCooker;
+};
+
+} // namespace gaen
+
+#endif // #ifndef GAEN_CHEF_CHEF_H

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.h - Precompiled headers
+// cookers.cpp - Cookers for various asset types
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,32 +24,14 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CORE_STDAFX_H
-#define GAEN_CORE_STDAFX_H
+#ifndef GAEN_CHEF_COOKERS_H
+#define GAEN_CHEF_COOKERS_H
 
-#include <cfloat>
-#include <csignal>
-#include <cstdarg>
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+namespace gaen
+{
 
-#include <algorithm>
-#include <atomic>
-#include <list>
-#include <map>
-#include <memory>
-#include <new>
-#include <string>
-#include <thread>
-#include <type_traits>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <vector>
-#include <iostream>
-#include <fstream>
+void register_cookers();
 
-#endif // #ifndef GAEN_CORE_STDAFX_H
+} // namespace gaen
+
+#endif // #ifndef GAEN_CHEF_COOKERS_H

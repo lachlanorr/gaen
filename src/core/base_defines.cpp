@@ -81,16 +81,29 @@ void set_report_failure_cb(ReportFailureCB reportFailureCB)
     sReportFailureCB = reportFailureCB;
 }
 
+// strip off all the '..\..\..\' stuff at the start of 
+// filenames.
+const char * strip_dotdots(const char * file)
+{
+    if (!file)
+        return file;
+    const char * p = file;
+    while (*p == '.' || *p == '\\' || *p == '/')
+        ++p;
+    return p;
+}
+
 void report_failure(const char * condition,
                     const char * file,
                     int line,
                     const char * format,
                     ...)
 {
+    file = strip_dotdots(file);
 
 // Asserts not working nicely on iOS... pending investigation,
 // but for now just print. Feels like college.
-#if !IS_PLATFORM_IOS
+#if IS_PLATFORM_IOS
     printf("FAILURE: %s(%d) - %s\n", file, line, condition);
 #endif
 
@@ -129,7 +142,7 @@ void report_failure(const char * condition,
     {
         snprintf(tFailureMessage,
                  kMaxFailureMessageSize-1,
-                 "Gaen Failure: %s, %s:%d - %s",
+                 "%s: %s:%d - %s",
                  condition,
                  file,
                  line,
@@ -139,7 +152,7 @@ void report_failure(const char * condition,
     {
         snprintf(tFailureMessage,
                  kMaxFailureMessageSize-1,
-                 "Gaen Failure: %s, %s:%d",
+                 "%s: %s:%d",
                  condition,
                  file,
                  line);

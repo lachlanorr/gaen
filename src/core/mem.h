@@ -42,14 +42,16 @@ namespace gaen
 enum MemType
 {
     kMEM_Unspecified = 0,
-    kMEM_Debug       = 1,
-    kMEM_Engine      = 2,  // data structures used in the engine to manage tasks, entities, etc
-    kMEM_Renderer    = 3,
-    kMEM_Texture     = 4,
-    kMEM_Model       = 5,
-    kMEM_Sound       = 6,
-    kMEM_Network     = 7,
-    kMEM_Compose     = 8,
+    kMEM_Const       = 1,
+    kMEM_Debug       = 2,
+    kMEM_Engine      = 3,  // data structures used in the engine to manage tasks, entities, etc
+    kMEM_Renderer    = 4,
+    kMEM_Texture     = 5,
+    kMEM_Model       = 6,
+    kMEM_Sound       = 7,
+    kMEM_Network     = 8,
+    kMEM_Compose     = 9,
+    kMEM_Chef        = 10,
 
     kMEM_COUNT
 };
