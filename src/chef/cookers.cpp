@@ -45,7 +45,7 @@ public:
         conf.read(input);
 
         // cook the image file dependency
-        Chef::cook(platform, conf.get("image"));
+        Chef::cook(platform, conf.get("image").c_str());
     }
 };
     
