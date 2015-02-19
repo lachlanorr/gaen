@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// cookers.h - Cookers for various asset types
+// Set.h - Typedefed std::set that uses our allocator
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,14 +24,23 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKERS_H
-#define GAEN_CHEF_COOKERS_H
+#ifndef GAEN_CORE_SET_H
+#define GAEN_CORE_SET_H
+
+#include <set>
+
+#include "core/mem.h"
 
 namespace gaen
 {
 
-void register_cookers();
+// Declare sets with the aditional MemType enum parameter, E.g.:
+//   Set<int, kMT_Texture> mySet;
+template <MemType memType, class T>
+using Set = std::set<T, gaen::Allocator<memType, T>>;
+
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKERS_H
+
+#endif //#ifndef GAEN_CORE_SET_H

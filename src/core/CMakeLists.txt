@@ -47,6 +47,7 @@ SET (core_SOURCES
   platutils.h
   platutils_${platform}.cpp
   RefCounted.h
+  Set.h
   sockets.cpp
   sockets.h
   sockets_${net_platform}.cpp

@@ -27,49 +27,50 @@
 #ifndef GAEN_CHEF_CHEF_H
 #define GAEN_CHEF_CHEF_H
 
-#include <map>
-#include <string>
-#include <iostream>
-#include <fstream>
-
 #include "core/mem.h"
-
-#define REGISTER_COOKER(x) Chef::register_cooker(GNEW(kMEM_Chef, x))
+#include "core/String.h"
 
 namespace gaen
 {
 
-class Cooker
-{
-public:
-    virtual const char * rawExt() = 0;
-    virtual const char * cookedExt() = 0;
-    virtual void cook(const char * platform, std::istream & input, std::ostream & output) = 0;
-};
+typedef void(*DependencyCB)(u32 chefId, const char * assetRawPath, const char * dependencyRawPath);
 
+struct Cooker;
 
 class Chef
 {
 public:
-    Chef();
-    ~Chef();
+    Chef(u32 id, const char * platform, const char * assetsDir, DependencyCB dependencyCB);
     
-    static void cook(const char * platform, const char * rawFile);
-    static bool register_cooker(Cooker * pCooker);
     static bool is_valid_platform(const char * platform);
-    static const char * get_ext(const char * file);
+
+    u32 id() { return mId; }
+    const char * platform() { return mPlatform.c_str(); }
+
+    void cook(const char * platform, const char * rawPath);
+
+    void recordDependency(const char * assetRawPath, const char * dependencyPath);
+
+    // Path conversion functions
+    bool isRawPath(const char * path);
+    bool isCookedPath(const char * path);
+    bool isGamePath(const char * path);
+    
+    void getRawPath(char * rawPath, const char * path, Cooker * pCooker = nullptr);
+    void getCookedPath(char * cookedPath, const char * path, Cooker * pCooker = nullptr);
+    void getGamePath(char * gamePath, const char * path, Cooker * pCooker = nullptr);
 
 private:
-    void cookAsset(const char * platform, const char * rawFile);
-    bool registerCooker(Cooker * pCooker);
+    const size_t kMaxPlatform = 4;
+    
 
-    static void prep_paths(char * inFile, char * outFile, const char * platform, const char * rawFile, Cooker * pCooker);
+    u32 mId;
+    DependencyCB mDependencyCB;
 
-    // map for raw extension to cooker
-    std::map<std::string, Cooker*> mRawExtToCooker;
-
-    // map for cooked extension to cooker
-    std::map<std::string, Cooker*> mCookedExtToCooker;
+    String<kMEM_Chef> mPlatform;
+    String<kMEM_Chef> mAssetsDir;
+    String<kMEM_Chef> mAssetsRawDir;
+    String<kMEM_Chef> mAssetsCookedDir;
 };
 
 } // namespace gaen

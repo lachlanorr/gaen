@@ -28,30 +28,24 @@
 #include "core/Config.h"
 
 #include "chef/Chef.h"
+#include "chef/CookerRegistry.h"
 #include "chef/cookers.h"
 
 namespace gaen
 {
 
-class CookerFnt : public Cooker
+void cook_fnt(CookInfo * pCI)
 {
-public:    
-    const char * rawExt() { return "fnt"; }
-    const char * cookedExt() { return "gfnt"; }
-    
-    void cook(const char * platform, std::istream & input, std::ostream & output)
-    {
-        Config<kMEM_Chef> conf;
-        conf.read(input);
+    Config<kMEM_Chef> conf;
+    conf.read(pCI->ifs);
 
-        // cook the image file dependency
-        Chef::cook(platform, conf.get("image").c_str());
-    }
-};
+    // register image as dependency
+    pCI->pChef->recordDependency(pCI->rawPath, conf.get("image").c_str());
+}
     
 void register_cookers()
 {
-    REGISTER_COOKER(CookerFnt);
+    CookerRegistry::register_cooker("fnt", "gfnt", cook_fnt);
 }
 
 } // namespace gaen

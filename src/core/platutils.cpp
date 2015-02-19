@@ -120,18 +120,80 @@ i32 read_file(const char * path, char ** output)
 
 void parent_directory(char * dirPath, const char * filePath)
 {
-    const char * lastSep = strrchr(filePath, '/');
+    normalize_path(dirPath, filePath);
+    parent_directory(dirPath);
+}
+
+void parent_directory(char * path)
+{
+    char * lastSep = strrchr(path, '/');
     if (!lastSep)
-    {
-        dirPath[0] = '\0';
-    }
+        path[0] = '\0';
     else
+        *lastSep = '\0';
+}
+
+
+const char * get_ext(const char * path)
+{
+    ASSERT(path);
+    const char * dotpos = strrchr(path, '.');
+    PANIC_IF(!dotpos || !dotpos[1], "Input file has no extension: %s");
+    return dotpos+1;
+}
+
+char * get_ext(char * path)
+{
+    ASSERT(path);
+    char * dotpos = strrchr(path, '.');
+    PANIC_IF(!dotpos || !dotpos[1], "Input file has no extension: %s");
+    return dotpos+1;
+}
+
+void normalize_path(char * outPath, const char * inPath)
+{
+    ASSERT(outPath);
+    ASSERT(inPath);
+
+    const char * pIn = inPath;
+    char * pOut = outPath;
+    
+    // copy the path, replacing '\' with '/'
+    while (*pIn)
     {
-        size_t copyLen = lastSep - filePath;
-        strncpy(dirPath, filePath, copyLen);
-        dirPath[copyLen] = '\0';
+        if (*pIn == '\\')
+            *pOut = '/';
+        else
+            *pOut = *pIn;
+        ++pIn;
+        ++pOut;
+    }
+    *pOut = '\0';
+
+    // strip of trailing '/' if present
+    if (pOut[-1] == '/')
+        pOut[-1] = '\0';
+}
+
+void normalize_path(char * path)
+{
+    ASSERT(path);
+    while (*path)
+    {
+        if (*path == '\\')
+            *path = '/';
+        path++;
     }
 }
+
+void change_ext(char * path, const char * ext)
+{
+    ASSERT(path);
+    ASSERT(ext);
+    char * extPos = get_ext(path);
+    strcpy(extPos, ext);
+}
+
 
 } // namespace gaen
 

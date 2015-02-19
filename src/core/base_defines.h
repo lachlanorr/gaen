@@ -171,9 +171,7 @@ void override_failure_funcs(DebugBreakFunc debugBreakFunc, AbortFunc abortFunc);
 #define ASSERTS WHEN(HAS(DEV_BUILD))
 
 typedef void (*ReportFailureCB)(const char * msg);
-
 void set_report_failure_cb(ReportFailureCB reportFailureCB);
-
 void report_failure(const char * condition,
                     const char * file,
                     int line,
@@ -216,10 +214,29 @@ do \
     gaen::abort_gaen(); \
 } while(0)
 
+#define PANIC_IF(condition, format, ...) \
+do \
+{ \
+    if (condition) \
+    { \
+        gaen::report_failure(#condition, __FILE__, __LINE__, format, ##__VA_ARGS__); \
+        HALT(); \
+    } \
+} while(0)
+
 #define ERR(format, ...) \
 do \
 { \
     gaen::report_failure("ERROR", __FILE__, __LINE__, format, ##__VA_ARGS__); \
+} while(0)
+
+#define ERR_IF(condition, format, ...) \
+do \
+{ \
+    if (condition) \
+    { \
+        gaen::report_failure(#condition, __FILE__, __LINE__, format, ##__VA_ARGS__); \
+    } \
 } while(0)
 
 //------------------------------------------------------------------------------

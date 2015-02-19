@@ -127,7 +127,7 @@ void make_directories(const char * dirPath)
     if (!dirPath || *dirPath == '\0')
         return;
 
-    char scratch[kMaxFilePath];
+    char scratch[kMaxPath+1];
 
     if (file_exists(dirPath))
     {
@@ -151,6 +151,12 @@ void make_directories(const char * dirPath)
             PANIC("Failed to create directory: %s", dirPath);
         }
     }
+}
+
+void process_path(char * path)
+{
+    DWORD ret = GetModuleFileNameA(NULL, path, kMaxPath);
+    normalize_path(path);
 }
 
 

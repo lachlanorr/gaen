@@ -39,7 +39,7 @@
 namespace gaen
 {
 
-static const u32 kMaxFilePath = 255;
+static const u32 kMaxPath = 255;
 
 // Initialize any platform specific stuff required for calling time funcs
 void init_time();
@@ -68,12 +68,24 @@ i32 read_file(const char * path, char ** output);
 // even on windows.
 bool file_exists(const char * filePath);
 bool dir_exists(const char * dirPath);
+void process_path(char * path);
 
 // Get parent directory of file_path
 void parent_directory(char * dirPath, const char * filePath);
 
+// Set path to parent
+void parent_directory(char * path);
+
 // Make all directories specified in path
 void make_directories(const char * dirPath);
+
+const char * get_ext(const char * path);
+char * get_ext(char * path);
+void change_ext(char * path, const char * ext);
+
+// copy inPath to outPath, converting all '\' to '/'
+void normalize_path(char * outPath, const char * inPath);
+void normalize_path(char * path);
 
 } // namespace gaen
 

@@ -27,6 +27,8 @@
 SET (chef_SOURCES
   Chef.cpp
   Chef.h
+  CookerRegistry.cpp
+  CookerRegistry.h
   cookers.cpp
   cookers.h
   main_chef.cpp

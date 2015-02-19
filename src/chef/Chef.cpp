@@ -24,186 +24,232 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include <string>
-#include <set>
-
 #include "core/base_defines.h"
 #include "core/thread_local.h"
 #include "core/platutils.h"
 
-#include "chef/cookers.h"
+#include "chef/CookerRegistry.h"
 #include "chef/Chef.h"
 
 namespace gaen
 {
 
-Chef::Chef()
+Chef::Chef(u32 id, const char * platform, const char * assetsDir, DependencyCB dependencyCB)
+  : mId(id)
+  , mDependencyCB(dependencyCB)
 {
-    register_cookers();
+    ASSERT(platform);
+    ASSERT(assetsDir);
 
-    // LORRTODO - For projects, include a #ifdef block here that
-    // optionally calls the project's register_cookers function as
-    // well.
-}
-
-Chef::~Chef()
-{
-    for (auto it : mRawExtToCooker)
-        delete it.second;
-
-    // don't need to delete from mCookedExtToCooker since it contains
-    // the same items we just deleted.
-}
-
-void Chef::cook(const char * platform, const char * rawFile)
-{
-    return singleton<Chef>().cookAsset(platform, rawFile);
-}
-
-void Chef::prep_paths(char * inFile, char * outFile, const char * platform, const char * rawFile, Cooker * pCooker)
-{
-    const char * ext = get_ext(rawFile);
-
-    // normalize raw_file
-    const char * p = rawFile;
-    char * pi = inFile;
-
-    // copy the path, replacing '\' with '/'
-    while (*p)
-    {
-        if (*p == '\\')
-            *pi = '/';
-        else
-            *pi = *p;
-        ++p;
-        ++pi;
-
-        if (p >= ext)
-            break; // stop at the 'dot' of the extension
-    }
-    *pi = '\0';
-
-    // ensure we have an '/assets/raw/' directory in path
-    const char * kRawAssetsDir = "/assets/raw/";
-    const char * kCookedAssetsDir = "/assets/cooked/";
-    const char * assetsRaw = strstr(inFile, kRawAssetsDir);
-    if (!assetsRaw)
-    {
-        PANIC("Raw asset path is not contained within the assets/raw directory: %s", rawFile);
-        return;
-    }
-
-    // make outFile, replacing '/assets/raw/' with '/assets/cooked/'
-    strncpy(outFile, inFile, assetsRaw - inFile);
-    strcat(outFile, "/assets/cooked_");
-    strcat(outFile, platform);
-    strcat(outFile, "/");
-    strcat(outFile, assetsRaw + strlen(kRawAssetsDir));
-
-    // now place our cooker's extensions on each file
-    strcat(inFile, pCooker->rawExt());
-    strcat(outFile, pCooker->cookedExt());
-}
-
-void Chef::cookAsset(const char * platform, const char * rawFile)
-{
-    if (strlen(rawFile) > kMaxFilePath-1)
-    {
-        PANIC("File path too long, max size allowed: %u, %s", kMaxFilePath-1, rawFile);
-    }
-
-    // prepare input and output paths
-    TLARRAY(char, inFile, kMaxFilePath);
-    TLARRAY(char, outFile, kMaxFilePath);
-    TLARRAY(char, outDir, kMaxFilePath);
-
-    // find our cooker
-    const char * ext = get_ext(rawFile);
-    auto it = mRawExtToCooker.find(ext);
-    if (it == mRawExtToCooker.end())
-    {
-        PANIC("No cooker registered for raw extension: %s", ext);
-        return;
-    }
-    Cooker * pCooker = it->second;
-
-    prep_paths(inFile, outFile, platform, rawFile, pCooker);
-
-    // check if file exists
-    if (!file_exists(inFile))
-    {
-        PANIC("Raw file does not exist: %s", inFile);
-        return;
-    }
-
-    // make any directories needed in outFile
-    parent_directory(outDir, outFile);
-    make_directories(outDir);
-
-    // open the input and output streams
-    std::ifstream ifs;
-    ifs.open(inFile, std::ifstream::in | std::ifstream::binary);
-    if (!ifs.good())
-    {
-        PANIC("Unable to open raw asset for reading: %s", inFile);
-        return;
-    }
-
-    std::ofstream ofs;
-    ofs.open(outFile, std::ifstream::out | std::ifstream::binary);
-    if (!ofs.good())
-    {
-        PANIC("Unable to open cooked asset for writing: %s", outFile);
-        return;
-    }
-
-    pCooker->cook(platform, ifs, ofs);
-
-    ifs.close();
-    ofs.close();
+    mPlatform = platform;
     
-}
+    char scratch[kMaxPath+1];
+    normalize_path(scratch, assetsDir);
+    mAssetsDir = scratch;
 
-bool Chef::register_cooker(Cooker * pCooker)
-{
-    return singleton<Chef>().registerCooker(pCooker);
-}
-
-bool Chef::registerCooker(Cooker * pCooker)
-{
-    if (mRawExtToCooker.find(pCooker->rawExt()) != mRawExtToCooker.end())
-    {
-        PANIC("Multiple cookers registered for same raw extension: %s", pCooker->rawExt());
-        return false;
-    }
-    if (mCookedExtToCooker.find(pCooker->cookedExt()) != mCookedExtToCooker.end())
-    {
-        PANIC("Multiple cookers registered for same cooked extension: %s", pCooker->cookedExt());
-        return false;
-    }
-
-    mRawExtToCooker[pCooker->rawExt()] = pCooker;
-    mCookedExtToCooker[pCooker->cookedExt()] = pCooker;
-
-    return true;
+    mAssetsRawDir = mAssetsDir + "/raw";
+    mAssetsCookedDir = mAssetsDir + "/cooked_" + mPlatform;
 }
 
 bool Chef::is_valid_platform(const char * platform)
 {
-    static std::set<std::string> sPlatforms ={"win", "osx", "ios"};
-
-    return sPlatforms.count(platform) > 0;
+    ASSERT(platform);
+    return (0 == strcmp(platform, "win") ||
+            0 == strcmp(platform, "osx") ||
+            0 == strcmp(platform, "ios"));
 }
 
-const char * Chef::get_ext(const char * file)
+void Chef::cook(const char * platform, const char * path)
 {
-    const char * dotpos = strrchr(file, '.');
-    if (!dotpos || !dotpos[1])
+    ASSERT(platform);
+    ASSERT(path);
+    PANIC_IF(strlen(path) > kMaxPath-1, "File path too long, max size allowed: %u, %s", kMaxPath-1, path);
+
+    // prepare input and output paths
+    char rawPath[kMaxPath+1];
+    char cookedPath[kMaxPath+1];
+
+    getRawPath(rawPath, path);
+    getCookedPath(cookedPath, path);
+
+    Cooker * pCooker = CookerRegistry::find_cooker_from_raw(rawPath);
+
+    // check if file exists
+    PANIC_IF(!file_exists(rawPath), "Raw file does not exist: %s", rawPath);
+
+    // make any directories needed in cookedPath
+    char cookedDir[kMaxPath+1];
+    parent_directory(cookedDir, cookedPath);
+    make_directories(cookedDir);
+
+    CookInfo ci(this, rawPath, cookedPath);
+
+    // open the input and output streams
+    ci.ifs.open(rawPath, std::ifstream::in | std::ifstream::binary);
+    if (!ci.ifs.good())
     {
-        PANIC("Input file has no extension: %s", file);
-        return nullptr;
+        PANIC("Unable to open raw asset for reading: %s", rawPath);
+        return;
     }
-    return dotpos+1;
+
+    ci.ofs.open(cookedPath, std::ifstream::out | std::ifstream::binary);
+    if (!ci.ofs.good())
+    {
+        PANIC("Unable to open cooked asset for writing: %s", cookedPath);
+        return;
+    }
+
+    pCooker->cook(&ci);
+
+    ci.ifs.close();
+    ci.ofs.close();
+}
+
+bool Chef::isRawPath(const char * path)
+{
+    ASSERT(path);
+    return 0 == strncmp(path, mAssetsRawDir.c_str(), mAssetsRawDir.size());
+}
+
+bool Chef::isCookedPath(const char * path)
+{
+    ASSERT(path);
+    return 0 == strncmp(path, mAssetsCookedDir.c_str(), mAssetsCookedDir.size());
+}
+
+bool Chef::isGamePath(const char * path)
+{
+    ASSERT(path);
+    return (*path == '/' &&
+            !isRawPath(path) &&
+            !isCookedPath(path));
+}
+
+void Chef::getRawPath(char * rawPath, const char * path, Cooker * pCooker)
+{
+    ASSERT(rawPath);
+    ASSERT(path);
+    
+    char pathNorm[kMaxPath+1];
+    normalize_path(pathNorm, path);
+
+    if (isCookedPath(pathNorm))
+    {
+        strcpy(rawPath, mAssetsRawDir.c_str());
+        strcat(rawPath, pathNorm + mAssetsCookedDir.size());
+        if (!pCooker) pCooker = CookerRegistry::find_cooker_from_cooked(pathNorm);
+        change_ext(rawPath, pCooker->rawExt);
+    }
+    else if (isGamePath(pathNorm))
+    {
+        strcpy(rawPath, mAssetsRawDir.c_str());
+        strcat(rawPath, pathNorm);
+        if (!pCooker) pCooker = CookerRegistry::find_cooker_from_cooked(pathNorm);
+        change_ext(rawPath, pCooker->rawExt);
+    }
+    else if (isRawPath(pathNorm))
+    {
+        strcpy(rawPath, pathNorm);
+    }
+    else
+    {
+        PANIC("Invalid path: %s", path);
+    }
+}
+
+void Chef::getCookedPath(char * cookedPath, const char * path, Cooker * pCooker)
+{
+    ASSERT(cookedPath);
+    ASSERT(path);
+
+    char pathNorm[kMaxPath+1];
+    normalize_path(pathNorm, path);
+
+    if (isRawPath(pathNorm))
+    {
+        strcpy(cookedPath, mAssetsCookedDir.c_str());
+        strcat(cookedPath, pathNorm + mAssetsRawDir.size());
+        if (!pCooker) pCooker = CookerRegistry::find_cooker_from_raw(pathNorm);
+        change_ext(cookedPath, pCooker->cookedExt);
+    }
+    else if (isGamePath(pathNorm))
+    {
+        if (!pCooker) pCooker = CookerRegistry::find_cooker_from_cooked(pathNorm);
+        strcpy(cookedPath, mAssetsCookedDir.c_str());
+        strcat(cookedPath, pathNorm);
+    }
+    else if (isCookedPath(pathNorm))
+    {
+        strcpy(cookedPath, pathNorm);
+    }
+    else
+    {
+        PANIC("Invalid path: %s", path);
+    }
+}
+
+void Chef::getGamePath(char * gamePath, const char * path, Cooker * pCooker)
+{
+    ASSERT(gamePath);
+    ASSERT(path);
+
+    char pathNorm[kMaxPath+1];
+    normalize_path(pathNorm, path);
+
+    if (isRawPath(pathNorm))
+    {
+        strcpy(gamePath, pathNorm + mAssetsRawDir.size());
+        if (!pCooker) pCooker = CookerRegistry::find_cooker_from_raw(pathNorm);
+        change_ext(gamePath, pCooker->cookedExt);
+    }
+    else if (isCookedPath(pathNorm))
+    {
+        strcpy(gamePath, pathNorm + mAssetsCookedDir.size());
+    }
+    else if (isGamePath(pathNorm))
+    {
+        strcpy(gamePath, pathNorm);
+    }
+    else
+    {
+        PANIC("Invalid path: %s", path);
+    }
+}
+
+
+
+void Chef::recordDependency(const char * assetRawPath, const char * dependencyPath)
+{
+    ASSERT(assetRawPath);
+    ASSERT(dependencyPath);
+    ASSERT(isRawPath(assetRawPath));
+    
+    char normDepPath[kMaxPath+1];
+    char depRawPath[kMaxPath+1];
+
+    normalize_path(normDepPath, dependencyPath);
+    
+    if (isRawPath(normDepPath))
+    {
+        mDependencyCB(mId, assetRawPath, normDepPath);
+    }
+    else if (isGamePath(normDepPath) || isCookedPath(normDepPath))
+    {
+        getRawPath(depRawPath, normDepPath);
+        mDependencyCB(mId, assetRawPath, depRawPath);
+    }
+    else if (normDepPath[0] != '/')
+    {
+        // assume it's relative to assetRawPaths' directory
+        parent_directory(depRawPath, assetRawPath);
+        strcat(depRawPath, "/");
+        strcat(depRawPath, normDepPath);
+        mDependencyCB(mId, assetRawPath, depRawPath);
+    }
+    else
+    {
+        PANIC("Invalid dependencyPath: %s", dependencyPath);
+    }
 }
 
 

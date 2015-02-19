@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Config.h - Ini-like config file reading and writing
+// Config.cpp - Ini-like config file reading and writing
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
