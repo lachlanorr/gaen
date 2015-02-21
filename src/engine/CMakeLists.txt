@@ -113,6 +113,7 @@ ADD_CUSTOM_TARGET (
 
 ADD_DEPENDENCIES(engine
   core
+  assets
   messages_gen
   fnv_hashes_precalc
   )

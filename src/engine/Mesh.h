@@ -483,7 +483,7 @@ private:
 
     u32 mVertCount;
     u32 mPrimCount;
-    u32 mVertOffset;     // offset from start of struct
+    u32 mVertOffset;  // offset from start of struct
     u32 mPrimOffset;  // offset from start of struct
 
     u32 mHas32BitIndices:1;

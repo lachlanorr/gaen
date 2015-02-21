@@ -24,28 +24,20 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (chef_SOURCES
-  Chef.cpp
-  Chef.h
-  CookerRegistry.cpp
-  CookerRegistry.h
-  cookers.cpp
-  cookers.h
-  Tga.cpp
-  Tga.h
-  main_chef.cpp
+SET (assets_SOURCES
+  Gimg.cpp
+  Gimg.h
+  Gfnt.cpp
+  Gfnt.h
   )
 
-IDE_SOURCE_PROPERTIES( "/" "${chef_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/" "${assets_SOURCES}")
 
-ADD_EXECUTABLE (chef
-  ${chef_SOURCES}
+ADD_LIBRARY (assets
+  ${assets_SOURCES}
   )
 
-TARGET_LINK_LIBRARIES (chef
+ADD_DEPENDENCIES(assets
   core
-  assets
-  ${PLATFORM_LINK_LIBS}
   )
 
-package (chef)

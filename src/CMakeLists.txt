@@ -53,6 +53,7 @@ ENDMACRO (package)
 
 #libs
 ADD_SUBDIRECTORY (core)
+ADD_SUBDIRECTORY (assets)
 ADD_SUBDIRECTORY (engine)
 ADD_SUBDIRECTORY (chef)
 ADD_SUBDIRECTORY (renderergl)
