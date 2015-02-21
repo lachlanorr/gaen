@@ -57,7 +57,6 @@ void init_threading(thread_id numThreads)
 {
     ASSERT(!sIsThreadingInit);
     ASSERT(numThreads >= kMinThreads &&
-           numThreads <= core_count() &&
            numThreads <= kMaxThreads);
     ASSERT(sNumThreads == 0);
 

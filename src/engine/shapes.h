@@ -66,6 +66,8 @@ private:
 Model * build_box(const Vec3 & size, Color color);
 Model * build_cone(const Vec3 & size, Color color);
 Model * build_cylinder(const Vec3 & size, u32 slices, Color color);
+Model * build_sphere(const Vec3 & size, u32 slices, u32 sections, Color color);
+Model * build_quad_sphere(const Vec3 & size, u32 sections, Color color);
 
 
 // Compose wrappers
@@ -76,6 +78,7 @@ namespace system_api
     Handle create_shape_cone(const Vec3 & size, u32 slices, Color color, Entity & caller);
     Handle create_shape_cylinder(const Vec3 & size, u32 slices, Color color, Entity & caller);
     Handle create_shape_sphere(const Vec3 & size, u32 slices, u32 sections, Color color, Entity & caller);
+    Handle create_shape_quad_sphere(const Vec3 & size, u32 sections, Color color, Entity & caller);
 }
 
 } // namespace gaen

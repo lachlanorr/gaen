@@ -81,10 +81,15 @@ void sleep(u32 milliSecs)
 
 u32 platform_core_count()
 {
-    // LORRTODO - Handle case where processor affinity is set to a subset of the cores
-    SYSTEM_INFO info; 
-    GetSystemInfo(&info); 
-    return info.dwNumberOfProcessors; 
+    static u32 sCoreCount = 0;
+    if (sCoreCount == 0)
+    {
+        // LORRTODO - Handle case where processor affinity is set to a subset of the cores
+        SYSTEM_INFO info;
+        GetSystemInfo(&info);
+        sCoreCount = info.dwNumberOfProcessors;
+    }
+    return sCoreCount;
 }
 
 void set_thread_affinity(u32 coreId)
@@ -146,10 +151,7 @@ void make_directories(const char * dirPath)
 
         // make ourselves
         BOOL retval = CreateDirectoryA(dirPath, NULL);
-        if (!retval)
-        {
-            PANIC("Failed to create directory: %s", dirPath);
-        }
+        PANIC_IF(!retval, "Failed to create directory: %s");
     }
 }
 
@@ -159,7 +161,86 @@ void process_path(char * path)
     normalize_path(path);
 }
 
+void full_path(char * outPath, char * path)
+{
+    DWORD retval = GetFullPathNameA(path, kMaxPath, outPath, NULL);
 
+    PANIC_IF(retval == 0, "GetFullPathNameA failed on %s", path);
+
+    normalize_path(outPath);
+}
+
+bool is_file_newer(const char * path, const char * comparePath)
+{
+    HANDLE pathH = CreateFileA(path, GENERIC_READ, FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    PANIC_IF(!pathH, "File not found: %s", path);
+
+    HANDLE comparePathH = CreateFileA(comparePath, GENERIC_READ, FILE_SHARE_DELETE | FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    if (!comparePathH)
+    {
+        CloseHandle(pathH);
+        PANIC("File not found: %s", comparePath);
+    }
+
+    FILETIME pathModTime;
+    FILETIME comparePathModTime;
+
+    BOOL pr = GetFileTime(pathH, NULL, NULL, &pathModTime);
+    BOOL cpr = GetFileTime(comparePathH, NULL, NULL, &comparePathModTime);
+
+    if (!pr || !cpr)
+    {
+        CloseHandle(pathH);
+        CloseHandle(comparePathH);
+        PANIC("Unable to read filetimes from either %s or %s", path, comparePath);
+    }
+
+    bool retval = CompareFileTime(&pathModTime, &comparePathModTime) >= 0;
+
+    CloseHandle(pathH);
+    CloseHandle(comparePathH);
+
+    return retval;
+}
+
+
+void recurse_dir(const char * rootPath, void * context, RecurseDirCB cb)
+{
+    char searchPath[kMaxPath+1];
+    char foundPath[kMaxPath+1];
+
+    // convert any normalized path back to windows '\'
+    normalize_path(searchPath, rootPath);
+    append_path(searchPath, "*");
+
+    normalize_path(foundPath, rootPath);
+
+    WIN32_FIND_DATAA fd;
+    HANDLE hFind = FindFirstFile(searchPath, &fd);
+    BOOL ret = hFind != INVALID_HANDLE_VALUE;
+
+    while (ret)
+    {
+        if (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+           if (strcmp(fd.cFileName, ".") != 0 && strcmp(fd.cFileName, "..") != 0)
+           {
+               normalize_path(foundPath, rootPath);
+               append_path(foundPath, fd.cFileName);
+               recurse_dir(foundPath, context, cb);
+           }
+        }
+        else
+        {
+            normalize_path(foundPath, rootPath);
+            append_path(foundPath, fd.cFileName);
+            cb(foundPath, context);
+        }
+
+        ret = FindNextFile(hFind, &fd);
+    }
+    FindClose(hFind);
+}
 
 
 // LORRTODO - Move these to their platform files when necessary

@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 7aa4f2e6ba2461536005b1551a736e84
+// HASH: 91110961ea5b09cc35ef5a42ae4288c1
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -66,31 +66,25 @@ private:
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__Shape);
 
-        // Component: gaen.shapes.Sphere
+        // Component: gaen.shapes.QuadSphere
         {
-            Task & compTask = insertComponent(HASH::gaen__shapes__Sphere, mComponentCount);
+            Task & compTask = insertComponent(HASH::gaen__shapes__QuadSphere, mComponentCount);
             // Init Property: size
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
-                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
-                compTask.message(msgw.accessor());
-            }
-            // Init Property: slices
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::slices));
-                msgw[0].cells[0].i = 32;
+                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(3.00000000e+00f, 3.00000000e+00f, 3.00000000e+00f);
                 compTask.message(msgw.accessor());
             }
             // Init Property: sections
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::sections));
-                msgw[0].cells[0].i = 16;
+                msgw[0].cells[0].i = 10;
                 compTask.message(msgw.accessor());
             }
             // Init Property: diffuse
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::diffuse));
-                msgw[0].cells[0].color = Color(255, 255, 0, 255);
+                msgw[0].cells[0].color = Color(150, 255, 100, 255);
                 compTask.message(msgw.accessor());
             }
             // Send init message
@@ -175,7 +169,7 @@ class init__start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__Shape__72_25()
+    task_id entity_init__init__Shape__75_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Shape, 8);
         // Send init message
@@ -186,7 +180,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Light__73_25()
+    task_id entity_init__init__Light__76_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
         // Send init message
@@ -213,8 +207,8 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            task_id shape = entity_init__init__Shape__72_25();
-            task_id light = entity_init__init__Light__73_25();
+            task_id shape = entity_init__init__Shape__75_25();
+            task_id light = entity_init__init__Light__76_25();
             system_api::insert_entity(shape, entity());
             system_api::insert_entity(light, entity());
             return MessageResult::Consumed;

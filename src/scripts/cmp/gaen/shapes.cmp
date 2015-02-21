@@ -103,3 +103,23 @@ component Sphere
         $.renderer_transform_model_instance(modelUid, transform);
     }
 }
+
+component QuadSphere
+{
+    vec3 #size = vec3{1.0, 1.0, 1.0};
+    uint #sections = 16;
+    color #diffuse = color{255, 0, 0, 255};
+    handle model;
+    uint modelUid = $.renderer_gen_uid();
+
+    #init()
+    {
+        model = $.create_shape_quad_sphere(size, sections, diffuse);
+        $.renderer_insert_model_instance(modelUid, model);
+    }
+
+    #update_transform()
+    {
+        $.renderer_transform_model_instance(modelUid, transform);
+    }
+}

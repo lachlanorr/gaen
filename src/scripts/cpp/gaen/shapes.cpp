@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 60f9138ca5fc20e3cfeac8f8f4276e85
+// HASH: 3046e9ae26d9e2d6bc369de2d6a9dff2
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -544,6 +544,132 @@ void register_component__gaen__shapes__Sphere(Registry & registry)
 {
     if (!registry.registerComponentConstructor(HASH::gaen__shapes__Sphere, comp::gaen__shapes__Sphere::construct))
         PANIC("Unable to register component: gaen__shapes__Sphere");
+}
+
+namespace comp
+{
+
+class gaen__shapes__QuadSphere : public Component
+{
+public:
+    static Component * construct(void * place, Entity * pEntity)
+    {
+        return new (place) gaen__shapes__QuadSphere(pEntity);
+    }
+    
+    template <typename T>
+    MessageResult message(const T & msgAcc)
+    {
+        const Message & _msg = msgAcc.message();
+        switch(_msg.msgId)
+        {
+        case HASH::init_data:
+            diffuse() = Color(255, 0, 0, 255);
+            model() = Handle::null();
+            modelUid() = system_api::renderer_gen_uid(entity());
+            sections() = 16;
+            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+            return MessageResult::Consumed;
+        case HASH::set_property:
+            switch (_msg.payload.u)
+            {
+            case HASH::diffuse:
+            {
+                u32 requiredBlockCount = 1;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&diffuse())[0].cells[0] = msgAcc[0].cells[0];
+                    return MessageResult::Consumed;
+                }
+                break;
+            }
+            case HASH::sections:
+            {
+                u32 requiredBlockCount = 1;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&sections())[0].cells[0] = msgAcc[0].cells[0];
+                    return MessageResult::Consumed;
+                }
+                break;
+            }
+            case HASH::size:
+            {
+                u32 requiredBlockCount = 1;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&size())[0].cells[0] = msgAcc[0].cells[0];
+                    reinterpret_cast<Block*>(&size())[0].cells[1] = msgAcc[0].cells[1];
+                    reinterpret_cast<Block*>(&size())[0].cells[2] = msgAcc[0].cells[2];
+                    return MessageResult::Consumed;
+                }
+                break;
+            }
+            }
+            return MessageResult::Propogate; // Invalid property
+        case HASH::init:
+        {
+            // Params look compatible, message body follows
+            model() = system_api::create_shape_quad_sphere(size(), sections(), diffuse(), entity());
+            system_api::renderer_insert_model_instance(modelUid(), model(), entity());
+            return MessageResult::Consumed;
+        }
+        case HASH::update_transform:
+        {
+            // Params look compatible, message body follows
+            system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
+            return MessageResult::Consumed;
+        }
+        }
+        return MessageResult::Propogate;
+}
+
+private:
+    gaen__shapes__QuadSphere(Entity * pEntity)
+      : Component(pEntity)
+    {
+        mScriptTask = Task::create(this, HASH::gaen__shapes__QuadSphere);
+        mBlockCount = 4;
+    }
+    gaen__shapes__QuadSphere(const gaen__shapes__QuadSphere&)              = delete;
+    gaen__shapes__QuadSphere(const gaen__shapes__QuadSphere&&)             = delete;
+    gaen__shapes__QuadSphere & operator=(const gaen__shapes__QuadSphere&)  = delete;
+    gaen__shapes__QuadSphere & operator=(const gaen__shapes__QuadSphere&&) = delete;
+
+    Vec3& size()
+    {
+        return *reinterpret_cast<Vec3*>(&mpBlocks[2].qCell);
+    }
+
+    u32& sections()
+    {
+        return mpBlocks[2].cells[3].u;
+    }
+
+    Color& diffuse()
+    {
+        return mpBlocks[3].cells[0].color;
+    }
+
+    Handle& model()
+    {
+        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
+    }
+
+    u32& modelUid()
+    {
+        return mpBlocks[3].cells[1].u;
+    }
+
+
+}; // class gaen__shapes__QuadSphere
+
+} // namespace comp
+
+void register_component__gaen__shapes__QuadSphere(Registry & registry)
+{
+    if (!registry.registerComponentConstructor(HASH::gaen__shapes__QuadSphere, comp::gaen__shapes__QuadSphere::construct))
+        PANIC("Unable to register component: gaen__shapes__QuadSphere");
 }
 
 } // namespace gaen

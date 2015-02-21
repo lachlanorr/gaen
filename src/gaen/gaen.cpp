@@ -45,7 +45,7 @@ static const char * kDefaultMemInitStr = "16:100,64:100,256:100,1024:100,4096:10
 static const size_t kMaxMemInitStrLen = 256;
 static char sMemInitStr[kMaxMemInitStrLen] = {0};
 
-static thread_id sNumThreads = core_count();
+static thread_id sNumThreads = platform_core_count();
 
 static const size_t kMaxIpLen = 16;
 static char sLoggingServerIp[kMaxIpLen] = {0};
@@ -90,7 +90,7 @@ static const char * sHelpMsg =
 static void printHelpAndExit()
 {
     printf(sHelpMsg,
-           core_count(),
+           platform_core_count(),
            kDefaultMemInitStr,
            kMinPoolAllocSize,
            kMaxPoolAllocSize,
@@ -117,7 +117,7 @@ static void parse_args(int argc,
             {
                 u32 numThreads = (u32)strtoul(argv[i+1], nullptr, 10);
                 if (numThreads < kMinThreads ||
-                    numThreads > core_count())
+                    numThreads > platform_core_count())
                 {
                     printHelpAndExit();
                 }

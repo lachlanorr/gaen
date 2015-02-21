@@ -171,18 +171,38 @@ void normalize_path(char * outPath, const char * inPath)
     *pOut = '\0';
 
     // strip of trailing '/' if present
-    if (pOut[-1] == '/')
+    if (pOut > outPath && pOut[-1] == '/')
         pOut[-1] = '\0';
 }
 
 void normalize_path(char * path)
 {
     ASSERT(path);
-    while (*path)
+    char * p = path;
+    while (*p)
     {
-        if (*path == '\\')
-            *path = '/';
-        path++;
+        if (*p == '\\')
+            *p = '/';
+        p++;
+    }
+
+    // strip of trailing '/' if present
+    if (p > path && p[-1] == '/')
+        p[-1] = '\0';
+}
+
+void append_path(char * path, const char * append)
+{
+    ASSERT(path);
+    ASSERT(append);
+    if (*path)
+    {
+        strcat(path, "/");
+        strcat(path, append);
+    }
+    else
+    {
+        strcpy(path, append);
     }
 }
 

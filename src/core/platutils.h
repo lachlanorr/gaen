@@ -41,28 +41,10 @@ namespace gaen
 
 static const u32 kMaxPath = 255;
 
-// Initialize any platform specific stuff required for calling time funcs
-void init_time();
 
-// Get time in secs since init_time was called
-f32 now();
+typedef void(*RecurseDirCB)(const char * path, void * context);
 
-// Converts time to string.
-// E.g.  2:15:30.123456   is 2 hours, 15 minutes, 30 secs, 123456 microsecs
-bool time_to_str(char * str, size_t strLen, f32 timeSecs);
-
-// Sleep the specified number of milliseconds
-void sleep(u32 milliSecs);
-
-// Number of cores on system.  Hyperthreads count as a core.
-u32 platform_core_count();
-
-// Set affinity of the calling thread to the core Id specified.
-void set_thread_affinity(u32 coreId);
-
-// Read entire contents of file and place in allocated output buffer.
-// Caller must GFREE output buffer.
-i32 read_file(const char * path, char ** output);
+void recurse_dir(const char * root_path, void * context, RecurseDirCB cb);
 
 // All of these file system functions assume a path with '/' separators, 
 // even on windows.
@@ -86,6 +68,37 @@ void change_ext(char * path, const char * ext);
 // copy inPath to outPath, converting all '\' to '/'
 void normalize_path(char * outPath, const char * inPath);
 void normalize_path(char * path);
+
+void append_path(char * path, const char * append);
+
+void full_path(char * outPath, char * path);
+
+bool is_file_newer(const char * path, const char * comparePath);
+
+
+
+// Initialize any platform specific stuff required for calling time funcs
+void init_time();
+
+// Get time in secs since init_time was called
+f32 now();
+
+// Converts time to string.
+// E.g.  2:15:30.123456   is 2 hours, 15 minutes, 30 secs, 123456 microsecs
+bool time_to_str(char * str, size_t strLen, f32 timeSecs);
+
+// Sleep the specified number of milliseconds
+void sleep(u32 milliSecs);
+
+// Number of cores on system.  Hyperthreads count as a core.
+u32 platform_core_count();
+
+// Set affinity of the calling thread to the core Id specified.
+void set_thread_affinity(u32 coreId);
+
+// Read entire contents of file and place in allocated output buffer.
+// Caller must GFREE output buffer.
+i32 read_file(const char * path, char ** output);
 
 } // namespace gaen
 

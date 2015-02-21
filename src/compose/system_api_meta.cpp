@@ -34,6 +34,7 @@ ApiSignature gApiSignatures[] = {
                                     { HASH::create_shape_cone, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_uint), CONST_DT(kDT_color) } },
                                     { HASH::create_shape_cylinder, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_uint), CONST_DT(kDT_color) } },
                                     { HASH::create_shape_sphere, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_uint), CONST_DT(kDT_uint), CONST_DT(kDT_color) } },
+                                    { HASH::create_shape_quad_sphere, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_uint), CONST_DT(kDT_color) } },
                                     { HASH::print, kDT_void, { CONST_DT(kDT_string) } },
                                     { HASH::hashstr, kDT_string, { CONST_DT(kDT_uint) } },
                                     { HASH::insert_entity, kDT_void, { CONST_DT(kDT_uint) } },

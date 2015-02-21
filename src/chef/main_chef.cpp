@@ -31,8 +31,12 @@
 #include "core/base_defines.h"
 #include "core/platutils.h"
 #include "core/mem.h"
+#include "core/Vector.h"
+#include "core/threading.h"
+#include "core/SpscRingBuffer.h"
 
 #include "chef/Chef.h"
+#include "chef/CookerRegistry.h"
 #include "chef/cookers.h"
 
 //extern void cook_fnt(const char * platform, const char * raw_file);
@@ -49,7 +53,7 @@ void record_dependency(u32 chefId, const char * assetRawPath, const char * depen
 
 void failure_cb(const char * msg)
 {
-    printf(msg);
+    printf("%s\n", msg);
 }
 
 void find_assets_dir(char * assetsDir)
@@ -75,14 +79,25 @@ void find_assets_dir(char * assetsDir)
         }
         parent_directory(path);
     }
-
 }
 
-void print_usage_and_exit(int retcode)
+void print_usage_and_exit(int retcode = 1)
 {
-    printf("Usage: chef [win|osx|ios] <path>\n");
+    printf("Usage: chef [-f] [-p win|osx|ios] [-t threads] [-i path]\n");
     fin_memory_manager();
     exit(retcode);
+}
+
+void chef_thread(SpscRingBuffer<CookInfo*> & spsc, const char * platform, const char * assetsDir, bool force, DependencyCB dependencyCB)
+{
+    Chef chef(active_thread_id(), platform, assetsDir, force, dependencyCB);
+}
+
+void recurse_dir_cb(const char * path, void * context)
+{
+    Chef * pChef = reinterpret_cast<Chef*>(context);
+
+    pChef->cook(path);
 }
 
 } // namespace gaen
@@ -91,7 +106,7 @@ void print_usage_and_exit(int retcode)
 int main(int argc, char ** argv)
 {
     using namespace gaen;
-
+    
 
     // Set up our failure callback so we can use PANIC, ASSERT, etc.
     // and have them print to stdout.
@@ -100,12 +115,88 @@ int main(int argc, char ** argv)
     static const char * kDefaultMemInitStr = "16:100,64:100,256:100,1024:100,4096:100";
     init_memory_manager(kDefaultMemInitStr);
 
-    if (argc != 3)
-        print_usage_and_exit(EXIT_FAILURE);
+    // find assets dir based on where our process is running out of
+    char assetsDir[kMaxPath+1];
+    find_assets_dir(assetsDir);
 
-    const char * platform = argv[1];
-    const char * raw_file = argv[2];
+    char assetsRawDir[kMaxPath+1];
+    Chef::assets_raw_dir(assetsRawDir, assetsDir);
 
+    // ----------------
+    // parse arguments
+
+    // default path is root of raw assets
+    char path[kMaxPath+1];
+    strcpy(path, assetsRawDir);
+
+    // assume active platform based on what we're running on
+    char platform[kMaxPath+1];
+    strcpy(platform, Chef::default_platform());
+
+    bool force = false;
+    u32 threadCount = platform_core_count();
+    u32 maxThreadCount = platform_core_count() * 4;
+
+    for (int i = 1; i < argc; ++i)
+    {
+        if (argv[i][0] == '-' || argv[i][0] == '/')
+        {
+            switch (argv[i][1])
+            {
+            case 'f':
+                force = true;
+                break;
+            case 'p':
+                if (i == argc-1)
+                    print_usage_and_exit();
+                if (!Chef::is_valid_platform(argv[i+1]))
+                {
+                    ERR("Invalid platform: %s", argv[i+1]);
+                    print_usage_and_exit();
+                }
+                strcpy(platform, argv[i+1]);
+                i++;
+                break;
+            case 't':
+                if (i == argc-1)
+                    print_usage_and_exit();
+                threadCount = strtoul(argv[i+1], nullptr, 10);
+                if (threadCount == 0)
+                    print_usage_and_exit();
+                if (threadCount > maxThreadCount)
+                {
+                    ERR("Overriding '-t %u' option and only using %u threads\n", threadCount, maxThreadCount);
+                    threadCount = maxThreadCount;
+                }
+                i++;
+                break;
+            case 'i':
+                if (i == argc-1)
+                    print_usage_and_exit();
+                full_path(path, argv[i+1]);
+                if (strstr(path, assetsRawDir) != path)
+                {
+                    ERR("Path not within raw assets directory: %s", assetsRawDir);
+                    print_usage_and_exit();
+                }
+                i++;
+                break;
+            default:
+                ERR("Invalid option: %s", argv[i]);
+                print_usage_and_exit();
+                break;
+            }
+        }
+        else
+        {
+            ERR("Invalid option: %s", argv[i]);
+            print_usage_and_exit();
+        }
+    }
+    // parse arguments (END)
+    // -----------------
+
+    // Register any cookers defined in gaen
     register_cookers();
 
     // LORRTODO - For projects, include a #ifdef block here that
@@ -113,18 +204,37 @@ int main(int argc, char ** argv)
     // well.
 
 
-    if (!Chef::is_valid_platform(platform))
+/*
+    static const u32 kMaxQueued = 1024 * 128;
+    Vector<kMEM_Chef, CookInfo*> cookInfos(kMaxQueued);
+
+    Vector<kMEM_Chef, SpscRingBuffer> spscs(threadCount);
+
+    for (u32 i = 0; i < threadCount; ++i)
     {
-        ERR("Invalid platform: %s", platform);
-        print_usage_and_exit(EXIT_FAILURE);
+        start_thread(chef_thread, spspc[i], platform, assetsDir, gaen::record_dependency)
     }
 
-    char assetsDir[kMaxPath];
-    find_assets_dir(assetsDir);
+    init_threading(threadCount);
+    SpscRingBuffer<
+    */
 
-    // LORRTODO - need multi-threaded with one chef each
-    Chef chef(1, platform, assetsDir, gaen::record_dependency);
-    chef.cook(platform, raw_file);
+    Chef chef(1, platform, assetsDir, force, gaen::record_dependency);
+
+    if (dir_exists(path))
+    {
+        // if it's a directory, cook all recursively
+        recurse_dir(path, &chef, recurse_dir_cb);
+    }
+    else if (file_exists(path))
+    {
+        chef.cook(path);
+    }
+    else
+    {
+        ERR("Cook path not found: %s", path);
+        print_usage_and_exit();
+    }
 
     fin_memory_manager();
     return 0;

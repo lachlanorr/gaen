@@ -40,14 +40,18 @@ struct Cooker;
 class Chef
 {
 public:
-    Chef(u32 id, const char * platform, const char * assetsDir, DependencyCB dependencyCB);
+    Chef(u32 id, const char * platform, const char * assetsDir, bool force, DependencyCB dependencyCB);
     
+    static const char * default_platform();
     static bool is_valid_platform(const char * platform);
+
+    static void assets_raw_dir(char * assetsRawDir, const char * assetsDir);
+    static void assets_cooked_dir(char * assetsCookedDir, const char * platform, const char * assetsDir);
 
     u32 id() { return mId; }
     const char * platform() { return mPlatform.c_str(); }
 
-    void cook(const char * platform, const char * rawPath);
+    void cook(const char * path);
 
     void recordDependency(const char * assetRawPath, const char * dependencyPath);
 
@@ -62,9 +66,11 @@ public:
 
 private:
     const size_t kMaxPlatform = 4;
-    
+
+    bool shouldCook(const char * rawPath, const char * cookedPath);
 
     u32 mId;
+    bool mForce;
     DependencyCB mDependencyCB;
 
     String<kMEM_Chef> mPlatform;

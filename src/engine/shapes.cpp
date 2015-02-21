@@ -336,6 +336,99 @@ Model * build_sphere(const Vec3 & size, u32 slices, u32 sections, Color color)
 
     Mesh * pMesh = lathe_points(points, pointCount, slices);
 
+    GFREE(points);
+
+    Material * pMat = GNEW(kMEM_Texture, Material, color);
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
+    return pModel;
+}
+
+inline Vec3 convert_quad_sphere_vert(const Vec3 & vert, f32 radius)
+{
+    f32 len = vert.length();
+    return vert * (radius / len);
+}
+
+inline Vec3 project_to_sphere(f32 x, f32 y, f32 z, f32 radius)
+{
+    Vec3 v(x, y, z);
+    return v * (radius / v.length());
+}
+
+Model * build_quad_sphere(const Vec3 & size, u32 sections, Color color)
+{
+    u32 triCount = sections * sections * 2 * 6; // 2 tris per quad, 6 sides
+    Mesh * pMesh = Mesh::create(kVERT_PosNorm, triCount * 3, kPRIM_Triangle, triCount);
+
+    ShapeBuilder builder(pMesh);
+
+    f32 radius = size.x() / 2.0f;
+
+    f32 inc = size.x() / sections;
+
+    f32 u, v;
+
+    for (u32 i = 0; i < sections-1; ++i)
+    {
+        for (u32 j = 0; j < sections-1; ++j)
+        {
+            // front
+            {
+                u = -radius + inc * i;
+                v = -radius + inc * j;
+                Vec3 p0 = project_to_sphere(u, v, radius, radius);
+                Vec3 p1 = project_to_sphere(u, v - inc, radius, radius);
+                Vec3 p2 = project_to_sphere(u + inc, v - inc, radius, radius);
+                Vec3 p3 = project_to_sphere(u + inc, v, radius, radius);
+                builder.addQuad(p0, p1, p2, p3);
+            }
+
+            // bottom
+            {
+                u = -radius + inc * i;
+                v = radius - inc * j;
+                Vec3 p0 = project_to_sphere(u, -radius, v, radius);
+                Vec3 p1 = project_to_sphere(u, -radius, v - inc, radius);
+                Vec3 p2 = project_to_sphere(u + inc, -radius, v - inc, radius);
+                Vec3 p3 = project_to_sphere(u + inc, -radius, v, radius);
+                builder.addQuad(p0, p1, p2, p3);
+            }
+
+            // back
+            {
+                u = radius - inc * i;
+                v = radius - inc * j;
+                Vec3 p0 = project_to_sphere(u, v, -radius, radius);
+                Vec3 p1 = project_to_sphere(u, v - inc, -radius, radius);
+                Vec3 p2 = project_to_sphere(u - inc, v - inc, -radius, radius);
+                Vec3 p3 = project_to_sphere(u - inc, v, -radius, radius);
+                builder.addQuad(p0, p1, p2, p3);
+            }
+
+/*
+            // top
+            {
+                Vec3 p0 = project_to_sphere(u, radius, v, radius);
+                Vec3 p1 = project_to_sphere(u + inc, radius, v, radius);
+                Vec3 p2 = project_to_sphere(u + inc, radius, v - inc, radius);
+                Vec3 p3 = project_to_sphere(u, radius, v - inc, radius);
+                builder.addQuad(p0, p1, p2, p3);
+            }
+*/
+/*
+            // left
+            {
+                Vec3 p0 = project_to_sphere(-radius, u, v, radius);
+                Vec3 p1 = project_to_sphere(-radius, u + inc, v, radius);
+                Vec3 p2 = project_to_sphere(-radius, u + inc, v - inc, radius);
+                Vec3 p3 = project_to_sphere(-radius, u, v - inc, radius);
+                builder.addQuad(p0, p1, p2, p3);
+            }
+*/
+            // right
+        }
+    }
+
     Material * pMat = GNEW(kMEM_Texture, Material, color);
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
@@ -364,6 +457,12 @@ namespace system_api
     Handle create_shape_sphere(const Vec3 & size, u32 slices, u32 sections, Color color, Entity & caller)
     {
         Model * pModel = build_sphere(size, slices, sections, color);
+        return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
+    }
+
+    Handle create_shape_quad_sphere(const Vec3 & size, u32 sections, Color color, Entity & caller)
+    {
+        Model * pModel = build_quad_sphere(size, sections, color);
         return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
     }
 }

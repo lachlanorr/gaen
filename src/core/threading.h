@@ -131,18 +131,6 @@ thread_id start_thread(Function threadFunc,
 }
                       
 
-
-//------------------------------------------------------------------------------
-// Utility funcs
-//------------------------------------------------------------------------------
-inline u32 core_count()
-{
-    static u32 coreCount = platform_core_count();
-    return coreCount;
-}
-
-
-
 } // namespace gaen
 
 #endif // #ifndef GAEN_CORE_THREADING_H

@@ -34,8 +34,9 @@
 namespace gaen
 {
 
-Chef::Chef(u32 id, const char * platform, const char * assetsDir, DependencyCB dependencyCB)
+Chef::Chef(u32 id, const char * platform, const char * assetsDir, bool force, DependencyCB dependencyCB)
   : mId(id)
+  , mForce(force)
   , mDependencyCB(dependencyCB)
 {
     ASSERT(platform);
@@ -47,8 +48,24 @@ Chef::Chef(u32 id, const char * platform, const char * assetsDir, DependencyCB d
     normalize_path(scratch, assetsDir);
     mAssetsDir = scratch;
 
-    mAssetsRawDir = mAssetsDir + "/raw";
-    mAssetsCookedDir = mAssetsDir + "/cooked_" + mPlatform;
+    assets_raw_dir(scratch, mAssetsDir.c_str());
+    mAssetsRawDir = scratch;
+
+    assets_cooked_dir(scratch, platform, mAssetsDir.c_str());
+    mAssetsCookedDir = scratch;
+}
+
+const char * Chef::default_platform()
+{
+#if IS_PLATFORM_WIN32
+    return "win";
+#elif IS_PLATFORM_OSX
+    return "osx";
+#elif IS_PLATFORM_IOS
+    return "ios";
+#else
+#error Invalid platform for cooking, no default
+#endif
 }
 
 bool Chef::is_valid_platform(const char * platform)
@@ -59,9 +76,27 @@ bool Chef::is_valid_platform(const char * platform)
             0 == strcmp(platform, "ios"));
 }
 
-void Chef::cook(const char * platform, const char * path)
+void Chef::assets_raw_dir(char * assetsRawDir, const char * assetsDir)
 {
+    ASSERT(assetsRawDir);
+    ASSERT(assetsDir);
+    normalize_path(assetsRawDir, assetsDir);
+    strcat(assetsRawDir, "/raw");
+}
+
+void Chef::assets_cooked_dir(char * assetsCookedDir, const char * platform, const char * assetsDir)
+{
+    ASSERT(assetsCookedDir);
     ASSERT(platform);
+    ASSERT(assetsDir);
+    ASSERT(is_valid_platform(platform));
+    normalize_path(assetsCookedDir, assetsDir);
+    strcat(assetsCookedDir, "/cooked_");
+    strcat(assetsCookedDir, platform);
+}
+
+void Chef::cook(const char * path)
+{
     ASSERT(path);
     PANIC_IF(strlen(path) > kMaxPath-1, "File path too long, max size allowed: %u, %s", kMaxPath-1, path);
 
@@ -70,12 +105,20 @@ void Chef::cook(const char * platform, const char * path)
     char cookedPath[kMaxPath+1];
 
     getRawPath(rawPath, path);
-    getCookedPath(cookedPath, path);
-
     Cooker * pCooker = CookerRegistry::find_cooker_from_raw(rawPath);
+    if (!pCooker)
+    {
+        // not a cookable file
+        return;
+    }
+    getCookedPath(cookedPath, path);
 
     // check if file exists
     PANIC_IF(!file_exists(rawPath), "Raw file does not exist: %s", rawPath);
+
+    // verify we should cook
+    if (!shouldCook(rawPath, cookedPath) && !mForce)
+        return;
 
     // make any directories needed in cookedPath
     char cookedDir[kMaxPath+1];
@@ -138,6 +181,7 @@ void Chef::getRawPath(char * rawPath, const char * path, Cooker * pCooker)
         strcpy(rawPath, mAssetsRawDir.c_str());
         strcat(rawPath, pathNorm + mAssetsCookedDir.size());
         if (!pCooker) pCooker = CookerRegistry::find_cooker_from_cooked(pathNorm);
+        PANIC_IF(!pCooker, "No registered cooker for %s", pathNorm);
         change_ext(rawPath, pCooker->rawExt);
     }
     else if (isGamePath(pathNorm))
@@ -145,6 +189,7 @@ void Chef::getRawPath(char * rawPath, const char * path, Cooker * pCooker)
         strcpy(rawPath, mAssetsRawDir.c_str());
         strcat(rawPath, pathNorm);
         if (!pCooker) pCooker = CookerRegistry::find_cooker_from_cooked(pathNorm);
+        PANIC_IF(!pCooker, "No registered cooker for %s", pathNorm);
         change_ext(rawPath, pCooker->rawExt);
     }
     else if (isRawPath(pathNorm))
@@ -170,11 +215,13 @@ void Chef::getCookedPath(char * cookedPath, const char * path, Cooker * pCooker)
         strcpy(cookedPath, mAssetsCookedDir.c_str());
         strcat(cookedPath, pathNorm + mAssetsRawDir.size());
         if (!pCooker) pCooker = CookerRegistry::find_cooker_from_raw(pathNorm);
+        PANIC_IF(!pCooker, "No registered cooker for %s", pathNorm);
         change_ext(cookedPath, pCooker->cookedExt);
     }
     else if (isGamePath(pathNorm))
     {
         if (!pCooker) pCooker = CookerRegistry::find_cooker_from_cooked(pathNorm);
+        PANIC_IF(!pCooker, "No registered cooker for %s", pathNorm);
         strcpy(cookedPath, mAssetsCookedDir.c_str());
         strcat(cookedPath, pathNorm);
     }
@@ -200,6 +247,7 @@ void Chef::getGamePath(char * gamePath, const char * path, Cooker * pCooker)
     {
         strcpy(gamePath, pathNorm + mAssetsRawDir.size());
         if (!pCooker) pCooker = CookerRegistry::find_cooker_from_raw(pathNorm);
+        PANIC_IF(!pCooker, "No registered cooker for %s", pathNorm);
         change_ext(gamePath, pCooker->cookedExt);
     }
     else if (isCookedPath(pathNorm))
@@ -250,6 +298,17 @@ void Chef::recordDependency(const char * assetRawPath, const char * dependencyPa
     {
         PANIC("Invalid dependencyPath: %s", dependencyPath);
     }
+}
+
+bool Chef::shouldCook(const char * rawPath, const char * cookedPath)
+{
+    if (!file_exists(cookedPath))
+        return true;
+
+    if (is_file_newer(rawPath, cookedPath))
+        return true;
+
+    return false;
 }
 
 

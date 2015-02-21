@@ -57,7 +57,8 @@ Cooker * CookerRegistry::find_cooker_from_raw(const char * path)
     // find our cooker
     const char * ext = get_ext(path);
     auto it = sRawExtToCooker.find(ext);
-    PANIC_IF(it == sRawExtToCooker.end(), "No cooker registered for raw extension: %s", ext);
+    if (it == sRawExtToCooker.end())
+        return nullptr;
     Cooker * pCooker = it->second;
     return pCooker;
 }
@@ -67,7 +68,8 @@ Cooker * CookerRegistry::find_cooker_from_cooked(const char * path)
     // find our cooker
     const char * ext = get_ext(path);
     auto it = sCookedExtToCooker.find(ext);
-    PANIC_IF(it == sCookedExtToCooker.end(), "No cooker registered for cooked extension: %s", ext);
+    if (it == sCookedExtToCooker.end())
+        return nullptr;
     Cooker * pCooker = it->second;
     return pCooker;
 }

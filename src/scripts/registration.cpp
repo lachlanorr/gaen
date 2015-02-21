@@ -33,6 +33,7 @@ extern void register_component__gaen__lights__Directional(Registry & registry);
 extern void register_component__gaen__shapes__Box(Registry & registry);
 extern void register_component__gaen__shapes__Cone(Registry & registry);
 extern void register_component__gaen__shapes__Cylinder(Registry & registry);
+extern void register_component__gaen__shapes__QuadSphere(Registry & registry);
 extern void register_component__gaen__shapes__Sphere(Registry & registry);
 extern void register_component__gaen__utils__Timer(Registry & registry);
 extern void register_component__gaen__utils__WasdRot(Registry & registry);
@@ -47,6 +48,7 @@ void register_all_entities_and_components(Registry & registry)
     register_component__gaen__shapes__Box(registry);
     register_component__gaen__shapes__Cone(registry);
     register_component__gaen__shapes__Cylinder(registry);
+    register_component__gaen__shapes__QuadSphere(registry);
     register_component__gaen__shapes__Sphere(registry);
     register_component__gaen__utils__Timer(registry);
     register_component__gaen__utils__WasdRot(registry);

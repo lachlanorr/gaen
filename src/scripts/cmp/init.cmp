@@ -36,10 +36,13 @@ entity Shape
 /*        gaen.shapes.Cylinder{size    = vec3{1.0, 1.0, 1.0},
                              slices  = 16,
                              diffuse = color{255, 255, 0, 255}};*/
-        gaen.shapes.Sphere{size    = vec3{1.0, 1.0, 1.0},
+/*        gaen.shapes.Sphere{size    = vec3{1.0, 1.0, 1.0},
                            slices  = 32,
                            sections = 16,
-                           diffuse = color{255, 255, 0, 255}};
+                           diffuse = color{255, 255, 0, 255}};*/
+        gaen.shapes.QuadSphere{size   = vec3{3.0, 3.0, 3.0},
+                               sections = 10,
+                               diffuse = color{150, 255, 100, 255}};
         gaen.utils.WasdRot{};        
     }
 }
