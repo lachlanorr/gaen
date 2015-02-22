@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "core/platutils.h"
+#include "assets/file_utils.h"
 
 #include "chef/Chef.h"
 #include "chef/CookerRegistry.h"

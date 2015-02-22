@@ -25,6 +25,11 @@
 #-------------------------------------------------------------------------------
 
 SET (assets_SOURCES
+  Config.cpp
+  Config.h
+  file_utils.cpp
+  file_utils.h
+  file_utils_${platform}.cpp
   Gimg.cpp
   Gimg.h
   Gfnt.cpp

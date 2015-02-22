@@ -25,7 +25,6 @@
 //------------------------------------------------------------------------------
 
 #include "core/base_defines.h"
-#include "core/Config.h"
 
 #include "chef/Chef.h"
 #include "chef/CookerRegistry.h"
@@ -34,18 +33,24 @@
 namespace gaen
 {
 
-void cook_fnt(CookInfo * pCI)
+void cook_fnt(std::ifstream & ifs, std::ofstream & ofs, const CookInfo & ci)
 {
     Config<kMEM_Chef> conf;
-    conf.read(pCI->ifs);
+    conf.read(ifs);
 
     // register image as dependency
-    pCI->pChef->recordDependency(pCI->rawPath, conf.get("image").c_str());
+    ci.pChef->recordDependency(ci.rawPath, conf.get("image"));
 }
+
+void cook_tga(std::ifstream & ifs, std::ofstream & ofs, const CookInfo & ci)
+{
     
+}
+
 void register_cookers()
 {
     CookerRegistry::register_cooker("fnt", "gfnt", cook_fnt);
+    CookerRegistry::register_cooker("tga", "gimg", cook_fnt);
 }
 
 } // namespace gaen

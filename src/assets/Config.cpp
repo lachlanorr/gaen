@@ -29,7 +29,7 @@
 #include "core/base_defines.h"
 #include "core/thread_local.h"
 
-#include "core/Config.h"
+#include "assets/Config.h"
 
 namespace gaen
 {
@@ -60,8 +60,6 @@ bool Config<memType>::read(std::istream & input)
     static const u32 kMaxLine = 1024;
     TLARRAY(char, line, kMaxLine);
 
-    mSections.clear();
-
     String<memType> sectionName = kGlobalSection;
 
     while (!input.eof())
@@ -89,10 +87,10 @@ bool Config<memType>::read(std::istream & input)
 }
 
 template <MemType memType>
-bool Config<memType>::read(const String<memType> & path)
+bool Config<memType>::read(const char * path)
 {
     std::ifstream ifs;
-    ifs.open(path.c_str(), std::ifstream::in | std::ifstream::binary);
+    ifs.open(path, std::ifstream::in | std::ifstream::binary);
     if (!ifs.good())
     {
         ERR("Unable to open config file: %s", path);
@@ -109,76 +107,75 @@ bool Config<memType>::write(std::ostream & output)
 }
 
 template <MemType memType>
-bool Config<memType>::write(const String<memType> & path)
+bool Config<memType>::write(const char * path)
 {
     PANIC("Not implemented");
     return false;
 }
 
 template <MemType memType>
-const String<memType> & Config<memType>::get(const String<memType> & key)
+const char * Config<memType>::get(const char * key)
 {
-    return get(kGlobalSection, key);
+    return get(kGlobalSection.c_str(), key);
 }
 
 template <MemType memType>
-const String<memType> & Config<memType>::get(const String<memType> & section, const String<memType> & key)
+const char * Config<memType>::get(const char * section, const char * key)
 {
     auto sectionIt = mSections.find(section);
     if (sectionIt == mSections.end())
     {
         PANIC("Section %s does not exist", section);
-        return kEmptyValue;
+        return kEmptyValue.c_str();
     }
 
     auto it = sectionIt->second.find(key);
     if (it == sectionIt->second.end())
     {
         PANIC("Key %s does not exist in section %s", key, section);
-        return kEmptyValue;
+        return kEmptyValue.c_str();
     }
     
-    return it->second;
+    return it->second.c_str();
 }
 
 template <MemType memType>
-i32 Config<memType>::getInt(const String<memType> & key)
+i32 Config<memType>::getInt(const char * key)
 {
-    return getInt(kGlobalSection, key);
+    return getInt(kGlobalSection.c_str(), key);
 }
 
 template <MemType memType>
-i32 Config<memType>::getInt(const String<memType> & section, const String<memType> & key)
+i32 Config<memType>::getInt(const char * section, const char * key)
 {
-    const String<memType> & val = get(section, key);
-    return static_cast<i32>(strtol(val.c_str(), nullptr, 0));
+    const char * val = get(section, key);
+    return static_cast<i32>(strtol(val, nullptr, 0));
 }
 
 template <MemType memType>
-f32 Config<memType>::getFloat(const String<memType> & key)
+f32 Config<memType>::getFloat(const char * key)
 {
-    return getFloat(kGlobalSection, key);
+    return getFloat(kGlobalSection.c_str(), key);
 }
 
 template <MemType memType>
-f32 Config<memType>::getFloat(const String<memType> & section, const String<memType> & key)
+f32 Config<memType>::getFloat(const char * section, const char * key)
 {
-    const String<memType> & val = get(section, key);
-    return static_cast<float>(strtod(val.c_str(), nullptr));
+    const char * val = get(section, key);
+    return static_cast<float>(strtod(val, nullptr));
 }
 
 template <MemType memType>
-List<memType, String<memType>> Config<memType>::getList(const String<memType> & key)
+List<memType, String<memType>> Config<memType>::getList(const char * key)
 {
-    return getList(kGlobalSection, key);
+    return getList(kGlobalSection.c_str(), key);
 }
 
 template <MemType memType>
-List<memType, String<memType>> Config<memType>::getList(const String<memType> & section, const String<memType> & key)
+List<memType, String<memType>> Config<memType>::getList(const char * section, const char * key)
 {
     List<memType, String<memType>> list;
-    const String<memType> & valStr = get(section, key);
-    const char * val = valStr.c_str();
+    const char * val = get(section, key);
     const char * comma = strchr(val, ',');
     while (comma)
     {
@@ -190,13 +187,13 @@ List<memType, String<memType>> Config<memType>::getList(const String<memType> & 
 }
 
 template <MemType memType>
-List<memType, i32> Config<memType>::getIntList(const String<memType> & key)
+List<memType, i32> Config<memType>::getIntList(const char * key)
 {
-    return getIntList(kGlobalSection, key);
+    return getIntList(kGlobalSection.c_str(), key);
 }
 
 template <MemType memType>
-List<memType, i32> Config<memType>::getIntList(const String<memType> & section, const String<memType> & key)
+List<memType, i32> Config<memType>::getIntList(const char * section, const char * key)
 {
     auto strList = getList(section, key);
     List<memType, i32> list;
@@ -206,13 +203,13 @@ List<memType, i32> Config<memType>::getIntList(const String<memType> & section, 
 }
 
 template <MemType memType>
-List<memType, f32> Config<memType>::getFloatList(const String<memType> & key)
+List<memType, f32> Config<memType>::getFloatList(const char * key)
 {
-    return getFloatList(kGlobalSection, key);
+    return getFloatList(kGlobalSection.c_str(), key);
 }
 
 template <MemType memType>
-List<memType, f32> Config<memType>::getFloatList(const String<memType> & section, const String<memType> & key)
+List<memType, f32> Config<memType>::getFloatList(const char * section, const char * key)
 {
     auto strList = getList(section, key);
     List<memType, f32> list;
@@ -226,73 +223,73 @@ List<memType, f32> Config<memType>::getFloatList(const String<memType> & section
 
 /*
 template <MemType memType>
-void set(const String<memType> & key, const String<memType> & value)
+void set(const char * key, const char * value)
 {
     set(kGlobalSection, key, value);
 }
 
 template <MemType memType>
-void set(const String<memType> & section, const String<memType> & key, const String<memType> & value)
+void set(const char * section, const char * key, const char * value)
 {
     
 }
 
 template <MemType memType>
-void setInt(const String<memType> & key, i32 value)
+void setInt(const char * key, i32 value)
 {
     setInt(kGlobalSection, key, value);
 }
 
 template <MemType memType>
-void setInt(const String<memType> & section, const String<memType> & key, i32 value)
+void setInt(const char * section, const char * key, i32 value)
 {
 
 }
 
 template <MemType memType>
-void setFloat(const String<memType> & key, f32 value)
+void setFloat(const char * key, f32 value)
 {
     setFloat(kGlobalSection, key, value);
 }
 
 template <MemType memType>
-void setFloat(const String<memType> & section, const String<memType> & key, f32 value)
+void setFloat(const char * section, const char * key, f32 value)
 {
 
 }
 
 template <MemType memType>
-void setList(const String<memType> & key, const List<memType, String<memType>> & value)
+void setList(const char * key, const List<memType, String<memType>> & value)
 {
     setList(kGlobalSection, key, value);
 }
 
 template <MemType memType>
-void setList(const String<memType> & section, const String<memType> & key, const List<memType, String<memType>> & value)
+void setList(const char * section, const char * key, const List<memType, String<memType>> & value)
 {
 
 }
 
 template <MemType memType>
-void setIntList(const String<memType> & key, const List<memType, i32> & value)
+void setIntList(const char * key, const List<memType, i32> & value)
 {
     setIntList(kGlobalSection, key, value);
 }
 
 template <MemType memType>
-void setIntList(const String<memType> & section, const String<memType> & key, const List<memType, i32> & value)
+void setIntList(const char * section, const char * key, const List<memType, i32> & value)
 {
 
 }
 
 template <MemType memType>
-void setFloatList(const String<memType> & key, const List<memType, f32> & value)
+void setFloatList(const char * key, const List<memType, f32> & value)
 {
     setFloatList(kGlobalSection, key, value);
 }
 
 template <MemType memType>
-void setFloatList(const String<memType> & section, const String<memType> & key, const List<memType, f32> & value)
+void setFloatList(const char * section, const char * key, const List<memType, f32> & value)
 {
 
 }

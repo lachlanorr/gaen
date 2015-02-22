@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CORE_CONFIG_H
-#define GAEN_CORE_CONFIG_H
+#ifndef GAEN_ASSETS_CONFIG_H
+#define GAEN_ASSETS_CONFIG_H
 
 #include "core/mem.h"
 #include "core/HashMap.h"
@@ -40,48 +40,48 @@ class Config
 {
 public:
     bool read(std::istream & input);
-    bool read(const String<memType> & path);
+    bool read(const char * path);
 
     bool write(std::ostream & output);
-    bool write(const String<memType> & path);
+    bool write(const char * path);
 
 
-    const String<memType> & get(const String<memType> & key);
-    const String<memType> & get(const String<memType> & section, const String<memType> & key);
+    const char * get(const char * key);
+    const char * get(const char * section, const char * key);
 
-    i32 getInt(const String<memType> & key);
-    i32 getInt(const String<memType> & section, const String<memType> & key);
+    i32 getInt(const char * key);
+    i32 getInt(const char * section, const char * key);
 
-    f32 getFloat(const String<memType> & key);
-    f32 getFloat(const String<memType> & section, const String<memType> & key);
+    f32 getFloat(const char * key);
+    f32 getFloat(const char * section, const char * key);
 
-    List<memType, String<memType>> getList(const String<memType> & key);
-    List<memType, String<memType>> getList(const String<memType> & section, const String<memType> & key);
+    List<memType, String<memType>> getList(const char * key);
+    List<memType, String<memType>> getList(const char * section, const char * key);
 
-    List<memType, i32> getIntList(const String<memType> & key);
-    List<memType, i32> getIntList(const String<memType> & section, const String<memType> & key);
+    List<memType, i32> getIntList(const char * key);
+    List<memType, i32> getIntList(const char * section, const char * key);
 
-    List<memType, f32> getFloatList(const String<memType> & key);
-    List<memType, f32> getFloatList(const String<memType> & section, const String<memType> & key);
+    List<memType, f32> getFloatList(const char * key);
+    List<memType, f32> getFloatList(const char * section, const char * key);
 
 /*
-    void set(const String<memType> & key, const String<memType> & value);
-    void set(const String<memType> & section, const String<memType> & key, const String<memType> & value);
+    void set(const char * key, const char * value);
+    void set(const char * section, const char * key, const char * value);
 
-    void setInt(const String<memType> & key, i32 value);
-    void setInt(const String<memType> & section, const String<memType> & key, i32 value);
+    void setInt(const char * key, i32 value);
+    void setInt(const char * section, const char * key, i32 value);
 
-    void setFloat(const String<memType> & key, f32 value);
-    void setFloat(const String<memType> & section, const String<memType> & key, f32 value);
+    void setFloat(const char * key, f32 value);
+    void setFloat(const char * section, const char * key, f32 value);
 
-    void setList(const String<memType> & key, const List<memType, String<memType>> & value);
-    void setList(const String<memType> & section, const String<memType> & key, const List<memType, String<memType>> & value);
+    void setList(const char * key, const List<memType, String<memType>> & value);
+    void setList(const char * section, const char * key, const List<memType, String<memType>> & value);
 
-    void setIntList(const String<memType> & key, const List<memType, i32> & value);
-    void setIntList(const String<memType> & section, const String<memType> & key, const List<memType, i32> & value);
+    void setIntList(const char * key, const List<memType, i32> & value);
+    void setIntList(const char * section, const char * key, const List<memType, i32> & value);
 
-    void setFloatList(const String<memType> & key, const List<memType, f32> & value);
-    void setFloatList(const String<memType> & section, const String<memType> & key, const List<memType, f32> & value);
+    void setFloatList(const char * key, const List<memType, f32> & value);
+    void setFloatList(const char * section, const char * key, const List<memType, f32> & value);
 */
 
 private:

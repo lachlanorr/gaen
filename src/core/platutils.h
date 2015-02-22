@@ -39,44 +39,6 @@
 namespace gaen
 {
 
-static const u32 kMaxPath = 255;
-
-
-typedef void(*RecurseDirCB)(const char * path, void * context);
-
-void recurse_dir(const char * root_path, void * context, RecurseDirCB cb);
-
-// All of these file system functions assume a path with '/' separators, 
-// even on windows.
-bool file_exists(const char * filePath);
-bool dir_exists(const char * dirPath);
-void process_path(char * path);
-
-// Get parent directory of file_path
-void parent_directory(char * dirPath, const char * filePath);
-
-// Set path to parent
-void parent_directory(char * path);
-
-// Make all directories specified in path
-void make_directories(const char * dirPath);
-
-const char * get_ext(const char * path);
-char * get_ext(char * path);
-void change_ext(char * path, const char * ext);
-
-// copy inPath to outPath, converting all '\' to '/'
-void normalize_path(char * outPath, const char * inPath);
-void normalize_path(char * path);
-
-void append_path(char * path, const char * append);
-
-void full_path(char * outPath, char * path);
-
-bool is_file_newer(const char * path, const char * comparePath);
-
-
-
 // Initialize any platform specific stuff required for calling time funcs
 void init_time();
 
@@ -95,10 +57,6 @@ u32 platform_core_count();
 
 // Set affinity of the calling thread to the core Id specified.
 void set_thread_affinity(u32 coreId);
-
-// Read entire contents of file and place in allocated output buffer.
-// Caller must GFREE output buffer.
-i32 read_file(const char * path, char ** output);
 
 } // namespace gaen
 

@@ -30,9 +30,11 @@
 #include <iostream>
 #include <fstream>
 
+#include "core/mem.h"
 #include "core/HashMap.h"
 #include "core/List.h"
 #include "core/String.h"
+#include "assets/Config.h"
 
 namespace gaen
 {
@@ -43,17 +45,17 @@ struct CookInfo
     Chef * pChef;
     const char * rawPath;
     const char * cookedPath;
-    std::ifstream ifs;
-    std::ofstream ofs;
+    Config<kMEM_Chef> recipe;
     
-    CookInfo(Chef * pChef, const char * rawPath, const char * cookedPath)
+    CookInfo(Chef * pChef, const char * rawPath, const char * cookedPath, Config<kMEM_Chef> recipe)
       : pChef(pChef)
       , rawPath(rawPath)
       , cookedPath(cookedPath)
+      , recipe(recipe)
     {}
 };
 
-typedef void(*CookCB)(CookInfo * pCI);
+typedef void(*CookCB)(std::ifstream & ifs, std::ofstream & ofs, const CookInfo & ci);
 
 struct Cooker
 {

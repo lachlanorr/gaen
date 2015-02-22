@@ -26,7 +26,8 @@
 
 #include "core/base_defines.h"
 #include "core/thread_local.h"
-#include "core/platutils.h"
+
+#include "assets/file_utils.h"
 
 #include "chef/CookerRegistry.h"
 #include "chef/Chef.h"
@@ -116,36 +117,30 @@ void Chef::cook(const char * path)
     // check if file exists
     PANIC_IF(!file_exists(rawPath), "Raw file does not exist: %s", rawPath);
 
+    RecipeList recipes = findRecipes(rawPath);
+
     // verify we should cook
-    if (!shouldCook(rawPath, cookedPath) && !mForce)
+    if (!shouldCook(rawPath, cookedPath, recipes) && !mForce)
         return;
 
     // make any directories needed in cookedPath
     char cookedDir[kMaxPath+1];
-    parent_directory(cookedDir, cookedPath);
-    make_directories(cookedDir);
+    parent_dir(cookedDir, cookedPath);
+    make_dirs(cookedDir);
 
-    CookInfo ci(this, rawPath, cookedPath);
+    Config<kMEM_Chef> recipe;
+    overlayRecipes(recipe, recipes);
+
+    CookInfo ci(this, rawPath, cookedPath, recipe);
 
     // open the input and output streams
-    ci.ifs.open(rawPath, std::ifstream::in | std::ifstream::binary);
-    if (!ci.ifs.good())
-    {
-        PANIC("Unable to open raw asset for reading: %s", rawPath);
-        return;
-    }
+    FileReader reader;
+    reader.open(rawPath);
 
-    ci.ofs.open(cookedPath, std::ifstream::out | std::ifstream::binary);
-    if (!ci.ofs.good())
-    {
-        PANIC("Unable to open cooked asset for writing: %s", cookedPath);
-        return;
-    }
+    FileWriter writer;
+    writer.open(cookedPath);
 
-    pCooker->cook(&ci);
-
-    ci.ifs.close();
-    ci.ofs.close();
+    pCooker->cook(reader.ifs, writer.ofs, ci);
 }
 
 bool Chef::isRawPath(const char * path)
@@ -289,7 +284,7 @@ void Chef::recordDependency(const char * assetRawPath, const char * dependencyPa
     else if (normDepPath[0] != '/')
     {
         // assume it's relative to assetRawPaths' directory
-        parent_directory(depRawPath, assetRawPath);
+        parent_dir(depRawPath, assetRawPath);
         strcat(depRawPath, "/");
         strcat(depRawPath, normDepPath);
         mDependencyCB(mId, assetRawPath, depRawPath);
@@ -300,7 +295,7 @@ void Chef::recordDependency(const char * assetRawPath, const char * dependencyPa
     }
 }
 
-bool Chef::shouldCook(const char * rawPath, const char * cookedPath)
+bool Chef::shouldCook(const char * rawPath, const char * cookedPath, const RecipeList & recipes)
 {
     if (!file_exists(cookedPath))
         return true;
@@ -308,7 +303,57 @@ bool Chef::shouldCook(const char * rawPath, const char * cookedPath)
     if (is_file_newer(rawPath, cookedPath))
         return true;
 
+    for (const String<kMEM_Chef> & recipePath : recipes)
+    {
+        if (is_file_newer(recipePath.c_str(), cookedPath))
+            return true;
+    }
+
     return false;
+}
+
+Chef::RecipeList Chef::findRecipes(const char * rawPath)
+{
+    RecipeList recipes;
+
+    const char * ext = get_ext(rawPath);
+
+    char dir[kMaxPath+1];
+    normalize_path(dir, rawPath);
+    parent_dir(dir);
+
+    char rcpFile[kMaxPath+1];
+    normalize_path(rcpFile, rawPath);
+    strcat(rcpFile, ".rcp");
+    if (file_exists(rcpFile))
+        recipes.push_front(rcpFile);
+
+    while (strstr(dir, mAssetsRawDir.c_str()) == dir)
+    {
+        // check for file type override, e.g. .tga.rcp
+        sprintf(rcpFile, "%s/.%s.rcp", dir, ext);
+        if (file_exists(rcpFile))
+            recipes.push_front(rcpFile);
+
+        // check for directory override, e.g. .rcp
+        sprintf(rcpFile, "%s/.rcp", dir);
+        if (file_exists(rcpFile))
+            recipes.push_front(rcpFile);
+
+        // move on to parent directory
+        parent_dir(dir);
+    }
+
+    return recipes;
+}
+
+void Chef::overlayRecipes(Config<kMEM_Chef> & recipe, const Chef::RecipeList & recipes)
+{
+    for (String<kMEM_Chef> rcp : recipes)
+    {
+        if (!recipe.read(rcp.c_str()))
+            PANIC("Failure reading recipe: %s", rcp);
+    }
 }
 
 

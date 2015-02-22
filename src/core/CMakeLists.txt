@@ -28,8 +28,6 @@
 SET (core_SOURCES
   base_defines.cpp
   base_defines.h
-  Config.cpp
-  Config.h
   gamevars.cpp
   gamevars.h
   hashing.cpp

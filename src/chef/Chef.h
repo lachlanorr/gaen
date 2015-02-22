@@ -29,6 +29,7 @@
 
 #include "core/mem.h"
 #include "core/String.h"
+#include "assets/Config.h"
 
 namespace gaen
 {
@@ -65,9 +66,13 @@ public:
     void getGamePath(char * gamePath, const char * path, Cooker * pCooker = nullptr);
 
 private:
+    typedef List<kMEM_Chef, String<kMEM_Chef>> RecipeList;
+    
     const size_t kMaxPlatform = 4;
 
-    bool shouldCook(const char * rawPath, const char * cookedPath);
+    bool shouldCook(const char * rawPath, const char * cookedPath, const RecipeList & recipes);
+    RecipeList findRecipes(const char * rawPath);
+    void overlayRecipes(Config<kMEM_Chef> & recipe, const RecipeList & recipes);
 
     u32 mId;
     bool mForce;

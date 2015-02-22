@@ -29,11 +29,12 @@
 #include <cstring>
 
 #include "core/base_defines.h"
-#include "core/platutils.h"
 #include "core/mem.h"
 #include "core/Vector.h"
 #include "core/threading.h"
 #include "core/SpscRingBuffer.h"
+
+#include "assets/file_utils.h"
 
 #include "chef/Chef.h"
 #include "chef/CookerRegistry.h"
@@ -62,7 +63,7 @@ void find_assets_dir(char * assetsDir)
     char checkPath[kMaxPath+1];
 
     process_path(path);
-    parent_directory(path);
+    parent_dir(path);
 
     for(;;)
     {
@@ -77,7 +78,7 @@ void find_assets_dir(char * assetsDir)
             strcpy(assetsDir, checkPath);
             return;
         }
-        parent_directory(path);
+        parent_dir(path);
     }
 }
 
