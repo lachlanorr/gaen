@@ -240,9 +240,9 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
                     u32 fpix = 3 * pix;
                     u32 tpix = pix;
 
-                    u8 lum = luminosity(fromLine[fpix+0],
-                                        fromLine[fpix+1],
-                                        fromLine[fpix+2]);
+                    u8 lum = luminance(fromLine[fpix+0],
+                                       fromLine[fpix+1],
+                                       fromLine[fpix+2]);
                     toLine[tpix] = lum;
                 }
             }
@@ -285,9 +285,9 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
                     u32 fpix = 4 * pix;
                     u32 tpix = pix;
 
-                    u8 lum = luminosity(fromLine[fpix+0],
-                                        fromLine[fpix+1],
-                                        fromLine[fpix+2]);
+                    u8 lum = luminance(fromLine[fpix+0],
+                                       fromLine[fpix+1],
+                                       fromLine[fpix+2]);
                     toLine[tpix] = lum;
                 }
             }

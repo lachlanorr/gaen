@@ -48,7 +48,7 @@ enum PixelFormat
 const char * pixel_format_to_str(PixelFormat pixelType);
 const PixelFormat pixel_format_from_str(const char * str);
 
-inline u8 luminosity(u8 r, u8 g, u8 b)
+inline u8 luminance(u8 r, u8 g, u8 b)
 {
     return static_cast<u8>(r * 0.299 + g * 0.587 + b * 0.114 + 0.5);
 }
