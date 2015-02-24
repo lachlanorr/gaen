@@ -49,6 +49,9 @@ public:
     const char * get(const char * key);
     const char * get(const char * section, const char * key);
 
+    const char * getWithDefault(const char * key, const char * defaultValue);
+    const char * getWithDefault(const char * section, const char * key, const char * defaultValue);
+
     i32 getInt(const char * key);
     i32 getInt(const char * section, const char * key);
 

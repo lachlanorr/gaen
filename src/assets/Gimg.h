@@ -28,12 +28,13 @@
 #define GAEN_ASSETS_GIMG_H
 
 #include "core/base_defines.h"
+#include "core/mem.h"
 
 namespace gaen
 {
 
 // These correspond directly to OpenGL pixel formats
-enum PixelType
+enum PixelFormat
 {
     kPXL_R8        = 0x8229, // GL_R8
     kPXL_RGB8      = 0x8051, // GL_RGB8
@@ -44,28 +45,43 @@ enum PixelType
     kPXL_RGBA_DXT5 = 0x8C4F  // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
 };
 
-const char * pixel_type_to_str(PixelType pixelType);
-const PixelType pixel_type_from_str(const char * str);
+const char * pixel_format_to_str(PixelFormat pixelType);
+const PixelFormat pixel_format_from_str(const char * str);
 
-class Gimg
+inline u8 luminosity(u8 r, u8 g, u8 b)
+{
+    return static_cast<u8>(r * 0.299 + g * 0.587 + b * 0.114 + 0.5);
+}
+
+struct Gimg
 {
 public:
-    static u32 bytes_per_pixel(PixelType pixelType);
-    static u32 required_size(PixelType pixelType, u32 width, u32 height);
+    static bool is_valid(const u8 * pBuffer, u32 size);
+    
+    static u32 required_size(PixelFormat pixelFormat, u32 width, u32 height);
+
+    static Gimg * create(MemType memType, PixelFormat pixelFormat, u32 width, u32 height);
+
+    u32 totalSize() const;
 
     u8 * scanline(u32 idx);
+    const u8 * scanline(u32 idx) const;
+
+    void convertFormat(Gimg ** pGimg, MemType memType, PixelFormat newPixelFormat) const;
+
+    PixelFormat pixelFormat;
+    
+    u16 width;
+    u16 height;
 
 private:
     // Class should not be constructed directly.  Use cast and create static methods.
     Gimg() = default;
     Gimg(const Gimg&) = delete;
     Gimg & operator=(const Gimg&) = delete;
-    
-    PixelType mPixelType;
-    
-    u16 mWidth;
-    u16 mHeight;
 };
+
+static_assert(sizeof(Gimg) == 8, "Gimg expected to be 8 bytes");
 
 } // namespace gaen
 

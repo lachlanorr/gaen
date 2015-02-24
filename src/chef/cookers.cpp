@@ -25,9 +25,13 @@
 //------------------------------------------------------------------------------
 
 #include "core/base_defines.h"
+#include "core/thread_local.h"
+
+#include "assets/Gimg.h"
 
 #include "chef/Chef.h"
 #include "chef/CookerRegistry.h"
+#include "chef/Tga.h"
 #include "chef/cookers.h"
 
 namespace gaen
@@ -44,13 +48,45 @@ void cook_fnt(std::ifstream & ifs, std::ofstream & ofs, const CookInfo & ci)
 
 void cook_tga(std::ifstream & ifs, std::ofstream & ofs, const CookInfo & ci)
 {
-    
+    char header[sizeof(Tga)];
+
+    ifs.read(header, sizeof(Tga));
+    PANIC_IF(!ifs.good() || ifs.gcount() != sizeof(Tga), "Invalid .tga header: %s", ci.rawPath);
+
+    Tga * pTga = reinterpret_cast<Tga*>(header);
+
+    u32 size = pTga->totalSize();
+    PANIC_IF(size > 100 * 1024 * 1024, "File too large for cooking: size: %u, path: %s", size, ci.rawPath); // sanity check
+
+    // allocate a buffer
+    Scoped_GFREE<char> pBuf((char*)GALLOC(kMEM_Chef, size));
+    memcpy(pBuf.get(), header, sizeof(Tga));
+
+    ifs.read(pBuf.get() + sizeof(Tga), size - sizeof(Tga));
+    PANIC_IF(!ifs.good() || ifs.gcount() != size - sizeof(Tga), "Bad .tga file: %s", ci.rawPath);
+
+    PANIC_IF(!pTga->is_valid((u8*)pBuf.get(), size), "Invalid .tga file: %s", ci.rawPath);
+    pTga = reinterpret_cast<Tga*>(pBuf.get());
+
+    // Convert to a Gimg with same-ish pixel format
+    Gimg * pGimgTga;
+    pTga->convertToGimg(&pGimgTga);
+    Scoped_GFREE<Gimg> pGimg_sp(pGimgTga);
+
+    PixelFormat pixFmt = pixel_format_from_str(ci.recipe.getWithDefault("pixel_format", "RGBA8"));
+
+    // Convert the pixel format if necessary
+    Gimg * pGimg;
+    pGimgTga->convertFormat(&pGimg, kMEM_Chef, pixFmt);
+
+    // write out file
+    ofs.write((const char *)pGimg, pGimg->totalSize());
 }
 
 void register_cookers()
 {
     CookerRegistry::register_cooker("fnt", "gfnt", cook_fnt);
-    CookerRegistry::register_cooker("tga", "gimg", cook_fnt);
+    CookerRegistry::register_cooker("tga", "gimg", cook_tga);
 }
 
 } // namespace gaen

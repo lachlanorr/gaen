@@ -140,6 +140,30 @@ const char * Config<memType>::get(const char * section, const char * key)
 }
 
 template <MemType memType>
+const char * Config<memType>::getWithDefault(const char * key, const char * defaultValue)
+{
+    return getWithDefault(kGlobalSection.c_str(), key, defaultValue);
+}
+
+template <MemType memType>
+const char * Config<memType>::getWithDefault(const char * section, const char * key, const char * defaultValue)
+{
+    auto sectionIt = mSections.find(section);
+    if (sectionIt == mSections.end())
+    {
+        return defaultValue;
+    }
+
+    auto it = sectionIt->second.find(key);
+    if (it == sectionIt->second.end())
+    {
+        return defaultValue;
+    }
+
+    return it->second.c_str();
+}
+
+template <MemType memType>
 i32 Config<memType>::getInt(const char * key)
 {
     return getInt(kGlobalSection.c_str(), key);

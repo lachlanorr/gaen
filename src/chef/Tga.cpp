@@ -24,6 +24,9 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "core/mem.h"
+#include "assets/Gimg.h"
+
 #include "chef/Tga.h"
 
 namespace gaen
@@ -62,8 +65,6 @@ bool Tga::is_valid(u8 * pBuffer, u32 size)
     switch (pTga->imageType)
     {
     case kTGAT_Rgb:
-    case kTGAT_Grayscale:
-        // we're ok with these
         break;
     default:
         ERR("Only RGB and Grayscale, non RLE .tga files are supported, imageType: %u", pTga->imageType);
@@ -98,7 +99,7 @@ u8 * Tga::imageData()
 
 u32 Tga::imageDataSize()
 {
-    return bitsPerPixel * width * height / 8;
+    return bytesPerPixel() * width * height;
 }
 
 u32 Tga::totalSize()
@@ -106,11 +107,50 @@ u32 Tga::totalSize()
     return sizeof(Tga) + idLength + colorMapSize() + imageDataSize();
 }
 
+u32 Tga::bytesPerPixel()
+{
+    return bitsPerPixel / 8;
+}
+
 u8 * Tga::scanline(u32 idx)
 {
     ASSERT(idx < height);
-    u32 lineSize = bitsPerPixel * width / 8;
+    u32 lineSize = bytesPerPixel() * width;
     return imageData() + idx * lineSize;
+}
+
+void Tga::convertToGimg(Gimg ** pGimgOut)
+{
+    PixelFormat pixFmt = kPXL_RGBA8;
+    if (imageType == kTGAT_Rgb && bitsPerPixel == 24)
+        pixFmt = kPXL_RGB8;
+    else if (imageType == kTGAT_Rgb && bitsPerPixel == 32)
+        pixFmt = kPXL_RGBA8;
+    else
+        PANIC("Unable to convert tga to Gimg, invalid format");
+
+    Gimg * pGimg = Gimg::create(kMEM_Chef, pixFmt, width, height);
+
+    for (u32 line = 0; line < height; ++line)
+    {
+        u8 * tgaLine = scanline(line);
+        u8 * gimgLine = pGimg->scanline(height - line - 1); // reverse row order for opengl
+
+        for (u32 pix = 0; pix < width; ++pix)
+        {
+            u32 ipix = bytesPerPixel() * pix;
+
+            // tga pixels are stored bgr and bgra
+            gimgLine[ipix+0] = tgaLine[ipix+2];
+            gimgLine[ipix+1] = tgaLine[ipix+1];
+            gimgLine[ipix+2] = tgaLine[ipix+0];
+
+            if (pixFmt == kPXL_RGBA8)
+                gimgLine[ipix+3] = tgaLine[ipix+3];
+        }
+    }
+
+    *pGimgOut = pGimg;
 }
 
 

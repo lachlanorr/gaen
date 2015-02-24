@@ -45,9 +45,9 @@ struct CookInfo
     Chef * pChef;
     const char * rawPath;
     const char * cookedPath;
-    Config<kMEM_Chef> recipe;
+    Config<kMEM_Chef> & recipe;
     
-    CookInfo(Chef * pChef, const char * rawPath, const char * cookedPath, Config<kMEM_Chef> recipe)
+    CookInfo(Chef * pChef, const char * rawPath, const char * cookedPath, Config<kMEM_Chef> & recipe)
       : pChef(pChef)
       , rawPath(rawPath)
       , cookedPath(cookedPath)

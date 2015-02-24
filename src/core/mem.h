@@ -91,6 +91,36 @@ struct MemPoolInit
     u16 count;
 };
 
+// Super simple RAII pointer classes for our allocators
+template <typename T>
+class Scoped_GFREE
+{
+public:
+    Scoped_GFREE(T * ptr) : mPtr(ptr) {}
+    ~Scoped_GFREE() { GFREE(mPtr); }
+    T * get() { return mPtr; }
+private:
+    // no one should ever copy or assign
+    Scoped_GFREE(const Scoped_GFREE&) = delete;
+    Scoped_GFREE & operator=(const Scoped_GFREE&) = delete;
+
+    T * mPtr;
+};
+
+template <typename T>
+class Scoped_GDELETE
+{
+public:
+    Scoped_GDELETE(T * ptr) : mPtr(ptr) {}
+    ~Scoped_GDELETE() { GDELETE(mPtr); }
+    T * get() { return mPtr; }
+private:
+    // no one should ever copy or assign
+    Scoped_GDELETE(const Scoped_GDELETE&) = delete;
+    Scoped_GDELETE & operator=(const Scoped_GDELETE&) = delete;
+
+    T * mPtr;
+};
 
 
 /*

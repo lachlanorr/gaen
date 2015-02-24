@@ -34,17 +34,17 @@
 // Clang   - __thread: almost the same thing
 // iOS     - Our own ThreadLocal class: baling wire, duct tape, misery
 #if IS_PLATFORM_WIN32
-#define TL(T, S) static __declspec(thread) T S
-#define TLARRAY(T, S, N) static __declspec(thread) T S[N]
+#define TL(T, N) static __declspec(thread) T N
+#define TLARRAY(T, N, C) static __declspec(thread) T N[C]
 #elif IS_PLATFORM_OSX
-#define TL(T, S) static __thread T S
-#define TLARRAY(T, S, N) static __thread T S[N]
+#define TL(T, N) static __thread T N
+#define TLARRAY(T, N, C) static __thread T N[C]
 #elif IS_PLATFORM_IOS
-#define TL(T, S) ThreadLocal<T, __COUNTER__, __LINE__> S
-#define TLARRAY(T, S, N) ThreadLocalArray<T, N, __COUNTER__, __LINE__> S
+#define TL(T, N) ThreadLocal<T, __COUNTER__, __LINE__> N
+#define TLARRAY(T, N, C) ThreadLocalArray<T, C, __COUNTER__, __LINE__> N
 #else
-#define TL(T, S) static thread_local T S
-#define TLARRAY(T, S, N) static thread_local T S[N]
+#define TL(T, N) static thread_local T N
+#define TLARRAY(T, N, C) static thread_local T N[C]
 #endif
 
 

@@ -32,6 +32,8 @@
 namespace gaen
 {
 
+struct Gimg;
+
 enum TgaImageType
 {
     kTGAT_NoImageData = 0,
@@ -56,7 +58,12 @@ struct Tga
     u32 imageDataSize();
     u32 totalSize();
 
+    u32 bytesPerPixel();
+
     u8 * scanline(u32 idx);
+
+    // Callers should GFREE pGimg
+    void convertToGimg(Gimg ** pGimgOut);
 
     u8 idLength;
     u8 colorMapType;
