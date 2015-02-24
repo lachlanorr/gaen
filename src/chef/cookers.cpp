@@ -42,8 +42,6 @@ void cook_fnt(std::ifstream & ifs, std::ofstream & ofs, const CookInfo & ci)
     Config<kMEM_Chef> conf;
     conf.read(ifs);
 
-    // register image as dependency
-    ci.pChef->recordDependency(ci.rawPath, conf.get("image"));
 }
 
 void cook_tga(std::ifstream & ifs, std::ofstream & ofs, const CookInfo & ci)

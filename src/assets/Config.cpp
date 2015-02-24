@@ -34,6 +34,8 @@
 namespace gaen
 {
 
+static const u32 kMaxLine = 1024;
+
 template <MemType memType>
 const String<memType> Config<memType>::kGlobalSection = "GLOBAL";
 
@@ -57,7 +59,6 @@ static inline bool is_comment_start(char c)
 template <MemType memType>
 bool Config<memType>::read(std::istream & input)
 {
-    static const u32 kMaxLine = 1024;
     TLARRAY(char, line, kMaxLine);
 
     String<memType> sectionName = kGlobalSection;
@@ -339,17 +340,92 @@ static char * strip(char * str)
     return str;
 }
 
+static void strip_comment(char * str)
+{
+    char * s = str;
+    while (*s)
+    {
+        // it's a start comment char and either first char or not
+        // preceded by '\'
+        if (is_comment_start(*s) && (s == str || s[-1] != '\\'))
+        {
+            *s = '\0';
+            return;
+        }
+        s++;
+    }
+}
+
+static char * find_eq(char * line)
+{
+    // find first equal not prepended with '\'
+    char * s = line;
+    while (*s)
+    {
+        // it's '=' and either first char or not preceded by '\'
+        if (*s == '=' && (s == line || s[-1] != '\\'))
+            return s;
+        s++;
+    }
+    return nullptr;
+}
+
+static void de_escape(char * line)
+{
+    const char * s = line;
+    char * d = line;
+
+    while (*s)
+    {
+        if (*s == '\\')
+        {
+            switch (s[1])
+            {
+            case 's':
+                *d = ' ';
+                break;
+            case 't':
+                *d = '\t';
+                break;
+            case 'n':
+                *d = '\n';
+                break;
+            case 'r':
+                *d = '\r';
+                break;
+            case 'f':
+                *d = '\f';
+                break;
+            default:
+                *d = s[1];
+                break;
+            }
+            d++;
+            s+=2;
+        }
+        else
+        {
+            *d = *s;
+            d++;
+            s++;
+        }
+    }
+    *d = '\0';
+}
+
 template <MemType memType>
 typename Config<memType>::ProcessResult Config<memType>::processLine(char * line)
 {
     line = strip(line);
+    strip_comment(line);
     
-    // if it's blank or a comment, we can skip it
-    if (*line == '\0' || is_comment_start(*line))
+    // if it's blank we can skip it
+    if (*line == '\0')
         return ProcessResult(kPRT_Ignore);
 
-    // Find the equal sign
-    char * eq = strchr(line, '=');
+    // de-escape any escaped chars
+    char * eq = find_eq(line);
+
     if (eq)
     {
         // turn '=' into a null 
@@ -357,15 +433,19 @@ typename Config<memType>::ProcessResult Config<memType>::processLine(char * line
         char * rhs = eq+1;
         *eq = '\0';
         lhs = strip(lhs);
+        de_escape(lhs);
         rhs = strip(rhs);
+        de_escape(rhs);
         return ProcessResult(kPRT_KeyVal, lhs, rhs);
     }
 
     size_t lineLen = strlen(line);
-    if (line[0] == '[' && line[lineLen-1] == ']')
+    if (lineLen > 3 && line[0] == '[' && line[lineLen-1] == ']' && line[lineLen-2] != '\\')
     {
         line[lineLen-1] = '\0';
         line++;
+        line = strip(line);
+        de_escape(line);
         return ProcessResult(kPRT_SectionStart, line);
     }
 
