@@ -43,6 +43,18 @@ bool Tga::is_valid(u8 * pBuffer, u32 size)
 
     Tga * pTga = reinterpret_cast<Tga*>(pBuffer);
 
+    if (pTga->width != pTga->height)
+    {
+        ERR("tga doesn't have matching width and height: width=%u, height=%u", pTga->width, pTga->height);
+        return false;
+    }
+
+    if (!is_power_of_two(pTga->width) || !is_power_of_two(pTga->height))
+    {
+        ERR("tga doesn't have power of two width or height: width=%u, height=%u", pTga->width, pTga->height);
+        return false;
+    }
+
     if (size < pTga->totalSize())
     {
         ERR("tga buffer smaller than required, size: %u", size);

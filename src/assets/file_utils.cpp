@@ -127,6 +127,5 @@ void change_ext(char * path, const char * ext)
     strcpy(extPos, ext);
 }
 
-
 } // namespace gaen
 

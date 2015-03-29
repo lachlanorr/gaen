@@ -35,6 +35,7 @@
 #include <cstdio>
 
 #include "core/base_defines.h"
+#include "core/hashing.h"
 
 namespace gaen
 {
@@ -122,6 +123,32 @@ private:
     T * mPtr;
 };
 
+
+// Custom comparator for "char*" maps
+struct StrcmpComp
+{
+    bool operator() (char const *lhs, char const *rhs) const
+    {
+        return strcmp(lhs, rhs) < 0;
+    }
+};
+
+struct StrcmpEqual
+{
+    bool operator() (char const *lhs, char const *rhs) const
+    {
+        int cmpRes = strcmp(lhs, rhs);
+        return strcmp(lhs, rhs) == 0;
+    }
+};
+
+struct StrHash
+{
+    size_t operator() (char const * lhs) const
+    {
+        return gaen_hash(lhs);
+    }
+};
 
 /*
 // LORRTODO - figure out a memory allocation solution

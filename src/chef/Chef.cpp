@@ -133,14 +133,9 @@ void Chef::cook(const char * path)
 
     CookInfo ci(this, rawPath, cookedPath, recipe);
 
-    // open the input and output streams
-    FileReader reader;
-    reader.open(rawPath);
+    pCooker->cook(ci);
 
-    FileWriter writer;
-    writer.open(cookedPath);
-
-    pCooker->cook(reader.ifs, writer.ofs, ci);
+    printf("Cooked: %s -> %s\n", ci.rawPath, ci.cookedPath);
 }
 
 bool Chef::isRawPath(const char * path)
@@ -195,6 +190,14 @@ void Chef::getRawPath(char * rawPath, const char * path, Cooker * pCooker)
     {
         PANIC("Invalid path: %s", path);
     }
+}
+
+void Chef::getRawRelativePath(char * rawRelativePath, const char * rawPath)
+{
+    ASSERT(rawRelativePath);
+    ASSERT(rawPath);
+    PANIC_IF(!isRawPath(rawPath), "Not a raw path: %s", rawPath);
+    strcpy(rawRelativePath, rawPath + mAssetsRawDir.size() + 1);
 }
 
 void Chef::getCookedPath(char * cookedPath, const char * path, Cooker * pCooker)
@@ -259,40 +262,54 @@ void Chef::getGamePath(char * gamePath, const char * path, Cooker * pCooker)
     }
 }
 
-
-
-void Chef::recordDependency(const char * assetRawPath, const char * dependencyPath)
+bool Chef::convertRelativeDependencyPath(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath)
 {
-    ASSERT(assetRawPath);
+    ASSERT(sourceRawPath);
     ASSERT(dependencyPath);
-    ASSERT(isRawPath(assetRawPath));
-    
+    ASSERT(isRawPath(sourceRawPath));
+
     char normDepPath[kMaxPath+1];
-    char depRawPath[kMaxPath+1];
 
     normalize_path(normDepPath, dependencyPath);
-    
+
     if (isRawPath(normDepPath))
     {
-        mDependencyCB(mId, assetRawPath, normDepPath);
+        strcpy(dependencyRawPath, normDepPath);
+        return true;
     }
     else if (isGamePath(normDepPath) || isCookedPath(normDepPath))
     {
-        getRawPath(depRawPath, normDepPath);
-        mDependencyCB(mId, assetRawPath, depRawPath);
+        getRawPath(dependencyRawPath, normDepPath);
+        return true;
     }
     else if (normDepPath[0] != '/')
     {
-        // assume it's relative to assetRawPaths' directory
-        parent_dir(depRawPath, assetRawPath);
-        strcat(depRawPath, "/");
-        strcat(depRawPath, normDepPath);
-        mDependencyCB(mId, assetRawPath, depRawPath);
+        // assume it's relative to sourceRawPaths' directory
+        parent_dir(dependencyRawPath, sourceRawPath);
+        strcat(dependencyRawPath, "/");
+        strcat(dependencyRawPath, normDepPath);
+        return true;
     }
-    else
+    return false;
+}
+
+void Chef::reportDependency(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath)
+{
+    // If passed in an output path, use it, otherwise us a scratch space
+    char scratch[kMaxPath+1];
+    char * depRawPath = dependencyRawPath ? dependencyRawPath : scratch;
+
+    if (!convertRelativeDependencyPath(depRawPath, sourceRawPath, dependencyPath))
     {
-        PANIC("Invalid dependencyPath: %s", dependencyPath);
+        PANIC("Unable to convert dependency relative path to raw path: %s", dependencyPath);
     }
+
+    // We only want to record the portion relative to the 
+    // raw assets directory.
+    char rawRelativePath[kMaxPath+1];
+    getRawRelativePath(rawRelativePath, depRawPath);
+
+    mDependencyCB(mId, sourceRawPath, rawRelativePath);
 }
 
 bool Chef::shouldCook(const char * rawPath, const char * cookedPath, const RecipeList & recipes)

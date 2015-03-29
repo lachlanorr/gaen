@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Gfnt.cpp - Runtime font format
+// cooker_utils.h - Shared utilities used by various cookers
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,12 +24,42 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "assets/Gfnt.h"
+#ifndef GAEN_CHEF_COOKER_UTILS_H
+#define GAEN_CHEF_COOKER_UTILS_H
+
+#include "core/base_defines.h"
 
 namespace gaen
 {
+
+enum ImageOrigin
+{
+    kORIG_TopLeft,
+    kORIG_BottomLeft
+};
+
+
+struct ImageInfo
+{
+    ImageInfo(ImageOrigin origin, u16 width, u16 height)
+      : origin(origin)
+      , width(width)
+      , height(height)
+    {
+        // sanity check dimensions, as we always work with textures
+        PANIC_IF(width != height, "Texture has mismatched width and height: width=%u, height=%u", width, height);
+        PANIC_IF(!is_power_of_two(width) || !is_power_of_two(height), "Texture has non power of 2 width or height: width=%u, height=%u", width, height);
+    }
+
+    ImageOrigin origin;
+    u16 width;
+    u16 height;
+};
+
+ImageInfo read_image_info(char * path);
 
 
 
 } // namespace gaen
 
+#endif // #ifndef GAEN_CHEF_COOKER_UTILS_H

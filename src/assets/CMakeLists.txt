@@ -32,8 +32,8 @@ SET (assets_SOURCES
   file_utils_${platform}.cpp
   Gimg.cpp
   Gimg.h
-  Gfnt.cpp
-  Gfnt.h
+  Gatl.cpp
+  Gatl.h
   )
 
 IDE_SOURCE_PROPERTIES( "/" "${assets_SOURCES}")

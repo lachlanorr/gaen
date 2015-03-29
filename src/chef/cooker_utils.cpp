@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Gfnt.h - Runtime font format
+// cooker_utils.h - Shared utilities used by various cookers
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,14 +24,33 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ASSETS_GFNT_H
-#define GAEN_ASSETS_GFNT_H
+#include "assets/file_utils.h"
+
+#include "chef/Tga.h"
+
+#include "chef/cooker_utils.h"
 
 namespace gaen
 {
 
+ImageInfo read_image_info(char * path)
+{
+    const char * ext = get_ext(path);
+
+    FileReader rdr(path);
+
+    if (0 == strcmp(ext, "tga"))
+    {
+        Tga tga;
+        rdr.read(&tga);
+        return ImageInfo(kORIG_TopLeft, tga.width, tga.height);
+    }
+    else
+    {
+        PANIC("Unknown image format: %s", ext);
+        return ImageInfo(kORIG_TopLeft, 0, 0);
+    }
+}
 
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_ASSETS_GFNT_H

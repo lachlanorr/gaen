@@ -38,6 +38,8 @@ static const f32 kPi = 3.1415926535897932384626433832795f;
 inline f32 radians(f32 deg) { return deg * (kPi / 180.0f); }
 inline f32 degrees(f32 rad) { return rad * (180.0f / kPi); }
 
+inline i32 round(f32 val) { return (i32)(val + 0.5f); }
+
 static const f32 kFpErrThreshold = 0.00000001f;
 inline bool is_fp_eq(f32 actual, f32 expected) { return (actual >= expected - kFpErrThreshold) && (actual <= expected + kFpErrThreshold); }
 

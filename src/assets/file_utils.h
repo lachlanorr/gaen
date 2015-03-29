@@ -72,30 +72,35 @@ bool is_file_newer(const char * path, const char * comparePath);
 
 struct FileReader
 {
-    ~FileReader()
-    {
-        if (ifs.is_open())
-            ifs.close();
-    }
-    void open(const char * path)
+    FileReader(const char * path)
     {
         ifs.open(path, std::ifstream::in | std::ifstream::binary);
+        auto flags = ifs.flags();
+        bool fail = ifs.fail();
         if (!ifs.good())
         {
             PANIC("Unable to open FileReader: %s", path);
         }
     }
+    ~FileReader()
+    {
+        if (ifs.is_open())
+            ifs.close();
+    }
+
+    template <typename T>
+    void read(T* pDst)
+    {
+        ifs.read(reinterpret_cast<char*>(pDst), sizeof(T));
+        PANIC_IF(!ifs.good() || ifs.gcount() != sizeof(T), "Read failure");
+    }
+
     std::ifstream ifs;
 };
 
 struct FileWriter
 {
-    ~FileWriter()
-    {
-        if (ofs.is_open())
-            ofs.close();
-    }
-    void open(const char * path)
+    FileWriter(const char * path)
     {
         ofs.open(path, std::ofstream::out | std::ofstream::binary);
         if (!ofs.good())
@@ -103,9 +108,14 @@ struct FileWriter
             PANIC("Unable to open FileWriter: %s", path);
         }
     }
+    ~FileWriter()
+    {
+        if (ofs.is_open())
+            ofs.close();
+    }
+
     std::ofstream ofs;
 };
-
 
 } // namespace gaen
 

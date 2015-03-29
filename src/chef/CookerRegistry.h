@@ -27,9 +27,6 @@
 #ifndef GAEN_CHEF_COOKER_REGISTRY_H
 #define GAEN_CHEF_COOKER_REGISTRY_H
 
-#include <iostream>
-#include <fstream>
-
 #include "core/mem.h"
 #include "core/HashMap.h"
 #include "core/List.h"
@@ -55,7 +52,7 @@ struct CookInfo
     {}
 };
 
-typedef void(*CookCB)(std::ifstream & ifs, std::ofstream & ofs, const CookInfo & ci);
+typedef void(*CookCB)(const CookInfo & ci);
 
 struct Cooker
 {

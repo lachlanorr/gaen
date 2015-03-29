@@ -267,9 +267,14 @@ typedef double          f64;
 // Align a value to specified alignment.  Useful to ensure memory
 // alignment in custom allocators and things like that.
 template <typename T>
-inline T align(T val, size_t alignment)
+inline T align(T val, u32 alignment)
 {
     return (val + alignment-1) & ~(alignment-1);
+}
+
+inline bool is_power_of_two(u32 val)
+{
+    return (val & (val-1)) == 0;
 }
 
 //------------------------------------------------------------------------------

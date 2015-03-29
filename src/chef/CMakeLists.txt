@@ -31,6 +31,8 @@ SET (chef_SOURCES
   CookerRegistry.h
   cookers.cpp
   cookers.h
+  cooker_utils.cpp
+  cooker_utils.h
   Tga.cpp
   Tga.h
   main_chef.cpp

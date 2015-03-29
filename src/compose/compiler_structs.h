@@ -45,15 +45,6 @@ struct SymRec
     u32 order;
 };
 
-// Custom comparator for our "char*" map
-struct StrcmpComp
-{
-   bool operator() (char const *lhs, char const *rhs) const
-   {
-      return strcmp(lhs, rhs) < 0;
-   }
-};
-
 struct SymTab
 {
     SymTab * pParent;

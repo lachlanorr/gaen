@@ -29,8 +29,11 @@
 
 #include "core/mem.h"
 #include "core/HashMap.h"
+#include "core/HashSet.h"
 #include "core/String.h"
 #include "core/List.h"
+#include "core/Vector.h"
+#include "core/Set.h"
 
 namespace gaen
 {
@@ -39,13 +42,30 @@ template <MemType memType>
 class Config
 {
 public:
+    typedef Vector<memType, const char*> StringVec;
+    typedef Vector<memType, i32> IntVec;
+    typedef Vector<memType, f32> FloatVec;
+
     bool read(std::istream & input);
     bool read(const char * path);
 
     bool write(std::ostream & output);
     bool write(const char * path);
 
+    // iteration
+    typename StringVec::const_iterator sectionsBegin();
+    typename StringVec::const_iterator sectionsEnd();
 
+    typename StringVec::const_iterator keysBegin();
+    typename StringVec::const_iterator keysBegin(const char * section);
+    typename StringVec::const_iterator keysEnd(const char * section);
+
+    // Check for keys and sections
+    bool hasSection(const char * section);
+    bool hasKey(const char * key);
+    bool hasKey(const char * section, const char * key);
+
+    // Getters
     const char * get(const char * key);
     const char * get(const char * section, const char * key);
 
@@ -58,14 +78,14 @@ public:
     f32 getFloat(const char * key);
     f32 getFloat(const char * section, const char * key);
 
-    List<memType, String<memType>> getList(const char * key);
-    List<memType, String<memType>> getList(const char * section, const char * key);
+    StringVec getVec(const char * key);
+    StringVec getVec(const char * section, const char * key);
 
-    List<memType, i32> getIntList(const char * key);
-    List<memType, i32> getIntList(const char * section, const char * key);
+    IntVec getIntVec(const char * key);
+    IntVec getIntVec(const char * section, const char * key);
 
-    List<memType, f32> getFloatList(const char * key);
-    List<memType, f32> getFloatList(const char * section, const char * key);
+    FloatVec getFloatVec(const char * key);
+    FloatVec getFloatVec(const char * section, const char * key);
 
 /*
     void set(const char * key, const char * value);
@@ -88,8 +108,15 @@ public:
 */
 
 private:
-    static const String<memType> kGlobalSection;
-    static const String<memType> kEmptyValue;
+    // store all strings here once, as strings so destruction cleans up
+    typedef HashSet<memType, String<memType>> Names;
+
+    // in other structures, just store pointers to the Names strings
+    typedef HashMap<memType, const char*, StringVec, StrHash, StrcmpEqual> SectionKeys;
+
+    typedef HashMap<memType, const char*, const char*, StrHash, StrcmpEqual> KeyValues;
+    typedef HashMap<memType, const char*, KeyValues, StrHash, StrcmpEqual> SectionData;
+
 
     enum ProcessResultType
     {
@@ -112,12 +139,13 @@ private:
         {}
     };
 
+    const char * addName(const char * name);
     ProcessResult processLine(char * line);
 
-    typedef HashMap<memType, String<memType>, String<memType>> Section;
-    typedef HashMap<memType, String<memType>, Section> Sections;
-
-    Sections mSections;
+    Names mNames;
+    StringVec mSectionNames;
+    SectionKeys mSectionKeys;
+    SectionData mSectionData;
 };
 
 } // namespace gaen

@@ -54,7 +54,7 @@ public:
 
     void cook(const char * path);
 
-    void recordDependency(const char * assetRawPath, const char * dependencyPath);
+    void reportDependency(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath);
 
     // Path conversion functions
     bool isRawPath(const char * path);
@@ -62,6 +62,7 @@ public:
     bool isGamePath(const char * path);
     
     void getRawPath(char * rawPath, const char * path, Cooker * pCooker = nullptr);
+    void getRawRelativePath(char * rawRelativePath, const char * rawPath);
     void getCookedPath(char * cookedPath, const char * path, Cooker * pCooker = nullptr);
     void getGamePath(char * gamePath, const char * path, Cooker * pCooker = nullptr);
 
@@ -73,6 +74,7 @@ private:
     bool shouldCook(const char * rawPath, const char * cookedPath, const RecipeList & recipes);
     RecipeList findRecipes(const char * rawPath);
     void overlayRecipes(Config<kMEM_Chef> & recipe, const RecipeList & recipes);
+    bool convertRelativeDependencyPath(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath);
 
     u32 mId;
     bool mForce;

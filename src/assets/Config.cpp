@@ -36,11 +36,7 @@ namespace gaen
 
 static const u32 kMaxLine = 1024;
 
-template <MemType memType>
-const String<memType> Config<memType>::kGlobalSection = "GLOBAL";
-
-template <MemType memType>
-const String<memType> Config<memType>::kEmptyValue = "";
+const char * kGlobalSection = "GLOBAL";
 
 static inline bool is_whitespace(char c)
 {
@@ -61,7 +57,9 @@ bool Config<memType>::read(std::istream & input)
 {
     TLARRAY(char, line, kMaxLine);
 
-    String<memType> sectionName = kGlobalSection;
+    const char * sectionName = addName(kGlobalSection);
+    mSectionNames.push_back(sectionName);
+    StringVec * pCurrSectionKeys = &mSectionKeys[sectionName];
 
     while (!input.eof())
     {
@@ -73,14 +71,22 @@ bool Config<memType>::read(std::istream & input)
         switch (res.type)
         {
         case kPRT_KeyVal:
-            mSections[sectionName][res.lhs] = res.rhs;
+        {
+            const char * key = addName(res.lhs);
+            const char * val = addName(res.rhs);
+            pCurrSectionKeys->push_back(key);
+            mSectionData[sectionName][key] = val;
             break;
+        }
         case kPRT_SectionStart:
-            sectionName = res.lhs;
+        {
+            sectionName = addName(res.lhs);
+            mSectionNames.push_back(sectionName);
+            pCurrSectionKeys = &mSectionKeys[sectionName];
             break;
+        }
         case kPRT_Error:
             ERR("Error parsing config line: %s", line);
-            mSections.clear();
             return false;
         }
     }
@@ -114,43 +120,98 @@ bool Config<memType>::write(const char * path)
     return false;
 }
 
+
+
+template <MemType memType>
+typename Config<memType>::StringVec::const_iterator Config<memType>::sectionsBegin()
+{
+    return mSectionNames.begin();
+}
+
+template <MemType memType>
+typename Config<memType>::StringVec::const_iterator Config<memType>::sectionsEnd()
+{
+    return mSectionNames.end();
+}
+
+template <MemType memType>
+typename Config<memType>::StringVec::const_iterator Config<memType>::keysBegin()
+{
+    return keysBegin(kGlobalSection);
+}
+
+template <MemType memType>
+typename Config<memType>::StringVec::const_iterator Config<memType>::keysBegin(const char * section)
+{
+    auto it = mSectionKeys.find(section);
+    PANIC_IF(it == mSectionKeys.end(), "Section %s does not exist", section);
+    return it->second.begin();
+}
+
+template <MemType memType>
+typename Config<memType>::StringVec::const_iterator Config<memType>::keysEnd(const char * section)
+{
+    auto it = mSectionKeys.find(section);
+    PANIC_IF(it == mSectionKeys.end(), "Section %s does not exist", section);
+    return it->second.end();
+}
+
+
+template <MemType memType>
+bool Config<memType>::hasSection(const char * section)
+{
+    auto it = mSectionData.find(section);
+    return it != mSectionData.end();
+}
+
+template <MemType memType>
+bool Config<memType>::hasKey(const char * key)
+{
+    return hasKey(kGlobalSection, key);
+}
+
+template <MemType memType>
+bool Config<memType>::hasKey(const char * section, const char * key)
+{
+    auto it = mSectionData.find(section);
+    if (it == mSectionData.end())
+        return false;
+    auto keyIt = it->second.find(key);
+    return keyIt != it->second.end();
+}
+
+
+
+
 template <MemType memType>
 const char * Config<memType>::get(const char * key)
 {
-    return get(kGlobalSection.c_str(), key);
+    return get(kGlobalSection, key);
 }
 
 template <MemType memType>
 const char * Config<memType>::get(const char * section, const char * key)
 {
-    auto sectionIt = mSections.find(section);
-    if (sectionIt == mSections.end())
-    {
-        PANIC("Section %s does not exist", section);
-        return kEmptyValue.c_str();
-    }
+    auto sectionIt = mSectionData.find(section);
+    PANIC_IF(sectionIt == mSectionData.end(), "Section %s does not exist", section);
 
     auto it = sectionIt->second.find(key);
-    if (it == sectionIt->second.end())
-    {
-        PANIC("Key %s does not exist in section %s", key, section);
-        return kEmptyValue.c_str();
-    }
+    PANIC_IF(it == sectionIt->second.end(), "Key %s does not exist in section %s", key, section);
     
-    return it->second.c_str();
+    return it->second;
 }
 
 template <MemType memType>
 const char * Config<memType>::getWithDefault(const char * key, const char * defaultValue)
 {
-    return getWithDefault(kGlobalSection.c_str(), key, defaultValue);
+    return getWithDefault(kGlobalSection, key, defaultValue);
 }
 
 template <MemType memType>
 const char * Config<memType>::getWithDefault(const char * section, const char * key, const char * defaultValue)
 {
-    auto sectionIt = mSections.find(section);
-    if (sectionIt == mSections.end())
+    auto sectionIt = mSectionData.find(section);
+    if (sectionIt == mSectionData.end())
     {
         return defaultValue;
     }
@@ -161,13 +222,13 @@ const char * Config<memType>::getWithDefault(const char * section, const char * 
         return defaultValue;
     }
 
-    return it->second.c_str();
+    return it->second;
 }
 
 template <MemType memType>
 i32 Config<memType>::getInt(const char * key)
 {
-    return getInt(kGlobalSection.c_str(), key);
+    return getInt(kGlobalSection, key);
 }
 
 template <MemType memType>
@@ -180,7 +241,7 @@ i32 Config<memType>::getInt(const char * section, const char * key)
 template <MemType memType>
 f32 Config<memType>::getFloat(const char * key)
 {
-    return getFloat(kGlobalSection.c_str(), key);
+    return getFloat(kGlobalSection, key);
 }
 
 template <MemType memType>
@@ -191,57 +252,66 @@ f32 Config<memType>::getFloat(const char * section, const char * key)
 }
 
 template <MemType memType>
-List<memType, String<memType>> Config<memType>::getList(const char * key)
+typename Config<memType>::StringVec Config<memType>::getVec(const char * key)
 {
-    return getList(kGlobalSection.c_str(), key);
+    return getVec(kGlobalSection, key);
 }
 
 template <MemType memType>
-List<memType, String<memType>> Config<memType>::getList(const char * section, const char * key)
+typename Config<memType>::StringVec Config<memType>::getVec(const char * section, const char * key)
 {
-    List<memType, String<memType>> list;
+    StringVec vec;
     const char * val = get(section, key);
     const char * comma = strchr(val, ',');
     while (comma)
     {
-        list.emplace_back(String<memType>(val, comma-val));
+        auto it = mNames.emplace(val, comma-val);
+        vec.emplace_back(it.first->c_str());
         val = comma+1;
         comma = strchr(val, ',');
+
+        // grab last value after last comma
+        if (!comma && strlen(val) > 0)
+        {
+            auto itLast = mNames.emplace(val);
+            vec.emplace_back(itLast.first->c_str());
+        }
     }
-    return list;
+    return vec;
 }
 
 template <MemType memType>
-List<memType, i32> Config<memType>::getIntList(const char * key)
+typename Config<memType>::IntVec Config<memType>::getIntVec(const char * key)
 {
-    return getIntList(kGlobalSection.c_str(), key);
+    return getIntVec(kGlobalSection, key);
 }
 
 template <MemType memType>
-List<memType, i32> Config<memType>::getIntList(const char * section, const char * key)
+typename Config<memType>::IntVec Config<memType>::getIntVec(const char * section, const char * key)
 {
-    auto strList = getList(section, key);
-    List<memType, i32> list;
-    for (auto str : strList)
-        list.push_back(static_cast<i32>(strtol(str.c_str(), nullptr, 0)));
-    return list;
+    StringVec strVec = getVec(section, key);
+    IntVec vec;
+    for (auto str : strVec)
+        vec.push_back(static_cast<i32>(strtol(str, nullptr, 0)));
+    return vec;
 }
 
 template <MemType memType>
-List<memType, f32> Config<memType>::getFloatList(const char * key)
+typename Config<memType>::FloatVec Config<memType>::getFloatVec(const char * key)
 {
-    return getFloatList(kGlobalSection.c_str(), key);
+    return getFloatVec(kGlobalSection, key);
 }
 
 template <MemType memType>
-List<memType, f32> Config<memType>::getFloatList(const char * section, const char * key)
+typename Config<memType>::FloatVec Config<memType>::getFloatVec(const char * section, const char * key)
 {
-    auto strList = getList(section, key);
-    List<memType, f32> list;
-    for (auto str : strList)
-        list.push_back(static_cast<f32>(strtod(str.c_str(), nullptr)));
-    return list;
+    StringVec strVec = getVec(section, key);
+    FloatVec vec;
+    for (auto str : strVec)
+        vec.push_back(static_cast<f32>(strtod(str, nullptr)));
+    return vec;
 }
+
 
 
 
@@ -396,6 +466,17 @@ static void de_escape(char * line)
             case 'f':
                 *d = '\f';
                 break;
+            case 'x':
+            {
+                PANIC_IF(!s[2] || !s[3], "End of line encountered within \\x character literal");
+                char hex[3];
+                hex[0] = s[2];
+                hex[1] = s[3];
+                hex[2] = '\0';
+                *d = (char)strtoul(hex, nullptr, 16);
+                s+=2; // need to go past 2 digit hex value, \x11, for example
+                break;
+            }
             default:
                 *d = s[1];
                 break;
@@ -411,6 +492,12 @@ static void de_escape(char * line)
         }
     }
     *d = '\0';
+}
+
+template <MemType memType>
+const char * Config<memType>::addName(const char * name)
+{
+    return mNames.emplace(name).first->c_str();
 }
 
 template <MemType memType>

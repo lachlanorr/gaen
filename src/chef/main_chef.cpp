@@ -40,8 +40,6 @@
 #include "chef/CookerRegistry.h"
 #include "chef/cookers.h"
 
-//extern void cook_fnt(const char * platform, const char * raw_file);
-
 namespace gaen
 {
 
