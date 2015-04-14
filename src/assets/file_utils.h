@@ -58,7 +58,10 @@ void make_dirs(const char * dirPath);
 
 const char * get_ext(const char * path);
 char * get_ext(char * path);
+void strip_ext(char * path);
 void change_ext(char * path, const char * ext);
+
+void get_filename_root(char * filename, const char * path);
 
 // copy inPath to outPath, converting all '\' to '/'
 void normalize_path(char * outPath, const char * inPath);
@@ -81,11 +84,21 @@ struct FileReader
         {
             PANIC("Unable to open FileReader: %s", path);
         }
+        ifs.seekg(0, ifs.end);
+        mSize = (u64)ifs.tellg();
+        ifs.seekg(0, ifs.beg);
     }
     ~FileReader()
     {
         if (ifs.is_open())
             ifs.close();
+    }
+
+    template <typename T>
+    void read(T* pDst, u64 size)
+    {
+        ifs.read(reinterpret_cast<char*>(pDst), size);
+        PANIC_IF(!ifs.good() || ifs.gcount() != size, "Read failure");
     }
 
     template <typename T>
@@ -95,7 +108,13 @@ struct FileReader
         PANIC_IF(!ifs.good() || ifs.gcount() != sizeof(T), "Read failure");
     }
 
+
+    u64 size() { return mSize; }
+
     std::ifstream ifs;
+
+private:
+    u64 mSize;
 };
 
 struct FileWriter

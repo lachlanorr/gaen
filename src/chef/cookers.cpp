@@ -191,10 +191,27 @@ void cook_tga(const CookInfo & ci)
     wrtr.ofs.write((const char *)pGimg, pGimg->totalSize());
 }
 
+void cook_passthrough(const CookInfo & ci)
+{
+    // copy raw to cooked without modifications
+    FileReader rdr(ci.rawPath);
+
+    Scoped_GFREE<char> pBuff((char*)GALLOC(kMEM_Chef, rdr.size()));
+    rdr.ifs.read(pBuff.get(), rdr.size());
+    PANIC_IF(!rdr.ifs.good() || rdr.ifs.gcount() != rdr.size(), "Read failure of: %s", ci.rawPath);
+
+    FileWriter wrtr(ci.cookedPath);
+    wrtr.ofs.write(pBuff.get(), rdr.size());
+}
+
 void register_cookers()
 {
     CookerRegistry::register_cooker("atl", "gatl", cook_fnt);
     CookerRegistry::register_cooker("tga", "gimg", cook_tga);
+
+    CookerRegistry::register_cooker("mat", "gmat", cook_passthrough);
+    CookerRegistry::register_cooker("vtx", "gvtx", cook_passthrough);
+    CookerRegistry::register_cooker("frg", "gfrg", cook_passthrough);
 }
 
 } // namespace gaen

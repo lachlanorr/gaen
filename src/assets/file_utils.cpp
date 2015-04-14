@@ -63,6 +63,13 @@ char * get_ext(char * path)
     return dotpos+1;
 }
 
+void strip_ext(char * path)
+{
+    char * dotpos = strrchr(path, '.');
+    if (dotpos)
+        *dotpos = '\0';
+}
+
 void normalize_path(char * outPath, const char * inPath)
 {
     ASSERT(outPath);
@@ -125,6 +132,25 @@ void change_ext(char * path, const char * ext)
     ASSERT(ext);
     char * extPos = get_ext(path);
     strcpy(extPos, ext);
+}
+
+void get_filename_root(char * filename, const char * path)
+{
+    ASSERT(filename);
+    ASSERT(path);
+    const char * lastSlash = strrchr(path, '/');
+    if (!lastSlash)
+    {
+        strcpy(filename, path);
+    }
+    else
+    {
+        strcpy(filename, lastSlash);
+    }
+
+    char * lastdot = const_cast<char*>(strrchr(filename, '.'));
+    if (lastdot)
+        *lastdot = '\0';
 }
 
 } // namespace gaen

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// gaen_opengl.h - Win32 opengl function pointers
+// glutils.h - OpenGL utilities needed to generate shaders
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,48 +24,15 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_GAEN_OPENGL_H
-#define GAEN_GAEN_OPENGL_H
+#ifndef GAEN_SHADER_GEN_GLUTILS_H
+#define GAEN_SHADER_GEN_GLUTILS_H
 
-#include "core/base_defines.h"
+namespace gaen
+{
 
-#if IS_PLATFORM_WIN32
- #ifndef WIN32_LEAN_AND_MEAN
-  #define WIN32_LEAN_AND_MEAN
- #endif // #ifndef WIN32_LEAN_AND_MEAN
- #include <windows.h>
- #include "renderergl/win32gl.h"
- namespace gaen
- {
- typedef HDC device_context;
- typedef HGLRC render_context;
- }
- #define OPENGL3 HAS_X
- #define GL_CLEAR_DEPTH glClearDepth
- #define SHADER_HEADER "#version 330 core\n#define OPENGL3\n"
-#elif IS_PLATFORM_OSX
- #include <OpenGL/gl3.h>
- namespace gaen
- {
- typedef void* device_context;
- typedef void* render_context;
- }
- #define OPENGL3 HAS__
- #define GL_CLEAR_DEPTH glClearDepth
- #define SHADER_HEADER ""
-#elif IS_PLATFORM_IOS
- #include <OpenGLES/ES3/gl.h>
- namespace gaen
- {
- typedef void* device_context;
- typedef void* render_context;
- }
- #define OPENGL3 HAS__
- #define GL_CLEAR_DEPTH glClearDepthf
- #define SHADER_HEADER "#define PLATFORM_IOS\n"
-#else
-#error Need to implement a similar concepts on other platforms
-#endif
+void init_opengl();
+void fin_opengl();
 
-#endif // #ifndef GAEN_GAEN_OPENGL_H
+} // namespace gaen
 
+#endif // #ifndef GAEN_SHADER_GEN_GLUTILS_H

@@ -67,6 +67,8 @@ public:
 
     void loadMaterialMesh(Model::MaterialMesh & matMesh);
 
+    static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode = nullptr);
+
 private:
     bool mIsInit = false;
     

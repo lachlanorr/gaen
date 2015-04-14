@@ -152,12 +152,21 @@ static GLint sLightColorUniform = -1;
 
 static Mat4 sMVPMat(1.0f);
 
-static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode)
+bool RendererGL::compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode)
 {
+    const char * shaderCodes[2];
+    u32 shaderCodesSize = 0;
+
+    if (headerCode)
+    {
+        shaderCodes[shaderCodesSize++] = headerCode;
+    }
+    shaderCodes[shaderCodesSize++] = shaderCode;
+
     GLuint shader;
 
     shader = glCreateShader(type);
-    glShaderSource(shader, 1, &shaderCode, NULL);
+    glShaderSource(shader, shaderCodesSize, shaderCodes, NULL);
     glCompileShader(shader);
 
     GLint status;
@@ -186,8 +195,8 @@ static bool build_program(GLuint * pProgramId,
 
     GLuint vertShader, fragShader;
     // load shaders
-    if (!compile_shader(&vertShader, GL_VERTEX_SHADER, vertShaderCode) ||
-        !compile_shader(&fragShader, GL_FRAGMENT_SHADER, fragShaderCode))
+    if (!RendererGL::compile_shader(&vertShader, GL_VERTEX_SHADER, vertShaderCode) ||
+        !RendererGL::compile_shader(&fragShader, GL_FRAGMENT_SHADER, fragShaderCode))
     {
         glDeleteProgram(programId);
         ERR("Failed to compile shaders");

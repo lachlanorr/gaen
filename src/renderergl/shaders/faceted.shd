@@ -1,0 +1,3 @@
+vert_shader=faceted.vtx
+frag_shader=faceted.frg
+
