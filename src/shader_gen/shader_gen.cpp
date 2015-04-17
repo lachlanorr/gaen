@@ -42,78 +42,121 @@ namespace gaen
 #define I2 indent(indentLevel+2)
 #define I3 indent(indentLevel+3)
 
+static const char * kShadedHeader =
+    "//------------------------------------------------------------------------------\n"
+    "// %s.cpp - Auto-generated shader from %s.shd\n"
+    "//\n"
+    "// Gaen Concurrency Engine - http://gaen.org\n"
+    "// Copyright (c) 2014-2015 Lachlan Orr\n"
+    "//\n"
+    "// This software is provided 'as-is', without any express or implied\n"
+    "// warranty. In no event will the authors be held liable for any damages\n"
+    "// arising from the use of this software.\n"
+    "//\n"
+    "// Permission is granted to anyone to use this software for any purpose,\n"
+    "// including commercial applications, and to alter it and redistribute it\n"
+    "// freely, subject to the following restrictions:\n"
+    "//\n"
+    "//   1. The origin of this software must not be misrepresented; you must not\n"
+    "//   claim that you wrote the original software. If you use this software\n"
+    "//   in a product, an acknowledgment in the product documentation would be\n"
+    "//   appreciated but is not required.\n"
+    "//\n"
+    "//   2. Altered source versions must be plainly marked as such, and must not be\n"
+    "//   misrepresented as being the original software.\n"
+    "//\n"
+    "//   3. This notice may not be removed or altered from any source\n"
+    "//   distribution.\n"
+    "//------------------------------------------------------------------------------\n";
+
 struct ShaderVarInfo
 {
-    String<kMEM_Renderer> name;
+    S name;
     u32 index;
     GLenum type;
 };
 
+struct ShaderSource
+{
+    u32 type;
+    S path;
+
+    ShaderSource(u32 type, const char * path)
+      : type(type)
+      , path(path)
+    {}
+};
+
 struct ShaderInfo
 {
-    String<kMEM_Renderer> name;
-    String<kMEM_Renderer> outPathCpp;
-    String<kMEM_Renderer> outPathH;
+    S name;
+    S outPathCpp;
+    S outPathH;
     List<kMEM_Renderer, ShaderVarInfo> attibutes; 
     List<kMEM_Renderer, ShaderVarInfo> uniforms;
 };
 
-void parse_shd(char * vertPath, char * fragPath, const char * shdPath)
+List<kMEM_Renderer, ShaderSource> parse_shd(const char * shdPath)
 {
+    List<kMEM_Renderer, ShaderSource> sources;
+
     FileReader rdr(shdPath);
     Config<kMEM_Chef> shd;
     shd.read(rdr.ifs);
 
-    static const char * kVertShader = "vert_shader";
-    static const char * kFragShader = "frag_shader";
+    char scratch[kMaxPath];
 
-    PANIC_IF(!shd.hasKey(kVertShader), "Missing vert_shader in .shd");
-    PANIC_IF(!shd.hasKey(kFragShader), "Missing frag_shader in .shd");
+    static const char * kShaderNames[] = {"vert_shader",
+                                          "frag_shader",
+                                          "comp_shader",
+                                          nullptr};
+    static const u32 kShaderTypes[] = {GL_VERTEX_SHADER,
+                                       GL_FRAGMENT_SHADER,
+                                       GL_COMPUTE_SHADER,
+                                       0};
 
-    strcpy(vertPath, shdPath);
-    strcpy(fragPath, shdPath);
-    parent_dir(vertPath);
-    parent_dir(fragPath);
+    u32 idx = 0;
+    while (kShaderNames[idx])
+    {
+        if (shd.hasKey(kShaderNames[idx]))
+        {
+            strcpy(scratch, shdPath);
+            parent_dir(scratch);
+            append_path(scratch, shd.get(kShaderNames[idx]));
+            sources.emplace_back(kShaderTypes[idx], scratch);
+        }
+        idx++;
+    }
 
-    append_path(vertPath, shd.get(kVertShader));
-    append_path(fragPath, shd.get(kFragShader));
+    return sources;
 }
 
-void process_shader_program(ShaderInfo & si, const char * vertPath, const char * fragPath)
+void process_shader_program(ShaderInfo & si, const List<kMEM_Renderer, ShaderSource> & sources)
 {
-    FileReader vertRdr(vertPath);
-    Scoped_GFREE<char> vertCode((char*)GALLOC(kMEM_Renderer, vertRdr.size()+1)); // +1 for null we'll add to end
-    vertRdr.read(vertCode.get(), vertRdr.size());
-    vertCode.get()[vertRdr.size()] = '\0';
-
-    FileReader fragRdr(fragPath);
-    Scoped_GFREE<char> fragCode((char*)GALLOC(kMEM_Renderer, fragRdr.size()+1)); // +1 for null we'll add to end
-    fragRdr.read(fragCode.get(), fragRdr.size());
-    fragCode.get()[fragRdr.size()] = '\0';
-
-    GLuint vertShader;
-    bool vertCompRes = RendererGL::compile_shader(&vertShader, GL_VERTEX_SHADER, vertCode.get(), SHADER_HEADER);
-    if (!vertCompRes)
-    {
-        PANIC("Failed to compile vertex shader: %s", vertPath);
-    }
-
-    GLuint fragShader;
-    bool fragCompRes = RendererGL::compile_shader(&fragShader, GL_FRAGMENT_SHADER, fragCode.get(), SHADER_HEADER);
-    if (!fragCompRes)
-    {
-        glDeleteShader(vertShader);
-        PANIC("Failed to compile fragment shader: %s", fragPath);
-    }
-
-
     // create program
     GLuint programId = glCreateProgram();
 
+    List<kMEM_Renderer, GLuint> shaderList;
 
     // attach shaders to program
-    glAttachShader(programId, vertShader);
-    glAttachShader(programId, fragShader);
+    for (const ShaderSource & source : sources)
+    {
+        FileReader sourceRdr(source.path.c_str());
+        Scoped_GFREE<char> sourceCode((char*)GALLOC(kMEM_Renderer, sourceRdr.size()+1)); // +1 for null we'll add to end
+        sourceRdr.read(sourceCode.get(), sourceRdr.size());
+        sourceCode.get()[sourceRdr.size()] = '\0';
+
+        GLuint shader;
+        bool sourceCompRes = RendererGL::compile_shader(&shader, source.type, sourceCode.get(), SHADER_HEADER);
+        if (!sourceCompRes)
+        {
+            PANIC("Failed to compile shader: %s", source.path);
+        }
+
+        shaderList.push_back(shader);
+
+        glAttachShader(programId, shader);
+    }
 
     
     // link program
@@ -122,10 +165,11 @@ void process_shader_program(ShaderInfo & si, const char * vertPath, const char *
     glGetProgramiv(programId, GL_LINK_STATUS, &status);
     if (status == 0)
     {
-        glDeleteShader(vertShader);
-        glDeleteShader(fragShader);
-        glDeleteProgram(programId);
-        PANIC("Failed to link shader program: vert: %s, frag: %s", vertPath, fragPath);
+        for (GLuint shader : shaderList)
+        {
+            glDeleteShader(shader);
+        }
+        PANIC("Failed to link shader program");
     }
 
     GLsizei nameLen;
@@ -165,13 +209,11 @@ void process_shader_program(ShaderInfo & si, const char * vertPath, const char *
     }
 
     // Release vertex and fragment shaders
-    if (programId != 0)
-        glDeleteProgram(programId);
-    if (vertShader != 0)
-        glDeleteShader(vertShader);
-    if (fragShader != 0)
-        glDeleteShader(fragShader);
-
+    glDeleteProgram(programId);
+    for (GLuint shader : shaderList)
+    {
+        glDeleteShader(shader);
+    }
 }
 
 S generate_shader_h(const ShaderInfo & si)
@@ -214,16 +256,13 @@ void generate_shader(const char * shdPath)
     strcpy(outH, shdPathNorm);
     change_ext(outH, "h");
 
-    char vertPath[kMaxPath+1];
-    char fragPath[kMaxPath+1];
-
-    parse_shd(vertPath, fragPath, shdPathNorm);
+    List<kMEM_Renderer, ShaderSource> sources = parse_shd(shdPathNorm);
 
     ShaderInfo si;
     si.name = filenameRoot;
     si.outPathCpp = outCpp;
     si.outPathH = outH;
-    process_shader_program(si, vertPath, fragPath);
+    process_shader_program(si, sources);
 
     S hCode = generate_shader_h(si);
 }
