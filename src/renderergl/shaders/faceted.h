@@ -25,12 +25,13 @@
 //------------------------------------------------------------------------------
 #ifndef GAEN_RENDERERGL_SHADERS_FACETED_H
 #define GAEN_RENDERERGL_SHADERS_FACETED_H
+#include "renderergl/shaders/Shader.h"
 namespace gaen
 {
 namespace shaders
 {
 
-class faceted
+class faceted : Shader
 {
 }; // class faceted
 

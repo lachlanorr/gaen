@@ -203,6 +203,12 @@ bool should_generate_shader(ShaderInfo & si, const List<kMEM_Renderer, ShaderSou
         !file_exists(si.outPathCpp.c_str()))
         return true;
 
+    char procPath[kMaxPath+1];
+    process_path(procPath);
+    if (is_file_newer(procPath, si.outPathCpp.c_str()) ||
+        is_file_newer(procPath, si.outPathH.c_str()))
+        return true;
+
     for (const ShaderSource & ss : sources)
     {
         if (is_file_newer(ss.path.c_str(), si.outPathCpp.c_str()) ||
@@ -308,13 +314,15 @@ S generate_shader_h(const ShaderInfo & si)
     snprintf(scratch, kMaxPath, "#define GAEN_RENDERERGL_SHADERS_%s_H\n", si.nameUpper.c_str());
     code += scratch;
 
+    code += ("#include \"renderergl/shaders/Shader.h\"\n");
+
     code += S("namespace gaen\n");
     code += S("{\n");
     code += S("namespace shaders\n");
     code += S("{\n");
     code += LF;
 
-    code += S("class ") + si.name + LF;
+    code += S("class ") + si.name + S(" : Shader\n");
     code += S("{\n");
 
     code += S("}; // class ") + si.name + LF;
@@ -383,10 +391,12 @@ void generate_shader(const char * shdPath)
         process_shader_program(si, sources);
 
         S hCode = generate_shader_h(si);
+        printf("Writing %s\n", outH);
         FileWriter wrtH(outH);
         wrtH.ofs.write(hCode.c_str(), hCode.length());
 
         S cppCode = generate_shader_cpp(si);
+        printf("Writing %s\n", outCpp);
         FileWriter wrtCpp(outCpp);
         wrtCpp.ofs.write(cppCode.c_str(), cppCode.length());
     }
