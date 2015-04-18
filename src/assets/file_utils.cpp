@@ -134,6 +134,21 @@ void change_ext(char * path, const char * ext)
     strcpy(extPos, ext);
 }
 
+void get_filename(char * filename, const char * path)
+{
+    ASSERT(filename);
+    ASSERT(path);
+    const char * lastSlash = strrchr(path, '/');
+    if (!lastSlash)
+    {
+        strcpy(filename, path);
+    }
+    else
+    {
+        strcpy(filename, lastSlash + 1);
+    }
+}
+
 void get_filename_root(char * filename, const char * path)
 {
     ASSERT(filename);
@@ -145,12 +160,44 @@ void get_filename_root(char * filename, const char * path)
     }
     else
     {
-        strcpy(filename, lastSlash);
+        strcpy(filename, lastSlash + 1);
     }
 
     char * lastdot = const_cast<char*>(strrchr(filename, '.'));
     if (lastdot)
         *lastdot = '\0';
+}
+
+void upper(char * str)
+{
+    ASSERT(str);
+    char * c = str;
+    while (*c)
+    {
+        if (*c >= 'a' && *c <= 'z')
+            *c = 'A' + (*c - 'a');
+        c++;
+    }
+}
+
+bool write_file_if_contents_differ(const char * path, const char * contents)
+{
+    ASSERT(path);
+    ASSERT(contents);
+
+    FileReader rdr(path);
+    Scoped_GFREE<char> oldContents((char*)GALLOC(kMEM_Renderer, rdr.size()+1)); // +1 for null we'll add to end
+    rdr.read(oldContents.get(), rdr.size());
+    oldContents.get()[rdr.size()] = '\0';
+    rdr.ifs.close();
+
+    if (strcmp(contents, oldContents.get()) != 0)
+    {
+        FileWriter wrt(path);
+        wrt.ofs.write(contents, strlen(contents));
+        return true;
+    }
+    return false;
 }
 
 } // namespace gaen

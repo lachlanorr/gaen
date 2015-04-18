@@ -24,8 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "renderergl/stdafx.h"
-
 #include <GL/glcorearb.h>
 
 #include "core/base_defines.h"

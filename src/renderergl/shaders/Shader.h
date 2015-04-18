@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// RendererGL_win32.cpp - OpenGL Renderer
+// shader.h - Base class for shaders
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,34 +24,20 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "core/base_defines.h"
-
-#include "renderergl/gaen_opengl.h"
-#include "renderergl/RendererGL.h"
+#ifndef GAEN_RENDERERGL_SHADERS_SHADER_H
+#define GAEN_RENDERERGL_SHADERS_SHADER_H
 
 namespace gaen
 {
 
-void RendererGL::initRenderDevice()
+class Shader
 {
-    ASSERT(mIsInit);
 
-    if (!wglMakeCurrent(mDeviceContext, mRenderContext))
-        PANIC("Cannot activate GL rendering context");
 
-    // Prepare our GL function pointers.
-    // We have to wait until here to do this since if you call it too
-    // early, the GL driver dll hasn't been loaded and
-    // wglGetProcAddress will return NULL for all functions.
-    init_win32gl();
-}
 
-void RendererGL::endFrame()
-{
-    ASSERT(mIsInit);
 
-    SwapBuffers(mDeviceContext);
-}
+}; // class Shader
 
 } // namespace gaen
 
+#endif // #ifndef GAEN_RENDERERGL_SHADERS_SHADER_H

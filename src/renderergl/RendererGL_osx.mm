@@ -27,8 +27,6 @@
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/gl3.h>
 
-#include "renderergl/stdafx.h"
-
 #include "core/base_defines.h"
 
 #include "renderergl/gaen_opengl.h"

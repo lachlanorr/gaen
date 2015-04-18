@@ -24,8 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "renderergl/stdafx.h"
-
 #include "core/base_defines.h"
 
 #include "engine/MessageQueue.h"

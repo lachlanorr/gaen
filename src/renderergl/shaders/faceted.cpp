@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.h - Precompiled headers
+// faceted.cpp - Auto-generated shader from faceted.shd
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -23,13 +23,12 @@
 //   3. This notice may not be removed or altered from any source
 //   distribution.
 //------------------------------------------------------------------------------
+#include "renderergl/shaders/faceted.h"
+namespace gaen
+{
+namespace shaders
+{
 
-#ifndef GAEN_RENDERERGL_STDAFX_H
-#define GAEN_RENDERERGL_STDAFX_H
 
-// LORRTODO - Check if we still need this. It breaks osx build.
-#if IS_PLATFORM_WIN32
-#include <GL/glcorearb.h>
-#endif
-
-#endif // #ifndef GAEN_RENDERER_STDAFX_H
+} // namespace shaders
+} // namespace gaen

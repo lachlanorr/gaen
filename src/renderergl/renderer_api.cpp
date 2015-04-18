@@ -24,8 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "renderergl/stdafx.h"
-
 #include "engine/renderer_api.h"
 
 #include "renderergl/RendererGL.h"

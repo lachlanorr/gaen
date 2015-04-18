@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.cpp - Precompiled headers
+// faceted.cpp - Auto-generated shader from faceted.shd
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -23,5 +23,17 @@
 //   3. This notice may not be removed or altered from any source
 //   distribution.
 //------------------------------------------------------------------------------
+#ifndef GAEN_RENDERERGL_SHADERS_FACETED_H
+#define GAEN_RENDERERGL_SHADERS_FACETED_H
+namespace gaen
+{
+namespace shaders
+{
 
-#include "renderergl/stdafx.h"
+class faceted
+{
+}; // class faceted
+
+} // namespace shaders
+} // namespace gaen
+#endif // #ifdef GAEN_RENDERERGL_SHADERS_FACETED_H

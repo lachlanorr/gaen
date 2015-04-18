@@ -61,7 +61,9 @@ char * get_ext(char * path);
 void strip_ext(char * path);
 void change_ext(char * path, const char * ext);
 
+void get_filename(char * filename, const char * path);
 void get_filename_root(char * filename, const char * path);
+void upper(char * str);
 
 // copy inPath to outPath, converting all '\' to '/'
 void normalize_path(char * outPath, const char * inPath);
@@ -72,6 +74,8 @@ void append_path(char * path, const char * append);
 void full_path(char * outPath, char * path);
 
 bool is_file_newer(const char * path, const char * comparePath);
+
+bool write_file_if_contents_differ(const char * path, const char * contents);
 
 struct FileReader
 {
