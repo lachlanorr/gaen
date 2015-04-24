@@ -35,11 +35,31 @@ namespace gaen
 
 static std::atomic<material_id> sNextMaterialId(0);
 
-Material::Material(Color color)
-  : mType(kMAT_Colored)
-  , mColor(color.toVec4())
+Material::Material(u32 shaderNameHash)
+  : mLayer(kMAT_Colored)
+  , mShaderNameHash(shaderNameHash)
 {
     mId = sNextMaterialId.fetch_add(1,std::memory_order_relaxed);
+
+    mVec4VarCount = 0;
+    memset(mVec4Vars, 0, sizeof(mVec4Vars));
 }
+
+void Material::registerVec4Var(u32 nameHash, const Vec4 & value)
+{
+    PANIC_IF(mVec4VarCount >= kMaxVec4Vars, "Too many Vec4 material vars");
+    mVec4Vars[mVec4VarCount].nameHash = nameHash;
+    mVec4Vars[mVec4VarCount].value = value;
+    mVec4VarCount++;
+}
+
+void Material::setShaderVec4Vars(SetShaderVec4VarCB setCB, void * context)
+{
+    for (u32 i = 0; i < mVec4VarCount; ++i)
+    {
+        setCB(mVec4Vars[i].nameHash, mVec4Vars[i].value, context);
+    }
+}
+
 
 } // namespace gaen

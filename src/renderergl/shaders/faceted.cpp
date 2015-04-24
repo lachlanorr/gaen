@@ -23,12 +23,139 @@
 //   3. This notice may not be removed or altered from any source
 //   distribution.
 //------------------------------------------------------------------------------
+
+#include "core/mem.h"
 #include "renderergl/shaders/faceted.h"
+
 namespace gaen
 {
 namespace shaders
 {
 
+static const char * kShaderCode_vtx =
+    "#ifdef OPENGL3\n"
+    "\n"
+    "in vec4 vPosition;\n"
+    "in vec3 vNormal;\n"
+    "\n"
+    "uniform mat4 umMVP;\n"
+    "uniform mat3 umNormal;\n"
+    "uniform vec4 uvColor;\n"
+    "uniform vec3 uvLightDirection;\n"
+    "uniform vec4 uvLightColor;\n"
+    "\n"
+    "out vec4 vColor;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    vec3 normalTrans = normalize(umNormal * vNormal);\n"
+    "    float intensity = max(dot(normalTrans, uvLightDirection), 0.0);\n"
+    "    intensity += min(intensity + 0.3, 1.0);\n"
+    "    vColor = intensity * uvColor;\n"
+    "    //vColor = vec4((umNormal * vNormal), 1.0);\n"
+    "    //vColor = vec4(dot(uvLightDirection, normalTrans));\n"
+    "    //vColor = abs(dot(uvLightDirection, normalTrans)) * uvColor;\n"
+    "    //vColor = vec4(abs(uvLightDirection), 1.0);\n"
+    "    //vColor = 0.5 * uvColor;\n"
+    "    //vColor = vec4(1.0, 1.0, 0.0, 0.6);\n"
+    "    gl_Position = umMVP * vPosition;\n"
+    "};\n"
+    "\n"
+    "\n"
+    "#else //#ifdef OPENGL3\n"
+    "#ifdef PLATFORM_IOS\n"
+    "precision mediump float;\n"
+    "#endif\n"
+    "attribute vec4 vPosition;\n"
+    "attribute vec3 vNormal;\n"
+    "\n"
+    "uniform mat4 umMVP;\n"
+    "uniform mat3 umNormal;\n"
+    "uniform vec4 uvColor;\n"
+    "uniform vec3 uvLightDirection;\n"
+    "uniform vec4 uvLightColor;\n"
+    "\n"
+    "varying vec4 vColor;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    vec3 normalTrans = normalize(umNormal * vNormal);\n"
+    "    float intensity = max(dot(normalTrans, uvLightDirection), 0.0);\n"
+    "    intensity += min(intensity + 0.3, 1.0);\n"
+    "    vColor = intensity * uvColor;\n"
+    "    gl_Position = umMVP * vPosition;\n"
+    "};\n"
+    "#endif //#else //#ifdef OPENGL3\n"
+    ; // kShaderCode_vtx (END)
+
+static const char * kShaderCode_frg =
+    "#ifdef OPENGL3\n"
+    "\n"
+    "in vec4 vColor;\n"
+    "out vec4 color;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    color = vColor;\n"
+    "};\n"
+    "\n"
+    "#else // #ifdef OPENGL3\n"
+    "#if IS_PLATFORM_IOS\n"
+    "precision mediump float;\n"
+    "#endif\n"
+    "\n"
+    "varying vec4 vColor;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    gl_FragColor = vColor;\n"
+    "};\n"
+    "#endif // #else // #ifdef OPENGL3\n"
+    ; // kShaderCode_frg (END)
+
+Shader * faceted::construct()
+{
+    faceted * pShader = GNEW(kMEM_Renderer, faceted);
+
+    // Program Codes
+    pShader->mCodes[0].stage = GL_VERTEX_SHADER;
+    pShader->mCodes[0].filename = "faceted.vtx";
+    pShader->mCodes[0].code = kShaderCode_vtx;
+
+    pShader->mCodes[1].stage = GL_FRAGMENT_SHADER;
+    pShader->mCodes[1].filename = "faceted.frg";
+    pShader->mCodes[1].code = kShaderCode_frg;
+
+
+    // Uniforms
+    pShader->mUniforms[0].nameHash = 0xd89e6f38; /* HASH::umMVP */
+    pShader->mUniforms[0].index = 0;
+    pShader->mUniforms[0].type = GL_FLOAT_MAT4;
+
+    pShader->mUniforms[1].nameHash = 0x8dd6b1d0; /* HASH::umNormal */
+    pShader->mUniforms[1].index = 1;
+    pShader->mUniforms[1].type = GL_FLOAT_MAT3;
+
+    pShader->mUniforms[2].nameHash = 0xc3c5df05; /* HASH::uvColor */
+    pShader->mUniforms[2].index = 2;
+    pShader->mUniforms[2].type = GL_FLOAT_VEC4;
+
+    pShader->mUniforms[3].nameHash = 0xa7a7a88b; /* HASH::uvLightDirection */
+    pShader->mUniforms[3].index = 3;
+    pShader->mUniforms[3].type = GL_FLOAT_VEC3;
+
+
+    // Attributes
+    pShader->mAttributes[0].nameHash = 0x0df141b6; /* HASH::vNormal */
+    pShader->mAttributes[0].index = 0;
+    pShader->mAttributes[0].type = GL_FLOAT_VEC3;
+
+    pShader->mAttributes[1].nameHash = 0xe61b84be; /* HASH::vPosition */
+    pShader->mAttributes[1].index = 1;
+    pShader->mAttributes[1].type = GL_FLOAT_VEC4;
+
+    return pShader;
+}
 
 } // namespace shaders
 } // namespace gaen

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Material.h - Materials used with models
+// ShaderRegistry.h - Shader factory class
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,63 +24,33 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_MATERIAL_H
-#define GAEN_ENGINE_MATERIAL_H
+#ifndef GAEN_RENDERERGL_SHADER_REGISTRY_H
+#define GAEN_RENDERERGL_SHADER_REGISTRY_H
 
-#include "engine/Color.h"
+#include "core/base_defines.h"
+#include "core/HashMap.h"
+#include "renderergl/shaders/Shader.h"
 
 namespace gaen
 {
 
-// Define these in the order of rendering.
-// Higher MaterialLayers get rendered later.
-// i.e., transparent stuff should be highest.
-enum MaterialLayer
-{
-    kMAT_Colored = 0,
-
-    // LORRTODO - Add additional shaders
-
-    kMAT_END
-};
-
-typedef u32 material_id;
-
-typedef void(*SetShaderVec4VarCB)(u32 nameHash, const Vec4 & val, void * context);
-
-class Material
+class ShaderRegistry
 {
 public:
-    Material(u32 shaderNameHash);
+    typedef shaders::Shader * (*ShaderConstructor)();
 
-    MaterialLayer layer() const { return mLayer; }
-    u32 shaderNameHash() { return mShaderNameHash; }
+    ShaderRegistry();
 
-    material_id id() const { return mId; }
-
-    void registerVec4Var(u32 nameHash, const Vec4 & value);
-
-    void setShaderVec4Vars(SetShaderVec4VarCB setCB, void * context);
+    shaders::Shader * constructShader(u32 nameHash);
 
 private:
-    static const u32 kMaxVec4Vars = 4;
+    void registerShaderConstructor(u32 nameHash, ShaderConstructor constructor);
+    void registerAllShaderConstructors();
 
-    struct Vec4Var
-    {
-        Vec4 value;
-        u32 nameHash;
-    };
-
-    MaterialLayer mLayer;
-    u32 mShaderNameHash;
-
-    material_id mId;
-
-    u32 mVec4VarCount;
-    Vec4Var mVec4Vars[kMaxVec4Vars];
+    HashMap<kMEM_Renderer, u32, ShaderConstructor> mShaderConstructors;
 };
 
 
-} // namespace gaen
+}
 
-#endif // #ifndef GAEN_ENGINE_MATERIAL_H
+#endif // #ifndef GAEN_RENDERERGL_SHADER_REGISTRY_H

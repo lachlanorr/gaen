@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// shader.h - Base class for shaders
+// Shader.h - Base class for shaders
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -27,17 +27,70 @@
 #ifndef GAEN_RENDERERGL_SHADERS_SHADER_H
 #define GAEN_RENDERERGL_SHADERS_SHADER_H
 
+#include "core/base_defines.h"
+#include "engine/math.h"
+
+#include "renderergl/gaen_opengl.h"
+
+
 namespace gaen
+{
+namespace shaders
 {
 
 class Shader
 {
+public:
+    u32 nameHash() { return mNameHash; }
 
+    void load();
+    void unload();
 
+    void use();
 
+    void setUniformVec3(u32 nameHash, const Vec3 & value);
+    void setUniformVec4(u32 nameHash, const Vec4 & value);
+
+    void setUniformMat3(u32 nameHash, const Mat3 & value);
+    void setUniformMat4(u32 nameHash, const Mat4 & value);
+
+    static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode = nullptr);
+
+protected:
+    static const u32 kCodeMax = 16;
+    static const u32 kUniformMax = 16;
+    static const u32 kAttributeMax = 16;
+
+    struct ShaderCode
+    {
+        u32 stage;
+        const char * filename;
+        const char * code;
+    };
+
+    struct VariableInfo
+    {
+        u32 nameHash;
+        u32 index:8;
+        u32 type:24;
+    };
+
+    Shader(u32 nameHash);
+    VariableInfo * findUniform(u32 nameHash, u32 type);
+
+    u32 mNameHash;
+    GLuint mProgramId;
+
+    ShaderCode mCodes[kCodeMax];
+    VariableInfo mUniforms[kUniformMax];
+    VariableInfo mAttributes[kAttributeMax];
+
+    bool mIsLoaded = false;
 
 }; // class Shader
 
+
+} // namespace shaders
 } // namespace gaen
 
 #endif // #ifndef GAEN_RENDERERGL_SHADERS_SHADER_H

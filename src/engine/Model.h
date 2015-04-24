@@ -36,9 +36,8 @@ namespace gaen
 {
 
 typedef u32 model_id;
-
 typedef u32 material_mesh_id;
-typedef u32 shader_hash;
+typedef u64 material_mesh_sort;
 
 class Model
 {
@@ -53,17 +52,18 @@ public:
 
         material_mesh_id id() const { return mId; }
 
-        shader_hash shaderHash() const { return mShaderHash; }
+        material_mesh_sort sortOrder() const { return mSortOrder; }
 
         Model & model() { return *mpModel; }
         Material & material() { return *mpMaterial; }
         Mesh & mesh() { return *mpMesh; }
 
     private:
-        shader_hash calcShaderHash();
+        material_mesh_sort calcSortOrder();
 
         material_mesh_id mId;
-        shader_hash mShaderHash;
+        material_mesh_sort mSortOrder;
+
         Model * mpModel;
         Material * mpMaterial;
         Mesh * mpMesh;

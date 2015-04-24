@@ -27,8 +27,8 @@
 #ifndef GAEN_RENDERERGL_RENDERERGL_H
 #define GAEN_RENDERERGL_RENDERERGL_H
 
-#include "core/Vector.h"
 #include "core/List.h"
+#include "core/HashMap.h"
 #include "engine/math.h"
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
@@ -36,6 +36,7 @@
 #include "engine/renderer_structs.h"
 
 #include "renderergl/gaen_opengl.h"
+#include "renderergl/ShaderRegistry.h"
 
 namespace gaen
 {
@@ -67,9 +68,10 @@ public:
 
     void loadMaterialMesh(Model::MaterialMesh & matMesh);
 
-    static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode = nullptr);
-
 private:
+    void setActiveShader(u32 nameHash);
+    shaders::Shader * getShader(u32 nameHash);
+
     bool mIsInit = false;
     
     device_context mDeviceContext = 0;
@@ -84,6 +86,12 @@ private:
 
     List<kMEM_Renderer, DirectionalLight> mDirectionalLights;
     List<kMEM_Renderer, PointLight> mPointLights;
+
+    shaders::Shader * mpActiveShader = nullptr;
+
+    ShaderRegistry mShaderRegistry;
+    HashMap<kMEM_Renderer, u32, shaders::Shader*> mShaders;
+
 };
 
 

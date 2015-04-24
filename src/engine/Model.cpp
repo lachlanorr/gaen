@@ -47,7 +47,7 @@ Model::MaterialMesh::MaterialMesh(Model * pModel, Material * pMaterial, Mesh * p
     mId = sNextMaterialMeshId.fetch_add(1,std::memory_order_relaxed);
 
     // Calculate unique shader hash
-    mShaderHash = calcShaderHash();
+    mSortOrder = calcSortOrder();
 }
 
 Model::MaterialMesh::~MaterialMesh()
@@ -56,34 +56,25 @@ Model::MaterialMesh::~MaterialMesh()
     GDELETE(mpMesh);
 }
 
-shader_hash Model::MaterialMesh::calcShaderHash()
+material_mesh_sort Model::MaterialMesh::calcSortOrder()
 {
-    // Pack the bits to build a unique hash for the shader.
-    // Right now, we only consider material type, vertex type
-    // and index type. It's packed pretty tightly, so we have
-    // room for more stuff if we need to differentiate further.
+    // Pack the bits to build a sort order/unique hash for the shader.
 
     // Current packing is: (high order on left)
     //
-    // | MaterialType | VertexType | IndexType | Unused  |
-    // | 4 bits       | 3 bits     | 2 bits    | 23 bits |
+    // | MaterialLayer | ModelId | ShaderNameHash |
+    // | 4 bits        | 28 bits | 32 bits        |
     
-    u8 matType = static_cast<u8>(mpMaterial->type());
-    u8 vertType = vert_type_zero_based_id(mpMesh->vertType());
-    u8 indType = prim_type_zero_based_id(mpMesh->primType());
+    u8 matLayer = static_cast<u8>(mpMaterial->layer());
 
-    if (matType >= 16)
-        PANIC("Not enough bits for MaterialType %d", matType);
-    if (vertType >= 8)
-        PANIC("Not enough bits for VertexType %d", vertType);
-    if (indType >= 4)
-        PANIC("Not enough bits for IndexType %d", indType);
+    PANIC_IF(matLayer      >= (1 << 4),  "Not enough bits for MaterialLayer %d", matLayer);
+    PANIC_IF(mpModel->id() >= (1 << 28), "Not enough bits for ModelId %d", mpModel->id());
 
-    shader_hash hash = (matType << 28) |
-                       (vertType << 25) |
-                       (indType << 23);
+    material_mesh_sort matMeshSort = ((u64)matLayer << 60) |
+                                     ((u64)mpModel->id() << 32) |
+                                     mpMaterial->shaderNameHash();
 
-    return hash;
+    return matMeshSort;
 }
 
 

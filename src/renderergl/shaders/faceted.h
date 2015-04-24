@@ -33,6 +33,12 @@ namespace shaders
 
 class faceted : Shader
 {
+public:
+    static Shader * construct();
+
+private:
+    faceted() : Shader(0x09352ef9 /* HASH::faceted */) {}
+
 }; // class faceted
 
 } // namespace shaders

@@ -30,7 +30,9 @@ SET (shaders_codegen_SOURCES
   ${shaders_dir}/faceted.h
   ${shaders_dir}/faceted.shd
   ${shaders_dir}/faceted.vtx
+  ${shaders_dir}/Shader.cpp
   ${shaders_dir}/Shader.h
+  ${shaders_dir}/ShaderRegistry_codegen.cpp
 )
 
 IDE_SOURCE_PROPERTIES( "/shaders" "${shaders_codegen_SOURCES}")

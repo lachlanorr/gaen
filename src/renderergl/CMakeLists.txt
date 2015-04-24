@@ -33,6 +33,8 @@ SET (renderergl_SOURCES
   RendererGL.h
   RendererGL.cpp
   RendererGL_${platform}.${platform_ext}
+  ShaderRegistry.cpp
+  ShaderRegistry.h
   ${shaders_codegen_SOURCES}
   )
 

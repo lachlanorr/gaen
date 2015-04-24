@@ -379,6 +379,49 @@ public:
         return mRendererReserved[idx];
     }
 
+    bool hasVertPosition() const
+    {
+        return true; // all vert types have position
+    }
+
+    u32 vertPositionOffset() const
+    {
+        return 0; // position always at the start
+    }
+
+    bool hasVertNormal() const
+    {
+        return (mVertType == kVERT_PosNorm ||
+                mVertType == kVERT_PosNormUv ||
+                mVertType == kVERT_PosNormUvTan);
+    }
+
+    u32 vertNormalOffset() const
+    {
+        return sizeof(VertPos);
+    }
+
+    bool hasVertUv() const
+    {
+        return (mVertType == kVERT_PosNormUv ||
+                mVertType == kVERT_PosNormUvTan);
+    }
+
+    u32 vertUvOffset() const
+    {
+        return sizeof(VertPosNorm);
+    }
+
+    bool hasTan() const
+    {
+        return (mVertType == kVERT_PosNormUvTan);
+    }
+
+    u32 vertTanOffset() const
+    {
+        return sizeof(VertPosNormUv);
+    }
+
     //--------------------------------------------------------------------------
     // Cast operators which provide a convenient way to get to vertices
     // and indices without a lot of explicit reinterpret casts.

@@ -78,7 +78,7 @@ typedef Map<kMEM_Model,
             u32, // uid
             MeshList> ModelMeshMap;
 typedef Map<kMEM_Model,
-            shader_hash,
+            material_mesh_sort,
             ModelMeshMap> ShaderModelMap;
 
 //------------------------------------------------------------------------------
@@ -221,7 +221,7 @@ public:
             insertMaterial(&matMesh.material(), isAssetManaged);
 
             // Insert meshes into mShaderModelMap
-            mShaderModelMap[matMesh.shaderHash()][uid].push_back(MaterialMeshInstance(&modelInstanceIt->second, &matMesh));
+            mShaderModelMap[matMesh.sortOrder()][uid].push_back(MaterialMeshInstance(&modelInstanceIt->second, &matMesh));
 
             // Load material and mesh into GPU through renderer
             if (matMesh.mesh().rendererReserved(0) == -1)
@@ -261,7 +261,7 @@ public:
         for (Model::MaterialMesh & matMesh : *pModel)
         {
             // Delete all meshes from mShaderModelMap for this uid
-            mShaderModelMap[matMesh.shaderHash()].erase(uid);
+            mShaderModelMap[matMesh.sortOrder()].erase(uid);
 
             removeMaterial(&matMesh.material());
         }

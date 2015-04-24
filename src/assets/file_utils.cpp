@@ -134,6 +134,20 @@ void change_ext(char * path, const char * ext)
     strcpy(extPos, ext);
 }
 
+const char * get_filename(const char * path)
+{
+    ASSERT(path);
+    const char * lastSlash = strrchr(path, '/');
+    if (!lastSlash)
+    {
+        return path;
+    }
+    else
+    {
+        return lastSlash + 1;
+    }
+}
+
 void get_filename(char * filename, const char * path)
 {
     ASSERT(filename);

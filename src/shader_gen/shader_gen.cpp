@@ -25,11 +25,12 @@
 //------------------------------------------------------------------------------
 
 #include "core/mem.h"
+#include "core/hashing.h"
 #include "core/List.h"
 #include "core/String.h"
 #include "assets/Config.h"
 #include "assets/file_utils.h"
-#include "renderergl/RendererGL.h"
+#include "renderergl/gaen_opengl.h"
 #include "shader_gen/glutils.h"
 
 namespace gaen
@@ -52,10 +53,13 @@ struct ShaderVarInfo
 struct ShaderSource
 {
     u32 type;
+    const char * typeStr;
     S path;
+    S code;
 
-    ShaderSource(u32 type, const char * path)
+    ShaderSource(u32 type, const char * typeStr, const char * path)
       : type(type)
+      , typeStr(typeStr)
       , path(path)
     {}
 };
@@ -66,9 +70,27 @@ struct ShaderInfo
     S nameUpper;
     S outPathCpp;
     S outPathH;
-    List<kMEM_Renderer, ShaderVarInfo> attibutes;
+    List<kMEM_Renderer, ShaderVarInfo> attributes;
     List<kMEM_Renderer, ShaderVarInfo> uniforms;
+    List<kMEM_Renderer, ShaderSource> sources;
 };
+
+const char * get_type_name(GLenum type)
+{
+    switch (type)
+    {
+    case GL_FLOAT_VEC3:
+        return "GL_FLOAT_VEC3";
+    case GL_FLOAT_VEC4:
+        return "GL_FLOAT_VEC4";
+    case GL_FLOAT_MAT3:
+        return "GL_FLOAT_MAT3";
+    case GL_FLOAT_MAT4:
+        return "GL_FLOAT_MAT4";
+    }
+    PANIC("Unsupported GLenum type: %u", type);
+    return nullptr;
+}
 
 S generate_header(const char * shaderRootName)
 {
@@ -149,8 +171,6 @@ S generate_codegen_cmake(const char * shadersDir)
         "\n"
         "SET (shaders_codegen_SOURCES\n";
 
-    List<kMEM_Renderer, S> fileList;
-
     recurse_dir(shadersDir, &code, append_cmake_file_cb);
 
     code +=
@@ -161,11 +181,91 @@ S generate_codegen_cmake(const char * shadersDir)
     return code;
 }
 
-
-List<kMEM_Renderer, ShaderSource> parse_shd(const char * shdPath)
+void append_shader_registration_file_includes_cb(const char * path, void * context)
 {
-    List<kMEM_Renderer, ShaderSource> sources;
+    if (0 == strcmp(get_ext(path), "h") && !strstr(path, "/Shader.h"))
+    {
+        char scratch[kMaxPath+1];
+        get_filename_root(scratch, path);
+        if (0 == strcmp(scratch, "Shader.h"))
+            return;
+        char scratch2[kMaxPath+1];
+        sprintf(scratch2, "#include \"renderergl/shaders/%s.h\"\n", scratch);
+        S & code = *reinterpret_cast<S*>(context);
+        code += scratch2;
+    }
+}
 
+void append_shader_registration_file_cb(const char * path, void * context)
+{
+    if (0 == strcmp(get_ext(path), "h") && !strstr(path, "/Shader.h"))
+    {
+        char scratch[kMaxPath+1];
+        get_filename_root(scratch, path);
+        if (0 == strcmp(scratch, "Shader.h"))
+            return;
+        char scratch2[kMaxPath+1];
+        sprintf(scratch2, "    registerShaderConstructor(HASH::%s, shaders::%s::construct);\n", scratch, scratch);
+        S & code = *reinterpret_cast<S*>(context);
+        code += scratch2;
+    }
+}
+
+S generate_shader_registration(const char * shadersDir)
+{
+    S code =
+        "//------------------------------------------------------------------------------\n"
+        "// ShaderRegistry_codegen.cpp - Shader factory class\n"
+        "//\n"
+        "// Gaen Concurrency Engine - http://gaen.org\n"
+        "// Copyright (c) 2014-2015 Lachlan Orr\n"
+        "//\n"
+        "// This software is provided 'as-is', without any express or implied\n"
+        "// warranty. In no event will the authors be held liable for any damages\n"
+        "// arising from the use of this software.\n"
+        "//\n"
+        "// Permission is granted to anyone to use this software for any purpose,\n"
+        "// including commercial applications, and to alter it and redistribute it\n"
+        "// freely, subject to the following restrictions:\n"
+        "//\n"
+        "//   1. The origin of this software must not be misrepresented; you must not\n"
+        "//   claim that you wrote the original software. If you use this software\n"
+        "//   in a product, an acknowledgment in the product documentation would be\n"
+        "//   appreciated but is not required.\n"
+        "//\n"
+        "//   2. Altered source versions must be plainly marked as such, and must not be\n"
+        "//   misrepresented as being the original software.\n"
+        "//\n"
+        "//   3. This notice may not be removed or altered from any source\n"
+        "//   distribution.\n"
+        "//------------------------------------------------------------------------------\n"
+        "\n"
+        "#include \"engine/hashes.h\"\n"
+        "#include \"renderergl/ShaderRegistry.h\"\n";
+
+    recurse_dir(shadersDir, &code, append_shader_registration_file_includes_cb);
+
+    code +=
+        "\n"
+        "namespace gaen\n"
+        "{\n"
+        "\n"
+        "void ShaderRegistry::registerAllShaderConstructors()\n"
+        "{\n";
+
+    recurse_dir(shadersDir, &code, append_shader_registration_file_cb);
+
+    code +=
+        "}\n"
+        "\n"
+        "\n"
+        "} // namespace gaen\n";
+
+    return code;
+}
+
+void parse_shd(ShaderInfo & si, const char * shdPath)
+{
     FileReader rdr(shdPath);
     Config<kMEM_Chef> shd;
     shd.read(rdr.ifs);
@@ -181,6 +281,11 @@ List<kMEM_Renderer, ShaderSource> parse_shd(const char * shdPath)
                                        GL_COMPUTE_SHADER,
                                        0};
 
+    static const char * kShaderTypeStrs[] = {"GL_VERTEX_SHADER",
+                                             "GL_FRAGMENT_SHADER",
+                                             "GL_COMPUTE_SHADER",
+                                             nullptr};
+
     u32 idx = 0;
     while (kShaderNames[idx])
     {
@@ -189,15 +294,13 @@ List<kMEM_Renderer, ShaderSource> parse_shd(const char * shdPath)
             strcpy(scratch, shdPath);
             parent_dir(scratch);
             append_path(scratch, shd.get(kShaderNames[idx]));
-            sources.emplace_back(kShaderTypes[idx], scratch);
+            si.sources.emplace_back(kShaderTypes[idx], kShaderTypeStrs[idx], scratch);
         }
         idx++;
     }
-
-    return sources;
 }
 
-bool should_generate_shader(ShaderInfo & si, const List<kMEM_Renderer, ShaderSource> & sources)
+bool should_generate_shader(ShaderInfo & si)
 {
     if (!file_exists(si.outPathH.c_str()) ||
         !file_exists(si.outPathCpp.c_str()))
@@ -209,7 +312,7 @@ bool should_generate_shader(ShaderInfo & si, const List<kMEM_Renderer, ShaderSou
         is_file_newer(procPath, si.outPathH.c_str()))
         return true;
 
-    for (const ShaderSource & ss : sources)
+    for (const ShaderSource & ss : si.sources)
     {
         if (is_file_newer(ss.path.c_str(), si.outPathCpp.c_str()) ||
             is_file_newer(ss.path.c_str(), si.outPathH.c_str()))
@@ -218,7 +321,41 @@ bool should_generate_shader(ShaderInfo & si, const List<kMEM_Renderer, ShaderSou
     return false;
 }
 
-void process_shader_program(ShaderInfo & si, const List<kMEM_Renderer, ShaderSource> & sources)
+bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode)
+{
+    const char * shaderCodes[2];
+    u32 shaderCodesSize = 0;
+
+    if (headerCode)
+    {
+        shaderCodes[shaderCodesSize++] = headerCode;
+    }
+    shaderCodes[shaderCodesSize++] = shaderCode;
+
+    GLuint shader;
+
+    shader = glCreateShader(type);
+    glShaderSource(shader, shaderCodesSize, shaderCodes, NULL);
+    glCompileShader(shader);
+
+    GLint status;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+    if (status == GL_FALSE)
+    {
+        char errMsg[256];
+        int len;
+        glGetShaderInfoLog(shader, 256, &len, errMsg);
+
+        glDeleteShader(shader);
+        ERR("Failed to compile shader: %s", errMsg);
+        return false;
+    }
+
+    *pShader = shader;
+    return true;
+}
+
+void process_shader_program(ShaderInfo & si)
 {
     // create program
     GLuint programId = glCreateProgram();
@@ -226,15 +363,16 @@ void process_shader_program(ShaderInfo & si, const List<kMEM_Renderer, ShaderSou
     List<kMEM_Renderer, GLuint> shaderList;
 
     // attach shaders to program
-    for (const ShaderSource & source : sources)
+    for (ShaderSource & source : si.sources)
     {
         FileReader sourceRdr(source.path.c_str());
         Scoped_GFREE<char> sourceCode((char*)GALLOC(kMEM_Renderer, sourceRdr.size()+1)); // +1 for null we'll add to end
         sourceRdr.read(sourceCode.get(), sourceRdr.size());
         sourceCode.get()[sourceRdr.size()] = '\0';
+        source.code = sourceCode.get();
 
         GLuint shader;
-        bool sourceCompRes = RendererGL::compile_shader(&shader, source.type, sourceCode.get(), SHADER_HEADER);
+        bool sourceCompRes = compile_shader(&shader, source.type, sourceCode.get(), SHADER_HEADER);
         if (!sourceCompRes)
         {
             PANIC("Failed to compile shader: %s", source.path);
@@ -273,10 +411,10 @@ void process_shader_program(ShaderInfo & si, const List<kMEM_Renderer, ShaderSou
         glGetActiveAttrib(programId, i, kMaxPath, &nameLen, &size, &type, name);
         name[nameLen] = '\0';
 
-        si.attibutes.push_back(ShaderVarInfo());
-        si.attibutes.back().index = i;
-        si.attibutes.back().name = name;
-        si.attibutes.back().type = type;
+        si.attributes.push_back(ShaderVarInfo());
+        si.attributes.back().index = i;
+        si.attributes.back().name = name;
+        si.attributes.back().type = type;
     }
 
 
@@ -324,7 +462,14 @@ S generate_shader_h(const ShaderInfo & si)
 
     code += S("class ") + si.name + S(" : Shader\n");
     code += S("{\n");
+    code += S("public:\n");
+    code += S("    static Shader * construct();\n");
+    code += LF;
+    code += S("private:\n");
 
+    snprintf(scratch, kMaxPath, "    %s() : Shader(0x%08x /* HASH::%s */) {}\n", si.name.c_str(), gaen_hash(si.name.c_str()), si.name.c_str());
+    code += scratch;
+    code += LF;
     code += S("}; // class ") + si.name + LF;
 
     code += LF;
@@ -337,20 +482,124 @@ S generate_shader_h(const ShaderInfo & si)
     return code;
 }
 
+S gen_shader_code_const(const char * rawCode)
+{
+    S code;
+
+    const char * bol = rawCode;
+    const char * eol;
+
+    while (*bol)
+    {
+        eol = bol;
+        while (*eol && *eol != '\n' && *eol != '\r')
+        {
+            eol++;
+        }
+
+        if (*eol == '\r' && eol[1] == '\n')
+            eol++;
+
+        code += S("    \"");
+        code += S(bol, eol - bol);
+        code += S("\\n\"\n");
+
+        if (*eol)
+            bol = eol+1;
+        else
+            break;
+    }
+
+    return code;
+}
+
 S generate_shader_cpp(const ShaderInfo & si)
 {
     char scratch[kMaxPath+1];
 
     S code = generate_header(si.name.c_str());
 
+    code += LF;
+    code += S("#include \"core/mem.h\"\n");
+
     snprintf(scratch, kMaxPath, "#include \"renderergl/shaders/%s.h\"\n", si.name.c_str());
     code += scratch;
+    code += LF;
 
     code += S("namespace gaen\n");
     code += S("{\n");
     code += S("namespace shaders\n");
     code += S("{\n");
     code += LF;
+
+    for (const ShaderSource & source : si.sources)
+    {
+        code += S("static const char * kShaderCode_") + get_ext(source.path.c_str()) + S(" =\n");
+        code += gen_shader_code_const(source.code.c_str());
+        code += S("    ; // kShaderCode_") + get_ext(source.path.c_str()) + S(" (END)\n");
+        code += LF;
+    }
+
+    snprintf(scratch, kMaxPath, "Shader * %s::construct()\n", si.name.c_str());
+    code += scratch;
+    code += S("{\n");
+
+    snprintf(scratch, kMaxPath, "    %s * pShader = GNEW(kMEM_Renderer, %s);\n", si.name.c_str(), si.name.c_str());
+    code += scratch;
+    code += LF;
+
+    code += S("    // Program Codes\n");
+    u32 i = 0;
+    for (const ShaderSource & source : si.sources)
+    {
+        snprintf(scratch, kMaxPath, "    pShader->mCodes[%u].stage = %s;\n", i, source.typeStr);
+        code += scratch;
+        snprintf(scratch, kMaxPath, "    pShader->mCodes[%u].filename = \"%s\";\n", i, get_filename(source.path.c_str()));
+        code += scratch;
+        snprintf(scratch, kMaxPath, "    pShader->mCodes[%u].code = kShaderCode_%s;\n", i, get_ext(source.path.c_str()));
+        code += scratch;
+        code += LF;
+
+        ++i;
+    }
+
+    code += LF;
+
+    code += S("    // Uniforms\n");
+    i = 0;
+    for (const ShaderVarInfo & svi : si.uniforms)
+    {
+        snprintf(scratch, kMaxPath, "    pShader->mUniforms[%u].nameHash = 0x%08x; /* HASH::%s */\n", i, gaen_hash(svi.name.c_str()), svi.name.c_str());
+        code += scratch;
+        snprintf(scratch, kMaxPath, "    pShader->mUniforms[%u].index = %u;\n", i, svi.index);
+        code += scratch;
+        snprintf(scratch, kMaxPath, "    pShader->mUniforms[%u].type = %s;\n", i, get_type_name(svi.type));
+        code += scratch;
+        code += LF;
+
+        ++i;
+    }
+
+    code += LF;
+
+    code += S("    // Attributes\n");
+    i = 0;
+    for (const ShaderVarInfo & svi : si.attributes)
+    {
+        snprintf(scratch, kMaxPath, "    pShader->mAttributes[%u].nameHash = 0x%08x; /* HASH::%s */\n", i, gaen_hash(svi.name.c_str()), svi.name.c_str());
+        code += scratch;
+        snprintf(scratch, kMaxPath, "    pShader->mAttributes[%u].index = %u;\n", i, svi.index);
+        code += scratch;
+        snprintf(scratch, kMaxPath, "    pShader->mAttributes[%u].type = %s;\n", i, get_type_name(svi.type));
+        code += scratch;
+        code += LF;
+
+        ++i;
+    }
+
+    code += S("    return pShader;\n");
+    code += S("}\n");
+
     code += LF;
     code += S("} // namespace shaders\n");
     code += S("} // namespace gaen\n");
@@ -375,8 +624,6 @@ void generate_shader(const char * shdPath)
     strcpy(outH, shdPathNorm);
     change_ext(outH, "h");
 
-    List<kMEM_Renderer, ShaderSource> sources = parse_shd(shdPathNorm);
-
     ShaderInfo si;
 
     si.name = filenameRoot;
@@ -386,9 +633,11 @@ void generate_shader(const char * shdPath)
     si.outPathCpp = outCpp;
     si.outPathH = outH;
 
-    if (should_generate_shader(si, sources))
+    parse_shd(si, shdPathNorm);
+
+    if (should_generate_shader(si))
     {
-        process_shader_program(si, sources);
+        process_shader_program(si);
 
         S hCode = generate_shader_h(si);
         printf("Writing %s\n", outH);
@@ -453,14 +702,33 @@ int main(int argc, char ** argv)
     char shadersDir[kMaxPath+1];
     find_shaders_dir(shadersDir);
 
-    recurse_dir(shadersDir, nullptr, process_shd_file_cb);
+    if (argc == 1)
+    {
+        // no args, gen all shaders
+        recurse_dir(shadersDir, nullptr, process_shd_file_cb);
 
-    // generate codegen.cmake
-    S codegenCmake = generate_codegen_cmake(shadersDir);
-    char cmakePath[kMaxPath+1];
-    strcpy(cmakePath, shadersDir);
-    append_path(cmakePath, "codegen.cmake");
-    write_file_if_contents_differ(cmakePath, codegenCmake.c_str());
+        // generate shader registration
+        S regCode = generate_shader_registration(shadersDir);
+        char regPath[kMaxPath+1];
+        strcpy(regPath, shadersDir);
+        append_path(regPath, "ShaderRegistry_codegen.cpp");
+        if (write_file_if_contents_differ(regPath, regCode.c_str()))
+            printf("Writing %s\n", regPath);
+
+        // generate codegen.cmake
+        S codegenCmake = generate_codegen_cmake(shadersDir);
+        char cmakePath[kMaxPath+1];
+        strcpy(cmakePath, shadersDir);
+        append_path(cmakePath, "codegen.cmake");
+        if (write_file_if_contents_differ(cmakePath, codegenCmake.c_str()))
+            printf("Writing %s\n", cmakePath);
+
+    }
+    else
+    {
+        // generate just the shader specified
+        generate_shader(argv[1]);
+    }
 
     fin_opengl();
 }

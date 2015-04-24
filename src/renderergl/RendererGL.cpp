@@ -34,6 +34,9 @@
 #include "engine/messages/TransformId.h"
 
 #include "renderergl/gaen_opengl.h"
+#include "renderergl/shaders/Shader.h"
+#include "renderergl/ShaderRegistry.h"
+
 #include "renderergl/RendererGL.h"
 
 namespace gaen
@@ -141,97 +144,7 @@ static const char * sFragShaderCode =
     "}\n";
 #endif // #else // #if HAS(OPENGL3)
 
-static GLuint sProgramId = -1;
-static GLint sMVPUniform = -1;
-static GLint sNormalUniform = -1;
-static GLint sColorUniform = -1;
-static GLint sLightDirectionUniform = -1;
-static GLint sLightColorUniform = -1;
-
 static Mat4 sMVPMat(1.0f);
-
-bool RendererGL::compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode)
-{
-    const char * shaderCodes[2];
-    u32 shaderCodesSize = 0;
-
-    if (headerCode)
-    {
-        shaderCodes[shaderCodesSize++] = headerCode;
-    }
-    shaderCodes[shaderCodesSize++] = shaderCode;
-
-    GLuint shader;
-
-    shader = glCreateShader(type);
-    glShaderSource(shader, shaderCodesSize, shaderCodes, NULL);
-    glCompileShader(shader);
-
-    GLint status;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-    if (status == GL_FALSE)
-    {
-        char errMsg[256];
-        int len;
-        glGetShaderInfoLog(shader, 256, &len, errMsg);
-
-        glDeleteShader(shader);
-        ERR("Failed to compile shader: %s", errMsg);
-        return false;
-    }
-
-    *pShader = shader;
-    return true;
-}
-
-static bool build_program(GLuint * pProgramId,
-                          const char * vertShaderCode,
-                          const char * fragShaderCode)
-{
-    // create program
-    GLuint programId = glCreateProgram();
-
-    GLuint vertShader, fragShader;
-    // load shaders
-    if (!RendererGL::compile_shader(&vertShader, GL_VERTEX_SHADER, vertShaderCode) ||
-        !RendererGL::compile_shader(&fragShader, GL_FRAGMENT_SHADER, fragShaderCode))
-    {
-        glDeleteProgram(programId);
-        ERR("Failed to compile shaders");
-        return false;
-    }
-
-    // attach shaders to program
-    glAttachShader(programId, vertShader);
-    glAttachShader(programId, fragShader);
-
-#if !HAS(OPENGL3)
-    // bind attribute locations
-    glBindAttribLocation(programId, 0, "vPosition");
-    glBindAttribLocation(programId, 1, "vNormal");
-#endif
-    
-    // link program
-    GLint status;
-    glLinkProgram(programId);
-    glGetProgramiv(programId, GL_LINK_STATUS, &status);
-    if (status == 0)
-    {
-        glDeleteShader(vertShader);
-        glDeleteShader(fragShader);
-        glDeleteProgram(programId);
-        ERR("Failed to link shader program.");
-        return false;
-    }
-
-    // Release vertex and fragment shaders
-    glDeleteShader(vertShader);
-    glDeleteShader(fragShader);
-
-    *pProgramId = programId;
-
-    return true;
-}
 
 void RendererGL::initViewport()
 {
@@ -270,22 +183,45 @@ void RendererGL::initViewport()
     //sMVPMat = Mat4::lookat(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(0.0f, 1.0f, 0.0f));
     sMVPMat = Mat4::rotation(Vec3(kPi / 4.0f, kPi / 4.0f, 0.0f));
 
-    if (!build_program(&sProgramId, sVertShaderCode, sFragShaderCode))
-    {
-        PANIC("Failed to build_program for default shader");
-    }
-
-    // Get uniform locations
-    sMVPUniform = glGetUniformLocation(sProgramId, "umMVP");
-    sNormalUniform = glGetUniformLocation(sProgramId, "umNormal");
-    sColorUniform = glGetUniformLocation(sProgramId, "uvColor");
-    sLightDirectionUniform = glGetUniformLocation(sProgramId, "uvLightDirection");
-    sLightColorUniform = glGetUniformLocation(sProgramId, "uvLightColor");
-
-    glUseProgram(sProgramId);
-
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
     glEnableVertexAttribArray(0);
+}
+
+static void set_shader_vec4_var(u32 nameHash, const Vec4 & val, void * context)
+{
+    shaders::Shader * pShader = (shaders::Shader*)context;
+    pShader->setUniformVec4(nameHash, val);
+}
+
+static void prepare_mesh_attributes(const Mesh & mesh)
+{
+    // position
+    if (mesh.hasVertPosition())
+    {
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)mesh.vertPositionOffset());
+        glEnableVertexAttribArray(0);
+
+        // normal
+        if (mesh.hasVertNormal())
+        {
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)mesh.vertNormalOffset());
+            glEnableVertexAttribArray(1);
+
+            // uv
+            if (mesh.hasVertUv())
+            {
+                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)mesh.vertUvOffset());
+                glEnableVertexAttribArray(2);
+
+                // uv tangents
+                if (mesh.hasTan())
+                {
+                    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)mesh.vertTanOffset());
+                    glEnableVertexAttribArray(3);
+                }
+            }
+        }
+    }
 }
 
 void RendererGL::render()
@@ -298,39 +234,39 @@ void RendererGL::render()
     ModelMgr<RendererGL>::MeshIterator meshIt = mpModelMgr->begin();
     ModelMgr<RendererGL>::MeshIterator meshItEnd = mpModelMgr->end();
 
-    glUseProgram(sProgramId);
-
-    if (mDirectionalLights.size() > 0)
-    {
-        const DirectionalLight & light = mDirectionalLights.front();
-        glUniform3fv(sLightDirectionUniform, 1, light.direction.elems);
-        glUniform4fv(sLightColorUniform, 1, light.color.elems);
-    }
-
     while (meshIt != meshItEnd)
     {
         const MaterialMeshInstance & matMeshInst = *meshIt;
         Mesh & mesh = matMeshInst.pMaterialMesh->mesh();
         Material & mat = matMeshInst.pMaterialMesh->material();
 
+        setActiveShader(mat.shaderNameHash());
+
+        if (mDirectionalLights.size() > 0)
+        {
+            const DirectionalLight & light = mDirectionalLights.front();
+            mpActiveShader->setUniformVec3(HASH::uvLightDirection, light.direction);
+            //mpActiveShader->setUniformVec4(HASH::uvLightColor, light.color);
+        }
+
         static Mat4 view = Mat4::translation(Vec3(0.0f, 0.0f, -5.0f));
         Mat4 mvp = mProjection * view * matMeshInst.pModelInstance->transform;
         Mat3 normalTrans = Mat3(view * matMeshInst.pModelInstance->transform);
 
-        glUniformMatrix4fv(sMVPUniform, 1, 0, mvp.elems);
-        glUniformMatrix3fv(sNormalUniform, 1, 0, normalTrans.elems);
-        glUniform4fv(sColorUniform, 1, mat.color().elems);
+        mpActiveShader->setUniformMat4(HASH::umMVP, mvp);
+        mpActiveShader->setUniformMat3(HASH::umNormal, normalTrans);
+
+        // Set all material specific uniforms.
+        // Add new types here as they become necessary, and the associated
+        // callbacks, support in Material class, etc.
+        mat.setShaderVec4Vars(set_shader_vec4_var, mpActiveShader);
+        
 #if HAS(OPENGL3)
         glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
 #else
         glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
-        // position
-        glVertexAttribPointer(0 /* eAttrib_position */, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)0);
-        glEnableVertexAttribArray(0); // eAttrib_Position
-        
-        // normal
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)12);
-        glEnableVertexAttribArray(1);
+
+        prepare_mesh_attributes(mesh);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_PrimBuffer));
 #endif
@@ -407,13 +343,7 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
         glBufferData(GL_ARRAY_BUFFER, mesh.vertsSize(), mesh.verts(), GL_STATIC_DRAW);
 
 #if HAS(OPENGL3)
-        // position
-        glVertexAttribPointer(0 /* eAttrib_position */, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)0);
-        glEnableVertexAttribArray(0); // eAttrib_Position
-
-        // normal
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)12);
-        glEnableVertexAttribArray(1);
+        prepare_mesh_attributes(mesh);
 #endif
     }
 
@@ -429,6 +359,26 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
 #endif
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void RendererGL::setActiveShader(u32 nameHash)
+{
+    if (!mpActiveShader || mpActiveShader->nameHash() != nameHash)
+    {
+        mpActiveShader = getShader(nameHash);
+        mpActiveShader->use();
+    }
+}
+
+shaders::Shader * RendererGL::getShader(u32 nameHash)
+{
+    auto it = mShaders.find(nameHash);
+    if (it != mShaders.end())
+        return it->second;
+
+    shaders::Shader* pShader = mShaderRegistry.constructShader(nameHash);
+    mShaders[nameHash] = pShader;
+    return pShader;
 }
 
 

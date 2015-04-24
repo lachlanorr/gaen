@@ -28,6 +28,8 @@ SET (shader_gen_SOURCES
   shader_gen.cpp
   glutils.h
   glutils_${platform}.${platform_ext}
+  ../renderergl/win32gl.cpp
+  ../renderergl/win32gl.h
   )
 
 IDE_SOURCE_PROPERTIES( "/" "${shader_gen_SOURCES}")
@@ -40,7 +42,6 @@ TARGET_LINK_LIBRARIES (shader_gen
   core
   assets
   engine
-  renderergl
   ${PLATFORM_LINK_LIBS}
   )
 

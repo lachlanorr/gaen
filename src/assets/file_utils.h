@@ -61,6 +61,7 @@ char * get_ext(char * path);
 void strip_ext(char * path);
 void change_ext(char * path, const char * ext);
 
+const char * get_filename(const char * path);
 void get_filename(char * filename, const char * path);
 void get_filename_root(char * filename, const char * path);
 void upper(char * str);

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Material.h - Materials used with models
+// ShaderRegistry.cpp - Shader factory class
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,63 +24,40 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_MATERIAL_H
-#define GAEN_ENGINE_MATERIAL_H
-
-#include "engine/Color.h"
+#include "renderergl/ShaderRegistry.h"
 
 namespace gaen
 {
 
-// Define these in the order of rendering.
-// Higher MaterialLayers get rendered later.
-// i.e., transparent stuff should be highest.
-enum MaterialLayer
+ShaderRegistry::ShaderRegistry()
 {
-    kMAT_Colored = 0,
+    registerAllShaderConstructors();
+}
 
-    // LORRTODO - Add additional shaders
-
-    kMAT_END
-};
-
-typedef u32 material_id;
-
-typedef void(*SetShaderVec4VarCB)(u32 nameHash, const Vec4 & val, void * context);
-
-class Material
+shaders::Shader * ShaderRegistry::constructShader(u32 nameHash)
 {
-public:
-    Material(u32 shaderNameHash);
+    auto it = mShaderConstructors.find(nameHash);
 
-    MaterialLayer layer() const { return mLayer; }
-    u32 shaderNameHash() { return mShaderNameHash; }
-
-    material_id id() const { return mId; }
-
-    void registerVec4Var(u32 nameHash, const Vec4 & value);
-
-    void setShaderVec4Vars(SetShaderVec4VarCB setCB, void * context);
-
-private:
-    static const u32 kMaxVec4Vars = 4;
-
-    struct Vec4Var
+    if (it == mShaderConstructors.end())
     {
-        Vec4 value;
-        u32 nameHash;
-    };
+        PANIC("Unknown shader name hash: 0x%08x", nameHash);
+        return nullptr;
+    }
 
-    MaterialLayer mLayer;
-    u32 mShaderNameHash;
+    return it->second();
+}
 
-    material_id mId;
+void ShaderRegistry::registerShaderConstructor(u32 nameHash, ShaderConstructor constructor)
+{
+    auto it = mShaderConstructors.find(nameHash);
 
-    u32 mVec4VarCount;
-    Vec4Var mVec4Vars[kMaxVec4Vars];
-};
-
+    if (it != mShaderConstructors.end())
+    {
+        PANIC("Shader name hash already registered: 0x%08x", nameHash);
+        return;
+    }
+    
+    mShaderConstructors[nameHash] = constructor;
+}
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_ENGINE_MATERIAL_H

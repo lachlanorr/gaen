@@ -216,7 +216,7 @@ Model * build_box(const Vec3 & size, Color color)
     // Right
     builder.addQuad(Vec3(xmax, ymin, zmax), Vec3(xmax, ymin, zmin), Vec3(xmax, ymax, zmin), Vec3(xmax, ymax, zmax));
 
-    Material * pMat = GNEW(kMEM_Texture, Material, color);
+    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }
@@ -291,7 +291,7 @@ Model * build_cone(const Vec3 & size, u32 slices, Color color)
 
     Mesh * pMesh = lathe_points(points, 3, slices);
 
-    Material * pMat = GNEW(kMEM_Texture, Material, color);
+    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }
@@ -311,7 +311,7 @@ Model * build_cylinder(const Vec3 & size, u32 slices, Color color)
 
     Mesh * pMesh = lathe_points(points, 4, slices);
 
-    Material * pMat = GNEW(kMEM_Texture, Material, color);
+    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }
@@ -338,7 +338,7 @@ Model * build_sphere(const Vec3 & size, u32 slices, u32 sections, Color color)
 
     GFREE(points);
 
-    Material * pMat = GNEW(kMEM_Texture, Material, color);
+    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }
@@ -429,7 +429,7 @@ Model * build_quad_sphere(const Vec3 & size, u32 sections, Color color)
         }
     }
 
-    Material * pMat = GNEW(kMEM_Texture, Material, color);
+    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }

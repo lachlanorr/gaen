@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Material.h - Materials used with models
+// ShaderRegistry_codegen.cpp - Shader factory class
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,63 +24,17 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_MATERIAL_H
-#define GAEN_ENGINE_MATERIAL_H
-
-#include "engine/Color.h"
+#include "engine/hashes.h"
+#include "renderergl/ShaderRegistry.h"
+#include "renderergl/shaders/faceted.h"
 
 namespace gaen
 {
 
-// Define these in the order of rendering.
-// Higher MaterialLayers get rendered later.
-// i.e., transparent stuff should be highest.
-enum MaterialLayer
+void ShaderRegistry::registerAllShaderConstructors()
 {
-    kMAT_Colored = 0,
-
-    // LORRTODO - Add additional shaders
-
-    kMAT_END
-};
-
-typedef u32 material_id;
-
-typedef void(*SetShaderVec4VarCB)(u32 nameHash, const Vec4 & val, void * context);
-
-class Material
-{
-public:
-    Material(u32 shaderNameHash);
-
-    MaterialLayer layer() const { return mLayer; }
-    u32 shaderNameHash() { return mShaderNameHash; }
-
-    material_id id() const { return mId; }
-
-    void registerVec4Var(u32 nameHash, const Vec4 & value);
-
-    void setShaderVec4Vars(SetShaderVec4VarCB setCB, void * context);
-
-private:
-    static const u32 kMaxVec4Vars = 4;
-
-    struct Vec4Var
-    {
-        Vec4 value;
-        u32 nameHash;
-    };
-
-    MaterialLayer mLayer;
-    u32 mShaderNameHash;
-
-    material_id mId;
-
-    u32 mVec4VarCount;
-    Vec4Var mVec4Vars[kMaxVec4Vars];
-};
+    registerShaderConstructor(HASH::faceted, shaders::faceted::construct);
+}
 
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_ENGINE_MATERIAL_H
