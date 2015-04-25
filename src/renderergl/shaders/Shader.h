@@ -57,10 +57,6 @@ public:
     static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode = nullptr);
 
 protected:
-    static const u32 kCodeMax = 16;
-    static const u32 kUniformMax = 16;
-    static const u32 kAttributeMax = 16;
-
     struct ShaderCode
     {
         u32 stage;
@@ -81,9 +77,13 @@ protected:
     u32 mNameHash;
     GLuint mProgramId;
 
-    ShaderCode mCodes[kCodeMax];
-    VariableInfo mUniforms[kUniformMax];
-    VariableInfo mAttributes[kAttributeMax];
+    u32 mCodeCount;
+    u32 mUniformCount;
+    u32 mAttributeCount;
+
+    ShaderCode * mpCodes;
+    VariableInfo * mpUniforms;
+    VariableInfo * mpAttributes;
 
     bool mIsLoaded = false;
 

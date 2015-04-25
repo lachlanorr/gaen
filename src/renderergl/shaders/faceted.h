@@ -39,6 +39,13 @@ public:
 private:
     faceted() : Shader(0x09352ef9 /* HASH::faceted */) {}
 
+    static const u32 kCodeCount = 2;
+    static const u32 kUniformCount = 4;
+    static const u32 kAttributeCount = 2;
+
+    Shader::ShaderCode mCodes[kCodeCount];
+    Shader::VariableInfo mUniforms[kUniformCount];
+    Shader::VariableInfo mAttributes[kAttributeCount];
 }; // class faceted
 
 } // namespace shaders

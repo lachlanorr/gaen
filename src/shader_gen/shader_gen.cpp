@@ -470,6 +470,21 @@ S generate_shader_h(const ShaderInfo & si)
     snprintf(scratch, kMaxPath, "    %s() : Shader(0x%08x /* HASH::%s */) {}\n", si.name.c_str(), gaen_hash(si.name.c_str()), si.name.c_str());
     code += scratch;
     code += LF;
+
+    // storage for codes, uniforms, and attributes
+    snprintf(scratch, kMaxPath, "    static const u32 kCodeCount = %u;\n", si.sources.size());
+    code += scratch;
+    snprintf(scratch, kMaxPath, "    static const u32 kUniformCount = %u;\n", si.uniforms.size());
+    code += scratch;
+    snprintf(scratch, kMaxPath, "    static const u32 kAttributeCount = %u;\n", si.attributes.size());
+    code += scratch;
+
+    code += LF;
+
+    code += S("    Shader::ShaderCode mCodes[kCodeCount];\n");
+    code += S("    Shader::VariableInfo mUniforms[kUniformCount];\n");
+    code += S("    Shader::VariableInfo mAttributes[kAttributeCount];\n");
+
     code += S("}; // class ") + si.name + LF;
 
     code += LF;
@@ -596,6 +611,18 @@ S generate_shader_cpp(const ShaderInfo & si)
 
         ++i;
     }
+
+    code += LF;
+
+    code += S("    // Set base Shader members to our arrays and counts\n");
+    code += S("    pShader->mCodeCount = kCodeCount;\n");
+    code += S("    pShader->mpCodes = pShader->mCodes;\n");
+    code += S("    pShader->mUniformCount = kUniformCount;\n");
+    code += S("    pShader->mpUniforms = pShader->mUniforms;\n");
+    code += S("    pShader->mAttributeCount = kAttributeCount;\n");
+    code += S("    pShader->mpAttributes = pShader->mAttributes;\n");
+
+    code += LF;
 
     code += S("    return pShader;\n");
     code += S("}\n");

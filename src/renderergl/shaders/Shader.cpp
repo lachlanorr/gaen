@@ -37,11 +37,13 @@ namespace shaders
 Shader::Shader(u32 nameHash)
   : mNameHash(nameHash)
   , mProgramId(0)
-{
-    memset(&mCodes, 0, sizeof(mCodes));
-    memset(&mUniforms, 0, sizeof(mUniforms));
-    memset(&mAttributes, 0, sizeof(mAttributes));
-}
+  , mCodeCount(0)
+  , mUniformCount(0)
+  , mAttributeCount(0)
+  , mpCodes(nullptr)
+  , mpUniforms(nullptr)
+  , mpAttributes(nullptr)
+{}
 
 void Shader::load()
 {
@@ -51,16 +53,18 @@ void Shader::load()
     {
         mProgramId = glCreateProgram();
 
-        GLuint shaderIds[kCodeMax];
+        static const u32 kCodeCountMax = 8;
+        GLuint shaderIds[kCodeCountMax];
         memset(shaderIds, 0, sizeof(shaderIds));
+        PANIC_IF(mCodeCount > kCodeCountMax, "Too many shader codes: %u, max: %u", mCodeCount, kCodeCountMax);
 
         // loop over shader's codes and compile them
-        for (u32 i = 0; i < kCodeMax; ++i)
+        for (u32 i = 0; i < mCodeCount; ++i)
         {
-            if (mCodes[i].stage == 0)
+            if (mpCodes[i].stage == 0)
                 break;
         
-            PANIC_IF(!Shader::compile_shader(&shaderIds[i], mCodes[i].stage, mCodes[i].code, SHADER_HEADER), "Failed to compile shader: %s", mCodes[i].filename);
+            PANIC_IF(!Shader::compile_shader(&shaderIds[i], mpCodes[i].stage, mpCodes[i].code, SHADER_HEADER), "Failed to compile shader: %s", mpCodes[i].filename);
             glAttachShader(mProgramId, shaderIds[i]);
         }
 
@@ -71,7 +75,7 @@ void Shader::load()
         PANIC_IF(status == 0, "Failed to link shader program: faceted");
 
         // Release shaders
-        for (u32 i = 0; i < kCodeMax; ++i)
+        for (u32 i = 0; i < mCodeCount; ++i)
         {
             if (shaderIds[i] == 0)
                 break;
@@ -107,14 +111,14 @@ void Shader::use()
 
 Shader::VariableInfo * Shader::findUniform(u32 nameHash, u32 type)
 {
-    for (u32 i = 0; i < kUniformMax; ++i)
+    for (u32 i = 0; i < mUniformCount; ++i)
     {
-        if (mUniforms[i].nameHash == 0)
-            break;;
-        if (mUniforms[i].nameHash == nameHash &&
-            mUniforms[i].type == type)
+        if (mpUniforms[i].nameHash == 0)
+            break;
+        if (mpUniforms[i].nameHash == nameHash &&
+            mpUniforms[i].type == type)
         {
-            return &mUniforms[i];
+            return &mpUniforms[i];
         }
     }
     return nullptr;
