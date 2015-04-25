@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 91110961ea5b09cc35ef5a42ae4288c1
+// HASH: c27c2d852f5060e3eb9990059d092235
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -66,25 +66,31 @@ private:
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__Shape);
 
-        // Component: gaen.shapes.QuadSphere
+        // Component: gaen.shapes.Sphere
         {
-            Task & compTask = insertComponent(HASH::gaen__shapes__QuadSphere, mComponentCount);
+            Task & compTask = insertComponent(HASH::gaen__shapes__Sphere, mComponentCount);
             // Init Property: size
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
-                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(3.00000000e+00f, 3.00000000e+00f, 3.00000000e+00f);
+                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+                compTask.message(msgw.accessor());
+            }
+            // Init Property: slices
+            {
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::slices));
+                msgw[0].cells[0].i = 32;
                 compTask.message(msgw.accessor());
             }
             // Init Property: sections
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::sections));
-                msgw[0].cells[0].i = 10;
+                msgw[0].cells[0].i = 16;
                 compTask.message(msgw.accessor());
             }
             // Init Property: diffuse
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::diffuse));
-                msgw[0].cells[0].color = Color(150, 255, 100, 255);
+                msgw[0].cells[0].color = Color(255, 255, 0, 255);
                 compTask.message(msgw.accessor());
             }
             // Send init message
