@@ -249,6 +249,9 @@ void RendererGL::render()
             //mpActiveShader->setUniformVec4(HASH::uvLightColor, light.color);
         }
 
+        // LORRTEMP - Remove once we get materials setting the color properly
+        mpActiveShader->setUniformVec4(HASH::uvColor, Vec4(1.0f, 0.0f, 1.0f, 1.0f));
+
         static Mat4 view = Mat4::translation(Vec3(0.0f, 0.0f, -5.0f));
         Mat4 mvp = mProjection * view * matMeshInst.pModelInstance->transform;
         Mat3 normalTrans = Mat3(view * matMeshInst.pModelInstance->transform);

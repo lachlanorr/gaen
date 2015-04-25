@@ -49,7 +49,7 @@ void Shader::load()
 
     if (!mIsLoaded)
     {
-        GLuint programId = glCreateProgram();
+        mProgramId = glCreateProgram();
 
         GLuint shaderIds[kCodeMax];
         memset(shaderIds, 0, sizeof(shaderIds));
@@ -61,13 +61,13 @@ void Shader::load()
                 break;
         
             PANIC_IF(!Shader::compile_shader(&shaderIds[i], mCodes[i].stage, mCodes[i].code, SHADER_HEADER), "Failed to compile shader: %s", mCodes[i].filename);
-            glAttachShader(programId, shaderIds[i]);
+            glAttachShader(mProgramId, shaderIds[i]);
         }
 
         // link program
         GLint status;
-        glLinkProgram(programId);
-        glGetProgramiv(programId, GL_LINK_STATUS, &status);
+        glLinkProgram(mProgramId);
+        glGetProgramiv(mProgramId, GL_LINK_STATUS, &status);
         PANIC_IF(status == 0, "Failed to link shader program: faceted");
 
         // Release shaders
