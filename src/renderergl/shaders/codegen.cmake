@@ -26,13 +26,22 @@
 
 SET (shaders_codegen_SOURCES
   ${shaders_dir}/faceted.cpp
-  ${shaders_dir}/faceted.frg
   ${shaders_dir}/faceted.h
   ${shaders_dir}/faceted.shd
-  ${shaders_dir}/faceted.vtx
+  ${shaders_dir}/faceted.shf
+  ${shaders_dir}/faceted.shv
+  ${shaders_dir}/present_texture.cpp
+  ${shaders_dir}/present_texture.h
+  ${shaders_dir}/present_texture.shd
+  ${shaders_dir}/present_texture.shf
+  ${shaders_dir}/present_texture.shv
   ${shaders_dir}/Shader.cpp
   ${shaders_dir}/Shader.h
   ${shaders_dir}/ShaderRegistry_codegen.cpp
+  ${shaders_dir}/voxel_cast.cpp
+  ${shaders_dir}/voxel_cast.h
+  ${shaders_dir}/voxel_cast.shc
+  ${shaders_dir}/voxel_cast.shd
 )
 
 IDE_SOURCE_PROPERTIES( "/shaders" "${shaders_codegen_SOURCES}")

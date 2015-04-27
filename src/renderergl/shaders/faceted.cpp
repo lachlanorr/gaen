@@ -32,7 +32,7 @@ namespace gaen
 namespace shaders
 {
 
-static const char * kShaderCode_vtx =
+static const char * kShaderCode_shv =
     "#ifdef OPENGL3\n"
     "\n"
     "in vec4 vPosition;\n"
@@ -86,9 +86,9 @@ static const char * kShaderCode_vtx =
     "    gl_Position = umMVP * vPosition;\n"
     "};\n"
     "#endif //#else //#ifdef OPENGL3\n"
-    ; // kShaderCode_vtx (END)
+    ; // kShaderCode_shv (END)
 
-static const char * kShaderCode_frg =
+static const char * kShaderCode_shf =
     "#ifdef OPENGL3\n"
     "\n"
     "in vec4 vColor;\n"
@@ -111,7 +111,7 @@ static const char * kShaderCode_frg =
     "    gl_FragColor = vColor;\n"
     "};\n"
     "#endif // #else // #ifdef OPENGL3\n"
-    ; // kShaderCode_frg (END)
+    ; // kShaderCode_shf (END)
 
 Shader * faceted::construct()
 {
@@ -119,12 +119,12 @@ Shader * faceted::construct()
 
     // Program Codes
     pShader->mCodes[0].stage = GL_VERTEX_SHADER;
-    pShader->mCodes[0].filename = "faceted.vtx";
-    pShader->mCodes[0].code = kShaderCode_vtx;
+    pShader->mCodes[0].filename = "faceted.shv";
+    pShader->mCodes[0].code = kShaderCode_shv;
 
     pShader->mCodes[1].stage = GL_FRAGMENT_SHADER;
-    pShader->mCodes[1].filename = "faceted.frg";
-    pShader->mCodes[1].code = kShaderCode_frg;
+    pShader->mCodes[1].filename = "faceted.shf";
+    pShader->mCodes[1].code = kShaderCode_shf;
 
 
     // Uniforms

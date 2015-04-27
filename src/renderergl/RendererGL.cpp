@@ -42,6 +42,19 @@
 namespace gaen
 {
 
+static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
+                                  0.0f,  0.0f, // uv  0
+
+                                  1.0f, -1.0f, // pos 1
+                                  1.0f,  0.0f, // uv  1
+
+                                 -1.0f,  1.0f, // pos 2
+                                  0.0f,  1.0f, // uv  2
+
+                                  1.0f,  1.0f, // pos 3
+                                  1.0f,  1.0f  // uv  3
+};
+
 void RendererGL::init(device_context deviceContext,
                       render_context renderContext,
                       u32 screenWidth,
@@ -64,85 +77,6 @@ void RendererGL::fin()
     GDELETE(mpModelMgr);
 }
 
-static const char * sVertShaderCode = 
-#if HAS(OPENGL3)
-    "#version 330 core\n"
-
-    "in vec4 vPosition;\n"
-    "in vec3 vNormal;\n"
-
-    "uniform mat4 umMVP;\n"
-    "uniform mat3 umNormal;\n"
-    "uniform vec4 uvColor;\n"
-    "uniform vec3 uvLightDirection;\n"
-    "uniform vec4 uvLightColor;\n"
-
-    "out vec4 vColor;\n"
-
-    "void main()\n"
-    "{\n"
-    "    vec3 normalTrans = normalize(umNormal * vNormal);\n"
-    "    float intensity = max(dot(normalTrans, uvLightDirection), 0.0);\n"
-    "    intensity += min(intensity + 0.3, 1.0);\n"
-    "    vColor = intensity * uvColor;\n"
-    "    //vColor = vec4((umNormal * vNormal), 1.0);\n"
-    "    //vColor = vec4(dot(uvLightDirection, normalTrans));\n"
-    "    //vColor = abs(dot(uvLightDirection, normalTrans)) * uvColor;\n"
-    "    //vColor = vec4(abs(uvLightDirection), 1.0);\n"
-    "    //vColor = 0.5 * uvColor;\n"
-    "    //vColor = vec4(1.0, 1.0, 0.0, 0.6);\n"
-    "    gl_Position = umMVP * vPosition;\n"
-    "}\n";
-#else //#if HAS(OPENGL3)
- #if IS_PLATFORM_IOS
-    "precision mediump float;\n"
- #endif
-    "attribute vec4 vPosition;\n"
-    "attribute vec3 vNormal;\n"
-
-    "uniform mat4 umMVP;\n"
-    "uniform mat3 umNormal;\n"
-    "uniform vec4 uvColor;\n"
-    "uniform vec3 uvLightDirection;\n"
-    "uniform vec4 uvLightColor;\n"
-
-    "varying vec4 vColor;\n"
-
-    "void main()\n"
-    "{\n"
-    "    vec3 normalTrans = normalize(umNormal * vNormal);\n"
-    "    float intensity = max(dot(normalTrans, uvLightDirection), 0.0);\n"
-    "    intensity += min(intensity + 0.3, 1.0);\n"
-    "    vColor = intensity * uvColor;\n"
-    "    gl_Position = umMVP * vPosition;\n"
-    "}\n";
-#endif // #else //#if HAS(OPENGL3)
-
-
-
-static const char * sFragShaderCode =
-#if HAS(OPENGL3)
-    "#version 330 core\n"
-
-    "in vec4 vColor;\n"
-    "out vec4 color;\n"
-
-    "void main()\n"
-    "{\n"
-    "    color = vColor;\n"
-    "}\n";
-#else // #if HAS(OPENGL3)
- #if IS_PLATFORM_IOS
-    "precision mediump float;\n"
- #endif
-
-    "varying vec4 vColor;\n"
-
-    "void main()\n"
-    "{\n"
-    "    gl_FragColor = vColor;\n"
-    "}\n";
-#endif // #else // #if HAS(OPENGL3)
 
 static Mat4 sMVPMat(1.0f);
 
@@ -150,9 +84,9 @@ void RendererGL::initViewport()
 {
     ASSERT(mIsInit);
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
     //glEnable(GL_DEPTH_TEST);   // Enables Depth Testing
     //glDepthFunc(GL_LEQUAL);    // The Type Of Depth Testing To Do
 
@@ -183,8 +117,53 @@ void RendererGL::initViewport()
     //sMVPMat = Mat4::lookat(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(0.0f, 1.0f, 0.0f));
     sMVPMat = Mat4::rotation(Vec3(kPi / 4.0f, kPi / 4.0f, 0.0f));
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    // Prepare GPU renderer presentation vars
+    glGenVertexArrays(1, &mPresentVAO);
+    glBindVertexArray(mPresentVAO);
+
+    glGenBuffers(1, &mPresentVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mPresentVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(kPresentSurface), kPresentSurface, GL_STATIC_DRAW);
+
+    mpPresentShader = getShader(HASH::present_texture);
+    mpPresentShader->use();
+
+    // vertex position
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 16, (void*)0);
     glEnableVertexAttribArray(0);
+
+    // vertex UV
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 16, (void*)8);
+    glEnableVertexAttribArray(1);
+
+    // prep image
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glGenTextures(1, &mPresentImage);
+    glBindTexture(GL_TEXTURE_2D, mPresentImage);
+    
+    // dummy data for now
+    //16x16 image, rgba, 4 * 16 * 16
+    static const u32 kImgWidth = 16;
+    static const u32 kImgHeight = 16;
+    static Color dummyPixels[kImgWidth * kImgHeight];
+    for (u32 h = 0; h < kImgHeight; ++h)
+    {
+        u32 rowStart = h * kImgWidth;
+        for (u32 w = 0; w < kImgWidth; ++w)
+        {
+            dummyPixels[rowStart + w].setr((u8)(255 * (h / (float)kImgHeight)));
+            dummyPixels[rowStart + w].setg(0);
+            dummyPixels[rowStart + w].setb(50);
+            dummyPixels[rowStart + w].seta(255);
+        }
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, kImgWidth, kImgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, dummyPixels);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    
+
 }
 
 static void set_shader_vec4_var(u32 nameHash, const Vec4 & val, void * context)
@@ -231,6 +210,13 @@ void RendererGL::render()
     glClear(GL_COLOR_BUFFER_BIT);
     GL_CLEAR_DEPTH(1.0f);
 
+    mpPresentShader->use();
+
+    glBindVertexArray(mPresentVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    // LORRTEMP - remove mesh rendering for now
+#if 0
     ModelMgr<RendererGL>::MeshIterator meshIt = mpModelMgr->begin();
     ModelMgr<RendererGL>::MeshIterator meshItEnd = mpModelMgr->end();
 
@@ -278,6 +264,7 @@ void RendererGL::render()
 
         ++meshIt;
     }
+#endif
 }
 
 template <typename T>

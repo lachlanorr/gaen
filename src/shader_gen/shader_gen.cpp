@@ -79,6 +79,8 @@ const char * get_type_name(GLenum type)
 {
     switch (type)
     {
+    case GL_FLOAT_VEC2:
+        return "GL_FLOAT_VEC2";
     case GL_FLOAT_VEC3:
         return "GL_FLOAT_VEC3";
     case GL_FLOAT_VEC4:
@@ -87,8 +89,12 @@ const char * get_type_name(GLenum type)
         return "GL_FLOAT_MAT3";
     case GL_FLOAT_MAT4:
         return "GL_FLOAT_MAT4";
+    case GL_IMAGE_2D:
+        return "GL_IMAGE_2D";
+    case GL_SAMPLER_2D:
+        return "GL_SAMPLER_2D";
     }
-    PANIC("Unsupported GLenum type: %u", type);
+    PANIC("Unsupported GLenum type: 0x%x", type);
     return nullptr;
 }
 
@@ -272,9 +278,9 @@ void parse_shd(ShaderInfo & si, const char * shdPath)
 
     char scratch[kMaxPath];
 
-    static const char * kShaderNames[] = {"vert_shader",
-                                          "frag_shader",
-                                          "comp_shader",
+    static const char * kShaderNames[] = {"vertex_shader",
+                                          "fragment_shader",
+                                          "compute_shader",
                                           nullptr};
     static const u32 kShaderTypes[] = {GL_VERTEX_SHADER,
                                        GL_FRAGMENT_SHADER,
@@ -375,7 +381,7 @@ void process_shader_program(ShaderInfo & si)
         bool sourceCompRes = compile_shader(&shader, source.type, sourceCode.get(), SHADER_HEADER);
         if (!sourceCompRes)
         {
-            PANIC("Failed to compile shader: %s", source.path);
+            PANIC("Failed to compile shader: %s", source.path.c_str());
         }
 
         shaderList.push_back(shader);
@@ -474,16 +480,28 @@ S generate_shader_h(const ShaderInfo & si)
     // storage for codes, uniforms, and attributes
     snprintf(scratch, kMaxPath, "    static const u32 kCodeCount = %u;\n", si.sources.size());
     code += scratch;
-    snprintf(scratch, kMaxPath, "    static const u32 kUniformCount = %u;\n", si.uniforms.size());
-    code += scratch;
-    snprintf(scratch, kMaxPath, "    static const u32 kAttributeCount = %u;\n", si.attributes.size());
-    code += scratch;
+    if (si.uniforms.size() > 0)
+    {
+        snprintf(scratch, kMaxPath, "    static const u32 kUniformCount = %u;\n", si.uniforms.size());
+        code += scratch;
+    }
+    if (si.attributes.size() > 0)
+    {
+        snprintf(scratch, kMaxPath, "    static const u32 kAttributeCount = %u;\n", si.attributes.size());
+        code += scratch;
+    }
 
     code += LF;
 
     code += S("    Shader::ShaderCode mCodes[kCodeCount];\n");
-    code += S("    Shader::VariableInfo mUniforms[kUniformCount];\n");
-    code += S("    Shader::VariableInfo mAttributes[kAttributeCount];\n");
+    if (si.uniforms.size() > 0)
+    {
+        code += S("    Shader::VariableInfo mUniforms[kUniformCount];\n");
+    }
+    if (si.attributes.size() > 0)
+    {
+        code += S("    Shader::VariableInfo mAttributes[kAttributeCount];\n");
+    }
 
     code += S("}; // class ") + si.name + LF;
 
@@ -617,10 +635,16 @@ S generate_shader_cpp(const ShaderInfo & si)
     code += S("    // Set base Shader members to our arrays and counts\n");
     code += S("    pShader->mCodeCount = kCodeCount;\n");
     code += S("    pShader->mpCodes = pShader->mCodes;\n");
-    code += S("    pShader->mUniformCount = kUniformCount;\n");
-    code += S("    pShader->mpUniforms = pShader->mUniforms;\n");
-    code += S("    pShader->mAttributeCount = kAttributeCount;\n");
-    code += S("    pShader->mpAttributes = pShader->mAttributes;\n");
+    if (si.uniforms.size() > 0)
+    {
+        code += S("    pShader->mUniformCount = kUniformCount;\n");
+        code += S("    pShader->mpUniforms = pShader->mUniforms;\n");
+    }
+    if (si.attributes.size() > 0)
+    {
+        code += S("    pShader->mAttributeCount = kAttributeCount;\n");
+        code += S("    pShader->mpAttributes = pShader->mAttributes;\n");
+    }
 
     code += LF;
 

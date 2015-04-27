@@ -79,6 +79,15 @@ private:
     u32 mScreenWidth = 0;
     u32 mScreenHeight = 0;
 
+    // GPU custom renderer presentation support
+    // I.E. a surface to render our GPU generated texture upon for display.
+    shaders::Shader * mpVoxelCast;
+    GLuint mPresentVAO;
+    GLuint mPresentVertexBuffer;
+    GLuint mPresentImage;
+    shaders::Shader * mpPresentShader;
+
+
     Mat4 mProjection;
     Mat4 mGuiProjection;
 

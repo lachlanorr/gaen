@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// gaen_opengl.h - Win32 opengl function pointers
+// voxel_cast.cpp - Auto-generated shader from voxel_cast.shd
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -23,49 +23,29 @@
 //   3. This notice may not be removed or altered from any source
 //   distribution.
 //------------------------------------------------------------------------------
+#ifndef GAEN_RENDERERGL_SHADERS_VOXEL_CAST_H
+#define GAEN_RENDERERGL_SHADERS_VOXEL_CAST_H
+#include "renderergl/shaders/Shader.h"
+namespace gaen
+{
+namespace shaders
+{
 
-#ifndef GAEN_GAEN_OPENGL_H
-#define GAEN_GAEN_OPENGL_H
+class voxel_cast : Shader
+{
+public:
+    static Shader * construct();
 
-#include "core/base_defines.h"
+private:
+    voxel_cast() : Shader(0xe9f55c27 /* HASH::voxel_cast */) {}
 
-#if IS_PLATFORM_WIN32
- #ifndef WIN32_LEAN_AND_MEAN
-  #define WIN32_LEAN_AND_MEAN
- #endif // #ifndef WIN32_LEAN_AND_MEAN
- #include <windows.h>
- #include "renderergl/win32gl.h"
- namespace gaen
- {
- typedef HDC device_context;
- typedef HGLRC render_context;
- }
- #define OPENGL3 HAS_X
- #define GL_CLEAR_DEPTH glClearDepth
- #define SHADER_HEADER "#version 430 core\n#define OPENGL3\n"
-#elif IS_PLATFORM_OSX
- #include <OpenGL/gl3.h>
- namespace gaen
- {
- typedef void* device_context;
- typedef void* render_context;
- }
- #define OPENGL3 HAS__
- #define GL_CLEAR_DEPTH glClearDepth
- #define SHADER_HEADER ""
-#elif IS_PLATFORM_IOS
- #include <OpenGLES/ES3/gl.h>
- namespace gaen
- {
- typedef void* device_context;
- typedef void* render_context;
- }
- #define OPENGL3 HAS__
- #define GL_CLEAR_DEPTH glClearDepthf
- #define SHADER_HEADER "#define PLATFORM_IOS\n"
-#else
-#error Need to implement a similar concepts on other platforms
-#endif
+    static const u32 kCodeCount = 1;
+    static const u32 kUniformCount = 1;
 
-#endif // #ifndef GAEN_GAEN_OPENGL_H
+    Shader::ShaderCode mCodes[kCodeCount];
+    Shader::VariableInfo mUniforms[kUniformCount];
+}; // class voxel_cast
 
+} // namespace shaders
+} // namespace gaen
+#endif // #ifdef GAEN_RENDERERGL_SHADERS_VOXEL_CAST_H
