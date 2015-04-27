@@ -141,29 +141,16 @@ void RendererGL::initViewport()
     glGenTextures(1, &mPresentImage);
     glBindTexture(GL_TEXTURE_2D, mPresentImage);
     
-    // dummy data for now
-    //16x16 image, rgba, 4 * 16 * 16
-    static const u32 kImgWidth = 16;
-    static const u32 kImgHeight = 16;
-    static Color dummyPixels[kImgWidth * kImgHeight];
-    for (u32 h = 0; h < kImgHeight; ++h)
-    {
-        u32 rowStart = h * kImgWidth;
-        for (u32 w = 0; w < kImgWidth; ++w)
-        {
-            dummyPixels[rowStart + w].setr((u8)(255 * (h / (float)kImgHeight)));
-            dummyPixels[rowStart + w].setg(0);
-            dummyPixels[rowStart + w].setb(50);
-            dummyPixels[rowStart + w].seta(255);
-        }
-    }
+    static const u32 kImgWidth = 1024;
+    static const u32 kImgHeight = 1024;
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, kImgWidth, kImgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, dummyPixels);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG32F, kImgWidth, kImgHeight);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    
-
+    // prep voxel cast shader
+    mpVoxelCast = getShader(HASH::voxel_cast);
+    glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
 }
 
 static void set_shader_vec4_var(u32 nameHash, const Vec4 & val, void * context)
@@ -209,6 +196,9 @@ void RendererGL::render()
 
     glClear(GL_COLOR_BUFFER_BIT);
     GL_CLEAR_DEPTH(1.0f);
+
+    mpVoxelCast->use();
+    glDispatchCompute(32, 64, 1);
 
     mpPresentShader->use();
 

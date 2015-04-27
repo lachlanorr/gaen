@@ -55,7 +55,7 @@ static const char * kShaderCode_shf =
     "\n"
     "void main()\n"
     "{\n"
-    "    color = texture( imageSampler, UV).rgb;\n"
+    "    color = texture(imageSampler, UV).rgb;\n"
     "};\n"
     ; // kShaderCode_shf (END)
 

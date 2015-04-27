@@ -37,7 +37,7 @@ static const char * kShaderCode_shc =
     "layout (local_size_x = 32, local_size_y = 16) in;\n"
     "\n"
     "// An image to store data into\n"
-    "layout (rg32f) uniform image2D data;\n"
+    "layout (binding=0, rg32f) uniform image2D data;\n"
     "\n"
     "void main(void)\n"
     "{\n"

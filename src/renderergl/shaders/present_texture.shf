@@ -6,5 +6,5 @@ layout(binding=0) uniform sampler2D imageSampler;
 
 void main()
 {
-    color = texture( imageSampler, UV).rgb;
+    color = texture(imageSampler, UV).rgb;
 };

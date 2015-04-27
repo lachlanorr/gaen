@@ -2,7 +2,7 @@
 layout (local_size_x = 32, local_size_y = 16) in;
 
 // An image to store data into
-layout (rg32f) uniform image2D data;
+layout (binding=0, rg32f) uniform image2D data;
 
 void main(void)
 {
