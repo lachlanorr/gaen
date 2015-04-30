@@ -198,7 +198,7 @@ void RendererGL::render()
     GL_CLEAR_DEPTH(1.0f);
 
     mpVoxelCast->use();
-    glDispatchCompute(32, 64, 1);
+    glDispatchCompute(8, 8, 1);
 
     mpPresentShader->use();
 

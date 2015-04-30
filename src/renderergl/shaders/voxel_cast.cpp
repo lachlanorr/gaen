@@ -34,7 +34,7 @@ namespace shaders
 
 static const char * kShaderCode_shc =
     "\n"
-    "layout (local_size_x = 32, local_size_y = 16) in;\n"
+    "layout (local_size_x = 32, local_size_y = 32) in;\n"
     "\n"
     "// An image to store data into\n"
     "layout (binding=0, rg32f) uniform image2D data;\n"
