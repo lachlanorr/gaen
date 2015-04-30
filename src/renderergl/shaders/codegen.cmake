@@ -25,6 +25,10 @@
 #-------------------------------------------------------------------------------
 
 SET (shaders_codegen_SOURCES
+  ${shaders_dir}/compute_test.cpp
+  ${shaders_dir}/compute_test.h
+  ${shaders_dir}/compute_test.shc
+  ${shaders_dir}/compute_test.shd
   ${shaders_dir}/faceted.cpp
   ${shaders_dir}/faceted.h
   ${shaders_dir}/faceted.shd

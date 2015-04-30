@@ -33,30 +33,30 @@ namespace shaders
 {
 
 static const char * kShaderCode_shv =
-    "layout(location = 0) in vec4 vPosition;\n"
-    "layout(location = 1) in vec2 vUV;\n"
-    "\n"
-    "out vec2 UV;\n"
-    "\n"
-    "void main()\n"
-    "{\n"
-    "    gl_Position = vPosition;\n"
-    "    UV = vUV;\n"
-    "};\n"
-    "\n"
+    "layout(location = 0) in vec4 vPosition;\n"
+    "layout(location = 1) in vec2 vUV;\n"
+    "\n"
+    "out vec2 UV;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    gl_Position = vPosition;\n"
+    "    UV = vUV;\n"
+    "};\n"
+    "\n"
     ; // kShaderCode_shv (END)
 
 static const char * kShaderCode_shf =
-    "in vec2 UV;\n"
-    "\n"
-    "out vec3 color;\n"
-    "\n"
-    "layout(binding=0) uniform sampler2D imageSampler;\n"
-    "\n"
-    "void main()\n"
-    "{\n"
-    "    color = texture(imageSampler, UV).rgb;\n"
-    "};\n"
+    "in vec2 UV;\n"
+    "\n"
+    "out vec3 color;\n"
+    "\n"
+    "layout(binding=0) uniform sampler2D imageSampler;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    color = texture(imageSampler, UV).rgb;\n"
+    "};\n"
     ; // kShaderCode_shf (END)
 
 Shader * present_texture::construct()

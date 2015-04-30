@@ -1,0 +1,17 @@
+// Simple compute test that renders invocation and work group info to image
+
+layout (local_size_x = 32, local_size_y = 32) in;
+
+// An image to store data into
+layout (binding=0, rg32f) uniform image2D data;
+
+void main(void)
+{
+    // Store the local invocation ID into the image
+    imageStore(data,
+               ivec2(gl_GlobalInvocationID.xy),
+               vec4(vec2(gl_LocalInvocationID.xy) /
+                    vec2(gl_WorkGroupSize.xy),
+                    0.0, 0.0));
+    
+}

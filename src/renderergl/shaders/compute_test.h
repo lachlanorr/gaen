@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// ShaderRegistry_codegen.cpp - Shader factory class
+// compute_test.cpp - Auto-generated shader from compute_test.shd
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -23,24 +23,29 @@
 //   3. This notice may not be removed or altered from any source
 //   distribution.
 //------------------------------------------------------------------------------
-
-#include "engine/hashes.h"
-#include "renderergl/ShaderRegistry.h"
-#include "renderergl/shaders/compute_test.h"
-#include "renderergl/shaders/faceted.h"
-#include "renderergl/shaders/present_texture.h"
-#include "renderergl/shaders/voxel_cast.h"
-
+#ifndef GAEN_RENDERERGL_SHADERS_COMPUTE_TEST_H
+#define GAEN_RENDERERGL_SHADERS_COMPUTE_TEST_H
+#include "renderergl/shaders/Shader.h"
 namespace gaen
 {
-
-void ShaderRegistry::registerAllShaderConstructors()
+namespace shaders
 {
-    registerShaderConstructor(HASH::compute_test, shaders::compute_test::construct);
-    registerShaderConstructor(HASH::faceted, shaders::faceted::construct);
-    registerShaderConstructor(HASH::present_texture, shaders::present_texture::construct);
-    registerShaderConstructor(HASH::voxel_cast, shaders::voxel_cast::construct);
-}
 
+class compute_test : Shader
+{
+public:
+    static Shader * construct();
 
+private:
+    compute_test() : Shader(0x62ad79eb /* HASH::compute_test */) {}
+
+    static const u32 kCodeCount = 1;
+    static const u32 kUniformCount = 1;
+
+    Shader::ShaderCode mCodes[kCodeCount];
+    Shader::VariableInfo mUniforms[kUniformCount];
+}; // class compute_test
+
+} // namespace shaders
 } // namespace gaen
+#endif // #ifdef GAEN_RENDERERGL_SHADERS_COMPUTE_TEST_H

@@ -149,7 +149,7 @@ void RendererGL::initViewport()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
     // prep voxel cast shader
-    mpVoxelCast = getShader(HASH::voxel_cast);
+    mpVoxelCast = getShader(HASH::compute_test);
     glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
 }
 

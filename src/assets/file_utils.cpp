@@ -117,7 +117,9 @@ void append_path(char * path, const char * append)
     ASSERT(append);
     if (*path)
     {
-        strcat(path, "/");
+        size_t pathLen = strlen(path);
+        if (path[pathLen-1] != '/')
+            strcat(path, "/");
         strcat(path, append);
     }
     else

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// voxel_cast.cpp - Auto-generated shader from voxel_cast.shd
+// compute_test.cpp - Auto-generated shader from compute_test.shd
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -25,7 +25,7 @@
 //------------------------------------------------------------------------------
 
 #include "core/mem.h"
-#include "renderergl/shaders/voxel_cast.h"
+#include "renderergl/shaders/compute_test.h"
 
 namespace gaen
 {
@@ -33,6 +33,7 @@ namespace shaders
 {
 
 static const char * kShaderCode_shc =
+    "// Simple compute test that renders invocation and work group info to image\n"
     "\n"
     "layout (local_size_x = 32, local_size_y = 32) in;\n"
     "\n"
@@ -51,13 +52,13 @@ static const char * kShaderCode_shc =
     "}\n"
     ; // kShaderCode_shc (END)
 
-Shader * voxel_cast::construct()
+Shader * compute_test::construct()
 {
-    voxel_cast * pShader = GNEW(kMEM_Renderer, voxel_cast);
+    compute_test * pShader = GNEW(kMEM_Renderer, compute_test);
 
     // Program Codes
     pShader->mCodes[0].stage = GL_COMPUTE_SHADER;
-    pShader->mCodes[0].filename = "voxel_cast.shc";
+    pShader->mCodes[0].filename = "compute_test.shc";
     pShader->mCodes[0].code = kShaderCode_shc;
 
 
