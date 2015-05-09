@@ -35,6 +35,9 @@
 #include "engine/ModelMgr.h"
 #include "engine/renderer_structs.h"
 
+// LORRTODO: probably a temp include only until we get voxel stuff more defined
+#include "engine/voxels_proto.h"
+
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/ShaderRegistry.h"
 
@@ -69,6 +72,8 @@ public:
     void loadMaterialMesh(Model::MaterialMesh & matMesh);
 
 private:
+    static const u32 kImgSize = 256;
+
     void setActiveShader(u32 nameHash);
     shaders::Shader * getShader(u32 nameHash);
 
@@ -78,6 +83,11 @@ private:
     render_context mRenderContext = 0;
     u32 mScreenWidth = 0;
     u32 mScreenHeight = 0;
+
+    // GPU capabilities
+    GLint mMaxCombinedTextureImageUnits = 0;
+    GLint mMaxTextureImageUnits = 0;
+    GLint mMaxTextureSize = 0;
 
     // GPU custom renderer presentation support
     // I.E. a surface to render our GPU generated texture upon for display.
@@ -101,6 +111,9 @@ private:
     ShaderRegistry mShaderRegistry;
     HashMap<kMEM_Renderer, u32, shaders::Shader*> mShaders;
 
+
+    // LORRTODO: temp voxel experiment stuff
+    ShaderSimulator mShaderSim;
 };
 
 

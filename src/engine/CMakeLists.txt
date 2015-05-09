@@ -33,6 +33,7 @@ SET (engine_SOURCES
   BlockMemory.h
   CmpString.cpp
   CmpString.h
+  collision.h
   Color.h
   Component.cpp
   Component.h
@@ -74,6 +75,10 @@ SET (engine_SOURCES
   Task.h
   TaskMaster.cpp
   TaskMaster.h
+  voxels.cpp
+  voxels.h
+  voxels_proto.cpp
+  voxels_proto.h
   ${engine_codegen_SOURCES}
   ${engine_messages_SOURCES}
   )

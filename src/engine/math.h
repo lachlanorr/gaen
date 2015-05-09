@@ -76,6 +76,7 @@ struct Vec3
 
     Vec3 operator-() const;
     Vec3 operator-(const Vec3& rhs) const;
+    Vec3 operator+(const Vec3& rhs) const;
     Vec3 operator*(f32 rhs) const;
     bool operator==(const Vec3 & rhs) const;
     f32 & operator[](size_t idx);
@@ -167,8 +168,11 @@ struct Mat3
     static const Mat3 & zero();
     static const Mat3 & identity();
 
+    static Vec3 multiply(const Mat3 & mat3, const Vec3 & vec3);
+
     static f32 determinant(const Mat3 & mat3);
     static Mat3 inverse(const Mat3 & mat3);
+    static Mat3 transpose(const Mat3 & mat3);
 
     // build a 3x3 matrix to use to transform normals
     static Mat3 model_view_to_normal_transform(const Mat4 & mv);
@@ -260,8 +264,6 @@ struct Mat4
 
     f32 elems[16];
 };
-
-
 
 
 //------------------------------------------------------------------------------
@@ -390,6 +392,11 @@ inline Vec3 Vec3::operator-() const
 inline Vec3 Vec3::operator-(const Vec3 & rhs) const
 {
     return Vec3(x() - rhs.x(), y() - rhs.y(), z() - rhs.z());
+}
+
+inline Vec3 Vec3::operator+(const Vec3& rhs) const
+{
+    return Vec3(x() + rhs.x(), y() + rhs.y(), z() + rhs.z());
 }
 
 inline Vec3 Vec3::operator*(f32 rhs) const
@@ -710,6 +717,13 @@ inline const f32 & Mat3::operator[](size_t idx) const
     return elems[idx];
 }
 
+inline Mat3 Mat3::transpose(const Mat3 & mat3)
+{
+    return Mat3(mat3.elems[0], mat3.elems[3], mat3.elems[6],
+                 mat3.elems[1], mat3.elems[4], mat3.elems[7],
+                 mat3.elems[2], mat3.elems[5], mat3.elems[8]);
+}
+
 //--------------------------------------
 // Mat34 inlined methods
 //--------------------------------------
@@ -951,7 +965,6 @@ inline Mat4 Mat4::operator* (const Mat4 & rhs) const
 {
     return multiply(*this, rhs);
 }
-
 
 
 //------------------------------------------------------------------------------

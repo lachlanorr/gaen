@@ -42,17 +42,21 @@
 namespace gaen
 {
 
-static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
-                                  0.0f,  0.0f, // uv  0
+static f32 kPresentSurface[] = { -0.9f, -0.9f,          // pos 0
+                                  0.0f,  0.0f,          // uv  0
+                                  0.0f,  0.0f, -1.0f,   // frustum 0
 
-                                  1.0f, -1.0f, // pos 1
-                                  1.0f,  0.0f, // uv  1
+                                  0.9f, -0.9f,          // pos 1
+                                  1.0f,  0.0f,          // uv  1
+                                  0.0f,  0.0f, -1.0f,   // frustum 1
 
-                                 -1.0f,  1.0f, // pos 2
-                                  0.0f,  1.0f, // uv  2
+                                 -0.9f,  0.9f,          // pos 2
+                                  0.0f,  1.0f,          // uv  2
+                                  0.0f,  0.0f, -1.0f,   // frustum 2
 
-                                  1.0f,  1.0f, // pos 3
-                                  1.0f,  1.0f  // uv  3
+                                  0.9f,  0.9f,          // pos 3
+                                  1.0f,  1.0f,          // uv  3
+                                  0.0f,  0.0f, -1.0f,   // frustum 3
 };
 
 void RendererGL::init(device_context deviceContext,
@@ -66,6 +70,8 @@ void RendererGL::init(device_context deviceContext,
     mScreenHeight = screenHeight;
 
     mpModelMgr = GNEW(kMEM_Engine, ModelMgr<RendererGL>, *this);
+
+    mShaderSim.init(kImgSize);
 
     mIsInit = true;
 }
@@ -84,9 +90,14 @@ void RendererGL::initViewport()
 {
     ASSERT(mIsInit);
 
+    // Collect some details about our GPU capabilities
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &mMaxCombinedTextureImageUnits);
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &mMaxTextureImageUnits);
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &mMaxTextureSize);
+
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    //glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
     //glEnable(GL_DEPTH_TEST);   // Enables Depth Testing
     //glDepthFunc(GL_LEQUAL);    // The Type Of Depth Testing To Do
 
@@ -129,28 +140,32 @@ void RendererGL::initViewport()
     mpPresentShader->use();
 
     // vertex position
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 16, (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 28, (void*)0);
     glEnableVertexAttribArray(0);
 
     // vertex UV
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 16, (void*)8);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 28, (void*)8);
     glEnableVertexAttribArray(1);
+
+    // vertex frustum
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 28, (void*)16);
+    glEnableVertexAttribArray(2);
 
     // prep image
     glActiveTexture(GL_TEXTURE0 + 0);
     glGenTextures(1, &mPresentImage);
     glBindTexture(GL_TEXTURE_2D, mPresentImage);
     
-    static const u32 kImgWidth = 1024;
-    static const u32 kImgHeight = 1024;
-
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG32F, kImgWidth, kImgHeight);
+    //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG32F, kImgSize, kImgSize);
+    glEnable(GL_TEXTURE_2D);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kImgSize, kImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
     // prep voxel cast shader
     mpVoxelCast = getShader(HASH::compute_test);
     glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
+
 }
 
 static void set_shader_vec4_var(u32 nameHash, const Vec4 & val, void * context)
@@ -197,6 +212,25 @@ void RendererGL::render()
     glClear(GL_COLOR_BUFFER_BIT);
     GL_CLEAR_DEPTH(1.0f);
 
+
+#if 1 // Shader simulator
+    mShaderSim.render();
+
+    mpPresentShader->use();
+
+    glActiveTexture(GL_TEXTURE0 + 0);
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, mPresentImage);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kImgSize, kImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, mShaderSim.frameBuffer());
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGB8);
+
+    glBindVertexArray(mPresentVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+#endif
+
+#if 0 // compute shader test
     mpVoxelCast->use();
     glDispatchCompute(8, 8, 1);
 
@@ -204,9 +238,9 @@ void RendererGL::render()
 
     glBindVertexArray(mPresentVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    // LORRTEMP - remove mesh rendering for now
-#if 0
+#endif
+    
+#if 0 // mesh rendering
     ModelMgr<RendererGL>::MeshIterator meshIt = mpModelMgr->begin();
     ModelMgr<RendererGL>::MeshIterator meshItEnd = mpModelMgr->end();
 

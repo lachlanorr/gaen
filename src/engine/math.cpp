@@ -55,6 +55,25 @@ Mat2 Mat2::rotation(f32 angle)
 //------------------------------------------------------------------------------
 // Mat3 methods
 //------------------------------------------------------------------------------
+Vec3 Mat3::multiply(const Mat3 & mat3, const Vec3 & vec3)
+{
+    Vec3 newVec;
+
+    newVec.x() = mat3[0] * vec3.x() +
+                 mat3[1] * vec3.y() +
+                 mat3[2] * vec3.z();
+
+    newVec.y() = mat3[3] * vec3.x() +
+                 mat3[4] * vec3.y() +
+                 mat3[5] * vec3.z();
+
+    newVec.z() = mat3[6] * vec3.x() +
+                 mat3[7] * vec3.y() +
+                 mat3[8] * vec3.z();
+
+    return newVec;
+}
+
 f32 Mat3::determinant(const Mat3 & mat3)
 {
     return mat3[0] * (mat3[4] * mat3[8] - mat3[7] * mat3[5]) +
