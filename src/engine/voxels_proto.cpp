@@ -76,16 +76,21 @@ void ShaderSimulator::init(u32 outputImageSize)
 {
     mFrameBuffer = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(Pix_RGB8));
 
-    // prep cameral
+    // prep camera
     cameraPos = Vec3(0.0f, 0.0f, 10.0f);
     windowSize = Vec2((f32)outputImageSize, (f32)outputImageSize);
     nearZ = 5.0f;
     farZ = 10000.0f;
+
+    voxelRoot.pos = Vec3(0.0f, 0.0f, -1000.0f);
+    voxelRoot.rad = 2.0f;
+    voxelRoot.rot = Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f));
 }
 
 void ShaderSimulator::render(const RaycastCamera & camera)
 {
     projectionInv = camera.projectionInv();
+    cameraPos = Vec3(50.0f, 100.0f, 1.0f);
 
     Pix_RGB8 * pix = reinterpret_cast<Pix_RGB8*>(mFrameBuffer->buffer());
 
@@ -125,11 +130,27 @@ void ShaderSimulator::fragShader_Raycast()
     rayScreenPos.z() = 0.0f;
 
     Vec3 rayDir = Vec3::normalize(Mat4::multiply(projectionInv, rayScreenPos));
+    Vec3 rayPos = cameraPos;
+    
+    VoxelRef voxelRef;
+    if (test_ray_voxel(&voxelRef, rayPos, rayDir, voxelRoot))
+    {
+        color.r = 255;
+        color.g = 255;
+        color.b = 255;
+    }
+    else
+    {
+        color.r = 0;
+        color.g = 0;
+        color.b = 0;
+    }
 
+/*
     color.r = (u8)(abs(rayDir.x()) * 512.0f);
     color.g = (u8)(abs(rayDir.y()) * 1024.0f);
     color.b = (u8)(abs(rayDir.z()) * 255.0f);
-
+    */
 //    color.r = (u8)((rayDir.x() + 1.0f) * 127.5f);
 //    color.g = (u8)((rayDir.y() + 1.0f) * 127.5f);
 

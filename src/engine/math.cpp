@@ -121,6 +121,34 @@ Mat3 Mat3::inverse(const Mat3 & mat3)
     return inv;
 }
 
+Mat3 Mat3::rotation(const Vec3 & angles)
+{
+    f32 cosX = cos(angles.x());
+    f32 sinX = sin(angles.x());
+    f32 cosY = cos(angles.y());
+    f32 sinY = sin(angles.y());
+    f32 cosZ = cos(angles.z());
+    f32 sinZ = sin(angles.z());
+    f32 cosXsinY = cosX * sinY;
+    f32 sinXsinY = sinX * sinY;
+
+    Mat3 mat3;
+
+    mat3[0]  = cosY * cosZ;
+    mat3[1]  = -cosY * sinZ;
+    mat3[2]  = sinY;
+
+    mat3[3]  = sinXsinY * cosZ + cosX * sinZ;
+    mat3[4]  = -sinXsinY * sinZ + cosX * cosZ;
+    mat3[5]  = -sinX * cosY;
+
+    mat3[6]  = -cosXsinY * cosZ + sinX * sinZ;
+    mat3[7]  = cosXsinY * sinZ + sinX * cosZ;
+    mat3[8]  = cosX * cosY;
+
+    return mat3;
+}
+
 Mat3 Mat3::model_view_to_normal_transform(const Mat4 & mv)
 {
     // Calculate the transpose of the inverse of the top 3x3 of

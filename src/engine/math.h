@@ -174,6 +174,8 @@ struct Mat3
     static Mat3 inverse(const Mat3 & mat3);
     static Mat3 transpose(const Mat3 & mat3);
 
+    static Mat3 rotation(const Vec3 & angles);
+
     // build a 3x3 matrix to use to transform normals
     static Mat3 model_view_to_normal_transform(const Mat4 & mv);
 

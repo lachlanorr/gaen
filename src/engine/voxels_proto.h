@@ -24,13 +24,14 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_VOXELS_H
-#define GAEN_ENGINE_VOXELS_H
+#ifndef GAEN_ENGINE_VOXELS_PROTO_H
+#define GAEN_ENGINE_VOXELS_PROTO_H
 
 #include "core/base_defines.h"
 #include "core/mem.h"
 #include "engine/math.h"
 #include "engine/RaycastCamera.h"
+#include "engine/voxels.h"
 
 namespace gaen
 {
@@ -202,6 +203,10 @@ private:
     Vec2 windowSize;
     f32 nearZ;
     f32 farZ;
+
+    // LORRTODO - temp voxel stuff - should move to game engine proper
+    VoxelRoot voxelRoot;
+
 };
 
 } // namespace gaen
