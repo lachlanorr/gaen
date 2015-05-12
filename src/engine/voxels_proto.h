@@ -176,6 +176,7 @@ public:
     void render();
 private:
     void fragShader_Blue();
+    void fragShader_Raycast();
 
     bool mIsInit = false;
     ImageBuffer * mFrameBuffer;
@@ -193,6 +194,12 @@ private:
     ScreenCoords gl_FragCoord;
 
     u32 uniform0 = 0;
+
+    // camera stuff
+    Vec3 cameraPos;
+    Vec2 windowSize;
+    f32 nearZ;
+    f32 farZ;
 };
 
 } // namespace gaen

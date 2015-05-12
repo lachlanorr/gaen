@@ -365,8 +365,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     sHinstance = hInstance;
 
-    const u32 kScreenWidth = 1024; //1280;
-    const u32 kScreenHeight = 1024; //720;
+    const u32 kScreenWidth = 1280;
+    const u32 kScreenHeight = 720;
     createGLWindow("Gaen", kScreenWidth, kScreenHeight, 32);
 
     prep_raw_input();

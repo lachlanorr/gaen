@@ -38,6 +38,8 @@
 // LORRTODO: probably a temp include only until we get voxel stuff more defined
 #include "engine/voxels_proto.h"
 
+#include "engine/RaycastCamera.h"
+
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/ShaderRegistry.h"
 
@@ -72,8 +74,6 @@ public:
     void loadMaterialMesh(Model::MaterialMesh & matMesh);
 
 private:
-    static const u32 kImgSize = 256;
-
     void setActiveShader(u32 nameHash);
     shaders::Shader * getShader(u32 nameHash);
 
@@ -114,6 +114,10 @@ private:
 
     // LORRTODO: temp voxel experiment stuff
     ShaderSimulator mShaderSim;
+
+    static const u32 kImgSize = 256;
+
+    RaycastCamera mRaycastCamera;
 };
 
 

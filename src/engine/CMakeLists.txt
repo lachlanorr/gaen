@@ -63,6 +63,8 @@ SET (engine_SOURCES
   Model.cpp
   Model.h
   ModelMgr.h
+  RaycastCamera.cpp
+  RaycastCamera.h
   Registry.cpp
   Registry.h
   renderer_api.h

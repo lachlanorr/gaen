@@ -28,6 +28,7 @@
 #define GAEN_ENGINE_RAYCAST_CAMERA
 
 #include "engine/math.h"
+#include "engine/collision.h"
 
 namespace gaen
 {
@@ -59,11 +60,11 @@ public:
 
     struct Corner
     {
-        Vec3 near;
-        Vec3 far;
+        Vec3 nearPos;
+        Vec3 farPos;
     };
 
-    RaycastCamera(u32 width, u32 height, f32 nearZ, f32 farZ);
+    void init(u32 screenWidth, u32 screenHeight, f32 fov, f32 nearZ, f32 farZ);
 
     const Corner & corner(CornerType cornerType)
     {
@@ -77,22 +78,32 @@ public:
         return mPlanes[planeType];
     }
     
-    u32 width() const  { return mWidth; }
-    u32 height() const { return mHeight; }
+    f32 screenWidth() const  { return mScreenWidth; }
+    f32 screenHeight() const { return mScreenHeight; }
+    f32 aspectRatio() const { return mAspectRatio; }
     f32 nearZ() const  { return mNearZ; }
     f32 farZ() const   { return mFarZ; }
+
+    const Mat4 & projection() const { return mProjection; }
+    const Mat4 & projectionInv() const { return mProjectionInv; }
 
     void applyTransform(const Mat34 & transform);
 
 private:
-    void init();
-    void reseet();
+    void reset();
     void calcPlanes();
     
-    u32 mWidth;
-    u32 mHeight;
+    f32 mScreenWidth;
+    f32 mScreenHeight;
+
     f32 mNearZ;
     f32 mFarZ;
+
+    f32 mFov;
+    f32 mAspectRatio;
+
+    Mat4 mProjection;
+    Mat4 mProjectionInv;
 
     // Initial, zero'd position corners and planes
     // Current, transformed corners and plans

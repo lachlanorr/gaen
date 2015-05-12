@@ -37,8 +37,22 @@ static const f32 kSqrtOf2 = 1.4142135623730951;
 // sqrt(3) - calc half diag of cube = radius * sqrt(3)
 static const f32 kSqrtOf3 = 1.7320508075688772;
 
+struct Ray
+{
+    Ray() {}
+    Ray(const Vec3 & pos, const Vec3 & dir)
+      : pos(pos)
+      , dir(dir)
+    {}
+
+    Vec3 pos;
+    Vec3 dir;
+};
+
 struct Plane
 {
+    Plane() {}
+
     Plane(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2)
     {
         norm = Vec3::cross(p1 - p0, p2 - p0);
@@ -63,12 +77,12 @@ struct Sphere
 
 struct AABB_MinMax
 {
-    Vec3 min; // min coord values along each axis
-    Vec3 max; // max coord values along each axis
+    Vec3 minCorner; // min coord values along each axis
+    Vec3 maxCorner; // max coord values along each axis
 
     AABB_MinMax(Vec3 cent, f32 rad)
-      : min(cent.x() - rad, cent.y() - rad, cent.z() - rad)
-      , max(cent.x() + rad, cent.y() + rad, cent.z() + rad)
+      : minCorner(cent.x() - rad, cent.y() - rad, cent.z() - rad)
+      , maxCorner(cent.x() + rad, cent.y() + rad, cent.z() + rad)
     {}
 };
 

@@ -44,19 +44,19 @@ namespace gaen
 
 static f32 kPresentSurface[] = { -0.9f, -0.9f,          // pos 0
                                   0.0f,  0.0f,          // uv  0
-                                  0.0f,  0.0f, -1.0f,   // frustum 0
+                                  0.0f,  0.0f, -1.0f,   // ray dir 0
 
                                   0.9f, -0.9f,          // pos 1
                                   1.0f,  0.0f,          // uv  1
-                                  0.0f,  0.0f, -1.0f,   // frustum 1
+                                  0.0f,  0.0f, -1.0f,   // ray dir 1
 
                                  -0.9f,  0.9f,          // pos 2
                                   0.0f,  1.0f,          // uv  2
-                                  0.0f,  0.0f, -1.0f,   // frustum 2
+                                  0.0f,  0.0f, -1.0f,   // ray dir 2
 
                                   0.9f,  0.9f,          // pos 3
                                   1.0f,  1.0f,          // uv  3
-                                  0.0f,  0.0f, -1.0f,   // frustum 3
+                                  0.0f,  0.0f, -1.0f    // ray dir 3
 };
 
 void RendererGL::init(device_context deviceContext,
@@ -110,6 +110,8 @@ void RendererGL::initViewport()
     // reset viewport
     glViewport(0, 0, mScreenWidth, mScreenHeight);
 
+    mRaycastCamera.init(mScreenWidth, mScreenHeight, 60.0f, 0.1f, 1000.0f);
+
     // setup projection with current width/height
     mProjection = Mat4::perspective(60.0f,
                                     mScreenWidth / static_cast<f32>(mScreenHeight),
@@ -147,7 +149,7 @@ void RendererGL::initViewport()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 28, (void*)8);
     glEnableVertexAttribArray(1);
 
-    // vertex frustum
+    // vertex ray
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 28, (void*)16);
     glEnableVertexAttribArray(2);
 
