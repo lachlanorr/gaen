@@ -30,6 +30,7 @@
 #include "core/base_defines.h"
 #include "core/mem.h"
 #include "engine/math.h"
+#include "engine/RaycastCamera.h"
 
 namespace gaen
 {
@@ -173,7 +174,7 @@ public:
     void init(u32 outputImageSize);
     const u8 * frameBuffer() { return mFrameBuffer->buffer(); }
 
-    void render();
+    void render(const RaycastCamera & camera);
 private:
     void fragShader_Blue();
     void fragShader_Raycast();
@@ -196,6 +197,7 @@ private:
     u32 uniform0 = 0;
 
     // camera stuff
+    Mat4 projectionInv;
     Vec3 cameraPos;
     Vec2 windowSize;
     f32 nearZ;

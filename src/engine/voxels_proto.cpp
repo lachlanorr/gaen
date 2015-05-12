@@ -83,8 +83,10 @@ void ShaderSimulator::init(u32 outputImageSize)
     farZ = 10000.0f;
 }
 
-void ShaderSimulator::render()
+void ShaderSimulator::render(const RaycastCamera & camera)
 {
+    projectionInv = camera.projectionInv();
+
     Pix_RGB8 * pix = reinterpret_cast<Pix_RGB8*>(mFrameBuffer->buffer());
 
     gl_FragCoord.z = 0;
@@ -117,21 +119,22 @@ void ShaderSimulator::fragShader_Blue()
 
 void ShaderSimulator::fragShader_Raycast()
 {
-    Vec3 rayDir;
-    rayDir.x() = 2.0f * gl_FragCoord.x / windowSize.x() - 1.0f;
-    rayDir.y() = 2.0f * gl_FragCoord.y / windowSize.y() - 1.0f;
-    rayDir.z() = -farZ;
+    Vec3 rayScreenPos;
+    rayScreenPos.x() = 2.0f * gl_FragCoord.x / windowSize.x() - 1.0f;
+    rayScreenPos.y() = 2.0f * gl_FragCoord.y / windowSize.y() - 1.0f;
+    rayScreenPos.z() = 0.0f;
 
-    color.r = (u8)(abs(rayDir.x()) * 255.0f);
-    color.g = (u8)(abs(rayDir.y()) * 255.0f);
+    Vec3 rayDir = Vec3::normalize(Mat4::multiply(projectionInv, rayScreenPos));
+
+    color.r = (u8)(abs(rayDir.x()) * 512.0f);
+    color.g = (u8)(abs(rayDir.y()) * 1024.0f);
+    color.b = (u8)(abs(rayDir.z()) * 255.0f);
 
 //    color.r = (u8)((rayDir.x() + 1.0f) * 127.5f);
 //    color.g = (u8)((rayDir.y() + 1.0f) * 127.5f);
 
 //    color.r = (u8)(gl_FragCoord.x / windowSize.x() * 255.0f);
 //    color.g = (u8)(gl_FragCoord.y / windowSize.y() * 255.0f);
-
-    color.b = 0;
 }
 
 } // namespace gaen

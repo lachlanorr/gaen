@@ -216,7 +216,7 @@ void RendererGL::render()
 
 
 #if 1 // Shader simulator
-    mShaderSim.render();
+    mShaderSim.render(mRaycastCamera);
 
     mpPresentShader->use();
 
