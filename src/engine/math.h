@@ -77,6 +77,7 @@ struct Vec3
     Vec3 operator-() const;
     Vec3 operator-(const Vec3& rhs) const;
     Vec3 operator+(const Vec3& rhs) const;
+    Vec3& operator+=(const Vec3& rhs);
     Vec3 operator*(f32 rhs) const;
     bool operator==(const Vec3 & rhs) const;
     f32 & operator[](size_t idx);
@@ -399,6 +400,15 @@ inline Vec3 Vec3::operator-(const Vec3 & rhs) const
 inline Vec3 Vec3::operator+(const Vec3& rhs) const
 {
     return Vec3(x() + rhs.x(), y() + rhs.y(), z() + rhs.z());
+}
+
+inline Vec3& Vec3::operator+=(const Vec3& rhs)
+{
+    elems[0] += rhs.elems[0];
+    elems[1] += rhs.elems[1];
+    elems[2] += rhs.elems[2];
+
+    return *this;
 }
 
 inline Vec3 Vec3::operator*(f32 rhs) const

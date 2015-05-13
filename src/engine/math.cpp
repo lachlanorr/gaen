@@ -236,11 +236,6 @@ Mat34 Mat34::multiply(const Mat34 & lhs, const Mat34 & rhs)
                 lhs[4]  *  rhs[9] +
                 lhs[8]  *  rhs[10];
     
-    mat34[12] = lhs[0]  *  rhs[12] +
-                lhs[4]  *  rhs[13] +
-                lhs[8]  *  rhs[14] +
-                lhs[12];
-    
     // second row
     mat34[1] =  lhs[1]  *  rhs[0] +
                 lhs[5]  *  rhs[1] +
@@ -253,11 +248,6 @@ Mat34 Mat34::multiply(const Mat34 & lhs, const Mat34 & rhs)
     mat34[9] =  lhs[1]  *  rhs[8] +
                 lhs[5]  *  rhs[9] +
                 lhs[9]  * rhs[10];
-    
-    mat34[13] = lhs[1]  * rhs[12] +
-                lhs[5]  * rhs[13] +
-                lhs[9]  * rhs[14] +
-                lhs[13];
     
     // third row
     mat34[2] =  lhs[2]  *  rhs[0] +
@@ -272,11 +262,6 @@ Mat34 Mat34::multiply(const Mat34 & lhs, const Mat34 & rhs)
                 lhs[6]  *  rhs[9] +
                 lhs[10] * rhs[10];
     
-    mat34[14] = lhs[2]  * rhs[12] +
-                lhs[6]  * rhs[13] +
-                lhs[10] * rhs[14] +
-                lhs[14];
-    
     // fourth row
     mat34[3] =  lhs[3]  *  rhs[0] +
                 lhs[7]  *  rhs[1] +
@@ -290,11 +275,6 @@ Mat34 Mat34::multiply(const Mat34 & lhs, const Mat34 & rhs)
                 lhs[7]  *  rhs[9] +
                 lhs[11] * rhs[10];
     
-    mat34[15] = lhs[3]  * rhs[12] +
-                lhs[7]  * rhs[13] +
-                lhs[11] * rhs[14] +
-                1.0f;
-
     return mat34;
 }
 

@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: dc53bb4ce324e0bed1d42ba41e363393
+// HASH: 9712c9b30c1ea1460425ee7edb104338
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -152,6 +152,165 @@ void register_component__gaen__utils__Timer(Registry & registry)
 {
     if (!registry.registerComponentConstructor(HASH::gaen__utils__Timer, comp::gaen__utils__Timer::construct))
         PANIC("Unable to register component: gaen__utils__Timer");
+}
+
+namespace comp
+{
+
+class gaen__utils__WasdCamera : public Component
+{
+public:
+    static Component * construct(void * place, Entity * pEntity)
+    {
+        return new (place) gaen__utils__WasdCamera(pEntity);
+    }
+    
+    void update(float deltaSecs)
+    {
+        if ((forwardBackward() != 0.00000000e+00f))
+        {
+            pos() += (dirForwardBackward() * ((moveDelta() * forwardBackward()) * deltaSecs));
+        }
+        if ((leftRight() != 0.00000000e+00f))
+        {
+            pos() += (dirLeftRight() * ((moveDelta() * leftRight()) * deltaSecs));
+        }
+        if (((forwardBackward() != 0.00000000e+00f) || (leftRight() != 0.00000000e+00f)))
+        {
+            system_api::renderer_move_camera(pos(), dirForwardBackward(), entity());
+        }
+    }
+
+    template <typename T>
+    MessageResult message(const T & msgAcc)
+    {
+        const Message & _msg = msgAcc.message();
+        switch(_msg.msgId)
+        {
+        case HASH::init_data:
+            dirForwardBackward() = Vec3(0.00000000e+00f, 0.00000000e+00f, -(1.00000000e+00f));
+            dirLeftRight() = Vec3(-(1.00000000e+00f), 0.00000000e+00f, 0.00000000e+00f);
+            forwardBackward() = 0.00000000e+00f;
+            leftRight() = 0.00000000e+00f;
+            moveDelta() = 5.00000000e+00f;
+            pos() = Vec3(0.00000000e+00f, 0.00000000e+00f, 1.00000000e+01f);
+            return MessageResult::Consumed;
+        case HASH::init:
+        {
+            // Params look compatible, message body follows
+            system_api::watch_input_state(HASH::forward, 0, HASH::forward, entity());
+            system_api::watch_input_state(HASH::back, 0, HASH::back, entity());
+            system_api::watch_input_state(HASH::left, 0, HASH::left, entity());
+            system_api::watch_input_state(HASH::right, 0, HASH::right, entity());
+            return MessageResult::Consumed;
+        }
+        case HASH::forward:
+        {
+            // Params look compatible, message body follows
+            if (/*status*/msgAcc.message().payload.b)
+            {
+                forwardBackward() = 1.00000000e+00f;
+            }
+            else
+            {
+                forwardBackward() = 0.00000000e+00f;
+            }
+            return MessageResult::Consumed;
+        }
+        case HASH::back:
+        {
+            // Params look compatible, message body follows
+            if (/*status*/msgAcc.message().payload.b)
+            {
+                forwardBackward() = -(1.00000000e+00f);
+            }
+            else
+            {
+                forwardBackward() = 0.00000000e+00f;
+            }
+            return MessageResult::Consumed;
+        }
+        case HASH::left:
+        {
+            // Params look compatible, message body follows
+            if (/*status*/msgAcc.message().payload.b)
+            {
+                leftRight() = 1.00000000e+00f;
+            }
+            else
+            {
+                leftRight() = 0.00000000e+00f;
+            }
+            return MessageResult::Consumed;
+        }
+        case HASH::right:
+        {
+            // Params look compatible, message body follows
+            if (/*status*/msgAcc.message().payload.b)
+            {
+                leftRight() = -(1.00000000e+00f);
+            }
+            else
+            {
+                leftRight() = 0.00000000e+00f;
+            }
+            return MessageResult::Consumed;
+        }
+        }
+        return MessageResult::Propogate;
+}
+
+private:
+    gaen__utils__WasdCamera(Entity * pEntity)
+      : Component(pEntity)
+    {
+        mScriptTask = Task::create_updatable(this, HASH::gaen__utils__WasdCamera);
+        mBlockCount = 3;
+    }
+    gaen__utils__WasdCamera(const gaen__utils__WasdCamera&)              = delete;
+    gaen__utils__WasdCamera(const gaen__utils__WasdCamera&&)             = delete;
+    gaen__utils__WasdCamera & operator=(const gaen__utils__WasdCamera&)  = delete;
+    gaen__utils__WasdCamera & operator=(const gaen__utils__WasdCamera&&) = delete;
+
+    Vec3& dirForwardBackward()
+    {
+        return *reinterpret_cast<Vec3*>(&mpBlocks[0].qCell);
+    }
+
+    Vec3& dirLeftRight()
+    {
+        return *reinterpret_cast<Vec3*>(&mpBlocks[1].qCell);
+    }
+
+    Vec3& pos()
+    {
+        return *reinterpret_cast<Vec3*>(&mpBlocks[2].qCell);
+    }
+
+    f32& moveDelta()
+    {
+        return mpBlocks[0].cells[3].f;
+    }
+
+    f32& forwardBackward()
+    {
+        return mpBlocks[1].cells[3].f;
+    }
+
+    f32& leftRight()
+    {
+        return mpBlocks[2].cells[3].f;
+    }
+
+
+}; // class gaen__utils__WasdCamera
+
+} // namespace comp
+
+void register_component__gaen__utils__WasdCamera(Registry & registry)
+{
+    if (!registry.registerComponentConstructor(HASH::gaen__utils__WasdCamera, comp::gaen__utils__WasdCamera::construct))
+        PANIC("Unable to register component: gaen__utils__WasdCamera");
 }
 
 namespace comp

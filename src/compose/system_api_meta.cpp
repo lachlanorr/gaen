@@ -43,6 +43,7 @@ ApiSignature gApiSignatures[] = {
                                     { HASH::watch_input_state, kDT_void, { CONST_DT(kDT_uint), CONST_DT(kDT_uint), CONST_DT(kDT_uint) } },
                                     { HASH::transform_rotate, kDT_mat34, { CONST_DT(kDT_vec3) } },
                                     { HASH::renderer_gen_uid, kDT_uint, {  } },
+                                    { HASH::renderer_move_camera, kDT_void, { CONST_DT(kDT_vec3), CONST_DT(kDT_vec3) } },
                                     { HASH::renderer_insert_model_instance, kDT_void, { CONST_DT(kDT_uint), kDT_handle } },
                                     { HASH::renderer_transform_model_instance, kDT_void, { CONST_DT(kDT_uint), CONST_DT(kDT_mat34) } },
                                     { HASH::renderer_remove_model_instance, kDT_void, { CONST_DT(kDT_uint) } },

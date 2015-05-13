@@ -55,6 +55,14 @@ entity Light
     }
 }
 
+entity Camera
+{
+    components
+    {
+        gaen.utils.WasdCamera{};
+    }
+}
+
 entity start
 {
     #init()
@@ -72,10 +80,15 @@ entity start
         @t#msg1(5, s, "a short one", 1.2, vec3{1.0, 2.0, 3.0}, "this is another string that is larger than one block, and then some more");
 */
 
-        entity shape = Shape{};
+
+        entity cam = Camera{};
+        $.insert_entity(cam);
+
+/*        entity shape = Shape{};
         entity light = Light{};
 
         $.insert_entity(shape);
         $.insert_entity(light);
+        */
     }
 }

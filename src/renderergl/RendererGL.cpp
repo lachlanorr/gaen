@@ -32,6 +32,7 @@
 #include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/TransformId.h"
+#include "engine/messages/MoveCamera.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/shaders/Shader.h"
@@ -71,7 +72,7 @@ void RendererGL::init(device_context deviceContext,
 
     mpModelMgr = GNEW(kMEM_Engine, ModelMgr<RendererGL>, *this);
 
-    mShaderSim.init(kImgSize);
+    mShaderSim.init(kImgSize, &mRaycastCamera);
 
     mIsInit = true;
 }
@@ -330,6 +331,12 @@ MessageResult RendererGL::message(const T & msgAcc)
                                         msgr.uid(),
                                         msgr.direction(),
                                         msgr.color());
+        break;
+    }
+    case HASH::renderer_move_camera:
+    {
+        messages::MoveCameraR<T> msgr(msgAcc);
+        mRaycastCamera.move(msgr.position(), msgr.direction());
         break;
     }
     default:

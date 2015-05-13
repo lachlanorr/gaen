@@ -29,6 +29,7 @@ SET (engine_messages_SOURCES
   messages/InsertLightDirectional.h
   messages/InsertModelInstance.h
   messages/InsertTask.h
+  messages/MoveCamera.h
   messages/Transform.h
   messages/TransformId.h
   messages/WatchInputState.h

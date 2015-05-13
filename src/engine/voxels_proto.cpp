@@ -48,6 +48,7 @@ ImageBuffer::~ImageBuffer()
 
 
 ShaderSimulator::ShaderSimulator()
+  : mpRaycastCamera(nullptr)
 {
     mIsInit = false;
     mFrameBuffer = nullptr;
@@ -72,9 +73,10 @@ ShaderSimulator::~ShaderSimulator()
     }
 }
 
-void ShaderSimulator::init(u32 outputImageSize)
+void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
 {
     mFrameBuffer = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(Pix_RGB8));
+    mpRaycastCamera = pRaycastCamera;
 
     // prep camera
     cameraPos = Vec3(0.0f, 0.0f, 10.0f);
@@ -82,7 +84,7 @@ void ShaderSimulator::init(u32 outputImageSize)
     nearZ = 5.0f;
     farZ = 10000.0f;
 
-    voxelRoot.pos = Vec3(0.0f, 0.0f, -1000.0f);
+    voxelRoot.pos = Vec3(3.0f, 0.0f, -20.0f);
     voxelRoot.rad = 2.0f;
     voxelRoot.rot = Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f));
 }
@@ -90,7 +92,9 @@ void ShaderSimulator::init(u32 outputImageSize)
 void ShaderSimulator::render(const RaycastCamera & camera)
 {
     projectionInv = camera.projectionInv();
-    cameraPos = Vec3(50.0f, 100.0f, 1.0f);
+
+    ASSERT(mpRaycastCamera);
+    cameraPos = mpRaycastCamera->position();
 
     Pix_RGB8 * pix = reinterpret_cast<Pix_RGB8*>(mFrameBuffer->buffer());
 

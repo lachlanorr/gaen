@@ -56,6 +56,9 @@ void watch_input_state(u32 state, u32 deviceId, u32 message, Entity & caller);
 Mat34 transform_rotate(const Vec3 & angles, Entity & caller);
 
 u32 renderer_gen_uid(Entity & caller);
+
+void renderer_move_camera(const Vec3 & position, const Vec3 & direction, Entity & caller);
+
 void renderer_insert_model_instance(u32 uid,
                                     Handle & modelHandle,
                                     Entity & caller);

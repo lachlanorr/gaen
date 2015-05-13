@@ -36,6 +36,7 @@
 #include "engine/messages/InsertTask.h"
 #include "engine/messages/TransformId.h"
 #include "engine/messages/InsertLightDirectional.h"
+#include "engine/messages/MoveCamera.h"
 #include "engine/messages/WatchInputState.h"
 
 #include "engine/system_api.h"
@@ -107,6 +108,17 @@ u32 renderer_gen_uid(Entity & caller)
 {
     static std::atomic<u32> sNextUid(1);
     return sNextUid.fetch_add(1, std::memory_order_relaxed);
+}
+
+void renderer_move_camera(const Vec3 & position, const Vec3 & direction, Entity & caller)
+{
+    messages::MoveCameraQW msgQW(HASH::renderer_move_camera,
+                                 kMessageFlag_None,
+                                 caller.task().id(),
+                                 kRendererTaskId);
+
+    msgQW.setPosition(position);
+    msgQW.setDirection(direction);
 }
 
 void renderer_insert_model_instance(u32 uid,

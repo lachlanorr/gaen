@@ -41,6 +41,10 @@ class InsertLightDirectional(FieldHandler):
     direction = Vec3Field()
 
 
+class MoveCamera(FieldHandler):
+    position = Vec3Field()
+    direction = Vec3Field()
+
 class WatchInputState(FieldHandler):
     state = u32Field(payload=True)
     message = u32Field()

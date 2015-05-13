@@ -172,7 +172,7 @@ public:
     ShaderSimulator();
     ~ShaderSimulator();
 
-    void init(u32 outputImageSize);
+    void init(u32 outputImageSize, RaycastCamera * pRaycastCamera);
     const u8 * frameBuffer() { return mFrameBuffer->buffer(); }
 
     void render(const RaycastCamera & camera);
@@ -183,6 +183,8 @@ private:
     bool mIsInit = false;
     ImageBuffer * mFrameBuffer;
     ImageBuffer * mImages[kImageCount];
+
+    RaycastCamera * mpRaycastCamera;
 
     // GLSL "globals"
     struct ScreenCoords

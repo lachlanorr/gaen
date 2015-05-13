@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: c27c2d852f5060e3eb9990059d092235
+// HASH: b43dc594ea14469022cdeacb6b7527c3
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -171,24 +171,60 @@ void register_entity__init__Light(Registry & registry)
 namespace ent
 {
 
+class init__Camera : public Entity
+{
+public:
+    static Entity * construct(u32 childCount)
+    {
+        return GNEW(kMEM_Engine, init__Camera, childCount);
+    }
+
+    template <typename T>
+    MessageResult message(const T & msgAcc)
+    {
+        return MessageResult::Propogate;
+    }
+
+private:
+    init__Camera(u32 childCount)
+      : Entity(HASH::init__Camera, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+    {
+        mBlockCount = 0;
+        mScriptTask = Task::create(this, HASH::init__Camera);
+
+        // Component: gaen.utils.WasdCamera
+        {
+            Task & compTask = insertComponent(HASH::gaen__utils__WasdCamera, mComponentCount);
+            // Send init message
+            StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgBW.accessor());
+        }
+    }
+    init__Camera(const init__Camera&)              = delete;
+    init__Camera(const init__Camera&&)             = delete;
+    init__Camera & operator=(const init__Camera&)  = delete;
+    init__Camera & operator=(const init__Camera&&) = delete;
+
+}; // class init__Camera
+
+} // namespace ent
+
+void register_entity__init__Camera(Registry & registry)
+{
+    if (!registry.registerEntityConstructor(HASH::init__Camera, ent::init__Camera::construct))
+        PANIC("Unable to register entity: init__Camera");
+}
+
+namespace ent
+{
+
 class init__start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__Shape__75_25()
+    task_id entity_init__init__Camera__84_23()
     {
-        Entity * pEnt = get_registry().constructEntity(HASH::init__Shape, 8);
-        // Send init message
-        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgBW.accessor());
-
-        stageEntity(pEnt);
-        return pEnt->task().id();
-    }
-
-    task_id entity_init__init__Light__76_25()
-    {
-        Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Camera, 8);
         // Send init message
         StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
         pEnt->task().message(msgBW.accessor());
@@ -213,10 +249,8 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            task_id shape = entity_init__init__Shape__75_25();
-            task_id light = entity_init__init__Light__76_25();
-            system_api::insert_entity(shape, entity());
-            system_api::insert_entity(light, entity());
+            task_id cam = entity_init__init__Camera__84_23();
+            system_api::insert_entity(cam, entity());
             return MessageResult::Consumed;
         }
         }

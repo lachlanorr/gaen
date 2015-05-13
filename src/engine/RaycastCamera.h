@@ -87,7 +87,10 @@ public:
     const Mat4 & projection() const { return mProjection; }
     const Mat4 & projectionInv() const { return mProjectionInv; }
 
-    void applyTransform(const Mat34 & transform);
+    const Vec3 & position() const { return mPos; }
+    const Vec3 & rotation() const { return mRot; }
+
+    void move(const Vec3 & pos, const Vec3 & rot);
 
 private:
     void reset();
@@ -104,6 +107,9 @@ private:
 
     Mat4 mProjection;
     Mat4 mProjectionInv;
+
+    Vec3 mPos;
+    Vec3 mRot;
 
     // Initial, zero'd position corners and planes
     // Current, transformed corners and plans
