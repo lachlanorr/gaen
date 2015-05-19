@@ -135,6 +135,41 @@ struct Vec4
     f32 elems[4];
 };
 
+struct Quat
+{
+    Quat() = default;
+    Quat(f32 x, f32 y, f32 z, f32 w);
+
+    void normalize();
+
+    f32 & operator[](size_t idx);
+    const f32 & operator[](size_t idx) const;
+
+    f32 & x();
+    f32 & y();
+    f32 & z();
+    f32 & w();
+
+    const f32 & x() const;
+    const f32 & y() const;
+    const f32 & z() const;
+    const f32 & w() const;
+
+    Vec3 operator* (const Vec3 & rhs) const;
+    Quat operator* (const Quat & rhs) const;
+    Quat & operator*= (const Quat & rhs);
+
+    static Quat normalize(const Quat & q);
+    static Quat from_axis_angle(const Vec3 & dir, f32 angle, bool shouldNormalize = false);
+    static void to_axis_angle(const Quat & q, Vec3 & dir, f32 & angle, bool shouldNormalize = false);
+
+    static Quat conjugate(const Quat & q);
+    static Vec3 multiply(const Quat & qlhs, const Vec3 & vrhs);
+    static Quat multiply(const Quat & qlhs, const Quat & qrhs);
+
+    f32 elems[4];
+};
+
 struct Mat2
 {
     Mat2();
@@ -175,6 +210,7 @@ struct Mat3
     static Mat3 inverse(const Mat3 & mat3);
     static Mat3 transpose(const Mat3 & mat3);
 
+    static Mat3 rotation(const Quat & quat);
     static Mat3 rotation(const Vec3 & angles);
 
     // build a 3x3 matrix to use to transform normals
@@ -185,7 +221,6 @@ struct Mat3
 
     f32 elems[9];
 };
-
 
 struct Mat34
 {
@@ -593,6 +628,126 @@ inline Vec4 Vec4::cross(const Vec4 &lhs, const Vec4 &rhs)
     return vec;
 }
 
+//--------------------------------------
+// Quat inlined methods
+//--------------------------------------
+
+inline Quat::Quat(f32 x, f32 y, f32 z, f32 w)
+{
+    elems[0] = x;
+    elems[1] = y;
+    elems[2] = z;
+    elems[3] = w;
+}
+
+inline void Quat::normalize()
+{
+    f32 inv_mag = 1.0f / sqrt(x()*x() + y()*y() + z()*z() + w()*w());
+    x() *= inv_mag;
+    y() *= inv_mag;
+    z() *= inv_mag;
+    w() *= inv_mag;
+}
+
+inline f32 & Quat::operator[](size_t idx)
+{
+    ASSERT(idx < 4);
+    return elems[idx];
+}
+inline const f32 & Quat::operator[](size_t idx) const
+{
+    ASSERT(idx < 4);
+    return elems[idx];
+}
+
+inline f32 & Quat::x() { return elems[0]; }
+inline f32 & Quat::y() { return elems[1]; }
+inline f32 & Quat::z() { return elems[2]; }
+inline f32 & Quat::w() { return elems[3]; }
+
+inline const f32 & Quat::x() const { return elems[0]; }
+inline const f32 & Quat::y() const { return elems[1]; }
+inline const f32 & Quat::z() const { return elems[2]; }
+inline const f32 & Quat::w() const { return elems[3]; }
+
+inline Vec3 Quat::operator* (const Vec3 & rhs) const
+{
+    return Quat::multiply(*this, rhs);
+}
+
+inline Quat Quat::operator* (const Quat & rhs) const
+{
+    return Quat::multiply(*this, rhs);
+}
+
+inline Quat & Quat::operator*= (const Quat & rhs)
+{
+    *this = Quat::multiply(*this, rhs);
+    return *this;
+}
+
+inline Quat Quat::normalize(const Quat & q)
+{
+    Quat qn = q;
+    qn.normalize();
+    return qn;
+}
+
+inline Quat Quat::from_axis_angle(const Vec3 & dir, f32 angle, bool shouldNormalize)
+{
+    Vec3 nDir = !shouldNormalize ? dir : Vec3::normalize(dir);
+
+    f32 sin_a = sin(angle / 2);
+    f32 cos_a = cos(angle / 2);
+
+    Quat res(nDir.x() * sin_a,
+             nDir.y() * sin_a,
+             nDir.z() * sin_a,
+             cos_a);
+
+    return res;
+}
+
+inline void Quat::to_axis_angle(const Quat & q, Vec3 & dir, f32 & angle, bool shouldNormalize)
+{
+    Quat qn = !shouldNormalize ? q : Quat::normalize(q);
+    
+}
+
+inline Quat Quat::conjugate(const Quat & q)
+{
+    return Quat(-q.x(), -q.y(), -q.z(), q.w());
+}
+
+inline Quat Quat::multiply(const Quat & qlhs, const Quat & qrhs)
+{
+    return Quat(qlhs.w() * qrhs.x() + qlhs.x() * qrhs.w() + qlhs.y() * qrhs.z() - qlhs.z() * qrhs.y(),
+                qlhs.w() * qrhs.y() - qlhs.x() * qrhs.z() + qlhs.y() * qrhs.w() + qlhs.z() * qrhs.x(),
+                qlhs.w() * qrhs.z() + qlhs.x() * qrhs.y() - qlhs.y() * qrhs.x() + qlhs.z() * qrhs.w(),
+                qlhs.w() * qrhs.w() - qlhs.x() * qrhs.x() - qlhs.y() * qrhs.y() - qlhs.z() * qrhs.z());
+}
+
+inline Vec3 Quat::multiply(const Quat & qlhs, const Vec3 & vrhs)
+{
+    float x2 = qlhs.x() * 2.0f;
+    float y2 = qlhs.y() * 2.0f;
+    float z2 = qlhs.z() * 2.0f;
+    float xx2 = qlhs.x() * x2;
+    float yy2 = qlhs.y() * y2;
+    float zz2 = qlhs.z() * z2;
+    float xy2 = qlhs.x() * y2;
+    float xz2 = qlhs.x() * z2;
+    float yz2 = qlhs.y() * z2;
+    float wx2 = qlhs.w() * x2;
+    float wy2 = qlhs.w() * y2;
+    float wz2 = qlhs.w() * z2;
+
+    Vec3 vres;
+    vres.x() = (1.0f - (yy2 + zz2)) * vrhs.x() + (xy2 - wz2) * vrhs.y() + (xz2 + wy2) * vrhs.z();
+    vres.y() = (xy2 + wz2) * vrhs.x() + (1.0f - (xx2 + zz2)) * vrhs.y() + (yz2 - wx2) * vrhs.z();
+    vres.z() = (xz2 - wy2) * vrhs.x() + (yz2 + wx2) * vrhs.y() + (1.0f - (xx2 + yy2)) * vrhs.z();
+    return vres;
+}
 
 //--------------------------------------
 // Mat2 inlined methods

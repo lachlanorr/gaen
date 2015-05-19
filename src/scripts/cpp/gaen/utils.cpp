@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 9712c9b30c1ea1460425ee7edb104338
+// HASH: 080e16de56e0dcb7565724acbd3fd3f5
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -83,9 +83,9 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            last_notification() = 0.00000000e+00f;
             timer_interval() = 0.00000000e+00f;
             timer_message() = 0;
+            last_notification() = 0.00000000e+00f;
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -167,17 +167,54 @@ public:
     
     void update(float deltaSecs)
     {
+        bool hasMoved = 0;
+        if ((mouseWheelDelta() != 0))
+        {
+            pos() += (dirForward() * ((mouseWheelDelta() * deltaSecs) * 9.99999978e-03f));
+            mouseWheelDelta() = 0;
+            hasMoved = 1;
+        }
+        if (mouseLooking())
+        {
+            bool hasRotated = 0;
+            if ((mouseDeltaX() != 0.00000000e+00f))
+            {
+                f32 angle = (-(mouseDeltaX()) * rotDelta());
+                Quat orientDelta = system_api::quat_from_axis_angle(dirUp(), angle, entity());
+                orientation() *= orientDelta;
+                hasRotated = 1;
+            }
+            if ((mouseDeltaY() != 0.00000000e+00f))
+            {
+                f32 angle = (-(mouseDeltaY()) * rotDelta());
+                Quat orientDelta = system_api::quat_from_axis_angle(dirRight(), angle, entity());
+                orientation() *= orientDelta;
+                hasRotated = 1;
+            }
+            if (hasRotated)
+            {
+                orientation() = system_api::quat_normalize(orientation(), entity());
+                dirForward() = (orientation() * dirForwardInit());
+                dirRight() = (orientation() * dirRightInit());
+                dirUp() = (orientation() * dirUpInit());
+                hasMoved = 1;
+            }
+            mouseDeltaX() = 0.00000000e+00f;
+            mouseDeltaY() = 0.00000000e+00f;
+        }
         if ((forwardBackward() != 0.00000000e+00f))
         {
-            pos() += (dirForwardBackward() * ((moveDelta() * forwardBackward()) * deltaSecs));
+            pos() += (dirForward() * ((moveDelta() * forwardBackward()) * deltaSecs));
+            hasMoved = 1;
         }
         if ((leftRight() != 0.00000000e+00f))
         {
-            pos() += (dirLeftRight() * ((moveDelta() * leftRight()) * deltaSecs));
+            pos() += (-(dirRight()) * ((moveDelta() * leftRight()) * deltaSecs));
+            hasMoved = 1;
         }
-        if (((forwardBackward() != 0.00000000e+00f) || (leftRight() != 0.00000000e+00f)))
+        if (hasMoved)
         {
-            system_api::renderer_move_camera(pos(), dirForwardBackward(), entity());
+            system_api::renderer_move_camera(pos(), orientation(), entity());
         }
     }
 
@@ -188,20 +225,56 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            dirForwardBackward() = Vec3(0.00000000e+00f, 0.00000000e+00f, -(1.00000000e+00f));
-            dirLeftRight() = Vec3(-(1.00000000e+00f), 0.00000000e+00f, 0.00000000e+00f);
+            dirForwardInit() = Vec3(0.00000000e+00f, 0.00000000e+00f, -(1.00000000e+00f));
+            dirRightInit() = Vec3(1.00000000e+00f, 0.00000000e+00f, 0.00000000e+00f);
+            dirUpInit() = Vec3(0.00000000e+00f, 1.00000000e+00f, 0.00000000e+00f);
+            dirForward() = dirForwardInit();
+            dirRight() = dirRightInit();
+            dirUp() = dirUpInit();
+            orientation() = Quat(0.00000000e+00f, 0.00000000e+00f, 0.00000000e+00f, 1.00000000e+00f);
+            pos() = Vec3(0.00000000e+00f, 0.00000000e+00f, 1.00000000e+01f);
+            moveDelta() = 5.00000000e+00f;
+            rotDelta() = 9.99999997e-07f;
             forwardBackward() = 0.00000000e+00f;
             leftRight() = 0.00000000e+00f;
-            moveDelta() = 5.00000000e+00f;
-            pos() = Vec3(0.00000000e+00f, 0.00000000e+00f, 1.00000000e+01f);
+            mouseLooking() = 0;
+            mouseDeltaX() = 0.00000000e+00f;
+            mouseDeltaY() = 0.00000000e+00f;
+            mouseWheelDelta() = 0;
             return MessageResult::Consumed;
         case HASH::init:
         {
             // Params look compatible, message body follows
+            system_api::watch_input_state(HASH::mouse_look, 0, HASH::mouse_look, entity());
+            system_api::watch_mouse(HASH::mouse_move, HASH::mouse_wheel, entity());
             system_api::watch_input_state(HASH::forward, 0, HASH::forward, entity());
             system_api::watch_input_state(HASH::back, 0, HASH::back, entity());
             system_api::watch_input_state(HASH::left, 0, HASH::left, entity());
             system_api::watch_input_state(HASH::right, 0, HASH::right, entity());
+            return MessageResult::Consumed;
+        }
+        case HASH::mouse_look:
+        {
+            // Params look compatible, message body follows
+            mouseLooking() = /*status*/msgAcc.message().payload.b;
+            return MessageResult::Consumed;
+        }
+        case HASH::mouse_move:
+        {
+            // Verify params look compatible with this message type
+            u32 expectedBlockSize = 1; // BlockCount without BlockMemory params
+            if (expectedBlockSize > msgAcc.available())
+                return MessageResult::Propogate;
+
+            // Params look compatible, message body follows
+            mouseDeltaX() += /*xDelta*/msgAcc.message().payload.i;
+            mouseDeltaY() += /*yDelta*/msgAcc[0].cells[0].i;
+            return MessageResult::Consumed;
+        }
+        case HASH::mouse_wheel:
+        {
+            // Params look compatible, message body follows
+            mouseWheelDelta() += /*delta*/msgAcc.message().payload.i;
             return MessageResult::Consumed;
         }
         case HASH::forward:
@@ -265,41 +338,91 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create_updatable(this, HASH::gaen__utils__WasdCamera);
-        mBlockCount = 3;
+        mBlockCount = 9;
     }
     gaen__utils__WasdCamera(const gaen__utils__WasdCamera&)              = delete;
     gaen__utils__WasdCamera(const gaen__utils__WasdCamera&&)             = delete;
     gaen__utils__WasdCamera & operator=(const gaen__utils__WasdCamera&)  = delete;
     gaen__utils__WasdCamera & operator=(const gaen__utils__WasdCamera&&) = delete;
 
-    Vec3& dirForwardBackward()
-    {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[0].qCell);
-    }
-
-    Vec3& dirLeftRight()
+    Vec3& dirForwardInit()
     {
         return *reinterpret_cast<Vec3*>(&mpBlocks[1].qCell);
     }
 
-    Vec3& pos()
+    Vec3& dirRightInit()
     {
         return *reinterpret_cast<Vec3*>(&mpBlocks[2].qCell);
     }
 
-    f32& moveDelta()
+    Vec3& dirUpInit()
     {
-        return mpBlocks[0].cells[3].f;
+        return *reinterpret_cast<Vec3*>(&mpBlocks[3].qCell);
     }
 
-    f32& forwardBackward()
+    Vec3& dirForward()
+    {
+        return *reinterpret_cast<Vec3*>(&mpBlocks[4].qCell);
+    }
+
+    Vec3& dirRight()
+    {
+        return *reinterpret_cast<Vec3*>(&mpBlocks[5].qCell);
+    }
+
+    Vec3& dirUp()
+    {
+        return *reinterpret_cast<Vec3*>(&mpBlocks[6].qCell);
+    }
+
+    Quat& orientation()
+    {
+        return *reinterpret_cast<Quat*>(&mpBlocks[0].qCell);
+    }
+
+    Vec3& pos()
+    {
+        return *reinterpret_cast<Vec3*>(&mpBlocks[7].qCell);
+    }
+
+    f32& moveDelta()
     {
         return mpBlocks[1].cells[3].f;
     }
 
-    f32& leftRight()
+    f32& rotDelta()
     {
         return mpBlocks[2].cells[3].f;
+    }
+
+    f32& forwardBackward()
+    {
+        return mpBlocks[3].cells[3].f;
+    }
+
+    f32& leftRight()
+    {
+        return mpBlocks[4].cells[3].f;
+    }
+
+    bool& mouseLooking()
+    {
+        return mpBlocks[5].cells[3].b;
+    }
+
+    f32& mouseDeltaX()
+    {
+        return mpBlocks[6].cells[3].f;
+    }
+
+    f32& mouseDeltaY()
+    {
+        return mpBlocks[7].cells[3].f;
+    }
+
+    i32& mouseWheelDelta()
+    {
+        return mpBlocks[8].cells[0].i;
     }
 
 
@@ -330,7 +453,7 @@ public:
         {
             pitch() += ((pitching() * deltaSecs) * 1.00000000e+02f);
             yaw() += ((yawing() * deltaSecs) * 1.00000000e+02f);
-            Mat34 trans = system_api::transform_rotate(Vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.00000000e+00f), entity());
+            Mat34 trans = system_api::mat34_rotation(Vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.00000000e+00f), entity());
             { // Send Message Block
                 // Compute block size, incorporating any BlockMemory parameters dynamically
                 u32 blockCount = 3;
@@ -353,14 +476,16 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            pitch() = 0.00000000e+00f;
-            pitching() = 0.00000000e+00f;
-            yaw() = 0.00000000e+00f;
             yawing() = 0.00000000e+00f;
+            yaw() = 0.00000000e+00f;
+            pitching() = 0.00000000e+00f;
+            pitch() = 0.00000000e+00f;
             return MessageResult::Consumed;
         case HASH::init:
         {
             // Params look compatible, message body follows
+            system_api::watch_input_state(HASH::mouse_look, 0, HASH::mouse_look, entity());
+            system_api::watch_mouse(HASH::mouse_move, HASH::mouse_wheel, entity());
             system_api::watch_input_state(HASH::forward, 0, HASH::forward, entity());
             system_api::watch_input_state(HASH::back, 0, HASH::back, entity());
             system_api::watch_input_state(HASH::left, 0, HASH::left, entity());

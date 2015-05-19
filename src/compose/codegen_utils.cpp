@@ -139,6 +139,7 @@ u32 data_type_cell_count(DataType dataType, ParseData * pParseData)
     case kDT_vec3:
         return 3;
     case kDT_vec4:
+    case kDT_quat:
         return 4;
     case kDT_mat3:
         return 9;

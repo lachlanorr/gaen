@@ -50,17 +50,35 @@ component Timer
 
 component WasdCamera
 {
-    vec3 dirForwardBackward = vec3{ 0.0, 0.0, -1.0 };
-    vec3 dirLeftRight = vec3{ -1.0, 0.0, 0.0 };
+    vec3 dirForwardInit = vec3{ 0.0, 0.0, -1.0 };
+    vec3 dirRightInit = vec3{ 1.0, 0.0, 0.0 };
+    vec3 dirUpInit = vec3{ 0.0, 1.0, 0.0 };
+
+    vec3 dirForward = dirForwardInit;
+    vec3 dirRight = dirRightInit;
+    vec3 dirUp = dirUpInit;
+
+    quat orientation = quat{ 0.0, 0.0, 0.0, 1.0 };
+
     vec3 pos = vec3{ 0.0, 0.0, 10.0 };
 
     float moveDelta = 5.0;
+    float rotDelta = 0.000001;
     
     float forwardBackward = 0.0;
     float leftRight = 0.0;
 
+    bool mouseLooking = false;
+    float mouseDeltaX = 0.0;
+    float mouseDeltaY = 0.0;
+    
+    int mouseWheelDelta = 0;
+
     #init()
     {
+        $.watch_input_state(#mouse_look, 0, #mouse_look);
+        $.watch_mouse(#mouse_move, #mouse_wheel);
+
         $.watch_input_state(#forward, 0, #forward);
         $.watch_input_state(#back, 0, #back);
         $.watch_input_state(#left, 0, #left);
@@ -69,18 +87,84 @@ component WasdCamera
 
     #update(float deltaSecs)
     {
+        bool hasMoved = false;
+        
+        if (mouseWheelDelta != 0)
+        {
+            pos += dirForward * (mouseWheelDelta * deltaSecs * 0.01);
+            mouseWheelDelta = 0;
+            hasMoved = true;
+        }
+
+        if (mouseLooking)
+        {
+            bool hasRotated = false;
+            if (mouseDeltaX != 0.0)
+            {
+                float angle = -mouseDeltaX * rotDelta;
+                quat orientDelta = $.quat_from_axis_angle(dirUp, angle);
+                orientation *= orientDelta;
+                hasRotated = true;
+            }
+            
+            if (mouseDeltaY != 0.0)
+            {
+                float angle = -mouseDeltaY * rotDelta;
+                quat orientDelta = $.quat_from_axis_angle(dirRight, angle);
+                orientation *= orientDelta;
+                hasRotated = true;
+            }
+
+            if (hasRotated)
+            {
+                orientation = $.quat_normalize(orientation);
+                
+                dirForward = orientation * dirForwardInit;
+                dirRight = orientation * dirRightInit;
+                dirUp = orientation * dirUpInit;
+
+                hasMoved = true;
+            }
+            
+            mouseDeltaX = 0.0;
+            mouseDeltaY = 0.0;
+        }
+
         if (forwardBackward != 0.0)
         {
-            pos += dirForwardBackward * (moveDelta * forwardBackward * deltaSecs);
+            pos += dirForward * (moveDelta * forwardBackward * deltaSecs);
+            hasMoved = true;
         }
         if (leftRight != 0.0)
         {
-            pos += dirLeftRight * (moveDelta * leftRight * deltaSecs);
+            pos += -dirRight * (moveDelta * leftRight * deltaSecs);
+            hasMoved = true;
         }
-        if (forwardBackward != 0.0 || leftRight != 0.0)
+        if (hasMoved)
         {
-            $.renderer_move_camera(pos, dirForwardBackward);
+            $.renderer_move_camera(pos, orientation);
         }
+    }
+
+    #mouse_look(bool status)
+    {
+        mouseLooking = status;
+    }
+
+    #mouse_move(int xDelta, int yDelta)
+    {
+        //short xDelta = delta >> 16;
+        //short yDelta = delta << 16 >> 16;
+
+        //$.print(string{"delta: %x, xDelta: %d %x, yDelta: %d %x", delta, xDelta, xDelta, yDelta, yDelta});
+        //$.print(string{"xDelta: %d, yDelta: %d", xDelta, yDelta});
+        mouseDeltaX += xDelta;
+        mouseDeltaY += yDelta;
+    }
+
+    #mouse_wheel(int delta)
+    {
+        mouseWheelDelta += delta;
     }
 
     #forward(bool status)
@@ -143,6 +227,9 @@ component WasdRot
 
     #init()
     {
+        $.watch_input_state(#mouse_look, 0, #mouse_look);
+        $.watch_mouse(#mouse_move, #mouse_wheel);
+
         $.watch_input_state(#forward, 0, #forward);
         $.watch_input_state(#back, 0, #back);
         $.watch_input_state(#left, 0, #left);
@@ -155,7 +242,7 @@ component WasdRot
         {
             pitch += pitching * deltaSecs * 100.0;
             yaw += yawing * deltaSecs * 100.0;
-            mat34 trans = $.transform_rotate(vec3{$.radians(pitch), $.radians(yaw), 0.0});
+            mat34 trans = $.mat34_rotation(vec3{$.radians(pitch), $.radians(yaw), 0.0});
             @#transform(false, trans);
         }
     }

@@ -52,12 +52,17 @@ f32 radians(f32 degrees, Entity & caller);
 f32 degrees(f32 radians, Entity & caller);
 
 void watch_input_state(u32 state, u32 deviceId, u32 message, Entity & caller);
+void watch_mouse(u32 moveMessage, u32 wheelMessage, Entity & caller);
 
-Mat34 transform_rotate(const Vec3 & angles, Entity & caller);
+Mat34 mat34_rotation(const Vec3 & angles, Entity & caller);
+Mat3 mat3_rotation(const Vec3 & angles, Entity & caller);
+
+Quat quat_from_axis_angle(const Vec3 & dir, f32 angle, Entity & caller);
+Quat quat_normalize(const Quat & quat, Entity & caller);
 
 u32 renderer_gen_uid(Entity & caller);
 
-void renderer_move_camera(const Vec3 & position, const Vec3 & direction, Entity & caller);
+void renderer_move_camera(const Vec3 & position, const Quat & direction, Entity & caller);
 
 void renderer_insert_model_instance(u32 uid,
                                     Handle & modelHandle,

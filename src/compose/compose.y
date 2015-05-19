@@ -69,7 +69,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <numf> FLOAT_LITERAL
 
 /* This type list must match the DataType enum in compiler.h */
-%token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 MAT3 MAT34 MAT4 HANDLE_ ENTITY STRING
+%token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 QUAT MAT3 MAT34 MAT4 HANDLE_ ENTITY STRING
 
 %token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS USING AS CONST_ THIS__ NONE
 %right ELSE THEN
@@ -290,6 +290,8 @@ expr
 
     | COLOR '{' fun_params '}'  { $$ = ast_create_color_init($3, pParseData); }
     | VEC3  '{' fun_params '}'  { $$ = ast_create_vec3_init($3, pParseData); }
+    | VEC4  '{' fun_params '}'  { $$ = ast_create_vec4_init($3, pParseData); }
+    | QUAT  '{' fun_params '}'  { $$ = ast_create_quat_init($3, pParseData); }
     | MAT34 '{' fun_params '}'  { $$ = ast_create_mat34_init($3, pParseData); }
     | STRING '{' fun_params '}' { $$ = ast_create_string_init($3, pParseData); }
 
@@ -363,6 +365,7 @@ basic_type
     | VEC2
     | VEC3
     | VEC4
+    | QUAT
     | MAT3
     | MAT34
     | MAT4

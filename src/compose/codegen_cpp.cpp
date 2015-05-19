@@ -116,6 +116,8 @@ static const char * cpp_type_str(DataType dt, ParseData * pParseData)
         return IS_DT_CONST(dt) ? "const Vec3" : "Vec3";
     case kDT_vec4:
         return IS_DT_CONST(dt) ? "const Vec4" : "Vec4";
+    case kDT_quat:
+        return IS_DT_CONST(dt) ? "const Quat" : "Quat";
     case kDT_mat3:
         return IS_DT_CONST(dt) ? "const Mat3" : "Mat3";
     case kDT_mat34:
@@ -249,6 +251,7 @@ static S property_block_accessor(DataType dataType, const BlockInfo & blockInfo,
             return S(scratch);
         case kDT_vec3:
         case kDT_vec4:
+        case kDT_quat:
         case kDT_mat3:
         case kDT_mat34:
         case kDT_mat4:
@@ -487,6 +490,8 @@ static S data_type_init_value(DataType dataType, ParseData * pParseData)
         return S("Vec3(0.0f, 0.0f, 0.0f)");
     case kDT_vec4:
         return S("Vec4(0.0, 0.0f, 0.0f, 1.0f)");
+    case kDT_quat:
+        return S("Quat(0.0, 0.0f, 0.0f, 1.0f)");
     case kDT_mat3:
         return S("Mat3(1.0f)");
     case kDT_mat34:
@@ -508,9 +513,8 @@ static S init_data(const Ast * pAst, int indentLevel)
     ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
 
     S code = S("");
-    for (const auto & kv : pAst->pScope->pSymTab->dict)
+    for (const SymRec * pSymRec : pAst->pScope->pSymTab->orderedSymRecs)
     {
-        SymRec * pSymRec = kv.second;
         if (is_prop_or_field(pSymRec))
         {
             if (!is_block_memory_type(pSymRec->dataType))
@@ -518,14 +522,14 @@ static S init_data(const Ast * pAst, int indentLevel)
                 code += I1 + symref(pSymRec, pAst->pParseData);
                 code += S(" = ");
 
-                // Does the script initiialize this with a value?
+                // Does the script initialize this with a value?
                 if (pSymRec->pAst)
                 {
                     code += codegen_recurse(pSymRec->pAst, 0);
                 }
                 else
                 {
-                    // initialzie with a default value based on the type
+                    // initialize with a default value based on the type
                     code += data_type_init_value(pSymRec->dataType, pAst->pParseData);
                 }
                 code += S(";\n");
@@ -669,6 +673,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                 case kDT_vec2:
                 case kDT_vec3:
                 case kDT_vec4:
+                case kDT_quat:
                 case kDT_mat3:
                 case kDT_mat34:
                 case kDT_mat4:
@@ -1137,6 +1142,30 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_Vec3Init:
     {
         S code = S("Vec3(");
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegen_recurse(pParam, indentLevel);
+            if (pParam != pAst->pRhs->pChildren->nodes.back())
+                code += S(", ");
+        }
+        code += S(")");
+        return code;
+    }
+    case kAST_Vec4Init:
+    {
+        S code = S("Vec4(");
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegen_recurse(pParam, indentLevel);
+            if (pParam != pAst->pRhs->pChildren->nodes.back())
+                code += S(", ");
+        }
+        code += S(")");
+        return code;
+    }
+    case kAST_QuatInit:
+    {
+        S code = S("Quat(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);

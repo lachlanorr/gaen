@@ -155,6 +155,7 @@ typedef enum
     kAST_Vec2Init,
     kAST_Vec3Init,
     kAST_Vec4Init,
+    kAST_QuatInit,
     kAST_Mat34Init,
     kAST_StringInit,
     kAST_StringFormat,
@@ -226,16 +227,17 @@ typedef enum
 
     kDT_vec3      = 16,
     kDT_vec4      = 17,
-    kDT_mat3      = 18,
-    kDT_mat34     = 19,
-    kDT_mat4      = 20,
+    kDT_quat      = 18,
+    kDT_mat3      = 19,
+    kDT_mat34     = 20,
+    kDT_mat4      = 21,
 
-    kDT_handle    = 21,
+    kDT_handle    = 22,
 
-    kDT_entity    = 22,
+    kDT_entity    = 23,
 
     // Dynamic data structures
-    kDT_string    = 23,
+    kDT_string    = 24,
 
     kDT_COUNT
 
@@ -311,6 +313,8 @@ Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, Parse
 
 Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData);
 

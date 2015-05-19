@@ -90,6 +90,7 @@ ParseData * pParseData = yyextra;
 "vec2"   { yylval->dataType = kDT_vec2;   return VEC2;    }
 "vec3"   { yylval->dataType = kDT_vec3;   return VEC3;    }
 "vec4"   { yylval->dataType = kDT_vec4;   return VEC4;    }
+"quat"   { yylval->dataType = kDT_quat;   return QUAT;    }
 "mat3"   { yylval->dataType = kDT_mat3;   return MAT3;    }
 "mat34"  { yylval->dataType = kDT_mat34;  return MAT34;   }
 "mat4"   { yylval->dataType = kDT_mat4;   return MAT4;    }

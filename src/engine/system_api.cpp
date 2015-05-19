@@ -38,6 +38,7 @@
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/MoveCamera.h"
 #include "engine/messages/WatchInputState.h"
+#include "engine/messages/WatchMouse.h"
 
 #include "engine/system_api.h"
 
@@ -99,9 +100,36 @@ void watch_input_state(u32 state, u32 deviceId, u32 message, Entity & caller)
     msgQW.setMessage(message);
 }
 
-Mat34 transform_rotate(const Vec3 & angles, Entity & caller)
+void watch_mouse(u32 moveMessage, u32 wheelMessage, Entity & caller)
+{
+    messages::WatchMouseQW msgQW(HASH::watch_mouse,
+                                 kMessageFlag_None,
+                                 caller.task().id(),
+                                 kInputMgrTaskId,
+                                 moveMessage);
+    msgQW.setWheelMessage(wheelMessage);
+}
+
+Mat34 mat34_rotation(const Vec3 & angles, Entity & caller)
 {
     return Mat34::rotation(angles);
+}
+
+Mat3 mat3_rotation(const Vec3 & angles, Entity & caller)
+{
+    return Mat3::rotation(angles);
+}
+
+Quat quat_from_axis_angle(const Vec3 & dir, f32 angle, Entity & caller)
+{
+    return Quat::from_axis_angle(dir, angle, false);
+}
+
+Quat quat_normalize(const Quat & quat, Entity & caller)
+{
+    Quat q = quat;
+    q.normalize();
+    return q;
 }
 
 u32 renderer_gen_uid(Entity & caller)
@@ -110,7 +138,7 @@ u32 renderer_gen_uid(Entity & caller)
     return sNextUid.fetch_add(1, std::memory_order_relaxed);
 }
 
-void renderer_move_camera(const Vec3 & position, const Vec3 & direction, Entity & caller)
+void renderer_move_camera(const Vec3 & position, const Quat & direction, Entity & caller)
 {
     messages::MoveCameraQW msgQW(HASH::renderer_move_camera,
                                  kMessageFlag_None,

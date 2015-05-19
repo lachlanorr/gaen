@@ -58,6 +58,7 @@ static bool is_type_specifier(char c)
             c == 'X' ||
             c == 'o' ||
             c == 'c' ||
+            c == 'b' ||
             c == 's');
 }
 

@@ -149,6 +149,34 @@ Mat3 Mat3::rotation(const Vec3 & angles)
     return mat3;
 }
 
+/*
+Mat3 Mat3::rotation(const Vec4 & q)
+{
+    f32 xx   = q.x() * q.x();
+    f32 xy   = q.x() * q.y();
+    f32 xz   = q.x() * q.z();
+    f32 xw   = q.x() * q.w();
+    f32 yy   = q.y() * q.y();
+    f32 yz   = q.y() * q.z();
+    f32 yw   = q.y() * q.w();
+    f32 zz   = q.z() * q.z();
+    f32 zw   = q.z() * q.w();
+
+    Mat3 mat3;
+    mat3[0]  = 1 - 2 * ( yy + zz );
+    mat3[1]  =     2 * ( xy - zw );
+    mat3[2]  =     2 * ( xz + yw );
+    mat3[3]  =     2 * ( xy + zw );
+    mat3[4]  = 1 - 2 * ( xx + zz );
+    mat3[5]  =     2 * ( yz - xw );
+    mat3[6]  =     2 * ( xz - yw );
+    mat3[7]  =     2 * ( yz + xw );
+    mat3[8]  = 1 - 2 * ( xx + yy );
+
+    return mat3;
+}
+*/
+
 Mat3 Mat3::model_view_to_normal_transform(const Mat4 & mv)
 {
     // Calculate the transpose of the inverse of the top 3x3 of

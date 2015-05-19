@@ -43,9 +43,17 @@ class InsertLightDirectional(FieldHandler):
 
 class MoveCamera(FieldHandler):
     position = Vec3Field()
-    direction = Vec3Field()
+    direction = QuatField()
 
 class WatchInputState(FieldHandler):
     state = u32Field(payload=True)
     message = u32Field()
     deviceId = u32Field()
+
+class WatchMouse(FieldHandler):
+    moveMessage = u32Field(payload=True)
+    wheelMessage = u32Field()
+
+class MouseMove(FieldHandler):
+    xDelta = u32Field(payload=True)
+    yDelta = u32Field()

@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 3046e9ae26d9e2d6bc369de2d6a9dff2
+// HASH: 2ae8edbe0fceca85caee003c7aaaa23b
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -60,10 +60,10 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             diffuse() = Color(255, 0, 0, 255);
             model() = Handle::null();
             modelUid() = system_api::renderer_gen_uid(entity());
-            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -170,11 +170,11 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+            slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = Handle::null();
             modelUid() = system_api::renderer_gen_uid(entity());
-            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
-            slices() = 16;
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -296,11 +296,11 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+            slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = Handle::null();
             modelUid() = system_api::renderer_gen_uid(entity());
-            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
-            slices() = 16;
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -422,12 +422,12 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+            sections() = 16;
+            slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = Handle::null();
             modelUid() = system_api::renderer_gen_uid(entity());
-            sections() = 16;
-            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
-            slices() = 16;
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -564,11 +564,11 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+            sections() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = Handle::null();
             modelUid() = system_api::renderer_gen_uid(entity());
-            sections() = 16;
-            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)

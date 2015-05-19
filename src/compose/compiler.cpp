@@ -47,7 +47,7 @@ extern "C" {
 
 using namespace gaen;
 
-static_assert(kDT_COUNT == 24, "Make sure DataType enum ids look right... seems they have changed");
+static_assert(kDT_COUNT == 25, "Make sure DataType enum ids look right... seems they have changed");
 
 static const char * kScriptsPath = "/src/scripts/cmp/";
 
@@ -787,6 +787,62 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData)
+{
+    // pop scope that got created by the lexer when encountering the '{'
+    parsedata_pop_scope(pParseData);
+
+    Ast * pAst = ast_create(kAST_Vec4Init, pParseData);
+    ast_set_rhs(pAst, pParams);
+
+    switch (pParams->pChildren->nodes.size())
+    {
+    case 4:
+    {
+        for (Ast * pParam : pParams->pChildren->nodes)
+        {
+            DataType paramDt = RAW_DT(ast_data_type(pParam));
+            if (paramDt != kDT_float)
+                COMP_ERROR(pParseData, "Invalid data type in vec4 initialization");
+        }
+        break;
+    }
+    default:
+        COMP_ERROR(pParseData, "Invalid parameters for vec4 initialization");
+        break;
+    }
+
+    return pAst;
+}
+
+Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData)
+{
+    // pop scope that got created by the lexer when encountering the '{'
+    parsedata_pop_scope(pParseData);
+
+    Ast * pAst = ast_create(kAST_QuatInit, pParseData);
+    ast_set_rhs(pAst, pParams);
+
+    switch (pParams->pChildren->nodes.size())
+    {
+    case 4:
+    {
+        for (Ast * pParam : pParams->pChildren->nodes)
+        {
+            DataType paramDt = RAW_DT(ast_data_type(pParam));
+            if (paramDt != kDT_float)
+                COMP_ERROR(pParseData, "Invalid data type in quat initialization");
+        }
+        break;
+    }
+    default:
+        COMP_ERROR(pParseData, "Invalid parameters for quat initialization");
+        break;
+    }
+
+    return pAst;
+}
+
 Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
 {
     // pop scope that got created by the lexer when encountering the '{'
@@ -856,6 +912,7 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
         case kDT_vec2:
         case kDT_vec3:
         case kDT_vec4:
+        case kDT_quat:
         case kDT_mat3:
         case kDT_mat34:
         case kDT_mat4:
@@ -1448,6 +1505,8 @@ DataType ast_data_type(const Ast * pAst)
         return kDT_vec3;
     case kAST_Vec4Init:
         return kDT_vec4;
+    case kAST_QuatInit:
+        return kDT_quat;
     case kAST_Mat34Init:
         return kDT_mat34;
     case kAST_Transform:
@@ -1491,7 +1550,7 @@ int is_block_memory_type(DataType dt)
 
 int is_integral_type(DataType dt)
 {
-    return (dt == kDT_int || dt== kDT_uint) ? 1 : 0;
+    return (dt == kDT_int || dt== kDT_uint || dt == kDT_short || dt == kDT_ushort) ? 1 : 0;
 }
 
 

@@ -28,6 +28,7 @@
 #define GAEN_ENGINE_KEYCODES_H
 
 #include "core/base_defines.h"
+#include "core/logging.h"
 
 #include "engine/Block.h"
 
@@ -149,7 +150,13 @@ enum KeyCode
     kKEY_F21              = 110,
     kKEY_F22              = 111,
     kKEY_F23              = 112,
-    kKEY_F24              = 113
+    kKEY_F24              = 113,
+
+    kKEY_Mouse1           = 121,
+    kKEY_Mouse2           = 122,
+    kKEY_Mouse3           = 123,
+    kKEY_Mouse4           = 124,
+    kKEY_Mouse5           = 125
 };
 
 enum KeyEvent
@@ -191,6 +198,66 @@ inline cell to_cell(KeyInput val)
 
 void process_key_input(const void * pKeyInfo);
 KeyInput convert_key_input(const void * pKeyInfo);
+
+
+
+// Mouse stuff
+
+enum MouseButtons
+{
+    kMBTN_1Down = 0x0001,
+    kMBTN_1Up   = 0x0002,
+
+    kMBTN_2Down = 0x0004,
+    kMBTN_2Up   = 0x0008,
+
+    kMBTN_3Down = 0x0010,
+    kMBTN_3Up   = 0x0020,
+
+    kMBTN_4Down = 0x0040,
+    kMBTN_4Up   = 0x0080,
+
+    kMBTN_5Down = 0x0100,
+    kMBTN_5Up   = 0x0200,
+
+    kMBTN_Wheel = 0x0400
+};
+
+struct MouseInput
+{
+    struct Buttons
+    {
+        u16 buttonFlags;
+        i16 wheelMovement;
+    } buttons;
+
+    struct Movement
+    {
+        i16 xDelta;
+        i16 yDelta;
+
+        Movement() {}
+
+        Movement(cell c)
+        {
+            *this = *reinterpret_cast<Movement*>(&c);
+        }
+    } movement;
+};
+
+static_assert(sizeof(MouseInput) == 8, "MouseInput not 8 bytes as expected");
+
+inline cell to_cell(MouseInput::Movement val)
+{
+    static_assert(sizeof(MouseInput::Movement) == 4, "MouseInput::Movement must be 4 bytes to be compatible with cell type");
+    cell c;
+    c.u = *reinterpret_cast<u32*>(&val);
+    return c;
+}
+
+void send_mouse_input();
+void process_mouse_input(const void * pMouseInfo);
+MouseInput convert_mouse_input(const void * pKeyInfo);
 
 } // namespace gaen
 

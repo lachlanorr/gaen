@@ -65,13 +65,21 @@ private:
     };
 
     void processKeyInput(const KeyInput & keyInput);
+    void processMouseMoveInput(const MouseInput::Movement & moveInput);
+    void processMouseWheelInput(i32 delta);
 
     void registerKeyToState(KeyCode keyCode, u32 stateHash);
     void registerStateListener(u32 stateHash, TaskMessage taskMessage);
 
+    void registerMouseListener(TaskMessage moveMessage, TaskMessage wheelMessage);
+
+    // LORRTODO - Add support for removing listeners for both keys and mouse
+
     HashMap<kMEM_Engine, KeyCode, Vector<kMEM_Engine, u32>, std::hash<int>> mKeyToStateMap;
     HashMap<kMEM_Engine, u32, Vector<kMEM_Engine, TaskMessage>> mStateListenerMap;
 
+    Vector<kMEM_Engine, TaskMessage> mMouseMoveListeners;
+    Vector<kMEM_Engine, TaskMessage> mMouseWheelListeners;
 };
 
 } // namespace gaen

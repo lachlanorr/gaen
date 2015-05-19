@@ -26,8 +26,12 @@
 
 #include "engine/stdafx.h"
 
+#include "core/logging.h"
+
 #include "engine/MessageWriter.h"
 #include "engine/messages/WatchInputState.h"
+#include "engine/messages/WatchMouse.h"
+#include "engine/messages/MouseMove.h"
 
 #include "engine/InputMgr.h"
 
@@ -42,6 +46,9 @@ InputMgr::InputMgr()
     registerKeyToState(kKEY_A, HASH::left);
     registerKeyToState(kKEY_S, HASH::back);
     registerKeyToState(kKEY_D, HASH::right);
+
+    registerKeyToState(kKEY_Mouse2, HASH::mouse_look);
+
 }
 
 void InputMgr::processKeyInput(const KeyInput & keyInput)
@@ -68,6 +75,38 @@ void InputMgr::processKeyInput(const KeyInput & keyInput)
     }
 }
 
+void InputMgr::processMouseMoveInput(const MouseInput::Movement & moveInput)
+{
+    if (moveInput.xDelta != 0 && moveInput.yDelta != 0)
+    {
+        for (TaskMessage tm : mMouseMoveListeners)
+        {
+            messages::MouseMoveQW msgQW(HASH::mouse_move,
+                                        kMessageFlag_None,
+                                        kInputMgrTaskId,
+                                        tm.taskId,
+                                        moveInput.xDelta);
+            msgQW.setYDelta(moveInput.yDelta);
+        }
+    }
+}
+
+void InputMgr::processMouseWheelInput(i32 delta)
+{
+    if (delta != 0)
+    {
+        for (TaskMessage tm : mMouseWheelListeners)
+        {
+            MessageQueueWriter msgw(tm.message,
+                                    kMessageFlag_None,
+                                    kInputMgrTaskId,
+                                    tm.taskId,
+                                    to_cell(delta),
+                                    0);
+        }
+    }
+}
+
 void InputMgr::registerKeyToState(KeyCode keyCode, u32 stateHash)
 {
     auto & vec = mKeyToStateMap[keyCode];
@@ -80,6 +119,18 @@ void InputMgr::registerStateListener(u32 stateHash, TaskMessage taskMessage)
     auto & vec = mStateListenerMap[stateHash];
     if (std::find(vec.begin(), vec.end(), taskMessage) == vec.end())
         vec.push_back(taskMessage);
+}
+
+void InputMgr::registerMouseListener(TaskMessage moveMessage, TaskMessage wheelMessage)
+{
+    if (moveMessage.message != 0)
+    {
+        mMouseMoveListeners.push_back(moveMessage);
+    }
+    if (wheelMessage.message != 0)
+    {
+        mMouseWheelListeners.push_back(wheelMessage);
+    }
 }
 
 template <typename T>
@@ -98,6 +149,17 @@ MessageResult InputMgr::message(const T& msgAcc)
         registerStateListener(msgr.state(), TaskMessage(msg.source, msgr.message()));
         break;
     }
+    case HASH::watch_mouse:
+    {
+        messages::WatchMouseR<T> msgr(msgAcc);
+        registerMouseListener(TaskMessage(msg.source, msgr.moveMessage()), TaskMessage(msg.source, msgr.wheelMessage()));
+    }
+    case HASH::mouse_move:
+        processMouseMoveInput(MouseInput::Movement(msg.payload));
+        break;
+    case HASH::mouse_wheel:
+        processMouseWheelInput(msg.payload.i);
+        break;
     default:
         PANIC("Unknown InputMgr message: %d", msg.msgId);
     }

@@ -101,8 +101,13 @@ class Vec3Field(BaseField):
 # qcell fields
 class Vec4Field(BaseField):
     cell_count = 4
+    union_type = 'vec4'
     includes = BaseField.includes + ['engine/math.h']
 
+class QuatField(BaseField):
+    cell_count = 4
+    union_type = 'quat'
+    includes = BaseField.includes + ['engine/math.h']
 
 
 # multi-block fields

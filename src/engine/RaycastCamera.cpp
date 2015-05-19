@@ -26,6 +26,8 @@
 
 #include "engine/stdafx.h"
 
+#include "core/logging.h"
+
 #include "engine/RaycastCamera.h"
 
 namespace gaen
@@ -48,7 +50,7 @@ void RaycastCamera::init(u32 screenWidth, u32 screenHeight, f32 fov, f32 nearZ, 
     mProjectionInv = Mat4::inverse(mProjection);
 
     mPos = Vec3(0.0f, 0.0f, 10.0f);
-    mRot = Vec3(0.0f, 0.0f, 0.0f);
+    mDir = Quat::from_axis_angle(Vec3(0.0f, 0.0f, -1.0f), 0);
 
     Vec3 rayBottomLeft  = Vec3::normalize(Mat4::multiply(mProjectionInv, Vec3(-1.0f, -1.0f, 0.0f)));
     Vec3 rayBottomRight = Vec3(-rayBottomLeft.x(),  rayBottomLeft.y(), rayBottomLeft.z());
@@ -80,13 +82,10 @@ void RaycastCamera::init(u32 screenWidth, u32 screenHeight, f32 fov, f32 nearZ, 
     calcPlanes();
 }
 
-void RaycastCamera::move(const Vec3 & pos, const Vec3 & rot)
+void RaycastCamera::move(const Vec3 & pos, const Quat & dir)
 {
     mPos = pos;
-    mRot = rot;
-
-    Mat34 transform = Mat34::rotation(rot);
-    transform = Mat34::multiply(transform, Mat34::translation(pos));
+    mDir = dir;
 
     // Reset points to our default unmoved positions, and
     // than transform each point.
@@ -94,11 +93,16 @@ void RaycastCamera::move(const Vec3 & pos, const Vec3 & rot)
 
     for (u32 ct = 0; ct < kCOR_COUNT; ++ct)
     {
-        mCorners[ct].nearPos = transform * mCorners[ct].nearPos;
-        mCorners[ct].farPos = transform * mCorners[ct].farPos;
+        mCorners[ct].nearPos = dir * mCorners[ct].nearPos;
+        mCorners[ct].farPos = dir * mCorners[ct].farPos;
     }
 
     calcPlanes();
+
+    // LORRTEMP
+    Vec3 forward(0.0f, 0.0f, -1.0f);
+    Vec3 forwardRot = Quat::multiply(mDir, forward);
+    LOG_INFO("mPos = (%f, %f, %f), ForwardRot = (%f, %f, %f)", mPos[0], mPos[1], mPos[2], forwardRot[0], forwardRot[1], forwardRot[2]);
 }
 
 void RaycastCamera::reset()

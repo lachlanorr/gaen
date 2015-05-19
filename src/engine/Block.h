@@ -33,6 +33,12 @@
 namespace gaen
 {
 
+union hcell
+{
+    i16 i;
+    u16 u;
+};
+
 union cell
 {
     i32 i;
@@ -41,6 +47,7 @@ union cell
     bool b;
     char c;
     Color color;
+    hcell h[2];
 };
 
 static_assert(sizeof(cell) == 4, "cell must be 4 bytes");
@@ -86,6 +93,7 @@ static_assert(sizeof(tcell) == 12, "tcell must be 12 bytes");
 union qcell
 {
     Vec4 vec4;
+    Quat quat;
     cell cells[4];
     dcell dCells[2];
 };

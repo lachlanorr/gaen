@@ -30,6 +30,7 @@
 #include <windows.h>
 
 #include "core/logging.h"
+#include "core/platutils.h"
 #include "engine/renderer_api.h"
 #include "engine/input.h"
 #include "renderergl/RendererGL.h"
@@ -140,6 +141,7 @@ LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
                       pRaw->data.mouse.lLastX,
                       pRaw->data.mouse.lLastY,
                       pRaw->data.mouse.ulExtraInformation);
+            process_mouse_input(pRaw);
         }
         //return DefWindowProc(hWnd, msg, wParam, lParam);
         return 0;
@@ -386,7 +388,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     BOOL ret;
     MSG msg;
-    
+
     while ((ret = GetMessage( &msg, NULL, 0, 0 )) != 0)
     { 
         if (ret != -1)
@@ -398,6 +400,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
         {
             PANIC("Error returned from GetMessage");
         }
+        send_mouse_input();
     }
 
     fin_gaen();

@@ -88,9 +88,9 @@ public:
     const Mat4 & projectionInv() const { return mProjectionInv; }
 
     const Vec3 & position() const { return mPos; }
-    const Vec3 & rotation() const { return mRot; }
+    const Quat & direction() const { return mDir; }
 
-    void move(const Vec3 & pos, const Vec3 & rot);
+    void move(const Vec3 & pos, const Quat & dir);
 
 private:
     void reset();
@@ -109,7 +109,7 @@ private:
     Mat4 mProjectionInv;
 
     Vec3 mPos;
-    Vec3 mRot;
+    Quat mDir;
 
     // Initial, zero'd position corners and planes
     // Current, transformed corners and plans

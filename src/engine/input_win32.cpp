@@ -26,9 +26,13 @@
 
 #include "engine/stdafx.h"
 
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 
 #include "core/HashMap.h"
+#include "core/logging.h"
 
 #include "engine/input.h"
 
@@ -192,7 +196,7 @@ KeyInput convert_key_input(const void * pKeyInfo)
         sKeyMap[VK_OEM_102]    = kKEY_BracketBackSlash; // 0xE2 - Angle bracket or backslash on RT 102-key keyboard
     }
 
-    RAWINPUT * pRaw = (RAWINPUT*)pKeyInfo;
+    const RAWINPUT * pRaw = reinterpret_cast<const RAWINPUT*>(pKeyInfo);
     ASSERT(pRaw->header.dwType == RIM_TYPEKEYBOARD);
 
     KeyInput keyInput;
@@ -224,7 +228,7 @@ KeyInput convert_key_input(const void * pKeyInfo)
         break;
     }
 
-    // identify keyborad ID
+    // identify keyboard ID
     auto devIt = sDeviceIdMap.find(pRaw->header.hDevice);
     if (devIt != sDeviceIdMap.end())
         keyInput.deviceId = devIt->second;
@@ -236,5 +240,27 @@ KeyInput convert_key_input(const void * pKeyInfo)
 
     return keyInput;
 }
+
+MouseInput convert_mouse_input(const void * pKeyInfo)
+{
+    const RAWINPUT * pRaw = reinterpret_cast<const RAWINPUT*>(pKeyInfo);
+
+    MouseInput mouseInput;
+
+    // We use the same flags as win32. Lucky us... other platforms
+    // will need to translate appropriately.
+    mouseInput.buttons.buttonFlags = pRaw->data.mouse.usButtonFlags;
+
+    if (pRaw->data.mouse.usButtonFlags & RI_MOUSE_WHEEL)
+        mouseInput.buttons.wheelMovement = static_cast<i16>(pRaw->data.mouse.usButtonData);
+    else
+        mouseInput.buttons.wheelMovement = 0;
+
+    mouseInput.movement.xDelta = static_cast<i16>(pRaw->data.mouse.lLastX);
+    mouseInput.movement.yDelta = static_cast<i16>(pRaw->data.mouse.lLastY);
+
+    return mouseInput;
+}
+
 
 } // namespace gaen

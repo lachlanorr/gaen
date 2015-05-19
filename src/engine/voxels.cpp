@@ -54,7 +54,7 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, const Vec3 & rayPos, const Vec3 & rayD
     Vec3 rayPosLoc = rayPos - root.pos;
 
     // Transpose of rotation matrix is the inverse
-    Mat3 rotInv = Mat3::inverse(root.rot);
+    Mat3 rotInv = Mat3::transpose(root.rot);
     Vec3 rayDirLoc = Mat3::multiply(rotInv, rayDir);
 
     // rayLoc is now the ray in local voxel coords
