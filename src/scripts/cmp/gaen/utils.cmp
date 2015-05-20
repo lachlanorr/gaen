@@ -63,7 +63,7 @@ component WasdCamera
     vec3 pos = vec3{ 0.0, 0.0, 10.0 };
 
     float moveDelta = 5.0;
-    float rotDelta = 0.000001;
+    float rotDelta = 0.0005;
     
     float forwardBackward = 0.0;
     float leftRight = 0.0;
@@ -103,15 +103,15 @@ component WasdCamera
             {
                 float angle = -mouseDeltaX * rotDelta;
                 quat orientDelta = $.quat_from_axis_angle(dirUp, angle);
-                orientation *= orientDelta;
+                orientation = orientDelta * orientation;
                 hasRotated = true;
             }
-            
+
             if (mouseDeltaY != 0.0)
             {
-                float angle = -mouseDeltaY * rotDelta;
+                float angle = mouseDeltaY * rotDelta;
                 quat orientDelta = $.quat_from_axis_angle(dirRight, angle);
-                orientation *= orientDelta;
+                orientation = orientDelta * orientation;
                 hasRotated = true;
             }
 
@@ -121,6 +121,13 @@ component WasdCamera
                 
                 dirForward = orientation * dirForwardInit;
                 dirRight = orientation * dirRightInit;
+
+                // LORRTODO - Add dot accessors to language.
+                // Zero out dirRight.y, re-normalize, and calc
+                // dirUp with dirForward X dirRight.
+                // This should correct "roll" weirdness.
+                //dirRight.y = 0.0;
+
                 dirUp = orientation * dirUpInit;
 
                 hasMoved = true;
@@ -158,8 +165,11 @@ component WasdCamera
 
         //$.print(string{"delta: %x, xDelta: %d %x, yDelta: %d %x", delta, xDelta, xDelta, yDelta, yDelta});
         //$.print(string{"xDelta: %d, yDelta: %d", xDelta, yDelta});
-        mouseDeltaX += xDelta;
-        mouseDeltaY += yDelta;
+        if (mouseLooking)
+        {
+            mouseDeltaX += xDelta;
+            mouseDeltaY += yDelta;
+        }
     }
 
     #mouse_wheel(int delta)

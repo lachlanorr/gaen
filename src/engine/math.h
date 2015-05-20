@@ -78,6 +78,7 @@ struct Vec3
     Vec3 operator-(const Vec3& rhs) const;
     Vec3 operator+(const Vec3& rhs) const;
     Vec3& operator+=(const Vec3& rhs);
+    Vec3& operator-=(const Vec3& rhs);
     Vec3 operator*(f32 rhs) const;
     bool operator==(const Vec3 & rhs) const;
     f32 & operator[](size_t idx);
@@ -157,7 +158,6 @@ struct Quat
 
     Vec3 operator* (const Vec3 & rhs) const;
     Quat operator* (const Quat & rhs) const;
-    Quat & operator*= (const Quat & rhs);
 
     static Quat normalize(const Quat & q);
     static Quat from_axis_angle(const Vec3 & dir, f32 angle, bool shouldNormalize = false);
@@ -446,6 +446,15 @@ inline Vec3& Vec3::operator+=(const Vec3& rhs)
     return *this;
 }
 
+inline Vec3& Vec3::operator-=(const Vec3& rhs)
+{
+    elems[0] -= rhs.elems[0];
+    elems[1] -= rhs.elems[1];
+    elems[2] -= rhs.elems[2];
+
+    return *this;
+}
+
 inline Vec3 Vec3::operator*(f32 rhs) const
 {
     return Vec3(x() * rhs, y() * rhs, z() * rhs);
@@ -678,12 +687,6 @@ inline Vec3 Quat::operator* (const Vec3 & rhs) const
 inline Quat Quat::operator* (const Quat & rhs) const
 {
     return Quat::multiply(*this, rhs);
-}
-
-inline Quat & Quat::operator*= (const Quat & rhs)
-{
-    *this = Quat::multiply(*this, rhs);
-    return *this;
 }
 
 inline Quat Quat::normalize(const Quat & q)

@@ -123,31 +123,14 @@ void ShaderSimulator::fragShader_Blue()
 
 void ShaderSimulator::fragShader_Raycast()
 {
-    // LORRTEMP
-    {
-        Quat q = Quat::from_axis_angle(Vec3(0.0f, 0.0f, 1.0f), radians(90.0f));
-        Vec3 v(10.0f, 0.0f, 0.0f);
-        Vec3 rv = Quat::multiply(q, v);
-
-        Quat q2 = Quat::conjugate(q);
-        Vec3 rv2 = Quat::multiply(q2, rv);
-
-        int i = 0;
-    }
-    // LORRTEMp end
-
     Vec3 rayScreenPos;
     rayScreenPos.x() = 2.0f * gl_FragCoord.x / windowSize.x() - 1.0f;
     rayScreenPos.y() = 2.0f * gl_FragCoord.y / windowSize.y() - 1.0f;
     rayScreenPos.z() = 0.0f;
 
     Vec3 rayDirProj = Vec3::normalize(Mat4::multiply(projectionInv, rayScreenPos));
+
     Vec3 rayDir = Quat::multiply(mpRaycastCamera->direction(), rayDirProj);
-
-    // LORRTEMp
-    //Quat qtmp = Quat::from_axis_angle(Vec3(0.0f, 1.0f, 0.0f), radians(-5.0f));
-    //rayDir = Quat::multiply(qtmp, rayDir);
-
     Vec3 rayPos = cameraPos;
     
     VoxelRef voxelRef;

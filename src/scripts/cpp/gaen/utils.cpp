@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 080e16de56e0dcb7565724acbd3fd3f5
+// HASH: 5cc798ac7fd352759900ee248cf9fcd5
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -181,14 +181,14 @@ public:
             {
                 f32 angle = (-(mouseDeltaX()) * rotDelta());
                 Quat orientDelta = system_api::quat_from_axis_angle(dirUp(), angle, entity());
-                orientation() *= orientDelta;
+                orientation() = (orientDelta * orientation());
                 hasRotated = 1;
             }
             if ((mouseDeltaY() != 0.00000000e+00f))
             {
-                f32 angle = (-(mouseDeltaY()) * rotDelta());
+                f32 angle = (mouseDeltaY() * rotDelta());
                 Quat orientDelta = system_api::quat_from_axis_angle(dirRight(), angle, entity());
-                orientation() *= orientDelta;
+                orientation() = (orientDelta * orientation());
                 hasRotated = 1;
             }
             if (hasRotated)
@@ -234,7 +234,7 @@ public:
             orientation() = Quat(0.00000000e+00f, 0.00000000e+00f, 0.00000000e+00f, 1.00000000e+00f);
             pos() = Vec3(0.00000000e+00f, 0.00000000e+00f, 1.00000000e+01f);
             moveDelta() = 5.00000000e+00f;
-            rotDelta() = 9.99999997e-07f;
+            rotDelta() = 5.00000024e-04f;
             forwardBackward() = 0.00000000e+00f;
             leftRight() = 0.00000000e+00f;
             mouseLooking() = 0;
@@ -267,8 +267,11 @@ public:
                 return MessageResult::Propogate;
 
             // Params look compatible, message body follows
-            mouseDeltaX() += /*xDelta*/msgAcc.message().payload.i;
-            mouseDeltaY() += /*yDelta*/msgAcc[0].cells[0].i;
+            if (mouseLooking())
+            {
+                mouseDeltaX() += /*xDelta*/msgAcc.message().payload.i;
+                mouseDeltaY() += /*yDelta*/msgAcc[0].cells[0].i;
+            }
             return MessageResult::Consumed;
         }
         case HASH::mouse_wheel:

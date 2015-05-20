@@ -98,11 +98,6 @@ void RaycastCamera::move(const Vec3 & pos, const Quat & dir)
     }
 
     calcPlanes();
-
-    // LORRTEMP
-    Vec3 forward(0.0f, 0.0f, -1.0f);
-    Vec3 forwardRot = Quat::multiply(mDir, forward);
-    LOG_INFO("mPos = (%f, %f, %f), ForwardRot = (%f, %f, %f)", mPos[0], mPos[1], mPos[2], forwardRot[0], forwardRot[1], forwardRot[2]);
 }
 
 void RaycastCamera::reset()
