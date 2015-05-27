@@ -96,9 +96,6 @@ typedef enum
     kAST_SymbolRef,
     kAST_SymbolDecl,
     
-    kAST_DataType,
-    kAST_CustomType,
-
     kAST_SimpleStmt,
 
     kAST_Transform,
@@ -176,17 +173,11 @@ typedef enum
 
 typedef enum
 {
-    kASTF_None  = 0,
-    kASTF_Const = 1,
-} AstFlags;
-
-typedef enum
-{
     kSYMT_Undefined = 0,
     kSYMT_Function,
     kSYMT_Entity,
     kSYMT_Component,
-    kSYMT_Struct,
+    kSYMT_Type,
     kSYMT_Message,
     kSYMT_Property,
     kSYMT_Field,
@@ -195,12 +186,6 @@ typedef enum
     kSYMT_Local
 } SymType;
 
-
-// High order bit set indicates const
-#define DT_CONST_FLAG   0x80000000
-#define IS_DT_CONST(dt) ((DataType)((dt) & DT_CONST_FLAG))
-#define CONST_DT(dt)    ((DataType)((dt) | DT_CONST_FLAG))
-#define RAW_DT(dt)      ((DataType)((dt) & ~DT_CONST_FLAG))
 
 // This enum must match the %token <dataType> definition in compose.y
 typedef enum
@@ -239,6 +224,9 @@ typedef enum
     // Dynamic data structures
     kDT_string    = 24,
 
+    // User defined struct
+    kDT_struct    = 25,
+
     kDT_COUNT
 
 } DataType;
@@ -252,6 +240,7 @@ typedef enum
 
 typedef void(*MessageHandler)(MessageType messageType, const char * message, const char * filename, int line, int column);
 
+typedef struct SymDataType SymDataType;
 typedef struct SymRec SymRec;
 typedef struct SymTab SymTab;
 typedef struct AstList AstList;
@@ -264,8 +253,11 @@ int parse_int(const char * pStr, int base);
 float parse_float(const char * pStr);
 const char * parse_identifier(const char * str, ParseData * pParseData);
 
+void mangle_function_call(char * mangledName, int mangledNameSize, const char * name, const Ast * pParams);
+void mangle_type(char * mangledName, int mangledNameSize, const char * name, int isConst, int isReference);
+
 SymRec * symrec_create(SymType symType,
-                       Ast * pDataType,
+                       const SymRec * pDataTypeSymRec,
                        const char * name,
                        Ast * pAst,
                        ParseData * pParseData);
@@ -283,25 +275,23 @@ AstList * astlist_append(AstList * pAstList, Ast * pAst);
 Ast * ast_create(AstType astType, ParseData * pParseData);
 Ast * ast_create_with_child_list(AstType astType, ParseData * pParseData);
 
-Ast * ast_create_with_str(AstType astType, AstFlags flags, const char * str, ParseData * pParseData);
-Ast * ast_create_with_numi(AstType astType, AstFlags flags, int numi, ParseData * pParseData);
+Ast * ast_create_with_str(AstType astType, const char * str, ParseData * pParseData);
+Ast * ast_create_with_numi(AstType astType, int numi, ParseData * pParseData);
 Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData);
 
 void ast_create_using_list(Ast * pUsingList, ParseData * pParseData);
 Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData * pParseData);
-Ast * ast_create_function_def(const char * name, Ast* pReturnType, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_function_def(const char * name, const SymRec * pReturnType, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
 
 Ast * ast_create_message_def(const char * name, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData);
-Ast * ast_create_property_def(const char * name, Ast * pDataType, Ast * pInitVal, ParseData * pParseData);
-Ast * ast_create_field_def(const char * name, Ast * pDataType, Ast * pInitVal, ParseData * pParseData);
+Ast * ast_create_property_def(const char * name, const SymRec * pDataTypeSymRec, Ast * pInitVal, ParseData * pParseData);
+Ast * ast_create_field_def(const char * name, const SymRec * pDataTypeSymRec, Ast * pInitVal, ParseData * pParseData);
 
 Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData);
 Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseData * pParseData);
 Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData);
-
-Ast * ast_create_custom_type(AstFlags flags, Ast * pTypeInfo, ParseData * pParseData);
 
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData);
 
@@ -309,7 +299,7 @@ Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData);
 Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * pParseData);
 Ast * ast_create_hash(const char * name, ParseData * pParseData);
 
-Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, ParseData * pParseData);
+Ast * ast_create_assign_op(AstType astType, Ast * pDottedId, Ast * pRhs, ParseData * pParseData);
 
 Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData);
@@ -326,7 +316,7 @@ Ast * ast_create_string_literal(const char * str, ParseData * pParseData);
 
 Ast * ast_create_function_call(Ast * pFuncName, Ast * pParams, ParseData * pParseData);
 Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData * pParseData);
-Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData);
+Ast * ast_create_symbol_ref(Ast * pDottedId, ParseData * pParseData);
 
 Ast * ast_create_if(Ast * pCondition, Ast * pIfBody, Ast * pElseBody, ParseData * pParseData);
 Ast * ast_create_while(Ast * pCondition, Ast * pBody, ParseData * pParseData);
@@ -348,10 +338,12 @@ void ast_set_lhs(Ast * pParent, Ast * pLhs);
 void ast_set_mid(Ast * pParent, Ast * pMid);
 void ast_set_rhs(Ast * pParent, Ast * pRhs);
 
-DataType ast_data_type(const Ast * pAst);
-int are_types_compatible(DataType a, DataType b);
-int is_block_memory_type(DataType dt);
-int is_integral_type(DataType dt);
+const SymDataType * ast_data_type(const Ast * pAst);
+const SymDataType * const_data_type(const SymDataType * pSdt);
+const SymDataType * non_const_data_type(const SymDataType * pSdt);
+int are_types_compatible(const SymDataType * pA, SymDataType * pB);
+int is_block_memory_type(const SymDataType * pSdt);
+int is_integral_type(const SymDataType * pSdt);
 
 void parsedata_destroy(ParseData * pParseData);
 const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dottedId);
@@ -372,6 +364,10 @@ SymTab* parsedata_add_param(ParseData * pParseData, SymTab* pSymTab, SymRec * pS
 Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec);
 
 SymRec* parsedata_find_symbol(ParseData * pParseData, const char * name);
+
+SymRec* parsedata_find_function_symbol(ParseData * pParseData, const char * name, Ast * pParams);
+SymRec* parsedata_find_type_symbol(ParseData * pParseData, const char * name, int isConst, int isReference);
+SymRec* parsedata_find_type_symbol_from_dotted_id(ParseData * pParseData, const Ast * pAstId, int isConst, int isReference);
 
 Scope* parsedata_current_scope(ParseData * pParseData);
 Scope* parsedata_push_scope(ParseData * pParseData);

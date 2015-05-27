@@ -53,6 +53,7 @@ freely, subject to the following restrictions:
     DataType    dataType;
     Ast*        pAst;
     SymTab*     pSymTab;
+    SymRec*     pSymRec;
 }
 
 %{
@@ -98,9 +99,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %right '(' '[' '{'
 %left  ')' ']' '}'
 
-%type <dataType> basic_type
-
-%type <pAst> type type_ent
+%type <pSymRec> type type_ent
 
 %type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> using_list using_stmt dotted_id dotted_id_proc dotted_id_part
@@ -135,7 +134,7 @@ dotted_id_proc
     ;
 
 dotted_id_part
-    : IDENTIFIER { $$ = ast_create_with_str(kAST_DottedIdPart, kASTF_None, $1, pParseData); }
+    : IDENTIFIER { $$ = ast_create_with_str(kAST_DottedIdPart, $1, pParseData); }
     ;
 
 def_list
@@ -148,8 +147,8 @@ def
     : ENTITY IDENTIFIER message_block                   { $$ = ast_create_entity_def($2, $3, pParseData); }
     | COMPONENT IDENTIFIER message_block                { $$ = ast_create_component_def($2, $3, pParseData); }
     | type IDENTIFIER '(' param_list ')' block          { $$ = ast_create_function_def($2, $1, $6, pParseData); }
-    | CONST_ ENTITY IDENTIFIER '(' param_list ')' block { $$ = ast_create_function_def($3, ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData), $7, pParseData); }
-    | ENTITY IDENTIFIER '(' param_list ')' block        { $$ = ast_create_function_def($2, ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData), $6, pParseData); }
+    | CONST_ ENTITY IDENTIFIER '(' param_list ')' block { $$ = ast_create_function_def($3, parsedata_find_type_symbol(pParseData, "entity", 1, 0), $7, pParseData); }
+    | ENTITY IDENTIFIER '(' param_list ')' block        { $$ = ast_create_function_def($2, parsedata_find_type_symbol(pParseData, "entity", 0, 0), $6, pParseData); }
     ;
 
 message_block
@@ -263,17 +262,17 @@ expr
     | expr '^' expr    { $$ = ast_create_binary_op(kAST_BitXor, $1, $3, pParseData); }
     | expr '&' expr    { $$ = ast_create_binary_op(kAST_BitAnd, $1, $3, pParseData); }
 
-    | IDENTIFIER '=' expr           { $$ = ast_create_assign_op(kAST_Assign,       $1, $3, pParseData); }
-    | IDENTIFIER ADD_ASSIGN expr    { $$ = ast_create_assign_op(kAST_AddAssign,    $1, $3, pParseData); }
-    | IDENTIFIER SUB_ASSIGN expr    { $$ = ast_create_assign_op(kAST_SubAssign,    $1, $3, pParseData); }
-    | IDENTIFIER MUL_ASSIGN expr    { $$ = ast_create_assign_op(kAST_MulAssign,    $1, $3, pParseData); }
-    | IDENTIFIER DIV_ASSIGN expr    { $$ = ast_create_assign_op(kAST_DivAssign,    $1, $3, pParseData); }
-    | IDENTIFIER MOD_ASSIGN expr    { $$ = ast_create_assign_op(kAST_ModAssign,    $1, $3, pParseData); }
-    | IDENTIFIER LSHIFT_ASSIGN expr { $$ = ast_create_assign_op(kAST_LShiftAssign, $1, $3, pParseData); }
-    | IDENTIFIER RSHIFT_ASSIGN expr { $$ = ast_create_assign_op(kAST_RShiftAssign, $1, $3, pParseData); }
-    | IDENTIFIER AND_ASSIGN expr    { $$ = ast_create_assign_op(kAST_AndAssign,    $1, $3, pParseData); }
-    | IDENTIFIER XOR_ASSIGN expr    { $$ = ast_create_assign_op(kAST_XorAssign,    $1, $3, pParseData); }
-    | IDENTIFIER OR_ASSIGN expr     { $$ = ast_create_assign_op(kAST_OrAssign,     $1, $3, pParseData); }
+    | dotted_id '=' expr           { $$ = ast_create_assign_op(kAST_Assign,       $1, $3, pParseData); }
+    | dotted_id ADD_ASSIGN expr    { $$ = ast_create_assign_op(kAST_AddAssign,    $1, $3, pParseData); }
+    | dotted_id SUB_ASSIGN expr    { $$ = ast_create_assign_op(kAST_SubAssign,    $1, $3, pParseData); }
+    | dotted_id MUL_ASSIGN expr    { $$ = ast_create_assign_op(kAST_MulAssign,    $1, $3, pParseData); }
+    | dotted_id DIV_ASSIGN expr    { $$ = ast_create_assign_op(kAST_DivAssign,    $1, $3, pParseData); }
+    | dotted_id MOD_ASSIGN expr    { $$ = ast_create_assign_op(kAST_ModAssign,    $1, $3, pParseData); }
+    | dotted_id LSHIFT_ASSIGN expr { $$ = ast_create_assign_op(kAST_LShiftAssign, $1, $3, pParseData); }
+    | dotted_id RSHIFT_ASSIGN expr { $$ = ast_create_assign_op(kAST_RShiftAssign, $1, $3, pParseData); }
+    | dotted_id AND_ASSIGN expr    { $$ = ast_create_assign_op(kAST_AndAssign,    $1, $3, pParseData); }
+    | dotted_id XOR_ASSIGN expr    { $$ = ast_create_assign_op(kAST_XorAssign,    $1, $3, pParseData); }
+    | dotted_id OR_ASSIGN expr     { $$ = ast_create_assign_op(kAST_OrAssign,     $1, $3, pParseData); }
 
     | '!' expr              { $$ = ast_create_unary_op(kAST_Not,        $2, pParseData); }
     | '~' expr              { $$ = ast_create_unary_op(kAST_Complement, $2, pParseData); }
@@ -310,7 +309,7 @@ cond_expr
     | expr GTE expr  { $$ = ast_create_binary_op(kAST_GTE, $1, $3, pParseData); }
     | expr '<' expr  { $$ = ast_create_binary_op(kAST_LT,  $1, $3, pParseData); }
     | expr '>' expr  { $$ = ast_create_binary_op(kAST_GT,  $1, $3, pParseData); }
-    | IDENTIFIER     { $$ = ast_create_symbol_ref($1, pParseData); }
+    | dotted_id      { $$ = ast_create_symbol_ref($1, pParseData); }
     ;
 
 literal
@@ -337,42 +336,14 @@ fun_params
     ;
 
 type
-    : CONST_ basic_type  { $$ = ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData); }
-    | basic_type         { $$ = ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData); }
-    | CONST_ dotted_id   { $$ = ast_create_custom_type(kASTF_Const, $2, pParseData); }
-    | dotted_id          { $$ = ast_create_custom_type(kASTF_None, $1, pParseData); }
+    : CONST_ dotted_id   { $$ = parsedata_find_type_symbol_from_dotted_id(pParseData, $2, 1, 0); }
+    | dotted_id          { $$ = parsedata_find_type_symbol_from_dotted_id(pParseData, $1, 0, 0); }
 
 /* Treat "entity" type specially since it is overloaded with use of defining entities */
 type_ent
     : type           { $$ = $1; }
-    | CONST_ ENTITY  { $$ = ast_create_with_numi(kAST_DataType, kASTF_Const,CONST_DT($2), pParseData); }
-    | ENTITY         { $$ = ast_create_with_numi(kAST_DataType, kASTF_None, $1, pParseData); }
-
-basic_type
-    : CHAR_
-    | BYTE_
-    | SHORT_
-    | USHORT_
-    | INT_
-    | UINT_
-    | LONG_
-    | ULONG_
-    | HALF_
-    | FLOAT_
-    | DOUBLE_
-    | BOOL_
-    | COLOR
-    | VEC2
-    | VEC3
-    | VEC4
-    | QUAT
-    | MAT3
-    | MAT34
-    | MAT4
-    | VOID_
-    | HANDLE_
-    | STRING
-    ;
+    | CONST_ ENTITY  { $$ = parsedata_find_type_symbol(pParseData, "entity", 1, 0); }
+    | ENTITY         { $$ = parsedata_find_type_symbol(pParseData, "entity", 0, 0); }
 
 %%
 

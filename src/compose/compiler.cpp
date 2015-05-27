@@ -47,9 +47,10 @@ extern "C" {
 
 using namespace gaen;
 
-static_assert(kDT_COUNT == 25, "Make sure DataType enum ids look right... seems they have changed");
+static_assert(kDT_COUNT == 26, "Make sure DataType enum ids look right... seems they have changed");
 
 static const char * kScriptsPath = "/src/scripts/cmp/";
+static const u32 kMaxId = 128;
 
 static char sEmptyStr[] = { '\0' };
 
@@ -90,26 +91,107 @@ const char * parse_identifier(const char * str, ParseData * pParseData)
     
     return parsedata_add_string(pParseData, str);
 }
+
+
+void mangle_function_call(char * mangledName, i32 mangledNameSize, const char * name, const Ast * pParams)
+{
+    char * p = mangledName;
+    const char * pEnd = mangledName + mangledNameSize - 1; // - 1 since we want to reserve space for our null
+
+    PANIC_IF(p + 2 >= pEnd, "Not enough space to mangle name");
+    strcpy(p, "f_");
+    p += 2;
+
+    for (const Ast * pParam : pParams->pChildren->nodes)
+    {
+        const SymDataType * pSdt = ast_data_type(pParam);
+
+        u32 typeStrLen = (u32)strlen(pSdt->name);
+        PANIC_IF(p + typeStrLen + 1 >= pEnd, "Not enough space to mangle name");
+        strcpy(p, pSdt->name);
+        strcpy(p, "_");
+        p += typeStrLen + 1;
+    }
+
+    PANIC_IF(p + 1 >= pEnd, "Not enough space to mangle name");
+    strcpy(p, "_");
+    p++;
+
+    PANIC_IF(p + strlen(name) >= pEnd, "Not enough space to mangle name");
+    strcpy(p, name);
+}
+
+void mangle_type(char * mangledName, i32 mangledNameSize, const char * name, int isConst, int isReference)
+{
+    char * p = mangledName;
+    const char * pEnd = mangledName + mangledNameSize - 1; // - 1 since we want to reserve space for our null
+
+    PANIC_IF(p + 6 >= pEnd, "Not enough space to mangle name");
+    
+    strcpy(p, "t_");
+    p += 2;
+
+    if (isConst)
+        strcpy(p, "c");
+    else
+        strcpy(p, "_");
+    p++;
+
+    if (isReference)
+        strcpy(p, "r");
+    else
+        strcpy(p, "_");
+    p++;
+
+    strcpy(p, "_");
+    p++;
+        
+
+    PANIC_IF(p + strlen(name) >= pEnd, "Not enough space to mangle name");
+    strcpy(p, name);
+}
+
+
+
+
+//------------------------------------------------------------------------------
+// SymDataType
+//------------------------------------------------------------------------------
+void symdatatype_add_field(SymDataType * pSdt, SymDataType * pFieldSdt, const char * fieldName)
+{
+    ASSERT_MSG(pSdt->dataType == kDT_struct, "Only structs can have fields");
+    SymStructField * pField = (SymStructField*)COMP_ALLOC(sizeof(SymStructField));
+    pField->pSymDataType = pFieldSdt;
+    pField->name = fieldName;
+    pSdt->fields.push_back(pField);
+}
+
+const SymStructField * symdatatype_find_field(const SymDataType * pSdt, const char * fieldName)
+{
+    for (SymStructField * pField : pSdt->fields)
+    {
+        if (0 == strcmp(pField->name, fieldName))
+            return pField;
+    }
+    return nullptr;
+}
+//------------------------------------------------------------------------------
+// SymDataType (END)
+//------------------------------------------------------------------------------
+
 //------------------------------------------------------------------------------
 // SymRec
 //------------------------------------------------------------------------------
 SymRec * symrec_create(SymType symType,
-                       Ast * pDataType,
+                       const SymRec * pDataTypeSymRec,
                        const char * name,
                        Ast * pAst,
                        ParseData * pParseData)
 {
     SymRec * pSymRec = COMP_NEW(SymRec);
 
-    if (pDataType && pDataType->type != kAST_DataType)
-    {
-        COMP_ERROR(pAst->pParseData, "Custom Types Not Supported Yet");
-        return nullptr;
-    }
-    DataType dataType = pDataType ? (DataType)pDataType->numi : kDT_Undefined;
-
     pSymRec->type = symType;
-    pSymRec->dataType = dataType;
+    pSymRec->pSymDataType = pDataTypeSymRec->pSymDataType;
     pSymRec->name = name;
     pSymRec->pAst = pAst;
 
@@ -139,7 +221,6 @@ SymRec * symrec_create(SymType symType,
     case kSYMT_Function:
     case kSYMT_Entity:
     case kSYMT_Component:
-    case kSYMT_Struct:
     {
         ASSERT(pAst && pAst->pParseData && pAst->pParseData->namespace_ && name);
         // count the dots, since we'll be changing them to __
@@ -374,7 +455,6 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
 
     pAst->pParseData = pParseData;
     pAst->type = astType;
-    pAst->flags = kASTF_None;
     pAst->pParent = nullptr;
     pAst->pScope = parsedata_current_scope(pParseData);
     pAst->pSymRec = nullptr;
@@ -402,18 +482,16 @@ Ast * ast_create_with_child_list(AstType astType, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_with_str(AstType astType, AstFlags flags, const char * str, ParseData * pParseData)
+Ast * ast_create_with_str(AstType astType, const char * str, ParseData * pParseData)
 {
     Ast * pAst = ast_create(astType, pParseData);
-    pAst->flags = flags;
     pAst->str = str;
     return pAst;
 }
 
-Ast * ast_create_with_numi(AstType astType, AstFlags flags, int numi, ParseData * pParseData)
+Ast * ast_create_with_numi(AstType astType, int numi, ParseData * pParseData)
 {
     Ast * pAst = ast_create(astType, pParseData);
-    pAst->flags = flags;
     pAst->numi = numi;
     return pAst;
 }
@@ -454,7 +532,7 @@ Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData)
 static Ast * ast_create_block_def(const char * name,
                                   AstType astType,
                                   SymType symType,
-                                  Ast * pReturnType,
+                                  const SymRec * pReturnTypeSymRec,
                                   Ast * pBlock,
                                   Ast * pParent,
                                   ParseData * pParseData)
@@ -469,13 +547,8 @@ static Ast * ast_create_block_def(const char * name,
     pAst->pScope = pBlock->pScope;
     pAst->pScope->pSymTab->pAst = pAst;
     
-    if (pReturnType && pReturnType->type != kAST_DataType)
-    {
-        COMP_ERROR(pParseData, "Custom Types Not Supported Yet");
-        return nullptr;
-    }
     pAst->pSymRec = symrec_create(symType,
-                                  pReturnType,
+                                  pReturnTypeSymRec,
                                   name,
                                   pAst,
                                   pParseData);
@@ -513,12 +586,12 @@ Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData *
     return pAst;
 }
 
-Ast * ast_create_function_def(const char * name, Ast * pReturnType, Ast * pBlock, ParseData * pParseData)
+Ast * ast_create_function_def(const char * name, const SymRec * pReturnTypeSymRec, Ast * pBlock, ParseData * pParseData)
 {
     Ast * pAst = ast_create_block_def(name,
                                       kAST_FunctionDef,
                                       kSYMT_Function,
-                                      pReturnType,
+                                      pReturnTypeSymRec,
                                       pBlock,
                                       pParseData->pRootAst,
                                       pParseData);
@@ -572,19 +645,14 @@ Ast * ast_create_message_def(const char * name, SymTab * pSymTab, Ast * pBlock, 
     return pAst;
 }
 
-Ast * ast_create_property_def(const char * name, Ast * pDataType, Ast * pInitVal, ParseData * pParseData)
+Ast * ast_create_property_def(const char * name, const SymRec * pDataTypeSymRec, Ast * pInitVal, ParseData * pParseData)
 {
     ASSERT(pParseData);
 
     Ast * pAst = ast_create(kAST_PropertyDef, pParseData);
 
-    if (pDataType->type != kAST_DataType)
-    {
-        COMP_ERROR(pParseData, "Custom Types Not Supported Yet");
-        return nullptr;
-    }
     pAst->pSymRec = symrec_create(kSYMT_Property,
-                                  pDataType,
+                                  pDataTypeSymRec,
                                   name,
                                   pInitVal,
                                   pParseData);
@@ -595,19 +663,14 @@ Ast * ast_create_property_def(const char * name, Ast * pDataType, Ast * pInitVal
     return pAst;
 }
 
-Ast * ast_create_field_def(const char * name, Ast * pDataType, Ast * pInitVal, ParseData * pParseData)
+Ast * ast_create_field_def(const char * name, const SymRec * pDataTypeSymRec, Ast * pInitVal, ParseData * pParseData)
 {
     ASSERT(pParseData);
 
     Ast * pAst = ast_create(kAST_FieldDef, pParseData);
 
-    if (pDataType->type != kAST_DataType)
-    {
-        COMP_ERROR(pParseData, "Custom Types Not Supported Yet");
-        return nullptr;
-    }
     pAst->pSymRec = symrec_create(kSYMT_Field,
-                                  pDataType,
+                                  pDataTypeSymRec,
                                   name,
                                   pInitVal,
                                   pParseData);
@@ -655,14 +718,6 @@ Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData
     return pAst;
 }
 
-Ast * ast_create_custom_type(AstFlags flags, Ast * pTypeInfo, ParseData * pParseData)
-{
-    Ast * pAst = ast_create(kAST_CustomType, pParseData);
-    pAst->flags = flags;
-    ast_set_lhs(pAst, pTypeInfo);
-    return pAst;
-}
-
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData)
 {
     ASSERT(pParseData);
@@ -699,11 +754,12 @@ Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * 
     return pAst;
 }
 
-Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, ParseData * pParseData)
+Ast * ast_create_assign_op(AstType astType, Ast * pDottedId, Ast * pRhs, ParseData * pParseData)
 {
     Ast * pAst = ast_create(astType, pParseData);
 
-    SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
+    SymRec * pSymRec = parsedata_find_symbol(pParseData, pDottedId->pChildren->nodes.front()->str);
+
     // We may not have a pSymRec at this point, e.g. entity
     // initialization syntax In those cases, we don't error here when
     // we don't find the symbol, but will have to handle symbol lookup
@@ -714,13 +770,14 @@ Ast * ast_create_assign_op(AstType astType, const char * name, Ast * pRhs, Parse
             pSymRec->type != kSYMT_Local &&
             pSymRec->type != kSYMT_Field)
         {
-            COMP_ERROR(pParseData, "Invalid use of symbol in assignment: %s", name);
+            COMP_ERROR(pParseData, "Invalid use of symbol in assignment: %s", pDottedId->str);
             return pAst;
         }
 
         pAst->pSymRec = pSymRec;
     }
-    pAst->str = name;
+
+    ast_set_lhs(pAst, pDottedId);
     ast_set_rhs(pAst, pRhs);
     return pAst;
 }
@@ -738,8 +795,8 @@ Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData)
     case 4:
         for (Ast * pParam : pParams->pChildren->nodes)
         {
-            DataType paramDt = RAW_DT(ast_data_type(pParam));
-            if (paramDt != kDT_int && paramDt != kDT_uint)
+            const SymDataType * pSdt = ast_data_type(pParam);
+            if (pSdt->dataType != kDT_int && pSdt->dataType != kDT_uint)
                 COMP_ERROR(pParseData, "Invalid data type in color initialization");
         }
         break;
@@ -764,8 +821,8 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
     case 1:
     {
         Ast * pParam = pParams->pChildren->nodes.front();
-        DataType paramDt = RAW_DT(ast_data_type(pParam));
-        if (paramDt != kDT_float && paramDt != kDT_vec3)
+        const SymDataType * pSdt = ast_data_type(pParam);
+        if (pSdt->dataType != kDT_float && pSdt->dataType != kDT_vec3)
             COMP_ERROR(pParseData, "Invalid data type in vec3 initialization");
         break;
     }
@@ -773,8 +830,8 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
     {
         for (Ast * pParam : pParams->pChildren->nodes)
         {
-            DataType paramDt = RAW_DT(ast_data_type(pParam));
-            if (paramDt != kDT_float)
+            const SymDataType * pSdt = ast_data_type(pParam);
+            if (pSdt->dataType != kDT_float)
                 COMP_ERROR(pParseData, "Invalid data type in vec3 initialization");
         }
         break;
@@ -801,8 +858,8 @@ Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData)
     {
         for (Ast * pParam : pParams->pChildren->nodes)
         {
-            DataType paramDt = RAW_DT(ast_data_type(pParam));
-            if (paramDt != kDT_float)
+            const SymDataType * pSdt = ast_data_type(pParam);
+            if (pSdt->dataType != kDT_float)
                 COMP_ERROR(pParseData, "Invalid data type in vec4 initialization");
         }
         break;
@@ -829,8 +886,8 @@ Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData)
     {
         for (Ast * pParam : pParams->pChildren->nodes)
         {
-            DataType paramDt = RAW_DT(ast_data_type(pParam));
-            if (paramDt != kDT_float)
+            const SymDataType * pSdt = ast_data_type(pParam);
+            if (pSdt->dataType != kDT_float)
                 COMP_ERROR(pParseData, "Invalid data type in quat initialization");
         }
         break;
@@ -856,8 +913,8 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
     case 1:
     {
         Ast * pParam = pParams->pChildren->nodes.front();
-        DataType paramDt = RAW_DT(ast_data_type(pParam));
-        if (paramDt != kDT_float && paramDt != kDT_mat34)
+        const SymDataType * pSdt = ast_data_type(pParam);
+        if (pSdt->dataType != kDT_float && pSdt->dataType != kDT_mat34)
             COMP_ERROR(pParseData, "Invalid data type in mat34 initialization");
         break;
     }
@@ -865,8 +922,8 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
     {
         for (Ast * pParam : pParams->pChildren->nodes)
         {
-            DataType paramDt = RAW_DT(ast_data_type(pParam));
-            if (paramDt != kDT_float)
+            const SymDataType * pSdt = ast_data_type(pParam);
+            if (pSdt->dataType != kDT_float)
                 COMP_ERROR(pParseData, "Invalid data type in mat34 initialization");
         }
         break;
@@ -893,8 +950,8 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
     else if (pParams->pChildren->nodes.size() == 1)
     {
         Ast * pChild = pParams->pChildren->nodes.front();
-        DataType dtChild = ast_data_type(pChild);
-        switch (dtChild)
+        const SymDataType * pSdt = ast_data_type(pChild);
+        switch (pSdt->dataType)
         {
         case kDT_bool:
         case kDT_char:
@@ -923,7 +980,7 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
             return pAst;
         }
         default:
-            COMP_ERROR(pParseData, "Unable to convert data type %d to string", dtChild);
+            COMP_ERROR(pParseData, "Unable to convert data type %d to string", pSdt->dataType);
             return nullptr;
         }
     }
@@ -1020,7 +1077,7 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
                 break;
 
             case 'c':
-                if (ast_data_type(*paramIt) != kDT_char)
+                if (ast_data_type(*paramIt)->dataType != kDT_char)
                 {
                     COMP_ERROR(pParseData, "char parameter expected in position %u for %s", i, format);
                     return nullptr;
@@ -1033,7 +1090,7 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
             case 'E':
             case 'g':
             case 'G':
-                if (ast_data_type(*paramIt) != kDT_float)
+                if (ast_data_type(*paramIt)->dataType != kDT_float)
                 {
                     COMP_ERROR(pParseData, "float parameter expected in position %u for %s", i, format);
                     return nullptr;
@@ -1206,7 +1263,7 @@ Ast * ast_create_function_call(Ast * pDottedId, Ast * pParams, ParseData * pPars
 {
     Ast * pAst = nullptr;
 
-    SymRec * pSymRec = parsedata_find_symbol(pParseData, pDottedId->str);
+    SymRec * pSymRec = parsedata_find_function_symbol(pParseData, pDottedId->str, pParams);
 
     if (pSymRec)
     {
@@ -1255,15 +1312,15 @@ Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData
 
 }
 
-Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData)
+Ast * ast_create_symbol_ref(Ast * pDottedId, ParseData * pParseData)
 {
-    SymRec * pSymRec = parsedata_find_symbol(pParseData, name);
+    SymRec * pSymRec = parsedata_find_symbol(pParseData, pDottedId->pChildren->nodes.front()->str);
 
     Ast * pAst = ast_create(kAST_SymbolRef, pParseData);
 
     if (!pSymRec)
     {
-        COMP_ERROR(pParseData, "Unknown symbol reference: %s", name);
+        COMP_ERROR(pParseData, "Unknown symbol reference: %s", pDottedId->str);
         return pAst;
     }
 
@@ -1272,7 +1329,7 @@ Ast * ast_create_symbol_ref(const char * name, ParseData * pParseData)
         pSymRec->type != kSYMT_Field &&
         pSymRec->type != kSYMT_Property)
     {
-        COMP_ERROR(pParseData, "Invalid use of symbol: %s", name);
+        COMP_ERROR(pParseData, "Invalid use of symbol: %s", pDottedId->str);
         return pAst;
     }   
 
@@ -1480,59 +1537,87 @@ void ast_set_rhs(Ast * pParent, Ast * pRhs)
         pRhs->pParent = pParent;    
 }
 
-DataType ast_data_type(const Ast * pAst)
+const SymDataType * ast_data_type(const Ast * pAst)
 {
     if (pAst->pSymRec)
-        return pAst->pSymRec->dataType;
+        return pAst->pSymRec->pSymDataType;
+
+    const SymRec * pSymRec = nullptr;
 
     switch (pAst->type)
     {
     case kAST_Hash:
-        return kDT_uint;
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "uint", 0, 0);
     case kAST_FloatLiteral:
-        return kDT_float;
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "float", 0, 0);
     case kAST_IntLiteral:
-        return kDT_int;
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "int", 0, 0);
     case kAST_StringLiteral:
     case kAST_StringInit:
     case kAST_StringFormat:
-        return kDT_string;
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "string", 0, 0);
     case kAST_ColorInit:
-        return kDT_color;
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "color", 0, 0);
     case kAST_Vec2Init:
-        return kDT_vec2;
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "vec2", 0, 0);
     case kAST_Vec3Init:
-        return kDT_vec3;
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "vec3", 0, 0);
     case kAST_Vec4Init:
-        return kDT_vec4;
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "vec4", 0, 0);
     case kAST_QuatInit:
-        return kDT_quat;
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "quat", 0, 0);
     case kAST_Mat34Init:
-        return kDT_mat34;
     case kAST_Transform:
-        return kDT_mat34;
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "mat34", 0, 0);
     case kAST_Negate:
         return ast_data_type(pAst->pRhs);
     case kAST_SystemCall:
     {
         const ApiSignature * pSig = find_api(pAst->str, pAst->pParseData);
-        return pSig->returnType;
+        return pSig->pReturnType;
     }
-    default:
+    }
+
+    if (!pSymRec)
     {
         COMP_ERROR(pAst->pParseData, "Cannot determine datatype for pAst, type: %d", pAst->type);
-        return kDT_Undefined;
+        return nullptr;
     }
+
+    return pSymRec->pSymDataType;
+}
+
+const SymDataType * const_data_type(const SymDataType * pSdt)
+{
+    if (pSdt->isConst)
+        return pSdt;
+    else
+    {
+        const SymRec * pSymRec = parsedata_find_type_symbol(pSdt->pSymRec->pSymTab->pParseData, pSdt->name, true, pSdt->isReference);
+        ASSERT(pSymRec);
+        return pSymRec->pSymDataType;
     }
 }
 
-int are_types_compatible(DataType a, DataType b)
+const SymDataType * non_const_data_type(const SymDataType * pSdt)
+{
+    if (!pSdt->isConst)
+        return pSdt;
+    else
+    {
+        const SymRec * pSymRec = parsedata_find_type_symbol(pSdt->pSymRec->pSymTab->pParseData, pSdt->name, false, pSdt->isReference);
+        ASSERT(pSymRec);
+        return pSymRec->pSymDataType;
+    }
+}
+
+int are_types_compatible(const SymDataType * pA, SymDataType * pB)
 {
     // TODO: Support const checking in assignment. This function should be
     // renamed or special cased to handle checks on LHS of assignment consts.
     // We also need to support implicit conversion from int to float, etc.
-    DataType rawA = RAW_DT(a);
-    DataType rawB = RAW_DT(b);
+    DataType rawA = pA->dataType;
+    DataType rawB = pB->dataType;
     if (rawA == rawB)
         return 1;
     if ((rawA == kDT_uint   && rawB == kDT_int)  || 
@@ -1543,13 +1628,14 @@ int are_types_compatible(DataType a, DataType b)
     return 0;
 }
 
-int is_block_memory_type(DataType dt)
+int is_block_memory_type(const SymDataType * pSdt)
 {
-    return (dt == kDT_string ? 1 : 0);
+    return (pSdt->dataType == kDT_string ? 1 : 0);
 }
 
-int is_integral_type(DataType dt)
+int is_integral_type(const SymDataType * pSdt)
 {
+    DataType dt = pSdt->dataType;
     return (dt == kDT_int || dt== kDT_uint || dt == kDT_short || dt == kDT_ushort) ? 1 : 0;
 }
 
@@ -1748,6 +1834,25 @@ SymRec* parsedata_find_symbol(ParseData * pParseData, const char * name)
     ASSERT(pParseData);
     ASSERT(name);
     return symtab_find_symbol_recursive(pParseData->scopeStack.back()->pSymTab, name);
+}
+
+SymRec* parsedata_find_function_symbol(ParseData * pParseData, const char * name, Ast * pParams)
+{
+    char mangledName[kMaxId+1];
+    mangle_function_call(mangledName, kMaxId, name, pParams);
+    return symtab_find_symbol_recursive(pParseData->scopeStack.back()->pSymTab, mangledName);
+}
+
+SymRec* parsedata_find_type_symbol(ParseData * pParseData, const char * name, int isConst, int isReference)
+{
+    char mangledName[kMaxId+1];
+    mangle_type(mangledName, kMaxId, name, isConst, isReference);
+    return symtab_find_symbol_recursive(pParseData->scopeStack.back()->pSymTab, mangledName);
+}
+
+SymRec* parsedata_find_type_symbol_from_dotted_id(ParseData * pParseData, const Ast * pAstId, int isConst, int isReference)
+{
+    return parsedata_find_type_symbol(pParseData, pAstId->str, isConst, isReference);
 }
 
 Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)

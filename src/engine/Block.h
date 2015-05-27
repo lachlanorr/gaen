@@ -33,12 +33,6 @@
 namespace gaen
 {
 
-union hcell
-{
-    i16 i;
-    u16 u;
-};
-
 union cell
 {
     i32 i;
@@ -47,7 +41,6 @@ union cell
     bool b;
     char c;
     Color color;
-    hcell h[2];
 };
 
 static_assert(sizeof(cell) == 4, "cell must be 4 bytes");
@@ -130,6 +123,14 @@ inline Block & block_at(void * start, size_t index)
 inline const Block & block_at(const void * start, size_t index)
 {
     return *(reinterpret_cast<const Block*>(start) + index);
+}
+
+inline u32 cell_count(u32 byte_count)
+{
+    u32 cells = byte_count / sizeof(cell);
+    if (byte_count % sizeof(cell) != 0)
+        cells++;
+    return cells;
 }
 
 inline u32 block_count(u32 cell_count)

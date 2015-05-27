@@ -40,8 +40,8 @@ const u32 kMaxApiParams = 16;
 struct ApiSignature
 {
     u32 nameHash;
-    DataType returnType;
-    DataType paramTypes[kMaxApiParams];
+    SymDataType * pReturnType;
+    SymDataType * pParamTypes[kMaxApiParams];
 };
 
 } // namespace gaen

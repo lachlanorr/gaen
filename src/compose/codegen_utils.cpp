@@ -43,8 +43,8 @@ BlockInfo::BlockInfo(Ast * pAst)
   , isAssigned(false)
 {
     cellCount = gaen::calc_cell_count(pAst);
-    dataType = RAW_DT(ast_data_type(pAst));
-    isBlockMemoryType = is_block_memory_type(dataType) ? true : false;
+    pSymDataType = non_const_data_type(ast_data_type(pAst));
+    isBlockMemoryType = is_block_memory_type(pSymDataType) ? true : false;
 }
 
 namespace gaen
@@ -121,42 +121,9 @@ const Ast * find_component_members(const Ast * pAst)
 
 u32 calc_cell_count(const Ast * pAst)
 {
-    DataType dt = pAst->pSymRec ? pAst->pSymRec->dataType : ast_data_type(pAst);
-    return data_type_cell_count(dt, pAst->pParseData);
+    const SymDataType * pSdt = pAst->pSymRec ? pAst->pSymRec->pSymDataType : ast_data_type(pAst);
+    return cell_count(pSdt->byteCount);
 }
-
-u32 data_type_cell_count(DataType dataType, ParseData * pParseData)
-{
-    switch (RAW_DT(dataType))
-    {
-    case kDT_int:
-    case kDT_uint:
-    case kDT_float:
-    case kDT_bool:
-    case kDT_char:
-    case kDT_color:
-        return 1;
-    case kDT_vec3:
-        return 3;
-    case kDT_vec4:
-    case kDT_quat:
-        return 4;
-    case kDT_mat3:
-        return 9;
-    case kDT_mat34:
-        return 12;
-    case kDT_mat4:
-        return 16;
-    case kDT_handle:
-        return 8;
-    case kDT_string:
-        return 2;    // for pimpl pointer of CmpString
-    default:
-        COMP_ERROR(pParseData, "Unknown cell count for datatype: %d", dataType);
-        return 0;
-    }
-}
-
 
 u32 props_and_fields_count(const Ast * pAst)
 {

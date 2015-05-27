@@ -30,7 +30,7 @@ namespace gaen
 {
 
 ApiSignature gApiSignatures[] = {
-                                    { HASH::create_shape_box, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_color) } },
+/*                                    { HASH::create_shape_box, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_color) } },
                                     { HASH::create_shape_cone, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_uint), CONST_DT(kDT_color) } },
                                     { HASH::create_shape_cylinder, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_uint), CONST_DT(kDT_color) } },
                                     { HASH::create_shape_sphere, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_uint), CONST_DT(kDT_uint), CONST_DT(kDT_color) } },
@@ -53,7 +53,7 @@ ApiSignature gApiSignatures[] = {
                                     { HASH::renderer_remove_model_instance, kDT_void, { CONST_DT(kDT_uint) } },
                                     { HASH::renderer_insert_light_directional, kDT_void, { CONST_DT(kDT_uint), CONST_DT(kDT_vec3), CONST_DT(kDT_color) } },
                                     { HASH::renderer_remove_light_directional, kDT_void, { CONST_DT(kDT_uint) } },
-
+                                    */
                                     { 0 }
                                 };
 

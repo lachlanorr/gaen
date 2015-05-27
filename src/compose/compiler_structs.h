@@ -28,15 +28,37 @@
 #define GAEN_COMPOSE_COMPILER_STRUCTS_H
 
 #include "core/base_defines.h"
+#include "core/mem.h"
 #include "compose/compiler.h"
 #include "compose/comp_mem.h"
 
 using namespace gaen;
 
+struct SymRec;
+struct SymDataType;
+struct SymStructField
+{
+    const SymDataType * pSymDataType;
+    const char * name;
+};
+
+struct SymDataType
+{
+    const char * name;
+    const char * mangledName;
+    u32 byteCount;
+    DataType dataType;
+    bool isConst;
+    bool isReference;
+    SymRec * pSymRec;
+
+    CompList<SymStructField*> fields;
+};
+
 struct SymRec
 {
     SymType type;
-    DataType dataType;
+    const SymDataType * pSymDataType;
     const char * name;
     const char * full_name;
     Ast * pAst;
@@ -50,6 +72,7 @@ struct SymTab
     SymTab * pParent;
     Ast * pAst;
     ParseData * pParseData;
+    CompMap<const char*, const SymDataType*, StrcmpComp> symDataTypes;
     CompMap<const char*, SymRec*, StrcmpComp> dict;
     CompList<SymRec*> orderedSymRecs;
     CompList<SymTab*> children;
@@ -64,7 +87,7 @@ struct AstList
 struct BlockInfo
 {
     Ast * pAst;
-    DataType dataType;
+    const SymDataType * pSymDataType;
     u32 blockIndex;
     u32 blockMemoryIndex;
     u32 cellIndex;
@@ -112,7 +135,6 @@ struct Ast
 {
     ParseData * pParseData;
     AstType type;
-    AstFlags flags;
     Ast* pParent;
     Scope* pScope;
     SymRec* pSymRec;
