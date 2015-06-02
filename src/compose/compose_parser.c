@@ -200,7 +200,7 @@ typedef union YYSTYPE
     DataType    dataType;
     Ast*        pAst;
     SymTab*     pSymTab;
-    SymRec*     pSymRec;
+    const SymDataType*     pSymDataType;
 
 
 /* Line 387 of yacc.c  */
@@ -2008,19 +2008,19 @@ yyreduce:
   case 15:
 /* Line 1787 of yacc.c  */
 #line 149 "compose.y"
-    { (yyval.pAst) = ast_create_function_def((yyvsp[(2) - (6)].str), (yyvsp[(1) - (6)].pSymRec), (yyvsp[(6) - (6)].pAst), pParseData); }
+    { (yyval.pAst) = ast_create_function_def((yyvsp[(2) - (6)].str), (yyvsp[(1) - (6)].pSymDataType), (yyvsp[(6) - (6)].pAst), pParseData); }
     break;
 
   case 16:
 /* Line 1787 of yacc.c  */
 #line 150 "compose.y"
-    { (yyval.pAst) = ast_create_function_def((yyvsp[(3) - (7)].str), parsedata_find_type_symbol(pParseData, "entity", 1, 0), (yyvsp[(7) - (7)].pAst), pParseData); }
+    { (yyval.pAst) = ast_create_function_def((yyvsp[(3) - (7)].str), parsedata_find_type(pParseData, "entity", 1, 0), (yyvsp[(7) - (7)].pAst), pParseData); }
     break;
 
   case 17:
 /* Line 1787 of yacc.c  */
 #line 151 "compose.y"
-    { (yyval.pAst) = ast_create_function_def((yyvsp[(2) - (6)].str), parsedata_find_type_symbol(pParseData, "entity", 0, 0), (yyvsp[(6) - (6)].pAst), pParseData); }
+    { (yyval.pAst) = ast_create_function_def((yyvsp[(2) - (6)].str), parsedata_find_type(pParseData, "entity", 0, 0), (yyvsp[(6) - (6)].pAst), pParseData); }
     break;
 
   case 18:
@@ -2056,25 +2056,25 @@ yyreduce:
   case 23:
 /* Line 1787 of yacc.c  */
 #line 166 "compose.y"
-    { (yyval.pAst) = ast_create_property_def((yyvsp[(2) - (5)].str), (yyvsp[(1) - (5)].pSymRec), (yyvsp[(4) - (5)].pAst), pParseData); }
+    { (yyval.pAst) = ast_create_property_def((yyvsp[(2) - (5)].str), (yyvsp[(1) - (5)].pSymDataType), (yyvsp[(4) - (5)].pAst), pParseData); }
     break;
 
   case 24:
 /* Line 1787 of yacc.c  */
 #line 167 "compose.y"
-    { (yyval.pAst) = ast_create_property_def((yyvsp[(2) - (3)].str), (yyvsp[(1) - (3)].pSymRec), NULL, pParseData); }
+    { (yyval.pAst) = ast_create_property_def((yyvsp[(2) - (3)].str), (yyvsp[(1) - (3)].pSymDataType), NULL, pParseData); }
     break;
 
   case 25:
 /* Line 1787 of yacc.c  */
 #line 168 "compose.y"
-    { (yyval.pAst) = ast_create_field_def((yyvsp[(2) - (5)].str), (yyvsp[(1) - (5)].pSymRec), (yyvsp[(4) - (5)].pAst), pParseData); }
+    { (yyval.pAst) = ast_create_field_def((yyvsp[(2) - (5)].str), (yyvsp[(1) - (5)].pSymDataType), (yyvsp[(4) - (5)].pAst), pParseData); }
     break;
 
   case 26:
 /* Line 1787 of yacc.c  */
 #line 169 "compose.y"
-    { (yyval.pAst) = ast_create_field_def((yyvsp[(2) - (3)].str), (yyvsp[(1) - (3)].pSymRec), NULL, pParseData); }
+    { (yyval.pAst) = ast_create_field_def((yyvsp[(2) - (3)].str), (yyvsp[(1) - (3)].pSymDataType), NULL, pParseData); }
     break;
 
   case 27:
@@ -2092,13 +2092,13 @@ yyreduce:
   case 29:
 /* Line 1787 of yacc.c  */
 #line 175 "compose.y"
-    { (yyval.pSymTab) = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, (yyvsp[(1) - (2)].pSymRec), (yyvsp[(2) - (2)].str), NULL, pParseData)); }
+    { (yyval.pSymTab) = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, (yyvsp[(1) - (2)].pSymDataType), (yyvsp[(2) - (2)].str), NULL, pParseData)); }
     break;
 
   case 30:
 /* Line 1787 of yacc.c  */
 #line 176 "compose.y"
-    { (yyval.pSymTab) = parsedata_add_param(pParseData, (yyvsp[(1) - (4)].pSymTab), symrec_create(kSYMT_Param, (yyvsp[(3) - (4)].pSymRec), (yyvsp[(4) - (4)].str), NULL, pParseData)); }
+    { (yyval.pSymTab) = parsedata_add_param(pParseData, (yyvsp[(1) - (4)].pSymTab), symrec_create(kSYMT_Param, (yyvsp[(3) - (4)].pSymDataType), (yyvsp[(4) - (4)].str), NULL, pParseData)); }
     break;
 
   case 31:
@@ -2278,13 +2278,13 @@ yyreduce:
   case 60:
 /* Line 1787 of yacc.c  */
 #line 245 "compose.y"
-    { (yyval.pAst) = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, (yyvsp[(1) - (2)].pSymRec), (yyvsp[(2) - (2)].str), NULL, pParseData)); }
+    { (yyval.pAst) = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, (yyvsp[(1) - (2)].pSymDataType), (yyvsp[(2) - (2)].str), NULL, pParseData)); }
     break;
 
   case 61:
 /* Line 1787 of yacc.c  */
 #line 246 "compose.y"
-    { (yyval.pAst) = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, (yyvsp[(1) - (4)].pSymRec), (yyvsp[(2) - (4)].str), (yyvsp[(4) - (4)].pAst), pParseData)); }
+    { (yyval.pAst) = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, (yyvsp[(1) - (4)].pSymDataType), (yyvsp[(2) - (4)].str), (yyvsp[(4) - (4)].pAst), pParseData)); }
     break;
 
   case 62:
@@ -2662,31 +2662,31 @@ yyreduce:
   case 124:
 /* Line 1787 of yacc.c  */
 #line 339 "compose.y"
-    { (yyval.pSymRec) = parsedata_find_type_symbol_from_dotted_id(pParseData, (yyvsp[(2) - (2)].pAst), 1, 0); }
+    { (yyval.pSymDataType) = parsedata_find_type_from_dotted_id(pParseData, (yyvsp[(2) - (2)].pAst), 1, 0); }
     break;
 
   case 125:
 /* Line 1787 of yacc.c  */
 #line 340 "compose.y"
-    { (yyval.pSymRec) = parsedata_find_type_symbol_from_dotted_id(pParseData, (yyvsp[(1) - (1)].pAst), 0, 0); }
+    { (yyval.pSymDataType) = parsedata_find_type_from_dotted_id(pParseData, (yyvsp[(1) - (1)].pAst), 0, 0); }
     break;
 
   case 126:
 /* Line 1787 of yacc.c  */
 #line 344 "compose.y"
-    { (yyval.pSymRec) = (yyvsp[(1) - (1)].pSymRec); }
+    { (yyval.pSymDataType) = (yyvsp[(1) - (1)].pSymDataType); }
     break;
 
   case 127:
 /* Line 1787 of yacc.c  */
 #line 345 "compose.y"
-    { (yyval.pSymRec) = parsedata_find_type_symbol(pParseData, "entity", 1, 0); }
+    { (yyval.pSymDataType) = parsedata_find_type(pParseData, "entity", 1, 0); }
     break;
 
   case 128:
 /* Line 1787 of yacc.c  */
 #line 346 "compose.y"
-    { (yyval.pSymRec) = parsedata_find_type_symbol(pParseData, "entity", 0, 0); }
+    { (yyval.pSymDataType) = parsedata_find_type(pParseData, "entity", 0, 0); }
     break;
 
 

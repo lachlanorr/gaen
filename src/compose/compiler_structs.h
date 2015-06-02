@@ -46,11 +46,12 @@ struct SymDataType
 {
     const char * name;
     const char * mangledName;
-    u32 byteCount;
+    u32 cellCount;
     DataType dataType;
     bool isConst;
     bool isReference;
     SymRec * pSymRec;
+    const char * cppTypeStr;
 
     CompList<SymStructField*> fields;
 };

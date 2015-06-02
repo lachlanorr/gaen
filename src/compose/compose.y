@@ -53,7 +53,7 @@ freely, subject to the following restrictions:
     DataType    dataType;
     Ast*        pAst;
     SymTab*     pSymTab;
-    SymRec*     pSymRec;
+    const SymDataType*     pSymDataType;
 }
 
 %{
@@ -99,7 +99,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %right '(' '[' '{'
 %left  ')' ']' '}'
 
-%type <pSymRec> type type_ent
+%type <pSymDataType> type type_ent
 
 %type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> using_list using_stmt dotted_id dotted_id_proc dotted_id_part
@@ -147,8 +147,8 @@ def
     : ENTITY IDENTIFIER message_block                   { $$ = ast_create_entity_def($2, $3, pParseData); }
     | COMPONENT IDENTIFIER message_block                { $$ = ast_create_component_def($2, $3, pParseData); }
     | type IDENTIFIER '(' param_list ')' block          { $$ = ast_create_function_def($2, $1, $6, pParseData); }
-    | CONST_ ENTITY IDENTIFIER '(' param_list ')' block { $$ = ast_create_function_def($3, parsedata_find_type_symbol(pParseData, "entity", 1, 0), $7, pParseData); }
-    | ENTITY IDENTIFIER '(' param_list ')' block        { $$ = ast_create_function_def($2, parsedata_find_type_symbol(pParseData, "entity", 0, 0), $6, pParseData); }
+    | CONST_ ENTITY IDENTIFIER '(' param_list ')' block { $$ = ast_create_function_def($3, parsedata_find_type(pParseData, "entity", 1, 0), $7, pParseData); }
+    | ENTITY IDENTIFIER '(' param_list ')' block        { $$ = ast_create_function_def($2, parsedata_find_type(pParseData, "entity", 0, 0), $6, pParseData); }
     ;
 
 message_block
@@ -336,14 +336,14 @@ fun_params
     ;
 
 type
-    : CONST_ dotted_id   { $$ = parsedata_find_type_symbol_from_dotted_id(pParseData, $2, 1, 0); }
-    | dotted_id          { $$ = parsedata_find_type_symbol_from_dotted_id(pParseData, $1, 0, 0); }
+    : CONST_ dotted_id   { $$ = parsedata_find_type_from_dotted_id(pParseData, $2, 1, 0); }
+    | dotted_id          { $$ = parsedata_find_type_from_dotted_id(pParseData, $1, 0, 0); }
 
 /* Treat "entity" type specially since it is overloaded with use of defining entities */
 type_ent
     : type           { $$ = $1; }
-    | CONST_ ENTITY  { $$ = parsedata_find_type_symbol(pParseData, "entity", 1, 0); }
-    | ENTITY         { $$ = parsedata_find_type_symbol(pParseData, "entity", 0, 0); }
+    | CONST_ ENTITY  { $$ = parsedata_find_type(pParseData, "entity", 1, 0); }
+    | ENTITY         { $$ = parsedata_find_type(pParseData, "entity", 0, 0); }
 
 %%
 

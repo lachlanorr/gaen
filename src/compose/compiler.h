@@ -77,6 +77,7 @@ typedef enum
     kAST_DottedId,
     kAST_DottedIdPart,
     kAST_FunctionDef,
+    kAST_SystemApiDef,
     kAST_EntityDef,
     kAST_ComponentDef,
     kAST_MessageDef,
@@ -90,6 +91,7 @@ typedef enum
     kAST_TypeId,
 
     kAST_Block,
+    kAST_FunctionArg,
     kAST_FunctionParams,
     kAST_FunctionCall,
     kAST_SystemCall,
@@ -175,6 +177,7 @@ typedef enum
 {
     kSYMT_Undefined = 0,
     kSYMT_Function,
+    kSYMT_SystemApi,
     kSYMT_Entity,
     kSYMT_Component,
     kSYMT_Type,
@@ -240,6 +243,7 @@ typedef enum
 
 typedef void(*MessageHandler)(MessageType messageType, const char * message, const char * filename, int line, int column);
 
+typedef struct SymStructField SymStructField;
 typedef struct SymDataType SymDataType;
 typedef struct SymRec SymRec;
 typedef struct SymTab SymTab;
@@ -254,10 +258,16 @@ float parse_float(const char * pStr);
 const char * parse_identifier(const char * str, ParseData * pParseData);
 
 void mangle_function_call(char * mangledName, int mangledNameSize, const char * name, const Ast * pParams);
-void mangle_type(char * mangledName, int mangledNameSize, const char * name, int isConst, int isReference);
+size_t mangle_type_size(const char * name);
+void mangle_type(char * mangledName, size_t mangledNameSize, const char * name, int isConst, int isReference);
+
+SymDataType * symdatatype_create(const char * name, DataType dataType, int isConst, int isReference, ParseData * pParseData);
+
+void symdatatype_add_field(SymDataType * pSdt, SymDataType * pFieldSdt, const char * fieldName);
+const SymStructField * symdatatype_find_field(const SymDataType * pSdt, const char * fieldName);
 
 SymRec * symrec_create(SymType symType,
-                       const SymRec * pDataTypeSymRec,
+                       const SymDataType * pSdt,
                        const char * name,
                        Ast * pAst,
                        ParseData * pParseData);
@@ -281,13 +291,15 @@ Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData);
 
 void ast_create_using_list(Ast * pUsingList, ParseData * pParseData);
 Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData * pParseData);
-Ast * ast_create_function_def(const char * name, const SymRec * pReturnType, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
 
 Ast * ast_create_message_def(const char * name, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData);
-Ast * ast_create_property_def(const char * name, const SymRec * pDataTypeSymRec, Ast * pInitVal, ParseData * pParseData);
-Ast * ast_create_field_def(const char * name, const SymRec * pDataTypeSymRec, Ast * pInitVal, ParseData * pParseData);
+Ast * ast_create_property_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData);
+Ast * ast_create_field_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData);
+
+Ast * ast_create_function_arg(const char * name, SymRec * pDataTypeSymRec, ParseData * pParseData);
 
 Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData);
 Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseData * pParseData);
@@ -362,12 +374,15 @@ SymTab* parsedata_add_param(ParseData * pParseData, SymTab* pSymTab, SymRec * pS
 // Adds to the symbol table on top of the stack currently.
 // A new symbol table should already have been added to the stack.
 Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec);
+Ast* parsedata_add_root_symbol(ParseData * pParseData, SymRec * pSymRec);
 
 SymRec* parsedata_find_symbol(ParseData * pParseData, const char * name);
 
 SymRec* parsedata_find_function_symbol(ParseData * pParseData, const char * name, Ast * pParams);
 SymRec* parsedata_find_type_symbol(ParseData * pParseData, const char * name, int isConst, int isReference);
+const SymDataType* parsedata_find_type(ParseData * pParseData, const char * name, int isConst, int isReference);
 SymRec* parsedata_find_type_symbol_from_dotted_id(ParseData * pParseData, const Ast * pAstId, int isConst, int isReference);
+const SymDataType* parsedata_find_type_from_dotted_id(ParseData * pParseData, const Ast * pAstId, int isConst, int isReference);
 
 Scope* parsedata_current_scope(ParseData * pParseData);
 Scope* parsedata_push_scope(ParseData * pParseData);
@@ -398,6 +413,9 @@ void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...);
 #include "compose/comp_mem.h"
 namespace gaen
 {
+
+void register_basic_types(ParseData * pParseData);
+void register_system_apis(ParseData * pParseData);
 
 ParseData * parse_file(const char * fullPath,
                        CompList<CompString> * pIncludes,

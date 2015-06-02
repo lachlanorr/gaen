@@ -30,7 +30,6 @@
 #include "core/hashing.h"
 #include "engine/Block.h"
 #include "compose/codegen_utils.h"
-#include "compose/system_api_meta.h"
 
 // Define BlockInfo constructor here to avoid issues including this file from compiler_structs.h
 BlockInfo::BlockInfo(Ast * pAst)
@@ -49,34 +48,6 @@ BlockInfo::BlockInfo(Ast * pAst)
 
 namespace gaen
 {
-
-extern ApiSignature gApiSignatures[];
-const ApiSignature * find_api(const char * name, ParseData * pParseData)
-{
-    static bool isInit = false;
-    static HashMap<kMEM_Compose, u32, const ApiSignature*> apiMap;
-    if (!isInit)
-    {
-        ApiSignature * pSig = &gApiSignatures[0];
-        while (pSig->nameHash != 0)
-        {
-            apiMap[pSig->nameHash] = pSig;
-            pSig++;
-        }
-        isInit = true;
-    }
-
-    u32 nameHash = gaen_hash(name);
-
-    auto it = apiMap.find(nameHash);
-    if (it == apiMap.end())
-    {
-        COMP_ERROR(pParseData, "Cannot find system api: $.%s", name);
-        return nullptr;
-    }
-    return it->second;
-}
-
 
 bool is_update_message_def(const Ast * pAst)
 {
@@ -122,7 +93,7 @@ const Ast * find_component_members(const Ast * pAst)
 u32 calc_cell_count(const Ast * pAst)
 {
     const SymDataType * pSdt = pAst->pSymRec ? pAst->pSymRec->pSymDataType : ast_data_type(pAst);
-    return cell_count(pSdt->byteCount);
+    return pSdt->cellCount;
 }
 
 u32 props_and_fields_count(const Ast * pAst)

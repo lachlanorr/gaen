@@ -135,7 +135,7 @@ typedef union YYSTYPE
     DataType    dataType;
     Ast*        pAst;
     SymTab*     pSymTab;
-    SymRec*     pSymRec;
+    const SymDataType*     pSymDataType;
 
 
 /* Line 2053 of yacc.c  */

@@ -33,9 +33,6 @@
 namespace gaen
 {
 
-struct ApiSignature;
-const ApiSignature * find_api(const char * name, ParseData * pParseData);
-
 // If pAst contains a message def called "Update", return it
 // otherwise return null
 bool is_update_message_def(const Ast * pAst);
@@ -45,12 +42,12 @@ const Ast * find_component_members(const Ast * pAst);
 
 u32 calc_cell_count(const Ast * pAst);
 
-inline bool is_prop_or_field(const SymRec * pSymRec)
+inline bool is_prop_or_field(SymRec * pSymRec)
 {
     return (pSymRec && (pSymRec->type == kSYMT_Property || pSymRec->type == kSYMT_Field));
 }
 
-inline bool is_prop(const SymRec * pSymRec)
+inline bool is_prop(SymRec * pSymRec)
 {
     return (pSymRec && pSymRec->type == kSYMT_Property);
 }

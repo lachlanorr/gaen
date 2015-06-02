@@ -24,37 +24,173 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "compose/system_api_meta.h"
+#include "core/HashMap.h"
+
+#include "compose/compiler_structs.h"
 
 namespace gaen
 {
 
-ApiSignature gApiSignatures[] = {
-/*                                    { HASH::create_shape_box, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_color) } },
-                                    { HASH::create_shape_cone, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_uint), CONST_DT(kDT_color) } },
-                                    { HASH::create_shape_cylinder, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_uint), CONST_DT(kDT_color) } },
-                                    { HASH::create_shape_sphere, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_uint), CONST_DT(kDT_uint), CONST_DT(kDT_color) } },
-                                    { HASH::create_shape_quad_sphere, kDT_handle, { CONST_DT(kDT_vec3), CONST_DT(kDT_uint), CONST_DT(kDT_color) } },
-                                    { HASH::print, kDT_void, { CONST_DT(kDT_string) } },
-                                    { HASH::hashstr, kDT_string, { CONST_DT(kDT_uint) } },
-                                    { HASH::insert_entity, kDT_void, { CONST_DT(kDT_uint) } },
-                                    { HASH::radians, kDT_float, { CONST_DT(kDT_float) } },
-                                    { HASH::degrees, kDT_float, { CONST_DT(kDT_float) } },
-                                    { HASH::watch_input_state, kDT_void, { CONST_DT(kDT_uint), CONST_DT(kDT_uint), CONST_DT(kDT_uint) } },
-                                    { HASH::watch_mouse, kDT_void, { CONST_DT(kDT_uint), CONST_DT(kDT_uint) } },
-                                    { HASH::mat34_rotation, kDT_mat34, { CONST_DT(kDT_vec3) } },
-                                    { HASH::mat3_rotation, kDT_mat3, { CONST_DT(kDT_vec3) } },
-                                    { HASH::quat_from_axis_angle, kDT_quat, { CONST_DT(kDT_vec3), CONST_DT(kDT_float) } },
-                                    { HASH::quat_normalize, kDT_quat, { CONST_DT(kDT_quat) } },
-                                    { HASH::renderer_gen_uid, kDT_uint, {  } },
-                                    { HASH::renderer_move_camera, kDT_void, { CONST_DT(kDT_vec3), CONST_DT(kDT_quat) } },
-                                    { HASH::renderer_insert_model_instance, kDT_void, { CONST_DT(kDT_uint), kDT_handle } },
-                                    { HASH::renderer_transform_model_instance, kDT_void, { CONST_DT(kDT_uint), CONST_DT(kDT_mat34) } },
-                                    { HASH::renderer_remove_model_instance, kDT_void, { CONST_DT(kDT_uint) } },
-                                    { HASH::renderer_insert_light_directional, kDT_void, { CONST_DT(kDT_uint), CONST_DT(kDT_vec3), CONST_DT(kDT_color) } },
-                                    { HASH::renderer_remove_light_directional, kDT_void, { CONST_DT(kDT_uint) } },
-                                    */
-                                    { 0 }
-                                };
+void register_system_apis(ParseData * pParseData)
+{
+    {
+        // create_shape_box
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("size", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("color", parsedata_find_type_symbol(pParseData, "color", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "handle", 0, 0)->pSymDataType, "create_shape_box", pSystemApiDef, pParseData));
+    }
+    {
+        // create_shape_cone
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("size", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("slices", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("color", parsedata_find_type_symbol(pParseData, "color", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "handle", 0, 0)->pSymDataType, "create_shape_cone", pSystemApiDef, pParseData));
+    }
+    {
+        // create_shape_cylinder
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("size", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("slices", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("color", parsedata_find_type_symbol(pParseData, "color", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "handle", 0, 0)->pSymDataType, "create_shape_cylinder", pSystemApiDef, pParseData));
+    }
+    {
+        // create_shape_sphere
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("size", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("slices", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("sections", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("color", parsedata_find_type_symbol(pParseData, "color", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "handle", 0, 0)->pSymDataType, "create_shape_sphere", pSystemApiDef, pParseData));
+    }
+    {
+        // create_shape_quad_sphere
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("size", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("sections", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("color", parsedata_find_type_symbol(pParseData, "color", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "handle", 0, 0)->pSymDataType, "create_shape_quad_sphere", pSystemApiDef, pParseData));
+    }
+    {
+        // print
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("str", parsedata_find_type_symbol(pParseData, "string", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, "print", pSystemApiDef, pParseData));
+    }
+    {
+        // hashstr
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("hash", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "string", 0, 0)->pSymDataType, "hashstr", pSystemApiDef, pParseData));
+    }
+    {
+        // insert_entity
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("id", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, "insert_entity", pSystemApiDef, pParseData));
+    }
+    {
+        // radians
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("degrees", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "float", 0, 0)->pSymDataType, "radians", pSystemApiDef, pParseData));
+    }
+    {
+        // degrees
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("radians", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "float", 0, 0)->pSymDataType, "degrees", pSystemApiDef, pParseData));
+    }
+    {
+        // watch_input_state
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("state", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("deviceId", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("message", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, "watch_input_state", pSystemApiDef, pParseData));
+    }
+    {
+        // watch_mouse
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("moveMessage", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("wheelMessage", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, "watch_mouse", pSystemApiDef, pParseData));
+    }
+    {
+        // mat34_rotation
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("angles", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "mat34", 0, 0)->pSymDataType, "mat34_rotation", pSystemApiDef, pParseData));
+    }
+    {
+        // mat3_rotation
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("angles", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "mat3", 0, 0)->pSymDataType, "mat3_rotation", pSystemApiDef, pParseData));
+    }
+    {
+        // quat_from_axis_angle
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("dir", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("angle", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "quat", 0, 0)->pSymDataType, "quat_from_axis_angle", pSystemApiDef, pParseData));
+    }
+    {
+        // quat_normalize
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("quat", parsedata_find_type_symbol(pParseData, "quat", 1, 1), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "quat", 0, 0)->pSymDataType, "quat_normalize", pSystemApiDef, pParseData));
+    }
+    {
+        // renderer_gen_uid
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "uint", 0, 0)->pSymDataType, "renderer_gen_uid", pSystemApiDef, pParseData));
+    }
+    {
+        // renderer_move_camera
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("position", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("direction", parsedata_find_type_symbol(pParseData, "quat", 1, 1), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, "renderer_move_camera", pSystemApiDef, pParseData));
+    }
+    {
+        // renderer_insert_model_instance
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("uid", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("modelHandle", parsedata_find_type_symbol(pParseData, "handle", 0, 1), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, "renderer_insert_model_instance", pSystemApiDef, pParseData));
+    }
+    {
+        // renderer_transform_model_instance
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("uid", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("transform", parsedata_find_type_symbol(pParseData, "mat34", 1, 1), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, "renderer_transform_model_instance", pSystemApiDef, pParseData));
+    }
+    {
+        // renderer_remove_model_instance
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("uid", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, "renderer_remove_model_instance", pSystemApiDef, pParseData));
+    }
+    {
+        // renderer_insert_light_directional
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("uid", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("direction", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("color", parsedata_find_type_symbol(pParseData, "color", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, "renderer_insert_light_directional", pSystemApiDef, pParseData));
+    }
+    {
+        // renderer_remove_light_directional
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("uid", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, "renderer_remove_light_directional", pSystemApiDef, pParseData));
+    }
+
+}
+
 
 } // namespace gaen

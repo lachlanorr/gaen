@@ -60,29 +60,31 @@ META_TEMPLATE = '''\
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "compose/system_api_meta.h"
+#include "core/HashMap.h"
+
+#include "compose/compiler_structs.h"
 
 namespace gaen
 {
 
-ApiSignature gApiSignatures[] = {
-                                    <<api_sigs>>
+void register_system_apis(ParseData * pParseData)
+{
+<<reg_apis>>
+}
 
-                                    { 0 }
-                                };
 
 } // namespace gaen
 '''
 
-def get_codegen_cpp_lines():
-    return [line.rstrip() for line in open(dirs.CODEGEN_CPP_CPP_FILE)]
+def get_compiler_cpp_lines():
+    return [line.rstrip() for line in open(dirs.COMPILER_CPP_CPP_FILE)]
 
 def read_types():
     '''
-    Read types from codegen_cpp.cpp so we don't have to maintain
+    Read types from compiler_cpp.cpp so we don't have to maintain
     a separate list here.'
     '''
-    lines = get_codegen_cpp_lines()
+    lines = get_compiler_cpp_lines()
     cpp_types = []
     compose_types = []
     i = 0
@@ -90,18 +92,18 @@ def read_types():
     while i < len(lines):
         line = lines[i]
         if not in_cpp_type_str_func:
-            if line == "static const char * cpp_type_str(DataType dt, ParseData * pParseData)":
+            if line == "static const char * compose_type_to_cpp_type(DataType dt, ParseData * pParseData)":
                 in_cpp_type_str_func = True
         else:
             if "default:" in line:
                 if len(cpp_types) == 0 or len(cpp_types) != len(compose_types):
-                    raise Exception('Failed to parse types from codegen_cpp.cpp')
+                    raise Exception('Failed to parse types from compiler_cpp.cpp')
                 return cpp_types, compose_types
             m = re.search("case kDT_([^\s]+):", line)
             if m:
                 compose_types.append(m.group(1))
             else:
-                m = re.search(r'return [^:]+: "([^"]+)";', line)
+                m = re.search(r'return "([^"]+)";', line)
                 if m:
                     cpp_types.append(m.group(1))
         i += 1
@@ -193,8 +195,6 @@ def parse_param(param_str):
     items = items[0].split() + items[1].split()
     const = ''
     has_const = items[0] == 'const' or items[1] == 'const'
-    if not is_ref or has_const:
-        const = 'const '
     if has_const:
         items.remove('const')
     if len(items) != 2:
@@ -202,7 +202,7 @@ def parse_param(param_str):
     cpp_type, name = items
     if cpp_type not in CPP_TYPES:
         raise Exception("Invalid param type: " + param_str)
-    return (const + cpp_type + '&', const + CPP_TO_COMPOSE_TYPE[cpp_type], name)
+    return (cpp_type, CPP_TO_COMPOSE_TYPE[cpp_type], name, 1 if has_const else 0, 1 if is_ref else 0)
             
 
 def parse_api_str(api_str):
@@ -219,23 +219,26 @@ def parse_api_str(api_str):
         params = [parse_param(p) for p in params]
         return name, rettype, params
     
-def api_type_decl(parsed_param):
-    if parsed_param.startswith('const '):
-        return "CONST_DT(kDT_%s)" % parsed_param.split(' ')[1]
-    else:
-        return "kDT_" + parsed_param
+def reg_api(parsed_api):
+    sarr = []
 
-def api_decl(parsed_api):
-    return "{ HASH::%s, %s, { %s } }" % (parsed_api[0],
-                                         api_type_decl(parsed_api[1][1]),
-                                         ', '.join([api_type_decl(p[1]) for p in parsed_api[2]]))
+    sarr.append('    {\n')
+    sarr.append('        // %s\n' % parsed_api[0])
+
+    sarr.append('        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);\n')
+    for i in range(len(parsed_api[2])):
+        sarr.append('        ast_add_child(pSystemApiDef, ast_create_function_arg("%s", parsedata_find_type_symbol(pParseData, "%s", %d, %d), pParseData));\n' % (parsed_api[2][i][2], parsed_api[2][i][1], parsed_api[2][i][3], parsed_api[2][i][4]))
+
+    sarr.append('        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "%s", 0, 0)->pSymDataType, "%s", pSystemApiDef, pParseData));\n' % (parsed_api[1][1], parsed_api[0]))
+
+    sarr.append('    }\n')
+    return ''.join(sarr)
 
 def build_metadata():
     lines, includes = get_api_lines()
     api_strs = get_api_strs(lines)
-    api_decls = [api_decl(parse_api_str(api_str)) for api_str in api_strs]
-    indent = ' ' * 36
-    return META_TEMPLATE.replace("<<api_sigs>>", (',\n' + indent).join(api_decls) + ','), includes
+    reg_apis = [reg_api(parse_api_str(api_str)) for api_str in api_strs]
+    return META_TEMPLATE.replace("<<reg_apis>>", ''.join(reg_apis)), includes
 
 def read_file(filename):
     if os.path.exists(filename):

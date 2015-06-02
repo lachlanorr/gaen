@@ -36,7 +36,6 @@
 #include "compose/compiler_structs.h"
 #include "compose/codegen_utils.h"
 #include "compose/utils.h"
-#include "compose/system_api_meta.h"
 
 extern "C" {
 #define YYDEBUG 1
@@ -106,41 +105,44 @@ void mangle_function_call(char * mangledName, i32 mangledNameSize, const char * 
     {
         const SymDataType * pSdt = ast_data_type(pParam);
 
-        u32 typeStrLen = (u32)strlen(pSdt->name);
+        u32 typeStrLen = (u32)strlen(pSdt->mangledName);
         PANIC_IF(p + typeStrLen + 1 >= pEnd, "Not enough space to mangle name");
-        strcpy(p, pSdt->name);
+        strcpy(p, pSdt->mangledName);
         strcpy(p, "_");
         p += typeStrLen + 1;
     }
-
-    PANIC_IF(p + 1 >= pEnd, "Not enough space to mangle name");
-    strcpy(p, "_");
-    p++;
 
     PANIC_IF(p + strlen(name) >= pEnd, "Not enough space to mangle name");
     strcpy(p, name);
 }
 
-void mangle_type(char * mangledName, i32 mangledNameSize, const char * name, int isConst, int isReference)
+size_t mangle_type_size(const char * name)
 {
+    return strlen(name) + 4;
+}
+
+void mangle_type(char * mangledName, size_t mangledNameSize, const char * name, int isConst, int isReference)
+{
+    ASSERT(mangledNameSize > mangle_type_size(name) + 4);
+    
     char * p = mangledName;
     const char * pEnd = mangledName + mangledNameSize - 1; // - 1 since we want to reserve space for our null
 
-    PANIC_IF(p + 6 >= pEnd, "Not enough space to mangle name");
+    PANIC_IF(p + 4 >= pEnd, "Not enough space to mangle name");
     
-    strcpy(p, "t_");
-    p += 2;
+    strcpy(p, "t");
+    p++;
 
     if (isConst)
         strcpy(p, "c");
     else
-        strcpy(p, "_");
+        strcpy(p, "n");
     p++;
 
     if (isReference)
         strcpy(p, "r");
     else
-        strcpy(p, "_");
+        strcpy(p, "v");
     p++;
 
     strcpy(p, "_");
@@ -157,6 +159,145 @@ void mangle_type(char * mangledName, i32 mangledNameSize, const char * name, int
 //------------------------------------------------------------------------------
 // SymDataType
 //------------------------------------------------------------------------------
+
+u32 cells_per_datatype(DataType dt)
+{
+    switch (dt)
+    {
+    case kDT_bool:
+    case kDT_int:
+    case kDT_uint:
+    case kDT_float:
+    case kDT_color:
+    case kDT_entity:
+        return 1;
+    case kDT_vec2:
+    case kDT_handle:
+    case kDT_string:
+        return 2;
+    case kDT_vec3:
+        return 3;
+    case kDT_vec4:
+    case kDT_quat:
+        return 3;
+    case kDT_mat3:
+        return 9;
+    case kDT_mat34:
+        return 12;
+    case kDT_mat4:
+        return 16;
+    case kDT_struct:
+        return 0;
+    default:
+        PANIC("Invalid data type: %u", dt);
+        return 0;
+    }
+}
+
+static const char * compose_type_to_cpp_type(DataType dt, ParseData * pParseData)
+{
+    switch (dt)
+    {
+    case kDT_char:
+        return "i8";
+    case kDT_byte:
+        return "u8";
+    case kDT_short:
+        return "i16";
+    case kDT_ushort:
+        return "u16";
+    case kDT_int:
+        return "i32";
+    case kDT_uint:
+        return "u32";
+    case kDT_long:
+        return "i64";
+    case kDT_ulong:
+        return "u64";
+    case kDT_half:
+        return "f16";
+    case kDT_float:
+        return "f32";
+    case kDT_double:
+        return "f64";
+    case kDT_bool:
+        return "bool";
+    case kDT_color:
+        return "Color";
+    case kDT_vec2:
+        return "Vec2";
+    case kDT_vec3:
+        return "Vec3";
+    case kDT_vec4:
+        return "Vec4";
+    case kDT_quat:
+        return "Quat";
+    case kDT_mat3:
+        return "Mat3";
+    case kDT_mat34:
+        return "Mat34";
+    case kDT_mat4:
+        return "Mat4";
+    case kDT_void:
+        return "void";
+    case kDT_handle:
+        return "Handle";
+    case kDT_entity:
+        return "task_id";
+    case kDT_string:
+        return "CmpString";
+    default:
+        COMP_ERROR(pParseData, "cpp_type_str invalid DataType: %d", dt);
+        return nullptr;
+    }
+}
+
+static const char * cpp_type_str(DataType dataType, int isConst, int isReference, ParseData * pParseData)
+{
+    const char * cppType = compose_type_to_cpp_type(dataType, pParseData);
+    ASSERT(cppType);
+    size_t typeLen = strlen(cppType);
+    if (isConst)
+        typeLen += 6; // "const " 6 chars
+    if (isReference)
+        typeLen += 2;
+
+    char * ret = (char*)COMP_ALLOC(typeLen+1);
+    ret[0] = '\0';
+    if (isConst)
+        strcat(ret, "const ");
+
+    if (isReference)
+        strcat(ret, "& ");
+
+    strcat(ret, cppType);
+
+    return ret;
+
+}
+
+SymDataType * symdatatype_create(const char * name, DataType dataType, int isConst, int isReference, ParseData * pParseData)
+{
+    SymDataType * pSdt = COMP_NEW(SymDataType);
+
+    pSdt->name = name;
+
+    size_t mangle_size = mangle_type_size(name) + 1;
+    char * mangledName = (char*)COMP_ALLOC(mangle_size);
+    mangle_type(mangledName, mangle_size, name, isConst, isReference);
+    pSdt->mangledName = mangledName;
+    
+    pSdt->cellCount = cells_per_datatype(dataType);
+    pSdt->dataType = dataType;
+    pSdt->isConst = isConst != 0;
+    pSdt->isReference = isReference != 0;
+    pSdt->pSymRec = nullptr;
+
+    pSdt->cppTypeStr = cpp_type_str(dataType, isConst, isReference, pParseData);
+
+    return pSdt;
+}
+
 void symdatatype_add_field(SymDataType * pSdt, SymDataType * pFieldSdt, const char * fieldName)
 {
     ASSERT_MSG(pSdt->dataType == kDT_struct, "Only structs can have fields");
@@ -183,7 +324,7 @@ const SymStructField * symdatatype_find_field(const SymDataType * pSdt, const ch
 // SymRec
 //------------------------------------------------------------------------------
 SymRec * symrec_create(SymType symType,
-                       const SymRec * pDataTypeSymRec,
+                       const SymDataType * pSdt,
                        const char * name,
                        Ast * pAst,
                        ParseData * pParseData)
@@ -191,7 +332,7 @@ SymRec * symrec_create(SymType symType,
     SymRec * pSymRec = COMP_NEW(SymRec);
 
     pSymRec->type = symType;
-    pSymRec->pSymDataType = pDataTypeSymRec->pSymDataType;
+    pSymRec->pSymDataType = pSdt;
     pSymRec->name = name;
     pSymRec->pAst = pAst;
 
@@ -532,7 +673,7 @@ Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData)
 static Ast * ast_create_block_def(const char * name,
                                   AstType astType,
                                   SymType symType,
-                                  const SymRec * pReturnTypeSymRec,
+                                  const SymDataType * pReturnType,
                                   Ast * pBlock,
                                   Ast * pParent,
                                   ParseData * pParseData)
@@ -546,9 +687,41 @@ static Ast * ast_create_block_def(const char * name,
     ast_add_children(pAst, pBlock->pChildren);
     pAst->pScope = pBlock->pScope;
     pAst->pScope->pSymTab->pAst = pAst;
-    
+
     pAst->pSymRec = symrec_create(symType,
-                                  pReturnTypeSymRec,
+                                  pReturnType,
+                                  name,
+                                  pAst,
+                                  pParseData);
+
+    parsedata_add_local_symbol(pParseData, pAst->pSymRec);
+
+    if (pParent)
+        ast_add_child(pParent, pAst);
+
+    return pAst;
+}
+
+static Ast * ast_register_system_api(const char * name,
+                                     AstType astType,
+                                     SymType symType,
+                                     SymRec * pReturnTypeSymRec,
+                                     Ast * pBlock,
+                                     Ast * pParent,
+                                     ParseData * pParseData)
+{
+    ASSERT(pBlock);
+    ASSERT(pBlock->pChildren);
+    ASSERT(pParseData);
+
+    Ast * pAst = ast_create(astType, pParseData);
+    pAst->str = name;
+    ast_add_children(pAst, pBlock->pChildren);
+    pAst->pScope = pBlock->pScope;
+    pAst->pScope->pSymTab->pAst = pAst;
+
+    pAst->pSymRec = symrec_create(symType,
+                                  pReturnTypeSymRec->pSymDataType,
                                   name,
                                   pAst,
                                   pParseData);
@@ -586,12 +759,12 @@ Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData *
     return pAst;
 }
 
-Ast * ast_create_function_def(const char * name, const SymRec * pReturnTypeSymRec, Ast * pBlock, ParseData * pParseData)
+Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType, Ast * pBlock, ParseData * pParseData)
 {
     Ast * pAst = ast_create_block_def(name,
                                       kAST_FunctionDef,
                                       kSYMT_Function,
-                                      pReturnTypeSymRec,
+                                      pReturnType,
                                       pBlock,
                                       pParseData->pRootAst,
                                       pParseData);
@@ -645,14 +818,14 @@ Ast * ast_create_message_def(const char * name, SymTab * pSymTab, Ast * pBlock, 
     return pAst;
 }
 
-Ast * ast_create_property_def(const char * name, const SymRec * pDataTypeSymRec, Ast * pInitVal, ParseData * pParseData)
+Ast * ast_create_property_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData)
 {
     ASSERT(pParseData);
 
     Ast * pAst = ast_create(kAST_PropertyDef, pParseData);
 
     pAst->pSymRec = symrec_create(kSYMT_Property,
-                                  pDataTypeSymRec,
+                                  pDataType,
                                   name,
                                   pInitVal,
                                   pParseData);
@@ -663,14 +836,14 @@ Ast * ast_create_property_def(const char * name, const SymRec * pDataTypeSymRec,
     return pAst;
 }
 
-Ast * ast_create_field_def(const char * name, const SymRec * pDataTypeSymRec, Ast * pInitVal, ParseData * pParseData)
+Ast * ast_create_field_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData)
 {
     ASSERT(pParseData);
 
     Ast * pAst = ast_create(kAST_FieldDef, pParseData);
 
     pAst->pSymRec = symrec_create(kSYMT_Field,
-                                  pDataTypeSymRec,
+                                  pDataType,
                                   name,
                                   pInitVal,
                                   pParseData);
@@ -678,6 +851,15 @@ Ast * ast_create_field_def(const char * name, const SymRec * pDataTypeSymRec, As
     Scope * pScope = pParseData->scopeStack.back();
     symtab_add_symbol(pScope->pSymTab, pAst->pSymRec, pParseData);
 
+    return pAst;
+}
+
+Ast * ast_create_function_arg(const char * name, SymRec * pDataTypeSymRec, ParseData * pParseData)
+{
+    ASSERT(pParseData);
+    Ast * pAst = ast_create(kAST_FunctionArg, pParseData);
+    pAst->str = name;
+    pAst->pSymRec = pDataTypeSymRec;
     return pAst;
 }
 
@@ -1294,22 +1476,34 @@ Ast * ast_create_function_call(Ast * pDottedId, Ast * pParams, ParseData * pPars
 
 Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData * pParseData)
 {
+    Ast * pAst = nullptr;
 
-    // check to see if this is a syscall
-    const ApiSignature * pSig = find_api(pApiName, pParseData);
-    if (pSig)
+    SymRec * pSymRec = parsedata_find_function_symbol(pParseData, pApiName, pParams);
+
+    if (pSymRec && pSymRec->type == kSYMT_SystemApi)
     {
-        Ast * pAst = ast_create(kAST_SystemCall, pParseData);
-        pAst->str = pApiName;
-        ast_set_rhs(pAst, pParams);
-        return pAst;
+        pAst = ast_create(kAST_SystemCall, pParseData);
+
+        if (pSymRec->type != kSYMT_SystemApi)
+        {
+            ASSERT(pApiName);
+            COMP_ERROR(pParseData, "Call to non-system api symbol: %s", pApiName);
+            return nullptr;
+        }
+        else
+        {
+            pAst->pSymRec = pSymRec;
+            ast_set_rhs(pAst, pParams);
+        }
     }
     else
     {
-        COMP_ERROR(pParseData, "Unknown system api reference: %s", pApiName);
+        COMP_ERROR(pParseData, "Unknown system api: %s", pApiName);
         return nullptr;
     }
 
+    ASSERT(pAst);
+    return pAst;
 }
 
 Ast * ast_create_symbol_ref(Ast * pDottedId, ParseData * pParseData)
@@ -1542,7 +1736,7 @@ const SymDataType * ast_data_type(const Ast * pAst)
     if (pAst->pSymRec)
         return pAst->pSymRec->pSymDataType;
 
-    const SymRec * pSymRec = nullptr;
+    SymRec * pSymRec = nullptr;
 
     switch (pAst->type)
     {
@@ -1573,8 +1767,7 @@ const SymDataType * ast_data_type(const Ast * pAst)
         return ast_data_type(pAst->pRhs);
     case kAST_SystemCall:
     {
-        const ApiSignature * pSig = find_api(pAst->str, pAst->pParseData);
-        return pSig->pReturnType;
+        return pAst->pSymRec->pSymDataType;
     }
     }
 
@@ -1593,7 +1786,7 @@ const SymDataType * const_data_type(const SymDataType * pSdt)
         return pSdt;
     else
     {
-        const SymRec * pSymRec = parsedata_find_type_symbol(pSdt->pSymRec->pSymTab->pParseData, pSdt->name, true, pSdt->isReference);
+        SymRec * pSymRec = parsedata_find_type_symbol(pSdt->pSymRec->pSymTab->pParseData, pSdt->name, true, pSdt->isReference);
         ASSERT(pSymRec);
         return pSymRec->pSymDataType;
     }
@@ -1605,7 +1798,7 @@ const SymDataType * non_const_data_type(const SymDataType * pSdt)
         return pSdt;
     else
     {
-        const SymRec * pSymRec = parsedata_find_type_symbol(pSdt->pSymRec->pSymTab->pParseData, pSdt->name, false, pSdt->isReference);
+        SymRec * pSymRec = parsedata_find_type_symbol(pSdt->pSymRec->pSymTab->pParseData, pSdt->name, false, pSdt->isReference);
         ASSERT(pSymRec);
         return pSymRec->pSymDataType;
     }
@@ -1687,6 +1880,9 @@ ParseData * parsedata_create(const char * fullPath,
     pParseData->pApiIncludes = pApiIncludes;
 
     parsedata_prep_paths(pParseData, fullPath);
+
+    register_basic_types(pParseData);
+    register_system_apis(pParseData);
 
     return pParseData;
 }
@@ -1850,9 +2046,19 @@ SymRec* parsedata_find_type_symbol(ParseData * pParseData, const char * name, in
     return symtab_find_symbol_recursive(pParseData->scopeStack.back()->pSymTab, mangledName);
 }
 
+const SymDataType* parsedata_find_type(ParseData * pParseData, const char * name, int isConst, int isReference)
+{
+    return parsedata_find_type_symbol(pParseData, name, isConst, isReference)->pSymDataType;
+}
+
 SymRec* parsedata_find_type_symbol_from_dotted_id(ParseData * pParseData, const Ast * pAstId, int isConst, int isReference)
 {
     return parsedata_find_type_symbol(pParseData, pAstId->str, isConst, isReference);
+}
+
+const SymDataType* parsedata_find_type_from_dotted_id(ParseData * pParseData, const Ast * pAstId, int isConst, int isReference)
+{
+    return parsedata_find_type(pParseData, pAstId->str, isConst, isReference);
 }
 
 Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
@@ -1868,6 +2074,22 @@ Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
     Scope * pScope = pParseData->scopeStack.back();
 
     symtab_add_symbol(pScope->pSymTab, pSymRec, pParseData);
+    return pAst;
+}
+
+Ast* parsedata_add_root_symbol(ParseData * pParseData, SymRec * pSymRec)
+{
+    ASSERT(pParseData);
+    ASSERT(pParseData->scopeStack.size() >= 1);
+    ASSERT(pSymRec);
+
+    Ast * pAst = ast_create(kAST_SymbolDecl, pParseData);
+    pAst->pSymRec = pSymRec;
+    ast_set_rhs(pAst, pSymRec->pAst);
+
+    Scope * pScope = pParseData->pRootScope;
+
+    symtab_add_symbol(pParseData->pRootScope->pSymTab, pSymRec, pParseData);
     return pAst;
 }
 
@@ -2159,6 +2381,52 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 namespace gaen
 {
+    void register_basic_type(const char * name, DataType dt, ParseData * pParseData)
+    {
+        {
+        // normal
+        SymDataType * pSdt = symdatatype_create(name, dt, 0, 0, pParseData);
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, pSdt, pSdt->mangledName, nullptr, pParseData));
+        }
+
+        {
+        // const
+        SymDataType * pSdt = symdatatype_create(name, dt, 1, 0, pParseData);
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, pSdt, pSdt->mangledName, nullptr, pParseData));
+        }
+
+        {
+        // reference
+        SymDataType * pSdt = symdatatype_create(name, dt, 0, 1, pParseData);
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, pSdt, pSdt->mangledName, nullptr, pParseData));
+        }
+
+        {
+        // const reference
+        SymDataType * pSdt = symdatatype_create(name, dt, 1, 1, pParseData);
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, pSdt, pSdt->mangledName, nullptr, pParseData));
+        }
+    }
+
+    void register_basic_types(ParseData * pParseData)
+    {
+        register_basic_type("bool",   kDT_bool,   pParseData);
+        register_basic_type("int",    kDT_int,    pParseData);
+        register_basic_type("uint",   kDT_uint,   pParseData);
+        register_basic_type("float",  kDT_float,  pParseData);
+        register_basic_type("color",  kDT_color,  pParseData);
+        register_basic_type("vec2",   kDT_vec2,   pParseData);
+        register_basic_type("vec3",   kDT_vec3,   pParseData);
+        register_basic_type("vec4",   kDT_vec4,   pParseData);
+        register_basic_type("quat",   kDT_quat,   pParseData);
+        register_basic_type("mat3",   kDT_mat3,   pParseData);
+        register_basic_type("mat34",  kDT_mat34,  pParseData);
+        register_basic_type("mat4",   kDT_mat4,   pParseData);
+        register_basic_type("handle", kDT_handle, pParseData);
+        register_basic_type("entity", kDT_entity, pParseData);
+        register_basic_type("string", kDT_string, pParseData);
+    }
+
     ParseData * parse_file(const char * fullPath,
                            CompList<CompString> * pApiIncludes,
                            MessageHandler messageHandler)
