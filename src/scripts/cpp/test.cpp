@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: b072723a725c51bb71e293e07e98f26c
+// HASH: 86acc9d3676f1ed8edddc932868df0fa
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -59,69 +59,12 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::set_property:
-            switch (_msg.payload.u)
-            {
-            case HASH::prop1:
-            {
-                u32 requiredBlockCount = 1;
-                if (_msg.blockCount >= requiredBlockCount)
-                {
-                    reinterpret_cast<Block*>(&prop1())[0].cells[0] = msgAcc[0].cells[0];
-                    return MessageResult::Consumed;
-                }
-                break;
-            }
-            case HASH::prop2:
-            {
-                if (_msg.blockCount < 1) break; // not enough even for BlockData header
-                const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[0]);
-                if (pBlockData->type != kBKTY_String) break; // incorrect BlockData type
-                u32 requiredBlockCount = pBlockData->blockCount;
-                if (_msg.blockCount >= requiredBlockCount)
-                {
-                    Address addr = entity().blockMemory().allocCopy(pBlockData);
-                    set_prop2(entity().blockMemory().string(addr));
-                    return MessageResult::Consumed;
-                }
-                break;
-            }
-            }
-            return MessageResult::Propogate; // Invalid property
-        case HASH::msg1:
-        {
-            // Verify params look compatible with this message type
-            u32 expectedBlockSize = 1; // BlockCount without BlockMemory params
-            if (expectedBlockSize > msgAcc.available())
-                return MessageResult::Propogate;
-
-            // Check that block memory params exist in the message
-            u16 blockMemCount = 0;
-
-            blockMemCount = BlockData::validate_block_data(&msgAcc[expectedBlockSize], kBKTY_String);
-            expectedBlockSize += blockMemCount;
-            if (blockMemCount == 0 || expectedBlockSize > msgAcc.available())
-                return MessageResult::Propogate;
-
-            blockMemCount = BlockData::validate_block_data(&msgAcc[expectedBlockSize], kBKTY_String);
-            expectedBlockSize += blockMemCount;
-            if (blockMemCount == 0 || expectedBlockSize > msgAcc.available())
-                return MessageResult::Propogate;
-
-            blockMemCount = BlockData::validate_block_data(&msgAcc[expectedBlockSize], kBKTY_String);
-            expectedBlockSize += blockMemCount;
-            if (blockMemCount == 0 || expectedBlockSize > msgAcc.available())
-                return MessageResult::Propogate;
-
-
-            // Params look compatible, message body follows
-            system_api::print(entity().blockMemory().stringFormat("prop1 = %d", prop1()), entity());
-            return MessageResult::Consumed;
-        }
         case HASH::init:
         {
             // Params look compatible, message body follows
-            system_api::print(entity().blockMemory().stringFormat("prop1 = %d, prop2 = \"%s\"", prop1(), prop2().c_str()), entity());
+            Vec3 v0;
+            v0.x = 5.00000000e+00f;
+            system_api::(entity().blockMemory().stringFormat("x = %f", ), entity());
             return MessageResult::Consumed;
         }
         }
@@ -132,39 +75,13 @@ private:
     test__Test(u32 childCount)
       : Entity(HASH::test__Test, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-        prop1() = 20;
-        set_prop2(entity().blockMemory().stringAlloc("abc"));
-        mBlockCount = 1;
+        mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::test__Test);
     }
     test__Test(const test__Test&)              = delete;
     test__Test(const test__Test&&)             = delete;
     test__Test & operator=(const test__Test&)  = delete;
     test__Test & operator=(const test__Test&&) = delete;
-
-    i32& prop1()
-    {
-        return mpBlocks[0].cells[2].i;
-    }
-
-    CmpString& prop2()
-    {
-        return *reinterpret_cast<CmpString*>(&mpBlocks[0].cells[0]);
-    }
-    bool mIs_prop2_Assigned = false;
-    void set_prop2(const CmpString& rhs)
-    {
-        if (mIs_prop2_Assigned)
-        {
-            entity().blockMemory().release(prop2());
-        }
-        else
-        {
-            mIs_prop2_Assigned = true;
-        }
-        prop2() = rhs;
-        entity().blockMemory().addRef(prop2());
-    }
 
 }; // class test__Test
 

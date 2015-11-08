@@ -661,6 +661,7 @@ freely, subject to the following restrictions:
 #line 41 "compose.l"
 #include "compose/compiler.h"
 #include "compose/compose_parser.h"
+#include "compose/comp_mem.h"
 
 #define YY_USER_ACTION                   \
   do {                                   \
@@ -676,7 +677,7 @@ freely, subject to the following restrictions:
   } while(0)
 
 
-#line 680 "compose_scanner.c"
+#line 681 "compose_scanner.c"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -918,13 +919,13 @@ YY_DECL
 	register int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-#line 66 "compose.l"
+#line 67 "compose.l"
 
 
 ParseData * pParseData = yyextra;    
 
 
-#line 928 "compose_scanner.c"
+#line 929 "compose_scanner.c"
 
     yylval = yylval_param;
 
@@ -1021,467 +1022,467 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 71 "compose.l"
+#line 72 "compose.l"
 { BEGIN(COMMENT); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 72 "compose.l"
+#line 73 "compose.l"
 { BEGIN(INITIAL); }
 	YY_BREAK
 case 3:
 /* rule 3 can match eol */
 YY_RULE_SETUP
-#line 73 "compose.l"
+#line 74 "compose.l"
 
 	YY_BREAK
 case YY_STATE_EOF(COMMENT):
-#line 74 "compose.l"
+#line 75 "compose.l"
 { yyerror(yylloc, pParseData, "Unterminated comment"); return 0; }
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 75 "compose.l"
+#line 76 "compose.l"
 
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 77 "compose.l"
-{ yylval->dataType = kDT_char;   return CHAR_;   }
+#line 78 "compose.l"
+{ yylval->dataType = kDT_char;   yylval->str = comp_strdup(yytext); return CHAR_;   }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 78 "compose.l"
-{ yylval->dataType = kDT_byte;   return BYTE_;   }
+#line 79 "compose.l"
+{ yylval->dataType = kDT_byte;   yylval->str = comp_strdup(yytext); return BYTE_;   }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 79 "compose.l"
-{ yylval->dataType = kDT_short;  return SHORT_;  }
+#line 80 "compose.l"
+{ yylval->dataType = kDT_short;  yylval->str = comp_strdup(yytext); return SHORT_;  }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 80 "compose.l"
-{ yylval->dataType = kDT_ushort; return USHORT_; }
+#line 81 "compose.l"
+{ yylval->dataType = kDT_ushort; yylval->str = comp_strdup(yytext); return USHORT_; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 81 "compose.l"
-{ yylval->dataType = kDT_int;    return INT_;    }
+#line 82 "compose.l"
+{ yylval->dataType = kDT_int;    yylval->str = comp_strdup(yytext); return INT_;    }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 82 "compose.l"
-{ yylval->dataType = kDT_uint;   return UINT_;   }
+#line 83 "compose.l"
+{ yylval->dataType = kDT_uint;   yylval->str = comp_strdup(yytext); return UINT_;   }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 83 "compose.l"
-{ yylval->dataType = kDT_long;   return LONG_;   }
+#line 84 "compose.l"
+{ yylval->dataType = kDT_long;   yylval->str = comp_strdup(yytext); return LONG_;   }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 84 "compose.l"
-{ yylval->dataType = kDT_ulong;  return ULONG_;  }
+#line 85 "compose.l"
+{ yylval->dataType = kDT_ulong;  yylval->str = comp_strdup(yytext); return ULONG_;  }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 85 "compose.l"
-{ yylval->dataType = kDT_half;   return HALF_;   }
+#line 86 "compose.l"
+{ yylval->dataType = kDT_half;   yylval->str = comp_strdup(yytext); return HALF_;   }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 86 "compose.l"
-{ yylval->dataType = kDT_float;  return FLOAT_;  }
+#line 87 "compose.l"
+{ yylval->dataType = kDT_float;  yylval->str = comp_strdup(yytext); return FLOAT_;  }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 87 "compose.l"
-{ yylval->dataType = kDT_double; return DOUBLE_; }
+#line 88 "compose.l"
+{ yylval->dataType = kDT_double; yylval->str = comp_strdup(yytext); return DOUBLE_; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 88 "compose.l"
-{ yylval->dataType = kDT_bool;   return BOOL_;   }
+#line 89 "compose.l"
+{ yylval->dataType = kDT_bool;   yylval->str = comp_strdup(yytext); return BOOL_;   }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 89 "compose.l"
-{ yylval->dataType = kDT_color;  return COLOR;   }
+#line 90 "compose.l"
+{ yylval->dataType = kDT_color;  yylval->str = comp_strdup(yytext); return COLOR;   }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 90 "compose.l"
-{ yylval->dataType = kDT_vec2;   return VEC2;    }
+#line 91 "compose.l"
+{ yylval->dataType = kDT_vec2;   yylval->str = comp_strdup(yytext); return VEC2;    }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 91 "compose.l"
-{ yylval->dataType = kDT_vec3;   return VEC3;    }
+#line 92 "compose.l"
+{ yylval->dataType = kDT_vec3;   yylval->str = comp_strdup(yytext);   return VEC3;    }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 92 "compose.l"
-{ yylval->dataType = kDT_vec4;   return VEC4;    }
+#line 93 "compose.l"
+{ yylval->dataType = kDT_vec4;   yylval->str = comp_strdup(yytext); return VEC4;    }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 93 "compose.l"
-{ yylval->dataType = kDT_quat;   return QUAT;    }
+#line 94 "compose.l"
+{ yylval->dataType = kDT_quat;   yylval->str = comp_strdup(yytext); return QUAT;    }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 94 "compose.l"
-{ yylval->dataType = kDT_mat3;   return MAT3;    }
+#line 95 "compose.l"
+{ yylval->dataType = kDT_mat3;   yylval->str = comp_strdup(yytext); return MAT3;    }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 95 "compose.l"
-{ yylval->dataType = kDT_mat34;  return MAT34;   }
+#line 96 "compose.l"
+{ yylval->dataType = kDT_mat34;  yylval->str = comp_strdup(yytext); return MAT34;   }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 96 "compose.l"
-{ yylval->dataType = kDT_mat4;   return MAT4;    }
+#line 97 "compose.l"
+{ yylval->dataType = kDT_mat4;   yylval->str = comp_strdup(yytext); return MAT4;    }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 97 "compose.l"
-{ yylval->dataType = kDT_void;   return VOID_;   }
+#line 98 "compose.l"
+{ yylval->dataType = kDT_void;   yylval->str = comp_strdup(yytext); return VOID_;   }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 98 "compose.l"
-{ yylval->dataType = kDT_handle; return HANDLE_; }
+#line 99 "compose.l"
+{ yylval->dataType = kDT_handle; yylval->str = comp_strdup(yytext); return HANDLE_; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 99 "compose.l"
-{ yylval->dataType = kDT_string; return STRING;  }
+#line 100 "compose.l"
+{ yylval->dataType = kDT_string; yylval->str = comp_strdup(yytext); return STRING;  }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 101 "compose.l"
+#line 102 "compose.l"
 { return NONE; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 102 "compose.l"
+#line 103 "compose.l"
 { return THIS__; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 104 "compose.l"
+#line 105 "compose.l"
 { parsedata_push_stmt_scope(pParseData); return IF;     }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 105 "compose.l"
+#line 106 "compose.l"
 { parsedata_push_stmt_scope(pParseData); return ELSE;   }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 106 "compose.l"
+#line 107 "compose.l"
 { parsedata_push_stmt_scope(pParseData); return WHILE;  }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 107 "compose.l"
+#line 108 "compose.l"
 { parsedata_push_stmt_scope(pParseData); return DO;     }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 108 "compose.l"
+#line 109 "compose.l"
 { parsedata_push_stmt_scope(pParseData); return FOR;    }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 109 "compose.l"
+#line 110 "compose.l"
 { parsedata_push_stmt_scope(pParseData); return SWITCH; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 110 "compose.l"
+#line 111 "compose.l"
 { return CASE;    }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 111 "compose.l"
+#line 112 "compose.l"
 { return DEFAULT; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 113 "compose.l"
+#line 114 "compose.l"
 { return BREAK;   }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 114 "compose.l"
+#line 115 "compose.l"
 { return RETURN;  }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 116 "compose.l"
+#line 117 "compose.l"
 { return CONST_; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 118 "compose.l"
+#line 119 "compose.l"
 { return USING; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 119 "compose.l"
+#line 120 "compose.l"
 { return AS; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 120 "compose.l"
+#line 121 "compose.l"
 { return COMPONENTS; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 121 "compose.l"
-{ parsedata_push_top_level_stmt_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
+#line 122 "compose.l"
+{ parsedata_push_top_level_stmt_scope(pParseData); yylval->dataType = kDT_entity; yylval->str = comp_strdup(yytext); return ENTITY; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 122 "compose.l"
+#line 123 "compose.l"
 { parsedata_push_top_level_stmt_scope(pParseData); return COMPONENT; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 124 "compose.l"
+#line 125 "compose.l"
 { return TRANSFORM; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 126 "compose.l"
+#line 127 "compose.l"
 { return TRUE_; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 127 "compose.l"
+#line 128 "compose.l"
 { return FALSE_; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 129 "compose.l"
+#line 130 "compose.l"
 { return EQ; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 130 "compose.l"
+#line 131 "compose.l"
 { return NEQ; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 131 "compose.l"
+#line 132 "compose.l"
 { return LTE; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 132 "compose.l"
+#line 133 "compose.l"
 { return GTE; }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 134 "compose.l"
+#line 135 "compose.l"
 { return INC; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 135 "compose.l"
+#line 136 "compose.l"
 { return DEC; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 137 "compose.l"
+#line 138 "compose.l"
 { return LSHIFT; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 138 "compose.l"
+#line 139 "compose.l"
 { return RSHIFT; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 140 "compose.l"
+#line 141 "compose.l"
 { return AND; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 141 "compose.l"
+#line 142 "compose.l"
 { return OR; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 143 "compose.l"
+#line 144 "compose.l"
 { return ADD_ASSIGN; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 144 "compose.l"
+#line 145 "compose.l"
 { return SUB_ASSIGN; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 145 "compose.l"
+#line 146 "compose.l"
 { return MUL_ASSIGN; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 146 "compose.l"
+#line 147 "compose.l"
 { return DIV_ASSIGN; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 147 "compose.l"
+#line 148 "compose.l"
 { return MOD_ASSIGN; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 148 "compose.l"
+#line 149 "compose.l"
 { return LSHIFT_ASSIGN; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 149 "compose.l"
+#line 150 "compose.l"
 { return RSHIFT_ASSIGN; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 150 "compose.l"
+#line 151 "compose.l"
 { return AND_ASSIGN; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 151 "compose.l"
+#line 152 "compose.l"
 { return XOR_ASSIGN; }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 152 "compose.l"
+#line 153 "compose.l"
 { return OR_ASSIGN; }
 	YY_BREAK
 case 69:
-#line 155 "compose.l"
-case 70:
 #line 156 "compose.l"
-case 71:
+case 70:
 #line 157 "compose.l"
-case 72:
+case 71:
 #line 158 "compose.l"
-case 73:
+case 72:
 #line 159 "compose.l"
-case 74:
+case 73:
 #line 160 "compose.l"
-case 75:
+case 74:
 #line 161 "compose.l"
-case 76:
+case 75:
 #line 162 "compose.l"
-case 77:
+case 76:
 #line 163 "compose.l"
-case 78:
+case 77:
 #line 164 "compose.l"
-case 79:
+case 78:
 #line 165 "compose.l"
-case 80:
+case 79:
 #line 166 "compose.l"
-case 81:
+case 80:
 #line 167 "compose.l"
-case 82:
+case 81:
 #line 168 "compose.l"
-case 83:
+case 82:
 #line 169 "compose.l"
-case 84:
+case 83:
 #line 170 "compose.l"
-case 85:
+case 84:
 #line 171 "compose.l"
-case 86:
+case 85:
 #line 172 "compose.l"
-case 87:
+case 86:
 #line 173 "compose.l"
-case 88:
+case 87:
 #line 174 "compose.l"
-case 89:
+case 88:
 #line 175 "compose.l"
-case 90:
+case 89:
 #line 176 "compose.l"
+case 90:
+#line 177 "compose.l"
 case 91:
 YY_RULE_SETUP
-#line 176 "compose.l"
+#line 177 "compose.l"
 { return yytext[0]; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 178 "compose.l"
+#line 179 "compose.l"
 { parsedata_push_scope(pParseData); return yytext[0]; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 179 "compose.l"
+#line 180 "compose.l"
 { return yytext[0]; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 181 "compose.l"
+#line 182 "compose.l"
 { yylval->str = parse_identifier(yytext+1, pParseData); return HASH; }
 	YY_BREAK
 case 95:
 /* rule 95 can match eol */
 YY_RULE_SETUP
-#line 182 "compose.l"
-{ yylval->str = yytext; return STRING_LITERAL; } 
+#line 183 "compose.l"
+{ yylval->str = comp_strdup(yytext); return STRING_LITERAL; } 
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 184 "compose.l"
+#line 185 "compose.l"
 { yylval->numi = parse_int(yytext, 16); return INT_LITERAL; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 185 "compose.l"
+#line 186 "compose.l"
 { yylval->numi = parse_int(yytext, 8);  return INT_LITERAL; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 186 "compose.l"
+#line 187 "compose.l"
 { yylval->numi = parse_int(yytext, 10); return INT_LITERAL; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 188 "compose.l"
+#line 189 "compose.l"
 { yylval->numf = parse_float(yytext); return FLOAT_LITERAL; }
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 189 "compose.l"
+#line 190 "compose.l"
 { yylval->numf = parse_float(yytext); return FLOAT_LITERAL; }
 	YY_BREAK
 case 101:
 YY_RULE_SETUP
-#line 191 "compose.l"
+#line 192 "compose.l"
 { yylval->str = parse_identifier(yytext, pParseData); return IDENTIFIER; }
 	YY_BREAK
 case 102:
 /* rule 102 can match eol */
 YY_RULE_SETUP
-#line 193 "compose.l"
+#line 194 "compose.l"
 { }
 	YY_BREAK
 case 103:
 YY_RULE_SETUP
-#line 194 "compose.l"
+#line 195 "compose.l"
 { yyerror(yylloc, pParseData, "Invalid character '%c'", *yytext); return 0; }
 	YY_BREAK
 case 104:
 YY_RULE_SETUP
-#line 197 "compose.l"
+#line 198 "compose.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1485 "compose_scanner.c"
+#line 1486 "compose_scanner.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2605,7 +2606,7 @@ static int yy_flex_strlen (yyconst char * s , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 197 "compose.l"
+#line 198 "compose.l"
 
 
 

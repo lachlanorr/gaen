@@ -49,7 +49,6 @@ using namespace gaen;
 static_assert(kDT_COUNT == 26, "Make sure DataType enum ids look right... seems they have changed");
 
 static const char * kScriptsPath = "/src/scripts/cmp/";
-static const u32 kMaxId = 128;
 
 static char sEmptyStr[] = { '\0' };
 
@@ -91,45 +90,57 @@ const char * parse_identifier(const char * str, ParseData * pParseData)
     return parsedata_add_string(pParseData, str);
 }
 
-
-void mangle_function_call(char * mangledName, i32 mangledNameSize, const char * name, const Ast * pParams)
+size_t mangle_function_len(const char * name, const AstList * pParamList)
 {
-    char * p = mangledName;
-    const char * pEnd = mangledName + mangledNameSize - 1; // - 1 since we want to reserve space for our null
-
-    PANIC_IF(p + 2 >= pEnd, "Not enough space to mangle name");
-    strcpy(p, "f_");
-    p += 2;
-
-    for (const Ast * pParam : pParams->pChildren->nodes)
+    size_t len = 3; // "f__"
+    if (pParamList)
     {
-        const SymDataType * pSdt = ast_data_type(pParam);
+        for (const Ast * pParam : pParamList->nodes)
+        {
+            const SymDataType * pSdt = ast_data_type(pParam);
+            len += strlen(pSdt->mangledParam) + 2; // mangled name + "__"
+        }
+    }
+    len += strlen(name);
+    return len;
+}
 
-        u32 typeStrLen = (u32)strlen(pSdt->mangledName);
-        PANIC_IF(p + typeStrLen + 1 >= pEnd, "Not enough space to mangle name");
-        strcpy(p, pSdt->mangledName);
-        strcpy(p, "_");
-        p += typeStrLen + 1;
+void mangle_function(char * mangledName, i32 mangledNameSize, const char * name, const AstList * pParamList)
+{
+    ASSERT(mangledNameSize > mangle_function_len(name, pParamList));
+
+    char * p = mangledName;
+
+    strcpy(p, "f__");
+    p += 3;
+
+    if (pParamList)
+    {
+        for (const Ast * pParam : pParamList->nodes)
+        {
+            const SymDataType * pSdt = ast_data_type(pParam);
+
+            u32 typeStrLen = (u32)strlen(pSdt->mangledParam);
+            strcpy(p, pSdt->mangledParam);
+            strcat(p, "__");
+            p += typeStrLen + 2;
+        }
     }
 
-    PANIC_IF(p + strlen(name) >= pEnd, "Not enough space to mangle name");
     strcpy(p, name);
 }
 
-size_t mangle_type_size(const char * name)
+size_t mangle_type_len(const char * name)
 {
-    return strlen(name) + 4;
+    return strlen(name) + 5; // 3 for abbrev + 2 underscores
 }
 
 void mangle_type(char * mangledName, size_t mangledNameSize, const char * name, int isConst, int isReference)
 {
-    ASSERT(mangledNameSize > mangle_type_size(name) + 4);
+    ASSERT(mangledNameSize > mangle_type_len(name));
     
     char * p = mangledName;
-    const char * pEnd = mangledName + mangledNameSize - 1; // - 1 since we want to reserve space for our null
 
-    PANIC_IF(p + 4 >= pEnd, "Not enough space to mangle name");
-    
     strcpy(p, "t");
     p++;
 
@@ -145,14 +156,32 @@ void mangle_type(char * mangledName, size_t mangledNameSize, const char * name, 
         strcpy(p, "v");
     p++;
 
-    strcpy(p, "_");
-    p++;
+    strcpy(p, "__");
+    p += 2;
         
-
-    PANIC_IF(p + strlen(name) >= pEnd, "Not enough space to mangle name");
     strcpy(p, name);
 }
 
+
+size_t mangle_param_len(const char * name)
+{
+    return strlen(name) + 3; // 1 for abbrev + 2 underscores
+}
+
+void mangle_param(char * mangledName, size_t mangledNameSize, const char * name, int isConst, int isReference)
+{
+    ASSERT(mangledNameSize > mangle_param_len(name));
+
+    char * p = mangledName;
+
+    strcpy(p, "t");
+    p++;
+
+    strcpy(p, "__");
+    p += 2;
+
+    strcpy(p, name);
+}
 
 
 
@@ -164,6 +193,8 @@ u32 cells_per_datatype(DataType dt)
 {
     switch (dt)
     {
+    case kDT_void:
+        return 0;
     case kDT_bool:
     case kDT_int:
     case kDT_uint:
@@ -282,11 +313,16 @@ SymDataType * symdatatype_create(const char * name, DataType dataType, int isCon
 
     pSdt->name = name;
 
-    size_t mangle_size = mangle_type_size(name) + 1;
-    char * mangledName = (char*)COMP_ALLOC(mangle_size);
-    mangle_type(mangledName, mangle_size, name, isConst, isReference);
-    pSdt->mangledName = mangledName;
-    
+    size_t mangledTypeSize = mangle_type_len(name) + 1;
+    char * mangledType = (char*)COMP_ALLOC(mangledTypeSize);
+    mangle_type(mangledType, mangledTypeSize, name, isConst, isReference);
+    pSdt->mangledType = mangledType;
+
+    size_t mangledParamSize = mangle_param_len(name) + 1;
+    char * mangledParam = (char*)COMP_ALLOC(mangledParamSize);
+    mangle_param(mangledParam, mangledParamSize, name, isConst, isReference);
+    pSdt->mangledParam = mangledParam;
+
     pSdt->cellCount = cells_per_datatype(dataType);
     pSdt->dataType = dataType;
     pSdt->isConst = isConst != 0;
@@ -300,11 +336,18 @@ SymDataType * symdatatype_create(const char * name, DataType dataType, int isCon
 
 void symdatatype_add_field(SymDataType * pSdt, SymDataType * pFieldSdt, const char * fieldName)
 {
-    ASSERT_MSG(pSdt->dataType == kDT_struct, "Only structs can have fields");
     SymStructField * pField = (SymStructField*)COMP_ALLOC(sizeof(SymStructField));
     pField->pSymDataType = pFieldSdt;
     pField->name = fieldName;
     pSdt->fields.push_back(pField);
+}
+
+void symdatatype_add_field_related(RelatedTypes * pRelatedTypes, SymDataType * pFieldSdt, const char * fieldName)
+{
+    symdatatype_add_field(pRelatedTypes->pNormal, pFieldSdt, fieldName);
+    symdatatype_add_field(pRelatedTypes->pConst, pFieldSdt, fieldName);
+    symdatatype_add_field(pRelatedTypes->pReference, pFieldSdt, fieldName);
+    symdatatype_add_field(pRelatedTypes->pConstReference, pFieldSdt, fieldName);
 }
 
 const SymStructField * symdatatype_find_field(const SymDataType * pSdt, const char * fieldName)
@@ -355,6 +398,9 @@ SymRec * symrec_create(SymType symType,
         pSymRec->pSymTabInternal = nullptr;
     }
 
+    pSymRec->order = 0;
+    pSymRec->flags = 0;
+
     // For top level symbols, prepare the full_name, as it will
     // be used to register the symbol.
     switch (symType)
@@ -362,20 +408,29 @@ SymRec * symrec_create(SymType symType,
     case kSYMT_Function:
     case kSYMT_Entity:
     case kSYMT_Component:
+    case kSYMT_Type:
     {
-        ASSERT(pAst && pAst->pParseData && pAst->pParseData->namespace_ && name);
+
+        const char * ns = "";
+        if (pAst && pAst->pParseData && pAst->pParseData->namespace_)
+        {
+            ns = pAst->pParseData->namespace_;
+        }
+
+        ASSERT(name);
+
         // count the dots, since we'll be changing them to __
         u32 dotCount = 0;
-        const char * p = pAst->pParseData->namespace_;
-        for (const char * c = pAst->pParseData->namespace_; *c; c++) 
+        const char * p = ns;
+        for (const char * c = ns; *c; c++)
             if (*c == '.') 
                 dotCount++;
-        char * fname = (char*)COMP_ALLOC(strlen(pAst->pParseData->namespace_) + strlen(name) + dotCount + 1);
+        char * fname = (char*)COMP_ALLOC(strlen(ns) + strlen(name) + dotCount + 1);
 
         // replace all '.' with "__"
-        p = pAst->pParseData->namespace_;
+        p = ns;
         char * dest = fname;
-        for (const char * c = pAst->pParseData->namespace_; *c; c++)            
+        for (const char * c = ns; *c; c++)
             if (*c != '.')
                 *dest++ = *c;
             else
@@ -393,6 +448,7 @@ SymRec * symrec_create(SymType symType,
         pSymRec->full_name = nullptr;
         break;
     }
+
 
     return pSymRec;
 }
@@ -432,6 +488,35 @@ SymTab* symtab_add_symbol(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseD
     pSymRec->order = static_cast<u32>(pSymTab->dict.size());
     pSymTab->dict[pSymRec->name] = pSymRec;
     pSymTab->orderedSymRecs.push_back(pSymRec);
+    return pSymTab;
+}
+
+SymTab* symtab_add_symbol_with_fields(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseData)
+{
+    symtab_add_symbol(pSymTab, pSymRec, pParseData);
+
+    if (pSymRec->pSymDataType)
+    {
+        for (const SymStructField * pField : pSymRec->pSymDataType->fields)
+        {
+            size_t nameLen = strlen(pSymRec->name) + 1 + strlen(pField->name); // +1 for '.'
+            char * qualifiedName = (char*)COMP_ALLOC(nameLen+1);
+            strcpy(qualifiedName, pSymRec->name);
+            strcat(qualifiedName, ".");
+            strcat(qualifiedName, pField->name);
+
+            SymRec * pFieldSymRec = symrec_create(pSymRec->type,
+                                                  pField->pSymDataType,
+                                                  qualifiedName,
+                                                  nullptr,
+                                                  pParseData);
+
+            pFieldSymRec->flags |= kSRFL_StructField;
+
+            symtab_add_symbol_with_fields(pSymTab, pFieldSymRec, pParseData);
+        }
+    }
+
     return pSymTab;
 }
 
@@ -538,6 +623,7 @@ SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
         }
     }
 
+    COMP_ERROR(pSymTab->pParseData, "Symbol not found: %s", name);
     return nullptr;
 }
 
@@ -831,7 +917,7 @@ Ast * ast_create_property_def(const char * name, const SymDataType * pDataType, 
                                   pParseData);
 
     Scope * pScope = pParseData->scopeStack.back();
-    symtab_add_symbol(pScope->pSymTab, pAst->pSymRec, pParseData);
+    symtab_add_symbol_with_fields(pScope->pSymTab, pAst->pSymRec, pParseData);
 
     return pAst;
 }
@@ -849,7 +935,7 @@ Ast * ast_create_field_def(const char * name, const SymDataType * pDataType, Ast
                                   pParseData);
 
     Scope * pScope = pParseData->scopeStack.back();
-    symtab_add_symbol(pScope->pSymTab, pAst->pSymRec, pParseData);
+    symtab_add_symbol_with_fields(pScope->pSymTab, pAst->pSymRec, pParseData);
 
     return pAst;
 }
@@ -940,7 +1026,7 @@ Ast * ast_create_assign_op(AstType astType, Ast * pDottedId, Ast * pRhs, ParseDa
 {
     Ast * pAst = ast_create(astType, pParseData);
 
-    SymRec * pSymRec = parsedata_find_symbol(pParseData, pDottedId->pChildren->nodes.front()->str);
+    SymRec * pSymRec = parsedata_find_symbol(pParseData, pDottedId);
 
     // We may not have a pSymRec at this point, e.g. entity
     // initialization syntax In those cases, we don't error here when
@@ -1311,7 +1397,7 @@ Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData
     // pop scope that got created by the lexer when encountering the '{'
     parsedata_pop_scope(pParseData);
 
-    SymRec * pSymRec = parsedata_find_symbol(pParseData, pDottedId->str);
+    SymRec * pSymRec = parsedata_find_symbol(pParseData, pDottedId);
 
     Ast * pAst = nullptr;
 
@@ -1508,9 +1594,10 @@ Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData
 
 Ast * ast_create_symbol_ref(Ast * pDottedId, ParseData * pParseData)
 {
-    SymRec * pSymRec = parsedata_find_symbol(pParseData, pDottedId->pChildren->nodes.front()->str);
+    SymRec * pSymRec = parsedata_find_symbol(pParseData, pDottedId);
 
     Ast * pAst = ast_create(kAST_SymbolRef, pParseData);
+    ast_set_lhs(pAst, pDottedId);
 
     if (!pSymRec)
     {
@@ -1742,33 +1829,42 @@ const SymDataType * ast_data_type(const Ast * pAst)
     {
     case kAST_Hash:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "uint", 0, 0);
+        break;
     case kAST_FloatLiteral:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "float", 0, 0);
+        break;
     case kAST_IntLiteral:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "int", 0, 0);
+        break;
     case kAST_StringLiteral:
     case kAST_StringInit:
     case kAST_StringFormat:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "string", 0, 0);
+        break;
     case kAST_ColorInit:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "color", 0, 0);
+        break;
     case kAST_Vec2Init:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "vec2", 0, 0);
+        break;
     case kAST_Vec3Init:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "vec3", 0, 0);
+        break;
     case kAST_Vec4Init:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "vec4", 0, 0);
+        break;
     case kAST_QuatInit:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "quat", 0, 0);
+        break;
     case kAST_Mat34Init:
     case kAST_Transform:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "mat34", 0, 0);
+        break;
     case kAST_Negate:
         return ast_data_type(pAst->pRhs);
     case kAST_SystemCall:
-    {
+    case kAST_FunctionArg:
         return pAst->pSymRec->pSymDataType;
-    }
     }
 
     if (!pSymRec)
@@ -2020,29 +2116,29 @@ SymTab* parsedata_add_param(ParseData * pParseData, SymTab* pSymTab, SymRec * pS
     }
     if (pSymRec)
     {
-        symtab_add_symbol(pSymTab, pSymRec, pParseData);
+        symtab_add_symbol_with_fields(pSymTab, pSymRec, pParseData);
     }
     return pSymTab;
 }
 
-SymRec* parsedata_find_symbol(ParseData * pParseData, const char * name)
+SymRec* parsedata_find_symbol(ParseData * pParseData, Ast * pAst)
 {
     ASSERT(pParseData);
-    ASSERT(name);
-    return symtab_find_symbol_recursive(pParseData->scopeStack.back()->pSymTab, name);
+    ASSERT(pAst);
+    return symtab_find_symbol_recursive(pParseData->scopeStack.back()->pSymTab, pAst->str);
 }
 
 SymRec* parsedata_find_function_symbol(ParseData * pParseData, const char * name, Ast * pParams)
 {
-    char mangledName[kMaxId+1];
-    mangle_function_call(mangledName, kMaxId, name, pParams);
+    char mangledName[kMaxCmpId+1];
+    mangle_function(mangledName, kMaxCmpId, name, pParams->pChildren);
     return symtab_find_symbol_recursive(pParseData->scopeStack.back()->pSymTab, mangledName);
 }
 
 SymRec* parsedata_find_type_symbol(ParseData * pParseData, const char * name, int isConst, int isReference)
 {
-    char mangledName[kMaxId+1];
-    mangle_type(mangledName, kMaxId, name, isConst, isReference);
+    char mangledName[kMaxCmpId+1];
+    mangle_type(mangledName, kMaxCmpId, name, isConst, isReference);
     return symtab_find_symbol_recursive(pParseData->scopeStack.back()->pSymTab, mangledName);
 }
 
@@ -2061,7 +2157,7 @@ const SymDataType* parsedata_find_type_from_dotted_id(ParseData * pParseData, co
     return parsedata_find_type(pParseData, pAstId->str, isConst, isReference);
 }
 
-Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
+Ast * parsedata_add_symbol(ParseData * pParseData, SymRec * pSymRec, Scope * pScope)
 {
     ASSERT(pParseData);
     ASSERT(pParseData->scopeStack.size() >= 1);
@@ -2071,26 +2167,18 @@ Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
     pAst->pSymRec = pSymRec;
     ast_set_rhs(pAst, pSymRec->pAst);
 
-    Scope * pScope = pParseData->scopeStack.back();
-
-    symtab_add_symbol(pScope->pSymTab, pSymRec, pParseData);
+    symtab_add_symbol_with_fields(pScope->pSymTab, pSymRec, pParseData);
     return pAst;
+}
+
+Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
+{
+    return parsedata_add_symbol(pParseData, pSymRec, pParseData->scopeStack.back());
 }
 
 Ast* parsedata_add_root_symbol(ParseData * pParseData, SymRec * pSymRec)
 {
-    ASSERT(pParseData);
-    ASSERT(pParseData->scopeStack.size() >= 1);
-    ASSERT(pSymRec);
-
-    Ast * pAst = ast_create(kAST_SymbolDecl, pParseData);
-    pAst->pSymRec = pSymRec;
-    ast_set_rhs(pAst, pSymRec->pAst);
-
-    Scope * pScope = pParseData->pRootScope;
-
-    symtab_add_symbol(pParseData->pRootScope->pSymTab, pSymRec, pParseData);
-    return pAst;
+    return parsedata_add_symbol(pParseData, pSymRec, pParseData->pRootScope);
 }
 
 Scope* parsedata_current_scope(ParseData * pParseData)
@@ -2359,6 +2447,8 @@ void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...)
 {
     va_list argptr;
     va_start(argptr, format);
+    pParseData->line = pLoc->first_line;
+    pParseData->column = pLoc->first_column;
     parsedata_formatted_message(pParseData, kMSGT_Error, format, argptr);
     va_end(argptr);
 }
@@ -2381,47 +2471,64 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 namespace gaen
 {
-    void register_basic_type(const char * name, DataType dt, ParseData * pParseData)
+    RelatedTypes register_basic_type(const char * name, DataType dt, ParseData * pParseData)
     {
-        {
+        RelatedTypes rt;
+
         // normal
-        SymDataType * pSdt = symdatatype_create(name, dt, 0, 0, pParseData);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, pSdt, pSdt->mangledName, nullptr, pParseData));
-        }
+        rt.pNormal = symdatatype_create(name, dt, 0, 0, pParseData);
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pNormal, rt.pNormal->mangledType, nullptr, pParseData));
 
-        {
         // const
-        SymDataType * pSdt = symdatatype_create(name, dt, 1, 0, pParseData);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, pSdt, pSdt->mangledName, nullptr, pParseData));
-        }
+        rt.pConst = symdatatype_create(name, dt, 1, 0, pParseData);
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConst, rt.pConst->mangledType, nullptr, pParseData));
 
-        {
         // reference
-        SymDataType * pSdt = symdatatype_create(name, dt, 0, 1, pParseData);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, pSdt, pSdt->mangledName, nullptr, pParseData));
-        }
+        rt.pReference = symdatatype_create(name, dt, 0, 1, pParseData);
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pReference, rt.pReference->mangledType, nullptr, pParseData));
 
-        {
         // const reference
-        SymDataType * pSdt = symdatatype_create(name, dt, 1, 1, pParseData);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, pSdt, pSdt->mangledName, nullptr, pParseData));
-        }
+        rt.pConstReference = symdatatype_create(name, dt, 1, 1, pParseData);
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConstReference, rt.pConstReference->mangledType, nullptr, pParseData));
+
+        return rt;
     }
 
     void register_basic_types(ParseData * pParseData)
     {
+        register_basic_type("void",   kDT_void,   pParseData);
         register_basic_type("bool",   kDT_bool,   pParseData);
         register_basic_type("int",    kDT_int,    pParseData);
         register_basic_type("uint",   kDT_uint,   pParseData);
-        register_basic_type("float",  kDT_float,  pParseData);
+        RelatedTypes floatRt = register_basic_type("float",  kDT_float,  pParseData);
         register_basic_type("color",  kDT_color,  pParseData);
-        register_basic_type("vec2",   kDT_vec2,   pParseData);
-        register_basic_type("vec3",   kDT_vec3,   pParseData);
-        register_basic_type("vec4",   kDT_vec4,   pParseData);
-        register_basic_type("quat",   kDT_quat,   pParseData);
+
+        RelatedTypes rt;
+        rt = register_basic_type("vec2",   kDT_vec2,   pParseData);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
+
+        rt = register_basic_type("vec3",   kDT_vec3,   pParseData);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "z");
+
+        rt = register_basic_type("vec4",   kDT_vec4,   pParseData);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "z");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "w");
+
+        rt = register_basic_type("quat",   kDT_quat,   pParseData);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "z");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "w");
+
         register_basic_type("mat3",   kDT_mat3,   pParseData);
         register_basic_type("mat34",  kDT_mat34,  pParseData);
         register_basic_type("mat4",   kDT_mat4,   pParseData);
+
         register_basic_type("handle", kDT_handle, pParseData);
         register_basic_type("entity", kDT_entity, pParseData);
         register_basic_type("string", kDT_string, pParseData);

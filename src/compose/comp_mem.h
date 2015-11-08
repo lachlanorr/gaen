@@ -49,6 +49,8 @@ void comp_free(void *p);
 void comp_reset_mem(); // "free" all memory
 size_t comp_avail_mem();
 
+char * comp_strdup(const char * s);
+
 #ifdef __cplusplus
 } // extern "C"
 

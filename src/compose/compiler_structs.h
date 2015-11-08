@@ -34,6 +34,8 @@
 
 using namespace gaen;
 
+static const u32 kMaxCmpId = 128;
+
 struct SymRec;
 struct SymDataType;
 struct SymStructField
@@ -45,7 +47,8 @@ struct SymStructField
 struct SymDataType
 {
     const char * name;
-    const char * mangledName;
+    const char * mangledType;
+    const char * mangledParam;
     u32 cellCount;
     DataType dataType;
     bool isConst;
@@ -54,6 +57,19 @@ struct SymDataType
     const char * cppTypeStr;
 
     CompList<SymStructField*> fields;
+};
+
+struct RelatedTypes
+{
+    SymDataType * pNormal;
+    SymDataType * pConst;
+    SymDataType * pReference;
+    SymDataType * pConstReference;
+};
+
+enum SymRecFlag
+{
+    kSRFL_StructField = 0x0001
 };
 
 struct SymRec
@@ -66,6 +82,7 @@ struct SymRec
     SymTab * pSymTab;
     SymTab * pSymTabInternal;
     u32 order;
+    u32 flags;
 };
 
 struct SymTab

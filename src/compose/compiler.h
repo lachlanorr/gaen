@@ -72,6 +72,8 @@ typedef enum
 
     kAST_Root,
 
+    kAST_BasicType,
+
     kAST_UsingList,
     kAST_UsingStmt,
     kAST_DottedId,
@@ -252,18 +254,24 @@ typedef struct Ast Ast;
 typedef struct Scope Scope;
 typedef struct ParseData ParseData;
 typedef struct Using Using;
+typedef struct RelatedTypes RelatedTypes;
 
 int parse_int(const char * pStr, int base);
 float parse_float(const char * pStr);
 const char * parse_identifier(const char * str, ParseData * pParseData);
 
-void mangle_function_call(char * mangledName, int mangledNameSize, const char * name, const Ast * pParams);
-size_t mangle_type_size(const char * name);
+size_t mangle_function_len(const char * name, const AstList * pParamList);
+void mangle_function(char * mangledName, int mangledNameSize, const char * name, const AstList * pParamList);
+size_t mangle_type_len(const char * name);
 void mangle_type(char * mangledName, size_t mangledNameSize, const char * name, int isConst, int isReference);
+
+size_t mangle_param_len(const char * name);
+void mangle_param(char * mangledName, size_t mangledNameSize, const char * name, int isConst, int isReference);
 
 SymDataType * symdatatype_create(const char * name, DataType dataType, int isConst, int isReference, ParseData * pParseData);
 
 void symdatatype_add_field(SymDataType * pSdt, SymDataType * pFieldSdt, const char * fieldName);
+void symdatatype_add_field_related(RelatedTypes * pRelatedTypes, SymDataType * pFieldSdt, const char * fieldName);
 const SymStructField * symdatatype_find_field(const SymDataType * pSdt, const char * fieldName);
 
 SymRec * symrec_create(SymType symType,
@@ -274,6 +282,7 @@ SymRec * symrec_create(SymType symType,
 
 SymTab* symtab_create(ParseData * pParseData);
 SymTab* symtab_add_symbol(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseData);
+SymTab* symtab_add_symbol_with_fields(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseData);
 SymRec* symtab_find_symbol(SymTab* pSymTab, const char * name);
 SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name);
 SymTab* symtab_transfer(SymTab* pDest, SymTab* pSrc);
@@ -376,7 +385,7 @@ SymTab* parsedata_add_param(ParseData * pParseData, SymTab* pSymTab, SymRec * pS
 Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec);
 Ast* parsedata_add_root_symbol(ParseData * pParseData, SymRec * pSymRec);
 
-SymRec* parsedata_find_symbol(ParseData * pParseData, const char * name);
+SymRec* parsedata_find_symbol(ParseData * pParseData, Ast * pAst);
 
 SymRec* parsedata_find_function_symbol(ParseData * pParseData, const char * name, Ast * pParams);
 SymRec* parsedata_find_type_symbol(ParseData * pParseData, const char * name, int isConst, int isReference);

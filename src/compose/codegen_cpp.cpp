@@ -297,10 +297,13 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
     else
     {
         PANIC_IF(!pAst, "Null pAst, invalid for this case");
-        PANIC_IF(!pAst->pLhs || pAst->pLhs->type != kAST_DottedId, "Only dotted_id are valid here");
-        code = S(pAst->pLhs->str);
-        if (is_prop_or_field(pSymRec))
-            code += S("()"); // properties and fields are accessed from mpBlocks using generated private accessors
+        if (pAst->pLhs)
+        {
+            PANIC_IF(pAst->pLhs->type != kAST_DottedId, "Only dotted_id are valid here");
+            code = S(pAst->pLhs->str);
+            if (is_prop_or_field(pSymRec))
+                code += S("()"); // properties and fields are accessed from mpBlocks using generated private accessors
+        }
     }
     return code;
 }

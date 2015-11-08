@@ -70,7 +70,8 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <numf> FLOAT_LITERAL
 
 /* This type list must match the DataType enum in compiler.h */
-%token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 QUAT MAT3 MAT34 MAT4 HANDLE_ ENTITY STRING
+%token <str> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 QUAT MAT3 MAT34 MAT4 HANDLE_ ENTITY STRING
+%type <str> basic_type
 
 %token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS USING AS CONST_ THIS__ NONE
 %right ELSE THEN
@@ -336,14 +337,44 @@ fun_params
     ;
 
 type
-    : CONST_ dotted_id   { $$ = parsedata_find_type_from_dotted_id(pParseData, $2, 1, 0); }
+    : CONST_ basic_type  { $$ = parsedata_find_type(pParseData, $2, 1, 0); }
+    | basic_type         { $$ = parsedata_find_type(pParseData, $1, 0, 0); }
+    | CONST_ dotted_id   { $$ = parsedata_find_type_from_dotted_id(pParseData, $2, 1, 0); }
     | dotted_id          { $$ = parsedata_find_type_from_dotted_id(pParseData, $1, 0, 0); }
+    ;
+
+basic_type
+    : VOID_
+    | BOOL_
+    | CHAR_
+    | BYTE_
+    | SHORT_
+    | USHORT_
+    | INT_
+    | UINT_
+    | LONG_
+    | ULONG_
+    | HALF_
+    | FLOAT_
+    | DOUBLE_
+    | COLOR
+    | VEC2
+    | VEC3
+    | VEC4
+    | QUAT
+    | MAT3
+    | MAT34
+    | MAT4
+    | HANDLE_
+    | STRING
+    ;
 
 /* Treat "entity" type specially since it is overloaded with use of defining entities */
 type_ent
     : type           { $$ = $1; }
     | CONST_ ENTITY  { $$ = parsedata_find_type(pParseData, "entity", 1, 0); }
     | ENTITY         { $$ = parsedata_find_type(pParseData, "entity", 0, 0); }
+    ;
 
 %%
 

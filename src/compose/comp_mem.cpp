@@ -122,5 +122,13 @@ size_t comp_avail_mem()
     return pMI->pEnd - pMI->pCurrent;
 }
 
-
-
+char * comp_strdup(const char * s)
+{
+    if (!s)
+        return nullptr;
+    size_t slen = strlen(s);
+    char * sd = (char*)comp_alloc(slen+1);
+    strcpy(sd, s);
+    sd[slen] = '\0';
+    return sd;
+}
