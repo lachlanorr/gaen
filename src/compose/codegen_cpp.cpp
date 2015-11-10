@@ -301,7 +301,7 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
         {
             PANIC_IF(pAst->pLhs->type != kAST_DottedId, "Only dotted_id are valid here");
             code = S(pAst->pLhs->str);
-            if (is_prop_or_field(pSymRec))
+            if (pSymRec->flags & kSRFL_NeedsCppParens)
                 code += S("()"); // properties and fields are accessed from mpBlocks using generated private accessors
         }
     }
@@ -668,12 +668,12 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
     {
     case kAST_EntityInit:
     {
-        ASSERT(pAst->pSymRec && pAst->pSymRec->full_name && pAst->pSymRec->pSymTabInternal);
+        ASSERT(pAst->pSymRec && pAst->pSymRec->fullName && pAst->pSymRec->pSymTabInternal);
         ASSERT(pAst->pRhs);
 
         code += I + S("task_id entity_init__") + S(pAst->str) + S("()") + LF;
         code += I + S("{") + LF;
-        code += I + S("    Entity * pEnt = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->full_name) + S(", 8);") + LF;
+        code += I + S("    Entity * pEnt = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->fullName) + S(", 8);") + LF;
         code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEnt->task()", indentLevel + 1);
         code += LF;
         code += I + S("    stageEntity(pEnt);") + LF;
@@ -735,7 +735,7 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_EntityDef:
     {
         const Ast * pUpdateDef = find_update_message_def(pAst);
-        S entName = S(pAst->pSymRec->full_name);
+        S entName = S(pAst->pSymRec->fullName);
 
         S code("namespace ent\n{\n\n");
         code += I + S("class ") + entName + S(" : public Entity\n{\n");
@@ -824,7 +824,7 @@ static S codegen_recurse(const Ast * pAst,
                 code += S("\n");
                 code += I + S("        // Component: ") + S(pCompMember->str) + ("\n");
                 code += I + S("        {\n");
-                code += I + S("            Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->full_name) + S(", mComponentCount);\n");
+                code += I + S("            Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
                 ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
                 code += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", indentLevel + 3);
 
@@ -871,7 +871,7 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_ComponentDef:
     {
         const Ast * pUpdateDef = find_update_message_def(pAst);
-        S compName = S(pAst->pSymRec->full_name);
+        S compName = S(pAst->pSymRec->fullName);
 
         S code("namespace comp\n{\n\n");
         code += I + S("class ") + compName + S(" : public Component\n{\n");

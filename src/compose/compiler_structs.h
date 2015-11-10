@@ -69,7 +69,7 @@ struct RelatedTypes
 
 enum SymRecFlag
 {
-    kSRFL_StructField = 0x0001
+    kSRFL_NeedsCppParens = 0x0001
 };
 
 struct SymRec
@@ -77,7 +77,7 @@ struct SymRec
     SymType type;
     const SymDataType * pSymDataType;
     const char * name;
-    const char * full_name;
+    const char * fullName;
     Ast * pAst;
     SymTab * pSymTab;
     SymTab * pSymTabInternal;

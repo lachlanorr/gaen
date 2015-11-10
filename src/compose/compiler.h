@@ -262,6 +262,7 @@ const char * parse_identifier(const char * str, ParseData * pParseData);
 
 size_t mangle_function_len(const char * name, const AstList * pParamList);
 void mangle_function(char * mangledName, int mangledNameSize, const char * name, const AstList * pParamList);
+const char * unmangle_function(const char * mangledName);
 size_t mangle_type_len(const char * name);
 void mangle_type(char * mangledName, size_t mangledNameSize, const char * name, int isConst, int isReference);
 

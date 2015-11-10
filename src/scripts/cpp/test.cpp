@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 86acc9d3676f1ed8edddc932868df0fa
+// HASH: e7580ac0623e0bc2e6fefd884c8a96c7
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -63,8 +63,8 @@ public:
         {
             // Params look compatible, message body follows
             Vec3 v0;
-            v0.x = 5.00000000e+00f;
-            system_api::(entity().blockMemory().stringFormat("x = %f", ), entity());
+            v0.x() = 5.00000000e+00f;
+            system_api::print(entity().blockMemory().stringFormat("x = %f", v0.x()), entity());
             return MessageResult::Consumed;
         }
         }

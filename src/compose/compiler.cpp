@@ -130,6 +130,15 @@ void mangle_function(char * mangledName, i32 mangledNameSize, const char * name,
     strcpy(p, name);
 }
 
+const char * unmangle_function(const char * mangledName)
+{
+    const char * lastDash = strrchr(mangledName, '_');
+    if (lastDash)
+        return lastDash + 1;
+    else
+        return mangledName;
+}
+
 size_t mangle_type_len(const char * name)
 {
     return strlen(name) + 5; // 3 for abbrev + 2 underscores
@@ -441,11 +450,11 @@ SymRec * symrec_create(SymType symType,
         *dest = '\0';
 
         strcat(fname, name);
-        pSymRec->full_name = fname;
+        pSymRec->fullName = fname;
         break;
     }
     default:
-        pSymRec->full_name = nullptr;
+        pSymRec->fullName = nullptr;
         break;
     }
 
@@ -511,7 +520,7 @@ SymTab* symtab_add_symbol_with_fields(SymTab* pSymTab, SymRec * pSymRec, ParseDa
                                                   nullptr,
                                                   pParseData);
 
-            pFieldSymRec->flags |= kSRFL_StructField;
+            pFieldSymRec->flags |= kSRFL_NeedsCppParens;
 
             symtab_add_symbol_with_fields(pSymTab, pFieldSymRec, pParseData);
         }
@@ -915,6 +924,7 @@ Ast * ast_create_property_def(const char * name, const SymDataType * pDataType, 
                                   name,
                                   pInitVal,
                                   pParseData);
+    pAst->pSymRec->flags |= kSRFL_NeedsCppParens;
 
     Scope * pScope = pParseData->scopeStack.back();
     symtab_add_symbol_with_fields(pScope->pSymTab, pAst->pSymRec, pParseData);
@@ -933,6 +943,7 @@ Ast * ast_create_field_def(const char * name, const SymDataType * pDataType, Ast
                                   name,
                                   pInitVal,
                                   pParseData);
+    pAst->pSymRec->flags |= kSRFL_NeedsCppParens;
 
     Scope * pScope = pParseData->scopeStack.back();
     symtab_add_symbol_with_fields(pScope->pSymTab, pAst->pSymRec, pParseData);
@@ -1580,6 +1591,7 @@ Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData
         {
             pAst->pSymRec = pSymRec;
             ast_set_rhs(pAst, pParams);
+            pAst->str = unmangle_function(pSymRec->name);
         }
     }
     else
