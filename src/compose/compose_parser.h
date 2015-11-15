@@ -127,15 +127,15 @@ extern int yydebug;
 typedef union YYSTYPE
 {
 /* Line 2053 of yacc.c  */
-#line 49 "compose.y"
+#line 48 "compose.y"
 
-    int         numi;
-    float       numf;
-    const char* str;
-    DataType    dataType;
-    Ast*        pAst;
-    SymTab*     pSymTab;
-    const SymDataType*     pSymDataType;
+    int                 numi;
+    float               numf;
+    const char*         str;
+    DataType            dataType;
+    Ast*                pAst;
+    SymTab*             pSymTab;
+    const SymDataType*  pSymDataType;
 
 
 /* Line 2053 of yacc.c  */

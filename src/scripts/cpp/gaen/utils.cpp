@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 5cc798ac7fd352759900ee248cf9fcd5
+// HASH: 6e41783bbde3699ef82ddde650494f45
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -245,12 +245,12 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            system_api::watch_input_state(HASH::mouse_look, 0, HASH::mouse_look, entity());
+            system_api::watch_input_state(HASH::mouse_look, (u32)0, HASH::mouse_look, entity());
             system_api::watch_mouse(HASH::mouse_move, HASH::mouse_wheel, entity());
-            system_api::watch_input_state(HASH::forward, 0, HASH::forward, entity());
-            system_api::watch_input_state(HASH::back, 0, HASH::back, entity());
-            system_api::watch_input_state(HASH::left, 0, HASH::left, entity());
-            system_api::watch_input_state(HASH::right, 0, HASH::right, entity());
+            system_api::watch_input_state(HASH::forward, (u32)0, HASH::forward, entity());
+            system_api::watch_input_state(HASH::back, (u32)0, HASH::back, entity());
+            system_api::watch_input_state(HASH::left, (u32)0, HASH::left, entity());
+            system_api::watch_input_state(HASH::right, (u32)0, HASH::right, entity());
             return MessageResult::Consumed;
         }
         case HASH::mouse_look:
@@ -487,12 +487,12 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            system_api::watch_input_state(HASH::mouse_look, 0, HASH::mouse_look, entity());
+            system_api::watch_input_state(HASH::mouse_look, (u32)0, HASH::mouse_look, entity());
             system_api::watch_mouse(HASH::mouse_move, HASH::mouse_wheel, entity());
-            system_api::watch_input_state(HASH::forward, 0, HASH::forward, entity());
-            system_api::watch_input_state(HASH::back, 0, HASH::back, entity());
-            system_api::watch_input_state(HASH::left, 0, HASH::left, entity());
-            system_api::watch_input_state(HASH::right, 0, HASH::right, entity());
+            system_api::watch_input_state(HASH::forward, (u32)0, HASH::forward, entity());
+            system_api::watch_input_state(HASH::back, (u32)0, HASH::back, entity());
+            system_api::watch_input_state(HASH::left, (u32)0, HASH::left, entity());
+            system_api::watch_input_state(HASH::right, (u32)0, HASH::right, entity());
             return MessageResult::Consumed;
         }
         case HASH::forward:

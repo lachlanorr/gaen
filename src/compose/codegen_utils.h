@@ -44,12 +44,12 @@ u32 calc_cell_count(const Ast * pAst);
 
 inline bool is_prop_or_field(SymRec * pSymRec)
 {
-    return (pSymRec && (pSymRec->type == kSYMT_Property || pSymRec->type == kSYMT_Field));
+    return (pSymRec && (pSymRec->type == kSYMT_Property || pSymRec->type == kSYMT_Field) && !(pSymRec->flags & kSRFL_Member));
 }
 
 inline bool is_prop(SymRec * pSymRec)
 {
-    return (pSymRec && pSymRec->type == kSYMT_Property);
+    return (pSymRec && pSymRec->type == kSYMT_Property && !(pSymRec->flags & kSRFL_Member));
 }
 
 BlockInfos * block_pack_props_and_fields(Ast *pAst);

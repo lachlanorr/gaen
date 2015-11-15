@@ -38,6 +38,7 @@
 #include "compose/utils.h"
 
 extern "C" {
+// LORRNOTE: Uncomment below to enable stderr based debug messages from parser
 #define YYDEBUG 1
 #include "compose/compose_parser.h"
 #define YY_NO_UNISTD_H
@@ -132,11 +133,19 @@ void mangle_function(char * mangledName, i32 mangledNameSize, const char * name,
 
 const char * unmangle_function(const char * mangledName)
 {
-    const char * lastDash = strrchr(mangledName, '_');
-    if (lastDash)
-        return lastDash + 1;
+    const char * lastDoubleDash = strstr(mangledName, "__");
+
+    if (lastDoubleDash)
+        lastDoubleDash += 2;
     else
         return mangledName;
+
+    while (const char * ldd = strstr(lastDoubleDash, "__"))
+    {
+        lastDoubleDash = ldd + 2;
+    }
+
+    return lastDoubleDash;
 }
 
 size_t mangle_type_len(const char * name)
@@ -198,105 +207,10 @@ void mangle_param(char * mangledName, size_t mangledNameSize, const char * name,
 // SymDataType
 //------------------------------------------------------------------------------
 
-u32 cells_per_datatype(DataType dt)
+static const char * cpp_type_str(const char * cppName, int isConst, int isReference, ParseData * pParseData)
 {
-    switch (dt)
-    {
-    case kDT_void:
-        return 0;
-    case kDT_bool:
-    case kDT_int:
-    case kDT_uint:
-    case kDT_float:
-    case kDT_color:
-    case kDT_entity:
-        return 1;
-    case kDT_vec2:
-    case kDT_handle:
-    case kDT_string:
-        return 2;
-    case kDT_vec3:
-        return 3;
-    case kDT_vec4:
-    case kDT_quat:
-        return 3;
-    case kDT_mat3:
-        return 9;
-    case kDT_mat34:
-        return 12;
-    case kDT_mat4:
-        return 16;
-    case kDT_struct:
-        return 0;
-    default:
-        PANIC("Invalid data type: %u", dt);
-        return 0;
-    }
-}
-
-static const char * compose_type_to_cpp_type(DataType dt, ParseData * pParseData)
-{
-    switch (dt)
-    {
-    case kDT_char:
-        return "i8";
-    case kDT_byte:
-        return "u8";
-    case kDT_short:
-        return "i16";
-    case kDT_ushort:
-        return "u16";
-    case kDT_int:
-        return "i32";
-    case kDT_uint:
-        return "u32";
-    case kDT_long:
-        return "i64";
-    case kDT_ulong:
-        return "u64";
-    case kDT_half:
-        return "f16";
-    case kDT_float:
-        return "f32";
-    case kDT_double:
-        return "f64";
-    case kDT_bool:
-        return "bool";
-    case kDT_color:
-        return "Color";
-    case kDT_vec2:
-        return "Vec2";
-    case kDT_vec3:
-        return "Vec3";
-    case kDT_vec4:
-        return "Vec4";
-    case kDT_quat:
-        return "Quat";
-    case kDT_mat3:
-        return "Mat3";
-    case kDT_mat34:
-        return "Mat34";
-    case kDT_mat4:
-        return "Mat4";
-    case kDT_void:
-        return "void";
-    case kDT_handle:
-        return "Handle";
-    case kDT_entity:
-        return "task_id";
-    case kDT_string:
-        return "CmpString";
-    default:
-        COMP_ERROR(pParseData, "cpp_type_str invalid DataType: %d", dt);
-        return nullptr;
-    }
-}
-
-static const char * cpp_type_str(DataType dataType, int isConst, int isReference, ParseData * pParseData)
-{
-    const char * cppType = compose_type_to_cpp_type(dataType, pParseData);
-    ASSERT(cppType);
-    size_t typeLen = strlen(cppType);
+    ASSERT(cppName);
+    size_t typeLen = strlen(cppName);
     if (isConst)
         typeLen += 6; // "const " 6 chars
     if (isReference)
@@ -310,15 +224,26 @@ static const char * cpp_type_str(DataType dataType, int isConst, int isReference
     if (isReference)
         strcat(ret, "& ");
 
-    strcat(ret, cppType);
+    strcat(ret, cppName);
 
     return ret;
 
 }
 
-SymDataType * symdatatype_create(const char * name, DataType dataType, int isConst, int isReference, ParseData * pParseData)
+SymDataType * symdatatype_create(DataType dataType,
+                                 const char * name,
+                                 const char * cppName,
+                                 u32 cellCount,
+                                 int isConst,
+                                 int isReference,
+                                 ParseData * pParseData)
 {
     SymDataType * pSdt = COMP_NEW(SymDataType);
+
+    pSdt->typeDesc.dataType = dataType;
+    pSdt->typeDesc.isConst = isConst != 0;
+    pSdt->typeDesc.isReference = isReference != 0;
+    pSdt->cellCount = cellCount;
 
     pSdt->name = name;
 
@@ -332,13 +257,8 @@ SymDataType * symdatatype_create(const char * name, DataType dataType, int isCon
     mangle_param(mangledParam, mangledParamSize, name, isConst, isReference);
     pSdt->mangledParam = mangledParam;
 
-    pSdt->cellCount = cells_per_datatype(dataType);
-    pSdt->dataType = dataType;
-    pSdt->isConst = isConst != 0;
-    pSdt->isReference = isReference != 0;
-    pSdt->pSymRec = nullptr;
 
-    pSdt->cppTypeStr = cpp_type_str(dataType, isConst, isReference, pParseData);
+    pSdt->cppTypeStr = cpp_type_str(cppName, isConst, isReference, pParseData);
 
     return pSdt;
 }
@@ -520,7 +440,7 @@ SymTab* symtab_add_symbol_with_fields(SymTab* pSymTab, SymRec * pSymRec, ParseDa
                                                   nullptr,
                                                   pParseData);
 
-            pFieldSymRec->flags |= kSRFL_NeedsCppParens;
+            pFieldSymRec->flags |= (kSRFL_Member | kSRFL_NeedsCppParens);
 
             symtab_add_symbol_with_fields(pSymTab, pFieldSymRec, pParseData);
         }
@@ -636,6 +556,20 @@ SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
     return nullptr;
 }
 
+SymRec* symtab_find_type(SymTab* pSymTab, const char * name)
+{
+    // LORRTEMP
+    return nullptr;
+}
+
+const SymDataType* symtab_find_type_recursive(SymTab* pSymTab, DataType dataType, int isConst, int isReference)
+{
+    ASSERT(pSymTab);
+
+    // LORRTEMP
+    return nullptr;
+}
+
 SymTab* symtab_transfer(SymTab* pDest, SymTab* pSrc, ParseData* pParseData)
 {
     for (auto it : pSrc->dict)
@@ -694,6 +628,7 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
     pAst->pParent = nullptr;
     pAst->pScope = parsedata_current_scope(pParseData);
     pAst->pSymRec = nullptr;
+    pAst->pSymDataType = nullptr;
 
     pAst->pLhs = nullptr;
     pAst->pMid = nullptr;
@@ -1061,11 +996,33 @@ Ast * ast_create_assign_op(AstType astType, Ast * pDottedId, Ast * pRhs, ParseDa
     return pAst;
 }
 
+Ast * ast_create_scalar_init(DataType dataType, Ast * pParams, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_ScalarInit, pParseData);
+
+    const SymDataType * pSdt = parsedata_find_basic_type(pParseData, dataType, 0, 0);
+    ASSERT(pSdt);
+
+    pAst->pSymDataType = pSdt;
+
+    if (pParams->pChildren->nodes.size() == 1)
+    {
+        const SymDataType * pParamSdt = ast_data_type(pParams->pChildren->nodes.front());
+
+        // LORRTODO: Compare types (pSdt and pParamSdt) and make sure conversion is possible
+
+        ast_set_rhs(pAst, pParams);
+    }
+    else
+    {
+        COMP_ERROR(pParseData, "Invalid parameters for %s initialization", pSdt->name);
+    }
+
+    return pAst;
+}
+
 Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData)
 {
-    // pop scope that got created by the lexer when encountering the '{'
-    parsedata_pop_scope(pParseData);
-
     Ast * pAst = ast_create(kAST_ColorInit, pParseData);
     ast_set_rhs(pAst, pParams);
 
@@ -1075,7 +1032,7 @@ Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData)
         for (Ast * pParam : pParams->pChildren->nodes)
         {
             const SymDataType * pSdt = ast_data_type(pParam);
-            if (pSdt->dataType != kDT_int && pSdt->dataType != kDT_uint)
+            if (pSdt->typeDesc.dataType != kDT_int && pSdt->typeDesc.dataType != kDT_uint)
                 COMP_ERROR(pParseData, "Invalid data type in color initialization");
         }
         break;
@@ -1089,9 +1046,6 @@ Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData)
 
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
 {
-    // pop scope that got created by the lexer when encountering the '{'
-    parsedata_pop_scope(pParseData);
-
     Ast * pAst = ast_create(kAST_Vec3Init, pParseData);
     ast_set_rhs(pAst, pParams);
 
@@ -1101,7 +1055,7 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
     {
         Ast * pParam = pParams->pChildren->nodes.front();
         const SymDataType * pSdt = ast_data_type(pParam);
-        if (pSdt->dataType != kDT_float && pSdt->dataType != kDT_vec3)
+        if (pSdt->typeDesc.dataType != kDT_float && pSdt->typeDesc.dataType != kDT_vec3)
             COMP_ERROR(pParseData, "Invalid data type in vec3 initialization");
         break;
     }
@@ -1110,7 +1064,7 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
         for (Ast * pParam : pParams->pChildren->nodes)
         {
             const SymDataType * pSdt = ast_data_type(pParam);
-            if (pSdt->dataType != kDT_float)
+            if (pSdt->typeDesc.dataType != kDT_float)
                 COMP_ERROR(pParseData, "Invalid data type in vec3 initialization");
         }
         break;
@@ -1125,9 +1079,6 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
 
 Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData)
 {
-    // pop scope that got created by the lexer when encountering the '{'
-    parsedata_pop_scope(pParseData);
-
     Ast * pAst = ast_create(kAST_Vec4Init, pParseData);
     ast_set_rhs(pAst, pParams);
 
@@ -1138,7 +1089,7 @@ Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData)
         for (Ast * pParam : pParams->pChildren->nodes)
         {
             const SymDataType * pSdt = ast_data_type(pParam);
-            if (pSdt->dataType != kDT_float)
+            if (pSdt->typeDesc.dataType != kDT_float)
                 COMP_ERROR(pParseData, "Invalid data type in vec4 initialization");
         }
         break;
@@ -1153,9 +1104,6 @@ Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData)
 
 Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData)
 {
-    // pop scope that got created by the lexer when encountering the '{'
-    parsedata_pop_scope(pParseData);
-
     Ast * pAst = ast_create(kAST_QuatInit, pParseData);
     ast_set_rhs(pAst, pParams);
 
@@ -1166,7 +1114,7 @@ Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData)
         for (Ast * pParam : pParams->pChildren->nodes)
         {
             const SymDataType * pSdt = ast_data_type(pParam);
-            if (pSdt->dataType != kDT_float)
+            if (pSdt->typeDesc.dataType != kDT_float)
                 COMP_ERROR(pParseData, "Invalid data type in quat initialization");
         }
         break;
@@ -1181,9 +1129,6 @@ Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData)
 
 Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
 {
-    // pop scope that got created by the lexer when encountering the '{'
-    parsedata_pop_scope(pParseData);
-
     Ast * pAst = ast_create(kAST_Mat34Init, pParseData);
     ast_set_rhs(pAst, pParams);
 
@@ -1193,7 +1138,7 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
     {
         Ast * pParam = pParams->pChildren->nodes.front();
         const SymDataType * pSdt = ast_data_type(pParam);
-        if (pSdt->dataType != kDT_float && pSdt->dataType != kDT_mat34)
+        if (pSdt->typeDesc.dataType != kDT_float && pSdt->typeDesc.dataType != kDT_mat34)
             COMP_ERROR(pParseData, "Invalid data type in mat34 initialization");
         break;
     }
@@ -1202,7 +1147,7 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
         for (Ast * pParam : pParams->pChildren->nodes)
         {
             const SymDataType * pSdt = ast_data_type(pParam);
-            if (pSdt->dataType != kDT_float)
+            if (pSdt->typeDesc.dataType != kDT_float)
                 COMP_ERROR(pParseData, "Invalid data type in mat34 initialization");
         }
         break;
@@ -1217,9 +1162,6 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
 
 Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
 {
-    // pop scope that got created by the lexer when encountering the '{'
-    parsedata_pop_scope(pParseData);
-
     if (!pParams->pChildren || pParams->pChildren->nodes.size() == 0)
     {
         // no params, just a blank string
@@ -1230,7 +1172,7 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
     {
         Ast * pChild = pParams->pChildren->nodes.front();
         const SymDataType * pSdt = ast_data_type(pChild);
-        switch (pSdt->dataType)
+        switch (pSdt->typeDesc.dataType)
         {
         case kDT_bool:
         case kDT_char:
@@ -1259,7 +1201,7 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
             return pAst;
         }
         default:
-            COMP_ERROR(pParseData, "Unable to convert data type %d to string", pSdt->dataType);
+            COMP_ERROR(pParseData, "Unable to convert data type %d to string", pSdt->typeDesc.dataType);
             return nullptr;
         }
     }
@@ -1356,7 +1298,7 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
                 break;
 
             case 'c':
-                if (ast_data_type(*paramIt)->dataType != kDT_char)
+                if (ast_data_type(*paramIt)->typeDesc.dataType != kDT_char)
                 {
                     COMP_ERROR(pParseData, "char parameter expected in position %u for %s", i, format);
                     return nullptr;
@@ -1369,7 +1311,7 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
             case 'E':
             case 'g':
             case 'G':
-                if (ast_data_type(*paramIt)->dataType != kDT_float)
+                if (ast_data_type(*paramIt)->typeDesc.dataType != kDT_float)
                 {
                     COMP_ERROR(pParseData, "float parameter expected in position %u for %s", i, format);
                     return nullptr;
@@ -1400,6 +1342,30 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
         ast_add_children(pAst, pParams->pChildren);
 
         return pAst;
+    }
+}
+
+Ast * ast_create_type_init(DataType dataType, Ast * pParams, ParseData * pParseData)
+{
+    // pop scope that got created by the lexer when encountering the '{'
+    parsedata_pop_scope(pParseData);
+
+    switch (dataType)
+    {
+    case kDT_color:
+        return ast_create_color_init(pParams, pParseData);
+    case kDT_vec3:
+        return ast_create_vec3_init(pParams, pParseData);
+    case kDT_vec4:
+        return ast_create_vec4_init(pParams, pParseData);
+    case kDT_quat:
+        return ast_create_quat_init(pParams, pParseData);
+    case kDT_mat34:
+        return ast_create_mat34_init(pParams, pParseData);
+    case kDT_string:
+        return ast_create_string_init(pParams, pParseData);
+    default:
+        return ast_create_scalar_init(dataType, pParams, pParseData);
     }
 }
 
@@ -1832,10 +1798,17 @@ void ast_set_rhs(Ast * pParent, Ast * pRhs)
 
 const SymDataType * ast_data_type(const Ast * pAst)
 {
+    // LORRTODO: This should be simplified now that we have
+    // SymDataType, most o fthese should be set at parse time on the
+    // ast instead of having to go through this case statement.
+
     if (pAst->pSymRec)
         return pAst->pSymRec->pSymDataType;
 
     SymRec * pSymRec = nullptr;
+
+    if (pAst->pSymDataType)
+        return pAst->pSymDataType;
 
     switch (pAst->type)
     {
@@ -1888,55 +1861,38 @@ const SymDataType * ast_data_type(const Ast * pAst)
     return pSymRec->pSymDataType;
 }
 
-const SymDataType * const_data_type(const SymDataType * pSdt)
+const SymDataType * const_data_type(ParseData * pParseData, const SymDataType * pSdt)
 {
-    if (pSdt->isConst)
+    if (pSdt->typeDesc.isConst)
         return pSdt;
     else
     {
-        SymRec * pSymRec = parsedata_find_type_symbol(pSdt->pSymRec->pSymTab->pParseData, pSdt->name, true, pSdt->isReference);
+        SymRec * pSymRec = parsedata_find_type_symbol(pParseData, pSdt->name, true, pSdt->typeDesc.isReference);
         ASSERT(pSymRec);
         return pSymRec->pSymDataType;
     }
 }
 
-const SymDataType * non_const_data_type(const SymDataType * pSdt)
+const SymDataType * non_const_data_type(ParseData * pParseData, const SymDataType * pSdt)
 {
-    if (!pSdt->isConst)
+    if (!pSdt->typeDesc.isConst)
         return pSdt;
     else
     {
-        SymRec * pSymRec = parsedata_find_type_symbol(pSdt->pSymRec->pSymTab->pParseData, pSdt->name, false, pSdt->isReference);
+        SymRec * pSymRec = parsedata_find_type_symbol(pParseData, pSdt->name, false, pSdt->typeDesc.isReference);
         ASSERT(pSymRec);
         return pSymRec->pSymDataType;
     }
-}
-
-int are_types_compatible(const SymDataType * pA, SymDataType * pB)
-{
-    // TODO: Support const checking in assignment. This function should be
-    // renamed or special cased to handle checks on LHS of assignment consts.
-    // We also need to support implicit conversion from int to float, etc.
-    DataType rawA = pA->dataType;
-    DataType rawB = pB->dataType;
-    if (rawA == rawB)
-        return 1;
-    if ((rawA == kDT_uint   && rawB == kDT_int)  || 
-        (rawA == kDT_int    && rawB == kDT_uint) ||
-        (rawA == kDT_entity && rawB == kDT_uint) ||
-        (rawA == kDT_uint   && rawB == kDT_entity))
-        return 1;
-    return 0;
 }
 
 int is_block_memory_type(const SymDataType * pSdt)
 {
-    return (pSdt->dataType == kDT_string ? 1 : 0);
+    return (pSdt->typeDesc.dataType == kDT_string ? 1 : 0);
 }
 
 int is_integral_type(const SymDataType * pSdt)
 {
-    DataType dt = pSdt->dataType;
+    DataType dt = pSdt->typeDesc.dataType;
     return (dt == kDT_int || dt== kDT_uint || dt == kDT_short || dt == kDT_ushort) ? 1 : 0;
 }
 
@@ -2193,6 +2149,41 @@ Ast* parsedata_add_root_symbol(ParseData * pParseData, SymRec * pSymRec)
     return parsedata_add_symbol(pParseData, pSymRec, pParseData->pRootScope);
 }
 
+const SymDataType * parsedata_find_basic_type(ParseData * pParseData, DataType dataType, int isConst, int isReference)
+{
+    TypeDesc td;
+    td.dataType = dataType;
+    td.isConst = isConst != 0;
+    td.isReference = isReference != 0;
+
+    return parsedata_find_basic_type_desc(pParseData, &td);
+}
+
+const SymDataType * parsedata_find_basic_type_desc(ParseData * pParseData, const TypeDesc * pTypeDesc)
+{
+    auto it = pParseData->basicTypes.find(*pTypeDesc);
+
+    if (it != pParseData->basicTypes.end())
+        return it->second;
+    return nullptr;
+}
+
+void parsedata_register_basic_type(ParseData * pParseData, SymDataType * pSymDataType)
+{
+    if (!parsedata_find_basic_type_desc(pParseData, &pSymDataType->typeDesc))
+    {
+        pParseData->basicTypes[pSymDataType->typeDesc] = pSymDataType;
+    }
+    else
+    {
+        COMP_ERROR(pParseData,
+                   "Basic type already registered: DataType=%d, IsConst=%d, IsReference=%d",
+                   pSymDataType->typeDesc.dataType,
+                   pSymDataType->typeDesc.isConst,
+                   pSymDataType->typeDesc.isReference);
+    }
+}
+
 Scope* parsedata_current_scope(ParseData * pParseData)
 {
     ASSERT(pParseData);
@@ -2357,6 +2348,7 @@ void parse_init()
 {
     comp_reset_mem();
 
+    // LORRNOTE: Uncomment below to enable stderr based debug messages from parser
     //yydebug = 1;
 }
 
@@ -2483,24 +2475,32 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 namespace gaen
 {
-    RelatedTypes register_basic_type(const char * name, DataType dt, ParseData * pParseData)
+    RelatedTypes register_basic_type(DataType dt,
+                                     const char * name,
+                                     const char * cppName,
+                                     u32 cellCount,
+                                     ParseData * pParseData)
     {
         RelatedTypes rt;
 
         // normal
-        rt.pNormal = symdatatype_create(name, dt, 0, 0, pParseData);
+        rt.pNormal = symdatatype_create(dt, name, cppName, cellCount, 0, 0, pParseData);
+        parsedata_register_basic_type(pParseData, rt.pNormal);
         parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pNormal, rt.pNormal->mangledType, nullptr, pParseData));
 
         // const
-        rt.pConst = symdatatype_create(name, dt, 1, 0, pParseData);
+        rt.pConst = symdatatype_create(dt, name, cppName, cellCount, 1, 0, pParseData);
+        parsedata_register_basic_type(pParseData, rt.pConst);
         parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConst, rt.pConst->mangledType, nullptr, pParseData));
 
         // reference
-        rt.pReference = symdatatype_create(name, dt, 0, 1, pParseData);
+        rt.pReference = symdatatype_create(dt, name, cppName, cellCount, 0, 1, pParseData);
+        parsedata_register_basic_type(pParseData, rt.pReference);
         parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pReference, rt.pReference->mangledType, nullptr, pParseData));
 
         // const reference
-        rt.pConstReference = symdatatype_create(name, dt, 1, 1, pParseData);
+        rt.pConstReference = symdatatype_create(dt, name, cppName, cellCount, 1, 1, pParseData);
+        parsedata_register_basic_type(pParseData, rt.pConstReference);
         parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConstReference, rt.pConstReference->mangledType, nullptr, pParseData));
 
         return rt;
@@ -2508,42 +2508,45 @@ namespace gaen
 
     void register_basic_types(ParseData * pParseData)
     {
-        register_basic_type("void",   kDT_void,   pParseData);
-        register_basic_type("bool",   kDT_bool,   pParseData);
-        register_basic_type("int",    kDT_int,    pParseData);
-        register_basic_type("uint",   kDT_uint,   pParseData);
-        RelatedTypes floatRt = register_basic_type("float",  kDT_float,  pParseData);
-        register_basic_type("color",  kDT_color,  pParseData);
+        register_basic_type(kDT_void,  "void", "void", 0, pParseData);
+        register_basic_type(kDT_bool,  "bool", "bool", 1, pParseData);
+        register_basic_type(kDT_int,   "int",  "i32",  1, pParseData);
+        register_basic_type(kDT_uint,  "uint", "u32", 1, pParseData);
+        register_basic_type(kDT_color, "color", "Color", 1, pParseData);
+
+        // Save float related types since we need them to register fields of each
+        // composite type.
+        RelatedTypes floatRt = register_basic_type(kDT_float, "float", "f32", 1, pParseData);
 
         RelatedTypes rt;
-        rt = register_basic_type("vec2",   kDT_vec2,   pParseData);
+        rt = register_basic_type(kDT_vec2, "vec2", "Vec2", 2, pParseData);
         symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
         symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
 
-        rt = register_basic_type("vec3",   kDT_vec3,   pParseData);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "z");
-
-        rt = register_basic_type("vec4",   kDT_vec4,   pParseData);
+        rt = register_basic_type(kDT_vec3, "vec3", "Vec3", 3, pParseData);
         symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
         symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
         symdatatype_add_field_related(&rt, floatRt.pNormal, "z");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "w");
 
-        rt = register_basic_type("quat",   kDT_quat,   pParseData);
+        rt = register_basic_type(kDT_vec4, "vec4", "Vec4", 4, pParseData);
         symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
         symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
         symdatatype_add_field_related(&rt, floatRt.pNormal, "z");
         symdatatype_add_field_related(&rt, floatRt.pNormal, "w");
 
-        register_basic_type("mat3",   kDT_mat3,   pParseData);
-        register_basic_type("mat34",  kDT_mat34,  pParseData);
-        register_basic_type("mat4",   kDT_mat4,   pParseData);
+        rt = register_basic_type(kDT_quat, "quat", "Quat", 4, pParseData);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "z");
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "w");
 
-        register_basic_type("handle", kDT_handle, pParseData);
-        register_basic_type("entity", kDT_entity, pParseData);
-        register_basic_type("string", kDT_string, pParseData);
+        register_basic_type(kDT_mat3,  "mat3",  "Mat3",   9, pParseData);
+        register_basic_type(kDT_mat34, "mat34", "Mat34", 12, pParseData);
+        register_basic_type(kDT_mat4,  "mat4",  "Mat4",  16, pParseData);
+
+        register_basic_type(kDT_handle, "handle", "Handle", 2, pParseData);
+        register_basic_type(kDT_entity, "entity", "task_id", 1, pParseData);
+        register_basic_type(kDT_string, "string", "CmpString", 2, pParseData);
     }
 
     ParseData * parse_file(const char * fullPath,

@@ -44,16 +44,36 @@ struct SymStructField
     const char * name;
 };
 
-struct SymDataType
+struct TypeDesc
 {
-    const char * name;
-    const char * mangledType;
-    const char * mangledParam;
-    u32 cellCount;
     DataType dataType;
     bool isConst;
     bool isReference;
-    SymRec * pSymRec;
+
+    // to support maps
+    bool operator< (const TypeDesc & rhs) const
+    {
+        if (dataType == rhs.dataType)
+        {
+            if (isConst == rhs.isConst)
+            {
+                return isReference < rhs.isReference;
+            }
+            else
+                return isConst < rhs.isConst;
+        }
+        else
+            return dataType < rhs.dataType;
+    }
+};
+
+struct SymDataType
+{
+    TypeDesc typeDesc;
+    u32 cellCount;
+    const char * name;
+    const char * mangledType;
+    const char * mangledParam;
     const char * cppTypeStr;
 
     CompList<SymStructField*> fields;
@@ -69,7 +89,8 @@ struct RelatedTypes
 
 enum SymRecFlag
 {
-    kSRFL_NeedsCppParens = 0x0001
+    kSRFL_Member         = 0x0001,
+    kSRFL_NeedsCppParens = 0x0002
 };
 
 struct SymRec
@@ -90,7 +111,6 @@ struct SymTab
     SymTab * pParent;
     Ast * pAst;
     ParseData * pParseData;
-    CompMap<const char*, const SymDataType*, StrcmpComp> symDataTypes;
     CompMap<const char*, SymRec*, StrcmpComp> dict;
     CompList<SymRec*> orderedSymRecs;
     CompList<SymTab*> children;
@@ -156,6 +176,7 @@ struct Ast
     Ast* pParent;
     Scope* pScope;
     SymRec* pSymRec;
+    const SymDataType * pSymDataType;
 
     Ast* pLhs;
     Ast* pMid;
@@ -194,6 +215,8 @@ struct ParseData
 
     // ParseData structs from compilations of usings
     CompList<Using> usings;
+
+    CompMap<TypeDesc, SymDataType*> basicTypes;
 
     // location info
     int line;

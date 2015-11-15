@@ -46,7 +46,7 @@ namespace system_api
 void print(CmpString str, Entity & caller);
 CmpString hashstr(u32 hash, Entity & caller);
 
-void insert_entity(u32 id, Entity & caller);
+void insert_entity(task_id id, Entity & caller);
 
 f32 radians(f32 degrees, Entity & caller);
 f32 degrees(f32 radians, Entity & caller);

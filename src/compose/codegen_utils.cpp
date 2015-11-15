@@ -42,7 +42,7 @@ BlockInfo::BlockInfo(Ast * pAst)
   , isAssigned(false)
 {
     cellCount = gaen::calc_cell_count(pAst);
-    pSymDataType = non_const_data_type(ast_data_type(pAst));
+    pSymDataType = non_const_data_type(pAst->pParseData, ast_data_type(pAst));
     isBlockMemoryType = is_block_memory_type(pSymDataType) ? true : false;
 }
 

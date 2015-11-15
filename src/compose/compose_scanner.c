@@ -1049,117 +1049,117 @@ YY_RULE_SETUP
 case 5:
 YY_RULE_SETUP
 #line 78 "compose.l"
-{ yylval->dataType = kDT_char;   yylval->str = comp_strdup(yytext); return CHAR_;   }
+{ yylval->dataType = kDT_char;   return CHAR_;   }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 79 "compose.l"
-{ yylval->dataType = kDT_byte;   yylval->str = comp_strdup(yytext); return BYTE_;   }
+{ yylval->dataType = kDT_byte;   return BYTE_;   }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
 #line 80 "compose.l"
-{ yylval->dataType = kDT_short;  yylval->str = comp_strdup(yytext); return SHORT_;  }
+{ yylval->dataType = kDT_short;  return SHORT_;  }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
 #line 81 "compose.l"
-{ yylval->dataType = kDT_ushort; yylval->str = comp_strdup(yytext); return USHORT_; }
+{ yylval->dataType = kDT_ushort; return USHORT_; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
 #line 82 "compose.l"
-{ yylval->dataType = kDT_int;    yylval->str = comp_strdup(yytext); return INT_;    }
+{ yylval->dataType = kDT_int;    return INT_;    }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 83 "compose.l"
-{ yylval->dataType = kDT_uint;   yylval->str = comp_strdup(yytext); return UINT_;   }
+{ yylval->dataType = kDT_uint;   return UINT_;   }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
 #line 84 "compose.l"
-{ yylval->dataType = kDT_long;   yylval->str = comp_strdup(yytext); return LONG_;   }
+{ yylval->dataType = kDT_long;   return LONG_;   }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 85 "compose.l"
-{ yylval->dataType = kDT_ulong;  yylval->str = comp_strdup(yytext); return ULONG_;  }
+{ yylval->dataType = kDT_ulong;  return ULONG_;  }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
 #line 86 "compose.l"
-{ yylval->dataType = kDT_half;   yylval->str = comp_strdup(yytext); return HALF_;   }
+{ yylval->dataType = kDT_half;   return HALF_;   }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 87 "compose.l"
-{ yylval->dataType = kDT_float;  yylval->str = comp_strdup(yytext); return FLOAT_;  }
+{ yylval->dataType = kDT_float;  return FLOAT_;  }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 88 "compose.l"
-{ yylval->dataType = kDT_double; yylval->str = comp_strdup(yytext); return DOUBLE_; }
+{ yylval->dataType = kDT_double; return DOUBLE_; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 89 "compose.l"
-{ yylval->dataType = kDT_bool;   yylval->str = comp_strdup(yytext); return BOOL_;   }
+{ yylval->dataType = kDT_bool;   return BOOL_;   }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 90 "compose.l"
-{ yylval->dataType = kDT_color;  yylval->str = comp_strdup(yytext); return COLOR;   }
+{ yylval->dataType = kDT_color;  return COLOR;   }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 91 "compose.l"
-{ yylval->dataType = kDT_vec2;   yylval->str = comp_strdup(yytext); return VEC2;    }
+{ yylval->dataType = kDT_vec2;   return VEC2;    }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 92 "compose.l"
-{ yylval->dataType = kDT_vec3;   yylval->str = comp_strdup(yytext);   return VEC3;    }
+{ yylval->dataType = kDT_vec3;   return VEC3;    }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 93 "compose.l"
-{ yylval->dataType = kDT_vec4;   yylval->str = comp_strdup(yytext); return VEC4;    }
+{ yylval->dataType = kDT_vec4;   return VEC4;    }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 94 "compose.l"
-{ yylval->dataType = kDT_quat;   yylval->str = comp_strdup(yytext); return QUAT;    }
+{ yylval->dataType = kDT_quat;   return QUAT;    }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 95 "compose.l"
-{ yylval->dataType = kDT_mat3;   yylval->str = comp_strdup(yytext); return MAT3;    }
+{ yylval->dataType = kDT_mat3;   return MAT3;    }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 96 "compose.l"
-{ yylval->dataType = kDT_mat34;  yylval->str = comp_strdup(yytext); return MAT34;   }
+{ yylval->dataType = kDT_mat34;  return MAT34;   }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 97 "compose.l"
-{ yylval->dataType = kDT_mat4;   yylval->str = comp_strdup(yytext); return MAT4;    }
+{ yylval->dataType = kDT_mat4;   return MAT4;    }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
 #line 98 "compose.l"
-{ yylval->dataType = kDT_void;   yylval->str = comp_strdup(yytext); return VOID_;   }
+{ yylval->dataType = kDT_void;   return VOID_;   }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
 #line 99 "compose.l"
-{ yylval->dataType = kDT_handle; yylval->str = comp_strdup(yytext); return HANDLE_; }
+{ yylval->dataType = kDT_handle; return HANDLE_; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
 #line 100 "compose.l"
-{ yylval->dataType = kDT_string; yylval->str = comp_strdup(yytext); return STRING;  }
+{ yylval->dataType = kDT_string; return STRING;  }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
@@ -1244,7 +1244,7 @@ YY_RULE_SETUP
 case 44:
 YY_RULE_SETUP
 #line 122 "compose.l"
-{ parsedata_push_top_level_stmt_scope(pParseData); yylval->dataType = kDT_entity; yylval->str = comp_strdup(yytext); return ENTITY; }
+{ parsedata_push_top_level_stmt_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP

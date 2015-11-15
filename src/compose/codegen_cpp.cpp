@@ -80,7 +80,7 @@ static S indent(u32 level)
 
 static const char * cell_field_str(const SymDataType * pSdt, ParseData * pParseData)
 {
-    switch (pSdt->dataType)
+    switch (pSdt->typeDesc.dataType)
     {
     case kDT_char:
         return "c";
@@ -95,7 +95,7 @@ static const char * cell_field_str(const SymDataType * pSdt, ParseData * pParseD
     case kDT_color:
         return "color";
     default:
-        COMP_ERROR(pParseData, "cell_field_str invalid DataType: %d", pSdt->dataType);
+        COMP_ERROR(pParseData, "cell_field_str invalid DataType: %d", pSdt->typeDesc.dataType);
         return "";
     }
 }
@@ -179,7 +179,7 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
     }
     else
     {
-        switch (pSdt->dataType)
+        switch (pSdt->typeDesc.dataType)
         {
         case kDT_int:
         case kDT_uint:
@@ -203,7 +203,7 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
             snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].cells[%u])", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex, blockInfo.cellIndex);
             return S(scratch);
         default:
-            COMP_ERROR(pParseData, "Invalid dataType: %d", pSdt->dataType);
+            COMP_ERROR(pParseData, "Invalid dataType: %d", pSdt->typeDesc.dataType);
             return S("");
         }
     }
@@ -242,7 +242,7 @@ static S assign(const Ast * pAst, const char * op)
     {
         if (strcmp(op, "=") != 0)
         {
-            COMP_ERROR(pAst->pParseData, "Invalid assignment op %s for dataType %d", op, pAst->pSymRec->pSymDataType->dataType);
+            COMP_ERROR(pAst->pParseData, "Invalid assignment op %s for dataType %d", op, pAst->pSymRec->pSymDataType->typeDesc.dataType);
             return S("");
         }
         // call set function for ref counted types so addref/release can be done properly
@@ -275,7 +275,7 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
         }
         else
         {
-            switch (pBlockInfo->pSymDataType->dataType)
+            switch (pBlockInfo->pSymDataType->typeDesc.dataType)
             {
             case kDT_string:
                 ASSERT(pBlockInfo->blockMemoryIndex != -1);
@@ -288,11 +288,15 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
                 code = S(scratch);
                 break;
             default:
-                PANIC("Unsupported DataType: %u", pBlockInfo->pSymDataType->dataType);
+                PANIC("Unsupported DataType: %u", pBlockInfo->pSymDataType->typeDesc.dataType);
                 code = S("");
                 break;
             }
         }
+    }
+    else if (is_prop_or_field(pSymRec))
+    {
+        code = S(pSymRec->name) + S("()");
     }
     else
     {
@@ -396,7 +400,7 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                     // Size is dynamic and must be read from first block.
                     code += I2 + S("if (_msg.blockCount < 1) break; // not enough even for BlockData header\n");
                     code += I2 + S("const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[0]);\n");
-                    code += I2 + S("if (pBlockData->type != ") + S(compose_type_to_block_type(pSymRec->pSymDataType->dataType)) + S(") break; // incorrect BlockData type\n");
+                    code += I2 + S("if (pBlockData->type != ") + S(compose_type_to_block_type(pSymRec->pSymDataType->typeDesc.dataType)) + S(") break; // incorrect BlockData type\n");
                     code += I2 + S("u32 requiredBlockCount = pBlockData->blockCount;\n");
                     code += I2 + S("if (_msg.blockCount >= requiredBlockCount)\n");
                     code += I2 + S("{\n");
@@ -417,7 +421,7 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
 
 static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
 {
-    switch (pSdt->dataType)
+    switch (pSdt->typeDesc.dataType)
     {
     case kDT_int:
     case kDT_uint:
@@ -444,7 +448,7 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
     case kDT_string:
         return S("entity().blockMemory().stringAlloc(\"\")");
     default:
-        COMP_ERROR(pParseData, "Unknown initial value for datatype: %d", pSdt->dataType);
+        COMP_ERROR(pParseData, "Unknown initial value for datatype: %d", pSdt->typeDesc.dataType);
         return S("");
     }
 }
@@ -540,7 +544,7 @@ static S message_def(const Ast * pAst, int indentLevel)
                     snprintf(scratch,
                              kScratchSize,
                              "blockMemCount = BlockData::validate_block_data(&msgAcc[expectedBlockSize], %s);\n",
-                             compose_type_to_block_type(bi.pSymDataType->dataType));
+                             compose_type_to_block_type(bi.pSymDataType->typeDesc.dataType));
                     code += I1 + S(scratch);
                     code += I1 + S("expectedBlockSize += blockMemCount;\n");
 
@@ -573,7 +577,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
         {
             // Ensure the property is valid
             SymRec * pSymRec = symtab_find_symbol(pPropsSymTab, pPropInit->str);
-            if (!pSymRec || pSymRec->pSymDataType->dataType != kSYMT_Property)
+            if (!pSymRec || pSymRec->type != kSYMT_Property)
             {
                 COMP_ERROR(pAst->pParseData, "Invalid property: '%s'", pPropInit->str);
             }
@@ -596,7 +600,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                          pPropInit->str);
 
                 code += I + S(scratch);
-                DataType dt = pRhsSdt->dataType;
+                DataType dt = pRhsSdt->typeDesc.dataType;
                 switch (dt)
                 {
                 case kDT_float:
@@ -1068,6 +1072,16 @@ static S codegen_recurse(const Ast * pAst,
         code += indent(indentLevel-1) + S("}\n");
         return code;
     }
+    case kAST_ScalarInit:
+    {
+        snprintf(scratch,
+                 kScratchSize,
+                 "(%s)",
+                 pAst->pSymDataType->cppTypeStr);
+        S code(scratch);
+        code += codegen_recurse(pAst->pRhs->pChildren->nodes.front(), indentLevel);
+        return code;
+    }
     case kAST_ColorInit:
     {
         S code = S("Color(");
@@ -1407,7 +1421,7 @@ static S codegen_recurse(const Ast * pAst,
                 code += codegen_recurse(pChild, 0);
 
                 const SymDataType * pChildDt = ast_data_type(pChild);
-                if (pChildDt->dataType == kDT_string)
+                if (pChildDt->typeDesc.dataType == kDT_string)
                 {
                     code += ".c_str()"; // pull the c string for snprintf
                 }

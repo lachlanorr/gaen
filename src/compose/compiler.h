@@ -152,6 +152,7 @@ typedef enum
     kAST_PostInc,
     kAST_PostDec,
 
+    kAST_ScalarInit,
     kAST_ColorInit,
     kAST_Vec2Init,
     kAST_Vec3Init,
@@ -246,6 +247,7 @@ typedef enum
 typedef void(*MessageHandler)(MessageType messageType, const char * message, const char * filename, int line, int column);
 
 typedef struct SymStructField SymStructField;
+typedef struct TypeDesc TypeDesc;
 typedef struct SymDataType SymDataType;
 typedef struct SymRec SymRec;
 typedef struct SymTab SymTab;
@@ -269,7 +271,13 @@ void mangle_type(char * mangledName, size_t mangledNameSize, const char * name, 
 size_t mangle_param_len(const char * name);
 void mangle_param(char * mangledName, size_t mangledNameSize, const char * name, int isConst, int isReference);
 
-SymDataType * symdatatype_create(const char * name, DataType dataType, int isConst, int isReference, ParseData * pParseData);
+SymDataType * symdatatype_create(DataType dataType,
+                                 const char * name,
+                                 const char * cppName,
+                                 unsigned int cellCount,
+                                 int isConst,
+                                 int isReference,
+                                 ParseData * pParseData);
 
 void symdatatype_add_field(SymDataType * pSdt, SymDataType * pFieldSdt, const char * fieldName);
 void symdatatype_add_field_related(RelatedTypes * pRelatedTypes, SymDataType * pFieldSdt, const char * fieldName);
@@ -286,6 +294,8 @@ SymTab* symtab_add_symbol(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseD
 SymTab* symtab_add_symbol_with_fields(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseData);
 SymRec* symtab_find_symbol(SymTab* pSymTab, const char * name);
 SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name);
+const SymDataType* symtab_find_type_recursive(SymTab* pSymTab, DataType dataType, int isConst, int isReference);
+SymRec* symtab_find_type(SymTab* pSymTab, const char * name);
 SymTab* symtab_transfer(SymTab* pDest, SymTab* pSrc);
 
 AstList * astlist_create();
@@ -323,6 +333,7 @@ Ast * ast_create_hash(const char * name, ParseData * pParseData);
 
 Ast * ast_create_assign_op(AstType astType, Ast * pDottedId, Ast * pRhs, ParseData * pParseData);
 
+Ast * ast_create_scalar_init(DataType dataType, Ast * pParams, ParseData * pParseData);
 Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData);
@@ -330,6 +341,7 @@ Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData);
 
+Ast * ast_create_type_init(DataType dataType, Ast * pParams, ParseData * pParseData);
 Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData * pParseData);
 
 Ast * ast_create_int_literal(int numi, ParseData * pParseData);
@@ -361,9 +373,8 @@ void ast_set_mid(Ast * pParent, Ast * pMid);
 void ast_set_rhs(Ast * pParent, Ast * pRhs);
 
 const SymDataType * ast_data_type(const Ast * pAst);
-const SymDataType * const_data_type(const SymDataType * pSdt);
-const SymDataType * non_const_data_type(const SymDataType * pSdt);
-int are_types_compatible(const SymDataType * pA, SymDataType * pB);
+const SymDataType * const_data_type(ParseData * pParseData, const SymDataType * pSdt);
+const SymDataType * non_const_data_type(ParseData * pParseData, const SymDataType * pSdt);
 int is_block_memory_type(const SymDataType * pSdt);
 int is_integral_type(const SymDataType * pSdt);
 
@@ -385,6 +396,10 @@ SymTab* parsedata_add_param(ParseData * pParseData, SymTab* pSymTab, SymRec * pS
 // A new symbol table should already have been added to the stack.
 Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec);
 Ast* parsedata_add_root_symbol(ParseData * pParseData, SymRec * pSymRec);
+
+const SymDataType * parsedata_find_basic_type(ParseData * pParseData, DataType dataType, int isConst, int isReference);
+const SymDataType * parsedata_find_basic_type_desc(ParseData * pParseData, const TypeDesc * pTypeDesc);
+void parsedata_register_basic_type(ParseData * pParseData, SymDataType * pSymDataType);
 
 SymRec* parsedata_find_symbol(ParseData * pParseData, Ast * pAst);
 

@@ -92,20 +92,17 @@ def read_types():
     while i < len(lines):
         line = lines[i]
         if not in_cpp_type_str_func:
-            if line == "static const char * compose_type_to_cpp_type(DataType dt, ParseData * pParseData)":
+            if "void register_basic_types(ParseData * pParseData)" in line:
                 in_cpp_type_str_func = True
         else:
-            if "default:" in line:
+            if "}" in line:
                 if len(cpp_types) == 0 or len(cpp_types) != len(compose_types):
                     raise Exception('Failed to parse types from compiler_cpp.cpp')
                 return cpp_types, compose_types
-            m = re.search("case kDT_([^\s]+):", line)
+            m = re.search(r'register_basic_type\([^,]+,\s+\"([^\"]+)\",\s+\"([^\"]+)\",.*', line)
             if m:
                 compose_types.append(m.group(1))
-            else:
-                m = re.search(r'return "([^"]+)";', line)
-                if m:
-                    cpp_types.append(m.group(1))
+                cpp_types.append(m.group(2))
         i += 1
     raise Exception('Expected to find "default:" case but did not')
 

@@ -25,13 +25,12 @@ freely, subject to the following restrictions:
 ------------------------------------------------------------------------------*/
 
 %{
+#define YYDEBUG 1
 #include "compose/compiler.h"
 
 #include "compose/comp_mem.h"
 #define YYMALLOC COMP_ALLOC
 #define YYFREE COMP_FREE
-
-#define YYDEBUG 1
 #include <stdio.h>
 %}
 
@@ -47,13 +46,13 @@ freely, subject to the following restrictions:
 
 %union
 {
-    int         numi;
-    float       numf;
-    const char* str;
-    DataType    dataType;
-    Ast*        pAst;
-    SymTab*     pSymTab;
-    const SymDataType*     pSymDataType;
+    int                 numi;
+    float               numf;
+    const char*         str;
+    DataType            dataType;
+    Ast*                pAst;
+    SymTab*             pSymTab;
+    const SymDataType*  pSymDataType;
 }
 
 %{
@@ -70,8 +69,8 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <numf> FLOAT_LITERAL
 
 /* This type list must match the DataType enum in compiler.h */
-%token <str> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 QUAT MAT3 MAT34 MAT4 HANDLE_ ENTITY STRING
-%type <str> basic_type
+%token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 QUAT MAT3 MAT34 MAT4 HANDLE_ ENTITY STRING
+%type <dataType> basic_type
 
 %token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS USING AS CONST_ THIS__ NONE
 %right ELSE THEN
@@ -288,15 +287,9 @@ expr
 
     | literal   { $$ = $1; }
 
-    | COLOR '{' fun_params '}'  { $$ = ast_create_color_init($3, pParseData); }
-    | VEC3  '{' fun_params '}'  { $$ = ast_create_vec3_init($3, pParseData); }
-    | VEC4  '{' fun_params '}'  { $$ = ast_create_vec4_init($3, pParseData); }
-    | QUAT  '{' fun_params '}'  { $$ = ast_create_quat_init($3, pParseData); }
-    | MAT34 '{' fun_params '}'  { $$ = ast_create_mat34_init($3, pParseData); }
-    | STRING '{' fun_params '}' { $$ = ast_create_string_init($3, pParseData); }
-
-    | dotted_id '{' fun_params '}'  { $$ = ast_create_entity_or_struct_init($1, $3, pParseData); }
-    | dotted_id '(' fun_params ')'  { $$ = ast_create_function_call($1, $3, pParseData); }
+    | basic_type '{' fun_params '}'  { $$ = ast_create_type_init($1, $3, pParseData); }
+    | dotted_id  '{' fun_params '}'  { $$ = ast_create_entity_or_struct_init($1, $3, pParseData); }
+    | dotted_id  '(' fun_params ')'  { $$ = ast_create_function_call($1, $3, pParseData); }
 
     | '$' '.' IDENTIFIER '(' fun_params ')'  { $$ = ast_create_system_api_call($3, $5, pParseData); }
 
@@ -337,8 +330,8 @@ fun_params
     ;
 
 type
-    : CONST_ basic_type  { $$ = parsedata_find_type(pParseData, $2, 1, 0); }
-    | basic_type         { $$ = parsedata_find_type(pParseData, $1, 0, 0); }
+    : CONST_ basic_type  { $$ = parsedata_find_basic_type(pParseData, $2, 1, 0); }
+    | basic_type         { $$ = parsedata_find_basic_type(pParseData, $1, 0, 0); }
     | CONST_ dotted_id   { $$ = parsedata_find_type_from_dotted_id(pParseData, $2, 1, 0); }
     | dotted_id          { $$ = parsedata_find_type_from_dotted_id(pParseData, $1, 0, 0); }
     ;

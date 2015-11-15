@@ -76,13 +76,13 @@ component WasdCamera
 
     #init()
     {
-        $.watch_input_state(#mouse_look, 0, #mouse_look);
+        $.watch_input_state(#mouse_look, uint{0}, #mouse_look);
         $.watch_mouse(#mouse_move, #mouse_wheel);
 
-        $.watch_input_state(#forward, 0, #forward);
-        $.watch_input_state(#back, 0, #back);
-        $.watch_input_state(#left, 0, #left);
-        $.watch_input_state(#right, 0, #right);
+        $.watch_input_state(#forward, uint{0}, #forward);
+        $.watch_input_state(#back, uint{0}, #back);
+        $.watch_input_state(#left, uint{0}, #left);
+        $.watch_input_state(#right, uint{0}, #right);
     }
 
     #update(float deltaSecs)
@@ -237,13 +237,13 @@ component WasdRot
 
     #init()
     {
-        $.watch_input_state(#mouse_look, 0, #mouse_look);
+        $.watch_input_state(#mouse_look, uint{0}, #mouse_look);
         $.watch_mouse(#mouse_move, #mouse_wheel);
 
-        $.watch_input_state(#forward, 0, #forward);
-        $.watch_input_state(#back, 0, #back);
-        $.watch_input_state(#left, 0, #left);
-        $.watch_input_state(#right, 0, #right);
+        $.watch_input_state(#forward, uint{0}, #forward);
+        $.watch_input_state(#back, uint{0}, #back);
+        $.watch_input_state(#left, uint{0}, #left);
+        $.watch_input_state(#right, uint{0}, #right);
     }
 
     #update(float deltaSecs)
