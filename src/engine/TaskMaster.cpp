@@ -47,6 +47,7 @@ extern void register_all_entities_and_components(Registry & registry);
 // LORRTODO - Choose good message queue sizes here
 static const u32 kMaxMainMessages = 4096;
 static const u32 kMaxTaskMasterMessages = 4096;
+static u32 sStartEntityHash = HASH::init__Start;
 
 static bool sIsInit = false;
 
@@ -106,6 +107,34 @@ void start_game_loops()
         start_thread(start_game_loop);
     }
 
+}
+
+void set_start_entity(const char * startEntity)
+{
+    static const u32 kMaxEntityName = 96;
+    char scratch[kMaxEntityName];
+
+    char * str = scratch;
+    const char * endStr = scratch + kMaxEntityName;
+
+    // replace '.' with '__'
+    while (*startEntity && (str < endStr - 1))
+    {
+        if (*startEntity == '.')
+        {
+            if (str >= endStr - 1)
+                break;
+            *str++ = '_';
+            *str++ = '_';
+        }
+        else
+            *str++ = *startEntity;
+        startEntity++;
+    }
+
+    *str = '\0';
+
+    sStartEntityHash = HASH::hash_func(scratch);
 }
 
 Registry & get_registry()
@@ -340,12 +369,12 @@ void TaskMaster::runPrimaryGameLoop()
 
     // LORRTODO - make start entity name dynamic based on command line args
     // Init the start entity now that we have a TaskMaster running.
-    Entity * pStartEntity = mRegistry.constructEntity(HASH::init__start, 32);
+    Entity * pStartEntity = mRegistry.constructEntity(sStartEntityHash, 32);
 
     if (pStartEntity)
-        LOG_INFO("Start entity: %s", "init__start");
+        LOG_INFO("Start entity: %s", HASH::reverse_hash(sStartEntityHash));
     else
-        LOG_ERROR("Unable to start entity: %s", "init__start");
+        LOG_ERROR("Unable to start entity: %s", HASH::reverse_hash(sStartEntityHash));
 
     if (pStartEntity)
     {

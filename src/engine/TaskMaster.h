@@ -59,6 +59,8 @@ void fin_task_masters();
 // should be used for OS tasks, or go to sleep.
 void start_game_loops();
 
+void set_start_entity(const char * startEntity);
+
 Registry & get_registry();
 
 // Get the correct message queue against which you should queue

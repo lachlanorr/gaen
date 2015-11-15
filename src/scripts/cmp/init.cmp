@@ -63,7 +63,7 @@ entity Camera
     }
 }
 
-entity start
+entity Start
 {
     #init()
     {

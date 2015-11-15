@@ -47,6 +47,9 @@ static char sMemInitStr[kMaxMemInitStrLen] = {0};
 
 static thread_id sNumThreads = platform_core_count();
 
+static const u32 kMaxEntityName = 64;
+static char sStartEntity[kMaxEntityName+1] = "init.Start";
+
 static const size_t kMaxIpLen = 16;
 static char sLoggingServerIp[kMaxIpLen] = {0};
 static bool sIsLoggingEnabled = false;
@@ -76,6 +79,7 @@ static const char * sHelpMsg =
     "             and default to malloc/free if no pools are available.\n"
     "             When pool memory is freed, it is load balanced across threads,\n"
     "             applying the freed pool block to hungry threads first.\n"
+    "  -s entity  Entity to start. Defaults to \"init.start\".\n"
     "\n"
     "Initializers: Override gamevar default values with the form gamevar=value\n"
     "              E.g.: godMode=true\n"
@@ -146,6 +150,13 @@ static void parse_args(int argc,
                 ++i;
                 break;
             }
+            case 's':
+            {
+                strncpy(sStartEntity, argv[i+1], kMaxEntityName);
+                sStartEntity[kMaxEntityName] = '\0'; // sanity
+                ++i;
+                break;
+            }
             default:
                 printHelpAndExit();
             }
@@ -186,6 +197,7 @@ void init_gaen(int argc, char ** argv)
 
     init_memory_manager(sMemInitStr);
 
+    set_start_entity(sStartEntity);
     init_task_masters();
 }
 

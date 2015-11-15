@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: b43dc594ea14469022cdeacb6b7527c3
+// HASH: e787dfc920ed81470b3ea35e2cdac356
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -218,7 +218,7 @@ void register_entity__init__Camera(Registry & registry)
 namespace ent
 {
 
-class init__start : public Entity
+class init__Start : public Entity
 {
 private:
     // Helper functions
@@ -237,7 +237,7 @@ private:
 public:
     static Entity * construct(u32 childCount)
     {
-        return GNEW(kMEM_Engine, init__start, childCount);
+        return GNEW(kMEM_Engine, init__Start, childCount);
     }
 
     template <typename T>
@@ -258,25 +258,25 @@ public:
     }
 
 private:
-    init__start(u32 childCount)
-      : Entity(HASH::init__start, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+    init__Start(u32 childCount)
+      : Entity(HASH::init__Start, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
         mBlockCount = 0;
-        mScriptTask = Task::create(this, HASH::init__start);
+        mScriptTask = Task::create(this, HASH::init__Start);
     }
-    init__start(const init__start&)              = delete;
-    init__start(const init__start&&)             = delete;
-    init__start & operator=(const init__start&)  = delete;
-    init__start & operator=(const init__start&&) = delete;
+    init__Start(const init__Start&)              = delete;
+    init__Start(const init__Start&&)             = delete;
+    init__Start & operator=(const init__Start&)  = delete;
+    init__Start & operator=(const init__Start&&) = delete;
 
-}; // class init__start
+}; // class init__Start
 
 } // namespace ent
 
-void register_entity__init__start(Registry & registry)
+void register_entity__init__Start(Registry & registry)
 {
-    if (!registry.registerEntityConstructor(HASH::init__start, ent::init__start::construct))
-        PANIC("Unable to register entity: init__start");
+    if (!registry.registerEntityConstructor(HASH::init__Start, ent::init__Start::construct))
+        PANIC("Unable to register entity: init__Start");
 }
 
 } // namespace gaen

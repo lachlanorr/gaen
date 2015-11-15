@@ -41,7 +41,7 @@ extern void register_component__gaen__utils__WasdRot(Registry & registry);
 extern void register_entity__init__Camera(Registry & registry);
 extern void register_entity__init__Light(Registry & registry);
 extern void register_entity__init__Shape(Registry & registry);
-extern void register_entity__init__start(Registry & registry);
+extern void register_entity__init__Start(Registry & registry);
 extern void register_entity__test__Test(Registry & registry);
 
 void register_all_entities_and_components(Registry & registry)
@@ -58,7 +58,7 @@ void register_all_entities_and_components(Registry & registry)
     register_entity__init__Camera(registry);
     register_entity__init__Light(registry);
     register_entity__init__Shape(registry);
-    register_entity__init__start(registry);
+    register_entity__init__Start(registry);
     register_entity__test__Test(registry);
 }
 
