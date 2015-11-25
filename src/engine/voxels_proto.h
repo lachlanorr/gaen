@@ -31,6 +31,8 @@
 #include "core/mem.h"
 #include "engine/math.h"
 #include "engine/RaycastCamera.h"
+#include "engine/renderer_structs.h"
+#include "core/List.h"
 #include "engine/voxels.h"
 
 namespace gaen
@@ -175,7 +177,7 @@ public:
     void init(u32 outputImageSize, RaycastCamera * pRaycastCamera);
     const u8 * frameBuffer() { return mFrameBuffer->buffer(); }
 
-    void render(const RaycastCamera & camera);
+    void render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights);
 private:
     void fragShader_Blue();
     void fragShader_Raycast();
@@ -202,6 +204,8 @@ private:
     // camera stuff
     Mat4 projectionInv;
     Vec3 cameraPos;
+    Vec3 lightDir;
+    Vec4 lightColor;
     Vec2 windowSize;
     f32 nearZ;
     f32 farZ;

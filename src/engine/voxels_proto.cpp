@@ -84,12 +84,18 @@ void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
     voxelRoot.rot = Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f));
 }
 
-void ShaderSimulator::render(const RaycastCamera & camera)
+void ShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights)
 {
     projectionInv = camera.projectionInv();
 
     ASSERT(mpRaycastCamera);
     cameraPos = mpRaycastCamera->position();
+
+    if (lights.size() > 0)
+    {
+        lightDir = lights.front().direction;
+        lightColor = lights.front().color;
+    }
 
     Pix_RGB8 * pix = reinterpret_cast<Pix_RGB8*>(mFrameBuffer->buffer());
 
@@ -134,18 +140,25 @@ void ShaderSimulator::fragShader_Raycast()
     Vec3 rayPos = cameraPos;
     
     VoxelRef voxelRef;
-    if (test_ray_voxel(&voxelRef, rayPos, rayDir, voxelRoot))
+    Vec3 normal;
+    u32 hit = (u32)test_ray_voxel(&voxelRef, rayPos, rayDir, voxelRoot, normal);
+//    if (test_ray_voxel(&voxelRef, rayPos, rayDir, voxelRoot, normal))
+//    {
+    if (hit)
     {
-        color.r = 255;
-        color.g = 255;
-        color.b = 255;
+        f32 intensity = maxval(Vec3::dot(normal, lightDir), 0.0f);
+
+        color.r = (u8)maxval(intensity * 255, 10.0f);
+        color.g = (u8)maxval(intensity * 255, 10.0f);
+        color.b = (u8)maxval(intensity * 255, 10.0f);
     }
-    else
-    {
-        color.r = 0;
-        color.g = 0;
-        color.b = 0;
-    }
+//    }
+//    else
+//    {
+//        color.r = 0;
+//        color.g = 0;
+//        color.b = 0;
+//    }
 
 /*
     color.r = (u8)(abs(rayDir.x()) * 512.0f);

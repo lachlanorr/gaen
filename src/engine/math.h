@@ -62,6 +62,8 @@ struct Vec2
     f32 elems[2];
 };
 
+Vec2 max_(const Vec2 & lhs, const Vec2 & rhs);
+
 struct Vec3
 {
     // constructors
@@ -75,11 +77,8 @@ struct Vec3
     void normalizeIfNecessary();
 
     Vec3 operator-() const;
-    Vec3 operator-(const Vec3& rhs) const;
-    Vec3 operator+(const Vec3& rhs) const;
     Vec3& operator+=(const Vec3& rhs);
     Vec3& operator-=(const Vec3& rhs);
-    Vec3 operator*(f32 rhs) const;
     bool operator==(const Vec3 & rhs) const;
     f32 & operator[](size_t idx);
     const f32 & operator[](size_t idx) const;
@@ -98,6 +97,17 @@ struct Vec3
 
     f32 elems[3];
 };
+
+Vec3 min_(const Vec3 & lhs, const Vec3 & rhs);
+Vec3 max_(const Vec3 & lhs, const Vec3 & rhs);
+Vec3 operator+ (const Vec3 & lhs, const Vec3 & rhs);
+Vec3 operator- (const Vec3 & lhs, const Vec3 & rhs);
+Vec3 operator* (f32 lhs, const Vec3 & rhs);
+Vec3 operator* (const Vec3 & lhs, float rhs);
+Vec3 operator* (const Vec3 & lhs, const Vec3 & rhs);
+Vec3 operator/ (f32 lhs, const Vec3 & rhs);
+Vec3 operator/ (const Vec3 & lhs, float rhs);
+Vec3 operator/ (const Vec3 & lhs, const Vec3 & rhs);
 
 Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2);
 
@@ -371,6 +381,11 @@ inline const f32 & Vec2::y() const
     return elems[1];
 }
 
+inline Vec2 max_(const Vec2 & lhs, const Vec2 & rhs)
+{
+    return Vec2(maxval(lhs.x(), rhs.x()), maxval(lhs.y(), rhs.y()));
+}
+
 
 //--------------------------------------
 // Vec3 inlined methods
@@ -427,14 +442,63 @@ inline Vec3 Vec3::operator-() const
     return Vec3(-x(), -y(), -z());
 }
 
-inline Vec3 Vec3::operator-(const Vec3 & rhs) const
+
+inline Vec3 min_(const Vec3 & lhs, const Vec3 & rhs)
 {
-    return Vec3(x() - rhs.x(), y() - rhs.y(), z() - rhs.z());
+    return Vec3(minval(lhs.x(), rhs.x()),
+                minval(lhs.y(), rhs.y()),
+                minval(lhs.z(), rhs.z()));
 }
 
-inline Vec3 Vec3::operator+(const Vec3& rhs) const
+inline Vec3 max_(const Vec3 & lhs, const Vec3 & rhs)
 {
-    return Vec3(x() + rhs.x(), y() + rhs.y(), z() + rhs.z());
+    return Vec3(maxval(lhs.x(), rhs.x()),
+                maxval(lhs.y(), rhs.y()),
+                maxval(lhs.z(), rhs.z()));
+}
+
+inline Vec3 operator+ (const Vec3 & lhs, const Vec3 & rhs)
+{
+    return Vec3(lhs.x() + rhs.x(), lhs.y() + rhs.y(), lhs.z() + rhs.z());
+}
+
+inline Vec3 operator- (const Vec3 & lhs, const Vec3 & rhs)
+{
+    return Vec3(lhs.x() - rhs.x(), lhs.y() - rhs.y(), lhs.z() - rhs.z());
+}
+
+inline Vec3 operator* (f32 lhs, const Vec3 & rhs)
+{
+    return Vec3(lhs * rhs.x(), lhs * rhs.y(), lhs * rhs.z());
+}
+
+inline Vec3 operator* (const Vec3 & lhs, float rhs)
+{
+    return Vec3(lhs.x() * rhs, lhs.y() * rhs, lhs.z() * rhs);
+}
+
+inline Vec3 operator* (const Vec3 & lhs, const Vec3 & rhs)
+{
+    return Vec3(lhs.x() * rhs.x(),
+                lhs.y() * rhs.y(),
+                lhs.z() * rhs.z());
+}
+
+inline Vec3 operator/ (f32 lhs, const Vec3 & rhs)
+{
+    return Vec3(lhs / rhs.x(), lhs / rhs.y(), lhs / rhs.z());
+}
+
+inline Vec3 operator/ (const Vec3 & lhs, float rhs)
+{
+    return Vec3(lhs.x() / rhs, lhs.y() / rhs, lhs.z() / rhs);
+}
+
+inline Vec3 operator/ (const Vec3 & lhs, const Vec3 & rhs)
+{
+    return Vec3(lhs.x() / rhs.x(),
+                lhs.y() / rhs.y(),
+                lhs.z() / rhs.z());
 }
 
 inline Vec3& Vec3::operator+=(const Vec3& rhs)
@@ -453,11 +517,6 @@ inline Vec3& Vec3::operator-=(const Vec3& rhs)
     elems[2] -= rhs.elems[2];
 
     return *this;
-}
-
-inline Vec3 Vec3::operator*(f32 rhs) const
-{
-    return Vec3(x() * rhs, y() * rhs, z() * rhs);
 }
 
 inline bool Vec3::operator==(const Vec3 & rhs) const

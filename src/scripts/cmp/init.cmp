@@ -51,7 +51,8 @@ entity Light
 {
     components
     {
-        gaen.lights.Directional{};
+        gaen.lights.Directional{dir = vec3{1.0, -0.7, -0.5},
+                                col = color{255, 255, 0, 255}};
     }
 }
 
@@ -84,11 +85,12 @@ entity Start
         entity cam = Camera{};
         $.insert_entity(cam);
 
-/*        entity shape = Shape{};
         entity light = Light{};
+        $.insert_entity(light);
+
+/*        entity shape = Shape{};
 
         $.insert_entity(shape);
-        $.insert_entity(light);
         */
     }
 }

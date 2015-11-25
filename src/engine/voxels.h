@@ -31,6 +31,7 @@
 #include "core/mem.h"
 #include "engine/math.h"
 #include "engine/collision.h"
+#include "engine/Color.h"
 
 namespace gaen
 {
@@ -83,7 +84,6 @@ struct VoxelRoot
     u8 matPalette[kRootMaterialCount]; // VoxelRoot's can have 16 unique materials, references into VoxelWorld palette
 };
 
-
 enum VoxelIndex
 {
     // in binary, xyz, x is most sig bit
@@ -106,7 +106,8 @@ struct Voxel
 static_assert(sizeof(Voxel) == 32, "Voxel not 32 bytes");
 
 void voxel_subspace(AABB_MinMax * pSubSpace, const AABB_MinMax & pSpace, VoxelIndex subIndex);
-bool test_ray_voxel(VoxelRef * pVoxelRef, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root);
+
+bool test_ray_voxel(VoxelRef * pVoxelRef, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, Vec3 & normal);
 
 
 #pragma pack(pop)

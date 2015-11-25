@@ -74,6 +74,12 @@ void renderer_insert_light_directional(u32 uid,
                                        const Vec3 & direction,
                                        Color color,
                                        Entity & caller);
+
+void renderer_update_light_directional(u32 uid,
+                                       const Vec3 & direction,
+                                       Color color,
+                                       Entity & caller);
+
 void renderer_remove_light_directional(u32 uid, Entity & caller);
 
 }

@@ -33,6 +33,7 @@ SET (engine_messages_SOURCES
   messages/MoveCamera.h
   messages/Transform.h
   messages/TransformId.h
+  messages/UpdateLightDirectional.h
   messages/WatchInputState.h
   messages/WatchMouse.h
 )

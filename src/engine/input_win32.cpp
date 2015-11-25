@@ -224,7 +224,7 @@ KeyInput convert_key_input(const void * pKeyInfo)
         if (mapIt != sKeyMap.end())
             keyInput.keyCode = mapIt->second;
         else
-            PANIC("Failed to find virtual key in sKeyMap: %u", vkey);
+            ERR("Failed to find virtual key in sKeyMap: %u", vkey);
         break;
     }
 

@@ -217,7 +217,7 @@ void RendererGL::render()
 
 
 #if 1 // Shader simulator
-    mShaderSim.render(mRaycastCamera);
+    mShaderSim.render(mRaycastCamera, mDirectionalLights);
 
     mpPresentShader->use();
 
@@ -325,6 +325,17 @@ MessageResult RendererGL::message(const T & msgAcc)
         break;
     }
     case HASH::renderer_insert_light_directional:
+    {
+        messages::InsertLightDirectionalR<T> msgr(msgAcc);
+        Vec3 normDir = Vec3::normalize(msgr.direction());
+        Vec3 relDir = -normDir; // flip direction of vector relative to objects
+        mDirectionalLights.emplace_back(msgAcc.message().source,
+                                        msgr.uid(),
+                                        relDir,
+                                        msgr.color());
+        break;
+    }
+    case HASH::renderer_update_light_directional:
     {
         messages::InsertLightDirectionalR<T> msgr(msgAcc);
         mDirectionalLights.emplace_back(msgAcc.message().source,

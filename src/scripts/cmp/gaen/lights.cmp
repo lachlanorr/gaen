@@ -28,8 +28,11 @@ component Directional
 {
     uint lightUid = $.renderer_gen_uid();
 
+    vec3 #dir = vec3{0.1, 0.1, 0.2};
+    color #col = color{255, 255, 255, 255};
+
     #init()
     {
-        $.renderer_insert_light_directional(lightUid, vec3{0.1, 0.1, 0.2}, color{255, 255, 255, 255});
+        $.renderer_insert_light_directional(lightUid, dir, col);
     }
 }

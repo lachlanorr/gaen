@@ -40,6 +40,11 @@ class InsertLightDirectional(FieldHandler):
     color     = ColorField()
     direction = Vec3Field()
 
+class UpdateLightDirectional(FieldHandler):
+    uid       = u32Field(payload=True)
+    color     = ColorField()
+    direction = Vec3Field()
+
 
 class MoveCamera(FieldHandler):
     position = Vec3Field()

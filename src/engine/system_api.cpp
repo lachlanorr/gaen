@@ -36,6 +36,7 @@
 #include "engine/messages/InsertTask.h"
 #include "engine/messages/TransformId.h"
 #include "engine/messages/InsertLightDirectional.h"
+#include "engine/messages/UpdateLightDirectional.h"
 #include "engine/messages/MoveCamera.h"
 #include "engine/messages/WatchInputState.h"
 #include "engine/messages/WatchMouse.h"
@@ -186,9 +187,26 @@ void renderer_remove_model_instance(u32  uid, Entity & caller)
                              0);
 }
 
-void renderer_insert_light_directional(u32  uid, const Vec3 & direction, Color color, Entity & caller)
+void renderer_insert_light_directional(u32 uid,
+                                       const Vec3 & direction,
+                                       Color color,
+                                       Entity & caller)
 {
     messages::InsertLightDirectionalQW msgQW(HASH::renderer_insert_light_directional,
+                                             kMessageFlag_None,
+                                             caller.task().id(),
+                                             kRendererTaskId,
+                                             uid);
+    msgQW.setDirection(direction);
+    msgQW.setColor(color);
+}
+
+void renderer_update_light_directional(u32 uid,
+                                       const Vec3 & direction,
+                                       Color color,
+                                       Entity & caller)
+{
+    messages::UpdateLightDirectionalQW msgQW(HASH::renderer_update_light_directional,
                                              kMessageFlag_None,
                                              caller.task().id(),
                                              kRendererTaskId,

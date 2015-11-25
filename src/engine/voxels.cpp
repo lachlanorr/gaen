@@ -26,6 +26,8 @@
 
 #include "engine/stdafx.h"
 
+#include "core/logging.h"
+
 #include "engine/voxels.h"
 
 namespace gaen
@@ -45,8 +47,18 @@ void voxel_subspace(AABB_MinMax * pSubSpace, const AABB_MinMax & pSpace, VoxelIn
     pSubSpace->maxCorner = pSubSpace->minCorner + offsets;
 }
 
-bool test_ray_voxel(VoxelRef * pVoxelRef, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root)
+bool test_ray_voxel(VoxelRef * pVoxelRef, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, Vec3 & normal)
 {
+    static const u32 kCubeSides = 6;
+    static const Vec3 kNormals[kCubeSides + 1] = { { 0.0f,  0.0f,  0.0f},
+                                                   {-1.0f,  0.0f,  0.0f},
+                                                   { 1.0f,  0.0f,  0.0f},
+                                                   { 0.0f, -1.0f,  0.0f},
+                                                   { 0.0f,  1.0f,  0.0f},
+                                                   { 0.0f,  0.0f, -1.0f},
+                                                   { 0.0f,  0.0f,  1.0f} };
+
+
     // put ray into this voxel's space, so voxel is at 0,0,0 and 0,0,0 rotation
     // from ray's perspective.
 
@@ -57,64 +69,63 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, const Vec3 & rayPos, const Vec3 & rayD
     Mat3 rotInv = Mat3::transpose(root.rot);
     Vec3 rayDirLoc = Mat3::multiply(rotInv, rayDir);
 
-    // rayLoc is now the ray in local voxel coords
-    Vec3 rayInv(1.0f / rayDirLoc.x(), 1.0f / rayDirLoc.y(), 1.0f / rayDirLoc.z());
-
     // initialize our box, and start collision detection
     f32 boxRad = root.rad;
     Vec3 boxMin(-boxRad, -boxRad, -boxRad);
     Vec3 boxMax(boxRad, boxRad, boxRad);
-    VoxelRef voxelRef = root.children;
+    *pVoxelRef = root.children;
+
+
+
+    // On GPU, intersect box looks something like:
+    // See http://prideout.net/blog/?p=64
+    /*
+      bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
+      {
+      vec3 invR = 1.0 / r.Dir;
+      vec3 tbot = invR * (aabb.Min-r.Origin);
+      vec3 ttop = invR * (aabb.Max-r.Origin);
+      vec3 tmin = min(ttop, tbot);
+      vec3 tmax = max(ttop, tbot);
+      vec2 t = max(tmin.xx, tmin.yz);
+      t0 = max(t.x, t.y);
+      t = min(tmax.xx, tmax.yz);
+      t1 = min(t.x, t.y);
+      return t0 <= t1;
+      }
+    */
+
+
+    // rayLoc is now the ray in local voxel coords
+    Vec3 invR = 1.0f / rayDirLoc;
 
 //    for (;;)
     {
+        Vec3 tbot = invR * (boxMin - rayPosLoc);
+        Vec3 ttop = invR * (boxMax - rayPosLoc);
+        Vec3 tmin = min_(ttop, tbot);
+        Vec3 tmax = max_(ttop, tbot);
+        Vec2 t = max_(Vec2(tmin.x(), tmin.x()), Vec2(tmin.y(), tmin.z()));
+        float t0 = maxval(t.x(), t.y());
+        t = min_(Vec2(tmax.x(), tmax.x()), Vec2(tmax.y(), tmax.z()));
+        float t1 = minval(t.x(), t.y());
 
-        // On GPU, intesect box looks something like:
-        // See http://prideout.net/blog/?p=64
-        /*
-          bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
-          {
-              vec3 invR = 1.0 / r.Dir;
-              vec3 tbot = invR * (aabb.Min-r.Origin);
-              vec3 ttop = invR * (aabb.Max-r.Origin);
-              vec3 tmin = min(ttop, tbot);
-              vec3 tmax = max(ttop, tbot);
-              vec2 t = max(tmin.xx, tmin.yz);
-              t0 = max(t.x, t.y);
-              t = min(tmax.xx, tmax.yz);
-              t1 = min(t.x, t.y);
-              return t0 <= t1;
-          }
-        */
+        // find index into normals, only one of these is true,
+        // and this eliminates all branching.
+        // If none are true, we have no collision.
+        u32 normalIdx = 0;
 
-        f32 tx1 = (boxMin.x() - rayPosLoc.x()) * rayInv.x();
-        f32 tx2 = (boxMax.x() - rayPosLoc.x()) * rayInv.x();
+        normalIdx += (u32)(t0 <= t1 && t0 == tbot.x()) * 1;
+        normalIdx += (u32)(t0 <= t1 && t0 == ttop.x()) * 2;
+        normalIdx += (u32)(t0 <= t1 && t0 == tbot.y()) * 3;
+        normalIdx += (u32)(t0 <= t1 && t0 == ttop.y()) * 4;
+        normalIdx += (u32)(t0 <= t1 && t0 == tbot.z()) * 5;
+        normalIdx += (u32)(t0 <= t1 && t0 == ttop.z()) * 6;
 
-        f32 tmin = minval(tx1, tx2);
-        f32 tmax = maxval(tx1, tx2);
-
-        f32 ty1 = (boxMin.y() - rayPosLoc.y()) * rayInv.y();
-        f32 ty2 = (boxMax.y() - rayPosLoc.y()) * rayInv.y();
-
-        tmin = maxval(tmin, minval(ty1, ty2));
-        tmax = minval(tmax, maxval(ty1, ty2));
-
-        f32 tz1 = (boxMin.z() - rayPosLoc.z()) * rayInv.z();
-        f32 tz2 = (boxMax.z() - rayPosLoc.z()) * rayInv.z();
-
-        tmin = maxval(tmin, minval(tz1, tz2));
-        tmax = minval(tmax, maxval(tz1, tz2));
-
-        if (tmax >= maxval(0.0f, tmin))// && tmin < t)
-        {
-            *pVoxelRef = voxelRef;
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+        normal = kNormals[normalIdx];
+        return normalIdx != 0;
     }
+
 }
 
 

@@ -608,7 +608,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             ASSERT(taskIdx < mOwnedTasks.size());
             MessageResult mr = mOwnedTasks[taskIdx].message(msgAcc);
             EXPECT_MSG(mr == MessageResult::Consumed,
-                       "Task didn't consume a message intended for it, task nameHash: 0x%08x, messaeg: 0x%08x",
+                       "Task did not consume a message intended for it, task nameHash: 0x%08x, message: 0x%08x",
                        mOwnedTasks[taskIdx].nameHash(),
                        msg.msgId);
             return MessageResult::Consumed;

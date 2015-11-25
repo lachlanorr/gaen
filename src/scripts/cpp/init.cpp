@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: e787dfc920ed81470b3ea35e2cdac356
+// HASH: d7dfa9ccafc29871c0aec0ee09c6d917
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -148,6 +148,18 @@ private:
         // Component: gaen.lights.Directional
         {
             Task & compTask = insertComponent(HASH::gaen__lights__Directional, mComponentCount);
+            // Init Property: dir
+            {
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::dir));
+                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(1.00000000e+00f, -(6.99999988e-01f), -(5.00000000e-01f));
+                compTask.message(msgw.accessor());
+            }
+            // Init Property: col
+            {
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::col));
+                msgw[0].cells[0].color = Color(255, 255, 0, 255);
+                compTask.message(msgw.accessor());
+            }
             // Send init message
             StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
             compTask.message(msgBW.accessor());
@@ -222,9 +234,20 @@ class init__Start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__Camera__84_23()
+    task_id entity_init__init__Camera__85_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Camera, 8);
+        // Send init message
+        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgBW.accessor());
+
+        stageEntity(pEnt);
+        return pEnt->task().id();
+    }
+
+    task_id entity_init__init__Light__88_25()
+    {
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
         // Send init message
         StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
         pEnt->task().message(msgBW.accessor());
@@ -249,8 +272,10 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            task_id cam = entity_init__init__Camera__84_23();
+            task_id cam = entity_init__init__Camera__85_23();
             system_api::insert_entity(cam, entity());
+            task_id light = entity_init__init__Light__88_25();
+            system_api::insert_entity(light, entity());
             return MessageResult::Consumed;
         }
         }
