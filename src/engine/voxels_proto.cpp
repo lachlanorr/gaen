@@ -31,26 +31,12 @@
 namespace gaen
 {
 
-ImageBuffer::ImageBuffer(u16 size, u8 pixelSize)
-{
-    mSize = size;
-    mPixels = (u8*)GALLOC(kMEM_Engine, mSize * mSize * pixelSize);
-}
-ImageBuffer::~ImageBuffer()
-{
-    GFREE(mPixels);
-}
-
-
 ShaderSimulator::ShaderSimulator()
   : mpRaycastCamera(nullptr)
+  , color(0, 0, 0)
 {
     mIsInit = false;
     mFrameBuffer = nullptr;
-    for (u32 i = 0; i < kImageCount; ++i)
-    {
-        mImages[i] = nullptr;
-    }
 }
 
 ShaderSimulator::~ShaderSimulator()
@@ -59,12 +45,6 @@ ShaderSimulator::~ShaderSimulator()
     {
         if (mFrameBuffer)
             GDELETE(mFrameBuffer);
-
-        for (u32 i = 0; i < kImageCount; ++i)
-        {
-            if (mImages[i])
-                GDELETE(mImages[i]);
-        }
     }
 }
 
@@ -79,9 +59,19 @@ void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
     nearZ = 5.0f;
     farZ = 10000.0f;
 
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomBack,   VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomFront,  VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopBack,      VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopFront,     VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomBack,  VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomFront, VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopBack,     VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopFront,    VoxelRef::terminal_empty());
+
     voxelRoot.pos = Vec3(3.0f, 0.0f, -20.0f);
     voxelRoot.rad = 2.0f;
     voxelRoot.rot = Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f));
+    voxelRoot.children = VoxelRef(16, 0, 0);
 }
 
 void ShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights)
@@ -141,7 +131,7 @@ void ShaderSimulator::fragShader_Raycast()
     
     VoxelRef voxelRef;
     Vec3 normal;
-    u32 hit = (u32)test_ray_voxel(&voxelRef, rayPos, rayDir, voxelRoot, normal);
+    u32 hit = (u32)test_ray_voxel(&voxelRef, &normal, voxelWorld, rayPos, rayDir, voxelRoot, 16);
 //    if (test_ray_voxel(&voxelRef, rayPos, rayDir, voxelRoot, normal))
 //    {
     if (hit)
@@ -152,13 +142,12 @@ void ShaderSimulator::fragShader_Raycast()
         color.g = (u8)maxval(intensity * 255, 10.0f);
         color.b = (u8)maxval(intensity * 255, 10.0f);
     }
-//    }
-//    else
-//    {
-//        color.r = 0;
-//        color.g = 0;
-//        color.b = 0;
-//    }
+    else
+    {
+        color.r = 0;
+        color.g = 0;
+        color.b = 0;
+    }
 
 /*
     color.r = (u8)(abs(rayDir.x()) * 512.0f);

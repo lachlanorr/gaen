@@ -77,12 +77,24 @@ struct Sphere
 
 struct AABB_MinMax
 {
-    Vec3 minCorner; // min coord values along each axis
-    Vec3 maxCorner; // max coord values along each axis
+    Vec3 min; // min coord values along each axis
+    Vec3 max; // max coord values along each axis
+
+    AABB_MinMax() {}
+
+    AABB_MinMax(const Vec3 & min, const Vec3 & max)
+      : min{min}
+      , max{max}
+    {}
 
     AABB_MinMax(Vec3 cent, f32 rad)
-      : minCorner(cent.x() - rad, cent.y() - rad, cent.z() - rad)
-      , maxCorner(cent.x() + rad, cent.y() + rad, cent.z() + rad)
+      : min{cent.x() - rad, cent.y() - rad, cent.z() - rad}
+      , max{cent.x() + rad, cent.y() + rad, cent.z() + rad}
+    {}
+
+    AABB_MinMax(f32 rad)
+      : min{-rad, -rad, -rad}
+      , max{rad, rad, rad}
     {}
 };
 

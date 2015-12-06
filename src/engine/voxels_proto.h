@@ -29,135 +29,16 @@
 
 #include "core/base_defines.h"
 #include "core/mem.h"
+#include "core/List.h"
 #include "engine/math.h"
 #include "engine/RaycastCamera.h"
 #include "engine/renderer_structs.h"
-#include "core/List.h"
 #include "engine/voxels.h"
 
 namespace gaen
 {
 
 
-struct Pix_RGB8
-{
-    u8 r;
-    u8 g;
-    u8 b;
-};
-
-struct Pix_RGBA8
-{
-    u8 r;
-    u8 g;
-    u8 b;
-    u8 a;
-};
-
-struct Pix_R32F
-{
-    f32 r;
-};
-
-struct Pix_RG32F
-{
-    f32 r;
-    f32 g;
-};
-
-struct Pix_RGB32F
-{
-    f32 r;
-    f32 g;
-    f32 b;
-};
-
-struct Pix_RGBA32F
-{
-    f32 r;
-    f32 g;
-    f32 b;
-    f32 a;
-};
-
-
-struct Pix_R32I
-{
-    i32 r;
-};
-
-struct Pix_RG32I
-{
-    i32 r;
-    i32 g;
-};
-
-struct Pix_RGB32I
-{
-    i32 r;
-    i32 g;
-    i32 b;
-};
-
-struct Pix_RGBA32I
-{
-    i32 r;
-    i32 g;
-    i32 b;
-    i32 a;
-};
-
-
-struct Pix_R32U
-{
-    u32 r;
-};
-
-struct Pix_RG32U
-{
-    u32 r;
-    u32 g;
-};
-
-struct Pix_RGB32U
-{
-    u32 r;
-    u32 g;
-    u32 b;
-};
-
-struct Pix_RGBA32U
-{
-    u32 r;
-    u32 g;
-    u32 b;
-    u32 a;
-};
-
-class ImageBuffer
-{
-public:
-    ImageBuffer(u16 size, u8 pixelSize);
-    ~ImageBuffer();
-
-    u16 size() const { return mSize; }
-    u8 pixelSize() const { return mPixelSize; }
-    
-    void imageStore(u16 x, u16 y, Vec4 color);
-    //Vec4 imageLoad(
-
-    u8 * buffer() { return mPixels; }
-/*    T * bufferTyped() { return mPixels; }
-
-    const u8 * buffer() const { return reinterpret_cast<const u8*>(mPixels); }
-    const T * bufferTyped() const { return mPixels; }
-    */
-private:
-    u16 mSize;
-    u8 mPixelSize;
-
-    u8 * mPixels;
-};
 
 class ShaderSimulator
 {
@@ -169,8 +50,6 @@ public:
 //        kIMID_
     };
     
-    static const u32 kImageCount = 16; // max is 16 since 4 bits in VoxelRef for imageIdx
-
     ShaderSimulator();
     ~ShaderSimulator();
 
@@ -184,7 +63,6 @@ private:
 
     bool mIsInit = false;
     ImageBuffer * mFrameBuffer;
-    ImageBuffer * mImages[kImageCount];
 
     RaycastCamera * mpRaycastCamera;
 
@@ -212,6 +90,8 @@ private:
 
     // LORRTODO - temp voxel stuff - should move to game engine proper
     VoxelRoot voxelRoot;
+
+    VoxelWorld voxelWorld;
 
 };
 

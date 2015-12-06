@@ -53,6 +53,7 @@ enum MemType
     kMEM_Network     = 8,
     kMEM_Compose     = 9,
     kMEM_Chef        = 10,
+    kMEM_Voxel       = 11,
 
     kMEM_COUNT
 };
