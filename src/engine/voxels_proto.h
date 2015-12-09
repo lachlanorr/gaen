@@ -63,6 +63,8 @@ private:
 
     bool mIsInit = false;
     ImageBuffer * mFrameBuffer;
+    ImageBuffer * mDepthBuffer;
+    ImageBuffer * mDepthBufferBlank;
 
     RaycastCamera * mpRaycastCamera;
 
@@ -75,6 +77,7 @@ private:
     };
 
     Pix_RGB8 color; // frag output shader
+    f32 zDepth;
     ScreenCoords gl_FragCoord;
 
     u32 uniform0 = 0;

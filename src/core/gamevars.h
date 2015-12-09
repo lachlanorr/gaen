@@ -89,7 +89,7 @@ public:
     static const size_t kMaxNameLen = 31;
     
     GameVar(const char * name, i32 val, i32 step=1,   i32 min=INT32_MIN, i32 max=INT32_MAX);
-    GameVar(const char * name, f32 val, f32 step=1.0f, f32 min=FLT_MIN, f32 max=FLT_MAX);
+    GameVar(const char * name, f32 val, f32 step=1.0f, f32 min=-FLT_MAX, f32 max=FLT_MAX);
     GameVar(const char * name, bool val);
 
     const char * name() const { return mName; }

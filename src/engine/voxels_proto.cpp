@@ -25,6 +25,7 @@
 //------------------------------------------------------------------------------
 
 #include "engine/stdafx.h"
+#include "core/logging.h"
 
 #include "engine/voxels_proto.h"
 
@@ -37,6 +38,8 @@ ShaderSimulator::ShaderSimulator()
 {
     mIsInit = false;
     mFrameBuffer = nullptr;
+    mDepthBuffer = nullptr;
+    mDepthBufferBlank = nullptr;
 }
 
 ShaderSimulator::~ShaderSimulator()
@@ -45,13 +48,77 @@ ShaderSimulator::~ShaderSimulator()
     {
         if (mFrameBuffer)
             GDELETE(mFrameBuffer);
+
+        if (mDepthBuffer)
+            GDELETE(mDepthBuffer);
+
+        if (mDepthBufferBlank)
+            GDELETE(mDepthBufferBlank);
     }
 }
+
+static void set_shape_0(VoxelWorld & voxelWorld)
+{
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomBack,   VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomFront,  VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopBack,      VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopFront,     VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomBack,  VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomFront, VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopBack,     VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopFront,    VoxelRef::terminal_empty());
+}
+
+static void set_shape_1(VoxelWorld & voxelWorld)
+{
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomBack,   VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomFront,  VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopBack,      VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopFront,     VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomBack,  VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomFront, VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopBack,     VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopFront,    VoxelRef::terminal_empty());
+}
+
+static void set_shape_2(VoxelWorld & voxelWorld)
+{
+    VoxelRef vrLeftBottomBack   = voxelWorld.getVoxelRef(0, 0, SubVoxel::LeftBottomBack);
+    VoxelRef vrLeftBottomFront  = voxelWorld.getVoxelRef(0, 0, SubVoxel::LeftBottomFront);
+    VoxelRef vrLeftTopBack      = voxelWorld.getVoxelRef(0, 0, SubVoxel::LeftTopBack);
+    VoxelRef vrLeftTopFront     = voxelWorld.getVoxelRef(0, 0, SubVoxel::LeftTopFront);
+    VoxelRef vrRightBottomBack  = voxelWorld.getVoxelRef(0, 0, SubVoxel::RightBottomBack);
+    VoxelRef vrRightBottomFront = voxelWorld.getVoxelRef(0, 0, SubVoxel::RightBottomFront);
+    VoxelRef vrRightTopBack     = voxelWorld.getVoxelRef(0, 0, SubVoxel::RightTopBack);
+    VoxelRef vrRightTopFront    = voxelWorld.getVoxelRef(0, 0, SubVoxel::RightTopFront);
+
+
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomBack,   VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomFront,  VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopBack,      VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopFront,     VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomBack,  VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomFront, VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopBack,     VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopFront,    VoxelRef::terminal_empty());
+}
+
 
 void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
 {
     mFrameBuffer = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(Pix_RGB8));
+    mDepthBuffer = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(Pix_R32F));
+    mDepthBufferBlank = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(Pix_R32F));
     mpRaycastCamera = pRaycastCamera;
+
+    // prepare blanked out depth buffer
+    for (u16 y = 0; y < outputImageSize; ++y)
+    {
+        for (u16 x = 0; x < outputImageSize; ++x)
+        {
+            mDepthBufferBlank->imageStoreR32F(x, y, Pix_R32F(-FLT_MAX));
+        }
+    }
 
     // prep camera
     cameraPos = Vec3(0.0f, 0.0f, 10.0f);
@@ -59,14 +126,7 @@ void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
     nearZ = 5.0f;
     farZ = 10000.0f;
 
-    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomBack,   VoxelRef::terminal_full(1));
-    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomFront,  VoxelRef::terminal_full(1));
-    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopBack,      VoxelRef::terminal_empty());
-    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopFront,     VoxelRef::terminal_empty());
-    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomBack,  VoxelRef::terminal_empty());
-    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomFront, VoxelRef::terminal_empty());
-    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopBack,     VoxelRef::terminal_empty());
-    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopFront,    VoxelRef::terminal_empty());
+    set_shape_1(voxelWorld);
 
     voxelRoot.pos = Vec3(3.0f, 0.0f, -20.0f);
     voxelRoot.rad = 2.0f;
@@ -87,9 +147,13 @@ void ShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Rende
         lightColor = lights.front().color;
     }
 
+    mDepthBuffer->copy(*mDepthBufferBlank);
+
     Pix_RGB8 * pix = reinterpret_cast<Pix_RGB8*>(mFrameBuffer->buffer());
+    Pix_R32F * dpix = reinterpret_cast<Pix_R32F*>(mDepthBuffer->buffer());
 
     gl_FragCoord.z = 0;
+
     for (gl_FragCoord.y = 0; gl_FragCoord.y < mFrameBuffer->size(); ++gl_FragCoord.y)
     {
         for (gl_FragCoord.x = 0; gl_FragCoord.x < mFrameBuffer->size(); ++gl_FragCoord.x)
@@ -97,11 +161,17 @@ void ShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Rende
             color.r = 0;
             color.g = 0;
             color.b = 0;
+            zDepth = -FLT_MAX;
 
             //fragShader_Blue();
             fragShader_Raycast();
 
-            *pix = color;
+            if (zDepth > dpix->r)
+            {
+                *pix = color;
+                dpix->r = zDepth;
+            }
+            dpix++;
             pix++;
         }
     }
@@ -119,10 +189,9 @@ void ShaderSimulator::fragShader_Blue()
 
 void ShaderSimulator::fragShader_Raycast()
 {
-    Vec3 rayScreenPos;
-    rayScreenPos.x() = 2.0f * gl_FragCoord.x / windowSize.x() - 1.0f;
-    rayScreenPos.y() = 2.0f * gl_FragCoord.y / windowSize.y() - 1.0f;
-    rayScreenPos.z() = 0.0f;
+    Vec3 rayScreenPos(2.0f * gl_FragCoord.x / windowSize.x() - 1.0f,
+                      2.0f * gl_FragCoord.y / windowSize.y() - 1.0f,
+                      0.0f);
 
     Vec3 rayDirProj = Vec3::normalize(Mat4::multiply(projectionInv, rayScreenPos));
 
@@ -131,11 +200,15 @@ void ShaderSimulator::fragShader_Raycast()
     
     VoxelRef voxelRef;
     Vec3 normal;
-    u32 hit = (u32)test_ray_voxel(&voxelRef, &normal, voxelWorld, rayPos, rayDir, voxelRoot, 16);
+    u32 hit = (u32)test_ray_voxel(&voxelRef, &normal, &zDepth, voxelWorld, rayPos, rayDir, voxelRoot, 16);
 //    if (test_ray_voxel(&voxelRef, rayPos, rayDir, voxelRoot, normal))
 //    {
     if (hit)
     {
+        // LORRTEMP
+        //LOG_INFO("HIT: pRi->searchOrder[pRi->searchIndex]: %d", pRi->searchOrder[pRi->searchIndex]);
+        //LOG_INFO("normal: %f, %f, %f", normal.x(), normal.y(), normal.z());
+
         f32 intensity = maxval(Vec3::dot(normal, lightDir), 0.0f);
 
         color.r = (u8)maxval(intensity * 255, 10.0f);
@@ -144,9 +217,10 @@ void ShaderSimulator::fragShader_Raycast()
     }
     else
     {
-        color.r = 0;
-        color.g = 0;
-        color.b = 0;
+        color.r = 100;
+        color.g = 125;
+        color.b = 255;
+        zDepth = -(FLT_MAX * 0.90f);
     }
 
 /*

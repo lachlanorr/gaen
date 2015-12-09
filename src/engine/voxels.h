@@ -233,6 +233,7 @@ public:
 
     u16 size() const { return mSize; }
     u8 pixelSize() const { return mPixelSize; }
+    u64 bufferSize() const { return mSize * mSize * mPixelSize; }
 
     void imageStoreRGB8(u16 x, u16 y, const Pix_RGB8    & color);
     void imageStoreRGBA8(u16 x, u16 y, const Pix_RGBA8   & color);
@@ -265,6 +266,9 @@ public:
     Pix_RGBA32U imageLoadRGBA32U(u16 x, u16 y) const;
 
     u8 * buffer() { return mPixels; }
+    const u8 * buffer() const { return mPixels; }
+
+    void copy(const ImageBuffer & sourceBuffer);
 
 private:
     u8 * findAddr(u16 x, u16 y)
@@ -375,6 +379,17 @@ enum class SubVoxel : u8
     RightTopFront    = 7   // 111
 };
 
+enum class VoxelFaceHit : u8
+{
+    None   = 0,
+    Left   = 1,
+    Right  = 2,
+    Bottom = 3,
+    Top    = 4,
+    Back   = 5,
+    Front  = 6
+};
+
 
 
 struct Voxel
@@ -461,7 +476,7 @@ private:
 
 AABB_MinMax voxel_subspace(const AABB_MinMax & pSpace, SubVoxel subIndex);
 
-bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
+bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
 
 #pragma pack(pop)
 
