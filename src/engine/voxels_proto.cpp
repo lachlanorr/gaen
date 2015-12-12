@@ -102,6 +102,30 @@ static void set_shape_2(VoxelWorld & voxelWorld)
     voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopBack,     VoxelRef::terminal_empty());
     voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopFront,    VoxelRef::terminal_empty());
 }
+static void set_shape_3(VoxelWorld & voxelWorld)
+{
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomBack,   VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomFront,  VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopBack,      VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopFront,     VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomBack,  VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomFront, VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopBack,     VoxelRef::terminal_empty());
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopFront,    VoxelRef::terminal_empty());
+}
+
+static void set_shape_full(VoxelWorld & voxelWorld)
+{
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomBack,   VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomFront,  VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopBack,      VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftTopFront,     VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomBack,  VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightBottomFront, VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopBack,     VoxelRef::terminal_full(1));
+    voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopFront,    VoxelRef::terminal_full(1));
+}
+
 
 
 void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
@@ -126,12 +150,13 @@ void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
     nearZ = 5.0f;
     farZ = 10000.0f;
 
-    set_shape_1(voxelWorld);
+    set_shape_3(voxelWorld);
 
     voxelRoot.pos = Vec3(3.0f, 0.0f, -20.0f);
     voxelRoot.rad = 2.0f;
     voxelRoot.rot = Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f));
     voxelRoot.children = VoxelRef(16, 0, 0);
+    //voxelRoot.children = VoxelRef::terminal_full(1);
 }
 
 void ShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights)

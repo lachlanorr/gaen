@@ -404,22 +404,25 @@ inline bool is_hit_within_voxel(VoxelFaceHit voxelFaceHit,
     {
     case VoxelFaceHit::Left:
     case VoxelFaceHit::Right:
-        ret = hitPos.y() >= aabb.min.y() &&
+        ret = hitPos.y() > aabb.min.y() &&
               hitPos.y() <= aabb.max.y() &&
-              hitPos.z() >= aabb.min.z() &&
+              hitPos.z() > aabb.min.z() &&
               hitPos.z() <= aabb.max.z();
+        break;
     case VoxelFaceHit::Bottom:
     case VoxelFaceHit::Top:
-        ret = hitPos.x() >= aabb.min.x() &&
+        ret = hitPos.x() > aabb.min.x() &&
               hitPos.x() <= aabb.max.x() &&
-              hitPos.z() >= aabb.min.z() &&
+              hitPos.z() > aabb.min.z() &&
               hitPos.z() <= aabb.max.z();
+        break;
     case VoxelFaceHit::Back:
     case VoxelFaceHit::Front:
-        ret = hitPos.x() >= aabb.min.x() &&
+        ret = hitPos.x() > aabb.min.x() &&
               hitPos.x() <= aabb.max.x() &&
-              hitPos.y() >= aabb.min.y() &&
+              hitPos.y() > aabb.min.y() &&
               hitPos.y() <= aabb.max.y();
+        break;
     }
     return ret;
 }
@@ -440,17 +443,25 @@ inline void eval_voxel_hit(const SubVoxel ** ppSearchOrder,
     const SubVoxel * pSearchBlock = kVoxelSearchOrder + ((u32)voxelFaceHit - 1) * (8 * 4);
 
     // We can skip the 0th entry, since we default to that if other 3 fail
-    // AABB_MinMax subAabb0 = voxel_subspace(aabb, pSearchBlock[0]);
+     AABB_MinMax subAabb0 = voxel_subspace(aabb, pSearchBlock[0]);
     AABB_MinMax subAabb1 = voxel_subspace(aabb, pSearchBlock[8]);
     AABB_MinMax subAabb2 = voxel_subspace(aabb, pSearchBlock[16]);
     AABB_MinMax subAabb3 = voxel_subspace(aabb, pSearchBlock[24]);
 
     // zero or one of following expressions are true,
     // if zero are true, it means that subAbb0 was the hit, and we're already initialized to 0.
-    // searchOrderIndex += (u32)is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb0) * 0;
-    searchOrderIndex += (u32)is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb1) * 1;
-    searchOrderIndex += (u32)is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb2) * 2;
-    searchOrderIndex += (u32)is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb3) * 3;
+    u32 is_hit_within0 = is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb0);
+    u32 is_hit_within1 = is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb1);
+    u32 is_hit_within2 = is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb2);
+    u32 is_hit_within3 = is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb3);
+
+    ASSERT(is_hit_within0 || is_hit_within1 || is_hit_within2 || is_hit_within3);
+    ASSERT((u32)is_hit_within0 + (u32)is_hit_within1 + (u32)is_hit_within2 + (u32)is_hit_within3 == 1);
+
+    searchOrderIndex += (u32)is_hit_within0 * 0;
+    searchOrderIndex += (u32)is_hit_within1 * 1;
+    searchOrderIndex += (u32)is_hit_within2 * 2;
+    searchOrderIndex += (u32)is_hit_within3 * 3;
 
     *ppSearchOrder = pSearchBlock + searchOrderIndex * 8;
 
@@ -524,6 +535,13 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, const V
     {
         // don't think this should ever happen, as root voxel should never be terminal
         ASSERT(!pVoxelRef->isTerminalEmpty());
+
+        if (pVoxelRef->isTerminalFull())
+        {
+            *pNormal = kNormals[(u32)voxelFaceHit];
+            *pZDepth = entryDist;
+            return true;
+        }
 
         eval_voxel_hit(&pSearchOrder,
                        &hitPosLoc,
