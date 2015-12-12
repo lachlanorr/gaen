@@ -145,14 +145,14 @@ void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
     }
 
     // prep camera
-    cameraPos = Vec3(0.0f, 0.0f, 10.0f);
+    cameraPos = Vec3(0.0f, 100.0f, 10.0f);
     windowSize = Vec2((f32)outputImageSize, (f32)outputImageSize);
     nearZ = 5.0f;
     farZ = 10000.0f;
 
-    set_shape_3(voxelWorld);
+    set_shape_0(voxelWorld);
 
-    voxelRoot.pos = Vec3(3.0f, 0.0f, -20.0f);
+    voxelRoot.pos = Vec3(-3.0f, -2.0f, -20.0f);
     voxelRoot.rad = 2.0f;
     voxelRoot.rot = Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f));
     voxelRoot.children = VoxelRef(16, 0, 0);

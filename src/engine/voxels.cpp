@@ -48,271 +48,271 @@ static const SubVoxel kVoxelSearchOrder[6 * 4 * 8] = {
         // LeftBottomBack
             SubVoxel::LeftBottomBack,
             SubVoxel::LeftBottomFront,
-            SubVoxel::LeftTopFront,
             SubVoxel::LeftTopBack,
+            SubVoxel::LeftTopFront,
 
             SubVoxel::RightBottomBack,
             SubVoxel::RightBottomFront,
-            SubVoxel::RightTopFront,
             SubVoxel::RightTopBack,
+            SubVoxel::RightTopFront,
 
         // LeftBottomFront
             SubVoxel::LeftBottomFront,
             SubVoxel::LeftTopFront,
-            SubVoxel::LeftTopBack,
             SubVoxel::LeftBottomBack,
+            SubVoxel::LeftTopBack,
 
             SubVoxel::RightBottomFront,
             SubVoxel::RightTopFront,
-            SubVoxel::RightTopBack,
             SubVoxel::RightBottomBack,
+            SubVoxel::RightTopBack,
 
         // LeftTopFront
             SubVoxel::LeftTopFront,
             SubVoxel::LeftTopBack,
-            SubVoxel::LeftBottomBack,
             SubVoxel::LeftBottomFront,
+            SubVoxel::LeftBottomBack,
 
             SubVoxel::RightTopFront,
             SubVoxel::RightTopBack,
-            SubVoxel::RightBottomBack,
             SubVoxel::RightBottomFront,
+            SubVoxel::RightBottomBack,
 
         // LeftTopBack
             SubVoxel::LeftTopBack,
             SubVoxel::LeftBottomBack,
-            SubVoxel::LeftBottomFront,
             SubVoxel::LeftTopFront,
+            SubVoxel::LeftBottomFront,
 
             SubVoxel::RightTopBack,
             SubVoxel::RightBottomBack,
-            SubVoxel::RightBottomFront,
             SubVoxel::RightTopFront,
+            SubVoxel::RightBottomFront,
 
     // right
         // RightBottomFront
             SubVoxel::RightBottomFront,
             SubVoxel::RightBottomBack,
-            SubVoxel::RightTopBack,
             SubVoxel::RightTopFront,
+            SubVoxel::RightTopBack,
 
             SubVoxel::LeftBottomFront,
             SubVoxel::LeftBottomBack,
-            SubVoxel::LeftTopBack,
             SubVoxel::LeftTopFront,
+            SubVoxel::LeftTopBack,
 
         // RightBottomBack
             SubVoxel::RightBottomBack,
             SubVoxel::RightTopBack,
-            SubVoxel::RightTopFront,
             SubVoxel::RightBottomFront,
+            SubVoxel::RightTopFront,
 
             SubVoxel::LeftBottomBack,
             SubVoxel::LeftTopBack,
-            SubVoxel::LeftTopFront,
             SubVoxel::LeftBottomFront,
+            SubVoxel::LeftTopFront,
 
         // RightTopBack
             SubVoxel::RightTopBack,
             SubVoxel::RightTopFront,
-            SubVoxel::RightBottomFront,
             SubVoxel::RightBottomBack,
+            SubVoxel::RightBottomFront,
 
             SubVoxel::LeftTopBack,
             SubVoxel::LeftTopFront,
-            SubVoxel::LeftBottomFront,
             SubVoxel::LeftBottomBack,
+            SubVoxel::LeftBottomFront,
 
         // RightTopFront
             SubVoxel::RightTopFront,
             SubVoxel::RightBottomFront,
-            SubVoxel::RightBottomBack,
             SubVoxel::RightTopBack,
+            SubVoxel::RightBottomBack,
 
             SubVoxel::LeftTopFront,
             SubVoxel::LeftBottomFront,
-            SubVoxel::LeftBottomBack,
             SubVoxel::LeftTopBack,
+            SubVoxel::LeftBottomBack,
 
     // bottom
         // LeftBottomBack
             SubVoxel::LeftBottomBack,
             SubVoxel::RightBottomBack,
-            SubVoxel::RightBottomFront,
             SubVoxel::LeftBottomFront,
+            SubVoxel::RightBottomFront,
 
             SubVoxel::LeftTopBack,
             SubVoxel::RightTopBack,
-            SubVoxel::RightTopFront,
             SubVoxel::LeftTopFront,
+            SubVoxel::RightTopFront,
 
         // RightBottomBack
             SubVoxel::RightBottomBack,
             SubVoxel::RightBottomFront,
-            SubVoxel::LeftBottomFront,
             SubVoxel::LeftBottomBack,
+            SubVoxel::LeftBottomFront,
 
             SubVoxel::RightTopBack,
             SubVoxel::RightTopFront,
-            SubVoxel::LeftTopFront,
             SubVoxel::LeftTopBack,
+            SubVoxel::LeftTopFront,
 
         // RightBottomFront
             SubVoxel::RightBottomFront,
             SubVoxel::LeftBottomFront,
-            SubVoxel::LeftBottomBack,
             SubVoxel::RightBottomBack,
+            SubVoxel::LeftBottomBack,
 
             SubVoxel::RightTopFront,
             SubVoxel::LeftTopFront,
-            SubVoxel::LeftTopBack,
             SubVoxel::RightTopBack,
+            SubVoxel::LeftTopBack,
 
         // LeftBottomFront
             SubVoxel::LeftBottomFront,
             SubVoxel::LeftBottomBack,
-            SubVoxel::RightBottomBack,
             SubVoxel::RightBottomFront,
+            SubVoxel::RightBottomBack,
 
             SubVoxel::LeftTopFront,
             SubVoxel::LeftTopBack,
-            SubVoxel::RightTopBack,
             SubVoxel::RightTopFront,
+            SubVoxel::RightTopBack,
 
     // top
         // LeftTopFront
             SubVoxel::LeftTopFront,
             SubVoxel::RightTopFront,
-            SubVoxel::RightTopBack,
             SubVoxel::LeftTopBack,
+            SubVoxel::RightTopBack,
 
             SubVoxel::LeftBottomFront,
             SubVoxel::RightBottomFront,
-            SubVoxel::RightBottomBack,
             SubVoxel::LeftBottomBack,
+            SubVoxel::RightBottomBack,
 
         // RightTopFront
             SubVoxel::RightTopFront,
             SubVoxel::RightTopBack,
-            SubVoxel::LeftTopBack,
             SubVoxel::LeftTopFront,
+            SubVoxel::LeftTopBack,
 
             SubVoxel::RightBottomFront,
             SubVoxel::RightBottomBack,
-            SubVoxel::LeftBottomBack,
             SubVoxel::LeftBottomFront,
+            SubVoxel::LeftBottomBack,
 
         // RightTopBack
             SubVoxel::RightTopBack,
             SubVoxel::LeftTopBack,
-            SubVoxel::LeftTopFront,
             SubVoxel::RightTopFront,
+            SubVoxel::LeftTopFront,
 
             SubVoxel::RightBottomBack,
             SubVoxel::LeftBottomBack,
-            SubVoxel::LeftBottomFront,
             SubVoxel::RightBottomFront,
+            SubVoxel::LeftBottomFront,
 
         // LeftTopBack
             SubVoxel::LeftTopBack,
             SubVoxel::LeftTopFront,
-            SubVoxel::RightTopFront,
             SubVoxel::RightTopBack,
+            SubVoxel::RightTopFront,
 
             SubVoxel::LeftBottomBack,
             SubVoxel::LeftBottomFront,
-            SubVoxel::RightBottomFront,
             SubVoxel::RightBottomBack,
+            SubVoxel::RightBottomFront,
 
     // back
         // RightBottomBack
             SubVoxel::RightBottomBack,
             SubVoxel::LeftBottomBack,
-            SubVoxel::LeftTopBack,
             SubVoxel::RightTopBack,
+            SubVoxel::LeftTopBack,
 
             SubVoxel::RightBottomFront,
             SubVoxel::LeftBottomFront,
-            SubVoxel::LeftTopFront,
             SubVoxel::RightTopFront,
+            SubVoxel::LeftTopFront,
 
         // LeftBottomBack
             SubVoxel::LeftBottomBack,
             SubVoxel::LeftTopBack,
-            SubVoxel::RightTopBack,
             SubVoxel::RightBottomBack,
+            SubVoxel::RightTopBack,
 
             SubVoxel::LeftBottomFront,
             SubVoxel::LeftTopFront,
-            SubVoxel::RightTopFront,
             SubVoxel::RightBottomFront,
+            SubVoxel::RightTopFront,
 
         // LeftTopBack
             SubVoxel::LeftTopBack,
             SubVoxel::RightTopBack,
-            SubVoxel::RightBottomBack,
             SubVoxel::LeftBottomBack,
+            SubVoxel::RightBottomBack,
 
             SubVoxel::LeftTopFront,
             SubVoxel::RightTopFront,
-            SubVoxel::RightBottomFront,
             SubVoxel::LeftBottomFront,
+            SubVoxel::RightBottomFront,
 
         // RightTopBack
             SubVoxel::RightTopBack,
             SubVoxel::RightBottomBack,
-            SubVoxel::LeftBottomBack,
             SubVoxel::LeftTopBack,
+            SubVoxel::LeftBottomBack,
 
             SubVoxel::RightTopFront,
             SubVoxel::RightBottomFront,
-            SubVoxel::LeftBottomFront,
             SubVoxel::LeftTopFront,
+            SubVoxel::LeftBottomFront,
 
     // front
         // LeftBottomFront
             SubVoxel::LeftBottomFront,
             SubVoxel::RightBottomFront,
-            SubVoxel::RightTopFront,
             SubVoxel::LeftTopFront,
+            SubVoxel::RightTopFront,
 
             SubVoxel::LeftBottomBack,
             SubVoxel::RightBottomBack,
-            SubVoxel::RightTopBack,
             SubVoxel::LeftTopBack,
+            SubVoxel::RightTopBack,
 
         // RightBottomFront
             SubVoxel::RightBottomFront,
             SubVoxel::RightTopFront,
-            SubVoxel::LeftTopFront,
             SubVoxel::LeftBottomFront,
+            SubVoxel::LeftTopFront,
 
             SubVoxel::RightBottomBack,
             SubVoxel::RightTopBack,
-            SubVoxel::LeftTopBack,
             SubVoxel::LeftBottomBack,
+            SubVoxel::LeftTopBack,
 
         // RightTopFront
             SubVoxel::RightTopFront,
             SubVoxel::LeftTopFront,
-            SubVoxel::LeftBottomFront,
             SubVoxel::RightBottomFront,
+            SubVoxel::LeftBottomFront,
 
             SubVoxel::RightTopBack,
             SubVoxel::LeftTopBack,
-            SubVoxel::LeftBottomBack,
             SubVoxel::RightBottomBack,
+            SubVoxel::LeftBottomBack,
 
         // LeftTopFront
             SubVoxel::LeftTopFront,
             SubVoxel::LeftBottomFront,
-            SubVoxel::RightBottomFront,
             SubVoxel::RightTopFront,
+            SubVoxel::RightBottomFront,
 
             SubVoxel::LeftTopBack,
             SubVoxel::LeftBottomBack,
-            SubVoxel::RightBottomBack,
-            SubVoxel::RightTopBack
+            SubVoxel::RightTopBack,
+            SubVoxel::RightBottomBack
 };
 
 static_assert(sizeof(kVoxelSearchOrder) == 192, "kVoxelSearchOrder not 192 bytes");
