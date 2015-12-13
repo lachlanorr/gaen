@@ -404,8 +404,8 @@ inline bool test_ray_box(VoxelFace * pVoxelFace,
 }
 
 inline bool is_hit_within_voxel(VoxelFace voxelFace,
-                               const Vec3 & hitPos,
-                               const AABB_MinMax & aabb)
+                                const Vec3 & hitPos,
+                                const AABB_MinMax & aabb)
 {
     return (((voxelFace == VoxelFace::Left ||
              voxelFace == VoxelFace::Right) &&
@@ -427,6 +427,50 @@ inline bool is_hit_within_voxel(VoxelFace voxelFace,
              hitPos.x() <= aabb.max.x() &&
              hitPos.y() > aabb.min.y() &&
              hitPos.y() <= aabb.max.y()));
+}
+
+inline Vec2 calc_face_uv(VoxelFace voxelFace,
+                         const Vec3 & hitPos,
+                         const AABB_MinMax & aabb)
+{
+    // get the array of 6 floats so we can index easily
+    const f32 * pAabbElems = reinterpret_cast<const f32*>(&aabb);
+
+    // Couple asserts to make sure the hackish behavior above is valid
+    ASSERT(Vec3(pAabbElems[0], pAabbElems[1], pAabbElems[2]) == aabb.min);
+    ASSERT(Vec3(pAabbElems[3], pAabbElems[4], pAabbElems[5]) == aabb.max);
+
+    u32 uHitElem = 0;
+    uHitElem = maxval(uHitElem, (u32)(voxelFace == VoxelFace::Left   || voxelFace == VoxelFace::Right) * 2); // z()
+    uHitElem = maxval(uHitElem, (u32)(voxelFace == VoxelFace::Bottom || voxelFace == VoxelFace::Top)   * 0); // x()
+    uHitElem = maxval(uHitElem, (u32)(voxelFace == VoxelFace::Back   || voxelFace == VoxelFace::Front) * 0); // x()
+
+    u32 vHitElem = 0;
+    vHitElem = maxval(vHitElem, (u32)(voxelFace == VoxelFace::Left   || voxelFace == VoxelFace::Right) * 1); // y()
+    vHitElem = maxval(vHitElem, (u32)(voxelFace == VoxelFace::Bottom || voxelFace == VoxelFace::Top)   * 2); // z()
+    vHitElem = maxval(vHitElem, (u32)(voxelFace == VoxelFace::Back   || voxelFace == VoxelFace::Front) * 1); // y()
+
+
+    u32 uAabbElem = 0;
+    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Left)   * 2);  // aabb.min.z()
+    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Right)  * 5);  // aabb.max.z()
+    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Bottom) * 0);  // aabb.min.x()
+    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Top)    * 0);  // aabb.min.x()
+    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Back)   * 3);  // aabb.max.x()
+    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Front)  * 0);  // aabb.min.x()
+
+    u32 vAabbElem = 0;
+    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Left)   * 1);  // aabb.min.y()
+    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Right)  * 1);  // aabb.min.y()
+    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Bottom) * 2);  // aabb.min.z()
+    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Top)    * 5);  // aabb.max.z()
+    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Back)   * 1);  // aabb.min.y()
+    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Front)  * 1);  // aabb.min.y()
+
+    f32 aabbWidth = aabb.max.x() - aabb.min.x();
+
+    return Vec2(abs(hitPos[uHitElem] - pAabbElems[uAabbElem]) / aabbWidth,
+                abs(hitPos[vHitElem] - pAabbElems[vAabbElem]) / aabbWidth);
 }
 
 inline void eval_voxel_hit(const SubVoxel ** ppSearchOrder,
@@ -457,8 +501,8 @@ inline void eval_voxel_hit(const SubVoxel ** ppSearchOrder,
     u32 is_hit_within2 = is_hit_within_voxel(voxelFace, *pHitPos, subAabb2);
     u32 is_hit_within3 = is_hit_within_voxel(voxelFace, *pHitPos, subAabb3);
 
-    ASSERT(is_hit_within0 || is_hit_within1 || is_hit_within2 || is_hit_within3);
-    ASSERT((u32)is_hit_within0 + (u32)is_hit_within1 + (u32)is_hit_within2 + (u32)is_hit_within3 == 1);
+    EXPECT_MSG(is_hit_within0 || is_hit_within1 || is_hit_within2 || is_hit_within3, "eval_voxel_hit: no hits within sub aabb's");
+    EXPECT_MSG((u32)is_hit_within0 + (u32)is_hit_within1 + (u32)is_hit_within2 + (u32)is_hit_within3 == 1, "eval_voxel_hit: more than one hit within sub aabb's");
 
     searchOrderIndex += (u32)is_hit_within0 * 0;
     searchOrderIndex += (u32)is_hit_within1 * 1;
@@ -538,14 +582,6 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
         // don't think this should ever happen, as root voxel should never be terminal
         ASSERT(!pVoxelRef->isTerminalEmpty());
 
-        if (pVoxelRef->isTerminalFull())
-        {
-            *pNormal = kNormals[(u32)voxelFace];
-            *pZDepth = entryDist;
-            *pFace = voxelFace;
-            return true;
-        }
-
         eval_voxel_hit(&pSearchOrder,
                        &hitPosLoc,
                        voxelFace,
@@ -554,6 +590,15 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
                        rayPosLoc,
                        rayDirLoc,
                        rootAabb);
+
+        if (pVoxelRef->isTerminalFull())
+        {
+            *pNormal = kNormals[(u32)voxelFace];
+            *pZDepth = entryDist;
+            *pFace = voxelFace;
+            *pFaceUv = calc_face_uv(voxelFace, hitPosLoc, rootAabb);
+            return true;
+        }
 
         u32 recurseDepth = 0;
 
@@ -575,11 +620,24 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
                 {
                     *pVoxelRef = voxelWorld.getVoxelRef(*pVoxelRef, pRi->searchOrder[pRi->searchIndex]);
 
+                    if (!pVoxelRef->isTerminalEmpty())
+                    {
+                        eval_voxel_hit(&pSearchOrder,
+                                       &hitPosLoc,
+                                       voxelFace,
+                                       entryDist,
+                                       exitDist,
+                                       rayPosLoc,
+                                       rayDirLoc,
+                                       aabb);
+                    }
+
                     if (pVoxelRef->isTerminalFull())
                     {
                         *pNormal = kNormals[(u32)voxelFace];
                         *pZDepth = entryDist;
                         *pFace = voxelFace;
+                        *pFaceUv = calc_face_uv(voxelFace, hitPosLoc, aabb);
                         // now conduct more specific test to find point of intersection
 
 
@@ -596,15 +654,6 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
 
                         // LORRTODO: Either the geometry must prevent further depth, or we need a check here
                         ASSERT(recurseDepth < kMaxDepth);
-
-                        eval_voxel_hit(&pSearchOrder,
-                                       &hitPosLoc,
-                                       voxelFace,
-                                       entryDist,
-                                       exitDist,
-                                       rayPosLoc,
-                                       rayDirLoc,
-                                       aabb);
 
                         pRi = &sRecurseStack[recurseDepth];
 

@@ -242,32 +242,32 @@ void ShaderSimulator::fragShader_Raycast()
         {
         case VoxelFace::Left:
             color.r = 150;
-            color.g = 0;
-            color.b = 0;
+            color.g = (u8)minval(150.0f, 150 * faceUv.x());
+            color.b = (u8)minval(150.0f, 150 * faceUv.y());
             break;
         case VoxelFace::Right:
             color.r = 255;
-            color.g = 0;
-            color.b = 0;
+            color.g = (u8)minval(255.0f, 255 * faceUv.x());
+            color.b = (u8)minval(255.0f, 255 * faceUv.y());
             break;
         case VoxelFace::Bottom:
-            color.r = 0;
+            color.r = (u8)minval(150.0f, 150 * faceUv.x());
             color.g = 150;
-            color.b = 0;
+            color.b = (u8)minval(150.0f, 150 * faceUv.y());
             break;
         case VoxelFace::Top:
-            color.r = 0;
+            color.r = (u8)minval(255.0f, 255 * faceUv.x());
             color.g = 255;
-            color.b = 0;
+            color.b = (u8)minval(255.0f, 255 * faceUv.y());
             break;
         case VoxelFace::Back:
-            color.r = 0;
-            color.g = 0;
+            color.r = (u8)minval(150.0f, 150 * faceUv.x());
+            color.g = (u8)minval(150.0f, 150 * faceUv.y());
             color.b = 150;
             break;
         case VoxelFace::Front:
-            color.r = 0;
-            color.g = 0;
+            color.r = (u8)minval(255.0f, 255 * faceUv.x());
+            color.g = (u8)minval(255.0f, 255 * faceUv.y());
             color.b = 255;
             break;
         }
