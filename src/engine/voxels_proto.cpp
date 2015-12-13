@@ -225,7 +225,9 @@ void ShaderSimulator::fragShader_Raycast()
     
     VoxelRef voxelRef;
     Vec3 normal;
-    u32 hit = (u32)test_ray_voxel(&voxelRef, &normal, &zDepth, voxelWorld, rayPos, rayDir, voxelRoot, 16);
+    VoxelFace face;
+    Vec2 faceUv;
+    u32 hit = (u32)test_ray_voxel(&voxelRef, &normal, &zDepth, &face, &faceUv, voxelWorld, rayPos, rayDir, voxelRoot, 16);
 //    if (test_ray_voxel(&voxelRef, rayPos, rayDir, voxelRoot, normal))
 //    {
     if (hit)
@@ -236,9 +238,43 @@ void ShaderSimulator::fragShader_Raycast()
 
         f32 intensity = maxval(Vec3::dot(normal, lightDir), 0.0f);
 
-        color.r = (u8)maxval(intensity * 255, 10.0f);
-        color.g = (u8)maxval(intensity * 255, 10.0f);
-        color.b = (u8)maxval(intensity * 255, 10.0f);
+        switch (face)
+        {
+        case VoxelFace::Left:
+            color.r = 150;
+            color.g = 0;
+            color.b = 0;
+            break;
+        case VoxelFace::Right:
+            color.r = 255;
+            color.g = 0;
+            color.b = 0;
+            break;
+        case VoxelFace::Bottom:
+            color.r = 0;
+            color.g = 150;
+            color.b = 0;
+            break;
+        case VoxelFace::Top:
+            color.r = 0;
+            color.g = 255;
+            color.b = 0;
+            break;
+        case VoxelFace::Back:
+            color.r = 0;
+            color.g = 0;
+            color.b = 150;
+            break;
+        case VoxelFace::Front:
+            color.r = 0;
+            color.g = 0;
+            color.b = 255;
+            break;
+        }
+
+        //color.r = (u8)maxval(intensity * 255, 10.0f);
+        //color.g = (u8)maxval(intensity * 255, 10.0f);
+        //color.b = (u8)maxval(intensity * 255, 10.0f);
     }
     else
     {

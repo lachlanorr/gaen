@@ -379,7 +379,7 @@ enum class SubVoxel : u8
     RightTopFront    = 7   // 111
 };
 
-enum class VoxelFaceHit : u8
+enum class VoxelFace : u8
 {
     None   = 0,
     Left   = 1,
@@ -476,7 +476,7 @@ private:
 
 AABB_MinMax voxel_subspace(const AABB_MinMax & pSpace, SubVoxel subIndex);
 
-bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
+bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, Vec2 * pFaceUv, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
 
 #pragma pack(pop)
 

@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include <cmath>
+
 #include "engine/stdafx.h"
 
 #include "core/logging.h"
@@ -335,7 +337,14 @@ AABB_MinMax voxel_subspace(const AABB_MinMax & pSpace, SubVoxel subIndex)
     return ret;
 }
 
-inline bool test_ray_box(VoxelFaceHit * pVoxelFaceHit,
+static const f32 kEpsilon = 1e-10;
+
+inline bool f32_eq(f32 x, f32 y)
+{
+    return abs(x - y) <= kEpsilon * maxval(1.0f, maxval(abs(x), abs(y)));
+}
+
+inline bool test_ray_box(VoxelFace * pVoxelFace,
                          f32 * pEntryDist,
                          f32 * pExitDist,
                          const Vec3 & rayPos,
@@ -371,65 +380,58 @@ inline bool test_ray_box(VoxelFaceHit * pVoxelFaceHit,
     f32 t1 = minval(t.x(), t.y());
 
 
-    // find index into normals, only one of these is true,
-    // and this eliminates all branching.
+    // find the face that was hit, only one condition is true,
+    // and this eliminates branching.
     // If none are true, we have no collision.
 
     u32 faceHit = 0;
-    faceHit += (u32)(t0 <= t1 && t0 == tbot.x()) * 1;
-    faceHit += (u32)(t0 <= t1 && t0 == ttop.x()) * 2;
-    faceHit += (u32)(t0 <= t1 && t0 == tbot.y()) * 3;
-    faceHit += (u32)(t0 <= t1 && t0 == ttop.y()) * 4;
-    faceHit += (u32)(t0 <= t1 && t0 == tbot.z()) * 5;
-    faceHit += (u32)(t0 <= t1 && t0 == ttop.z()) * 6;
+    bool isHit = t0 <= t1;
 
-    *pVoxelFaceHit = (VoxelFaceHit)faceHit;
+    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.x()) && t0 == tbot.x()) * 1);
+    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.x()) && t0 == ttop.x()) * 2);
+    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.y()) && t0 == tbot.y()) * 3);
+    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.y()) && t0 == ttop.y()) * 4);
+    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.z()) && t0 == tbot.z()) * 5);
+    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.z()) && t0 == ttop.z()) * 6);
+
+    ASSERT(!isHit || faceHit != 0);
+
+    *pVoxelFace = (VoxelFace)faceHit;
     *pEntryDist = t0;
     *pExitDist = t1;
 
-    return *pVoxelFaceHit != VoxelFaceHit::None;
+    return *pVoxelFace != VoxelFace::None;
 }
 
-inline bool is_hit_within_voxel(VoxelFaceHit voxelFaceHit,
+inline bool is_hit_within_voxel(VoxelFace voxelFace,
                                const Vec3 & hitPos,
                                const AABB_MinMax & aabb)
 {
+    return (((voxelFace == VoxelFace::Left ||
+             voxelFace == VoxelFace::Right) &&
+            hitPos.y() > aabb.min.y() &&
+            hitPos.y() <= aabb.max.y() &&
+            hitPos.z() > aabb.min.z() &&
+            hitPos.z() <= aabb.max.z()) ||
 
-    // Compiler should make this a jump table for us,
-    // better than our own jump table of functions since this
-    // can be inlined.
+            ((voxelFace == VoxelFace::Bottom ||
+              voxelFace == VoxelFace::Top) &&
+             hitPos.x() > aabb.min.x() &&
+             hitPos.x() <= aabb.max.x() &&
+             hitPos.z() > aabb.min.z() &&
+             hitPos.z() <= aabb.max.z()) ||
 
-    bool ret = false;
-    switch (voxelFaceHit)
-    {
-    case VoxelFaceHit::Left:
-    case VoxelFaceHit::Right:
-        ret = hitPos.y() > aabb.min.y() &&
-              hitPos.y() <= aabb.max.y() &&
-              hitPos.z() > aabb.min.z() &&
-              hitPos.z() <= aabb.max.z();
-        break;
-    case VoxelFaceHit::Bottom:
-    case VoxelFaceHit::Top:
-        ret = hitPos.x() > aabb.min.x() &&
-              hitPos.x() <= aabb.max.x() &&
-              hitPos.z() > aabb.min.z() &&
-              hitPos.z() <= aabb.max.z();
-        break;
-    case VoxelFaceHit::Back:
-    case VoxelFaceHit::Front:
-        ret = hitPos.x() > aabb.min.x() &&
-              hitPos.x() <= aabb.max.x() &&
-              hitPos.y() > aabb.min.y() &&
-              hitPos.y() <= aabb.max.y();
-        break;
-    }
-    return ret;
+            ((voxelFace == VoxelFace::Back ||
+              voxelFace == VoxelFace::Front) &&
+             hitPos.x() > aabb.min.x() &&
+             hitPos.x() <= aabb.max.x() &&
+             hitPos.y() > aabb.min.y() &&
+             hitPos.y() <= aabb.max.y()));
 }
 
 inline void eval_voxel_hit(const SubVoxel ** ppSearchOrder,
                            Vec3 * pHitPos,
-                           VoxelFaceHit voxelFaceHit,
+                           VoxelFace voxelFace,
                            f32 entryDist,
                            f32 exitDist,
                            const Vec3 & rayPos,
@@ -440,7 +442,7 @@ inline void eval_voxel_hit(const SubVoxel ** ppSearchOrder,
     u32 searchOrderIndex = 0;
 
     // index into the face within kVoxelSearchOrder based on the fase we hit
-    const SubVoxel * pSearchBlock = kVoxelSearchOrder + ((u32)voxelFaceHit - 1) * (8 * 4);
+    const SubVoxel * pSearchBlock = kVoxelSearchOrder + ((u32)voxelFace - 1) * (8 * 4);
 
     // We can skip the 0th entry, since we default to that if other 3 fail
      AABB_MinMax subAabb0 = voxel_subspace(aabb, pSearchBlock[0]);
@@ -450,10 +452,10 @@ inline void eval_voxel_hit(const SubVoxel ** ppSearchOrder,
 
     // zero or one of following expressions are true,
     // if zero are true, it means that subAbb0 was the hit, and we're already initialized to 0.
-    u32 is_hit_within0 = is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb0);
-    u32 is_hit_within1 = is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb1);
-    u32 is_hit_within2 = is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb2);
-    u32 is_hit_within3 = is_hit_within_voxel(voxelFaceHit, *pHitPos, subAabb3);
+    u32 is_hit_within0 = is_hit_within_voxel(voxelFace, *pHitPos, subAabb0);
+    u32 is_hit_within1 = is_hit_within_voxel(voxelFace, *pHitPos, subAabb1);
+    u32 is_hit_within2 = is_hit_within_voxel(voxelFace, *pHitPos, subAabb2);
+    u32 is_hit_within3 = is_hit_within_voxel(voxelFace, *pHitPos, subAabb3);
 
     ASSERT(is_hit_within0 || is_hit_within1 || is_hit_within2 || is_hit_within3);
     ASSERT((u32)is_hit_within0 + (u32)is_hit_within1 + (u32)is_hit_within2 + (u32)is_hit_within3 == 1);
@@ -506,7 +508,7 @@ struct VoxelRecurseInfo
 
 static VoxelRecurseInfo sRecurseStack[kMaxDepth];
 
-bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth)
+bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, Vec2 * pFaceUv, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth)
 {
     // put ray into this voxel's space, so voxel is at 0,0,0 and 0,0,0 rotation
     // from ray's perspective.
@@ -523,13 +525,13 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, const V
 
     *pVoxelRef = root.children;
 
-    VoxelFaceHit voxelFaceHit;
+    VoxelFace voxelFace;
     f32 entryDist;
     f32 exitDist;
     const SubVoxel * pSearchOrder;
     Vec3 hitPosLoc;
 
-    bool hit = test_ray_box(&voxelFaceHit, &entryDist, &exitDist, rayPosLoc, invRayDirLoc, rootAabb);
+    bool hit = test_ray_box(&voxelFace, &entryDist, &exitDist, rayPosLoc, invRayDirLoc, rootAabb);
 
     if (hit)
     {
@@ -538,14 +540,15 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, const V
 
         if (pVoxelRef->isTerminalFull())
         {
-            *pNormal = kNormals[(u32)voxelFaceHit];
+            *pNormal = kNormals[(u32)voxelFace];
             *pZDepth = entryDist;
+            *pFace = voxelFace;
             return true;
         }
 
         eval_voxel_hit(&pSearchOrder,
                        &hitPosLoc,
-                       voxelFaceHit,
+                       voxelFace,
                        entryDist,
                        exitDist,
                        rayPosLoc,
@@ -566,7 +569,7 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, const V
             {
                 AABB_MinMax aabb = voxel_subspace(pRi->aabb, pRi->searchOrder[pRi->searchIndex]);
 
-                pRi->hit = test_ray_box(&voxelFaceHit, &entryDist, &exitDist, rayPosLoc, invRayDirLoc, aabb);
+                pRi->hit = test_ray_box(&voxelFace, &entryDist, &exitDist, rayPosLoc, invRayDirLoc, aabb);
 
                 if (pRi->hit)
                 {
@@ -574,8 +577,9 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, const V
 
                     if (pVoxelRef->isTerminalFull())
                     {
-                        *pNormal = kNormals[(u32)voxelFaceHit];
+                        *pNormal = kNormals[(u32)voxelFace];
                         *pZDepth = entryDist;
+                        *pFace = voxelFace;
                         // now conduct more specific test to find point of intersection
 
 
@@ -595,7 +599,7 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, const V
 
                         eval_voxel_hit(&pSearchOrder,
                                        &hitPosLoc,
-                                       voxelFaceHit,
+                                       voxelFace,
                                        entryDist,
                                        exitDist,
                                        rayPosLoc,
