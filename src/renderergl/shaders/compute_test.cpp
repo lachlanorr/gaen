@@ -35,7 +35,7 @@ namespace shaders
 static const char * kShaderCode_shc =
     "// Simple compute test that renders invocation and work group info to image\n"
     "\n"
-    "layout (local_size_x = 32, local_size_y = 32) in;\n"
+    "layout (local_size_x = 8, local_size_y = 8) in;\n"
     "\n"
     "// An image to store data into\n"
     "layout (binding=0, rg32f) uniform image2D data;\n"

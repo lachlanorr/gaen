@@ -44,7 +44,7 @@
 #define RENDERTYPE_CPUVOXEL 1
 #define RENDERTYPE_GPUVOXEL 2
 
-#define RENDERTYPE RENDERTYPE_MESH
+#define RENDERTYPE RENDERTYPE_GPUVOXEL
 
 namespace gaen
 {
@@ -172,7 +172,7 @@ void RendererGL::initViewport()
 
 
     // prep voxel cast shader
-    mpVoxelCast = getShader(HASH::compute_test);
+    mpVoxelCast = getShader(HASH::voxel_cast);
     glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
 
 }
@@ -240,7 +240,7 @@ void RendererGL::render()
 
 #elif RENDERTYPE == RENDERTYPE_GPUVOXEL // #if RENDERTYPE == RENDERTYPE_CPUVOXEL
     mpVoxelCast->use();
-    glDispatchCompute(32, 64, 1);
+    glDispatchCompute(16, 16, 1);
 
     mpPresentShader->use();
 
