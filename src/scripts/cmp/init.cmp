@@ -88,9 +88,8 @@ entity Start
         entity light = Light{};
         $.insert_entity(light);
 
-/*        entity shape = Shape{};
-
+        entity shape = Shape{};
         $.insert_entity(shape);
-        */
+
     }
 }

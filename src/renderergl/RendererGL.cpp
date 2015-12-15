@@ -40,11 +40,11 @@
 
 #include "renderergl/RendererGL.h"
 
-#define RENDERTYPE_MESHES 0
+#define RENDERTYPE_MESH 0
 #define RENDERTYPE_CPUVOXEL 1
 #define RENDERTYPE_GPUVOXEL 2
 
-#define RENDERTYPE RENDERTYPE_GPUVOXEL
+#define RENDERTYPE RENDERTYPE_MESH
 
 namespace gaen
 {
@@ -248,7 +248,7 @@ void RendererGL::render()
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 
-#elif RENDERTYPE == RENDERTYPE_MESHES
+#elif RENDERTYPE == RENDERTYPE_MESH
     ModelMgr<RendererGL>::MeshIterator meshIt = mpModelMgr->begin();
     ModelMgr<RendererGL>::MeshIterator meshItEnd = mpModelMgr->end();
 
@@ -296,7 +296,7 @@ void RendererGL::render()
 
         ++meshIt;
     }
-#endif // #elif RENDERTYPE == RENDERTYPE_MESHES
+#endif // #elif RENDERTYPE == RENDERTYPE_MESH
 }
 
 template <typename T>

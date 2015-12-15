@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: d7dfa9ccafc29871c0aec0ee09c6d917
+// HASH: 39e6c83b97b63c1c2e1dd49dc4b04bda
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -256,6 +256,17 @@ private:
         return pEnt->task().id();
     }
 
+    task_id entity_init__init__Shape__91_25()
+    {
+        Entity * pEnt = get_registry().constructEntity(HASH::init__Shape, 8);
+        // Send init message
+        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgBW.accessor());
+
+        stageEntity(pEnt);
+        return pEnt->task().id();
+    }
+
 
 public:
     static Entity * construct(u32 childCount)
@@ -276,6 +287,8 @@ public:
             system_api::insert_entity(cam, entity());
             task_id light = entity_init__init__Light__88_25();
             system_api::insert_entity(light, entity());
+            task_id shape = entity_init__init__Shape__91_25();
+            system_api::insert_entity(shape, entity());
             return MessageResult::Consumed;
         }
         }
