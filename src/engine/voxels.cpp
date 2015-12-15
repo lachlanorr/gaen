@@ -544,13 +544,32 @@ static const u32 kMaxDepth = 32;
 
 struct VoxelRecurseInfo
 {
+    VoxelRef voxelRef;
     AABB_MinMax aabb;
     const SubVoxel * searchOrder;
     u8 searchIndex;
     bool hit;
+    VoxelFace hitFace;
+    f32 entryDist;
+    f32 exitDist;
+    Vec3 hitPosLoc;
 };
 
 static VoxelRecurseInfo sRecurseStack[kMaxDepth];
+static VoxelRecurseInfo sStack[kMaxDepth];
+
+inline void prep_stack_entry(VoxelRecurseInfo * pStackEntry, const VoxelRef & voxelRef, const AABB_MinMax & aabb)
+{
+    pStackEntry->voxelRef = voxelRef;
+    pStackEntry->aabb = aabb;
+    pStackEntry->searchOrder = nullptr;
+    pStackEntry->searchIndex = 0;
+    pStackEntry->hit = false;
+    pStackEntry->hitFace = VoxelFace::None;
+    pStackEntry->entryDist = 0.0f;
+    pStackEntry->exitDist = 0.0f;
+    pStackEntry->hitPosLoc = Vec3(0.0f, 0.0f, 0.0f);
+}
 
 bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, Vec2 * pFaceUv, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth)
 {
@@ -567,123 +586,98 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
 
     AABB_MinMax rootAabb(root.rad);
 
-    *pVoxelRef = root.children;
 
-    VoxelFace voxelFace;
-    f32 entryDist;
-    f32 exitDist;
-    const SubVoxel * pSearchOrder;
-    Vec3 hitPosLoc;
 
-    bool hit = test_ray_box(&voxelFace, &entryDist, &exitDist, rayPosLoc, invRayDirLoc, rootAabb);
+    // put voxel root on recurse stack before iteration begins
+    u32 d = 0;
+    prep_stack_entry(&sStack[d], root.children, rootAabb);
 
-    if (hit)
+    sStack[d].hit = test_ray_box(&sStack[d].hitFace,
+                                 &sStack[d].entryDist,
+                                 &sStack[d].exitDist,
+                                 rayPosLoc,
+                                 invRayDirLoc,
+                                 sStack[d].aabb);
+
+    if (!sStack[d].hit || sStack[d].voxelRef.isTerminalEmpty())
     {
-        // don't think this should ever happen, as root voxel should never be terminal
-        ASSERT(!pVoxelRef->isTerminalEmpty());
+        return false;
+    }
 
-        eval_voxel_hit(&pSearchOrder,
-                       &hitPosLoc,
-                       voxelFace,
-                       entryDist,
-                       exitDist,
+    // else we hit, loop/recurse over children
+    for (;;)
+    {
+        eval_voxel_hit(&sStack[d].searchOrder,
+                       &sStack[d].hitPosLoc,
+                       sStack[d].hitFace,
+                       sStack[d].entryDist,
+                       sStack[d].exitDist,
                        rayPosLoc,
                        rayDirLoc,
-                       rootAabb);
+                       sStack[d].aabb);
 
-        if (pVoxelRef->isTerminalFull())
+        if (sStack[d].voxelRef.isTerminalFull())
         {
-            *pNormal = kNormals[(u32)voxelFace];
-            *pZDepth = entryDist;
-            *pFace = voxelFace;
-            *pFaceUv = calc_face_uv(voxelFace, hitPosLoc, rootAabb);
+            *pVoxelRef = sStack[d].voxelRef;
+            *pNormal = kNormals[(u32)sStack[d].hitFace];
+            *pZDepth = sStack[d].entryDist;
+            *pFace = sStack[d].hitFace;
+            *pFaceUv = calc_face_uv(sStack[d].hitFace, sStack[d].hitPosLoc, sStack[d].aabb);
             return true;
         }
-
-        u32 recurseDepth = 0;
-
-        VoxelRecurseInfo * pRi = &sRecurseStack[recurseDepth];
-        pRi->searchOrder = pSearchOrder;
-        pRi->searchIndex = 0;
-        pRi->aabb = rootAabb;
-        pRi->hit = hit;
-
-        for (;;)
+        else
         {
-            while (pRi->searchIndex < 8)
+            for (;;)
             {
-                AABB_MinMax aabb = voxel_subspace(pRi->aabb, pRi->searchOrder[pRi->searchIndex]);
-
-                pRi->hit = test_ray_box(&voxelFace, &entryDist, &exitDist, rayPosLoc, invRayDirLoc, aabb);
-
-                if (pRi->hit)
+                if (sStack[d].searchIndex >= 8)
                 {
-                    *pVoxelRef = voxelWorld.getVoxelRef(*pVoxelRef, pRi->searchOrder[pRi->searchIndex]);
-
-                    if (!pVoxelRef->isTerminalEmpty())
+                    if (d > 0)
                     {
-                        eval_voxel_hit(&pSearchOrder,
-                                       &hitPosLoc,
-                                       voxelFace,
-                                       entryDist,
-                                       exitDist,
-                                       rayPosLoc,
-                                       rayDirLoc,
-                                       aabb);
-                    }
-
-                    if (pVoxelRef->isTerminalFull())
-                    {
-                        *pNormal = kNormals[(u32)voxelFace];
-                        *pZDepth = entryDist;
-                        *pFace = voxelFace;
-                        *pFaceUv = calc_face_uv(voxelFace, hitPosLoc, aabb);
-                        // now conduct more specific test to find point of intersection
-
-
-                        return true;
-                    }
-                    else if (pVoxelRef->isTerminalEmpty())
-                    {
-                        pRi->searchIndex++;
-                        continue;
+                        d--;
+                        break;
                     }
                     else
                     {
-                        recurseDepth++;
-
-                        // LORRTODO: Either the geometry must prevent further depth, or we need a check here
-                        ASSERT(recurseDepth < kMaxDepth);
-
-                        pRi = &sRecurseStack[recurseDepth];
-
-                        pRi->searchOrder = pSearchOrder;
-                        pRi->searchIndex = 0;
-                        pRi->aabb = aabb;
-
-                        break;
+                        return false;
                     }
-                } // if (pRi->hit)
+                }
+                else
+                {
+                    VoxelRef childRef = voxelWorld.getVoxelRef(sStack[d].voxelRef, sStack[d].searchOrder[sStack[d].searchIndex]);
+                    AABB_MinMax childAabb = voxel_subspace(sStack[d].aabb,
+                                                           sStack[d].searchOrder[sStack[d].searchIndex]);
+                    sStack[d].searchIndex++; // increment so if we recurse back here to this level we move past this one
 
-                pRi->searchIndex++;
-            } // while (pRi->searchIndex < 8)
+                    if (childRef.isTerminalEmpty())
+                    {
+                        continue;
+                    }
 
-            if (!pRi->hit && recurseDepth > 0)
-            {
-                // we hit nothing in this voxel, recurse up a level
-                recurseDepth--;
-                continue; // pop stack and continue search
+                    VoxelRecurseInfo recInf;
+                    prep_stack_entry(&recInf, childRef, childAabb);
+                    recInf.hit = test_ray_box(&recInf.hitFace,
+                                              &recInf.entryDist,
+                                              &recInf.exitDist,
+                                              rayPosLoc,
+                                              invRayDirLoc,
+                                              recInf.aabb);
+                    if (recInf.hit)
+                    {
+                        d++;
+                        ASSERT(d < kMaxDepth);
+
+                        sStack[d] = recInf;
+                        break; // restart on parent for loop
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
             }
-            else
-            {
-                *pNormal = kNormals[0];
-
-                //return pRi->hit;
-                return false;
-            }
-        } // for (;;)
-
+        }
     }
+
     return false;
 }
 

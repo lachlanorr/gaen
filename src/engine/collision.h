@@ -96,6 +96,11 @@ struct AABB_MinMax
       : min{-rad, -rad, -rad}
       , max{rad, rad, rad}
     {}
+
+    Vec3 center() const
+    {
+        return min + ((max - min) / 2.0f);
+    }
 };
 
 struct AABB_MinDiam
