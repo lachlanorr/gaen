@@ -25,6 +25,11 @@
 #-------------------------------------------------------------------------------
 
 SET (shaders_codegen_SOURCES
+  ${shaders_dir}/compute_present.cpp
+  ${shaders_dir}/compute_present.h
+  ${shaders_dir}/compute_present.shd
+  ${shaders_dir}/compute_present.shf
+  ${shaders_dir}/compute_present.shv
   ${shaders_dir}/compute_test.cpp
   ${shaders_dir}/compute_test.h
   ${shaders_dir}/compute_test.shc

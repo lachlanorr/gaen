@@ -40,9 +40,16 @@
 
 #include "renderergl/RendererGL.h"
 
+#define RENDERTYPE_MESHES 0
+#define RENDERTYPE_CPUVOXEL 1
+#define RENDERTYPE_GPUVOXEL 2
+
+#define RENDERTYPE RENDERTYPE_CPUVOXEL
+
 namespace gaen
 {
 
+#if RENDERTYPE == RENDERTYPE_CPUVOXEL
 static f32 kPresentSurface[] = { -0.9f, -0.9f,          // pos 0
                                   0.0f,  0.0f,          // uv  0
                                   0.0f,  0.0f, -1.0f,   // ray dir 0
@@ -59,6 +66,20 @@ static f32 kPresentSurface[] = { -0.9f, -0.9f,          // pos 0
                                   1.0f,  1.0f,          // uv  3
                                   0.0f,  0.0f, -1.0f    // ray dir 3
 };
+#elif RENDERTYPE == RENDERTYPE_GPUVOXEL
+static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
+                                  0.0f,  0.0f, // uv  0
+
+                                  1.0f, -1.0f, // pos 1
+                                  1.0f,  0.0f, // uv  1
+
+                                 -1.0f,  1.0f, // pos 2
+                                  0.0f,  1.0f, // uv  2
+
+                                  1.0f,  1.0f, // pos 3
+                                  1.0f,  1.0f  // uv  3
+};
+#endif
 
 void RendererGL::init(device_context deviceContext,
                       render_context renderContext,
@@ -139,6 +160,7 @@ void RendererGL::initViewport()
     glBindBuffer(GL_ARRAY_BUFFER, mPresentVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(kPresentSurface), kPresentSurface, GL_STATIC_DRAW);
 
+#if RENDERTYPE == RENDERTYPE_CPUVOXEL
     mpPresentShader = getShader(HASH::present_texture);
     mpPresentShader->use();
 
@@ -153,17 +175,37 @@ void RendererGL::initViewport()
     // vertex ray
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 28, (void*)16);
     glEnableVertexAttribArray(2);
+#elif RENDERTYPE == RENDERTYPE_GPUVOXEL
+    mpPresentShader = getShader(HASH::compute_present);
+    mpPresentShader->use();
+
+    // vertex position
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 16, (void*)0);
+    glEnableVertexAttribArray(0);
+
+    // vertex UV
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 16, (void*)8);
+    glEnableVertexAttribArray(1);
+#endif
+
 
     // prep image
     glActiveTexture(GL_TEXTURE0 + 0);
     glGenTextures(1, &mPresentImage);
     glBindTexture(GL_TEXTURE_2D, mPresentImage);
     
+#if RENDERTYPE == RENDERTYPE_CPUVOXEL
     //glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG32F, kImgSize, kImgSize);
     glEnable(GL_TEXTURE_2D);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kImgSize, kImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+#elif RENDERTYPE == RENDERTYPE_GPUVOXEL
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG32F, kImgSize, kImgSize);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+#endif
+
 
     // prep voxel cast shader
     mpVoxelCast = getShader(HASH::compute_test);
@@ -216,7 +258,7 @@ void RendererGL::render()
     GL_CLEAR_DEPTH(1.0f);
 
 
-#if 1 // Shader simulator
+#if RENDERTYPE == RENDERTYPE_CPUVOXEL
     mShaderSim.render(mRaycastCamera, mDirectionalLights);
 
     mpPresentShader->use();
@@ -231,19 +273,18 @@ void RendererGL::render()
 
     glBindVertexArray(mPresentVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-#endif
 
-#if 0 // compute shader test
+#elif RENDERTYPE == RENDERTYPE_GPUVOXEL // #if RENDERTYPE == RENDERTYPE_CPUVOXEL
     mpVoxelCast->use();
-    glDispatchCompute(8, 8, 1);
+    glDispatchCompute(32, 64, 1);
 
     mpPresentShader->use();
 
     glBindVertexArray(mPresentVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-#endif
-    
-#if 0 // mesh rendering
+
+
+#elif RENDERTYPE == RENDERTYPE_MESHES
     ModelMgr<RendererGL>::MeshIterator meshIt = mpModelMgr->begin();
     ModelMgr<RendererGL>::MeshIterator meshItEnd = mpModelMgr->end();
 
@@ -291,7 +332,7 @@ void RendererGL::render()
 
         ++meshIt;
     }
-#endif
+#endif // #elif RENDERTYPE == RENDERTYPE_MESHES
 }
 
 template <typename T>
