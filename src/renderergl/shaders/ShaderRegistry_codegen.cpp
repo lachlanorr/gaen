@@ -29,7 +29,6 @@
 #include "renderergl/shaders/compute_present.h"
 #include "renderergl/shaders/compute_test.h"
 #include "renderergl/shaders/faceted.h"
-#include "renderergl/shaders/present_texture.h"
 #include "renderergl/shaders/voxel_cast.h"
 
 namespace gaen
@@ -40,7 +39,6 @@ void ShaderRegistry::registerAllShaderConstructors()
     registerShaderConstructor(HASH::compute_present, shaders::compute_present::construct);
     registerShaderConstructor(HASH::compute_test, shaders::compute_test::construct);
     registerShaderConstructor(HASH::faceted, shaders::faceted::construct);
-    registerShaderConstructor(HASH::present_texture, shaders::present_texture::construct);
     registerShaderConstructor(HASH::voxel_cast, shaders::voxel_cast::construct);
 }
 

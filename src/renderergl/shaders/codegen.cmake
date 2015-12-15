@@ -39,11 +39,6 @@ SET (shaders_codegen_SOURCES
   ${shaders_dir}/faceted.shd
   ${shaders_dir}/faceted.shf
   ${shaders_dir}/faceted.shv
-  ${shaders_dir}/present_texture.cpp
-  ${shaders_dir}/present_texture.h
-  ${shaders_dir}/present_texture.shd
-  ${shaders_dir}/present_texture.shf
-  ${shaders_dir}/present_texture.shv
   ${shaders_dir}/Shader.cpp
   ${shaders_dir}/Shader.h
   ${shaders_dir}/ShaderRegistry_codegen.cpp

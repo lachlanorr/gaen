@@ -229,7 +229,7 @@ void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
     farZ = 10000.0f;
 
     static const f32 kRad = 2.0f;
-    voxelRoot = set_shape_generic(voxelWorld, 0, 0, 5, Vec3(-3.0f, -2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
+    voxelRoot = set_shape_generic(voxelWorld, 0, 0, 5, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
 }
 
 void ShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights)

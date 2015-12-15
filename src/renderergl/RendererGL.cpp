@@ -44,29 +44,11 @@
 #define RENDERTYPE_CPUVOXEL 1
 #define RENDERTYPE_GPUVOXEL 2
 
-#define RENDERTYPE RENDERTYPE_CPUVOXEL
+#define RENDERTYPE RENDERTYPE_GPUVOXEL
 
 namespace gaen
 {
 
-#if RENDERTYPE == RENDERTYPE_CPUVOXEL
-static f32 kPresentSurface[] = { -0.9f, -0.9f,          // pos 0
-                                  0.0f,  0.0f,          // uv  0
-                                  0.0f,  0.0f, -1.0f,   // ray dir 0
-
-                                  0.9f, -0.9f,          // pos 1
-                                  1.0f,  0.0f,          // uv  1
-                                  0.0f,  0.0f, -1.0f,   // ray dir 1
-
-                                 -0.9f,  0.9f,          // pos 2
-                                  0.0f,  1.0f,          // uv  2
-                                  0.0f,  0.0f, -1.0f,   // ray dir 2
-
-                                  0.9f,  0.9f,          // pos 3
-                                  1.0f,  1.0f,          // uv  3
-                                  0.0f,  0.0f, -1.0f    // ray dir 3
-};
-#elif RENDERTYPE == RENDERTYPE_GPUVOXEL
 static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
                                   0.0f,  0.0f, // uv  0
 
@@ -79,7 +61,6 @@ static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
                                   1.0f,  1.0f, // pos 3
                                   1.0f,  1.0f  // uv  3
 };
-#endif
 
 void RendererGL::init(device_context deviceContext,
                       render_context renderContext,
@@ -160,22 +141,6 @@ void RendererGL::initViewport()
     glBindBuffer(GL_ARRAY_BUFFER, mPresentVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(kPresentSurface), kPresentSurface, GL_STATIC_DRAW);
 
-#if RENDERTYPE == RENDERTYPE_CPUVOXEL
-    mpPresentShader = getShader(HASH::present_texture);
-    mpPresentShader->use();
-
-    // vertex position
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 28, (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // vertex UV
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 28, (void*)8);
-    glEnableVertexAttribArray(1);
-
-    // vertex ray
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 28, (void*)16);
-    glEnableVertexAttribArray(2);
-#elif RENDERTYPE == RENDERTYPE_GPUVOXEL
     mpPresentShader = getShader(HASH::compute_present);
     mpPresentShader->use();
 
@@ -186,7 +151,6 @@ void RendererGL::initViewport()
     // vertex UV
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 16, (void*)8);
     glEnableVertexAttribArray(1);
-#endif
 
 
     // prep image
