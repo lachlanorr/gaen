@@ -33,22 +33,22 @@ namespace shaders
 {
 
 static const char * kShaderCode_shc =
-    "\n"
-    "layout (local_size_x = 32, local_size_y = 32) in;\n"
-    "\n"
-    "// An image to store data into\n"
-    "layout (binding=0, rg32f) uniform image2D data;\n"
-    "\n"
-    "void main(void)\n"
-    "{\n"
-    "    // Store the local invocation ID into the image\n"
-    "    imageStore(data,\n"
-    "               ivec2(gl_GlobalInvocationID.xy),\n"
-    "               vec4(vec2(gl_LocalInvocationID.xy) /\n"
-    "                    vec2(gl_WorkGroupSize.xy),\n"
-    "                    0.0, 0.0));\n"
-    "    \n"
-    "}\n"
+    "\n"
+    "layout (local_size_x = 32, local_size_y = 32) in;\n"
+    "\n"
+    "// An image to store data into\n"
+    "layout (binding=0, rg32f) uniform image2D data;\n"
+    "\n"
+    "void main(void)\n"
+    "{\n"
+    "    // Store the local invocation ID into the image\n"
+    "    imageStore(data,\n"
+    "               ivec2(gl_GlobalInvocationID.xy),\n"
+    "               vec4(vec2(gl_LocalInvocationID.xy) /\n"
+    "                    vec2(gl_WorkGroupSize.xy),\n"
+    "                    0.0, 0.0));\n"
+    "    \n"
+    "}\n"
     ; // kShaderCode_shc (END)
 
 Shader * voxel_cast::construct()

@@ -33,84 +33,84 @@ namespace shaders
 {
 
 static const char * kShaderCode_shv =
-    "#ifdef OPENGL3\n"
-    "\n"
-    "in vec4 vPosition;\n"
-    "in vec3 vNormal;\n"
-    "\n"
-    "uniform mat4 umMVP;\n"
-    "uniform mat3 umNormal;\n"
-    "uniform vec4 uvColor;\n"
-    "uniform vec3 uvLightDirection;\n"
-    "uniform vec4 uvLightColor;\n"
-    "\n"
-    "out vec4 vColor;\n"
-    "\n"
-    "void main()\n"
-    "{\n"
-    "    vec3 normalTrans = normalize(umNormal * vNormal);\n"
-    "    float intensity = max(dot(normalTrans, uvLightDirection), 0.0);\n"
-    "    intensity += min(intensity + 0.3, 1.0);\n"
-    "    vColor = intensity * uvColor;\n"
-    "    //vColor = vec4((umNormal * vNormal), 1.0);\n"
-    "    //vColor = vec4(dot(uvLightDirection, normalTrans));\n"
-    "    //vColor = abs(dot(uvLightDirection, normalTrans)) * uvColor;\n"
-    "    //vColor = vec4(abs(uvLightDirection), 1.0);\n"
-    "    //vColor = 0.5 * uvColor;\n"
-    "    //vColor = vec4(1.0, 1.0, 0.0, 0.6);\n"
-    "    gl_Position = umMVP * vPosition;\n"
-    "};\n"
-    "\n"
-    "\n"
-    "#else //#ifdef OPENGL3\n"
-    "#ifdef PLATFORM_IOS\n"
-    "precision mediump float;\n"
-    "#endif\n"
-    "attribute vec4 vPosition;\n"
-    "attribute vec3 vNormal;\n"
-    "\n"
-    "uniform mat4 umMVP;\n"
-    "uniform mat3 umNormal;\n"
-    "uniform vec4 uvColor;\n"
-    "uniform vec3 uvLightDirection;\n"
-    "uniform vec4 uvLightColor;\n"
-    "\n"
-    "varying vec4 vColor;\n"
-    "\n"
-    "void main()\n"
-    "{\n"
-    "    vec3 normalTrans = normalize(umNormal * vNormal);\n"
-    "    float intensity = max(dot(normalTrans, uvLightDirection), 0.0);\n"
-    "    intensity += min(intensity + 0.3, 1.0);\n"
-    "    vColor = intensity * uvColor;\n"
-    "    gl_Position = umMVP * vPosition;\n"
-    "};\n"
-    "#endif //#else //#ifdef OPENGL3\n"
+    "#ifdef OPENGL3\n"
+    "\n"
+    "in vec4 vPosition;\n"
+    "in vec3 vNormal;\n"
+    "\n"
+    "uniform mat4 umMVP;\n"
+    "uniform mat3 umNormal;\n"
+    "uniform vec4 uvColor;\n"
+    "uniform vec3 uvLightDirection;\n"
+    "uniform vec4 uvLightColor;\n"
+    "\n"
+    "out vec4 vColor;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    vec3 normalTrans = normalize(umNormal * vNormal);\n"
+    "    float intensity = max(dot(normalTrans, uvLightDirection), 0.0);\n"
+    "    intensity += min(intensity + 0.3, 1.0);\n"
+    "    vColor = intensity * uvColor;\n"
+    "    //vColor = vec4((umNormal * vNormal), 1.0);\n"
+    "    //vColor = vec4(dot(uvLightDirection, normalTrans));\n"
+    "    //vColor = abs(dot(uvLightDirection, normalTrans)) * uvColor;\n"
+    "    //vColor = vec4(abs(uvLightDirection), 1.0);\n"
+    "    //vColor = 0.5 * uvColor;\n"
+    "    //vColor = vec4(1.0, 1.0, 0.0, 0.6);\n"
+    "    gl_Position = umMVP * vPosition;\n"
+    "};\n"
+    "\n"
+    "\n"
+    "#else //#ifdef OPENGL3\n"
+    "#ifdef PLATFORM_IOS\n"
+    "precision mediump float;\n"
+    "#endif\n"
+    "attribute vec4 vPosition;\n"
+    "attribute vec3 vNormal;\n"
+    "\n"
+    "uniform mat4 umMVP;\n"
+    "uniform mat3 umNormal;\n"
+    "uniform vec4 uvColor;\n"
+    "uniform vec3 uvLightDirection;\n"
+    "uniform vec4 uvLightColor;\n"
+    "\n"
+    "varying vec4 vColor;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    vec3 normalTrans = normalize(umNormal * vNormal);\n"
+    "    float intensity = max(dot(normalTrans, uvLightDirection), 0.0);\n"
+    "    intensity += min(intensity + 0.3, 1.0);\n"
+    "    vColor = intensity * uvColor;\n"
+    "    gl_Position = umMVP * vPosition;\n"
+    "};\n"
+    "#endif //#else //#ifdef OPENGL3\n"
     ; // kShaderCode_shv (END)
 
 static const char * kShaderCode_shf =
-    "#ifdef OPENGL3\n"
-    "\n"
-    "in vec4 vColor;\n"
-    "out vec4 color;\n"
-    "\n"
-    "void main()\n"
-    "{\n"
-    "    color = vColor;\n"
-    "};\n"
-    "\n"
-    "#else // #ifdef OPENGL3\n"
-    "#if IS_PLATFORM_IOS\n"
-    "precision mediump float;\n"
-    "#endif\n"
-    "\n"
-    "varying vec4 vColor;\n"
-    "\n"
-    "void main()\n"
-    "{\n"
-    "    gl_FragColor = vColor;\n"
-    "};\n"
-    "#endif // #else // #ifdef OPENGL3\n"
+    "#ifdef OPENGL3\n"
+    "\n"
+    "in vec4 vColor;\n"
+    "out vec4 color;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    color = vColor;\n"
+    "};\n"
+    "\n"
+    "#else // #ifdef OPENGL3\n"
+    "#if IS_PLATFORM_IOS\n"
+    "precision mediump float;\n"
+    "#endif\n"
+    "\n"
+    "varying vec4 vColor;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    gl_FragColor = vColor;\n"
+    "};\n"
+    "#endif // #else // #ifdef OPENGL3\n"
     ; // kShaderCode_shf (END)
 
 Shader * faceted::construct()

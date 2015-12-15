@@ -372,13 +372,28 @@ void process_shader_program(ShaderInfo & si)
     for (ShaderSource & source : si.sources)
     {
         FileReader sourceRdr(source.path.c_str());
+
         Scoped_GFREE<char> sourceCode((char*)GALLOC(kMEM_Renderer, sourceRdr.size()+1)); // +1 for null we'll add to end
         sourceRdr.read(sourceCode.get(), sourceRdr.size());
         sourceCode.get()[sourceRdr.size()] = '\0';
-        source.code = sourceCode.get();
+
+        Scoped_GFREE<char> sourceCodeLF((char*)GALLOC(kMEM_Renderer, sourceRdr.size()+1)); // +1 for null we'll add to end
+        // copy excluding \r, we need to normalize to only \n so we don't get mixed line feeds in output
+        char * src = sourceCode.get();
+        char * dst = sourceCodeLF.get();
+        while (*src)
+        {
+            if (*src != '\r')
+                *dst++ = *src++;
+            else
+                src++;
+        }
+        *dst = '\0';
+
+        source.code = sourceCodeLF.get();
 
         GLuint shader;
-        bool sourceCompRes = compile_shader(&shader, source.type, sourceCode.get(), SHADER_HEADER);
+        bool sourceCompRes = compile_shader(&shader, source.type, sourceCodeLF.get(), SHADER_HEADER);
         if (!sourceCompRes)
         {
             PANIC("Failed to compile shader: %s", source.path.c_str());
@@ -525,13 +540,10 @@ S gen_shader_code_const(const char * rawCode)
     while (*bol)
     {
         eol = bol;
-        while (*eol && *eol != '\n' && *eol != '\r')
+        while (*eol && *eol != '\n')
         {
             eol++;
         }
-
-        if (*eol == '\r' && eol[1] == '\n')
-            eol++;
 
         code += S("    \"");
         code += S(bol, eol - bol);

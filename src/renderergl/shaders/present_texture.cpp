@@ -33,37 +33,37 @@ namespace shaders
 {
 
 static const char * kShaderCode_shv =
-    "layout(location = 0) in vec4 vPosition;\n"
-    "layout(location = 1) in vec2 vUV;\n"
-    "layout(location = 2) in vec3 vFrustum;\n"
-    "\n"
-    "out vec2 UV;\n"
-    "out vec3 frustum;\n"
-    "\n"
-    "void main()\n"
-    "{\n"
-    "    gl_Position = vPosition;\n"
-    "    UV = vUV;\n"
-    "    frustum = vFrustum;\n"
-    "};\n"
-    "\n"
+    "layout(location = 0) in vec4 vPosition;\n"
+    "layout(location = 1) in vec2 vUV;\n"
+    "layout(location = 2) in vec3 vFrustum;\n"
+    "\n"
+    "out vec2 UV;\n"
+    "out vec3 frustum;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    gl_Position = vPosition;\n"
+    "    UV = vUV;\n"
+    "    frustum = vFrustum;\n"
+    "};\n"
+    "\n"
     ; // kShaderCode_shv (END)
 
 static const char * kShaderCode_shf =
-    "in vec2 UV;\n"
-    "in vec3 frustum;\n"
-    "\n"
-    "out vec3 color;\n"
-    "\n"
-    "layout(binding=0) uniform sampler2D imageSampler;\n"
-    "\n"
-    "void main()\n"
-    "{\n"
-    "    color = texture(imageSampler, UV).rgb;\n"
-    "    //color = vec3(UV, 0.0);\n"
-    "    //color = frustum;\n"
-    "    //color = abs(vec3(gl_FragCoord.x / 1024.0, gl_FragCoord.y / 1024.0, 0.0));\n"
-    "};\n"
+    "in vec2 UV;\n"
+    "in vec3 frustum;\n"
+    "\n"
+    "out vec3 color;\n"
+    "\n"
+    "layout(binding=0) uniform sampler2D imageSampler;\n"
+    "\n"
+    "void main()\n"
+    "{\n"
+    "    color = texture(imageSampler, UV).rgb;\n"
+    "    //color = vec3(UV, 0.0);\n"
+    "    //color = frustum;\n"
+    "    //color = abs(vec3(gl_FragCoord.x / 1024.0, gl_FragCoord.y / 1024.0, 0.0));\n"
+    "};\n"
     ; // kShaderCode_shf (END)
 
 Shader * present_texture::construct()
