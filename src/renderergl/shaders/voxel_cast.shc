@@ -6,11 +6,15 @@ layout (binding=0, rg32f) uniform image2D data;
 
 void main(void)
 {
-    // Store the local invocation ID into the image
+    ivec2 coord = ivec2(gl_WorkGroupSize.x * gl_NumWorkGroups.x,
+                        gl_WorkGroupSize.y * gl_NumWorkGroups.y);
+
+    vec2 imageSize = vec2(coord);
+
+    vec4 color = vec4(gl_GlobalInvocationID.xy / imageSize, 0.0, 0.0);
+
     imageStore(data,
                ivec2(gl_GlobalInvocationID.xy),
-               vec4(vec2(gl_LocalInvocationID.xy) /
-                    vec2(gl_WorkGroupSize.xy),
-                    0.0, 0.0));
+               color);
     
 }
