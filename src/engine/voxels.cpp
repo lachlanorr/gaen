@@ -643,7 +643,7 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
                 }
                 else
                 {
-                    VoxelRef childRef = voxelWorld.getVoxelRef(sStack[d].voxelRef, sStack[d].searchOrder[sStack[d].searchIndex]);
+                    VoxelRef childRef = voxelWorld.voxelRef(sStack[d].voxelRef.imageIdx, sStack[d].voxelRef.voxelIdx, sStack[d].searchOrder[sStack[d].searchIndex]);
                     AABB_MinMax childAabb = voxel_subspace(sStack[d].aabb,
                                                            sStack[d].searchOrder[sStack[d].searchIndex]);
                     sStack[d].searchIndex++; // increment so if we recurse back here to this level we move past this one

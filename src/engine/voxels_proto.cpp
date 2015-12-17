@@ -83,14 +83,14 @@ static void set_shape_1(VoxelWorld & voxelWorld)
 
 static void set_shape_2(VoxelWorld & voxelWorld)
 {
-    VoxelRef vrLeftBottomBack   = voxelWorld.getVoxelRef(0, 0, SubVoxel::LeftBottomBack);
-    VoxelRef vrLeftBottomFront  = voxelWorld.getVoxelRef(0, 0, SubVoxel::LeftBottomFront);
-    VoxelRef vrLeftTopBack      = voxelWorld.getVoxelRef(0, 0, SubVoxel::LeftTopBack);
-    VoxelRef vrLeftTopFront     = voxelWorld.getVoxelRef(0, 0, SubVoxel::LeftTopFront);
-    VoxelRef vrRightBottomBack  = voxelWorld.getVoxelRef(0, 0, SubVoxel::RightBottomBack);
-    VoxelRef vrRightBottomFront = voxelWorld.getVoxelRef(0, 0, SubVoxel::RightBottomFront);
-    VoxelRef vrRightTopBack     = voxelWorld.getVoxelRef(0, 0, SubVoxel::RightTopBack);
-    VoxelRef vrRightTopFront    = voxelWorld.getVoxelRef(0, 0, SubVoxel::RightTopFront);
+    VoxelRef vrLeftBottomBack   = voxelWorld.voxelRef(0, 0, SubVoxel::LeftBottomBack);
+    VoxelRef vrLeftBottomFront  = voxelWorld.voxelRef(0, 0, SubVoxel::LeftBottomFront);
+    VoxelRef vrLeftTopBack      = voxelWorld.voxelRef(0, 0, SubVoxel::LeftTopBack);
+    VoxelRef vrLeftTopFront     = voxelWorld.voxelRef(0, 0, SubVoxel::LeftTopFront);
+    VoxelRef vrRightBottomBack  = voxelWorld.voxelRef(0, 0, SubVoxel::RightBottomBack);
+    VoxelRef vrRightBottomFront = voxelWorld.voxelRef(0, 0, SubVoxel::RightBottomFront);
+    VoxelRef vrRightTopBack     = voxelWorld.voxelRef(0, 0, SubVoxel::RightTopBack);
+    VoxelRef vrRightTopFront    = voxelWorld.voxelRef(0, 0, SubVoxel::RightTopFront);
 
 
     voxelWorld.setVoxelRef(0, 0, SubVoxel::LeftBottomBack,   VoxelRef::terminal_full(1));
@@ -126,84 +126,6 @@ static void set_shape_full(VoxelWorld & voxelWorld)
     voxelWorld.setVoxelRef(0, 0, SubVoxel::RightTopFront,    VoxelRef::terminal_full(1));
 }
 
-class SphereHitTest
-{
-public:
-    SphereHitTest(f32 radius)
-      : mRadius(radius) {}
-
-    bool operator()(const AABB_MinMax & aabb) const
-    {
-        f32 aabbLen = aabb.center().length();
-        return aabbLen < mRadius || abs(aabbLen - mRadius) <= (aabb.max.x() - aabb.min.x()) / 1.5f;
-    }
-private:
-    f32 mRadius;
-};
-
-template <class HitTestType>
-static VoxelRef set_shape_recursive(VoxelWorld & voxelWorld, u32 imageIdx, u32 & voxelIdx, u32 depth, const AABB_MinMax & aabb, HitTestType hitTest)
-{
-    if (depth == 0)
-    {
-        if (hitTest(aabb))
-            return VoxelRef::terminal_full(1);
-        else
-            return VoxelRef::terminal_empty();
-    }
-
-    AABB_MinMax aabbLbb = voxel_subspace(aabb, SubVoxel::LeftBottomBack);
-    AABB_MinMax aabbLbf = voxel_subspace(aabb, SubVoxel::LeftBottomFront);
-    AABB_MinMax aabbLtb = voxel_subspace(aabb, SubVoxel::LeftTopBack);
-    AABB_MinMax aabbLtf = voxel_subspace(aabb, SubVoxel::LeftTopFront);
-    AABB_MinMax aabbRbb = voxel_subspace(aabb, SubVoxel::RightBottomBack);
-    AABB_MinMax aabbRbf = voxel_subspace(aabb, SubVoxel::RightBottomFront);
-    AABB_MinMax aabbRtb = voxel_subspace(aabb, SubVoxel::RightTopBack);
-    AABB_MinMax aabbRtf = voxel_subspace(aabb, SubVoxel::RightTopFront);
-
-    bool lbbIn = hitTest(aabbLbb);
-    bool lbfIn = hitTest(aabbLbf);
-    bool ltbIn = hitTest(aabbLtb);
-    bool ltfIn = hitTest(aabbLtf);
-    bool rbbIn = hitTest(aabbRbb);
-    bool rbfIn = hitTest(aabbRbf);
-    bool rtbIn = hitTest(aabbRtb);
-    bool rtfIn = hitTest(aabbRtf);
-
-    VoxelRef lbb = lbbIn ? set_shape_recursive(voxelWorld, imageIdx, voxelIdx, depth-1, aabbLbb, hitTest) : VoxelRef::terminal_empty();
-    VoxelRef lbf = lbfIn ? set_shape_recursive(voxelWorld, imageIdx, voxelIdx, depth-1, aabbLbf, hitTest) : VoxelRef::terminal_empty();
-    VoxelRef ltb = ltbIn ? set_shape_recursive(voxelWorld, imageIdx, voxelIdx, depth-1, aabbLtb, hitTest) : VoxelRef::terminal_empty();
-    VoxelRef ltf = ltfIn ? set_shape_recursive(voxelWorld, imageIdx, voxelIdx, depth-1, aabbLtf, hitTest) : VoxelRef::terminal_empty();
-    VoxelRef rbb = rbbIn ? set_shape_recursive(voxelWorld, imageIdx, voxelIdx, depth-1, aabbRbb, hitTest) : VoxelRef::terminal_empty();
-    VoxelRef rbf = rbfIn ? set_shape_recursive(voxelWorld, imageIdx, voxelIdx, depth-1, aabbRbf, hitTest) : VoxelRef::terminal_empty();
-    VoxelRef rtb = rtbIn ? set_shape_recursive(voxelWorld, imageIdx, voxelIdx, depth-1, aabbRtb, hitTest) : VoxelRef::terminal_empty();
-    VoxelRef rtf = rtfIn ? set_shape_recursive(voxelWorld, imageIdx, voxelIdx, depth-1, aabbRtf, hitTest) : VoxelRef::terminal_empty();
-
-
-    voxelWorld.setVoxelRef(imageIdx, voxelIdx, SubVoxel::LeftBottomBack,   lbb);
-    voxelWorld.setVoxelRef(imageIdx, voxelIdx, SubVoxel::LeftBottomFront,  lbf);
-    voxelWorld.setVoxelRef(imageIdx, voxelIdx, SubVoxel::LeftTopBack,      ltb);
-    voxelWorld.setVoxelRef(imageIdx, voxelIdx, SubVoxel::LeftTopFront,     ltf);
-    voxelWorld.setVoxelRef(imageIdx, voxelIdx, SubVoxel::RightBottomBack,  rbb);
-    voxelWorld.setVoxelRef(imageIdx, voxelIdx, SubVoxel::RightBottomFront, rbf);
-    voxelWorld.setVoxelRef(imageIdx, voxelIdx, SubVoxel::RightTopBack,     rtb);
-    voxelWorld.setVoxelRef(imageIdx, voxelIdx, SubVoxel::RightTopFront,    rtf);
-
-    VoxelRef ret = VoxelRef(1, imageIdx, voxelIdx);
-    voxelIdx++;
-    return ret;
-}
-
-template <class HitTestType>
-static VoxelRoot set_shape_generic(VoxelWorld & voxelWorld, u32 imageIdx, u32 voxelIdx, u32 depth, const Vec3 & pos, f32 rad, const Mat3 & rot, HitTestType hitTest)
-{
-    VoxelRoot voxelRoot;
-    voxelRoot.pos = pos;
-    voxelRoot.rad = rad;
-    voxelRoot.rot = rot;
-    voxelRoot.children = set_shape_recursive(voxelWorld, imageIdx, voxelIdx, depth, AABB_MinMax(rad), hitTest);
-    return voxelRoot;
-}
 
 
 void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)

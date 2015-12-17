@@ -1,8 +1,11 @@
 
 layout (local_size_x = 16, local_size_y = 16) in;
 
-// An image to store data into
-layout (binding=0, rg32f) uniform image2D data;
+// frameBuffer output
+layout (rg32f, binding=0) uniform image2D frameBuffer;
+
+// Voxel world data
+layout (rg32ui, binding=1) uniform uimageBuffer voxelData;
 
 void main(void)
 {
@@ -13,8 +16,11 @@ void main(void)
 
     vec4 color = vec4(gl_GlobalInvocationID.xy / imageSize, 0.0, 0.0);
 
-    imageStore(data,
+    uvec4 voxel = imageLoad(voxelData, int(gl_GlobalInvocationID.y * coord.x + gl_GlobalInvocationID.x));
+
+    imageStore(frameBuffer,
                ivec2(gl_GlobalInvocationID.xy),
-               color);
+               vec4(voxel.xy, 0.0, 0.0));
+//               vec4(1.0,1.0,0,0));
     
 }

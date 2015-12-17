@@ -54,6 +54,8 @@ public:
     void setUniformMat3(u32 nameHash, const Mat3 & value);
     void setUniformMat4(u32 nameHash, const Mat4 & value);
 
+    u32 textureUnit(u32 nameHash, u32 type);
+
     static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode = nullptr);
 
 protected:

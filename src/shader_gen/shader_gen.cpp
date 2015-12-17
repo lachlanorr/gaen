@@ -91,6 +91,10 @@ const char * get_type_name(GLenum type)
         return "GL_FLOAT_MAT4";
     case GL_IMAGE_2D:
         return "GL_IMAGE_2D";
+    case GL_UNSIGNED_INT_IMAGE_2D:
+        return "GL_UNSIGNED_INT_IMAGE_2D";
+    case GL_UNSIGNED_INT_IMAGE_BUFFER:
+        return "GL_UNSIGNED_INT_IMAGE_BUFFER";
     case GL_SAMPLER_2D:
         return "GL_SAMPLER_2D";
     }

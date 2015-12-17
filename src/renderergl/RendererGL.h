@@ -97,6 +97,8 @@ private:
     GLuint mPresentImage;
     shaders::Shader * mpPresentShader;
 
+    GLuint mVoxelDataImage;
+    GLuint mVoxelData;
 
     Mat4 mProjection;
     Mat4 mGuiProjection;
@@ -118,6 +120,9 @@ private:
     static const u32 kImgSize = 256;
 
     RaycastCamera mRaycastCamera;
+
+    VoxelWorld mVoxelWorld;
+    VoxelRoot mVoxelRoot;
 };
 
 

@@ -156,6 +156,13 @@ void Shader::setUniformMat4(u32 nameHash, const Mat4 & value)
     glUniformMatrix4fv(pUniform->index, 1, 0, value.elems);
 }
 
+u32 Shader::textureUnit(u32 nameHash, u32 type)
+{
+    VariableInfo * pUniform = findUniform(nameHash, type);
+    PANIC_IF(!pUniform, "Texture does not exist in shader");
+    return pUniform->index;
+}
+
 bool Shader::compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode)
 {
     const char * shaderCodes[2];
