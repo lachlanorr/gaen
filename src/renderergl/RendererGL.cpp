@@ -44,7 +44,7 @@
 #define RENDERTYPE_CPUVOXEL 1
 #define RENDERTYPE_GPUVOXEL 2
 
-#define RENDERTYPE RENDERTYPE_GPUVOXEL
+#define RENDERTYPE RENDERTYPE_CPUVOXEL
 
 namespace gaen
 {
@@ -160,7 +160,7 @@ void RendererGL::initViewport()
     glBindTexture(GL_TEXTURE_2D, mPresentImage);
 
     glEnable(GL_TEXTURE_2D);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kImgSize, kImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, kImgSize, kImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 #elif RENDERTYPE == RENDERTYPE_GPUVOXEL
@@ -177,11 +177,11 @@ void RendererGL::initViewport()
     glGenTextures(1, &mPresentImage);
     glBindTexture(GL_TEXTURE_2D, mPresentImage);
 
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RG32F, kImgSize, kImgSize);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, kImgSize, kImgSize);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    glBindImageTexture(frameBufferTextureUnit, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
+    glBindImageTexture(frameBufferTextureUnit, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 
 
     u32 voxelDataTextureUnit = mpVoxelCast->textureUnit(HASH::voxelData, GL_UNSIGNED_INT_IMAGE_BUFFER);
@@ -255,7 +255,7 @@ void RendererGL::render()
     glActiveTexture(GL_TEXTURE0 + 0);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, mPresentImage);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, kImgSize, kImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, mShaderSim.frameBuffer());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, kImgSize, kImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, mShaderSim.frameBuffer());
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     //glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGB8);
@@ -265,7 +265,7 @@ void RendererGL::render()
 
 #elif RENDERTYPE == RENDERTYPE_GPUVOXEL // #if RENDERTYPE == RENDERTYPE_CPUVOXEL
     mpVoxelCast->use();
-    glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RG32F);
+    glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
     glBindImageTexture(1, mVoxelDataImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32UI);
     glDispatchCompute(16, 16, 1);
 
