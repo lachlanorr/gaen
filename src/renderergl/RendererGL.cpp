@@ -44,11 +44,14 @@
 #define RENDERTYPE_CPUVOXEL 1
 #define RENDERTYPE_GPUVOXEL 2
 
-#define RENDERTYPE RENDERTYPE_CPUVOXEL
+#define RENDERTYPE RENDERTYPE_GPUVOXEL
 
 namespace gaen
 {
 
+
+#if RENDERTYPE == RENDERTYPE_CPUVOXEL
+static const u32 kPresentImgSize = 256;
 static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
                                   0.0f,  0.0f, // uv  0
 
@@ -61,6 +64,22 @@ static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
                                   1.0f,  1.0f, // pos 3
                                   1.0f,  1.0f  // uv  3
 };
+#elif RENDERTYPE == RENDERTYPE_GPUVOXEL
+static const u32 kPresentImgSize = 2048;
+static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
+                                  0.0f,  0.0f, // uv  0
+
+                                  1.0f, -1.0f, // pos 1
+                                  1280.0f / 2048.0f,  0.0f, // uv  1
+
+                                 -1.0f,  1.0f, // pos 2
+                                  0.0f,  720.0f / 2048.0f, // uv  2
+
+                                  1.0f,  1.0f, // pos 3
+                                  1280.0f / 2048.0f,  720.0f / 2048.0f  // uv  3
+};
+#endif
+
 
 void RendererGL::init(device_context deviceContext,
                       render_context renderContext,
@@ -74,7 +93,9 @@ void RendererGL::init(device_context deviceContext,
 
     mpModelMgr = GNEW(kMEM_Engine, ModelMgr<RendererGL>, *this);
 
-    mShaderSim.init(kImgSize, &mRaycastCamera);
+#if RENDERTYPE == RENDERTYPE_CPUVOXEL
+    mShaderSim.init(kPresentImgSize, &mRaycastCamera);
+#endif
 
     mIsInit = true;
 }
@@ -113,7 +134,9 @@ void RendererGL::initViewport()
     // reset viewport
     glViewport(0, 0, mScreenWidth, mScreenHeight);
 
+#if RENDERTYPE == RENDERTYPE_CPUVOXEL
     mRaycastCamera.init(mScreenWidth, mScreenHeight, 60.0f, 0.1f, 1000.0f);
+#endif
 
     // setup projection with current width/height
     mProjection = Mat4::perspective(60.0f,
@@ -160,7 +183,7 @@ void RendererGL::initViewport()
     glBindTexture(GL_TEXTURE_2D, mPresentImage);
 
     glEnable(GL_TEXTURE_2D);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, kImgSize, kImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, kPresentImgSize, kPresentImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 #elif RENDERTYPE == RENDERTYPE_GPUVOXEL
@@ -177,7 +200,7 @@ void RendererGL::initViewport()
     glGenTextures(1, &mPresentImage);
     glBindTexture(GL_TEXTURE_2D, mPresentImage);
 
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, kImgSize, kImgSize);
+    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, kPresentImgSize, kPresentImgSize);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -255,7 +278,7 @@ void RendererGL::render()
     glActiveTexture(GL_TEXTURE0 + 0);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, mPresentImage);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, kImgSize, kImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, mShaderSim.frameBuffer());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, kPresentImgSize, kPresentImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, mShaderSim.frameBuffer());
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     //glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGB8);
@@ -267,7 +290,7 @@ void RendererGL::render()
     mpVoxelCast->use();
     glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
     glBindImageTexture(1, mVoxelDataImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32UI);
-    glDispatchCompute(16, 16, 1);
+    glDispatchCompute(40, 45, 1);
 
     mpPresentShader->use();
 

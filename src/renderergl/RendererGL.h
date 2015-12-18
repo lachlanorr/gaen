@@ -117,8 +117,6 @@ private:
     // LORRTODO: temp voxel experiment stuff
     ShaderSimulator mShaderSim;
 
-    static const u32 kImgSize = 256;
-
     RaycastCamera mRaycastCamera;
 
     VoxelWorld mVoxelWorld;
