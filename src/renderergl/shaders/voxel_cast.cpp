@@ -34,7 +34,7 @@ namespace shaders
 
 static const char * kShaderCode_shc =
     "\n"
-    "layout (local_size_x = 32, local_size_y = 16) in;\n"
+    "layout (local_size_x = 16, local_size_y = 16) in;\n"
     "\n"
     "// frameBuffer output\n"
     "layout (rgba8, binding=0) uniform image2D frameBuffer;\n"
@@ -42,7 +42,7 @@ static const char * kShaderCode_shc =
     "// Voxel world data\n"
     "layout (rg32ui, binding=1) uniform uimageBuffer voxelData;\n"
     "\n"
-    "//layout (binding=2) uniform \n"
+    "//layout (binding=2) uniform\n"
     "\n"
     "\n"
     "void main(void)\n"
