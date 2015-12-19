@@ -290,7 +290,7 @@ void RendererGL::render()
     mpVoxelCast->use();
     glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
     glBindImageTexture(1, mVoxelDataImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32UI);
-    glDispatchCompute(40, 45, 1);
+    glDispatchCompute(80, 45, 1);
 
     mpPresentShader->use();
 
