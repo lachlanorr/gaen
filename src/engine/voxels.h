@@ -55,6 +55,12 @@ struct Pix_RGB8
         , g(g)
         , b(b)
     {}
+
+    Pix_RGB8(f32 r, f32 g, f32 b)
+        : r((u8)(r * 255.0))
+        , g((u8)(g * 255.0))
+        , b((u8)(b * 255.0))
+    {}
 };
 
 struct Pix_RGBA8

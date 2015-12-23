@@ -40,17 +40,11 @@
 
 #include "renderergl/RendererGL.h"
 
-#define RENDERTYPE_MESH 0
-#define RENDERTYPE_CPUVOXEL 1
-#define RENDERTYPE_GPUVOXEL 2
-
-#define RENDERTYPE RENDERTYPE_GPUVOXEL
-
 namespace gaen
 {
 
 
-#if RENDERTYPE == RENDERTYPE_CPUVOXEL
+#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL
 static const u32 kPresentImgSize = 256;
 static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
                                   0.0f,  0.0f, // uv  0
@@ -63,6 +57,20 @@ static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
 
                                   1.0f,  1.0f, // pos 3
                                   1.0f,  1.0f  // uv  3
+};
+#elif RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
+static const u32 kPresentImgSize = 512;
+static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
+                                  0.0f,  0.0f, // uv  0
+
+                                  1.0f, -1.0f, // pos 1
+                                  320.0f / kPresentImgSize,  0.0f, // uv  1
+
+                                 -1.0f,  1.0f, // pos 2
+                                  0.0f,  192.0f / kPresentImgSize, // uv  2
+
+                                  1.0f,  1.0f, // pos 3
+                                  320.0f / kPresentImgSize, 192.0f / kPresentImgSize  // uv  3
 };
 #elif RENDERTYPE == RENDERTYPE_GPUVOXEL
 static const u32 kPresentImgSize = 2048;
@@ -93,8 +101,10 @@ void RendererGL::init(device_context deviceContext,
 
     mpModelMgr = GNEW(kMEM_Engine, ModelMgr<RendererGL>, *this);
 
-#if RENDERTYPE == RENDERTYPE_CPUVOXEL
+#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL
     mShaderSim.init(kPresentImgSize, &mRaycastCamera);
+#elif RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
+    mShaderSim.init(UVec3(16, 16, 1), UVec3(20, 12, 1));
 #endif
 
     mIsInit = true;
@@ -134,7 +144,7 @@ void RendererGL::initViewport()
     // reset viewport
     glViewport(0, 0, mScreenWidth, mScreenHeight);
 
-#if RENDERTYPE == RENDERTYPE_CPUVOXEL
+#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
     mRaycastCamera.init(mScreenWidth, mScreenHeight, 60.0f, 0.1f, 1000.0f);
 #endif
 
@@ -176,7 +186,7 @@ void RendererGL::initViewport()
     glEnableVertexAttribArray(1);
 
 
-#if RENDERTYPE == RENDERTYPE_CPUVOXEL
+#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
     // prep image
     glActiveTexture(GL_TEXTURE0 + 0);
     glGenTextures(1, &mPresentImage);
@@ -270,7 +280,7 @@ void RendererGL::render()
     GL_CLEAR_DEPTH(1.0f);
 
 
-#if RENDERTYPE == RENDERTYPE_CPUVOXEL
+#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
     mShaderSim.render(mRaycastCamera, mDirectionalLights);
 
     mpPresentShader->use();
@@ -286,7 +296,7 @@ void RendererGL::render()
     glBindVertexArray(mPresentVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-#elif RENDERTYPE == RENDERTYPE_GPUVOXEL // #if RENDERTYPE == RENDERTYPE_CPUVOXEL
+#elif RENDERTYPE == RENDERTYPE_GPUVOXEL // #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL
     mpVoxelCast->use();
     glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
     glBindImageTexture(1, mVoxelDataImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32UI);

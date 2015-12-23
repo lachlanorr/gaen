@@ -38,9 +38,76 @@
 namespace gaen
 {
 
+struct UVec3
+{
+    u32 x;
+    u32 y;
+    u32 z;
+
+    UVec3()
+      : x(0)
+      , y(0)
+      , z(0)
+    {}
+
+    UVec3(u32 x, u32 y, u32 z)
+      : x(x)
+      , y(y)
+      , z(z)
+    {}
+
+    UVec3 operator+(const UVec3 & rhs)
+    {
+        return UVec3(x + rhs.x, y + rhs.y, z + rhs.z);
+    }
+
+    UVec3 operator*(const UVec3 & rhs)
+    {
+        return UVec3(x * rhs.x, y * rhs.y, z * rhs.z);
+    }
+};
+
+struct ComputeCamera
+{
+    Vec3 position;
+    Vec4 direction;
+    Mat4 projectionInv;
+};
+
+class ComputeShaderSimulator
+{
+public:
+    ~ComputeShaderSimulator();
+
+    void init(UVec3 workGroupSize,
+              UVec3 numWorkGroups);
+
+    const u8 * frameBuffer() { return uni_FrameBuffer->buffer(); }
+
+    void render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights);
+
+private:
+    void compShader_Test();
+
+    // uniforms
+    ComputeCamera uni_Camera;
+    ImageBuffer * uni_FrameBuffer = nullptr;
 
 
-class ShaderSimulator
+    // glsl variables
+    UVec3 gl_WorkGroupSize;
+    UVec3 gl_NumWorkGroups;
+
+    UVec3 gl_LocalInvocationID;
+    UVec3 gl_WorkGroupID;
+
+    UVec3 gl_GlobalInvocationID;
+    u32 gl_LocalInvocationIndex;
+};
+
+
+
+class FragmentShaderSimulator
 {
 public:
     enum ImageIndex
@@ -50,8 +117,8 @@ public:
 //        kIMID_
     };
     
-    ShaderSimulator();
-    ~ShaderSimulator();
+    FragmentShaderSimulator();
+    ~FragmentShaderSimulator();
 
     void init(u32 outputImageSize, RaycastCamera * pRaycastCamera);
     const u8 * frameBuffer() { return mFrameBuffer->buffer(); }

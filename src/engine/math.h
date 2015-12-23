@@ -111,6 +111,7 @@ Vec3 operator/ (const Vec3 & lhs, const Vec3 & rhs);
 
 Vec3 triNormal(const Vec3 & p0, const Vec3 & p1, const Vec3 & p2);
 
+struct Quat;
 struct Vec4
 {
     Vec4() = default;
@@ -119,6 +120,7 @@ struct Vec4
     Vec4(const Vec3 &vec3, f32 w);
     Vec4(const Vec2 &vec2);
     Vec4(const Vec2 &vec2, f32 w);
+    Vec4(const Quat &quat);
 
     f32 length() const;
     void normalize();
@@ -613,6 +615,14 @@ inline Vec4::Vec4(const Vec3 &vec3, f32 w)
     elems[1] = vec3.y();
     elems[2] = vec3.z();
     elems[3] = w;
+}
+
+inline Vec4::Vec4(const Quat &quat)
+{
+    elems[0] = quat.elems[0];
+    elems[1] = quat.elems[1];
+    elems[2] = quat.elems[2];
+    elems[3] = quat.elems[3];
 }
 
 inline f32 Vec4::length() const 

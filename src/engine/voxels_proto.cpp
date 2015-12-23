@@ -32,9 +32,111 @@
 namespace gaen
 {
 
-ShaderSimulator::ShaderSimulator()
+//------------------------------------------------------------------------------
+// GLSL Fucntions
+//------------------------------------------------------------------------------
+inline Vec3 quat_multiply(const Vec4 & qlhs, const Vec3 & vrhs)
+{
+    float x2 = qlhs.x() * 2.0f;
+    float y2 = qlhs.y() * 2.0f;
+    float z2 = qlhs.z() * 2.0f;
+    float xx2 = qlhs.x() * x2;
+    float yy2 = qlhs.y() * y2;
+    float zz2 = qlhs.z() * z2;
+    float xy2 = qlhs.x() * y2;
+    float xz2 = qlhs.x() * z2;
+    float yz2 = qlhs.y() * z2;
+    float wx2 = qlhs.w() * x2;
+    float wy2 = qlhs.w() * y2;
+    float wz2 = qlhs.w() * z2;
+
+    Vec3 vres;
+    vres.x() = (1.0f - (yy2 + zz2)) * vrhs.x() + (xy2 - wz2) * vrhs.y() + (xz2 + wy2) * vrhs.z();
+    vres.y() = (xy2 + wz2) * vrhs.x() + (1.0f - (xx2 + zz2)) * vrhs.y() + (yz2 - wx2) * vrhs.z();
+    vres.z() = (xz2 - wy2) * vrhs.x() + (yz2 + wx2) * vrhs.y() + (1.0f - (xx2 + yy2)) * vrhs.z();
+    return vres;
+}
+//------------------------------------------------------------------------------
+// GLSL Fucntions (END)
+//------------------------------------------------------------------------------
+
+ComputeShaderSimulator::~ComputeShaderSimulator()
+{
+    if (uni_FrameBuffer)
+        GDELETE(uni_FrameBuffer);
+}
+
+void ComputeShaderSimulator::init(UVec3 workGroupSize,
+                                  UVec3 numWorkGroups)
+{
+    static const u32 kFrameBufferSize = 512;
+    ASSERT(workGroupSize.x * numWorkGroups.x <= kFrameBufferSize);
+    ASSERT(workGroupSize.y * numWorkGroups.y <= kFrameBufferSize);
+
+    uni_FrameBuffer = GNEW(kMEM_Engine, ImageBuffer, kFrameBufferSize, sizeof(Pix_RGB8));
+
+    gl_WorkGroupSize = workGroupSize;
+    gl_NumWorkGroups = numWorkGroups;
+
+
+//    static const f32 kRad = 2.0f;
+//    voxelRoot = set_shape_generic(voxelWorld, 0, 0, 3, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
+}
+
+void ComputeShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights)
+{
+    // prpare uniforms
+    uni_Camera.position = camera.position();
+    uni_Camera.direction = Vec4(camera.direction());
+    uni_Camera.projectionInv = camera.projectionInv();
+
+
+    for (gl_WorkGroupID.z = 0; gl_WorkGroupID.z < gl_NumWorkGroups.z; ++gl_WorkGroupID.z)
+    {
+        for (gl_WorkGroupID.y = 0; gl_WorkGroupID.y < gl_NumWorkGroups.y; ++gl_WorkGroupID.y)
+        {
+            for (gl_WorkGroupID.x = 0; gl_WorkGroupID.x < gl_NumWorkGroups.x; ++gl_WorkGroupID.x)
+            {
+                for (gl_LocalInvocationID.z = 0; gl_LocalInvocationID.z < gl_WorkGroupSize.z; ++gl_LocalInvocationID.z)
+                {
+                    for (gl_LocalInvocationID.y = 0; gl_LocalInvocationID.y < gl_WorkGroupSize.y; ++gl_LocalInvocationID.y)
+                    {
+                        for (gl_LocalInvocationID.x = 0; gl_LocalInvocationID.x < gl_WorkGroupSize.x; ++gl_LocalInvocationID.x)
+                        {
+                            gl_GlobalInvocationID = gl_WorkGroupID * gl_WorkGroupSize + gl_LocalInvocationID;
+                            gl_LocalInvocationIndex = (gl_LocalInvocationID.z * gl_WorkGroupSize.x * gl_WorkGroupSize.y +
+                                                       gl_LocalInvocationID.y * gl_WorkGroupSize.x + gl_LocalInvocationID.x);
+
+
+//                            LOG_INFO("%2u, %2u   %2u, %2u", gl_WorkGroupID.y, gl_WorkGroupID.x, gl_LocalInvocationID.y, gl_LocalInvocationID.x);
+                            LOG_INFO("%u, %u     %u, %u", gl_GlobalInvocationID.y, gl_GlobalInvocationID.x, gl_LocalInvocationID.y, gl_LocalInvocationID.x);
+//                            LOG_INFO("%u, %u", gl_GlobalInvocationID.y, gl_GlobalInvocationID.x);
+
+                            compShader_Test();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ComputeShaderSimulator::compShader_Test()
+{
+    f32 rCol = (f32)gl_LocalInvocationID.x / (f32)gl_WorkGroupSize.x;
+    f32 gCol = (f32)gl_LocalInvocationID.y / (f32)gl_WorkGroupSize.y;
+
+    uni_FrameBuffer->imageStoreRGB8(gl_GlobalInvocationID.x,
+                                    gl_GlobalInvocationID.y,
+                                    Pix_RGB8((f32)gl_LocalInvocationID.x / (f32)gl_WorkGroupSize.x,
+                                             (f32)gl_LocalInvocationID.y / (f32)gl_WorkGroupSize.y,
+                                             0.0f));
+}
+
+
+FragmentShaderSimulator::FragmentShaderSimulator()
   : mpRaycastCamera(nullptr)
-  , color(0, 0, 0)
+  , color((u8)0, (u8)0, (u8)0)
 {
     mIsInit = false;
     mFrameBuffer = nullptr;
@@ -42,7 +144,7 @@ ShaderSimulator::ShaderSimulator()
     mDepthBufferBlank = nullptr;
 }
 
-ShaderSimulator::~ShaderSimulator()
+FragmentShaderSimulator::~FragmentShaderSimulator()
 {
     if (mIsInit)
     {
@@ -128,7 +230,7 @@ static void set_shape_full(VoxelWorld & voxelWorld)
 
 
 
-void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
+void FragmentShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
 {
     mFrameBuffer = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(Pix_RGB8));
     mDepthBuffer = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(Pix_R32F));
@@ -151,10 +253,10 @@ void ShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
     farZ = 10000.0f;
 
     static const f32 kRad = 2.0f;
-    voxelRoot = set_shape_generic(voxelWorld, 0, 0, 5, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
+    voxelRoot = set_shape_generic(voxelWorld, 0, 0, 3, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
 }
 
-void ShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights)
+void FragmentShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights)
 {
     projectionInv = camera.projectionInv();
 
@@ -199,7 +301,7 @@ void ShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Rende
     uniform0++;
 }
 
-void ShaderSimulator::fragShader_Blue()
+void FragmentShaderSimulator::fragShader_Blue()
 {
     static u8 g = 0;
     color.r = 255;
@@ -207,7 +309,7 @@ void ShaderSimulator::fragShader_Blue()
     color.b = 255;
 }
 
-void ShaderSimulator::fragShader_Raycast()
+void FragmentShaderSimulator::fragShader_Raycast()
 {
     Vec3 rayScreenPos(2.0f * gl_FragCoord.x / windowSize.x() - 1.0f,
                       2.0f * gl_FragCoord.y / windowSize.y() - 1.0f,

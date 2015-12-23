@@ -43,6 +43,13 @@
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/ShaderRegistry.h"
 
+#define RENDERTYPE_MESH 0
+#define RENDERTYPE_CPUFRAGVOXEL 1
+#define RENDERTYPE_CPUCOMPVOXEL 2
+#define RENDERTYPE_GPUVOXEL 3
+
+#define RENDERTYPE RENDERTYPE_CPUCOMPVOXEL
+
 namespace gaen
 {
 class RendererGL
@@ -115,7 +122,11 @@ private:
 
 
     // LORRTODO: temp voxel experiment stuff
-    ShaderSimulator mShaderSim;
+#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL
+    FragmentShaderSimulator mShaderSim;
+#elif RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
+    ComputeShaderSimulator mShaderSim;
+#endif
 
     RaycastCamera mRaycastCamera;
 
