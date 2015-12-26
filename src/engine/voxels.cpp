@@ -533,11 +533,19 @@ void ImageBuffer::copy(const ImageBuffer & sourceBuffer)
 }
 
 VoxelWorld::VoxelWorld()
+  : mVoxelRoots(512, sizeof(RG32U))
 {
     mImages.reserve(kImageCount);
-    mImages.emplace_back(kImageSize, sizeof(Pix_RG32U));
+    mImages.emplace_back(kImageSize, sizeof(RG32U));
 }
 
+
+void VoxelWorld::addVoxelRoot(const VoxelRoot & voxelRoot)
+{
+    VoxelRoot * pVr = reinterpret_cast<VoxelRoot*>(mVoxelRoots.buffer());
+    pVr[mVoxelRootCount] = voxelRoot;
+    mVoxelRootCount++;
+}
 
 
 static const u32 kMaxDepth = 32;
@@ -555,7 +563,6 @@ struct VoxelRecurseInfo
     Vec3 hitPosLoc;
 };
 
-static VoxelRecurseInfo sRecurseStack[kMaxDepth];
 static VoxelRecurseInfo sStack[kMaxDepth];
 
 inline void prep_stack_entry(VoxelRecurseInfo * pStackEntry, const VoxelRef & voxelRef, const AABB_MinMax & aabb)
@@ -678,6 +685,126 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
         }
     }
 
+    return false;
+}
+
+
+bool test_ray_voxel_gpu(VoxelRef & voxelRef, // out
+                        Vec3 & normal,       // out
+                        f32 & zDepth,        // out
+                        u32 & face,          // out
+                        Vec2 & faceUv,       // out
+                        const ImageBuffer * voxelData,
+                        const Vec3 & rayPos,
+                        const Vec3 & rayDir,
+                        const VoxelRoot & root,
+                        u32 maxDepth)
+{
+    // put ray into this voxel's space, so voxel is at 0,0,0 and 0,0,0 rotation
+    // from ray's perspective.
+
+    // Translate ray
+    Vec3 rayPosLoc = rayPos - root.pos;
+
+    // Transpose of rotation matrix is the inverse
+    Mat3 rotInv = Mat3::transpose(root.rot);
+    Vec3 rayDirLoc = Mat3::multiply(rotInv, rayDir);
+    Vec3 invRayDirLoc = 1.0f / rayDirLoc;
+
+    AABB_MinMax rootAabb(root.rad);
+
+/*
+
+    // put voxel root on recurse stack before iteration begins
+    u32 d = 0;
+    prep_stack_entry(&sStack[d], root.children, rootAabb);
+
+    sStack[d].hit = test_ray_box(&sStack[d].hitFace,
+        &sStack[d].entryDist,
+        &sStack[d].exitDist,
+        rayPosLoc,
+        invRayDirLoc,
+        sStack[d].aabb);
+
+    if (!sStack[d].hit || sStack[d].voxelRef.isTerminalEmpty())
+    {
+        return false;
+    }
+
+    // else we hit, loop/recurse over children
+    for (;;)
+    {
+        eval_voxel_hit(&sStack[d].searchOrder,
+            &sStack[d].hitPosLoc,
+            sStack[d].hitFace,
+            sStack[d].entryDist,
+            sStack[d].exitDist,
+            rayPosLoc,
+            rayDirLoc,
+            sStack[d].aabb);
+
+        if (sStack[d].voxelRef.isTerminalFull())
+        {
+            voxelRef = sStack[d].voxelRef;
+            normal = kNormals[(u32)sStack[d].hitFace];
+            zDepth = sStack[d].entryDist;
+            face = sStack[d].hitFace;
+            faceUv = calc_face_uv(sStack[d].hitFace, sStack[d].hitPosLoc, sStack[d].aabb);
+            return true;
+        }
+        else
+        {
+            for (;;)
+            {
+                if (sStack[d].searchIndex >= 8)
+                {
+                    if (d > 0)
+                    {
+                        d--;
+                        break;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    VoxelRef childRef = voxelWorld.voxelRef(sStack[d].voxelRef.imageIdx, sStack[d].voxelRef.voxelIdx, sStack[d].searchOrder[sStack[d].searchIndex]);
+                    AABB_MinMax childAabb = voxel_subspace(sStack[d].aabb,
+                        sStack[d].searchOrder[sStack[d].searchIndex]);
+                    sStack[d].searchIndex++; // increment so if we recurse back here to this level we move past this one
+
+                    if (childRef.isTerminalEmpty())
+                    {
+                        continue;
+                    }
+
+                    VoxelRecurseInfo recInf;
+                    prep_stack_entry(&recInf, childRef, childAabb);
+                    recInf.hit = test_ray_box(&recInf.hitFace,
+                        &recInf.entryDist,
+                        &recInf.exitDist,
+                        rayPosLoc,
+                        invRayDirLoc,
+                        recInf.aabb);
+                    if (recInf.hit)
+                    {
+                        d++;
+                        ASSERT(d < kMaxDepth);
+
+                        sStack[d] = recInf;
+                        break; // restart on parent for loop
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+    */
     return false;
 }
 

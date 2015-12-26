@@ -1,13 +1,444 @@
+const uint kImageCount = 16; // max is 16 since 4 bits in VoxelRef for imageIdx
+const uint kImageSize = 8192;
+const uint kPixelSize = 8; // RG32U
+const uint kPixelsPerVoxel = 8; // 8 VoxelRefs per voxel, 8 bytes each, pixels are 8
+const uint kVoxelRefsPerPixel = 1; // 1 VoxelRef per RG32U pixel (8 bytes each)
+const uint kMaxVoxelIndex = 8388608; // 2 ** 23, we have 23 bits for index, which fits perfectly into 8192x8192x8byte image
+
+// Sub voxels
+const uint kLeftBottomBack   = 0;  // 000
+const uint kLeftBottomFront  = 1;  // 001
+const uint kLeftTopBack      = 2;  // 010
+const uint kLeftTopFront     = 3;  // 011
+const uint kRightBottomBack  = 4;  // 100
+const uint kRightBottomFront = 5;  // 101
+const uint kRightTopBack     = 6;  // 110
+const uint kRightTopFront    = 7;  // 111
+
+
+// Voxel faces
+const uint kFaceNone   = 0;
+const uint kFaceLeft   = 1;
+const uint kFaceRight  = 2;
+const uint kFaceBottom = 3;
+const uint kFaceTop    = 4;
+const uint kFaceBack   = 5;
+const uint kFaceFront  = 6;
+
+
+// Voxel types
+const uint kTerminalEmpty = 0;
+const uint kTerminalFull  = 1;
+const uint kNonTerminal   = 2;
+
+
+struct VoxelRef
+{
+    uint type; // see Voxel types consts
+    uint material;
+    uint filledNeighbors;
+    uint imageIdx;
+    uint voxelIdx;
+};
+
+
+struct VoxelRoot
+{
+    mat3 rot;
+    vec3 pos;
+    VoxelRef children;
+    float rad;
+};
+
+
+// Normals from faces in local coords
+const vec3 kNormals[7] = { vec3( 0.0,  0.0,  0.0),
+                           vec3(-1.0,  0.0,  0.0),   // left
+                           vec3( 1.0,  0.0,  0.0),   // right
+                           vec3( 0.0, -1.0,  0.0),   // bottom
+                           vec3( 0.0,  1.0,  0.0),   // top
+                           vec3( 0.0,  0.0, -1.0),   // back
+                           vec3( 0.0,  0.0,  1.0) }; // front
+
+// Based upon which voxel was hit, the order in which we should
+// search children for a hit.
+const uint kVoxelSearchOrder[6][4][8] =
+{
+    { // left
+        { // LeftBottomBack
+            kLeftBottomBack,
+            kLeftBottomFront,
+            kLeftTopBack,
+            kLeftTopFront,
+
+            kRightBottomBack,
+            kRightBottomFront,
+            kRightTopBack,
+            kRightTopFront
+        },
+
+        { // LeftBottomFront
+            kLeftBottomFront,
+            kLeftTopFront,
+            kLeftBottomBack,
+            kLeftTopBack,
+
+            kRightBottomFront,
+            kRightTopFront,
+            kRightBottomBack,
+            kRightTopBack
+        },
+
+        { // LeftTopFront
+            kLeftTopFront,
+            kLeftTopBack,
+            kLeftBottomFront,
+            kLeftBottomBack,
+
+            kRightTopFront,
+            kRightTopBack,
+            kRightBottomFront,
+            kRightBottomBack
+        },
+
+        { // LeftTopBack
+            kLeftTopBack,
+            kLeftBottomBack,
+            kLeftTopFront,
+            kLeftBottomFront,
+
+            kRightTopBack,
+            kRightBottomBack,
+            kRightTopFront,
+            kRightBottomFront
+        }
+    },
+
+    { // right
+        { // RightBottomFront
+            kRightBottomFront,
+            kRightBottomBack,
+            kRightTopFront,
+            kRightTopBack,
+
+            kLeftBottomFront,
+            kLeftBottomBack,
+            kLeftTopFront,
+            kLeftTopBack
+        },
+
+        { // RightBottomBack
+            kRightBottomBack,
+            kRightTopBack,
+            kRightBottomFront,
+            kRightTopFront,
+
+            kLeftBottomBack,
+            kLeftTopBack,
+            kLeftBottomFront,
+            kLeftTopFront
+        },
+
+        { // RightTopBack
+            kRightTopBack,
+            kRightTopFront,
+            kRightBottomBack,
+            kRightBottomFront,
+
+            kLeftTopBack,
+            kLeftTopFront,
+            kLeftBottomBack,
+            kLeftBottomFront
+        },
+
+        { // RightTopFront
+            kRightTopFront,
+            kRightBottomFront,
+            kRightTopBack,
+            kRightBottomBack,
+
+            kLeftTopFront,
+            kLeftBottomFront,
+            kLeftTopBack,
+            kLeftBottomBack
+        }
+    },
+
+    { // bottom
+        { // LeftBottomBack
+            kLeftBottomBack,
+            kRightBottomBack,
+            kLeftBottomFront,
+            kRightBottomFront,
+
+            kLeftTopBack,
+            kRightTopBack,
+            kLeftTopFront,
+            kRightTopFront
+        },
+
+        { // RightBottomBack
+            kRightBottomBack,
+            kRightBottomFront,
+            kLeftBottomBack,
+            kLeftBottomFront,
+
+            kRightTopBack,
+            kRightTopFront,
+            kLeftTopBack,
+            kLeftTopFront
+        },
+
+        { // RightBottomFront
+            kRightBottomFront,
+            kLeftBottomFront,
+            kRightBottomBack,
+            kLeftBottomBack,
+
+            kRightTopFront,
+            kLeftTopFront,
+            kRightTopBack,
+            kLeftTopBack
+        },
+
+        { // LeftBottomFront
+            kLeftBottomFront,
+            kLeftBottomBack,
+            kRightBottomFront,
+            kRightBottomBack,
+
+            kLeftTopFront,
+            kLeftTopBack,
+            kRightTopFront,
+            kRightTopBack
+        }
+    },
+
+    { // top
+        { // LeftTopFront
+            kLeftTopFront,
+            kRightTopFront,
+            kLeftTopBack,
+            kRightTopBack,
+
+            kLeftBottomFront,
+            kRightBottomFront,
+            kLeftBottomBack,
+            kRightBottomBack
+        },
+
+        { // RightTopFront
+            kRightTopFront,
+            kRightTopBack,
+            kLeftTopFront,
+            kLeftTopBack,
+
+            kRightBottomFront,
+            kRightBottomBack,
+            kLeftBottomFront,
+            kLeftBottomBack
+        },
+
+        { // RightTopBack
+            kRightTopBack,
+            kLeftTopBack,
+            kRightTopFront,
+            kLeftTopFront,
+
+            kRightBottomBack,
+            kLeftBottomBack,
+            kRightBottomFront,
+            kLeftBottomFront
+        },
+
+        { // LeftTopBack
+            kLeftTopBack,
+            kLeftTopFront,
+            kRightTopBack,
+            kRightTopFront,
+
+            kLeftBottomBack,
+            kLeftBottomFront,
+            kRightBottomBack,
+            kRightBottomFront
+        }
+    },
+
+    { // back
+        { // RightBottomBack
+            kRightBottomBack,
+            kLeftBottomBack,
+            kRightTopBack,
+            kLeftTopBack,
+
+            kRightBottomFront,
+            kLeftBottomFront,
+            kRightTopFront,
+            kLeftTopFront
+        },
+
+        { // LeftBottomBack
+            kLeftBottomBack,
+            kLeftTopBack,
+            kRightBottomBack,
+            kRightTopBack,
+
+            kLeftBottomFront,
+            kLeftTopFront,
+            kRightBottomFront,
+            kRightTopFront
+        },
+
+        { // LeftTopBack
+            kLeftTopBack,
+            kRightTopBack,
+            kLeftBottomBack,
+            kRightBottomBack,
+
+            kLeftTopFront,
+            kRightTopFront,
+            kLeftBottomFront,
+            kRightBottomFront
+        },
+
+        { // RightTopBack
+            kRightTopBack,
+            kRightBottomBack,
+            kLeftTopBack,
+            kLeftBottomBack,
+
+            kRightTopFront,
+            kRightBottomFront,
+            kLeftTopFront,
+            kLeftBottomFront
+        }
+    },
+
+    { // front
+        { // LeftBottomFront
+            kLeftBottomFront,
+            kRightBottomFront,
+            kLeftTopFront,
+            kRightTopFront,
+
+            kLeftBottomBack,
+            kRightBottomBack,
+            kLeftTopBack,
+            kRightTopBack
+        },
+
+        { // RightBottomFront
+            kRightBottomFront,
+            kRightTopFront,
+            kLeftBottomFront,
+            kLeftTopFront,
+
+            kRightBottomBack,
+            kRightTopBack,
+            kLeftBottomBack,
+            kLeftTopBack
+        },
+
+        { // RightTopFront
+            kRightTopFront,
+            kLeftTopFront,
+            kRightBottomFront,
+            kLeftBottomFront,
+
+            kRightTopBack,
+            kLeftTopBack,
+            kRightBottomBack,
+            kLeftBottomBack
+        },
+
+        { // LeftTopFront
+            kLeftTopFront,
+            kLeftBottomFront,
+            kRightTopFront,
+            kRightBottomFront,
+
+            kLeftTopBack,
+            kLeftBottomBack,
+            kRightTopBack,
+            kRightBottomBack
+        }
+    }
+};
+
+
+
+
+
 
 layout (local_size_x = 16, local_size_y = 16) in;
 
-// frameBuffer output
-layout (rgba8, binding=0) uniform image2D frameBuffer;
+// un_FrameBuffer output
+layout (rgba8, binding=0) uniform image2D un_FrameBuffer;
 
 // Voxel world data
-layout (rg32ui, binding=1) uniform uimageBuffer voxelData;
+layout (rg32ui, binding=1) uniform uimageBuffer un_VoxelData;
 
 //layout (binding=2) uniform
+
+
+
+
+VoxelRef unpack_voxel_ref(uvec2 pix)
+{
+    VoxelRef ref;
+
+    ref.type = pix.r & 0x3; // 2 bits
+    ref.material = (pix.r & 0x3fffc) >> 2; // 16 bits
+    ref.filledNeighbors = (pix.r & 0xfc0000) >> 18; // 6 bits
+    // padding - 8 bits
+
+    ref.imageIdx = (pix.g & 0xf); // 4 bits
+    ref.voxelIdx = (pix.g & 0x7fffff0) >> 4; // 23 bits, top order of second 8 byte pixel
+    // padding - 5 bits
+
+    return ref;
+}
+
+VoxelRoot extract_voxel_root(uint voxelRoot)
+{
+    int pixStart = int(voxelRoot * kPixelsPerVoxel);
+
+    uvec4 pix0 = imageLoad(un_VoxelData, pixStart);
+    uvec4 pix1 = imageLoad(un_VoxelData, pixStart + 1);
+    uvec4 pix2 = imageLoad(un_VoxelData, pixStart + 2);
+    uvec4 pix3 = imageLoad(un_VoxelData, pixStart + 3);
+    uvec4 pix4 = imageLoad(un_VoxelData, pixStart + 4);
+    uvec4 pix5 = imageLoad(un_VoxelData, pixStart + 5);
+    uvec4 pix6 = imageLoad(un_VoxelData, pixStart + 6);
+    uvec4 pix7 = imageLoad(un_VoxelData, pixStart + 7);
+
+    VoxelRoot root;
+
+    root.pos = vec3(uintBitsToFloat(pix0.r),
+                    uintBitsToFloat(pix0.g),
+                    uintBitsToFloat(pix1.r));
+
+    root.rot = mat3(uintBitsToFloat(pix1.g),
+                    uintBitsToFloat(pix2.r),
+                    uintBitsToFloat(pix2.g),
+
+                    uintBitsToFloat(pix3.r),
+                    uintBitsToFloat(pix3.g),
+                    uintBitsToFloat(pix4.r),
+
+                    uintBitsToFloat(pix4.g),
+                    uintBitsToFloat(pix5.r),
+                    uintBitsToFloat(pix5.g));
+
+    root.rad = uintBitsToFloat(pix6.r);
+    // pix6.g is padding in C struct
+
+    root.children = unpack_voxel_ref(pix7.rg);
+
+    return root;
+}
+
+
 
 
 void main(void)
@@ -19,17 +450,16 @@ void main(void)
 
     vec4 color = vec4(gl_GlobalInvocationID.xy / imageSize, 0.0, 0.0);
 
-    uvec4 voxel = imageLoad(voxelData, int(gl_GlobalInvocationID.y * coord.x + gl_GlobalInvocationID.x));
+    uvec4 voxel = imageLoad(un_VoxelData, int(gl_GlobalInvocationID.y * coord.x + gl_GlobalInvocationID.x));
 
-    imageStore(frameBuffer,
-               ivec2(gl_GlobalInvocationID.xy),
-               vec4(/*1.0, 0.0,*/ vec2(gl_WorkGroupID.xy) / vec2(gl_NumWorkGroups),
-                    0.0, 0.0));
-
-
-//    imageStore(frameBuffer,
+//    imageStore(un_FrameBuffer,
 //               ivec2(gl_GlobalInvocationID.xy),
-//               vec4(voxel.xy, 0.0, 1.0));
-////               vec4(1.0, 1.0, 1.0, 1.0));
+//               vec4(/*1.0, 0.0,*/ vec2(gl_WorkGroupID.xy) / vec2(gl_NumWorkGroups),
+//                    0.0, 0.0));
+
+
+    imageStore(un_FrameBuffer,
+               ivec2(gl_GlobalInvocationID.xy),
+               vec4(voxel.xy, 0.0, 1.0));
     
 }

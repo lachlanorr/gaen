@@ -44,33 +44,33 @@ static_assert(std::numeric_limits<float>::is_iec559, "Must have IEEE 754 floats 
 static const u32 kWorldMaterialCount = 256;
 static const u32 kRootMaterialCount = 8;
 
-struct Pix_RGB8
+struct RGB8
 {
     u8 r;
     u8 g;
     u8 b;
 
-    Pix_RGB8(u8 r, u8 g, u8 b)
+    RGB8(u8 r, u8 g, u8 b)
         : r(r)
         , g(g)
         , b(b)
     {}
 
-    Pix_RGB8(f32 r, f32 g, f32 b)
+    RGB8(f32 r, f32 g, f32 b)
         : r((u8)(r * 255.0))
         , g((u8)(g * 255.0))
         , b((u8)(b * 255.0))
     {}
 };
 
-struct Pix_RGBA8
+struct RGBA8
 {
     u8 r;
     u8 g;
     u8 b;
     u8 a;
 
-    Pix_RGBA8(u8 r, u8 g, u8 b, u8 a)
+    RGBA8(u8 r, u8 g, u8 b, u8 a)
         : r(r)
         , g(g)
         , b(b)
@@ -78,47 +78,47 @@ struct Pix_RGBA8
     {}
 };
 
-struct Pix_R32F
+struct R32F
 {
     f32 r;
 
-    Pix_R32F(f32 r)
+    R32F(f32 r)
         : r(r)
     {}
 };
 
-struct Pix_RG32F
+struct RG32F
 {
     f32 r;
     f32 g;
 
-    Pix_RG32F(f32 r, f32 g)
+    RG32F(f32 r, f32 g)
         : r(r)
         , g(g)
     {}
 };
 
-struct Pix_RGB32F
+struct RGB32F
 {
     f32 r;
     f32 g;
     f32 b;
 
-    Pix_RGB32F(f32 r, f32 g, f32 b)
+    RGB32F(f32 r, f32 g, f32 b)
         : r(r)
         , g(g)
         , b(b)
     {}
 };
 
-struct Pix_RGBA32F
+struct RGBA32F
 {
     f32 r;
     f32 g;
     f32 b;
     f32 a;
 
-    Pix_RGBA32F(f32 r, f32 g, f32 b, f32 a)
+    RGBA32F(f32 r, f32 g, f32 b, f32 a)
         : r(r)
         , g(g)
         , b(b)
@@ -127,47 +127,47 @@ struct Pix_RGBA32F
 };
 
 
-struct Pix_R32I
+struct R32I
 {
     i32 r;
 
-    Pix_R32I(i32 r)
+    R32I(i32 r)
         : r(r)
     {}
 };
 
-struct Pix_RG32I
+struct RG32I
 {
     i32 r;
     i32 g;
 
-    Pix_RG32I(i32 r, i32 g)
+    RG32I(i32 r, i32 g)
         : r(r)
         , g(g)
     {}
 };
 
-struct Pix_RGB32I
+struct RGB32I
 {
     i32 r;
     i32 g;
     i32 b;
 
-    Pix_RGB32I(i32 r, i32 g, i32 b)
+    RGB32I(i32 r, i32 g, i32 b)
         : r(r)
         , g(g)
         , b(b)
     {}
 };
 
-struct Pix_RGBA32I
+struct RGBA32I
 {
     i32 r;
     i32 g;
     i32 b;
     i32 a;
 
-    Pix_RGBA32I(i32 r, i32 g, i32 b, i32 a)
+    RGBA32I(i32 r, i32 g, i32 b, i32 a)
         : r(r)
         , g(g)
         , b(b)
@@ -176,47 +176,47 @@ struct Pix_RGBA32I
 };
 
 
-struct Pix_R32U
+struct R32U
 {
     u32 r;
 
-    Pix_R32U(u32 r)
+    R32U(u32 r)
         : r(r)
     {}
 };
 
-struct Pix_RG32U
+struct RG32U
 {
     u32 r;
     u32 g;
 
-    Pix_RG32U(u32 r, u32 g)
+    RG32U(u32 r, u32 g)
         : r(r)
         , g(g)
     {}
 };
 
-struct Pix_RGB32U
+struct RGB32U
 {
     u32 r;
     u32 g;
     u32 b;
 
-    Pix_RGB32U(u32 r, u32 g, u32 b)
+    RGB32U(u32 r, u32 g, u32 b)
         : r(r)
         , g(g)
         , b(b)
     {}
 };
 
-struct Pix_RGBA32U
+struct RGBA32U
 {
     u32 r;
     u32 g;
     u32 b;
     u32 a;
 
-    Pix_RGBA32U(u32 r, u32 g, u32 b, u32 a)
+    RGBA32U(u32 r, u32 g, u32 b, u32 a)
         : r(r)
         , g(g)
         , b(b)
@@ -226,56 +226,6 @@ struct Pix_RGBA32U
 
 class ImageBuffer
 {
-public:
-    ImageBuffer(u16 size, size_t pixelSize);
-
-    template <typename T>
-    ImageBuffer(u16 size)
-        : ImageBuffer{size, sizeof(T)}
-    {
-    }
-
-    ~ImageBuffer();
-
-    u16 size() const { return mSize; }
-    u8 pixelSize() const { return mPixelSize; }
-    u64 bufferSize() const { return mSize * mSize * mPixelSize; }
-
-    void imageStoreRGB8(u16 x, u16 y, const Pix_RGB8    & color);
-    void imageStoreRGBA8(u16 x, u16 y, const Pix_RGBA8   & color);
-    void imageStoreR32F(u16 x, u16 y, const Pix_R32F    & color);
-    void imageStoreRG32F(u16 x, u16 y, const Pix_RG32F   & color);
-    void imageStoreRGB32F(u16 x, u16 y, const Pix_RGB32F  & color);
-    void imageStoreRGBA32F(u16 x, u16 y, const Pix_RGBA32F & color);
-    void imageStoreR32I(u16 x, u16 y, const Pix_R32I    & color);
-    void imageStoreRG32I(u16 x, u16 y, const Pix_RG32I   & color);
-    void imageStoreRGB32I(u16 x, u16 y, const Pix_RGB32I  & color);
-    void imageStoreRGBA32I(u16 x, u16 y, const Pix_RGBA32I & color);
-    void imageStoreR32U(u16 x, u16 y, const Pix_R32U    & color);
-    void imageStoreRG32U(u16 x, u16 y, const Pix_RG32U   & color);
-    void imageStoreRGB32U(u16 x, u16 y, const Pix_RGB32U  & color);
-    void imageStoreRGBA32U(u16 x, u16 y, const Pix_RGBA32U & color);
-
-    Pix_RGB8    imageLoadRGB8(u16 x, u16 y) const;
-    Pix_RGBA8   imageLoadRGBA8(u16 x, u16 y) const;
-    Pix_R32F    imageLoadR32F(u16 x, u16 y) const;
-    Pix_RG32F   imageLoadRG32F(u16 x, u16 y) const;
-    Pix_RGB32F  imageLoadRGB32F(u16 x, u16 y) const;
-    Pix_RGBA32F imageLoadRGBA32F(u16 x, u16 y) const;
-    Pix_R32I    imageLoadR32I(u16 x, u16 y) const;
-    Pix_RG32I   imageLoadRG32I(u16 x, u16 y) const;
-    Pix_RGB32I  imageLoadRGB32I(u16 x, u16 y) const;
-    Pix_RGBA32I imageLoadRGBA32I(u16 x, u16 y) const;
-    Pix_R32U    imageLoadR32U(u16 x, u16 y) const;
-    Pix_RG32U   imageLoadRG32U(u16 x, u16 y) const;
-    Pix_RGB32U  imageLoadRGB32U(u16 x, u16 y) const;
-    Pix_RGBA32U imageLoadRGBA32U(u16 x, u16 y) const;
-
-    u8 * buffer() { return mPixels; }
-    const u8 * buffer() const { return mPixels; }
-
-    void copy(const ImageBuffer & sourceBuffer);
-
 private:
     u8 * findAddr(u16 x, u16 y)
     {
@@ -299,6 +249,67 @@ private:
         return reinterpret_cast<const T*>(findAddr(x, y));
     }
 
+
+public:
+    ImageBuffer(u16 size, size_t pixelSize);
+
+    template <typename T>
+    ImageBuffer(u16 size)
+        : ImageBuffer{size, sizeof(T)}
+    {
+    }
+
+    ~ImageBuffer();
+
+    u16 size() const { return mSize; }
+    u8 pixelSize() const { return mPixelSize; }
+    u64 bufferSize() const { return mSize * mSize * mPixelSize; }
+
+    template<typename T>
+    void imageStore2d(u16 x, u16 y, const T & color)
+    {
+        ASSERT(mPixelSize == sizeof(T));
+        ASSERT(x < mSize && y < mSize);
+        *findLoc<T>(x, y) = color;
+    }
+
+    template<typename T>
+    void imageStore(u32 i, const T & color)
+    {
+        ASSERT(mPixelSize == sizeof(T));
+        ASSERT(i < (u32)(mSize * mSize));
+        T * p = reinterpret_cast<T*>(mPixels) + i;
+        *p = color;
+    }
+
+    template<typename T>
+    T imageLoad2d(u16 x, u16 y) const
+    {
+        ASSERT(mPixelSize == sizeof(T));
+        ASSERT(x < mSize && y < mSize);
+        return *findLoc<T>(x, y);
+    }
+
+    template<typename T>
+    T imageLoad(u32 i) const
+    {
+        ASSERT(mPixelSize == sizeof(T));
+        ASSERT(i < (u32)(mSize * mSize));
+        return *(reinterpret_cast<const T*>(mPixels) + i);
+    }
+
+    u8 * buffer() { return mPixels; }
+    const u8 * buffer() const { return mPixels; }
+
+    template <typename T>
+    T * buffer() { ASSERT(sizeof(T) == mPixelSize); return reinterpret_cast<T*>(mPixels); }
+
+    template <typename T>
+    const T * buffer() const { ASSERT(sizeof(T) == mPixelSize); return reinterpret_cast<const T*>(mPixels); }
+
+    void copy(const ImageBuffer & sourceBuffer);
+
+private:
     u16 mSize;
     u8 mPixelSize;
 
@@ -314,21 +325,26 @@ struct VoxelMaterial
     u8 a;
 };
 
-enum VoxelRefFlags
+enum VoxelType
 {
-    kVRF_IsTerminalEmpty  = 0x1,
-    kVRF_IsTerminalFull   = 0x2
+    kVT_TerminalEmpty = 0,
+    kVT_TerminalFull  = 1,
+    kVT_NonTerminal   = 2
 };
 
 struct VoxelRef
 {
-    u64 flags:4;     // Bit flags for this voxel
+    u64 type:2;      // Voxel type
     u64 material:16; // Index into VoxelWorld material array
-    u64 imageIdx:22; // Index into images of VoxelWorld, not all can be loaded at ance
-    u64 voxelIdx:22; // Index into image, converted to x/y coords during retrieval from image. 22 bits supports 4096x4096 images of 64 byte voxels
+    u64 filledNeighbors:6; // Bit field of non-empty neighbors, from low to high: Left, Right, Bottom, Top, Back, Front
+    u64 _PADDING0:8;
 
-    bool isTerminalEmpty() const { return (flags & kVRF_IsTerminalEmpty) == kVRF_IsTerminalEmpty; }
-    bool isTerminalFull() const { return (flags & kVRF_IsTerminalFull) == kVRF_IsTerminalFull; }
+    u64 imageIdx:4;  // Index into images of VoxelWorld
+    u64 voxelIdx:23; // Index into image, converted to x/y coords during retrieval from image. 23 bits supports 8192x8192x8byte 64 byte voxels
+    u64 _PADDING1:5;
+
+    bool isTerminalEmpty() const { return type == kVT_TerminalEmpty; }
+    bool isTerminalFull() const { return type == kVT_TerminalFull; }
 
     VoxelRef()
     {
@@ -336,26 +352,24 @@ struct VoxelRef
         *pThis = 0;
     }
 
-    VoxelRef(u16 material, u32 imageIdx, u32 voxelIdx)
-      : flags(0)
+    VoxelRef(VoxelType type, u16 material, u32 imageIdx, u32 voxelIdx)
+      : type{type}
       , material{material}
+      , filledNeighbors{0}
+      , _PADDING0{0}
       , imageIdx{imageIdx}
       , voxelIdx{voxelIdx}
+      , _PADDING1{0}
     {}
 
     static VoxelRef terminal_empty()
     {
-        VoxelRef ret;
-        ret.flags = kVRF_IsTerminalEmpty;
-        return ret;
+        return VoxelRef(kVT_TerminalEmpty, 0, 0, 0);
     }
 
     static VoxelRef terminal_full(u16 material)
     {
-        VoxelRef ret;
-        ret.flags = kVRF_IsTerminalFull;
-        ret.material = material;
-        return ret;
+        return VoxelRef(kVT_TerminalFull, material, 0, 0);
     }
 };
 static_assert(sizeof(VoxelRef) == 8, "VoxelRef not 8 bytes");
@@ -365,8 +379,8 @@ struct VoxelRoot
     Vec3 pos;           // position    12 bytes - 12
     Mat3 rot;           // rotation    36 bytes - 48
     f32 rad;            // radius       4 bytes - 52
-    VoxelRef children;  // children     8 bytes - 60
     u32 _PADDING;
+    VoxelRef children;  // children     8 bytes - 60
 };
 static_assert(sizeof(VoxelRoot) == 64, "VoxelRoot not 64 bytes");
 
@@ -411,16 +425,19 @@ struct Voxel
     }
 };
 static_assert(sizeof(Voxel) == 64, "Voxel not 64 bytes");
+// since both are 64 bytes, we can simplify our memory allocator to only support
+// 64 byte allocations.
+static_assert(sizeof(VoxelRoot) == sizeof(Voxel), "VoxelRoot and Voxel differ in size");
 
 class VoxelWorld
 {
 public:
     static const u32 kImageCount = 16; // max is 16 since 4 bits in VoxelRef for imageIdx
-    static const u32 kImageSize = 4096;
-    static const u32 kPixelSize = 8; // RGBAU32
+    static const u32 kImageSize = 8192;
+    static const u32 kPixelSize = sizeof(RG32U); // 8
     static const u32 kPixelsPerVoxel = sizeof(Voxel) / kPixelSize;
     static const u32 kVoxelRefsPerPixel = kPixelSize / sizeof(VoxelRef);
-    static const u32 kMaxVoxelIndex = 4194304; // 2 ** 22, we have 22 bits for index, which fits perfectlyinto 4096x4096x16 image
+    static const u32 kMaxVoxelIndex = 8388608; // 2 ** 23, we have 23 bits for index, which fits perfectly into 8192x8192x8byte image
 
     static_assert(sizeof(Voxel) % kPixelSize == 0, "sizeof(Voxel) not a multiple of kPixelSize");
     static_assert(kPixelSize % sizeof(VoxelRef) == 0, "kPixelSize not a multiple of sizeof(VoxelRef)");
@@ -438,6 +455,22 @@ public:
     {
         ASSERT(imageIdx < mImages.size());
         return mImages[imageIdx].bufferSize();
+    }
+
+    const ImageBuffer * voxelImage(u32 imageIdx) const
+    {
+        ASSERT(imageIdx < mImages.size());
+        return &mImages[imageIdx];
+    }
+
+    ImageBuffer * voxelRoots()
+    {
+        return &mVoxelRoots;
+    }
+
+    u32 voxelRootCount()
+    {
+        return mVoxelRootCount;
     }
 
     void imageCoords(u16 * pX, u16 * pY, u32 voxelIdx, SubVoxel subVoxel) const
@@ -458,7 +491,7 @@ public:
         u16 x, y;
         imageCoords(&x, &y, voxelIdx, subVoxel);
 
-        Pix_RG32U pix = mImages[imageIdx].imageLoadRG32U(x, y);
+        RG32U pix = mImages[imageIdx].imageLoad2d<RG32U>(x, y);
 
         const VoxelRef* ret = reinterpret_cast<const VoxelRef*>(&pix);
 
@@ -473,14 +506,17 @@ public:
         u16 x, y;
         imageCoords(&x, &y, voxelIdx, subVoxel);
 
-        Pix_RG32U pix = *reinterpret_cast<const Pix_RG32U*>(&voxel);
-        mImages[imageIdx].imageStoreRG32U(x, y, pix);
+        RG32U pix = *reinterpret_cast<const RG32U*>(&voxel);
+        mImages[imageIdx].imageStore2d(x, y, pix);
     }
 
-
+    void addVoxelRoot(const VoxelRoot & voxelRoot);
 
 private:
     VoxelMaterial mMatPalette[kWorldMaterialCount];
+
+    ImageBuffer mVoxelRoots;
+    u32 mVoxelRootCount = 0;
 
     Vector<kMEM_Voxel, ImageBuffer> mImages;
 };
@@ -548,7 +584,7 @@ static VoxelRef set_shape_recursive(VoxelWorld & voxelWorld, u32 imageIdx, u32 &
     voxelWorld.setVoxelRef(imageIdx, voxelIdx, SubVoxel::RightTopBack,     rtb);
     voxelWorld.setVoxelRef(imageIdx, voxelIdx, SubVoxel::RightTopFront,    rtf);
 
-    VoxelRef ret = VoxelRef(1, imageIdx, voxelIdx);
+    VoxelRef ret = VoxelRef(kVT_NonTerminal, 1, imageIdx, voxelIdx);
     voxelIdx++;
     return ret;
 }
@@ -561,6 +597,9 @@ static VoxelRoot set_shape_generic(VoxelWorld & voxelWorld, u32 imageIdx, u32 vo
     voxelRoot.rad = rad;
     voxelRoot.rot = rot;
     voxelRoot.children = set_shape_recursive(voxelWorld, imageIdx, voxelIdx, depth, AABB_MinMax(rad), hitTest);
+
+    voxelWorld.addVoxelRoot(voxelRoot);
+    
     return voxelRoot;
 }
 
@@ -568,209 +607,9 @@ static VoxelRoot set_shape_generic(VoxelWorld & voxelWorld, u32 imageIdx, u32 vo
 AABB_MinMax voxel_subspace(const AABB_MinMax & pSpace, SubVoxel subIndex);
 
 bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, Vec2 * pFaceUv, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
+bool test_ray_voxel_gpu(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, Vec2 * pFaceUv, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
 
 #pragma pack(pop)
-
-
-// inline fucntions of ImageBuffer
-
-inline void ImageBuffer::imageStoreRGB8(u16 x, u16 y, const Pix_RGB8 & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGB8));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_RGB8>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreRGBA8(u16 x, u16 y, const Pix_RGBA8 & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGBA8));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_RGBA8>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreR32F(u16 x, u16 y, const Pix_R32F & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_R32F));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_R32F>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreRG32F(u16 x, u16 y, const Pix_RG32F & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_RG32F));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_RG32F>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreRGB32F(u16 x, u16 y, const Pix_RGB32F & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGB32F));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_RGB32F>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreRGBA32F(u16 x, u16 y, const Pix_RGBA32F & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGBA32F));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_RGBA32F>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreR32I(u16 x, u16 y, const Pix_R32I & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_R32I));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_R32I>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreRG32I(u16 x, u16 y, const Pix_RG32I & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_RG32I));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_RG32I>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreRGB32I(u16 x, u16 y, const Pix_RGB32I & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGB32I));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_RGB32I>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreRGBA32I(u16 x, u16 y, const Pix_RGBA32I & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGBA32I));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_RGBA32I>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreR32U(u16 x, u16 y, const Pix_R32U & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_R32U));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_R32U>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreRG32U(u16 x, u16 y, const Pix_RG32U & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_RG32U));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_RG32U>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreRGB32U(u16 x, u16 y, const Pix_RGB32U & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGB32U));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_RGB32U>(x, y) = color;
-}
-
-inline void ImageBuffer::imageStoreRGBA32U(u16 x, u16 y, const Pix_RGBA32U & color)
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGBA32U));
-    ASSERT(x < mSize && y < mSize);
-    *findLoc<Pix_RGBA32U>(x, y) = color;
-}
-
-
-inline Pix_RGB8 ImageBuffer::imageLoadRGB8(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGB8));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_RGB8>(x, y);
-}
-
-inline Pix_RGBA8 ImageBuffer::imageLoadRGBA8(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGBA8));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_RGBA8>(x, y);
-}
-
-inline Pix_R32F ImageBuffer::imageLoadR32F(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_R32F));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_R32F>(x, y);
-}
-
-inline Pix_RG32F ImageBuffer::imageLoadRG32F(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_RG32F));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_RG32F>(x, y);
-}
-
-inline Pix_RGB32F ImageBuffer::imageLoadRGB32F(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGB32F));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_RGB32F>(x, y);
-}
-
-inline Pix_RGBA32F ImageBuffer::imageLoadRGBA32F(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGBA32F));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_RGBA32F>(x, y);
-}
-
-inline Pix_R32I ImageBuffer::imageLoadR32I(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_R32I));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_R32I>(x, y);
-}
-
-inline Pix_RG32I ImageBuffer::imageLoadRG32I(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_RG32I));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_RG32I>(x, y);
-}
-
-inline Pix_RGB32I ImageBuffer::imageLoadRGB32I(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGB32I));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_RGB32I>(x, y);
-}
-
-inline Pix_RGBA32I ImageBuffer::imageLoadRGBA32I(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGBA32I));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_RGBA32I>(x, y);
-}
-
-inline Pix_R32U ImageBuffer::imageLoadR32U(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_R32U));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_R32U>(x, y);
-}
-
-inline Pix_RG32U ImageBuffer::imageLoadRG32U(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_RG32U));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_RG32U>(x, y);
-}
-
-inline Pix_RGB32U ImageBuffer::imageLoadRGB32U(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGB32U));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_RGB32U>(x, y);
-}
-
-inline Pix_RGBA32U ImageBuffer::imageLoadRGBA32U(u16 x, u16 y) const
-{
-    ASSERT(mPixelSize == sizeof(Pix_RGBA32U));
-    ASSERT(x < mSize && y < mSize);
-    return *findLoc<Pix_RGBA32U>(x, y);
-}
-
 
 
 } // namespace gaen

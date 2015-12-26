@@ -56,14 +56,113 @@ inline Vec3 quat_multiply(const Vec4 & qlhs, const Vec3 & vrhs)
     vres.z() = (xz2 - wy2) * vrhs.x() + (yz2 + wx2) * vrhs.y() + (1.0f - (xx2 + yy2)) * vrhs.z();
     return vres;
 }
+
+inline f32 int_bits_to_float(i32 rhs)
+{
+    return *reinterpret_cast<f32*>(&rhs);
+}
+
+inline f32 uint_bits_to_float(u32 rhs)
+{
+    return *reinterpret_cast<f32*>(&rhs);
+}
+
+inline i32 float_bits_to_int(f32 rhs)
+{
+    return *reinterpret_cast<i32*>(&rhs);
+}
+
+inline u32 float_bits_to_uint(f32 rhs)
+{
+    return *reinterpret_cast<u32*>(&rhs);
+}
+
+struct VoxelRefGpu
+{
+    u32 type;
+    u32 material;
+    u32 filledNeighbors;
+    u32 imageIdx;
+    u32 voxelIdx;
+};
+
+struct VoxelRootGpu
+{
+    Mat3 rot;
+    Vec3 pos;
+    VoxelRefGpu children;
+    f32 rad;
+};
+
+
+inline VoxelRefGpu unpack_voxel_ref(const RG32U pix)
+{
+    VoxelRefGpu ref;
+
+    ref.type = pix.r & 0x3; // 2 bits
+    ref.material = (pix.r & 0x3fffc) >> 2; // 16 bits
+    ref.filledNeighbors = (pix.r & 0xfc0000) >> 18; // 6 bits
+    // padding - 8 bits
+    
+    ref.imageIdx = (pix.g & 0xf); // 4 bits
+    ref.voxelIdx = (pix.g & 0x7fffff0) >> 4; // 23 bits, top order of second 8 byte pixel
+    // padding - 5 bits
+
+    return ref;
+}
+
+inline VoxelRootGpu extract_voxel_root(const ImageBuffer * voxelRoots, u32 voxelRoot)
+{
+    // logic here depends on rg32u pixels, 64 byte voxel roots, etc.
+    static_assert(sizeof(VoxelRoot) == 8 * sizeof(RG32U), "VoxelRoot isn't same size as 8 pixels");
+
+    u32 pixStart = voxelRoot * VoxelWorld::kPixelsPerVoxel;
+
+    RG32U pix0 = voxelRoots->imageLoad<RG32U>(pixStart);
+    RG32U pix1 = voxelRoots->imageLoad<RG32U>(pixStart + 1);
+    RG32U pix2 = voxelRoots->imageLoad<RG32U>(pixStart + 2);
+    RG32U pix3 = voxelRoots->imageLoad<RG32U>(pixStart + 3);
+    RG32U pix4 = voxelRoots->imageLoad<RG32U>(pixStart + 4);
+    RG32U pix5 = voxelRoots->imageLoad<RG32U>(pixStart + 5);
+    RG32U pix6 = voxelRoots->imageLoad<RG32U>(pixStart + 6);
+    RG32U pix7 = voxelRoots->imageLoad<RG32U>(pixStart + 7);
+
+    VoxelRootGpu root;
+
+    root.pos.x() = uint_bits_to_float(pix0.r);
+    root.pos.y() = uint_bits_to_float(pix0.g);
+
+    root.pos.z() = uint_bits_to_float(pix1.r);
+    root.rot.elems[0] = uint_bits_to_float(pix1.g);
+
+    root.rot.elems[1] = uint_bits_to_float(pix2.r);
+    root.rot.elems[2] = uint_bits_to_float(pix2.g);
+
+    root.rot.elems[3] = uint_bits_to_float(pix3.r);
+    root.rot.elems[4] = uint_bits_to_float(pix3.g);
+
+    root.rot.elems[5] = uint_bits_to_float(pix4.r);
+    root.rot.elems[6] = uint_bits_to_float(pix4.g);
+
+    root.rot.elems[7] = uint_bits_to_float(pix5.r);
+    root.rot.elems[8] = uint_bits_to_float(pix5.g);
+
+    root.rad = uint_bits_to_float(pix6.r);
+    // pix6.g is padding in C struct
+
+    root.children = unpack_voxel_ref(pix7);
+
+    return root;
+}
+
 //------------------------------------------------------------------------------
 // GLSL Fucntions (END)
 //------------------------------------------------------------------------------
 
 ComputeShaderSimulator::~ComputeShaderSimulator()
 {
-    if (uni_FrameBuffer)
-        GDELETE(uni_FrameBuffer);
+    if (un_FrameBuffer)
+        GDELETE(un_FrameBuffer);
 }
 
 void ComputeShaderSimulator::init(UVec3 workGroupSize,
@@ -73,23 +172,25 @@ void ComputeShaderSimulator::init(UVec3 workGroupSize,
     ASSERT(workGroupSize.x * numWorkGroups.x <= kFrameBufferSize);
     ASSERT(workGroupSize.y * numWorkGroups.y <= kFrameBufferSize);
 
-    uni_FrameBuffer = GNEW(kMEM_Engine, ImageBuffer, kFrameBufferSize, sizeof(Pix_RGB8));
+    static const f32 kRad = 2.0f;
+    set_shape_generic(mVoxelWorld, 0, 0, 3, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
+
+    un_FrameBuffer = GNEW(kMEM_Engine, ImageBuffer, kFrameBufferSize, sizeof(RGB8));
+
+    un_VoxelData = mVoxelWorld.voxelImage(0);
+    un_VoxelRoots = mVoxelWorld.voxelRoots();
+    un_VoxelRootCount = mVoxelWorld.voxelRootCount();
 
     gl_WorkGroupSize = workGroupSize;
     gl_NumWorkGroups = numWorkGroups;
-
-
-//    static const f32 kRad = 2.0f;
-//    voxelRoot = set_shape_generic(voxelWorld, 0, 0, 3, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
 }
 
 void ComputeShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights)
 {
     // prpare uniforms
-    uni_Camera.position = camera.position();
-    uni_Camera.direction = Vec4(camera.direction());
-    uni_Camera.projectionInv = camera.projectionInv();
-
+    un_CameraPos = camera.position();
+    un_CameraDir = Vec4(camera.direction());
+    un_CameraProjectionInv = camera.projectionInv();
 
     for (gl_WorkGroupID.z = 0; gl_WorkGroupID.z < gl_NumWorkGroups.z; ++gl_WorkGroupID.z)
     {
@@ -107,12 +208,13 @@ void ComputeShaderSimulator::render(const RaycastCamera & camera, const List<kME
                             gl_LocalInvocationIndex = (gl_LocalInvocationID.z * gl_WorkGroupSize.x * gl_WorkGroupSize.y +
                                                        gl_LocalInvocationID.y * gl_WorkGroupSize.x + gl_LocalInvocationID.x);
 
+                            
 
 //                            LOG_INFO("%2u, %2u   %2u, %2u", gl_WorkGroupID.y, gl_WorkGroupID.x, gl_LocalInvocationID.y, gl_LocalInvocationID.x);
-                            LOG_INFO("%u, %u     %u, %u", gl_GlobalInvocationID.y, gl_GlobalInvocationID.x, gl_LocalInvocationID.y, gl_LocalInvocationID.x);
+//                            LOG_INFO("%u, %u     %u, %u", gl_GlobalInvocationID.y, gl_GlobalInvocationID.x, gl_LocalInvocationID.y, gl_LocalInvocationID.x);
 //                            LOG_INFO("%u, %u", gl_GlobalInvocationID.y, gl_GlobalInvocationID.x);
 
-                            compShader_Test();
+                            compShader_Raycast();
                         }
                     }
                 }
@@ -126,11 +228,93 @@ void ComputeShaderSimulator::compShader_Test()
     f32 rCol = (f32)gl_LocalInvocationID.x / (f32)gl_WorkGroupSize.x;
     f32 gCol = (f32)gl_LocalInvocationID.y / (f32)gl_WorkGroupSize.y;
 
-    uni_FrameBuffer->imageStoreRGB8(gl_GlobalInvocationID.x,
-                                    gl_GlobalInvocationID.y,
-                                    Pix_RGB8((f32)gl_LocalInvocationID.x / (f32)gl_WorkGroupSize.x,
-                                             (f32)gl_LocalInvocationID.y / (f32)gl_WorkGroupSize.y,
-                                             0.0f));
+    un_FrameBuffer->imageStore2d(gl_GlobalInvocationID.x,
+                                 gl_GlobalInvocationID.y,
+                                 RGB8((f32)gl_LocalInvocationID.x / (f32)gl_WorkGroupSize.x,
+                                      (f32)gl_LocalInvocationID.y / (f32)gl_WorkGroupSize.y,
+                                      0.0f));
+}
+
+void ComputeShaderSimulator::compShader_Raycast()
+{
+    // LORRTODO: Consider moving to uniform
+    Vec2 windowSize((f32)(gl_WorkGroupSize.x * gl_NumWorkGroups.x),
+                    (f32)(gl_WorkGroupSize.y * gl_NumWorkGroups.y));
+
+    Vec3 rayScreenPos(2.0f * gl_GlobalInvocationID.x / windowSize.x() - 1.0f,
+                      2.0f * gl_GlobalInvocationID.y / windowSize.y() - 1.0f,
+                      0.0f);
+
+    Vec3 rayDirProj = Vec3::normalize(Mat4::multiply(un_CameraProjectionInv, rayScreenPos));
+
+    Vec3 rayDir = quat_multiply(un_CameraDir, rayDirProj);
+    Vec3 rayPos = un_CameraPos;
+
+    Vec3 rayDirCol = (rayScreenPos + Vec3(1.0f, 1.0f, 1.0f)) / Vec3(2.0f, 2.0f, 2.0f);
+
+    un_FrameBuffer->imageStore2d(gl_GlobalInvocationID.x,
+                                 gl_GlobalInvocationID.y,
+                                 RGB8(rayDirCol.x(), rayDirCol.y(), rayDirCol.z()));
+
+    for (u32 rootId = 0; rootId < un_VoxelRootCount; ++rootId)
+    {
+        VoxelRootGpu voxelRoot = extract_voxel_root(un_VoxelRoots, rootId);
+    }
+
+/*
+    
+    VoxelRef voxelRef;
+    Vec3 normal;
+    VoxelFace face;
+    Vec2 faceUv;
+    u32 hit = (u32)test_ray_voxel(&voxelRef, &normal, &zDepth, &face, &faceUv, voxelWorld, rayPos, rayDir, voxelRoot, 16);
+
+    if (hit)
+    {
+        f32 intensity = maxval(Vec3::dot(normal, lightDir), 0.0f);
+
+        switch (face)
+        {
+        case VoxelFace::Left:
+            color.r = 150;
+            color.g = (u8)minval(150.0f, 150 * faceUv.x());
+            color.b = (u8)minval(150.0f, 150 * faceUv.y());
+            break;
+        case VoxelFace::Right:
+            color.r = 255;
+            color.g = (u8)minval(255.0f, 255 * faceUv.x());
+            color.b = (u8)minval(255.0f, 255 * faceUv.y());
+            break;
+        case VoxelFace::Bottom:
+            color.r = (u8)minval(150.0f, 150 * faceUv.x());
+            color.g = 150;
+            color.b = (u8)minval(150.0f, 150 * faceUv.y());
+            break;
+        case VoxelFace::Top:
+            color.r = (u8)minval(255.0f, 255 * faceUv.x());
+            color.g = 255;
+            color.b = (u8)minval(255.0f, 255 * faceUv.y());
+            break;
+        case VoxelFace::Back:
+            color.r = (u8)minval(150.0f, 150 * faceUv.x());
+            color.g = (u8)minval(150.0f, 150 * faceUv.y());
+            color.b = 150;
+            break;
+        case VoxelFace::Front:
+            color.r = (u8)minval(255.0f, 255 * faceUv.x());
+            color.g = (u8)minval(255.0f, 255 * faceUv.y());
+            color.b = 255;
+            break;
+        }
+    }
+    else
+    {
+        color.r = 100;
+        color.g = 125;
+        color.b = 255;
+        zDepth = -(FLT_MAX * 0.90f);
+    }
+*/
 }
 
 
@@ -232,9 +416,9 @@ static void set_shape_full(VoxelWorld & voxelWorld)
 
 void FragmentShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycastCamera)
 {
-    mFrameBuffer = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(Pix_RGB8));
-    mDepthBuffer = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(Pix_R32F));
-    mDepthBufferBlank = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(Pix_R32F));
+    mFrameBuffer = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(RGB8));
+    mDepthBuffer = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(R32F));
+    mDepthBufferBlank = GNEW(kMEM_Engine, ImageBuffer, outputImageSize, sizeof(R32F));
     mpRaycastCamera = pRaycastCamera;
 
     // prepare blanked out depth buffer
@@ -242,7 +426,7 @@ void FragmentShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycast
     {
         for (u16 x = 0; x < outputImageSize; ++x)
         {
-            mDepthBufferBlank->imageStoreR32F(x, y, Pix_R32F(-FLT_MAX));
+            mDepthBufferBlank->imageStore2d(x, y, R32F(-FLT_MAX));
         }
     }
 
@@ -271,8 +455,8 @@ void FragmentShaderSimulator::render(const RaycastCamera & camera, const List<kM
 
     mDepthBuffer->copy(*mDepthBufferBlank);
 
-    Pix_RGB8 * pix = reinterpret_cast<Pix_RGB8*>(mFrameBuffer->buffer());
-    Pix_R32F * dpix = reinterpret_cast<Pix_R32F*>(mDepthBuffer->buffer());
+    RGB8 * pix = reinterpret_cast<RGB8*>(mFrameBuffer->buffer());
+    R32F * dpix = reinterpret_cast<R32F*>(mDepthBuffer->buffer());
 
     gl_FragCoord.z = 0;
 

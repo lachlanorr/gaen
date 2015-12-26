@@ -67,13 +67,6 @@ struct UVec3
     }
 };
 
-struct ComputeCamera
-{
-    Vec3 position;
-    Vec4 direction;
-    Mat4 projectionInv;
-};
-
 class ComputeShaderSimulator
 {
 public:
@@ -82,17 +75,26 @@ public:
     void init(UVec3 workGroupSize,
               UVec3 numWorkGroups);
 
-    const u8 * frameBuffer() { return uni_FrameBuffer->buffer(); }
+    const u8 * frameBuffer() { return un_FrameBuffer->buffer(); }
 
     void render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights);
 
 private:
     void compShader_Test();
+    void compShader_Raycast();
+
+    VoxelWorld mVoxelWorld;
 
     // uniforms
-    ComputeCamera uni_Camera;
-    ImageBuffer * uni_FrameBuffer = nullptr;
+    Vec3 un_CameraPos;
+    Vec4 un_CameraDir;
+    Mat4 un_CameraProjectionInv;
 
+    ImageBuffer * un_FrameBuffer = nullptr;
+    const ImageBuffer * un_VoxelData = nullptr;
+
+    const ImageBuffer * un_VoxelRoots = nullptr;
+    u32 un_VoxelRootCount;
 
     // glsl variables
     UVec3 gl_WorkGroupSize;
@@ -143,7 +145,7 @@ private:
         u32 z;
     };
 
-    Pix_RGB8 color; // frag output shader
+    RGB8 color; // frag output shader
     f32 zDepth;
     ScreenCoords gl_FragCoord;
 
