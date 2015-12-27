@@ -81,7 +81,7 @@ public:
 
 private:
     void compShader_Test();
-    void compShader_Raycast();
+    void compShader_Raycast_gpu();
 
     VoxelWorld mVoxelWorld;
 

@@ -130,28 +130,34 @@ Shader * faceted::construct()
     // Uniforms
     pShader->mUniforms[0].nameHash = 0xd89e6f38; /* HASH::umMVP */
     pShader->mUniforms[0].index = 0;
+    pShader->mUniforms[0].location = 0;
     pShader->mUniforms[0].type = GL_FLOAT_MAT4;
 
     pShader->mUniforms[1].nameHash = 0x8dd6b1d0; /* HASH::umNormal */
     pShader->mUniforms[1].index = 1;
+    pShader->mUniforms[1].location = 1;
     pShader->mUniforms[1].type = GL_FLOAT_MAT3;
 
     pShader->mUniforms[2].nameHash = 0xc3c5df05; /* HASH::uvColor */
     pShader->mUniforms[2].index = 2;
+    pShader->mUniforms[2].location = 2;
     pShader->mUniforms[2].type = GL_FLOAT_VEC4;
 
     pShader->mUniforms[3].nameHash = 0xa7a7a88b; /* HASH::uvLightDirection */
     pShader->mUniforms[3].index = 3;
+    pShader->mUniforms[3].location = 3;
     pShader->mUniforms[3].type = GL_FLOAT_VEC3;
 
 
     // Attributes
     pShader->mAttributes[0].nameHash = 0x0df141b6; /* HASH::vNormal */
     pShader->mAttributes[0].index = 0;
+    pShader->mAttributes[0].location = 1;
     pShader->mAttributes[0].type = GL_FLOAT_VEC3;
 
     pShader->mAttributes[1].nameHash = 0xe61b84be; /* HASH::vPosition */
     pShader->mAttributes[1].index = 1;
+    pShader->mAttributes[1].location = 0;
     pShader->mAttributes[1].type = GL_FLOAT_VEC4;
 
 

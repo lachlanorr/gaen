@@ -319,6 +319,91 @@ static const SubVoxel kVoxelSearchOrder[6 * 4 * 8] = {
 
 static_assert(sizeof(kVoxelSearchOrder) == 192, "kVoxelSearchOrder not 192 bytes");
 
+
+static const Vec3 kVoxelNeighborOffsets[26] =
+{
+    Vec3(-1.0f, -1.0f, -1.0f), // kVN_LeftBottomBack     =  0,
+    Vec3(-1.0f, -1.0f,  0.0f), // kVN_LeftBottomMiddle   =  1,
+    Vec3(-1.0f, -1.0f,  1.0f), // kVN_LeftBottomFront    =  2,
+
+    Vec3(-1.0f,  0.0f, -1.0f), // kVN_LeftMiddleBack     =  3,
+    Vec3(-1.0f,  0.0f,  0.0f), // kVN_LeftMiddleMiddle   =  4,
+    Vec3(-1.0f,  0.0f,  1.0f), // kVN_LeftMiddleFront    =  5,
+
+    Vec3(-1.0f,  1.0f, -1.0f), // kVN_LeftTopBack        =  6,
+    Vec3(-1.0f,  1.0f,  0.0f), // kVN_LeftTopMiddle      =  7,
+    Vec3(-1.0f,  1.0f,  1.0f), // kVN_LeftTopFront       =  8,
+
+    Vec3( 0.0f, -1.0f, -1.0f), // kVN_MiddleBottomBack   =  9,
+    Vec3( 0.0f, -1.0f,  0.0f), // kVN_MiddleBottomMiddle = 10,
+    Vec3( 0.0f, -1.0f,  1.0f), // kVN_MiddleBottomFront  = 11,
+
+    Vec3( 0.0f,  0.0f, -1.0f), // kVN_MiddleMiddleBack   = 12,
+    //kVN_MiddleMiddleMiddle,
+    Vec3( 0.0f,  0.0f,  1.0f), // kVN_MiddleMiddleFront  = 13,
+
+    Vec3( 0.0f,  1.0f, -1.0f), // kVN_MiddleTopBack      = 14,
+    Vec3( 0.0f,  1.0f,  0.0f), // kVN_MiddleTopMiddle    = 15,
+    Vec3( 0.0f,  1.0f,  1.0f), // kVN_MiddleTopFront     = 16,
+
+    Vec3( 1.0f, -1.0f, -1.0f), // kVN_RightBottomBack    = 17,
+    Vec3( 1.0f, -1.0f,  0.0f), // kVN_RightBottomMiddle  = 18,
+    Vec3( 1.0f, -1.0f,  1.0f), // kVN_RightBottomFront   = 19,
+
+    Vec3( 1.0f,  0.0f, -1.0f), // kVN_RightMiddleBack    = 20,
+    Vec3( 1.0f,  0.0f,  0.0f), // kVN_RightMiddleMiddle  = 21,
+    Vec3( 1.0f,  0.0f,  1.0f), // kVN_RightMiddleFront   = 22,
+
+    Vec3( 1.0f,  1.0f, -1.0f), // kVN_RightTopBack       = 23,
+    Vec3( 1.0f,  1.0f,  0.0f), // kVN_RightTopMiddle     = 24,
+    Vec3( 1.0f,  1.0f,  1.0f)  // kVN_RightTopFront      = 25
+};
+
+
+static const Vec3 kVoxelNeighborDirections[26] =
+{
+    Vec3(-5.77350259e-001f, -5.77350259e-001f, -5.77350259e-001f), // kVN_LeftBottomBack     =  0,
+    Vec3(-7.07106769e-001f, -7.07106769e-001f,  0.00000000e+000f), // kVN_LeftBottomMiddle   =  1,
+    Vec3(-5.77350259e-001f, -5.77350259e-001f,  5.77350259e-001f), // kVN_LeftBottomFront    =  2,
+
+    Vec3(-7.07106769e-001f,  0.00000000e+000f, -7.07106769e-001f), // kVN_LeftMiddleBack     =  3,
+    Vec3(-1.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f), // kVN_LeftMiddleMiddle   =  4,
+    Vec3(-7.07106769e-001f,  0.00000000e+000f,  7.07106769e-001f), // kVN_LeftMiddleFront    =  5,
+
+    Vec3(-5.77350259e-001f,  5.77350259e-001f, -5.77350259e-001f), // kVN_LeftTopBack        =  6,
+    Vec3(-7.07106769e-001f,  7.07106769e-001f,  0.00000000e+000f), // kVN_LeftTopMiddle      =  7,
+    Vec3(-5.77350259e-001f,  5.77350259e-001f,  5.77350259e-001f), // kVN_LeftTopFront       =  8,
+
+    Vec3( 0.00000000e+000f, -7.07106769e-001f, -7.07106769e-001f), // kVN_MiddleBottomBack   =  9,
+    Vec3( 0.00000000e+000f, -1.00000000e+000f,  0.00000000e+000f), // kVN_MiddleBottomMiddle = 10,
+    Vec3( 0.00000000e+000f, -7.07106769e-001f,  7.07106769e-001f), // kVN_MiddleBottomFront  = 11,
+
+    Vec3( 0.00000000e+000f,  0.00000000e+000f, -1.00000000e+000f), // kVN_MiddleMiddleBack   = 12,
+    //kVN_MiddleMiddleMiddle,
+    Vec3( 0.00000000e+000f,  0.00000000e+000f,  1.00000000e+000f), // kVN_MiddleMiddleFront  = 13,
+
+    Vec3( 0.00000000e+000f,  7.07106769e-001f, -7.07106769e-001f), // kVN_MiddleTopBack      = 14,
+    Vec3( 0.00000000e+000f,  1.00000000e+000f,  0.00000000e+000f), // kVN_MiddleTopMiddle    = 15,
+    Vec3( 0.00000000e+000f,  7.07106769e-001f,  7.07106769e-001f), // kVN_MiddleTopFront     = 16,
+
+    Vec3( 5.77350259e-001f, -5.77350259e-001f, -5.77350259e-001f), // kVN_RightBottomBack    = 17,
+    Vec3( 7.07106769e-001f, -7.07106769e-001f,  0.00000000e+000f), // kVN_RightBottomMiddle  = 18,
+    Vec3( 5.77350259e-001f, -5.77350259e-001f,  5.77350259e-001f), // kVN_RightBottomFront   = 19,
+
+    Vec3( 7.07106769e-001f,  0.00000000e+000f, -7.07106769e-001f), // kVN_RightMiddleBack    = 20,
+    Vec3( 1.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f), // kVN_RightMiddleMiddle  = 21,
+    Vec3( 7.07106769e-001f,  0.00000000e+000f,  7.07106769e-001f), // kVN_RightMiddleFront   = 22,
+
+    Vec3( 5.77350259e-001f,  5.77350259e-001f, -5.77350259e-001f), // kVN_RightTopBack       = 23,
+    Vec3( 7.07106769e-001f,  7.07106769e-001f,  0.00000000e+000f), // kVN_RightTopMiddle     = 24,
+    Vec3( 5.77350259e-001f,  5.77350259e-001f,  5.77350259e-001f), // kVN_RightTopFront      = 25
+};
+
+Vec3 voxel_neighbor_offset(VoxelNeighbor vn)
+{
+    return kVoxelNeighborOffsets[vn];
+}
+
 AABB_MinMax voxel_subspace(const AABB_MinMax & pSpace, SubVoxel subIndex)
 {
     // voxels are always cubes, so we only need one dimension's half

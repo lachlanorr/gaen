@@ -332,16 +332,52 @@ enum VoxelType
     kVT_NonTerminal   = 2
 };
 
+enum VoxelNeighbor
+{
+    kVN_LeftBottomBack     =  0,
+    kVN_LeftBottomMiddle   =  1,
+    kVN_LeftBottomFront    =  2,
+
+    kVN_LeftMiddleBack     =  3,
+    kVN_LeftMiddleMiddle   =  4,
+    kVN_LeftMiddleFront    =  5,
+
+    kVN_LeftTopBack        =  6,
+    kVN_LeftTopMiddle      =  7,
+    kVN_LeftTopFront       =  8,
+
+    kVN_MiddleBottomBack   =  9,
+    kVN_MiddleBottomMiddle = 10,
+    kVN_MiddleBottomFront  = 11,
+
+    kVN_MiddleMiddleBack   = 12,
+    //kVN_MiddleMiddleMiddle,
+    kVN_MiddleMiddleFront  = 13,
+
+    kVN_MiddleTopBack      = 14,
+    kVN_MiddleTopMiddle    = 15,
+    kVN_MiddleTopFront     = 16,
+
+    kVN_RightBottomBack    = 17,
+    kVN_RightBottomMiddle  = 18,
+    kVN_RightBottomFront   = 19,
+
+    kVN_RightMiddleBack    = 20,
+    kVN_RightMiddleMiddle  = 21,
+    kVN_RightMiddleFront   = 22,
+
+    kVN_RightTopBack       = 23,
+    kVN_RightTopMiddle     = 24,
+    kVN_RightTopFront      = 25
+};
+
 struct VoxelRef
 {
     u64 type:2;      // Voxel type
-    u64 material:16; // Index into VoxelWorld material array
-    u64 filledNeighbors:6; // Bit field of non-empty neighbors, from low to high: Left, Right, Bottom, Top, Back, Front
-    u64 _PADDING0:8;
-
-    u64 imageIdx:4;  // Index into images of VoxelWorld
+    u64 material:10; // Index into VoxelWorld material array
+    u64 imageIdx:3;  // Index into images of VoxelWorld
     u64 voxelIdx:23; // Index into image, converted to x/y coords during retrieval from image. 23 bits supports 8192x8192x8byte 64 byte voxels
-    u64 _PADDING1:5;
+    u64 filledNeighbors:26;
 
     bool isTerminalEmpty() const { return type == kVT_TerminalEmpty; }
     bool isTerminalFull() const { return type == kVT_TerminalFull; }
@@ -355,11 +391,9 @@ struct VoxelRef
     VoxelRef(VoxelType type, u16 material, u32 imageIdx, u32 voxelIdx)
       : type{type}
       , material{material}
-      , filledNeighbors{0}
-      , _PADDING0{0}
       , imageIdx{imageIdx}
       , voxelIdx{voxelIdx}
-      , _PADDING1{0}
+      , filledNeighbors{0}
     {}
 
     static VoxelRef terminal_empty()
@@ -608,6 +642,8 @@ AABB_MinMax voxel_subspace(const AABB_MinMax & pSpace, SubVoxel subIndex);
 
 bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, Vec2 * pFaceUv, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
 bool test_ray_voxel_gpu(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, Vec2 * pFaceUv, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
+
+Vec3 voxel_neighbor_offset(VoxelNeighbor vn);
 
 #pragma pack(pop)
 

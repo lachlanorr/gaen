@@ -40,7 +40,7 @@ private:
     voxel_cast() : Shader(0xe9f55c27 /* HASH::voxel_cast */) {}
 
     static const u32 kCodeCount = 1;
-    static const u32 kUniformCount = 2;
+    static const u32 kUniformCount = 3;
 
     Shader::ShaderCode mCodes[kCodeCount];
     Shader::VariableInfo mUniforms[kUniformCount];

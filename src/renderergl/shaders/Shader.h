@@ -54,7 +54,7 @@ public:
     void setUniformMat3(u32 nameHash, const Mat3 & value);
     void setUniformMat4(u32 nameHash, const Mat4 & value);
 
-    u32 textureUnit(u32 nameHash, u32 type);
+    u32 textureLocation(u32 nameHash, u32 type);
 
     static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode = nullptr);
 
@@ -69,8 +69,9 @@ protected:
     struct VariableInfo
     {
         u32 nameHash;
-        u32 index:8;
-        u32 type:24;
+        u16 index;
+        u16 location;
+        u32 type;
     };
 
     Shader(u32 nameHash);

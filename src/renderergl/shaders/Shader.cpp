@@ -129,7 +129,7 @@ void Shader::setUniformVec3(u32 nameHash, const Vec3 & value)
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_VEC3);
     PANIC_IF(!pUniform, "UniformVec3 does not exist in shader");
-    glUniform3fv(pUniform->index, 1, value.elems);
+    glUniform3fv(pUniform->location, 1, value.elems);
 }
 
 void Shader::setUniformVec4(u32 nameHash, const Vec4 & value)
@@ -137,7 +137,7 @@ void Shader::setUniformVec4(u32 nameHash, const Vec4 & value)
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_VEC4);
     PANIC_IF(!pUniform, "UniformVec4 does not exist in shader");
-    glUniform4fv(pUniform->index, 1, value.elems);
+    glUniform4fv(pUniform->location, 1, value.elems);
 }
 
 void Shader::setUniformMat3(u32 nameHash, const Mat3 & value)
@@ -145,7 +145,7 @@ void Shader::setUniformMat3(u32 nameHash, const Mat3 & value)
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_MAT3);
     PANIC_IF(!pUniform, "UniformMat3 does not exist in shader");
-    glUniformMatrix3fv(pUniform->index, 1, 0, value.elems);
+    glUniformMatrix3fv(pUniform->location, 1, 0, value.elems);
 }
 
 void Shader::setUniformMat4(u32 nameHash, const Mat4 & value)
@@ -153,14 +153,14 @@ void Shader::setUniformMat4(u32 nameHash, const Mat4 & value)
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_MAT4);
     PANIC_IF(!pUniform, "UniformMat4 does not exist in shader");
-    glUniformMatrix4fv(pUniform->index, 1, 0, value.elems);
+    glUniformMatrix4fv(pUniform->location, 1, 0, value.elems);
 }
 
-u32 Shader::textureUnit(u32 nameHash, u32 type)
+u32 Shader::textureLocation(u32 nameHash, u32 type)
 {
     VariableInfo * pUniform = findUniform(nameHash, type);
     PANIC_IF(!pUniform, "Texture does not exist in shader");
-    return pUniform->index;
+    return pUniform->location;
 }
 
 bool Shader::compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode)

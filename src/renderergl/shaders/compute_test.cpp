@@ -65,6 +65,7 @@ Shader * compute_test::construct()
     // Uniforms
     pShader->mUniforms[0].nameHash = 0xd872e2a5; /* HASH::data */
     pShader->mUniforms[0].index = 0;
+    pShader->mUniforms[0].location = 0;
     pShader->mUniforms[0].type = GL_IMAGE_2D;
 
 

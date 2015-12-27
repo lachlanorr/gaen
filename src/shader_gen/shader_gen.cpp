@@ -47,6 +47,7 @@ struct ShaderVarInfo
 {
     S name;
     u32 index;
+    u32 location;
     GLenum type;
 };
 
@@ -438,6 +439,7 @@ void process_shader_program(ShaderInfo & si)
 
         si.attributes.push_back(ShaderVarInfo());
         si.attributes.back().index = i;
+        si.attributes.back().location = glGetAttribLocation(programId, name);
         si.attributes.back().name = name;
         si.attributes.back().type = type;
     }
@@ -454,6 +456,7 @@ void process_shader_program(ShaderInfo & si)
 
         si.uniforms.push_back(ShaderVarInfo());
         si.uniforms.back().index = i;
+        si.uniforms.back().location = glGetUniformLocation(programId, name);
         si.uniforms.back().name = name;
         si.uniforms.back().type = type;
     }
@@ -622,6 +625,8 @@ S generate_shader_cpp(const ShaderInfo & si)
         code += scratch;
         snprintf(scratch, kMaxPath, "    pShader->mUniforms[%u].index = %u;\n", i, svi.index);
         code += scratch;
+        snprintf(scratch, kMaxPath, "    pShader->mUniforms[%u].location = %u;\n", i, svi.location);
+        code += scratch;
         snprintf(scratch, kMaxPath, "    pShader->mUniforms[%u].type = %s;\n", i, get_type_name(svi.type));
         code += scratch;
         code += LF;
@@ -638,6 +643,8 @@ S generate_shader_cpp(const ShaderInfo & si)
         snprintf(scratch, kMaxPath, "    pShader->mAttributes[%u].nameHash = 0x%08x; /* HASH::%s */\n", i, gaen_hash(svi.name.c_str()), svi.name.c_str());
         code += scratch;
         snprintf(scratch, kMaxPath, "    pShader->mAttributes[%u].index = %u;\n", i, svi.index);
+        code += scratch;
+        snprintf(scratch, kMaxPath, "    pShader->mAttributes[%u].location = %u;\n", i, svi.location);
         code += scratch;
         snprintf(scratch, kMaxPath, "    pShader->mAttributes[%u].type = %s;\n", i, get_type_name(svi.type));
         code += scratch;

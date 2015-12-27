@@ -198,15 +198,15 @@ void RendererGL::initViewport()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 #elif RENDERTYPE == RENDERTYPE_GPUVOXEL
     static const f32 kRad = 2.0f;
-    mVoxelRoot = set_shape_generic(mVoxelWorld, 0, 0, 1, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
+    mVoxelRoot = set_shape_generic(mVoxelWorld, 0, 0, 3, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
 
     // prep voxel cast shader
     mpVoxelCast = getShader(HASH::voxel_cast);
 
     // prep present image (frameBuffer)
-    u32 frameBufferTextureUnit = mpVoxelCast->textureUnit(HASH::frameBuffer, GL_IMAGE_2D);
+    mPresentImageLocation = mpVoxelCast->textureLocation(HASH::un_FrameBuffer, GL_IMAGE_2D);
 
-    glActiveTexture(GL_TEXTURE0 + frameBufferTextureUnit);
+    glActiveTexture(GL_TEXTURE0 + mPresentImageLocation);
     glGenTextures(1, &mPresentImage);
     glBindTexture(GL_TEXTURE_2D, mPresentImage);
 
@@ -214,10 +214,26 @@ void RendererGL::initViewport()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-    glBindImageTexture(frameBufferTextureUnit, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+    glBindImageTexture(mPresentImageLocation, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 
 
-    u32 voxelDataTextureUnit = mpVoxelCast->textureUnit(HASH::voxelData, GL_UNSIGNED_INT_IMAGE_BUFFER);
+
+    mVoxelRootsImageLocation = mpVoxelCast->textureLocation(HASH::un_VoxelRoots, GL_UNSIGNED_INT_IMAGE_BUFFER);
+
+    glGenBuffers(1, &mVoxelRoots);
+    glBindBuffer(GL_ARRAY_BUFFER, mVoxelRoots);
+    glBufferData(GL_ARRAY_BUFFER,
+        mVoxelWorld.voxelRoots()->bufferSize(),
+        mVoxelWorld.voxelRoots()->buffer(),
+        GL_DYNAMIC_COPY);
+
+    glGenTextures(1, &mVoxelRootsImage);
+    glBindTexture(GL_TEXTURE_BUFFER, mVoxelRootsImage);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32UI, mVoxelRoots);
+
+
+
+    mVoxelDataImageLocation = mpVoxelCast->textureLocation(HASH::un_VoxelData, GL_UNSIGNED_INT_IMAGE_BUFFER);
 
     glGenBuffers(1, &mVoxelData);
     glBindBuffer(GL_ARRAY_BUFFER, mVoxelData);
@@ -229,6 +245,8 @@ void RendererGL::initViewport()
     glGenTextures(1, &mVoxelDataImage);
     glBindTexture(GL_TEXTURE_BUFFER, mVoxelDataImage);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32UI, mVoxelData);
+
+
 
 #endif
 
@@ -298,8 +316,9 @@ void RendererGL::render()
 
 #elif RENDERTYPE == RENDERTYPE_GPUVOXEL // #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL
     mpVoxelCast->use();
-    glBindImageTexture(0, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
-    glBindImageTexture(1, mVoxelDataImage, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RG32UI);
+    glBindImageTexture(mPresentImageLocation, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+    glBindImageTexture(mVoxelRootsImageLocation, mVoxelRootsImage, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RG32UI);
+    glBindImageTexture(mVoxelDataImageLocation, mVoxelDataImage, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RG32UI);
     glDispatchCompute(80, 45, 1);
 
     mpPresentShader->use();

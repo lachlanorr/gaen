@@ -75,16 +75,19 @@ Shader * compute_present::construct()
     // Uniforms
     pShader->mUniforms[0].nameHash = 0xdc50cc66; /* HASH::imageSampler */
     pShader->mUniforms[0].index = 0;
+    pShader->mUniforms[0].location = 0;
     pShader->mUniforms[0].type = GL_SAMPLER_2D;
 
 
     // Attributes
     pShader->mAttributes[0].nameHash = 0xe61b84be; /* HASH::vPosition */
     pShader->mAttributes[0].index = 0;
+    pShader->mAttributes[0].location = 0;
     pShader->mAttributes[0].type = GL_FLOAT_VEC4;
 
     pShader->mAttributes[1].nameHash = 0x5e092066; /* HASH::vUV */
     pShader->mAttributes[1].index = 1;
+    pShader->mAttributes[1].location = 1;
     pShader->mAttributes[1].type = GL_FLOAT_VEC2;
 
 

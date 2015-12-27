@@ -373,28 +373,51 @@ const uint kVoxelSearchOrder[6][4][8] =
 layout (local_size_x = 16, local_size_y = 16) in;
 
 // un_FrameBuffer output
-layout (rgba8, binding=0) uniform image2D un_FrameBuffer;
+layout (location=0, rgba8, binding=0) uniform image2D un_FrameBuffer;
+
+// Voxel roots
+layout (location=1, rg32ui, binding=1) uniform uimageBuffer un_VoxelRoots;
 
 // Voxel world data
-layout (rg32ui, binding=1) uniform uimageBuffer un_VoxelData;
+layout (location=2, rg32ui, binding=2) uniform uimageBuffer un_VoxelData;
 
-//layout (binding=2) uniform
-
-
+layout (location=3) uniform uint un_VoxelRootCount;
 
 
-VoxelRef unpack_voxel_ref(uvec2 pix)
+
+vec4 uint_to_color(uint u)
 {
+    return vec4(float((u & 0xff000000) >> 24) / 255.0,
+                float((u & 0x00ff0000) >> 16) / 255.0,
+                float((u & 0x0000ff00) >>  8) / 255.0,
+                float(u & 0x000000ff) / 255.0);
+}
+
+//VoxelRef unpack_voxel_ref(uvec2 pix)
+VoxelRef unpack_voxel_ref(uint r, uint g)
+{
+/*    pix.r = ((pix.r & 0x000000ff) << 24 |
+             (pix.r & 0x0000ff00) <<  8 |
+             (pix.r & 0x00ff0000) >>  8 |
+             (pix.r & 0xff000000) >> 24);
+
+    pix.g = ((pix.g & 0x000000ff) << 24 |
+             (pix.g & 0x0000ff00) <<  8 |
+             (pix.g & 0x00ff0000) >>  8 |
+             (pix.g & 0xff000000) >> 24);
+*/  
     VoxelRef ref;
 
-    ref.type = pix.r & 0x3; // 2 bits
-    ref.material = (pix.r & 0x3fffc) >> 2; // 16 bits
-    ref.filledNeighbors = (pix.r & 0xfc0000) >> 18; // 6 bits
-    // padding - 8 bits
+    ref.type = r & 0x3; // 2 bits
+    ref.material = (r & 0xffc) >> 2; // 10 bits
+    
+    ref.imageIdx = (r & 0x7000) >> 12; // 3 bits
+    ref.voxelIdx = ((g & 0x3f) << 17) | ((r & 0xffff8000) >> 15); // 23 bits (17 in .r, 6 in .g)
 
-    ref.imageIdx = (pix.g & 0xf); // 4 bits
-    ref.voxelIdx = (pix.g & 0x7fffff0) >> 4; // 23 bits, top order of second 8 byte pixel
-    // padding - 5 bits
+//    if (r != 0)
+//        ref.voxelIdx = 50;
+
+    ref.filledNeighbors = (g & 0xffffffc0) >> 6; // 26 bits
 
     return ref;
 }
@@ -403,14 +426,14 @@ VoxelRoot extract_voxel_root(uint voxelRoot)
 {
     int pixStart = int(voxelRoot * kPixelsPerVoxel);
 
-    uvec4 pix0 = imageLoad(un_VoxelData, pixStart);
-    uvec4 pix1 = imageLoad(un_VoxelData, pixStart + 1);
-    uvec4 pix2 = imageLoad(un_VoxelData, pixStart + 2);
-    uvec4 pix3 = imageLoad(un_VoxelData, pixStart + 3);
-    uvec4 pix4 = imageLoad(un_VoxelData, pixStart + 4);
-    uvec4 pix5 = imageLoad(un_VoxelData, pixStart + 5);
-    uvec4 pix6 = imageLoad(un_VoxelData, pixStart + 6);
-    uvec4 pix7 = imageLoad(un_VoxelData, pixStart + 7);
+    uvec4 pix0 = imageLoad(un_VoxelRoots, pixStart);
+    uvec4 pix1 = imageLoad(un_VoxelRoots, pixStart + 1);
+    uvec4 pix2 = imageLoad(un_VoxelRoots, pixStart + 2);
+    uvec4 pix3 = imageLoad(un_VoxelRoots, pixStart + 3);
+    uvec4 pix4 = imageLoad(un_VoxelRoots, pixStart + 4);
+    uvec4 pix5 = imageLoad(un_VoxelRoots, pixStart + 5);
+    uvec4 pix6 = imageLoad(un_VoxelRoots, pixStart + 6);
+    uvec4 pix7 = imageLoad(un_VoxelRoots, pixStart + 7);
 
     VoxelRoot root;
 
@@ -433,7 +456,7 @@ VoxelRoot extract_voxel_root(uint voxelRoot)
     root.rad = uintBitsToFloat(pix6.r);
     // pix6.g is padding in C struct
 
-    root.children = unpack_voxel_ref(pix7.rg);
+    root.children = unpack_voxel_ref(pix7.r, pix7.g);
 
     return root;
 }
@@ -450,7 +473,10 @@ void main(void)
 
     vec4 color = vec4(gl_GlobalInvocationID.xy / imageSize, 0.0, 0.0);
 
+    VoxelRoot root = extract_voxel_root(0);
+
     uvec4 voxel = imageLoad(un_VoxelData, int(gl_GlobalInvocationID.y * coord.x + gl_GlobalInvocationID.x));
+    uvec4 root0 = imageLoad(un_VoxelRoots, int(gl_GlobalInvocationID.y * coord.x + gl_GlobalInvocationID.x));
 
 //    imageStore(un_FrameBuffer,
 //               ivec2(gl_GlobalInvocationID.xy),
@@ -460,6 +486,10 @@ void main(void)
 
     imageStore(un_FrameBuffer,
                ivec2(gl_GlobalInvocationID.xy),
-               vec4(voxel.xy, 0.0, 1.0));
+//               uint_to_color(root0.g));
+//               vec4(voxel.xy, 0.0, 1.0));
+//               vec4(float(uint(72)) / 255.0, 0.0, 0.0, 1.0));
+               vec4(float(root.children.voxelIdx) / 255.0, 0.0, 0.0, 1.0));
+//               vec4(abs(root.rad) / 20.0, 1.0));
     
 }

@@ -48,6 +48,7 @@
 #define RENDERTYPE_CPUCOMPVOXEL 2
 #define RENDERTYPE_GPUVOXEL 3
 
+//#define RENDERTYPE RENDERTYPE_CPUCOMPVOXEL
 #define RENDERTYPE RENDERTYPE_GPUVOXEL
 
 namespace gaen
@@ -102,10 +103,16 @@ private:
     GLuint mPresentVAO;
     GLuint mPresentVertexBuffer;
     GLuint mPresentImage;
+    GLuint mPresentImageLocation;
     shaders::Shader * mpPresentShader;
 
     GLuint mVoxelDataImage;
+    GLuint mVoxelDataImageLocation;
     GLuint mVoxelData;
+
+    GLuint mVoxelRootsImage;
+    GLuint mVoxelRootsImageLocation;
+    GLuint mVoxelRoots;
 
     Mat4 mProjection;
     Mat4 mGuiProjection;

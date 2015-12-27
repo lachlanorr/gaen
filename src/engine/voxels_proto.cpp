@@ -100,13 +100,12 @@ inline VoxelRefGpu unpack_voxel_ref(const RG32U pix)
     VoxelRefGpu ref;
 
     ref.type = pix.r & 0x3; // 2 bits
-    ref.material = (pix.r & 0x3fffc) >> 2; // 16 bits
-    ref.filledNeighbors = (pix.r & 0xfc0000) >> 18; // 6 bits
-    // padding - 8 bits
+    ref.material = (pix.r & 0xffc) >> 2; // 10 bits
     
-    ref.imageIdx = (pix.g & 0xf); // 4 bits
-    ref.voxelIdx = (pix.g & 0x7fffff0) >> 4; // 23 bits, top order of second 8 byte pixel
-    // padding - 5 bits
+    ref.imageIdx = (pix.r & 0x7000) >> 12; // 3 bits
+    ref.voxelIdx = ((pix.g & 0x3f) << 17) | ((pix.r & 0xffff8000) >> 15); // 23 bits (17 in .r, 6 in .g)
+
+    ref.filledNeighbors = (pix.g & 0xffffffc0) >> 6; // 26 bits
 
     return ref;
 }
@@ -214,7 +213,7 @@ void ComputeShaderSimulator::render(const RaycastCamera & camera, const List<kME
 //                            LOG_INFO("%u, %u     %u, %u", gl_GlobalInvocationID.y, gl_GlobalInvocationID.x, gl_LocalInvocationID.y, gl_LocalInvocationID.x);
 //                            LOG_INFO("%u, %u", gl_GlobalInvocationID.y, gl_GlobalInvocationID.x);
 
-                            compShader_Raycast();
+                            compShader_Raycast_gpu();
                         }
                     }
                 }
@@ -235,7 +234,7 @@ void ComputeShaderSimulator::compShader_Test()
                                       0.0f));
 }
 
-void ComputeShaderSimulator::compShader_Raycast()
+void ComputeShaderSimulator::compShader_Raycast_gpu()
 {
     // LORRTODO: Consider moving to uniform
     Vec2 windowSize((f32)(gl_WorkGroupSize.x * gl_NumWorkGroups.x),
@@ -260,14 +259,12 @@ void ComputeShaderSimulator::compShader_Raycast()
     {
         VoxelRootGpu voxelRoot = extract_voxel_root(un_VoxelRoots, rootId);
     }
-
-/*
-    
-    VoxelRef voxelRef;
-    Vec3 normal;
-    VoxelFace face;
-    Vec2 faceUv;
-    u32 hit = (u32)test_ray_voxel(&voxelRef, &normal, &zDepth, &face, &faceUv, voxelWorld, rayPos, rayDir, voxelRoot, 16);
+    /*
+        VoxelRef voxelRef;
+        Vec3 normal;
+        VoxelFace face;
+        Vec2 faceUv;
+        u32 hit = (u32)test_ray_voxel_gpu(&voxelRef, &normal, &zDepth, &face, &faceUv, voxelWorld, rayPos, rayDir, voxelRoot, 16);
 
     if (hit)
     {
