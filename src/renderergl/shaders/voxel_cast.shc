@@ -393,31 +393,17 @@ vec4 uint_to_color(uint u)
                 float(u & 0x000000ff) / 255.0);
 }
 
-//VoxelRef unpack_voxel_ref(uvec2 pix)
-VoxelRef unpack_voxel_ref(uint r, uint g)
+VoxelRef unpack_voxel_ref(uvec2 pix)
 {
-/*    pix.r = ((pix.r & 0x000000ff) << 24 |
-             (pix.r & 0x0000ff00) <<  8 |
-             (pix.r & 0x00ff0000) >>  8 |
-             (pix.r & 0xff000000) >> 24);
-
-    pix.g = ((pix.g & 0x000000ff) << 24 |
-             (pix.g & 0x0000ff00) <<  8 |
-             (pix.g & 0x00ff0000) >>  8 |
-             (pix.g & 0xff000000) >> 24);
-*/  
     VoxelRef ref;
 
-    ref.type = r & 0x3; // 2 bits
-    ref.material = (r & 0xffc) >> 2; // 10 bits
+    ref.type = pix.r & 0x3; // 2 bits
+    ref.material = (pix.r & 0xffc) >> 2; // 10 bits
     
-    ref.imageIdx = (r & 0x7000) >> 12; // 3 bits
-    ref.voxelIdx = ((g & 0x3f) << 17) | ((r & 0xffff8000) >> 15); // 23 bits (17 in .r, 6 in .g)
+    ref.imageIdx = (pix.r & 0x7000) >> 12; // 3 bits
+    ref.voxelIdx = ((pix.g & 0x3f) << 17) | ((pix.r & 0xffff8000) >> 15); // 23 bits (17 in .r, 6 in .g)
 
-//    if (r != 0)
-//        ref.voxelIdx = 50;
-
-    ref.filledNeighbors = (g & 0xffffffc0) >> 6; // 26 bits
+    ref.filledNeighbors = (pix.g & 0xffffffc0) >> 6; // 26 bits
 
     return ref;
 }
@@ -456,7 +442,7 @@ VoxelRoot extract_voxel_root(uint voxelRoot)
     root.rad = uintBitsToFloat(pix6.r);
     // pix6.g is padding in C struct
 
-    root.children = unpack_voxel_ref(pix7.r, pix7.g);
+    root.children = unpack_voxel_ref(uvec2(pix7));
 
     return root;
 }
