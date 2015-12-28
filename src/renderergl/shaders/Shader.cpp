@@ -124,6 +124,14 @@ Shader::VariableInfo * Shader::findUniform(u32 nameHash, u32 type)
     return nullptr;
 }
 
+void Shader::setUniformUint(u32 nameHash, u32 value)
+{
+    ASSERT(mIsLoaded);
+    VariableInfo * pUniform = findUniform(nameHash, GL_UNSIGNED_INT);
+    PANIC_IF(!pUniform, "UniformUint does not exist in shader");
+    glUniform1ui(pUniform->location, value);
+}
+
 void Shader::setUniformVec3(u32 nameHash, const Vec3 & value)
 {
     ASSERT(mIsLoaded);

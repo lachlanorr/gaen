@@ -144,7 +144,7 @@ void RendererGL::initViewport()
     // reset viewport
     glViewport(0, 0, mScreenWidth, mScreenHeight);
 
-#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
+#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL || RENDERTYPE == RENDERTYPE_GPUVOXEL
     mRaycastCamera.init(mScreenWidth, mScreenHeight, 60.0f, 0.1f, 1000.0f);
 #endif
 
@@ -319,6 +319,12 @@ void RendererGL::render()
     glBindImageTexture(mPresentImageLocation, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
     glBindImageTexture(mVoxelRootsImageLocation, mVoxelRootsImage, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RG32UI);
     glBindImageTexture(mVoxelDataImageLocation, mVoxelDataImage, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RG32UI);
+
+    //mpVoxelCast->setUniformUint(HASH::un_VoxelRootCount, mVoxelWorld.voxelRootCount());
+    mpVoxelCast->setUniformVec3(HASH::un_CameraPos, mRaycastCamera.position());
+    mpVoxelCast->setUniformVec4(HASH::un_CameraDir, mRaycastCamera.direction());
+    mpVoxelCast->setUniformMat4(HASH::un_CameraProjectionInv, mRaycastCamera.projectionInv());
+
     glDispatchCompute(80, 45, 1);
 
     mpPresentShader->use();

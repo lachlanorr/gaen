@@ -48,6 +48,8 @@ public:
 
     void use();
 
+    void setUniformUint(u32 nameHash, u32 value);
+
     void setUniformVec3(u32 nameHash, const Vec3 & value);
     void setUniformVec4(u32 nameHash, const Vec4 & value);
 
