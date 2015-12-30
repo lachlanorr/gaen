@@ -690,8 +690,6 @@ static const char * kShaderCode_shf =
     "                         vec3 hitPos,\n"
     "                         AABB_MinMax aabb)\n"
     "{\n"
-    "    return false;\n"
-    "\n"
     "    return (((face == kFaceLeft ||\n"
     "              face == kFaceRight) &&\n"
     "             hitPos.y > aabb.min.y &&\n"

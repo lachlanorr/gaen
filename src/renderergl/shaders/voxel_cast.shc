@@ -416,7 +416,8 @@ const uint kVoxelSearchOrder[6][4][8] =
 //------------------------------------------------------------------------------
 // Globals
 //------------------------------------------------------------------------------
-layout (local_size_x = 16, local_size_y = 16) in;
+layout (local_size_x = 8, local_size_y = 8) in;
+//layout (local_size_x = 16, local_size_y = 16) in;
 
 // un_FrameBuffer output
 layout (location=0, rgba8, binding=0) uniform image2D un_FrameBuffer;
@@ -643,8 +644,6 @@ bool is_hit_within_voxel(uint face,
                          vec3 hitPos,
                          AABB_MinMax aabb)
 {
-    return false;
-
     return (((face == kFaceLeft ||
               face == kFaceRight) &&
              hitPos.y > aabb.min.y &&

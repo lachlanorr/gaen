@@ -642,8 +642,6 @@ bool is_hit_within_voxel(uint face,
                          vec3 hitPos,
                          AABB_MinMax aabb)
 {
-    return false;
-
     return (((face == kFaceLeft ||
               face == kFaceRight) &&
              hitPos.y > aabb.min.y &&

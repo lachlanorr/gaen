@@ -390,7 +390,8 @@ void RendererGL::render()
     mpVoxelCast->setUniformVec4(HASH::un_CameraDir, mRaycastCamera.direction());
     mpVoxelCast->setUniformMat4(HASH::un_CameraProjectionInv, mRaycastCamera.projectionInv());
 
-    glDispatchCompute(80, 45, 1);
+    glDispatchCompute(160, 90, 1);
+    //glDispatchCompute(80, 45, 1);
 
     mpPresentShader->use();
 
