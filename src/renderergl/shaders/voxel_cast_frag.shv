@@ -1,0 +1,10 @@
+layout(location = 0) in vec4 vg_Position;
+layout(location = 1) in vec2 vg_RayScreenPos;
+
+out vec2 RayScreenPos;
+
+void main()
+{
+    gl_Position = vg_Position;
+    RayScreenPos = vg_RayScreenPos;
+};

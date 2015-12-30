@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// ShaderRegistry_codegen.cpp - Shader factory class
+// voxel_cast_frag.cpp - Auto-generated shader from voxel_cast_frag.shd
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -23,26 +23,31 @@
 //   3. This notice may not be removed or altered from any source
 //   distribution.
 //------------------------------------------------------------------------------
-
-#include "engine/hashes.h"
-#include "renderergl/ShaderRegistry.h"
-#include "renderergl/shaders/compute_present.h"
-#include "renderergl/shaders/compute_test.h"
-#include "renderergl/shaders/faceted.h"
-#include "renderergl/shaders/voxel_cast.h"
-#include "renderergl/shaders/voxel_cast_frag.h"
-
+#ifndef GAEN_RENDERERGL_SHADERS_VOXEL_CAST_FRAG_H
+#define GAEN_RENDERERGL_SHADERS_VOXEL_CAST_FRAG_H
+#include "renderergl/shaders/Shader.h"
 namespace gaen
 {
-
-void ShaderRegistry::registerAllShaderConstructors()
+namespace shaders
 {
-    registerShaderConstructor(HASH::compute_present, shaders::compute_present::construct);
-    registerShaderConstructor(HASH::compute_test, shaders::compute_test::construct);
-    registerShaderConstructor(HASH::faceted, shaders::faceted::construct);
-    registerShaderConstructor(HASH::voxel_cast, shaders::voxel_cast::construct);
-    registerShaderConstructor(HASH::voxel_cast_frag, shaders::voxel_cast_frag::construct);
-}
 
+class voxel_cast_frag : Shader
+{
+public:
+    static Shader * construct();
 
+private:
+    voxel_cast_frag() : Shader(0x427a5ca4 /* HASH::voxel_cast_frag */) {}
+
+    static const u32 kCodeCount = 2;
+    static const u32 kUniformCount = 5;
+    static const u32 kAttributeCount = 2;
+
+    Shader::ShaderCode mCodes[kCodeCount];
+    Shader::VariableInfo mUniforms[kUniformCount];
+    Shader::VariableInfo mAttributes[kAttributeCount];
+}; // class voxel_cast_frag
+
+} // namespace shaders
 } // namespace gaen
+#endif // #ifdef GAEN_RENDERERGL_SHADERS_VOXEL_CAST_FRAG_H

@@ -128,47 +128,62 @@ void Shader::setUniformUint(u32 nameHash, u32 value)
 {
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_UNSIGNED_INT);
-    PANIC_IF(!pUniform, "UniformUint does not exist in shader");
-    glUniform1ui(pUniform->location, value);
+    if (pUniform)
+        glUniform1ui(pUniform->location, value);
+    else
+        ERR("UniformUint does not exist in shader");
 }
 
 void Shader::setUniformVec3(u32 nameHash, const Vec3 & value)
 {
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_VEC3);
-    PANIC_IF(!pUniform, "UniformVec3 does not exist in shader");
-    glUniform3fv(pUniform->location, 1, value.elems);
+    if(pUniform)
+        glUniform3fv(pUniform->location, 1, value.elems);
+    else
+        ERR("UniformVec3 does not exist in shader");
 }
 
 void Shader::setUniformVec4(u32 nameHash, const Vec4 & value)
 {
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_VEC4);
-    PANIC_IF(!pUniform, "UniformVec4 does not exist in shader");
-    glUniform4fv(pUniform->location, 1, value.elems);
+    if(pUniform)
+        glUniform4fv(pUniform->location, 1, value.elems);
+    else
+        ERR("UniformVec4 does not exist in shader");
 }
 
 void Shader::setUniformMat3(u32 nameHash, const Mat3 & value)
 {
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_MAT3);
-    PANIC_IF(!pUniform, "UniformMat3 does not exist in shader");
-    glUniformMatrix3fv(pUniform->location, 1, 0, value.elems);
+    if(pUniform)
+        glUniformMatrix3fv(pUniform->location, 1, 0, value.elems);
+    else
+        ERR("UniformMat3 does not exist in shader");
 }
 
 void Shader::setUniformMat4(u32 nameHash, const Mat4 & value)
 {
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_MAT4);
-    PANIC_IF(!pUniform, "UniformMat4 does not exist in shader");
-    glUniformMatrix4fv(pUniform->location, 1, 0, value.elems);
+    if(pUniform)
+        glUniformMatrix4fv(pUniform->location, 1, 0, value.elems);
+    else
+        ERR("UniformMat4 does not exist in shader");
 }
 
 u32 Shader::textureLocation(u32 nameHash, u32 type)
 {
     VariableInfo * pUniform = findUniform(nameHash, type);
-    PANIC_IF(!pUniform, "Texture does not exist in shader");
-    return pUniform->location;
+    if(pUniform)
+        return pUniform->location;
+    else
+    {
+        ERR("Texture does not exist in shader");
+        return -1;
+    }
 }
 
 bool Shader::compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode)

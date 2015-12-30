@@ -1,0 +1,2 @@
+vertex_shader=voxel_cast_frag.shv
+fragment_shader=voxel_cast_frag.shf

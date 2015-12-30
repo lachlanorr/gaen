@@ -72,7 +72,20 @@ static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
                                   1.0f,  1.0f, // pos 3
                                   320.0f / kPresentImgSize, 192.0f / kPresentImgSize  // uv  3
 };
-#elif RENDERTYPE == RENDERTYPE_GPUVOXEL
+#elif RENDERTYPE == RENDERTYPE_GPUFRAGVOXEL
+static f32 kPresentSurface[] ={-1.0f, -1.0f, // pos 0
+                               -1.0f, -1.0f, // uv  0
+
+                               1.0f, -1.0f, // pos 1
+                               1.0f, -1.0f, // uv  1
+
+                               -1.0f, 1.0f, // pos 2
+                               -1.0f, 1.0f, // uv  2
+
+                               1.0f, 1.0f, // pos 3
+                               1.0f, 1.0f, // uv  3
+};
+#elif RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
 static const u32 kPresentImgSize = 2048;
 static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
                                   0.0f,  0.0f, // uv  0
@@ -144,7 +157,7 @@ void RendererGL::initViewport()
     // reset viewport
     glViewport(0, 0, mScreenWidth, mScreenHeight);
 
-#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL || RENDERTYPE == RENDERTYPE_GPUVOXEL
+#if RENDERTYPE != RENDERTYPE_MESH // all voxel shaders
     mRaycastCamera.init(mScreenWidth, mScreenHeight, 60.0f, 0.1f, 1000.0f);
 #endif
 
@@ -174,14 +187,16 @@ void RendererGL::initViewport()
     glBindBuffer(GL_ARRAY_BUFFER, mPresentVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(kPresentSurface), kPresentSurface, GL_STATIC_DRAW);
 
+#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL || RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
     mpPresentShader = getShader(HASH::compute_present);
     mpPresentShader->use();
+#endif
 
     // vertex position
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 16, (void*)0);
     glEnableVertexAttribArray(0);
 
-    // vertex UV
+    // vertex UV / RayScreenPos
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 16, (void*)8);
     glEnableVertexAttribArray(1);
 
@@ -196,7 +211,43 @@ void RendererGL::initViewport()
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, kPresentImgSize, kPresentImgSize, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-#elif RENDERTYPE == RENDERTYPE_GPUVOXEL
+
+#elif RENDERTYPE == RENDERTYPE_GPUFRAGVOXEL
+    static const f32 kRad = 2.0f;
+    mVoxelRoot = set_shape_generic(mVoxelWorld, 0, 0, 3, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
+
+    // prep voxel cast shader
+    mpVoxelCast = getShader(HASH::voxel_cast_frag);
+
+    mVoxelRootsImageLocation = mpVoxelCast->textureLocation(HASH::un_VoxelRoots, GL_UNSIGNED_INT_IMAGE_BUFFER);
+
+    glGenBuffers(1, &mVoxelRoots);
+    glBindBuffer(GL_ARRAY_BUFFER, mVoxelRoots);
+    glBufferData(GL_ARRAY_BUFFER,
+        mVoxelWorld.voxelRoots()->bufferSize(),
+        mVoxelWorld.voxelRoots()->buffer(),
+        GL_DYNAMIC_COPY);
+
+    glGenTextures(1, &mVoxelRootsImage);
+    glBindTexture(GL_TEXTURE_BUFFER, mVoxelRootsImage);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32UI, mVoxelRoots);
+
+
+
+    mVoxelDataImageLocation = mpVoxelCast->textureLocation(HASH::un_VoxelData, GL_UNSIGNED_INT_IMAGE_BUFFER);
+
+    glGenBuffers(1, &mVoxelData);
+    glBindBuffer(GL_ARRAY_BUFFER, mVoxelData);
+    glBufferData(GL_ARRAY_BUFFER,
+                 mVoxelWorld.imageBufferSize(0),
+                 mVoxelWorld.imageBuffer(0),
+                 GL_DYNAMIC_COPY);
+
+    glGenTextures(1, &mVoxelDataImage);
+    glBindTexture(GL_TEXTURE_BUFFER, mVoxelDataImage);
+    glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32UI, mVoxelData);
+
+#elif RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
     static const f32 kRad = 2.0f;
     mVoxelRoot = set_shape_generic(mVoxelWorld, 0, 0, 3, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
 
@@ -246,9 +297,7 @@ void RendererGL::initViewport()
     glBindTexture(GL_TEXTURE_BUFFER, mVoxelDataImage);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32UI, mVoxelData);
 
-
-
-#endif
+#endif // #elif RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
 
 
 }
@@ -314,7 +363,23 @@ void RendererGL::render()
     glBindVertexArray(mPresentVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-#elif RENDERTYPE == RENDERTYPE_GPUVOXEL // #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL
+#elif RENDERTYPE == RENDERTYPE_GPUFRAGVOXEL // #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL
+    mpVoxelCast->use();
+    if (mVoxelRootsImageLocation != -1)
+        glBindImageTexture(mVoxelRootsImageLocation, mVoxelRootsImage, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RG32UI);
+    if (mVoxelDataImageLocation != -1)
+        glBindImageTexture(mVoxelDataImageLocation, mVoxelDataImage, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RG32UI);
+
+    //mpVoxelCast->setUniformUint(HASH::un_VoxelRootCount, mVoxelWorld.voxelRootCount());
+    mpVoxelCast->setUniformVec3(HASH::un_CameraPos, mRaycastCamera.position());
+    mpVoxelCast->setUniformVec4(HASH::un_CameraDir, mRaycastCamera.direction());
+    mpVoxelCast->setUniformMat4(HASH::un_CameraProjectionInv, mRaycastCamera.projectionInv());
+
+    glBindVertexArray(mPresentVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+
+#elif RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL // #elif RENDERTYPE == RENDERTYPE_GPUFRAGVOXEL
     mpVoxelCast->use();
     glBindImageTexture(mPresentImageLocation, mPresentImage, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
     glBindImageTexture(mVoxelRootsImageLocation, mVoxelRootsImage, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RG32UI);

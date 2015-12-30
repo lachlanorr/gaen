@@ -46,6 +46,11 @@ SET (shaders_codegen_SOURCES
   ${shaders_dir}/voxel_cast.h
   ${shaders_dir}/voxel_cast.shc
   ${shaders_dir}/voxel_cast.shd
+  ${shaders_dir}/voxel_cast_frag.cpp
+  ${shaders_dir}/voxel_cast_frag.h
+  ${shaders_dir}/voxel_cast_frag.shd
+  ${shaders_dir}/voxel_cast_frag.shf
+  ${shaders_dir}/voxel_cast_frag.shv
 )
 
 IDE_SOURCE_PROPERTIES( "/shaders" "${shaders_codegen_SOURCES}")
