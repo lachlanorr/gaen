@@ -632,7 +632,7 @@ static const char * kShaderCode_shf =
     "    // If none are true, we have no collision.\n"
     "\n"
     "    face = 0;\n"
-    "    bool isHit = t0 <= t1;\n"
+    "    bool isHit = t0 > 0.0 && t0 <= t1;\n"
     "\n"
     "    face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == tbot.x) * 1);\n"
     "    face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == ttop.x) * 2);\n"

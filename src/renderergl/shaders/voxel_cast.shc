@@ -586,7 +586,7 @@ bool test_ray_box(out uint face,
     // If none are true, we have no collision.
 
     face = 0;
-    bool isHit = t0 <= t1;
+    bool isHit = t0 > 0.0 && t0 <= t1;
 
     face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == tbot.x) * 1);
     face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == ttop.x) * 2);

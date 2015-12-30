@@ -470,7 +470,7 @@ inline bool test_ray_box(VoxelFace * pVoxelFace,
     // If none are true, we have no collision.
 
     u32 faceHit = 0;
-    bool isHit = t0 <= t1;
+    bool isHit = t0 > 0.0f && t0 <= t1;
 
     faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.x()) && t0 == tbot.x()) * 1);
     faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.x()) && t0 == ttop.x()) * 2);
