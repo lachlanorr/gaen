@@ -418,11 +418,15 @@ void process_shader_program(ShaderInfo & si)
     glGetProgramiv(programId, GL_LINK_STATUS, &status);
     if (status == 0)
     {
+        char errMsg[256];
+        int len;
+        glGetProgramInfoLog(programId, 256, &len, errMsg);
+
         for (GLuint shader : shaderList)
         {
             glDeleteShader(shader);
         }
-        PANIC("Failed to link shader program");
+        PANIC("Failed to link shader program: %s", errMsg);
     }
 
     GLsizei nameLen;

@@ -574,7 +574,7 @@ inline void eval_voxel_hit(const SubVoxel ** ppSearchOrder,
     const SubVoxel * pSearchBlock = kVoxelSearchOrder + ((u32)voxelFace - 1) * (8 * 4);
 
     // We can skip the 0th entry, since we default to that if other 3 fail
-     AABB_MinMax subAabb0 = voxel_subspace(aabb, pSearchBlock[0]);
+    AABB_MinMax subAabb0 = voxel_subspace(aabb, pSearchBlock[0]);
     AABB_MinMax subAabb1 = voxel_subspace(aabb, pSearchBlock[8]);
     AABB_MinMax subAabb2 = voxel_subspace(aabb, pSearchBlock[16]);
     AABB_MinMax subAabb3 = voxel_subspace(aabb, pSearchBlock[24]);

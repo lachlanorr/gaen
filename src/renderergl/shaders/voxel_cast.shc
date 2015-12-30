@@ -34,6 +34,7 @@ const uint kTerminalEmpty = 0;
 const uint kTerminalFull  = 1;
 const uint kNonTerminal   = 2;
 
+const uint kMaxStackDepth = 32;
 //------------------------------------------------------------------------------
 // Constants (END)
 //------------------------------------------------------------------------------
@@ -65,6 +66,20 @@ struct AABB_MinMax
 {
     vec3 min; // min coord values along each axis
     vec3 max; // max coord values along each axis
+};
+
+
+struct VoxelRecurseInfo
+{
+    VoxelRef voxelRef;
+    AABB_MinMax aabb;
+    uint searchOrder[8];
+    uint searchIndex;
+    bool hit;
+    uint face;
+    float entryDist;
+    float exitDist;
+    vec3 hitPosLoc;
 };
 
 //------------------------------------------------------------------------------
@@ -393,8 +408,6 @@ const uint kVoxelSearchOrder[6][4][8] =
 };
 
 //------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
 // Static Data Structures (END)
 //------------------------------------------------------------------------------
 
@@ -419,6 +432,8 @@ layout (location=4) uniform vec4 un_CameraDir;
 layout (location=5) uniform vec3 un_CameraPos;
 layout (location=6) uniform mat4 un_CameraProjectionInv;
 
+VoxelRecurseInfo stack[kMaxStackDepth];
+
 //------------------------------------------------------------------------------
 // Globals (END)
 //------------------------------------------------------------------------------
@@ -427,84 +442,30 @@ layout (location=6) uniform mat4 un_CameraProjectionInv;
 //------------------------------------------------------------------------------
 // Functions
 //------------------------------------------------------------------------------
-vec4 uint_to_color(uint u)
-{
-    return vec4(float((u & 0xff000000) >> 24) / 255.0,
-                float((u & 0x00ff0000) >> 16) / 255.0,
-                float((u & 0x0000ff00) >>  8) / 255.0,
-                float(u & 0x000000ff) / 255.0);
-}
-
-//------------------------------------------------------------------------------
-
-AABB_MinMax aabb_from_rad(float rad)
-{
-    return AABB_MinMax(vec3(-rad), vec3(rad));
-}
-
-//------------------------------------------------------------------------------
-
-bool test_ray_box(out uint faceHit,
-                  out float entryDist,
-                  out float exitDist,
-                  vec3 rayPos,
-                  vec3 invRayDir,
-                  AABB_MinMax aabb)
-{
-    // On GPU, intersect box looks something like:
-    // See http://prideout.net/blog/?p=64
-    /*
-      bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
-      {
-      vec3 invR = 1.0 / r.Dir;
-      vec3 tbot = invR * (aabb.Min-r.Origin);
-      vec3 ttop = invR * (aabb.Max-r.Origin);
-      vec3 tmin = min(ttop, tbot);
-      vec3 tmax = max(ttop, tbot);
-      vec2 t = max(tmin.xx, tmin.yz);
-      t0 = max(t.x, t.y);
-      t = min(tmax.xx, tmax.yz);
-      t1 = min(t.x, t.y);
-      return t0 <= t1;
-      }
-    */
-
-
-    vec3 tbot = invRayDir * (aabb.min - rayPos);
-    vec3 ttop = invRayDir * (aabb.max - rayPos);
-    vec3 tmin = min(ttop, tbot);
-    vec3 tmax = max(ttop, tbot);
-    vec2 t = max(tmin.xx, tmin.yz);
-    float t0 = max(t.x, t.y);
-    t = min(tmax.xx, tmax.yz);
-    float t1 = min(t.x, t.y);
-
-
-    // find the face that was hit, only one condition is true,
-    // and this eliminates branching.
-    // If none are true, we have no collision.
-
-    faceHit = 0;
-    bool isHit = t0 <= t1;
-
-    faceHit = max(faceHit, uint(isHit && !isinf(invRayDir.x) && t0 == tbot.x) * 1);
-    faceHit = max(faceHit, uint(isHit && !isinf(invRayDir.x) && t0 == ttop.x) * 2);
-    faceHit = max(faceHit, uint(isHit && !isinf(invRayDir.y) && t0 == tbot.y) * 3);
-    faceHit = max(faceHit, uint(isHit && !isinf(invRayDir.y) && t0 == ttop.y) * 4);
-    faceHit = max(faceHit, uint(isHit && !isinf(invRayDir.z) && t0 == tbot.z) * 5);
-    faceHit = max(faceHit, uint(isHit && !isinf(invRayDir.z) && t0 == ttop.z) * 6);
-
-    faceHit = faceHit;
-    entryDist = t0;
-    exitDist = t1;
-
-    return faceHit != kFaceNone;
-}
-
-//------------------------------------------------------------------------------
 
 VoxelRef unpack_voxel_ref(uvec2 pix)
 {
+    VoxelRef ref;
+
+    ref.type = pix.r & 0x3; // 2 bits
+    ref.material = (pix.r & 0xffc) >> 2; // 10 bits
+
+    ref.imageIdx = (pix.r & 0x7000) >> 12; // 3 bits
+    ref.voxelIdx = ((pix.g & 0x3f) << 17) | ((pix.r & 0xffff8000) >> 15); // 23 bits (17 in .r, 6 in .g)
+
+    ref.filledNeighbors = (pix.g & 0xffffffc0) >> 6; // 26 bits
+
+    return ref;
+}
+
+//------------------------------------------------------------------------------
+
+VoxelRef extract_voxel_ref(uint voxelIdx, uint subVoxelIdx)
+{
+    int pixIdx = int(voxelIdx * kPixelsPerVoxel + subVoxelIdx);
+
+    uvec4 pix = imageLoad(un_VoxelData, pixIdx);
+
     VoxelRef ref;
 
     ref.type = pix.r & 0x3; // 2 bits
@@ -559,6 +520,8 @@ VoxelRoot extract_voxel_root(uint voxelRoot)
     return root;
 }
 
+//------------------------------------------------------------------------------
+
 vec3 quat_multiply(vec4 qlhs, vec3 vrhs)
 {
     float x2 = qlhs.x * 2.0;
@@ -582,6 +545,331 @@ vec3 quat_multiply(vec4 qlhs, vec3 vrhs)
 }
 
 //------------------------------------------------------------------------------
+
+vec4 uint_to_color(uint u)
+{
+    return vec4(float((u & 0xff000000) >> 24) / 255.0,
+                float((u & 0x00ff0000) >> 16) / 255.0,
+                float((u & 0x0000ff00) >>  8) / 255.0,
+                float(u & 0x000000ff) / 255.0);
+}
+
+//------------------------------------------------------------------------------
+
+AABB_MinMax aabb_from_rad(float rad)
+{
+    return AABB_MinMax(vec3(-rad), vec3(rad));
+}
+
+//------------------------------------------------------------------------------
+
+bool test_ray_box(out uint face,
+                  out float entryDist,
+                  out float exitDist,
+                  vec3 rayPos,
+                  vec3 invRayDir,
+                  AABB_MinMax aabb)
+{
+    vec3 tbot = invRayDir * (aabb.min - rayPos);
+    vec3 ttop = invRayDir * (aabb.max - rayPos);
+    vec3 tmin = min(ttop, tbot);
+    vec3 tmax = max(ttop, tbot);
+    vec2 t = max(tmin.xx, tmin.yz);
+    float t0 = max(t.x, t.y);
+    t = min(tmax.xx, tmax.yz);
+    float t1 = min(t.x, t.y);
+
+
+    // find the face that was hit, only one condition is true,
+    // and this eliminates branching.
+    // If none are true, we have no collision.
+
+    face = 0;
+    bool isHit = t0 <= t1;
+
+    face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == tbot.x) * 1);
+    face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == ttop.x) * 2);
+    face = max(face, uint(isHit && !isinf(invRayDir.y) && t0 == tbot.y) * 3);
+    face = max(face, uint(isHit && !isinf(invRayDir.y) && t0 == ttop.y) * 4);
+    face = max(face, uint(isHit && !isinf(invRayDir.z) && t0 == tbot.z) * 5);
+    face = max(face, uint(isHit && !isinf(invRayDir.z) && t0 == ttop.z) * 6);
+
+    entryDist = t0;
+    exitDist = t1;
+
+    return face != kFaceNone;
+}
+
+//------------------------------------------------------------------------------
+
+VoxelRecurseInfo prep_stack_entry(VoxelRef voxelRef, AABB_MinMax aabb)
+{
+    VoxelRecurseInfo stackEntry;
+    stackEntry.voxelRef = voxelRef;
+    stackEntry.aabb = aabb;
+
+    stackEntry.searchOrder = kVoxelSearchOrder[0][0];
+    stackEntry.searchIndex = 0;
+    stackEntry.hit = false;
+    stackEntry.face = kFaceNone;
+    stackEntry.entryDist = 0.0;
+    stackEntry.exitDist = 0.0;
+    stackEntry.hitPosLoc = vec3(0.0);
+
+    return stackEntry;
+}
+
+//------------------------------------------------------------------------------
+
+AABB_MinMax voxel_subspace(AABB_MinMax space, uint subIndex)
+{
+    // voxels are always cubes, so we only need one dimension's half
+    float dimHalf = 0.5 * (space.max.x - space.min.x);
+
+    // utilize the binary values of VoxelIndex to determine xyz offsets
+    vec3 offsets = vec3(((subIndex & 4) >> 2) * dimHalf,
+                        ((subIndex & 2) >> 1) * dimHalf,
+                        (subIndex & 1) * dimHalf);
+
+    AABB_MinMax ret;
+    ret.min = space.min + offsets;
+    ret.max = ret.min + vec3(dimHalf, dimHalf, dimHalf);
+    return ret;
+}
+
+//------------------------------------------------------------------------------
+
+bool is_hit_within_voxel(uint face,
+                         vec3 hitPos,
+                         AABB_MinMax aabb)
+{
+    return false;
+
+    return (((face == kFaceLeft ||
+              face == kFaceRight) &&
+             hitPos.y > aabb.min.y &&
+             hitPos.y <= aabb.max.y &&
+             hitPos.z > aabb.min.z &&
+             hitPos.z <= aabb.max.z) ||
+
+            ((face == kFaceBottom ||
+              face == kFaceTop) &&
+             hitPos.x > aabb.min.x &&
+             hitPos.x <= aabb.max.x &&
+             hitPos.z > aabb.min.z &&
+             hitPos.z <= aabb.max.z) ||
+
+            ((face == kFaceBack ||
+              face == kFaceFront) &&
+             hitPos.x > aabb.min.x &&
+             hitPos.x <= aabb.max.x &&
+             hitPos.y > aabb.min.y &&
+             hitPos.y <= aabb.max.y));
+}
+
+//------------------------------------------------------------------------------
+
+void eval_voxel_hit(out uint searchOrder[8],
+                    out vec3 hitPos,
+                    uint face,
+                    float entryDist,
+                    float exitDist,
+                    vec3 rayPos,
+                    vec3 rayDir,
+                    AABB_MinMax aabb)
+{
+    hitPos = rayPos + rayDir * entryDist;
+    uint searchOrderIndex = 0;
+
+    // index into the face within kVoxelSearchOrder based on the fase we hit
+    uint searchBlock[4][8] = kVoxelSearchOrder[face - 1];
+
+    // We can skip the 0th entry, since we default to that if other 3 fail
+    AABB_MinMax subAabb0 = voxel_subspace(aabb, searchBlock[0][0]);
+    AABB_MinMax subAabb1 = voxel_subspace(aabb, searchBlock[1][0]);
+    AABB_MinMax subAabb2 = voxel_subspace(aabb, searchBlock[2][0]);
+    AABB_MinMax subAabb3 = voxel_subspace(aabb, searchBlock[3][0]);
+
+    // zero or one of following expressions are true,
+    // if zero are true, it means that subAbb0 was the hit, and we're already initialized to 0.
+    bool is_hit_within0 = is_hit_within_voxel(face, hitPos, subAabb0);
+    bool is_hit_within1 = is_hit_within_voxel(face, hitPos, subAabb1);
+    bool is_hit_within2 = is_hit_within_voxel(face, hitPos, subAabb2);
+    bool is_hit_within3 = is_hit_within_voxel(face, hitPos, subAabb3);
+
+    searchOrderIndex += uint(is_hit_within0) * 0;
+    searchOrderIndex += uint(is_hit_within1) * 1;
+    searchOrderIndex += uint(is_hit_within2) * 2;
+    searchOrderIndex += uint(is_hit_within3) * 3;
+
+    searchOrder = searchBlock[searchOrderIndex];
+}
+
+
+//------------------------------------------------------------------------------
+
+vec2 calc_face_uv(uint face,
+                  vec3 hitPos,
+                  AABB_MinMax aabb)
+{
+    float aabbElems[6] = { aabb.min.x, aabb.min.y, aabb.min.z, aabb.max.x, aabb.max.y, aabb.max.z };
+
+    uint uHitElem = 0;
+    uHitElem = max(uHitElem, uint(face == kFaceLeft   || face == kFaceRight) * 2); // z
+    uHitElem = max(uHitElem, uint(face == kFaceBottom || face == kFaceTop)   * 0); // x
+    uHitElem = max(uHitElem, uint(face == kFaceBack   || face == kFaceFront) * 0); // x
+
+    uint vHitElem = 0;
+    vHitElem = max(vHitElem, uint(face == kFaceLeft   || face == kFaceRight) * 1); // y
+    vHitElem = max(vHitElem, uint(face == kFaceBottom || face == kFaceTop)   * 2); // z
+    vHitElem = max(vHitElem, uint(face == kFaceBack   || face == kFaceFront) * 1); // y
+
+
+    uint uAabbElem = 0;
+    uAabbElem = max(uAabbElem, uint(face == kFaceLeft)   * 2);  // aabb.min.z
+    uAabbElem = max(uAabbElem, uint(face == kFaceRight)  * 5);  // aabb.max.z
+    uAabbElem = max(uAabbElem, uint(face == kFaceBottom) * 0);  // aabb.min.x
+    uAabbElem = max(uAabbElem, uint(face == kFaceTop)    * 0);  // aabb.min.x
+    uAabbElem = max(uAabbElem, uint(face == kFaceBack)   * 3);  // aabb.max.x
+    uAabbElem = max(uAabbElem, uint(face == kFaceFront)  * 0);  // aabb.min.x
+
+    uint vAabbElem = 0;
+    vAabbElem = max(vAabbElem, uint(face == kFaceLeft)   * 1);  // aabb.min.y
+    vAabbElem = max(vAabbElem, uint(face == kFaceRight)  * 1);  // aabb.min.y
+    vAabbElem = max(vAabbElem, uint(face == kFaceBottom) * 2);  // aabb.min.z
+    vAabbElem = max(vAabbElem, uint(face == kFaceTop)    * 5);  // aabb.max.z
+    vAabbElem = max(vAabbElem, uint(face == kFaceBack)   * 1);  // aabb.min.y
+    vAabbElem = max(vAabbElem, uint(face == kFaceFront)  * 1);  // aabb.min.y
+
+    float aabbWidth = aabb.max.x - aabb.min.x;
+
+    return vec2(abs(hitPos[uHitElem] - aabbElems[uAabbElem]) / aabbWidth,
+                abs(hitPos[vHitElem] - aabbElems[vAabbElem]) / aabbWidth);
+}
+
+//------------------------------------------------------------------------------
+
+bool test_ray_voxel(out VoxelRef voxelRef,
+                    out vec3 normal,
+                    out float zDepth,
+                    out uint face,
+                    out vec2 faceUv,
+                    vec3 rayPos,
+                    vec3 rayDir,
+                    VoxelRoot root,
+                    uint maxDepth)
+{
+    // put ray into this voxel's space, so voxel is at 0,0,0 and 0,0,0 rotation
+    // from ray's perspective.
+
+    // Translate ray
+    vec3 rayPosLoc = rayPos - root.pos;
+
+    // Transpose of rotation matrix is the inverse
+    mat3 rotInv = transpose(root.rot);
+    vec3 rayDirLoc = rotInv * rayDir;
+    vec3 invRayDirLoc = 1.0 / rayDirLoc;
+
+    AABB_MinMax rootAabb = aabb_from_rad(root.rad);
+
+    // put voxel root on recurse stack before iteration begins
+    uint d = 0;
+    stack[d] = prep_stack_entry(root.children, rootAabb);
+
+    stack[d].hit = test_ray_box(stack[d].face,
+                                stack[d].entryDist,
+                                stack[d].exitDist,
+                                rayPosLoc,
+                                invRayDirLoc,
+                                stack[d].aabb);
+
+
+    if (!stack[d].hit || stack[d].voxelRef.type == kTerminalEmpty)
+    {
+        face = kFaceNone;
+        return false;
+    }
+
+
+    // else we hit, loop/recurse over children
+    while (true)
+    {
+        eval_voxel_hit(stack[d].searchOrder,
+                       stack[d].hitPosLoc,
+                       stack[d].face,
+                       stack[d].entryDist,
+                       stack[d].exitDist,
+                       rayPosLoc,
+                       rayDirLoc,
+                       stack[d].aabb);
+
+        if (stack[d].voxelRef.type == kTerminalFull)
+        {
+            voxelRef = stack[d].voxelRef;
+            normal = kNormals[stack[d].face];
+            zDepth = stack[d].entryDist;
+            face = stack[d].face;
+            faceUv = calc_face_uv(stack[d].face, stack[d].hitPosLoc, stack[d].aabb);
+            return true;
+        }
+        else
+        {
+            while (true)
+            {
+                if (stack[d].searchIndex >= 8)
+                {
+                    if (d > 0)
+                    {
+                        d--;
+                        break;
+                    }
+                    else
+                    {
+                        face = kFaceNone;
+                        return false;
+                    }
+                }
+                else
+                {
+                    VoxelRef childRef = extract_voxel_ref(stack[d].voxelRef.voxelIdx, stack[d].searchOrder[stack[d].searchIndex]);
+                    AABB_MinMax childAabb = voxel_subspace(stack[d].aabb,
+                                                           stack[d].searchOrder[stack[d].searchIndex]);
+                    stack[d].searchIndex++; // increment so if we recurse back here to this level we move past this one
+
+                    if (childRef.type == kTerminalEmpty)
+                    {
+                        continue;
+                    }
+
+                    VoxelRecurseInfo recInf = prep_stack_entry(childRef, childAabb);
+                    recInf.hit = test_ray_box(recInf.face,
+                                              recInf.entryDist,
+                                              recInf.exitDist,
+                                              rayPosLoc,
+                                              invRayDirLoc,
+                                              recInf.aabb);
+                    if (recInf.hit)
+                    {
+                        d++;
+
+                        stack[d] = recInf;
+                        break; // restart on parent for loop
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+
+    face = kFaceNone;
+    return false;
+}
+
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Functions (END)
 //------------------------------------------------------------------------------
 
@@ -602,7 +890,6 @@ void main(void)
     vec3 rayDirProj = normalize(un_CameraProjectionInv * vec4(rayScreenPos, 1.0)).xyz;
 
     vec3 rayDir = quat_multiply(un_CameraDir, rayDirProj);
-    vec3 invRayDir = 1.0 / rayDir;
     vec3 rayPos = un_CameraPos;
 
     vec3 rayDirCol = (rayScreenPos + vec3(1.0, 1.0, 1.0)) / vec3(2.0, 2.0, 2.0);
@@ -619,15 +906,17 @@ void main(void)
 
     AABB_MinMax rootAabb = aabb_from_rad(root.rad);
 
-    uint faceHit;
-    float entryDist;
-    float exitDist;
+    VoxelRef voxelRef;
+    vec3 normal;
+    float zDepth;
+    uint face;
+    vec2 faceUv;
 
-    bool hit = test_ray_box(faceHit, entryDist, exitDist, rayPos, invRayDir, rootAabb);
+    bool hit = test_ray_voxel(voxelRef, normal, zDepth, face, faceUv, un_CameraPos, rayDir, root, kMaxStackDepth);
 
     imageStore(un_FrameBuffer,
                ivec2(gl_GlobalInvocationID.xy),
-               vec4(abs(kNormals[faceHit]), 1.0));
+               vec4(abs(kNormals[face]), 1.0));
 }
 //------------------------------------------------------------------------------
 // Main Program (END)
