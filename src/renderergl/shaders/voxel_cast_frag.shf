@@ -584,19 +584,21 @@ bool test_ray_box(out uint face,
     // If none are true, we have no collision.
 
     face = 0;
-    bool isHit = t0 > 0.0 && t0 <= t1;
+    bool isHit = t1 > 0.0 && t0 <= t1;
 
-    face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == tbot.x) * 1);
-    face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == ttop.x) * 2);
-    face = max(face, uint(isHit && !isinf(invRayDir.y) && t0 == tbot.y) * 3);
-    face = max(face, uint(isHit && !isinf(invRayDir.y) && t0 == ttop.y) * 4);
-    face = max(face, uint(isHit && !isinf(invRayDir.z) && t0 == tbot.z) * 5);
-    face = max(face, uint(isHit && !isinf(invRayDir.z) && t0 == ttop.z) * 6);
-
-    entryDist = t0;
-    exitDist = t1;
-
-    return face != kFaceNone;
+    if (isHit)
+    {
+        face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == tbot.x) * 1);
+        face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == ttop.x) * 2);
+        face = max(face, uint(isHit && !isinf(invRayDir.y) && t0 == tbot.y) * 3);
+        face = max(face, uint(isHit && !isinf(invRayDir.y) && t0 == ttop.y) * 4);
+        face = max(face, uint(isHit && !isinf(invRayDir.z) && t0 == tbot.z) * 5);
+        face = max(face, uint(isHit && !isinf(invRayDir.z) && t0 == ttop.z) * 6);
+        entryDist = t0;
+        exitDist = t1;
+        return true;
+    }
+    return false;
 }
 
 //------------------------------------------------------------------------------

@@ -34,7 +34,7 @@ const uint kTerminalEmpty = 0;
 const uint kTerminalFull  = 1;
 const uint kNonTerminal   = 2;
 
-const uint kMaxStackDepth = 32;
+const uint kMaxStackDepth = 8;
 //------------------------------------------------------------------------------
 // Constants (END)
 //------------------------------------------------------------------------------
@@ -586,19 +586,21 @@ bool test_ray_box(out uint face,
     // If none are true, we have no collision.
 
     face = 0;
-    bool isHit = t0 > 0.0 && t0 <= t1;
+    bool isHit = t1 > 0.0 && t0 <= t1;
 
-    face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == tbot.x) * 1);
-    face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == ttop.x) * 2);
-    face = max(face, uint(isHit && !isinf(invRayDir.y) && t0 == tbot.y) * 3);
-    face = max(face, uint(isHit && !isinf(invRayDir.y) && t0 == ttop.y) * 4);
-    face = max(face, uint(isHit && !isinf(invRayDir.z) && t0 == tbot.z) * 5);
-    face = max(face, uint(isHit && !isinf(invRayDir.z) && t0 == ttop.z) * 6);
-
-    entryDist = t0;
-    exitDist = t1;
-
-    return face != kFaceNone;
+    if (isHit)
+    {
+        face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == tbot.x) * 1);
+        face = max(face, uint(isHit && !isinf(invRayDir.x) && t0 == ttop.x) * 2);
+        face = max(face, uint(isHit && !isinf(invRayDir.y) && t0 == tbot.y) * 3);
+        face = max(face, uint(isHit && !isinf(invRayDir.y) && t0 == ttop.y) * 4);
+        face = max(face, uint(isHit && !isinf(invRayDir.z) && t0 == tbot.z) * 5);
+        face = max(face, uint(isHit && !isinf(invRayDir.z) && t0 == ttop.z) * 6);
+        entryDist = t0;
+        exitDist = t1;
+        return true;
+    }
+    return false;
 }
 
 //------------------------------------------------------------------------------
@@ -669,7 +671,7 @@ bool is_hit_within_voxel(uint face,
 //------------------------------------------------------------------------------
 
 void eval_voxel_hit(out uint searchOrder[8],
-                    out vec3 hitPos,
+                    vec3 hitPos,
                     uint face,
                     float entryDist,
                     float exitDist,
@@ -677,7 +679,6 @@ void eval_voxel_hit(out uint searchOrder[8],
                     vec3 rayDir,
                     AABB_MinMax aabb)
 {
-    hitPos = rayPos + rayDir * entryDist;
     uint searchOrderIndex = 0;
 
     // index into the face within kVoxelSearchOrder based on the fase we hit
@@ -753,11 +754,14 @@ bool test_ray_voxel(out VoxelRef voxelRef,
                     out float zDepth,
                     out uint face,
                     out vec2 faceUv,
+                    out uint iterCount,
                     vec3 rayPos,
                     vec3 rayDir,
                     VoxelRoot root,
                     uint maxDepth)
 {
+    iterCount = 0;
+
     // put ray into this voxel's space, so voxel is at 0,0,0 and 0,0,0 rotation
     // from ray's perspective.
 
@@ -793,15 +797,10 @@ bool test_ray_voxel(out VoxelRef voxelRef,
     // else we hit, loop/recurse over children
     while (true)
     {
-        eval_voxel_hit(stack[d].searchOrder,
-                       stack[d].hitPosLoc,
-                       stack[d].face,
-                       stack[d].entryDist,
-                       stack[d].exitDist,
-                       rayPosLoc,
-                       rayDirLoc,
-                       stack[d].aabb);
-
+        iterCount++;
+        
+        stack[d].hitPosLoc = rayPosLoc + rayDirLoc * stack[d].entryDist;
+        
         if (stack[d].voxelRef.type == kTerminalFull)
         {
             voxelRef = stack[d].voxelRef;
@@ -830,6 +829,15 @@ bool test_ray_voxel(out VoxelRef voxelRef,
                 }
                 else
                 {
+                    eval_voxel_hit(stack[d].searchOrder,
+                                   stack[d].hitPosLoc,
+                                   stack[d].face,
+                                   stack[d].entryDist,
+                                   stack[d].exitDist,
+                                   rayPosLoc,
+                                   rayDirLoc,
+                                   stack[d].aabb);
+
                     VoxelRef childRef = extract_voxel_ref(stack[d].voxelRef.voxelIdx, stack[d].searchOrder[stack[d].searchIndex]);
                     AABB_MinMax childAabb = voxel_subspace(stack[d].aabb,
                                                            stack[d].searchOrder[stack[d].searchIndex]);
@@ -896,26 +904,21 @@ void main(void)
 
     VoxelRoot root = extract_voxel_root(0);
 
-    // LORRTEMP: Keep below to prevent copmiler from stripping un_VoxelData if it isn't being used
-    ivec2 coord = ivec2(gl_WorkGroupSize.x * gl_NumWorkGroups.x,
-                        gl_WorkGroupSize.y * gl_NumWorkGroups.y);
-    uvec4 voxel = imageLoad(un_VoxelData, int(gl_GlobalInvocationID.y * coord.x + gl_GlobalInvocationID.x));
-    // LORRTEMP (END)
-
-
-    AABB_MinMax rootAabb = aabb_from_rad(root.rad);
-
     VoxelRef voxelRef;
     vec3 normal;
     float zDepth;
     uint face;
     vec2 faceUv;
 
-    bool hit = test_ray_voxel(voxelRef, normal, zDepth, face, faceUv, un_CameraPos, rayDir, root, kMaxStackDepth);
+    uint iterCount;
+    bool hit = test_ray_voxel(voxelRef, normal, zDepth, face, faceUv, iterCount, un_CameraPos, rayDir, root, kMaxStackDepth);
 
     imageStore(un_FrameBuffer,
                ivec2(gl_GlobalInvocationID.xy),
                vec4(abs(kNormals[face]), 1.0));
+//    imageStore(un_FrameBuffer,
+//               ivec2(gl_GlobalInvocationID.xy),
+//               vec4(float(iterCount) / 255.0, 0.0, 0.0, 1.0));
 }
 //------------------------------------------------------------------------------
 // Main Program (END)

@@ -179,6 +179,7 @@ void RendererGL::initViewport()
     //sMVPMat = Mat4::lookat(Vec3(0.0f, 0.0f, 0.0f), Vec3(0.0f, 0.0f, -1.0f), Vec3(0.0f, 1.0f, 0.0f));
     sMVPMat = Mat4::rotation(Vec3(kPi / 4.0f, kPi / 4.0f, 0.0f));
 
+#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL || RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
     // Prepare GPU renderer presentation vars
     glGenVertexArrays(1, &mPresentVAO);
     glBindVertexArray(mPresentVAO);
@@ -187,7 +188,6 @@ void RendererGL::initViewport()
     glBindBuffer(GL_ARRAY_BUFFER, mPresentVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(kPresentSurface), kPresentSurface, GL_STATIC_DRAW);
 
-#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL || RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
     mpPresentShader = getShader(HASH::compute_present);
     mpPresentShader->use();
 #endif

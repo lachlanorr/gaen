@@ -470,7 +470,7 @@ inline bool test_ray_box(VoxelFace * pVoxelFace,
     // If none are true, we have no collision.
 
     u32 faceHit = 0;
-    bool isHit = t0 > 0.0f && t0 <= t1;
+    bool isHit = t1 > 0.0f && t0 <= t1;
 
     faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.x()) && t0 == tbot.x()) * 1);
     faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.x()) && t0 == ttop.x()) * 2);
@@ -697,7 +697,7 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
     }
 
     // else we hit, loop/recurse over children
-    for (;;)
+    while (true)
     {
         eval_voxel_hit(&sStack[d].searchOrder,
                        &sStack[d].hitPosLoc,
@@ -708,7 +708,7 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
                        rayDirLoc,
                        sStack[d].aabb);
 
-        if (sStack[d].voxelRef.isTerminalFull())
+        if (sStack[d].hit && sStack[d].voxelRef.isTerminalFull())
         {
             *pVoxelRef = sStack[d].voxelRef;
             *pNormal = kNormals[(u32)sStack[d].hitFace];
@@ -719,14 +719,14 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
         }
         else
         {
-            for (;;)
-            {
+//            for (;;)
+//            {
                 if (sStack[d].searchIndex >= 8)
                 {
                     if (d > 0)
                     {
                         d--;
-                        break;
+                        continue;
                     }
                     else
                     {
@@ -759,14 +759,9 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
                         ASSERT(d < kMaxDepth);
 
                         sStack[d] = recInf;
-                        break; // restart on parent for loop
-                    }
-                    else
-                    {
-                        continue;
                     }
                 }
-            }
+//            }
         }
     }
 
