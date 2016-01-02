@@ -570,7 +570,7 @@ inline void eval_voxel_hit(const SubVoxel ** ppSearchOrder,
     *pHitPos = rayPos + rayDir * entryDist;
     u32 searchOrderIndex = 0;
 
-    // index into the face within kVoxelSearchOrder based on the fase we hit
+    // index into the face within kVoxelSearchOrder based on the face we hit
     const SubVoxel * pSearchBlock = kVoxelSearchOrder + ((u32)voxelFace - 1) * (8 * 4);
 
     // We can skip the 0th entry, since we default to that if other 3 fail
@@ -650,17 +650,20 @@ struct VoxelRecurseInfo
 
 static VoxelRecurseInfo sStack[kMaxDepth];
 
-inline void prep_stack_entry(VoxelRecurseInfo * pStackEntry, const VoxelRef & voxelRef, const AABB_MinMax & aabb)
+inline VoxelRecurseInfo prep_stack_entry(const VoxelRef & voxelRef, const AABB_MinMax & aabb)
 {
-    pStackEntry->voxelRef = voxelRef;
-    pStackEntry->aabb = aabb;
-    pStackEntry->searchOrder = nullptr;
-    pStackEntry->searchIndex = 0;
-    pStackEntry->hit = false;
-    pStackEntry->hitFace = VoxelFace::None;
-    pStackEntry->entryDist = 0.0f;
-    pStackEntry->exitDist = 0.0f;
-    pStackEntry->hitPosLoc = Vec3(0.0f, 0.0f, 0.0f);
+    VoxelRecurseInfo stackEntry;
+    stackEntry.voxelRef = voxelRef;
+    stackEntry.aabb = aabb;
+    stackEntry.searchOrder = nullptr;
+    stackEntry.searchIndex = 0;
+    stackEntry.hit = false;
+    stackEntry.hitFace = VoxelFace::None;
+    stackEntry.entryDist = 0.0f;
+    stackEntry.exitDist = 0.0f;
+    stackEntry.hitPosLoc = Vec3(0.0f, 0.0f, 0.0f);
+
+    return stackEntry;
 }
 
 bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, Vec2 * pFaceUv, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth)
@@ -682,7 +685,7 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
 
     // put voxel root on recurse stack before iteration begins
     u32 d = 0;
-    prep_stack_entry(&sStack[d], root.children, rootAabb);
+    sStack[d] = prep_stack_entry(root.children, rootAabb);
 
     sStack[d].hit = test_ray_box(&sStack[d].hitFace,
                                  &sStack[d].entryDist,
@@ -745,8 +748,7 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
                         continue;
                     }
 
-                    VoxelRecurseInfo recInf;
-                    prep_stack_entry(&recInf, childRef, childAabb);
+                    VoxelRecurseInfo recInf = prep_stack_entry(childRef, childAabb);
                     recInf.hit = test_ray_box(&recInf.hitFace,
                                               &recInf.entryDist,
                                               &recInf.exitDist,
