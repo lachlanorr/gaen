@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// voxels.cpp - CPU side voxel support
+// voxel.cpp - CPU side voxel support
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -27,13 +27,13 @@
 #include "engine/stdafx.h"
 #include "core/logging.h"
 
-#include "engine/voxels_proto.h"
+#include "engine/voxel_proto.h"
 
 namespace gaen
 {
 
 //------------------------------------------------------------------------------
-// GLSL Fucntions
+// GLSL Functions
 //------------------------------------------------------------------------------
 inline Vec3 quat_multiply(const Vec4 & qlhs, const Vec3 & vrhs)
 {
@@ -155,7 +155,7 @@ inline VoxelRootGpu extract_voxel_root(const ImageBuffer * voxelRoots, u32 voxel
 }
 
 //------------------------------------------------------------------------------
-// GLSL Fucntions (END)
+// GLSL Functions (END)
 //------------------------------------------------------------------------------
 
 ComputeShaderSimulator::~ComputeShaderSimulator()

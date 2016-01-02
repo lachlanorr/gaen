@@ -44,6 +44,8 @@ SET (engine_SOURCES
   Handle.h
   hashes.cpp
   hashes.h
+  ImageBuffer.cpp
+  ImageBuffer.h
   input.cpp
   input_${platform}.${platform_ext}
   input.h
@@ -77,10 +79,12 @@ SET (engine_SOURCES
   Task.h
   TaskMaster.cpp
   TaskMaster.h
-  voxels.cpp
-  voxels.h
-  voxels_proto.cpp
-  voxels_proto.h
+  voxel.cpp
+  voxel.h
+  voxel27.cpp
+  voxel27.h
+  voxel_proto.cpp
+  voxel_proto.h
   ${engine_codegen_SOURCES}
   ${engine_messages_SOURCES}
   )

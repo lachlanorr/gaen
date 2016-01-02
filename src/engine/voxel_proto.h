@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// voxels.h - CPU side voxel support
+// voxel.h - CPU side voxel support
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_VOXELS_PROTO_H
-#define GAEN_ENGINE_VOXELS_PROTO_H
+#ifndef GAEN_ENGINE_VOXEL_PROTO_H
+#define GAEN_ENGINE_VOXEL_PROTO_H
 
 #include "core/base_defines.h"
 #include "core/mem.h"
@@ -33,7 +33,7 @@
 #include "engine/math.h"
 #include "engine/RaycastCamera.h"
 #include "engine/renderer_structs.h"
-#include "engine/voxels.h"
+#include "engine/voxel.h"
 
 namespace gaen
 {
@@ -169,5 +169,5 @@ private:
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_VOXELS_H
+#endif // #ifndef GAEN_ENGINE_VOXEL_H
 

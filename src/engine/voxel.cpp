@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// voxels.cpp - CPU side voxel support
+// voxel.cpp - CPU side voxel support
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2015 Lachlan Orr
@@ -24,13 +24,13 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include <cmath>
-
 #include "engine/stdafx.h"
+
+#include <cmath>
 
 #include "core/logging.h"
 
-#include "engine/voxels.h"
+#include "engine/voxel.h"
 
 namespace gaen
 {
@@ -597,24 +597,6 @@ inline void eval_voxel_hit(const SubVoxel ** ppSearchOrder,
     *ppSearchOrder = pSearchBlock + searchOrderIndex * 8;
 
     ASSERT(*ppSearchOrder < (&kVoxelSearchOrder[0] + sizeof(kVoxelSearchOrder)));
-}
-
-ImageBuffer::ImageBuffer(u16 size, size_t pixelSize)
-{
-    mSize = size;
-    mPixelSize = (u8)pixelSize;
-    mPixels = (u8*)GALLOC(kMEM_Engine, bufferSize());
-}
-
-ImageBuffer::~ImageBuffer()
-{
-    GFREE(mPixels);
-}
-
-void ImageBuffer::copy(const ImageBuffer & sourceBuffer)
-{
-    ASSERT(sourceBuffer.bufferSize() == bufferSize());
-    memcpy(mPixels, sourceBuffer.buffer(), bufferSize());
 }
 
 VoxelWorld::VoxelWorld()

@@ -27,7 +27,7 @@
 #include <gtest/gtest.h>
 
 #include "engine/math.h"
-#include "engine/voxels.h"
+#include "engine/voxel.h"
 
 using namespace gaen;
 

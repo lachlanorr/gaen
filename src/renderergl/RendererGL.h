@@ -36,7 +36,7 @@
 #include "engine/renderer_structs.h"
 
 // LORRTODO: probably a temp include only until we get voxel stuff more defined
-#include "engine/voxels_proto.h"
+#include "engine/voxel_proto.h"
 
 #include "engine/RaycastCamera.h"
 
@@ -48,12 +48,14 @@
 #define RENDERTYPE_CPUCOMPVOXEL 2
 #define RENDERTYPE_GPUFRAGVOXEL 3
 #define RENDERTYPE_GPUCOMPVOXEL 4
+#define RENDERTYPE_VOXEL27      5
 
 //#define RENDERTYPE RENDERTYPE_MESH
-#define RENDERTYPE RENDERTYPE_CPUFRAGVOXEL
+//#define RENDERTYPE RENDERTYPE_CPUFRAGVOXEL
 //#define RENDERTYPE RENDERTYPE_CPUCOMPVOXEL
 //#define RENDERTYPE RENDERTYPE_GPUFRAGVOXEL
 //#define RENDERTYPE RENDERTYPE_GPUCOMPVOXEL
+#define RENDERTYPE RENDERTYPE_VOXEL27
 
 namespace gaen
 {
