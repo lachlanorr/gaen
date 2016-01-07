@@ -170,7 +170,7 @@ struct KeyInput
     u32 keyCode:7;
     u32 keyEvent:1;
     u32 deviceId:4; // keep this to 4 so we can pack taskid + deviceid into 32 bits
-    u32 PADDING:20;
+    u32 PADDING__:20;
 
     KeyInput()
     {}

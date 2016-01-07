@@ -42,7 +42,7 @@ struct AllocHeader
 {
     class MemPool * pMemPool;
     PAD_IF_32BIT
-    char padding[8];
+    char PADDING__[8];
 };
 
 static_assert(sizeof(AllocHeader) == 16, "AllocHeader not 16 bytes, must be to maintain alignments");

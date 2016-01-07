@@ -143,7 +143,7 @@ struct VoxelRoot
     Vec3 pos;           // position    12 bytes - 12
     Mat3 rot;           // rotation    36 bytes - 48
     f32 rad;            // radius       4 bytes - 52
-    u32 _PADDING;
+    u32 PADDING__;
     VoxelRef children;  // children     8 bytes - 60
 };
 static_assert(sizeof(VoxelRoot) == 64, "VoxelRoot not 64 bytes");

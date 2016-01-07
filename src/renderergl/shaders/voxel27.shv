@@ -1,0 +1,98 @@
+
+const float kLodGridSize[5] = {
+    81.0,
+    27.0,
+    9.0,
+    3.0,
+    1.0
+};
+
+const float kLevelSize[16] = {
+    1.0 / 27.0,
+    1.0 / 9.0,
+    1.0 / 3.0,
+    1.0,
+    3.0,
+    9.0,
+    27.0,
+    81.0,
+    243.0,
+    729.0,
+    2187.0,
+    6651.0,
+    19683.0,
+    59049.0,
+    177147.0,
+    531441.0
+};
+
+const float kLevelDiagonalSize[16] = {
+    kLevelSize[0]  * 4 * sqrt(3.0),
+    kLevelSize[1]  * 4 * sqrt(3.0),
+    kLevelSize[2]  * 4 * sqrt(3.0),
+    kLevelSize[3]  * 4 * sqrt(3.0),
+    kLevelSize[4]  * 4 * sqrt(3.0),
+    kLevelSize[5]  * 4 * sqrt(3.0),
+    kLevelSize[6]  * 4 * sqrt(3.0),
+    kLevelSize[7]  * 4 * sqrt(3.0),
+    kLevelSize[8]  * 4 * sqrt(3.0),
+    kLevelSize[9]  * 4 * sqrt(3.0),
+    kLevelSize[10] * 4 * sqrt(3.0),
+    kLevelSize[11] * 4 * sqrt(3.0),
+    kLevelSize[12] * 4 * sqrt(3.0),
+    kLevelSize[13] * 4 * sqrt(3.0),
+    kLevelSize[14] * 4 * sqrt(3.0),
+    kLevelSize[15] * 4 * sqrt(3.0)
+};
+
+
+struct Voxel27PointData
+{
+    vec3 gridCoords;
+    uint voxelLevel;
+    uint material;
+};
+
+struct AABB_MinMax
+{
+    vec3 min;
+    vec3 max;
+};
+
+
+
+in uint va_VoxelPoint;
+
+uniform uint un_LodBasis; // 0 - 11 value indicating base level of LOD
+uniform vec3 un_VoxelMin; // min point of voxel aabb
+uniform mat4 un_MVP;
+
+out AABB_MinMax aabb;
+out vec3 vColor;
+
+
+Voxel27PointData extract_point_data(uint voxelPoint)
+{
+    return Voxel27PointData(vec3(float(voxelPoint & 0x7f),
+                                 float((voxelPoint & 0x3f80) >> 7),
+                                 float((voxelPoint & 0x1fc000) >> 14)),
+                            (voxelPoint & 0x1e00000) >> 21,
+                            (voxelPoint & 0xfe000000) >> 25);
+}
+
+void main()
+{
+    Voxel27PointData vpd = extract_point_data(va_VoxelPoint);
+
+    uint relativeLod = vpd.voxelLevel - un_LodBasis;
+    float lodGridSize = kLodGridSize[relativeLod];
+
+    //vec4 position = vec4(un_VoxelMin + (vpd.gridCoords / lodGridSize), 1.0);
+    //vec4 position = vec4((vpd.gridCoords / lodGridSize), 1.0);
+    vec4 position = vec4((vpd.gridCoords / 81.0), 1.0);
+    vColor = vpd.gridCoords;
+
+    gl_PointSize = 4;
+    
+    gl_Position = un_MVP * position;
+};

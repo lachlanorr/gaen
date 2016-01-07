@@ -210,6 +210,17 @@ void register_system_apis(ParseData * pParseData)
         parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
     }
     {
+        // renderer_move_fps_camera
+        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
+        ast_add_child(pSystemApiDef, ast_create_function_arg("position", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("pitch", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("yaw", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));
+        size_t mangledLen = mangle_function_len("renderer_move_fps_camera", pSystemApiDef->pChildren);
+        char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
+        mangle_function(mangledName, kMaxCmpId, "renderer_move_fps_camera", pSystemApiDef->pChildren);
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
+    }
+    {
         // renderer_insert_model_instance
         Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
         ast_add_child(pSystemApiDef, ast_create_function_arg("uid", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));

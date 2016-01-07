@@ -873,6 +873,45 @@ Mat4 Mat4::lookat(const Vec3 & eye, const Vec3 & center, const Vec3 & up)
     return M * Mat4::translation(-eye);
 }
 
+Mat4 Mat4::fps_view(const Vec3 & eye, f32 pitch, f32 yaw)
+{
+    // pitch and yaw are radians in the range of:
+    // pitch is -90..90 (deg)
+    // yaw is 0..360 (deg)
+
+    f32 cosPitch = cos(pitch);
+    f32 sinPitch = sin(pitch);
+    f32 cosYaw = cos(yaw);
+    f32 sinYaw = sin(yaw);
+
+    Vec3 xaxis = { cosYaw, 0, -sinYaw };
+    Vec3 yaxis = { sinYaw * sinPitch, cosPitch, cosYaw * sinPitch };
+    Vec3 zaxis = { sinYaw * cosPitch, -sinPitch, cosPitch * cosYaw };
+
+    Mat4 mat4;
+
+    mat4[0] = xaxis[0];
+    mat4[1] = xaxis[1];
+    mat4[2] = xaxis[2];
+    mat4[3] = -Vec3::dot(xaxis, eye);
+
+    mat4[4] = yaxis[0];
+    mat4[5] = yaxis[1];
+    mat4[6] = yaxis[2];
+    mat4[7] = -Vec3::dot(yaxis, eye);
+
+    mat4[8] = zaxis[0];
+    mat4[9] = zaxis[1];
+    mat4[10] = zaxis[2];
+    mat4[11] = -Vec3::dot(zaxis, eye);
+
+    mat4[12] = 0.0f;
+    mat4[13] = 0.0f;
+    mat4[14] = 0.0f;
+    mat4[15] = 1.0f;
+
+    return mat4;
+}
 
 Mat4 Mat4::orthographic(f32 left, f32 right, f32 bottom, f32 top, f32 nearZ, f32 farZ)
 {

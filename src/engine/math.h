@@ -168,6 +168,7 @@ struct Quat
     const f32 & z() const;
     const f32 & w() const;
 
+    Quat operator-() const;
     Vec3 operator* (const Vec3 & rhs) const;
     Quat operator* (const Quat & rhs) const;
 
@@ -212,6 +213,7 @@ struct Mat3
          f32 e6, f32 e7, f32 e8);
     Mat3(const Mat34 & mat34);
     Mat3(const Mat4 & mat4);
+    Mat3(const Quat & quat);
 
     static const Mat3 & zero();
     static const Mat3 & identity();
@@ -243,6 +245,7 @@ struct Mat34
           f32 e3, f32 e4,  f32 e5,
           f32 e6, f32 e7,  f32 e8,
           f32 e9, f32 e10, f32 e11);
+    Mat34(const Quat & quat);
 
     static const Mat34 & zero();
     static const Mat34 & identity();
@@ -283,6 +286,9 @@ struct Mat4
          f32 e8,  f32 e9,  f32 e10, f32 e11,
          f32 e12, f32 e13, f32 e14, f32 e15);
     Mat4(const Mat34 & mat34);
+    Mat4(const Quat & quat);
+
+    void setTranslation(const Vec3 & trans);
 
     static const Mat4 & zero();
     static const Mat4 & identity();
@@ -292,6 +298,7 @@ struct Mat4
 
     static f32 determinant(const Mat4 & mat4);
     static Mat4 inverse(const Mat4 & mat4);
+    static Mat4 transpose(const Mat4 & mat4);
 
     static Mat4 translation(const Vec3 & trans);
     static Mat4 rotation(const Vec3 & angles);
@@ -303,7 +310,8 @@ struct Mat4
     static Mat4 frustum(f32 left, f32 right, f32 bottom, f32 top, f32 nearZ, f32 farZ);
     static Mat4 perspective(f32 fovy, f32 aspect, f32 nearZ, f32 farZ);
     static Mat4 lookat(const Vec3 & eye, const Vec3 & center, const Vec3 & up);
-
+    static Mat4 fps_view(const Vec3 & eye, f32 pitch, f32 yaw);
+    
     static Mat4 orthographic(f32 left, f32 right, f32 bottom, f32 top, f32 nearZ, f32 farZ);
 
     f32 & operator[](size_t idx);
@@ -748,6 +756,11 @@ inline const f32 & Quat::y() const { return elems[1]; }
 inline const f32 & Quat::z() const { return elems[2]; }
 inline const f32 & Quat::w() const { return elems[3]; }
 
+inline Quat Quat::operator-() const
+{
+    return Quat::normalize(Quat(-elems[0], -elems[1], -elems[2], elems[3]));
+}
+
 inline Vec3 Quat::operator* (const Vec3 & rhs) const
 {
     return Quat::multiply(*this, rhs);
@@ -932,6 +945,28 @@ inline Mat3::Mat3(const Mat4 & mat4)
     elems[8] = mat4.elems[10];
 }
 
+inline Mat3::Mat3(const Quat & quat)
+{
+    f32 xx = quat.x() * quat.x();
+    f32 xy = quat.x() * quat.y();
+    f32 xz = quat.x() * quat.z();
+    f32 xw = quat.x() * quat.w();
+    f32 yy = quat.y() * quat.y();
+    f32 yz = quat.y() * quat.z();
+    f32 yw = quat.y() * quat.w();
+    f32 zz = quat.z() * quat.z();
+    f32 zw = quat.z() * quat.w();
+    elems[0]  = 1.0f - 2.0f * ( yy + zz );
+    elems[1]  =        2.0f * ( xy - zw );
+    elems[2]  =        2.0f * ( xz + yw );
+    elems[3]  =        2.0f * ( xy + zw );
+    elems[4]  = 1.0f - 2.0f * ( xx + zz );
+    elems[5]  =        2.0f * ( yz - xw );
+    elems[6]  =        2.0f * ( xz - yw );
+    elems[7]  =        2.0f * ( yz + xw );
+    elems[8]  = 1.0f - 2.0f * ( xx + yy );
+}
+
 inline const Mat3 & Mat3::zero()
 {
     static Mat3 zero3{0.0f};
@@ -959,8 +994,8 @@ inline const f32 & Mat3::operator[](size_t idx) const
 inline Mat3 Mat3::transpose(const Mat3 & mat3)
 {
     return Mat3(mat3.elems[0], mat3.elems[3], mat3.elems[6],
-                 mat3.elems[1], mat3.elems[4], mat3.elems[7],
-                 mat3.elems[2], mat3.elems[5], mat3.elems[8]);
+                mat3.elems[1], mat3.elems[4], mat3.elems[7],
+                mat3.elems[2], mat3.elems[5], mat3.elems[8]);
 }
 
 //--------------------------------------
@@ -1029,6 +1064,31 @@ inline Mat34::Mat34(const Mat4 & mat4)
     elems[9]  = mat4[12];
     elems[10] = mat4[13];
     elems[11] = mat4[14];
+}
+
+inline Mat34::Mat34(const Quat & quat)
+{
+    f32 xx = quat.x() * quat.x();
+    f32 xy = quat.x() * quat.y();
+    f32 xz = quat.x() * quat.z();
+    f32 xw = quat.x() * quat.w();
+    f32 yy = quat.y() * quat.y();
+    f32 yz = quat.y() * quat.z();
+    f32 yw = quat.y() * quat.w();
+    f32 zz = quat.z() * quat.z();
+    f32 zw = quat.z() * quat.w();
+    elems[0]  = 1.0f - 2.0f * ( yy + zz );
+    elems[1]  =        2.0f * ( xy - zw );
+    elems[2]  =        2.0f * ( xz + yw );
+    elems[3]  =        2.0f * ( xy + zw );
+    elems[4]  = 1.0f - 2.0f * ( xx + zz );
+    elems[5]  =        2.0f * ( yz - xw );
+    elems[6]  =        2.0f * ( xz - yw );
+    elems[7]  =        2.0f * ( yz + xw );
+    elems[8]  = 1.0f - 2.0f * ( xx + yy );
+    elems[9]  = 0.0f;
+    elems[10] = 0.0f;
+    elems[11] = 0.0f;
 }
 
 inline const Mat34 & Mat34::zero()
@@ -1164,6 +1224,42 @@ inline Mat4::Mat4(const Mat34 & mat34)
     elems[15] = 1.0f;
 }
 
+inline Mat4::Mat4(const Quat & quat)
+{
+    f32 xx = quat.x() * quat.x();
+    f32 xy = quat.x() * quat.y();
+    f32 xz = quat.x() * quat.z();
+    f32 xw = quat.x() * quat.w();
+    f32 yy = quat.y() * quat.y();
+    f32 yz = quat.y() * quat.z();
+    f32 yw = quat.y() * quat.w();
+    f32 zz = quat.z() * quat.z();
+    f32 zw = quat.z() * quat.w();
+    elems[0]  = 1.0f - 2.0f * ( yy + zz );
+    elems[1]  =        2.0f * ( xy - zw );
+    elems[2]  =        2.0f * ( xz + yw );
+    elems[3]  = 0.0f;
+    elems[4]  =        2.0f * ( xy + zw );
+    elems[5]  = 1.0f - 2.0f * ( xx + zz );
+    elems[6]  =        2.0f * ( yz - xw );
+    elems[7]  = 0.0f;
+    elems[8]  =        2.0f * ( xz - yw );
+    elems[9]  =        2.0f * ( yz + xw );
+    elems[10] = 1.0f - 2.0f * ( xx + yy );
+    elems[11] = 0.0f;
+    elems[12] = 0.0f;
+    elems[13] = 0.0f;
+    elems[14] = 0.0f;
+    elems[15] = 1.0f;
+}
+
+inline void Mat4::setTranslation(const Vec3 & trans)
+{
+    elems[12] = trans.x();
+    elems[13] = trans.y();
+    elems[14] = trans.z();
+}
+
 inline const Mat4 & Mat4::zero()
 {
     static Mat4 zero4{0.0f};
@@ -1205,6 +1301,13 @@ inline Mat4 Mat4::operator* (const Mat4 & rhs) const
     return multiply(*this, rhs);
 }
 
+inline Mat4 Mat4::transpose(const Mat4 & mat4)
+{
+    return Mat4(mat4.elems[0], mat4.elems[4], mat4.elems[8], mat4.elems[12],
+                mat4.elems[1], mat4.elems[5], mat4.elems[9], mat4.elems[13],
+                mat4.elems[2], mat4.elems[6], mat4.elems[10], mat4.elems[14],
+                mat4.elems[3], mat4.elems[7], mat4.elems[11], mat4.elems[15]);
+}
 
 //------------------------------------------------------------------------------
 // Inline Function definitions (END)

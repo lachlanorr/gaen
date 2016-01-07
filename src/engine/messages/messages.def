@@ -50,6 +50,11 @@ class MoveCamera(FieldHandler):
     position = Vec3Field()
     direction = QuatField()
 
+class MoveFpsCamera(FieldHandler):
+    pitch = f32Field(payload=True)
+    yaw = f32Field()
+    position = Vec3Field()
+
 class WatchInputState(FieldHandler):
     state = u32Field(payload=True)
     message = u32Field()

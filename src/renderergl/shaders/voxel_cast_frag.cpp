@@ -33,15 +33,15 @@ namespace shaders
 {
 
 static const char * kShaderCode_shv =
-    "layout(location = 0) in vec4 vg_Position;\n"
-    "layout(location = 1) in vec2 vg_RayScreenPos;\n"
+    "layout(location = 0) in vec4 va_Position;\n"
+    "layout(location = 1) in vec2 va_RayScreenPos;\n"
     "\n"
     "out vec2 RayScreenPos;\n"
     "\n"
     "void main()\n"
     "{\n"
-    "    gl_Position = vg_Position;\n"
-    "    RayScreenPos = vg_RayScreenPos;\n"
+    "    gl_Position = va_Position;\n"
+    "    RayScreenPos = va_RayScreenPos;\n"
     "};\n"
     ; // kShaderCode_shv (END)
 
@@ -1003,12 +1003,12 @@ Shader * voxel_cast_frag::construct()
 
 
     // Attributes
-    pShader->mAttributes[0].nameHash = 0xc93a0aac; /* HASH::vg_Position */
+    pShader->mAttributes[0].nameHash = 0xc560358a; /* HASH::va_Position */
     pShader->mAttributes[0].index = 0;
     pShader->mAttributes[0].location = 0;
     pShader->mAttributes[0].type = GL_FLOAT_VEC4;
 
-    pShader->mAttributes[1].nameHash = 0x27f20809; /* HASH::vg_RayScreenPos */
+    pShader->mAttributes[1].nameHash = 0x5616e1e3; /* HASH::va_RayScreenPos */
     pShader->mAttributes[1].index = 1;
     pShader->mAttributes[1].location = 1;
     pShader->mAttributes[1].type = GL_FLOAT_VEC2;

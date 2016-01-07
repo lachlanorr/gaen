@@ -63,6 +63,7 @@ Quat quat_normalize(const Quat & quat, Entity & caller);
 u32 renderer_gen_uid(Entity & caller);
 
 void renderer_move_camera(const Vec3 & position, const Quat & direction, Entity & caller);
+void renderer_move_fps_camera(const Vec3 & position, f32 pitch, f32 yaw, Entity & caller);
 
 void renderer_insert_model_instance(u32 uid,
                                     Handle & modelHandle,

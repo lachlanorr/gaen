@@ -1,0 +1,2 @@
+vertex_shader=voxel27.shv
+fragment_shader=voxel27.shf

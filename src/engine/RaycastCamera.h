@@ -90,7 +90,10 @@ public:
     const Vec3 & position() const { return mPos; }
     const Quat & direction() const { return mDir; }
 
+    const Mat4 & view() const { return mView; }
+
     void move(const Vec3 & pos, const Quat & dir);
+    void moveFps(const Vec3 & pos, f32 pitch, f32 yaw);
 
 private:
     void reset();
@@ -110,6 +113,7 @@ private:
 
     Vec3 mPos;
     Quat mDir;
+    Mat4 mView;
 
     // Initial, zero'd position corners and planes
     // Current, transformed corners and plans

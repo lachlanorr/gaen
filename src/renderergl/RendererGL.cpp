@@ -33,6 +33,9 @@
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/TransformId.h"
 #include "engine/messages/MoveCamera.h"
+#include "engine/messages/MoveFpsCamera.h"
+
+#include "engine/voxel27.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/shaders/Shader.h"
@@ -99,6 +102,17 @@ static f32 kPresentSurface[] = { -1.0f, -1.0f, // pos 0
                                   1.0f,  1.0f, // pos 3
                                   1280.0f / 2048.0f,  720.0f / 2048.0f  // uv  3
 };
+#elif RENDERTYPE == RENDERTYPE_VOXEL27
+static Voxel27PointData kVoxelPoints[] = { {  0,  0,  0,  0, 1 },
+                                           {  0,  0, 80,  0, 1 },
+                                           {  0, 80,  0,  0, 1 },
+                                           {  0, 80, 80,  0, 1 },
+                                           { 80,  0,  0,  0, 1 },
+                                           { 80,  0, 80,  0, 1 },
+                                           { 80, 80,  0,  0, 1 },
+                                           { 80, 80, 80,  0, 1 }
+};
+static_assert(sizeof(kVoxelPoints) == sizeof(u32) * 8, "kVoxelPoints unexpected size");
 #endif
 
 
@@ -141,6 +155,8 @@ void RendererGL::initViewport()
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &mMaxCombinedTextureImageUnits);
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &mMaxTextureImageUnits);
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &mMaxTextureSize);
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
@@ -190,7 +206,6 @@ void RendererGL::initViewport()
 
     mpPresentShader = getShader(HASH::compute_present);
     mpPresentShader->use();
-#endif
 
     // vertex position
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 16, (void*)0);
@@ -199,6 +214,27 @@ void RendererGL::initViewport()
     // vertex UV / RayScreenPos
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 16, (void*)8);
     glEnableVertexAttribArray(1);
+
+#elif RENDERTYPE == RENDERTYPE_VOXEL27
+
+    Voxel27PointData vpx = extract_point_data(*reinterpret_cast<u32*>(&kVoxelPoints[4]));
+
+    // Prepare GPU renderer presentation vars
+    glGenVertexArrays(1, &mPresentVAO);
+    glBindVertexArray(mPresentVAO);
+
+    glGenBuffers(1, &mPresentVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, mPresentVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(kVoxelPoints) - (4 * 0), kVoxelPoints, GL_STATIC_DRAW);
+
+    mpPresentShader = getShader(HASH::voxel27);
+    mpPresentShader->use();
+
+    // vertex positions
+    glVertexAttribPointer(0, 1, GL_UNSIGNED_INT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+
+#endif
 
 
 #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
@@ -398,6 +434,16 @@ void RendererGL::render()
     glBindVertexArray(mPresentVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+#elif RENDERTYPE == RENDERTYPE_VOXEL27
+    Mat4 proj = mRaycastCamera.projection();
+    Mat4 view = mRaycastCamera.view();
+
+    Mat4 mvp = mRaycastCamera.projection() * mRaycastCamera.view();
+    mpPresentShader->setUniformMat4(HASH::un_MVP, mvp);
+
+    mpPresentShader->use();
+    glBindVertexArray(mPresentVAO);
+    glDrawArrays(GL_POINTS, 0, 8);
 
 #elif RENDERTYPE == RENDERTYPE_MESH
     ModelMgr<RendererGL>::MeshIterator meshIt = mpModelMgr->begin();
@@ -504,6 +550,12 @@ MessageResult RendererGL::message(const T & msgAcc)
     {
         messages::MoveCameraR<T> msgr(msgAcc);
         mRaycastCamera.move(msgr.position(), msgr.direction());
+        break;
+    }
+    case HASH::renderer_move_fps_camera:
+    {
+        messages::MoveFpsCameraR<T> msgr(msgAcc);
+        mRaycastCamera.moveFps(msgr.position(), msgr.pitch(), msgr.yaw());
         break;
     }
     default:

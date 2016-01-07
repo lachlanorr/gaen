@@ -38,6 +38,7 @@
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/UpdateLightDirectional.h"
 #include "engine/messages/MoveCamera.h"
+#include "engine/messages/MoveFpsCamera.h"
 #include "engine/messages/WatchInputState.h"
 #include "engine/messages/WatchMouse.h"
 
@@ -148,6 +149,18 @@ void renderer_move_camera(const Vec3 & position, const Quat & direction, Entity 
 
     msgQW.setPosition(position);
     msgQW.setDirection(direction);
+}
+
+void renderer_move_fps_camera(const Vec3 & position, f32 pitch, f32 yaw, Entity & caller)
+{
+    messages::MoveFpsCameraQW msgQW(HASH::renderer_move_camera,
+                                    kMessageFlag_None,
+                                    caller.task().id(),
+                                    kRendererTaskId,
+                                    pitch);
+
+    msgQW.setYaw(yaw);
+    msgQW.setPosition(position);
 }
 
 void renderer_insert_model_instance(u32 uid,

@@ -31,6 +31,7 @@ import os
 
 TYPE_TO_UNION = { 'u32': 'u',
                   'i32': 'i',
+                  'f32': 'f',
                   'bool': 'b' }
 
 def read_file_data(path):

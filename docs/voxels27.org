@@ -1,0 +1,52 @@
+* Cube sizes
+** Smallest cube is 1.0m / 27 = 0.037037037037037035m ~ 3.7 cm
+** This gives us perfect 1m cubes at level 3, and larger levels perfect multiples of 1m
+** There are thus three levels below 1m
+| Level | Cube Size                       |
+|-------+---------------------------------|
+|     0 | 1 / 27 =  3.7037037037037035 cm |
+|     1 | 1 /  9 = 11.11111111111111   cm |
+|     2 | 1 /  3 = 33.33333333333333   cm |
+|     3 | 1 m                             |
+|     4 | 3 m                             |
+|     5 | 9 m                             |
+|     6 | 27 m                            |
+|     7 | 81 m                            |
+|     8 | 243 m                           |
+|     9 | 729 m                           |
+|    10 | 2.187 km                        |
+|    11 | 6.651 km                        |
+|    12 | 19.683 km                       |
+|    13 | 59.049 km                       |
+|    14 | 177.147 km                      |
+|    15 | 531.441 km                      | 
+
+
+** LOD Zones
+*** Hi-res around player = 9m cubed
+**** Zone player is immediately in = 3m
+**** 26 zones surrounding player = 3m each
+*** Each LOD supports 5 levels within overall 16 levels
+** LODs
+| LOD Level | Min Cube Size                   | Max Cube Size |
+|-----------+---------------------------------+---------------|
+|         0 | 1 / 27 =  3.7037037037037035 cm | 3 m           |
+|         1 | 1 /  9 = 11.11111111111111   cm | 9 m           |
+|         2 | 1 /  3 = 33.33333333333333   cm | 27 m          |
+|         3 | 1 m                             | 81 m          |
+|         4 | 3 m                             | 243 m         |
+|         5 | 9 m                             | 729 m         |
+|         6 | 27 m                            | 2.187 km      |
+|         7 | 81 m                            | 6.651 km      |
+|         8 | 243 m                           | 19.683 km     |
+|         9 | 729 m                           | 59.049 km     |
+|        10 | 2.187 km                        | 177.147 km    |
+|        11 | 6.651 km                        | 531.441 km    |
+
+
+
+
+
+
+                         
+

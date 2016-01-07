@@ -41,7 +41,7 @@ struct ChunkHeader
     u8 freeCount;
     u8 chunkIdx;
     bool needsCollection;
-    u8 PADDING[9];
+    u8 PADDING__[9];
 };
 
 static_assert(sizeof(ChunkHeader) == sizeof(Block), "ChunkHeader must be same size as a Block");

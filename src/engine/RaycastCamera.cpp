@@ -49,8 +49,7 @@ void RaycastCamera::init(u32 screenWidth, u32 screenHeight, f32 fov, f32 nearZ, 
                                     mFarZ);
     mProjectionInv = Mat4::inverse(mProjection);
 
-    mPos = Vec3(0.0f, 0.0f, 10.0f);
-    mDir = Quat::from_axis_angle(Vec3(0.0f, 0.0f, -1.0f), 0);
+    move(Vec3(0.0f, 0.0f, 10.0f), Quat::from_axis_angle(Vec3(0.0f, 0.0f, -1.0f), 0));
 
     Vec3 rayBottomLeft  = Vec3::normalize(Mat4::multiply(mProjectionInv, Vec3(-1.0f, -1.0f, 0.0f)));
     Vec3 rayBottomRight = Vec3(-rayBottomLeft.x(),  rayBottomLeft.y(), rayBottomLeft.z());
@@ -87,6 +86,11 @@ void RaycastCamera::move(const Vec3 & pos, const Quat & dir)
     mPos = pos;
     mDir = dir;
 
+    //mView = Mat4::translation(-mPos) * Mat4::transpose(Mat4(mDir));
+    mView = Mat4::translation(-mPos) * (Mat4(mDir));
+    //mView = Mat4::inverse(mView);
+    //mView.setTranslation(-pos);
+
     // Reset points to our default unmoved positions, and
     // than transform each point.
     reset();
@@ -98,6 +102,11 @@ void RaycastCamera::move(const Vec3 & pos, const Quat & dir)
     }
 
     calcPlanes();
+}
+
+void RaycastCamera::moveFps(const Vec3 & pos, f32 pitch, f32 yaw)
+{
+    mView = Mat4::fps_view(pos, pitch, yaw);
 }
 
 void RaycastCamera::reset()

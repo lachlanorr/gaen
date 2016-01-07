@@ -70,7 +70,7 @@ struct FormatSpecifier
     u8 flagStarWidth:1;
     u8 flagStarPrecision:1;
 
-    u8 PADDING:1;
+    u8 PADDING__:1;
 
     FormatSpecifier() { reset(); }
 

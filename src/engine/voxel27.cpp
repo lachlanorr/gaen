@@ -32,4 +32,13 @@
 namespace gaen
 {
 
+Voxel27PointData extract_point_data(u32 voxelPoint)
+{
+    return Voxel27PointData(voxelPoint & 0x7f,
+                            (voxelPoint & 0x3f80) >> 7,
+                            (voxelPoint & 0x1fc000) >> 14,
+                            (voxelPoint & 0x1e00000) >> 21,
+                            (voxelPoint & 0xfe000000) >> 25);
+}
+
 } // namespace gaen
