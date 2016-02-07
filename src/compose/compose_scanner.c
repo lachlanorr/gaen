@@ -9,7 +9,7 @@
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
 #define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 37
+#define YY_FLEX_SUBMINOR_VERSION 39
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
 #endif
@@ -192,6 +192,13 @@ typedef size_t yy_size_t;
                 int yyl;\
                 for ( yyl = n; yyl < yyleng; ++yyl )\
                     if ( yytext[yyl] == '\n' )\
+                        --yylineno;\
+            }while(0)
+    #define YY_LINENO_REWIND_TO(dst) \
+            do {\
+                const char *p;\
+                for ( p = yy_cp-1; p >= (dst); --p)\
+                    if ( *p == '\n' )\
                         --yylineno;\
             }while(0)
     
@@ -677,7 +684,7 @@ freely, subject to the following restrictions:
   } while(0)
 
 
-#line 681 "compose_scanner.c"
+#line 688 "compose_scanner.c"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -919,14 +926,6 @@ YY_DECL
 	register int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-#line 67 "compose.l"
-
-
-ParseData * pParseData = yyextra;    
-
-
-#line 929 "compose_scanner.c"
-
     yylval = yylval_param;
 
     yylloc = yylloc_param;
@@ -957,6 +956,15 @@ ParseData * pParseData = yyextra;
 		yy_load_buffer_state(yyscanner );
 		}
 
+	{
+#line 67 "compose.l"
+
+
+ParseData * pParseData = yyextra;    
+
+
+#line 967 "compose_scanner.c"
+
 	while ( 1 )		/* loops until end-of-file is reached */
 		{
 		yy_cp = yyg->yy_c_buf_p;
@@ -973,7 +981,7 @@ ParseData * pParseData = yyextra;
 yy_match:
 		do
 			{
-			register YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)];
+			register YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)] ;
 			if ( yy_accept[yy_current_state] )
 				{
 				yyg->yy_last_accepting_state = yy_current_state;
@@ -1482,7 +1490,7 @@ YY_RULE_SETUP
 #line 198 "compose.l"
 YY_FATAL_ERROR( "flex scanner jammed" );
 	YY_BREAK
-#line 1486 "compose_scanner.c"
+#line 1494 "compose_scanner.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1614,6 +1622,7 @@ case YY_STATE_EOF(INITIAL):
 			"fatal flex scanner internal error--no action found" );
 	} /* end of action switch */
 		} /* end of scanning one token */
+	} /* end of user's declarations */
 } /* end of yylex */
 
 /* yy_get_next_buffer - try to read in a new buffer

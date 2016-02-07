@@ -31,13 +31,14 @@ freely, subject to the following restrictions:
 #include "compose/comp_mem.h"
 #define YYMALLOC COMP_ALLOC
 #define YYFREE COMP_FREE
+
 #include <stdio.h>
 %}
 
 %define api.pure full
 %error-verbose
 
-%lex-param { ParseData * pParseData }
+%lex-param { yyscan_t SCANNER_FROM_PARSEDATA }
 %parse-param { ParseData * pParseData }
 
 %locations
@@ -58,7 +59,16 @@ freely, subject to the following restrictions:
 %{
 #define YY_NO_UNISTD_H
 #include "compose/compose_scanner.h"
-#define YYLEX_PARAM parsedata_scanner(pParseData)
+
+/*
+   This is embarrassingly hackish, but Bison 3's deprecation of
+   YYLEX_PARAM doesn't give much choice.  Have researched as
+   throrougly as I'm interested in doing at the moment, and this is
+   the simplest (maybe only???) solution. Flex wants a scanner, and
+   Bison wants to send it a variable, not allowing us to process that
+   variable before sending through.
+*/
+#define SCANNER_FROM_PARSEDATA parsedata_scanner(pParseData)
 
 #define YYPRINT(file, type, value)   yyprint (file, type, value)
 static void yyprint(FILE * file, int type, YYSTYPE value);
