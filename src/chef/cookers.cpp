@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include <glm/common.hpp>
+
 #include "core/base_defines.h"
 #include "core/thread_local.h"
 
@@ -86,8 +88,8 @@ void cook_fnt(const CookInfo & ci)
         PANIC_IF(strlen(key) != 1, "Multi character key in .fnt file: %s", key);
         char keyChar = key[0];
         PANIC_IF(keyChar < 0 || keyChar > 128, "Invalid character in .fnt file: %c", keyChar);
-        minChar = minval(minChar, keyChar);
-        maxChar = maxval(maxChar, keyChar);
+        minChar = glm::min(minChar, keyChar);
+        maxChar = glm::max(maxChar, keyChar);
         ++keyIt;
     }
     PANIC_IF(minChar > maxChar, "minChar > maxChar in .fnt file, something is horribly wrong");

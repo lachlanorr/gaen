@@ -42,6 +42,7 @@ struct SymStructField
 {
     const SymDataType * pSymDataType;
     const char * name;
+    u32 flags;
 };
 
 struct TypeDesc
@@ -89,6 +90,7 @@ struct RelatedTypes
 
 enum SymRecFlag
 {
+    kSRFL_None           = 0x0000,
     kSRFL_Member         = 0x0001,
     kSRFL_NeedsCppParens = 0x0002
 };

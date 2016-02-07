@@ -27,6 +27,11 @@
 #ifndef GAEN_COMPOSE_SYSTEM_API_H
 #define GAEN_COMPOSE_SYSTEM_API_H
 
+#include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/mat3x3.hpp>
+#include <glm/mat4x3.hpp>
+
 #include "engine/Handle.h"
 #include "engine/Model.h"
 #include "engine/Entity.h"
@@ -54,30 +59,30 @@ f32 degrees(f32 radians, Entity & caller);
 void watch_input_state(u32 state, u32 deviceId, u32 message, Entity & caller);
 void watch_mouse(u32 moveMessage, u32 wheelMessage, Entity & caller);
 
-Mat34 mat34_rotation(const Vec3 & angles, Entity & caller);
-Mat3 mat3_rotation(const Vec3 & angles, Entity & caller);
+glm::mat4x3 mat43_rotation(const glm::vec3 & angles, Entity & caller);
+glm::mat3 mat3_rotation(const glm::vec3 & angles, Entity & caller);
 
-Quat quat_from_axis_angle(const Vec3 & dir, f32 angle, Entity & caller);
-Quat quat_normalize(const Quat & quat, Entity & caller);
+glm::quat quat_from_axis_angle(const glm::vec3 & dir, f32 angle, Entity & caller);
+glm::quat quat_normalize(const glm::quat & quat, Entity & caller);
 
 u32 renderer_gen_uid(Entity & caller);
 
-void renderer_move_camera(const Vec3 & position, const Quat & direction, Entity & caller);
-void renderer_move_fps_camera(const Vec3 & position, f32 pitch, f32 yaw, Entity & caller);
+void renderer_move_camera(const glm::vec3 & position, const glm::quat & direction, Entity & caller);
+void renderer_move_fps_camera(const glm::vec3 & position, f32 pitch, f32 yaw, Entity & caller);
 
 void renderer_insert_model_instance(u32 uid,
                                     Handle & modelHandle,
                                     Entity & caller);
-void renderer_transform_model_instance(u32 uid, const Mat34 & transform, Entity & caller);
+void renderer_transform_model_instance(u32 uid, const glm::mat4x3 & transform, Entity & caller);
 void renderer_remove_model_instance(u32 uid, Entity & caller);
 
 void renderer_insert_light_directional(u32 uid,
-                                       const Vec3 & direction,
+                                       const glm::vec3 & direction,
                                        Color color,
                                        Entity & caller);
 
 void renderer_update_light_directional(u32 uid,
-                                       const Vec3 & direction,
+                                       const glm::vec3 & direction,
                                        Color color,
                                        Entity & caller);
 

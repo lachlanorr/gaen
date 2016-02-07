@@ -26,8 +26,9 @@
 
 #include "engine/stdafx.h"
 
-#include "engine/shapes.h"
+#include "engine/glm_ext.h"
 #include "engine/hashes.h"
+#include "engine/shapes.h"
 
 namespace gaen
 {
@@ -46,9 +47,9 @@ ShapeBuilder::ShapeBuilder(Mesh * pMesh)
 }
 
 
-void ShapeBuilder::addTri(const Vec3 & p0,
-                          const Vec3 & p1,
-                          const Vec3 & p2)
+void ShapeBuilder::addTri(const glm::vec3 & p0,
+                          const glm::vec3 & p1,
+                          const glm::vec3 & p2)
 {
     if (mCurrVertex + 3 > mMesh.vertCount())
         PANIC("Vertex array overrun during pushTri");
@@ -61,7 +62,7 @@ void ShapeBuilder::addTri(const Vec3 & p0,
     PrimTriangle * pTris = mMesh;
     PrimTriangle & tri = pTris[mCurrPrimitive];
 
-    Vec3 vecNorm = triNormal(p0, p1, p2);
+    glm::vec3 vecNorm = tri_normal(p0, p1, p2);
 
     pVert[0].position = p0;
     pVert[0].normal = vecNorm;
@@ -80,17 +81,26 @@ void ShapeBuilder::addTri(const Vec3 & p0,
     mCurrPrimitive += 1;
 }
 
-void ShapeBuilder::addTri(const Vec3 * pPoints)
+void ShapeBuilder::addTri(const glm::vec3 * pPoints)
 {
     addTri(pPoints[0],
-            pPoints[1],
-            pPoints[2]);
+           pPoints[1],
+           pPoints[2]);
 }
-        
-void ShapeBuilder::addQuad(const Vec3 & p0,
-                           const Vec3 & p1,
-                           const Vec3 & p2,
-                           const Vec3 & p3)
+
+void ShapeBuilder::addTri(const glm::vec4 & p0,
+                          const glm::vec4 & p1,
+                          const glm::vec4 & p2)
+{
+    addTri(glm::vec3(p0),
+           glm::vec3(p1),
+           glm::vec3(p2));
+}
+
+void ShapeBuilder::addQuad(const glm::vec3 & p0,
+                           const glm::vec3 & p1,
+                           const glm::vec3 & p2,
+                           const glm::vec3 & p3)
 {
     if (mCurrVertex + 4 > mMesh.vertCount())
         PANIC("Vertex array overrun during pushQuad");
@@ -104,8 +114,8 @@ void ShapeBuilder::addQuad(const Vec3 & p0,
     PrimTriangle & tri0 = pTris[mCurrPrimitive];
     PrimTriangle & tri1 = pTris[mCurrPrimitive+1];
 
-    Vec3 vecNorm = triNormal(p0, p1, p2);
-    Vec3 vecNorm2 = triNormal(p3, p0, p2);
+    glm::vec3 vecNorm = tri_normal(p0, p1, p2);
+    glm::vec3 vecNorm2 = tri_normal(p3, p0, p2);
 
     //ASSERT(vecNorm == vecNorm2);
 
@@ -133,14 +143,24 @@ void ShapeBuilder::addQuad(const Vec3 & p0,
     mCurrPrimitive += 2;
 }
 
-void ShapeBuilder::addQuad(const Vec3 * pPoints)
+void ShapeBuilder::addQuad(const glm::vec3 * pPoints)
 {
     addQuad(pPoints[0],
-             pPoints[1],
-             pPoints[2],
-             pPoints[3]);
+            pPoints[1],
+            pPoints[2],
+            pPoints[3]);
 }
 
+void ShapeBuilder::addQuad(const glm::vec4 & p0,
+                           const glm::vec4 & p1,
+                           const glm::vec4 & p2,
+                           const glm::vec4 & p3)
+{
+    addQuad(glm::vec3(p0),
+            glm::vec3(p1),
+            glm::vec3(p2),
+            glm::vec3(p3));
+}
 
 void ShapeBuilder::addMesh(const Mesh & mesh)
 {
@@ -183,38 +203,38 @@ void ShapeBuilder::addMesh(const Mesh & mesh)
 // ShapeBuilder (END)
 //------------------------------------------------------------------------------
 
-Model * build_box(const Vec3 & size, Color color)
+Model * build_box(const glm::vec3 & size, Color color)
 {
     Mesh * pMesh = Mesh::create(kVERT_PosNorm, 24, kPRIM_Triangle, 12);
 
     ShapeBuilder builder(pMesh);
 
-    f32 xmax = size.x() / 2.0f;
+    f32 xmax = size.x / 2.0f;
     f32 xmin = -xmax;
     
-    f32 ymax = size.y() / 2.0f;
+    f32 ymax = size.y / 2.0f;
     f32 ymin = -ymax;
 
-    f32 zmax = size.z() / 2.0f;
+    f32 zmax = size.z / 2.0f;
     f32 zmin = -zmax;
 
     // Front
-    builder.addQuad(Vec3(xmin, ymax, zmax), Vec3(xmin, ymin, zmax), Vec3(xmax, ymin, zmax), Vec3(xmax, ymax, zmax));
+    builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymin, zmax), glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymax, zmax));
 
     // Bottom
-    builder.addQuad(Vec3(xmin, ymin, zmax), Vec3(xmin, ymin, zmin), Vec3(xmax, ymin, zmin), Vec3(xmax, ymin, zmax));
+    builder.addQuad(glm::vec3(xmin, ymin, zmax), glm::vec3(xmin, ymin, zmin), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymin, zmax));
 
     // Back
-    builder.addQuad(Vec3(xmin, ymin, zmin), Vec3(xmin, ymax, zmin), Vec3(xmax, ymax, zmin), Vec3(xmax, ymin, zmin));
+    builder.addQuad(glm::vec3(xmin, ymin, zmin), glm::vec3(xmin, ymax, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymin, zmin));
 
     // Top
-    builder.addQuad(Vec3(xmax, ymax, zmax), Vec3(xmax, ymax, zmin), Vec3(xmin, ymax, zmin), Vec3(xmin, ymax, zmax));
+    builder.addQuad(glm::vec3(xmax, ymax, zmax), glm::vec3(xmax, ymax, zmin), glm::vec3(xmin, ymax, zmin), glm::vec3(xmin, ymax, zmax));
 
     // Left
-    builder.addQuad(Vec3(xmin, ymax, zmax), Vec3(xmin, ymax, zmin), Vec3(xmin, ymin, zmin), Vec3(xmin, ymin, zmax));
+    builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymax, zmin), glm::vec3(xmin, ymin, zmin), glm::vec3(xmin, ymin, zmax));
 
     // Right
-    builder.addQuad(Vec3(xmax, ymin, zmax), Vec3(xmax, ymin, zmin), Vec3(xmax, ymax, zmin), Vec3(xmax, ymax, zmax));
+    builder.addQuad(glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymax, zmax));
 
     Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
@@ -222,21 +242,21 @@ Model * build_box(const Vec3 & size, Color color)
 }
 
 // Lathe around y axis
-Mesh * lathe_points(const Vec2 * pPoints, u32 count, u32 slices)
+Mesh * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices)
 {
     ASSERT(slices > 2);
 
     u32 triCount = (count - 3) * slices * 2;
     // If it's a closed surface, we'll not need a quad
     // on the ends of each slice.
-    triCount += slices * (pPoints[0].x() == 0.0f ? 1 : 2);
-    triCount += slices * (pPoints[count-1].x() == 0.0f ? 1 : 2);
+    triCount += slices * (pPoints[0].x == 0.0f ? 1 : 2);
+    triCount += slices * (pPoints[count-1].x == 0.0f ? 1 : 2);
 
     Mesh * pMesh = Mesh::create(kVERT_PosNorm, triCount * 3, kPRIM_Triangle, triCount);
 
     ShapeBuilder builder(pMesh);
 
-    f32 fullArc = radians(360.0f);
+    f32 fullArc = glm::radians(360.0f);
     f32 arcPart = fullArc / slices;
 
     for (u32 s = 0; s < slices; ++s)
@@ -246,17 +266,17 @@ Mesh * lathe_points(const Vec2 * pPoints, u32 count, u32 slices)
 
         for (u32 i = 0; i < count-1; ++i)
         {
-            Vec4 p0(pPoints[i]);
-            Vec4 p1(pPoints[i+1]);
+            glm::vec4 p0 = pPoints[i];
+            glm::vec4 p1 = pPoints[i+1];
 
-            Mat34 rotMat0 = Mat34::rotation(Vec3(0.0f, arc0, 0.0f));
-            Mat34 rotMat1 = Mat34::rotation(Vec3(0.0f, arc1, 0.0f));
+            glm::mat4 rotMat0 = glm::rotate(glm::mat4(1.0), arc0, glm::vec3(0.0f, 1.0f, 0.0f));
+            glm::mat4 rotMat1 = glm::rotate(glm::mat4(1.0), arc1, glm::vec3(0.0f, 1.0f, 0.0f));
 
-            Vec4 p0_0 = Mat34::multiply(rotMat0, p0);
-            Vec4 p1_0 = Mat34::multiply(rotMat0, p1);
+            glm::vec4 p0_0 = rotMat0 * p0;
+            glm::vec4 p1_0 = rotMat0 * p1;
 
-            Vec4 p0_1 = Mat34::multiply(rotMat1, p0);
-            Vec4 p1_1 = Mat34::multiply(rotMat1, p1);
+            glm::vec4 p0_1 = rotMat1 * p0;
+            glm::vec4 p1_1 = rotMat1 * p1;
 
             // If first or last, make a tri
             if (p0_0 == p0_1) // first, do a tri
@@ -277,17 +297,17 @@ Mesh * lathe_points(const Vec2 * pPoints, u32 count, u32 slices)
     return pMesh;
 }
 
-Model * build_cone(const Vec3 & size, u32 slices, Color color)
+Model * build_cone(const glm::vec3 & size, u32 slices, Color color)
 {
     // build a 2d set of points to lathe
-    Vec2 points[3];
+    glm::vec4 points[3];
 
-    float halfX = abs(size.x()) / 2.0f;
-    float halfY = abs(size.y()) / 2.0f;
+    float halfX = abs(size.x) / 2.0f;
+    float halfY = abs(size.y) / 2.0f;
 
-    points[0] = Vec2(0.0f, halfY);
-    points[1] = Vec2(halfX, -halfY);
-    points[2] = Vec2(0.0f, -halfY);
+    points[0] = glm::vec4(0.0f, halfY, 0.0f, 1.0f);
+    points[1] = glm::vec4(halfX, -halfY, 0.0f, 1.0f);
+    points[2] = glm::vec4(0.0f, -halfY, 0.0f, 1.0f);
 
     Mesh * pMesh = lathe_points(points, 3, slices);
 
@@ -296,18 +316,18 @@ Model * build_cone(const Vec3 & size, u32 slices, Color color)
     return pModel;
 }
 
-Model * build_cylinder(const Vec3 & size, u32 slices, Color color)
+Model * build_cylinder(const glm::vec3 & size, u32 slices, Color color)
 {
     // build a 2d set of points to lathe
-    Vec2 points[4];
+    glm::vec4 points[4];
 
-    float halfX = abs(size.x()) / 2.0f;
-    float halfY = abs(size.y()) / 2.0f;
+    float halfX = abs(size.x) / 2.0f;
+    float halfY = abs(size.y) / 2.0f;
 
-    points[0] = Vec2(0.0f, halfY);
-    points[1] = Vec2(halfX, halfY);
-    points[2] = Vec2(halfX, -halfY);
-    points[3] = Vec2(0.0f, -halfY);
+    points[0] = glm::vec4(0.0f, halfY, 0.0f, 1.0f);
+    points[1] = glm::vec4(halfX, halfY, 0.0f, 1.0f);
+    points[2] = glm::vec4(halfX, -halfY, 0.0f, 1.0f);
+    points[3] = glm::vec4(0.0f, -halfY, 0.0f, 1.0f);
 
     Mesh * pMesh = lathe_points(points, 4, slices);
 
@@ -316,23 +336,23 @@ Model * build_cylinder(const Vec3 & size, u32 slices, Color color)
     return pModel;
 }
 
-Model * build_sphere(const Vec3 & size, u32 slices, u32 sections, Color color)
+Model * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color)
 {
     // build a 2d set of points to lathe
     u32 pointCount = sections+1;
-    Vec2 * points = static_cast<Vec2*>(GALLOC(kMEM_Model, sizeof(Vec2) * pointCount));
+    glm::vec4 * points = static_cast<glm::vec4*>(GALLOC(kMEM_Model, sizeof(glm::vec4) * pointCount));
 
-    f32 fullArc = radians(180.0f);
+    f32 fullArc = glm::radians(180.0f);
     f32 sectionArc = fullArc / sections;
 
-    float halfY = abs(size.y()) / 2.0f;
-    points[0] = Vec2(0.0f, halfY);
+    float halfY = abs(size.y) / 2.0f;
+    points[0] = glm::vec4(0.0f, halfY, 0.0f, 1.0f);
     for (u32 i = 1; i < pointCount-1; ++i)
     {
-        Mat2 rotMat = Mat2::rotation(i * sectionArc);
-        points[i] = Mat2::multiply(rotMat, points[0]);
+        glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), i * sectionArc, glm::vec3(0.0f, 0.0f, 1.0f));
+        points[i] = rotMat * points[0];
     }
-    points[pointCount-1] = Vec2(0.0f, -halfY);
+    points[pointCount-1] = glm::vec4(0.0f, -halfY, 0.0f, 1.0f);
 
     Mesh * pMesh = lathe_points(points, pointCount, slices);
 
@@ -343,28 +363,28 @@ Model * build_sphere(const Vec3 & size, u32 slices, u32 sections, Color color)
     return pModel;
 }
 
-inline Vec3 convert_quad_sphere_vert(const Vec3 & vert, f32 radius)
+inline glm::vec3 convert_quad_sphere_vert(const glm::vec3 & vert, f32 radius)
 {
-    f32 len = vert.length();
+    f32 len = glm::length(vert);
     return vert * (radius / len);
 }
 
-inline Vec3 project_to_sphere(f32 x, f32 y, f32 z, f32 radius)
+inline glm::vec3 project_to_sphere(f32 x, f32 y, f32 z, f32 radius)
 {
-    Vec3 v(x, y, z);
-    return v * (radius / v.length());
+    glm::vec3 v(x, y, z);
+    return v * (radius / glm::length(v));
 }
 
-Model * build_quad_sphere(const Vec3 & size, u32 sections, Color color)
+Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
 {
     u32 triCount = sections * sections * 2 * 6; // 2 tris per quad, 6 sides
     Mesh * pMesh = Mesh::create(kVERT_PosNorm, triCount * 3, kPRIM_Triangle, triCount);
 
     ShapeBuilder builder(pMesh);
 
-    f32 radius = size.x() / 2.0f;
+    f32 radius = size.x / 2.0f;
 
-    f32 inc = size.x() / sections;
+    f32 inc = size.x / sections;
 
     f32 u, v;
 
@@ -376,10 +396,10 @@ Model * build_quad_sphere(const Vec3 & size, u32 sections, Color color)
             {
                 u = -radius + inc * i;
                 v = -radius + inc * j;
-                Vec3 p0 = project_to_sphere(u, v, radius, radius);
-                Vec3 p1 = project_to_sphere(u, v - inc, radius, radius);
-                Vec3 p2 = project_to_sphere(u + inc, v - inc, radius, radius);
-                Vec3 p3 = project_to_sphere(u + inc, v, radius, radius);
+                glm::vec3 p0 = project_to_sphere(u, v, radius, radius);
+                glm::vec3 p1 = project_to_sphere(u, v - inc, radius, radius);
+                glm::vec3 p2 = project_to_sphere(u + inc, v - inc, radius, radius);
+                glm::vec3 p3 = project_to_sphere(u + inc, v, radius, radius);
                 builder.addQuad(p0, p1, p2, p3);
             }
 
@@ -387,10 +407,10 @@ Model * build_quad_sphere(const Vec3 & size, u32 sections, Color color)
             {
                 u = -radius + inc * i;
                 v = radius - inc * j;
-                Vec3 p0 = project_to_sphere(u, -radius, v, radius);
-                Vec3 p1 = project_to_sphere(u, -radius, v - inc, radius);
-                Vec3 p2 = project_to_sphere(u + inc, -radius, v - inc, radius);
-                Vec3 p3 = project_to_sphere(u + inc, -radius, v, radius);
+                glm::vec3 p0 = project_to_sphere(u, -radius, v, radius);
+                glm::vec3 p1 = project_to_sphere(u, -radius, v - inc, radius);
+                glm::vec3 p2 = project_to_sphere(u + inc, -radius, v - inc, radius);
+                glm::vec3 p3 = project_to_sphere(u + inc, -radius, v, radius);
                 builder.addQuad(p0, p1, p2, p3);
             }
 
@@ -398,30 +418,30 @@ Model * build_quad_sphere(const Vec3 & size, u32 sections, Color color)
             {
                 u = radius - inc * i;
                 v = radius - inc * j;
-                Vec3 p0 = project_to_sphere(u, v, -radius, radius);
-                Vec3 p1 = project_to_sphere(u, v - inc, -radius, radius);
-                Vec3 p2 = project_to_sphere(u - inc, v - inc, -radius, radius);
-                Vec3 p3 = project_to_sphere(u - inc, v, -radius, radius);
+                glm::vec3 p0 = project_to_sphere(u, v, -radius, radius);
+                glm::vec3 p1 = project_to_sphere(u, v - inc, -radius, radius);
+                glm::vec3 p2 = project_to_sphere(u - inc, v - inc, -radius, radius);
+                glm::vec3 p3 = project_to_sphere(u - inc, v, -radius, radius);
                 builder.addQuad(p0, p1, p2, p3);
             }
 
 /*
             // top
             {
-                Vec3 p0 = project_to_sphere(u, radius, v, radius);
-                Vec3 p1 = project_to_sphere(u + inc, radius, v, radius);
-                Vec3 p2 = project_to_sphere(u + inc, radius, v - inc, radius);
-                Vec3 p3 = project_to_sphere(u, radius, v - inc, radius);
+                glm::vec3 p0 = project_to_sphere(u, radius, v, radius);
+                glm::vec3 p1 = project_to_sphere(u + inc, radius, v, radius);
+                glm::vec3 p2 = project_to_sphere(u + inc, radius, v - inc, radius);
+                glm::vec3 p3 = project_to_sphere(u, radius, v - inc, radius);
                 builder.addQuad(p0, p1, p2, p3);
             }
 */
 /*
             // left
             {
-                Vec3 p0 = project_to_sphere(-radius, u, v, radius);
-                Vec3 p1 = project_to_sphere(-radius, u + inc, v, radius);
-                Vec3 p2 = project_to_sphere(-radius, u + inc, v - inc, radius);
-                Vec3 p3 = project_to_sphere(-radius, u, v - inc, radius);
+                glm::vec3 p0 = project_to_sphere(-radius, u, v, radius);
+                glm::vec3 p1 = project_to_sphere(-radius, u + inc, v, radius);
+                glm::vec3 p2 = project_to_sphere(-radius, u + inc, v - inc, radius);
+                glm::vec3 p3 = project_to_sphere(-radius, u, v - inc, radius);
                 builder.addQuad(p0, p1, p2, p3);
             }
 */
@@ -436,31 +456,31 @@ Model * build_quad_sphere(const Vec3 & size, u32 sections, Color color)
 
 namespace system_api
 {
-    Handle create_shape_box(const Vec3 & size, Color color, Entity & caller)
+    Handle create_shape_box(const glm::vec3 & size, Color color, Entity & caller)
     {
         Model * pModel = build_box(size, color);
         return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
     }
 
-    Handle create_shape_cone(const Vec3 & size, u32 slices, Color color, Entity & caller)
+    Handle create_shape_cone(const glm::vec3 & size, u32 slices, Color color, Entity & caller)
     {
         Model * pModel = build_cone(size, slices, color);
         return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
     }
 
-    Handle create_shape_cylinder(const Vec3 & size, u32 slices, Color color, Entity & caller)
+    Handle create_shape_cylinder(const glm::vec3 & size, u32 slices, Color color, Entity & caller)
     {
         Model * pModel = build_cylinder(size, slices, color);
         return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
     }
 
-    Handle create_shape_sphere(const Vec3 & size, u32 slices, u32 sections, Color color, Entity & caller)
+    Handle create_shape_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color, Entity & caller)
     {
         Model * pModel = build_sphere(size, slices, sections, color);
         return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);
     }
 
-    Handle create_shape_quad_sphere(const Vec3 & size, u32 sections, Color color, Entity & caller)
+    Handle create_shape_quad_sphere(const glm::vec3 & size, u32 sections, Color color, Entity & caller)
     {
         Model * pModel = build_quad_sphere(size, sections, color);
         return Handle(HASH::model, 0, 0, sizeof(Model), pModel, nullptr);

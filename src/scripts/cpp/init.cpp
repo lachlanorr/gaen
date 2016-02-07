@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 39e6c83b97b63c1c2e1dd49dc4b04bda
+// HASH: 4c03f71d452db6e1386f15d75476165e
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -72,7 +72,7 @@ private:
             // Init Property: size
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
-                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+                *reinterpret_cast<glm::vec3*>(&msgw[0].cells[0].u) = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
                 compTask.message(msgw.accessor());
             }
             // Init Property: slices
@@ -151,7 +151,7 @@ private:
             // Init Property: dir
             {
                 StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::dir));
-                *reinterpret_cast<Vec3*>(&msgw[0].cells[0].u) = Vec3(1.00000000e+00f, -(6.99999988e-01f), -(5.00000000e-01f));
+                *reinterpret_cast<glm::vec3*>(&msgw[0].cells[0].u) = glm::vec3(1.00000000e+00f, -(6.99999988e-01f), -(5.00000000e-01f));
                 compTask.message(msgw.accessor());
             }
             // Init Property: col

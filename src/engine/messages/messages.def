@@ -20,40 +20,35 @@ class InsertComponent(FieldHandler):
 # Transform and entity
 class Transform(FieldHandler):
     isLocal   = boolField(payload=True)
-    transform = Mat34Field()
+    transform = mat4x3Field()
 
 # Transform and entity
 class TransformId(FieldHandler):
     id        = u32Field(payload=True)
-    transform = Mat34Field()
+    transform = mat4x3Field()
 
 class InsertModelInstance(FieldHandler):
     uid             = u32Field(payload=True)
     pModel          = PointerField(type_name='Model *',
                                    includes=['engine/Model.h'])
     isAssetManaged  = boolField()
-    transform  = Mat34Field()
+    transform  = mat4x3Field()
     
 
 class InsertLightDirectional(FieldHandler):
     uid       = u32Field(payload=True)
     color     = ColorField()
-    direction = Vec3Field()
+    direction = vec3Field()
 
 class UpdateLightDirectional(FieldHandler):
     uid       = u32Field(payload=True)
     color     = ColorField()
-    direction = Vec3Field()
+    direction = vec3Field()
 
 
 class MoveCamera(FieldHandler):
-    position = Vec3Field()
-    direction = QuatField()
-
-class MoveFpsCamera(FieldHandler):
-    pitch = f32Field(payload=True)
-    yaw = f32Field()
-    position = Vec3Field()
+    position = vec3Field()
+    direction = quatField()
 
 class WatchInputState(FieldHandler):
     state = u32Field(payload=True)

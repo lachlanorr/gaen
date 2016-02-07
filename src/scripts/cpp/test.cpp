@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: e7580ac0623e0bc2e6fefd884c8a96c7
+// HASH: c5d84bf5be4b444ed4a79285448a8a67
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -62,9 +62,9 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            Vec3 v0;
-            v0.x() = 5.00000000e+00f;
-            system_api::print(entity().blockMemory().stringFormat("x = %f", v0.x()), entity());
+            glm::vec3 v0;
+            v0.x = 5.00000000e+00f;
+            system_api::print(entity().blockMemory().stringFormat("x = %f", v0.x), entity());
             return MessageResult::Consumed;
         }
         }

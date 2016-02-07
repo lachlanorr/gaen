@@ -51,4 +51,7 @@
 #include <utility>
 #include <vector>
 
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #endif // #ifndef GAEN_ENGINE_STDAFX_H

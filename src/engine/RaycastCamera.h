@@ -27,7 +27,10 @@
 #ifndef GAEN_ENGINE_RAYCAST_CAMERA
 #define GAEN_ENGINE_RAYCAST_CAMERA
 
-#include "engine/math.h"
+#include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/mat4x4.hpp>
+
 #include "engine/collision.h"
 
 namespace gaen
@@ -60,8 +63,8 @@ public:
 
     struct Corner
     {
-        Vec3 nearPos;
-        Vec3 farPos;
+        glm::vec3 nearPos;
+        glm::vec3 farPos;
     };
 
     void init(u32 screenWidth, u32 screenHeight, f32 fov, f32 nearZ, f32 farZ);
@@ -84,16 +87,16 @@ public:
     f32 nearZ() const  { return mNearZ; }
     f32 farZ() const   { return mFarZ; }
 
-    const Mat4 & projection() const { return mProjection; }
-    const Mat4 & projectionInv() const { return mProjectionInv; }
+    const glm::mat4 & projection() const { return mProjection; }
+    const glm::mat4 & projectionInv() const { return mProjectionInv; }
 
-    const Vec3 & position() const { return mPos; }
-    const Quat & direction() const { return mDir; }
+    const glm::vec3 & position() const { return mPos; }
+    const glm::quat & direction() const { return mDir; }
 
-    const Mat4 & view() const { return mView; }
+    const glm::mat4 & view() const { return mView; }
 
-    void move(const Vec3 & pos, const Quat & dir);
-    void moveFps(const Vec3 & pos, f32 pitch, f32 yaw);
+    void move(const glm::vec3 & pos, const glm::quat & dir);
+    void moveFps(const glm::vec3 & pos, f32 pitch, f32 yaw);
 
 private:
     void reset();
@@ -108,12 +111,12 @@ private:
     f32 mFov;
     f32 mAspectRatio;
 
-    Mat4 mProjection;
-    Mat4 mProjectionInv;
+    glm::mat4 mProjection;
+    glm::mat4 mProjectionInv;
 
-    Vec3 mPos;
-    Quat mDir;
-    Mat4 mView;
+    glm::vec3 mPos;
+    glm::quat mDir;
+    glm::mat4 mView;
 
     // Initial, zero'd position corners and planes
     // Current, transformed corners and plans

@@ -263,20 +263,21 @@ SymDataType * symdatatype_create(DataType dataType,
     return pSdt;
 }
 
-void symdatatype_add_field(SymDataType * pSdt, SymDataType * pFieldSdt, const char * fieldName)
+void symdatatype_add_field(SymDataType * pSdt, SymDataType * pFieldSdt, const char * fieldName, u32 flags)
 {
     SymStructField * pField = (SymStructField*)COMP_ALLOC(sizeof(SymStructField));
     pField->pSymDataType = pFieldSdt;
     pField->name = fieldName;
+    pField->flags = flags;
     pSdt->fields.push_back(pField);
 }
 
-void symdatatype_add_field_related(RelatedTypes * pRelatedTypes, SymDataType * pFieldSdt, const char * fieldName)
+void symdatatype_add_field_related(RelatedTypes * pRelatedTypes, SymDataType * pFieldSdt, const char * fieldName, u32 flags)
 {
-    symdatatype_add_field(pRelatedTypes->pNormal, pFieldSdt, fieldName);
-    symdatatype_add_field(pRelatedTypes->pConst, pFieldSdt, fieldName);
-    symdatatype_add_field(pRelatedTypes->pReference, pFieldSdt, fieldName);
-    symdatatype_add_field(pRelatedTypes->pConstReference, pFieldSdt, fieldName);
+    symdatatype_add_field(pRelatedTypes->pNormal, pFieldSdt, fieldName, flags);
+    symdatatype_add_field(pRelatedTypes->pConst, pFieldSdt, fieldName, flags);
+    symdatatype_add_field(pRelatedTypes->pReference, pFieldSdt, fieldName, flags);
+    symdatatype_add_field(pRelatedTypes->pConstReference, pFieldSdt, fieldName, flags);
 }
 
 const SymStructField * symdatatype_find_field(const SymDataType * pSdt, const char * fieldName)
@@ -440,7 +441,10 @@ SymTab* symtab_add_symbol_with_fields(SymTab* pSymTab, SymRec * pSymRec, ParseDa
                                                   nullptr,
                                                   pParseData);
 
-            pFieldSymRec->flags |= (kSRFL_Member | kSRFL_NeedsCppParens);
+            // LORRTEMP
+            printf("name: %s\n", qualifiedName);
+
+            pFieldSymRec->flags |= (kSRFL_Member | pField->flags);
 
             symtab_add_symbol_with_fields(pSymTab, pFieldSymRec, pParseData);
         }
@@ -1127,9 +1131,9 @@ Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
+Ast * ast_create_mat43_init(Ast * pParams, ParseData * pParseData)
 {
-    Ast * pAst = ast_create(kAST_Mat34Init, pParseData);
+    Ast * pAst = ast_create(kAST_Mat43Init, pParseData);
     ast_set_rhs(pAst, pParams);
 
     switch (pParams->pChildren->nodes.size())
@@ -1138,8 +1142,8 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
     {
         Ast * pParam = pParams->pChildren->nodes.front();
         const SymDataType * pSdt = ast_data_type(pParam);
-        if (pSdt->typeDesc.dataType != kDT_float && pSdt->typeDesc.dataType != kDT_mat34)
-            COMP_ERROR(pParseData, "Invalid data type in mat34 initialization");
+        if (pSdt->typeDesc.dataType != kDT_float && pSdt->typeDesc.dataType != kDT_mat43)
+            COMP_ERROR(pParseData, "Invalid data type in mat43 initialization");
         break;
     }
     case 12:
@@ -1148,12 +1152,12 @@ Ast * ast_create_mat34_init(Ast * pParams, ParseData * pParseData)
         {
             const SymDataType * pSdt = ast_data_type(pParam);
             if (pSdt->typeDesc.dataType != kDT_float)
-                COMP_ERROR(pParseData, "Invalid data type in mat34 initialization");
+                COMP_ERROR(pParseData, "Invalid data type in mat43 initialization");
         }
         break;
     }
     default:
-        COMP_ERROR(pParseData, "Invalid parameters for mat34 initialization");
+        COMP_ERROR(pParseData, "Invalid parameters for mat43 initialization");
         break;
     }
 
@@ -1192,7 +1196,7 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
         case kDT_vec4:
         case kDT_quat:
         case kDT_mat3:
-        case kDT_mat34:
+        case kDT_mat43:
         case kDT_mat4:
         case kDT_string:
         {
@@ -1360,8 +1364,8 @@ Ast * ast_create_type_init(DataType dataType, Ast * pParams, ParseData * pParseD
         return ast_create_vec4_init(pParams, pParseData);
     case kDT_quat:
         return ast_create_quat_init(pParams, pParseData);
-    case kDT_mat34:
-        return ast_create_mat34_init(pParams, pParseData);
+    case kDT_mat43:
+        return ast_create_mat43_init(pParams, pParseData);
     case kDT_string:
         return ast_create_string_init(pParams, pParseData);
     default:
@@ -1841,9 +1845,9 @@ const SymDataType * ast_data_type(const Ast * pAst)
     case kAST_QuatInit:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "quat", 0, 0);
         break;
-    case kAST_Mat34Init:
+    case kAST_Mat43Init:
     case kAST_Transform:
-        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "mat34", 0, 0);
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "mat43", 0, 0);
         break;
     case kAST_Negate:
         return ast_data_type(pAst->pRhs);
@@ -2343,13 +2347,12 @@ const Using * parsedata_parse_using(ParseData * pParseData,
 //------------------------------------------------------------------------------
 // ParseData (END)
 //------------------------------------------------------------------------------
-
 void parse_init()
 {
     comp_reset_mem();
 
     // LORRNOTE: Uncomment below to enable stderr based debug messages from parser
-    //yydebug = 1;
+    yydebug = 1;
 }
 
 i32 read_file(const char * path, char ** output)
@@ -2519,30 +2522,31 @@ namespace gaen
         RelatedTypes floatRt = register_basic_type(kDT_float, "float", "f32", 1, pParseData);
 
         RelatedTypes rt;
-        rt = register_basic_type(kDT_vec2, "vec2", "Vec2", 2, pParseData);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
 
-        rt = register_basic_type(kDT_vec3, "vec3", "Vec3", 3, pParseData);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "z");
+        rt = register_basic_type(kDT_vec2, "vec2", "glm::vec2", 2, pParseData);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "y", kSRFL_None);
 
-        rt = register_basic_type(kDT_vec4, "vec4", "Vec4", 4, pParseData);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "z");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "w");
+        rt = register_basic_type(kDT_vec3, "vec3", "glm::vec3", 3, pParseData);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "z", kSRFL_None);
 
-        rt = register_basic_type(kDT_quat, "quat", "Quat", 4, pParseData);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "x");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "y");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "z");
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "w");
+        rt = register_basic_type(kDT_vec4, "vec4", "glm::vec4", 4, pParseData);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "z", kSRFL_None);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "w", kSRFL_None);
 
-        register_basic_type(kDT_mat3,  "mat3",  "Mat3",   9, pParseData);
-        register_basic_type(kDT_mat34, "mat34", "Mat34", 12, pParseData);
-        register_basic_type(kDT_mat4,  "mat4",  "Mat4",  16, pParseData);
+        rt = register_basic_type(kDT_quat, "quat", "glm::quat", 4, pParseData);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "z", kSRFL_None);
+        symdatatype_add_field_related(&rt, floatRt.pNormal, "w", kSRFL_None);
+
+        register_basic_type(kDT_mat3,  "mat3",  "glm::mat3",    9, pParseData);
+        register_basic_type(kDT_mat43, "mat43", "glm::mat4x3", 12, pParseData);
+        register_basic_type(kDT_mat4,  "mat4",  "glm::mat4",   16, pParseData);
 
         register_basic_type(kDT_handle, "handle", "Handle", 2, pParseData);
         register_basic_type(kDT_entity, "entity", "task_id", 1, pParseData);

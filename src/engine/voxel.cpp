@@ -26,8 +26,6 @@
 
 #include "engine/stdafx.h"
 
-#include <cmath>
-
 #include "core/logging.h"
 
 #include "engine/voxel.h"
@@ -35,13 +33,13 @@
 namespace gaen
 {
 
-static const Vec3 kNormals[7] = { { 0.0f,  0.0f,  0.0f},
-                                  {-1.0f,  0.0f,  0.0f},   // left
-                                  { 1.0f,  0.0f,  0.0f},   // right
-                                  { 0.0f, -1.0f,  0.0f},   // bottom
-                                  { 0.0f,  1.0f,  0.0f},   // top
-                                  { 0.0f,  0.0f, -1.0f},   // back
-                                  { 0.0f,  0.0f,  1.0f} }; // front
+static const glm::vec3 kNormals[7] = { { 0.0f,  0.0f,  0.0f},
+                                       {-1.0f,  0.0f,  0.0f},   // left
+                                       { 1.0f,  0.0f,  0.0f},   // right
+                                       { 0.0f, -1.0f,  0.0f},   // bottom
+                                       { 0.0f,  1.0f,  0.0f},   // top
+                                       { 0.0f,  0.0f, -1.0f},   // back
+                                       { 0.0f,  0.0f,  1.0f} }; // front
 
 
 static const SubVoxel kVoxelSearchOrder[6 * 4 * 8] = {
@@ -320,86 +318,86 @@ static const SubVoxel kVoxelSearchOrder[6 * 4 * 8] = {
 static_assert(sizeof(kVoxelSearchOrder) == 192, "kVoxelSearchOrder not 192 bytes");
 
 
-static const Vec3 kVoxelNeighborOffsets[26] =
+static const glm::vec3 kVoxelNeighborOffsets[26] =
 {
-    Vec3(-1.0f, -1.0f, -1.0f), // kVN_LeftBottomBack     =  0,
-    Vec3(-1.0f, -1.0f,  0.0f), // kVN_LeftBottomMiddle   =  1,
-    Vec3(-1.0f, -1.0f,  1.0f), // kVN_LeftBottomFront    =  2,
+    glm::vec3(-1.0f, -1.0f, -1.0f), // kVN_LeftBottomBack     =  0,
+    glm::vec3(-1.0f, -1.0f,  0.0f), // kVN_LeftBottomMiddle   =  1,
+    glm::vec3(-1.0f, -1.0f,  1.0f), // kVN_LeftBottomFront    =  2,
 
-    Vec3(-1.0f,  0.0f, -1.0f), // kVN_LeftMiddleBack     =  3,
-    Vec3(-1.0f,  0.0f,  0.0f), // kVN_LeftMiddleMiddle   =  4,
-    Vec3(-1.0f,  0.0f,  1.0f), // kVN_LeftMiddleFront    =  5,
+    glm::vec3(-1.0f,  0.0f, -1.0f), // kVN_LeftMiddleBack     =  3,
+    glm::vec3(-1.0f,  0.0f,  0.0f), // kVN_LeftMiddleMiddle   =  4,
+    glm::vec3(-1.0f,  0.0f,  1.0f), // kVN_LeftMiddleFront    =  5,
 
-    Vec3(-1.0f,  1.0f, -1.0f), // kVN_LeftTopBack        =  6,
-    Vec3(-1.0f,  1.0f,  0.0f), // kVN_LeftTopMiddle      =  7,
-    Vec3(-1.0f,  1.0f,  1.0f), // kVN_LeftTopFront       =  8,
+    glm::vec3(-1.0f,  1.0f, -1.0f), // kVN_LeftTopBack        =  6,
+    glm::vec3(-1.0f,  1.0f,  0.0f), // kVN_LeftTopMiddle      =  7,
+    glm::vec3(-1.0f,  1.0f,  1.0f), // kVN_LeftTopFront       =  8,
 
-    Vec3( 0.0f, -1.0f, -1.0f), // kVN_MiddleBottomBack   =  9,
-    Vec3( 0.0f, -1.0f,  0.0f), // kVN_MiddleBottomMiddle = 10,
-    Vec3( 0.0f, -1.0f,  1.0f), // kVN_MiddleBottomFront  = 11,
+    glm::vec3( 0.0f, -1.0f, -1.0f), // kVN_MiddleBottomBack   =  9,
+    glm::vec3( 0.0f, -1.0f,  0.0f), // kVN_MiddleBottomMiddle = 10,
+    glm::vec3( 0.0f, -1.0f,  1.0f), // kVN_MiddleBottomFront  = 11,
 
-    Vec3( 0.0f,  0.0f, -1.0f), // kVN_MiddleMiddleBack   = 12,
+    glm::vec3( 0.0f,  0.0f, -1.0f), // kVN_MiddleMiddleBack   = 12,
     //kVN_MiddleMiddleMiddle,
-    Vec3( 0.0f,  0.0f,  1.0f), // kVN_MiddleMiddleFront  = 13,
+    glm::vec3( 0.0f,  0.0f,  1.0f), // kVN_MiddleMiddleFront  = 13,
 
-    Vec3( 0.0f,  1.0f, -1.0f), // kVN_MiddleTopBack      = 14,
-    Vec3( 0.0f,  1.0f,  0.0f), // kVN_MiddleTopMiddle    = 15,
-    Vec3( 0.0f,  1.0f,  1.0f), // kVN_MiddleTopFront     = 16,
+    glm::vec3( 0.0f,  1.0f, -1.0f), // kVN_MiddleTopBack      = 14,
+    glm::vec3( 0.0f,  1.0f,  0.0f), // kVN_MiddleTopMiddle    = 15,
+    glm::vec3( 0.0f,  1.0f,  1.0f), // kVN_MiddleTopFront     = 16,
 
-    Vec3( 1.0f, -1.0f, -1.0f), // kVN_RightBottomBack    = 17,
-    Vec3( 1.0f, -1.0f,  0.0f), // kVN_RightBottomMiddle  = 18,
-    Vec3( 1.0f, -1.0f,  1.0f), // kVN_RightBottomFront   = 19,
+    glm::vec3( 1.0f, -1.0f, -1.0f), // kVN_RightBottomBack    = 17,
+    glm::vec3( 1.0f, -1.0f,  0.0f), // kVN_RightBottomMiddle  = 18,
+    glm::vec3( 1.0f, -1.0f,  1.0f), // kVN_RightBottomFront   = 19,
 
-    Vec3( 1.0f,  0.0f, -1.0f), // kVN_RightMiddleBack    = 20,
-    Vec3( 1.0f,  0.0f,  0.0f), // kVN_RightMiddleMiddle  = 21,
-    Vec3( 1.0f,  0.0f,  1.0f), // kVN_RightMiddleFront   = 22,
+    glm::vec3( 1.0f,  0.0f, -1.0f), // kVN_RightMiddleBack    = 20,
+    glm::vec3( 1.0f,  0.0f,  0.0f), // kVN_RightMiddleMiddle  = 21,
+    glm::vec3( 1.0f,  0.0f,  1.0f), // kVN_RightMiddleFront   = 22,
 
-    Vec3( 1.0f,  1.0f, -1.0f), // kVN_RightTopBack       = 23,
-    Vec3( 1.0f,  1.0f,  0.0f), // kVN_RightTopMiddle     = 24,
-    Vec3( 1.0f,  1.0f,  1.0f)  // kVN_RightTopFront      = 25
+    glm::vec3( 1.0f,  1.0f, -1.0f), // kVN_RightTopBack       = 23,
+    glm::vec3( 1.0f,  1.0f,  0.0f), // kVN_RightTopMiddle     = 24,
+    glm::vec3( 1.0f,  1.0f,  1.0f)  // kVN_RightTopFront      = 25
 };
 
 
-static const Vec3 kVoxelNeighborDirections[26] =
+static const glm::vec3 kVoxelNeighborDirections[26] =
 {
-    Vec3(-5.77350259e-001f, -5.77350259e-001f, -5.77350259e-001f), // kVN_LeftBottomBack     =  0,
-    Vec3(-7.07106769e-001f, -7.07106769e-001f,  0.00000000e+000f), // kVN_LeftBottomMiddle   =  1,
-    Vec3(-5.77350259e-001f, -5.77350259e-001f,  5.77350259e-001f), // kVN_LeftBottomFront    =  2,
+    glm::vec3(-5.77350259e-001f, -5.77350259e-001f, -5.77350259e-001f), // kVN_LeftBottomBack     =  0,
+    glm::vec3(-7.07106769e-001f, -7.07106769e-001f,  0.00000000e+000f), // kVN_LeftBottomMiddle   =  1,
+    glm::vec3(-5.77350259e-001f, -5.77350259e-001f,  5.77350259e-001f), // kVN_LeftBottomFront    =  2,
 
-    Vec3(-7.07106769e-001f,  0.00000000e+000f, -7.07106769e-001f), // kVN_LeftMiddleBack     =  3,
-    Vec3(-1.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f), // kVN_LeftMiddleMiddle   =  4,
-    Vec3(-7.07106769e-001f,  0.00000000e+000f,  7.07106769e-001f), // kVN_LeftMiddleFront    =  5,
+    glm::vec3(-7.07106769e-001f,  0.00000000e+000f, -7.07106769e-001f), // kVN_LeftMiddleBack     =  3,
+    glm::vec3(-1.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f), // kVN_LeftMiddleMiddle   =  4,
+    glm::vec3(-7.07106769e-001f,  0.00000000e+000f,  7.07106769e-001f), // kVN_LeftMiddleFront    =  5,
 
-    Vec3(-5.77350259e-001f,  5.77350259e-001f, -5.77350259e-001f), // kVN_LeftTopBack        =  6,
-    Vec3(-7.07106769e-001f,  7.07106769e-001f,  0.00000000e+000f), // kVN_LeftTopMiddle      =  7,
-    Vec3(-5.77350259e-001f,  5.77350259e-001f,  5.77350259e-001f), // kVN_LeftTopFront       =  8,
+    glm::vec3(-5.77350259e-001f,  5.77350259e-001f, -5.77350259e-001f), // kVN_LeftTopBack        =  6,
+    glm::vec3(-7.07106769e-001f,  7.07106769e-001f,  0.00000000e+000f), // kVN_LeftTopMiddle      =  7,
+    glm::vec3(-5.77350259e-001f,  5.77350259e-001f,  5.77350259e-001f), // kVN_LeftTopFront       =  8,
 
-    Vec3( 0.00000000e+000f, -7.07106769e-001f, -7.07106769e-001f), // kVN_MiddleBottomBack   =  9,
-    Vec3( 0.00000000e+000f, -1.00000000e+000f,  0.00000000e+000f), // kVN_MiddleBottomMiddle = 10,
-    Vec3( 0.00000000e+000f, -7.07106769e-001f,  7.07106769e-001f), // kVN_MiddleBottomFront  = 11,
+    glm::vec3( 0.00000000e+000f, -7.07106769e-001f, -7.07106769e-001f), // kVN_MiddleBottomBack   =  9,
+    glm::vec3( 0.00000000e+000f, -1.00000000e+000f,  0.00000000e+000f), // kVN_MiddleBottomMiddle = 10,
+    glm::vec3( 0.00000000e+000f, -7.07106769e-001f,  7.07106769e-001f), // kVN_MiddleBottomFront  = 11,
 
-    Vec3( 0.00000000e+000f,  0.00000000e+000f, -1.00000000e+000f), // kVN_MiddleMiddleBack   = 12,
+    glm::vec3( 0.00000000e+000f,  0.00000000e+000f, -1.00000000e+000f), // kVN_MiddleMiddleBack   = 12,
     //kVN_MiddleMiddleMiddle,
-    Vec3( 0.00000000e+000f,  0.00000000e+000f,  1.00000000e+000f), // kVN_MiddleMiddleFront  = 13,
+    glm::vec3( 0.00000000e+000f,  0.00000000e+000f,  1.00000000e+000f), // kVN_MiddleMiddleFront  = 13,
 
-    Vec3( 0.00000000e+000f,  7.07106769e-001f, -7.07106769e-001f), // kVN_MiddleTopBack      = 14,
-    Vec3( 0.00000000e+000f,  1.00000000e+000f,  0.00000000e+000f), // kVN_MiddleTopMiddle    = 15,
-    Vec3( 0.00000000e+000f,  7.07106769e-001f,  7.07106769e-001f), // kVN_MiddleTopFront     = 16,
+    glm::vec3( 0.00000000e+000f,  7.07106769e-001f, -7.07106769e-001f), // kVN_MiddleTopBack      = 14,
+    glm::vec3( 0.00000000e+000f,  1.00000000e+000f,  0.00000000e+000f), // kVN_MiddleTopMiddle    = 15,
+    glm::vec3( 0.00000000e+000f,  7.07106769e-001f,  7.07106769e-001f), // kVN_MiddleTopFront     = 16,
 
-    Vec3( 5.77350259e-001f, -5.77350259e-001f, -5.77350259e-001f), // kVN_RightBottomBack    = 17,
-    Vec3( 7.07106769e-001f, -7.07106769e-001f,  0.00000000e+000f), // kVN_RightBottomMiddle  = 18,
-    Vec3( 5.77350259e-001f, -5.77350259e-001f,  5.77350259e-001f), // kVN_RightBottomFront   = 19,
+    glm::vec3( 5.77350259e-001f, -5.77350259e-001f, -5.77350259e-001f), // kVN_RightBottomBack    = 17,
+    glm::vec3( 7.07106769e-001f, -7.07106769e-001f,  0.00000000e+000f), // kVN_RightBottomMiddle  = 18,
+    glm::vec3( 5.77350259e-001f, -5.77350259e-001f,  5.77350259e-001f), // kVN_RightBottomFront   = 19,
 
-    Vec3( 7.07106769e-001f,  0.00000000e+000f, -7.07106769e-001f), // kVN_RightMiddleBack    = 20,
-    Vec3( 1.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f), // kVN_RightMiddleMiddle  = 21,
-    Vec3( 7.07106769e-001f,  0.00000000e+000f,  7.07106769e-001f), // kVN_RightMiddleFront   = 22,
+    glm::vec3( 7.07106769e-001f,  0.00000000e+000f, -7.07106769e-001f), // kVN_RightMiddleBack    = 20,
+    glm::vec3( 1.00000000e+000f,  0.00000000e+000f,  0.00000000e+000f), // kVN_RightMiddleMiddle  = 21,
+    glm::vec3( 7.07106769e-001f,  0.00000000e+000f,  7.07106769e-001f), // kVN_RightMiddleFront   = 22,
 
-    Vec3( 5.77350259e-001f,  5.77350259e-001f, -5.77350259e-001f), // kVN_RightTopBack       = 23,
-    Vec3( 7.07106769e-001f,  7.07106769e-001f,  0.00000000e+000f), // kVN_RightTopMiddle     = 24,
-    Vec3( 5.77350259e-001f,  5.77350259e-001f,  5.77350259e-001f), // kVN_RightTopFront      = 25
+    glm::vec3( 5.77350259e-001f,  5.77350259e-001f, -5.77350259e-001f), // kVN_RightTopBack       = 23,
+    glm::vec3( 7.07106769e-001f,  7.07106769e-001f,  0.00000000e+000f), // kVN_RightTopMiddle     = 24,
+    glm::vec3( 5.77350259e-001f,  5.77350259e-001f,  5.77350259e-001f), // kVN_RightTopFront      = 25
 };
 
-Vec3 voxel_neighbor_offset(VoxelNeighbor vn)
+glm::vec3 voxel_neighbor_offset(VoxelNeighbor vn)
 {
     return kVoxelNeighborOffsets[vn];
 }
@@ -407,18 +405,18 @@ Vec3 voxel_neighbor_offset(VoxelNeighbor vn)
 AABB_MinMax voxel_subspace(const AABB_MinMax & pSpace, SubVoxel subIndex)
 {
     // voxels are always cubes, so we only need one dimension's half
-    f32 dimHalf = 0.5f * (pSpace.max.x() - pSpace.min.x());
+    f32 dimHalf = 0.5f * (pSpace.max.x - pSpace.min.x);
 
     u32 subIdx = static_cast<u32>(subIndex);
 
     // utilize the binary values of VoxelIndex to determine xyz offsets
-    Vec3 offsets(((subIdx & 4) >> 2) * dimHalf,
-                 ((subIdx & 2) >> 1) * dimHalf,
-                 (subIdx & 1) * dimHalf);
+    glm::vec3 offsets(((subIdx & 4) >> 2) * dimHalf,
+                      ((subIdx & 2) >> 1) * dimHalf,
+                      (subIdx & 1) * dimHalf);
 
     AABB_MinMax ret;
     ret.min = pSpace.min + offsets;
-    ret.max = ret.min + Vec3(dimHalf, dimHalf, dimHalf);
+    ret.max = ret.min + glm::vec3(dimHalf, dimHalf, dimHalf);
     return ret;
 }
 
@@ -426,14 +424,14 @@ static const f32 kEpsilon = 1e-10;
 
 inline bool f32_eq(f32 x, f32 y)
 {
-    return abs(x - y) <= kEpsilon * maxval(1.0f, maxval(abs(x), abs(y)));
+    return abs(x - y) <= kEpsilon * glm::max(1.0f, glm::max(abs(x), abs(y)));
 }
 
 inline bool test_ray_box(VoxelFace * pVoxelFace,
                          f32 * pEntryDist,
                          f32 * pExitDist,
-                         const Vec3 & rayPos,
-                         const Vec3 & invRayDir,
+                         const glm::vec3 & rayPos,
+                         const glm::vec3 & invRayDir,
                          const AABB_MinMax & aabb)
 {
     // On GPU, intersect box looks something like:
@@ -454,16 +452,14 @@ inline bool test_ray_box(VoxelFace * pVoxelFace,
       }
     */
 
-
-    Vec3 tbot = invRayDir * (aabb.min - rayPos);
-    Vec3 ttop = invRayDir * (aabb.max - rayPos);
-    Vec3 tmin = min_(ttop, tbot);
-    Vec3 tmax = max_(ttop, tbot);
-    Vec2 t = max_(Vec2(tmin.x(), tmin.x()), Vec2(tmin.y(), tmin.z()));
-    f32 t0 = maxval(t.x(), t.y());
-    t = min_(Vec2(tmax.x(), tmax.x()), Vec2(tmax.y(), tmax.z()));
-    f32 t1 = minval(t.x(), t.y());
-
+    glm::vec3 tbot = invRayDir * (aabb.min - rayPos);
+    glm::vec3 ttop = invRayDir * (aabb.max - rayPos);
+    glm::vec3 tmin = glm::min(ttop, tbot);
+    glm::vec3 tmax = glm::max(ttop, tbot);
+    glm::vec2 t = glm::max(glm::vec2(tmin.x, tmin.x), glm::vec2(tmin.y, tmin.z));
+    f32 t0 = glm::max(t.x, t.y);
+    t = glm::min(glm::vec2(tmax.x, tmax.x), glm::vec2(tmax.y, tmax.z));
+    f32 t1 = glm::min(t.x, t.y);
 
     // find the face that was hit, only one condition is true,
     // and this eliminates branching.
@@ -472,12 +468,12 @@ inline bool test_ray_box(VoxelFace * pVoxelFace,
     u32 faceHit = 0;
     bool isHit = t1 > 0.0f && t0 <= t1;
 
-    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.x()) && t0 == tbot.x()) * 1);
-    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.x()) && t0 == ttop.x()) * 2);
-    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.y()) && t0 == tbot.y()) * 3);
-    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.y()) && t0 == ttop.y()) * 4);
-    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.z()) && t0 == tbot.z()) * 5);
-    faceHit = maxval(faceHit, (u32)(isHit && !std::isinf(invRayDir.z()) && t0 == ttop.z()) * 6);
+    faceHit = glm::max(faceHit, (u32)(isHit && !std::isinf(invRayDir.x) && t0 == tbot.x) * 1);
+    faceHit = glm::max(faceHit, (u32)(isHit && !std::isinf(invRayDir.x) && t0 == ttop.x) * 2);
+    faceHit = glm::max(faceHit, (u32)(isHit && !std::isinf(invRayDir.y) && t0 == tbot.y) * 3);
+    faceHit = glm::max(faceHit, (u32)(isHit && !std::isinf(invRayDir.y) && t0 == ttop.y) * 4);
+    faceHit = glm::max(faceHit, (u32)(isHit && !std::isinf(invRayDir.z) && t0 == tbot.z) * 5);
+    faceHit = glm::max(faceHit, (u32)(isHit && !std::isinf(invRayDir.z) && t0 == ttop.z) * 6);
 
     ASSERT(!isHit || faceHit != 0);
 
@@ -489,82 +485,82 @@ inline bool test_ray_box(VoxelFace * pVoxelFace,
 }
 
 inline bool is_hit_within_voxel(VoxelFace voxelFace,
-                                const Vec3 & hitPos,
+                                const glm::vec3 & hitPos,
                                 const AABB_MinMax & aabb)
 {
     return (((voxelFace == VoxelFace::Left ||
              voxelFace == VoxelFace::Right) &&
-            hitPos.y() > aabb.min.y() &&
-            hitPos.y() <= aabb.max.y() &&
-            hitPos.z() > aabb.min.z() &&
-            hitPos.z() <= aabb.max.z()) ||
+            hitPos.y > aabb.min.y &&
+            hitPos.y <= aabb.max.y &&
+            hitPos.z > aabb.min.z &&
+            hitPos.z <= aabb.max.z) ||
 
             ((voxelFace == VoxelFace::Bottom ||
               voxelFace == VoxelFace::Top) &&
-             hitPos.x() > aabb.min.x() &&
-             hitPos.x() <= aabb.max.x() &&
-             hitPos.z() > aabb.min.z() &&
-             hitPos.z() <= aabb.max.z()) ||
+             hitPos.x > aabb.min.x &&
+             hitPos.x <= aabb.max.x &&
+             hitPos.z > aabb.min.z &&
+             hitPos.z <= aabb.max.z) ||
 
             ((voxelFace == VoxelFace::Back ||
               voxelFace == VoxelFace::Front) &&
-             hitPos.x() > aabb.min.x() &&
-             hitPos.x() <= aabb.max.x() &&
-             hitPos.y() > aabb.min.y() &&
-             hitPos.y() <= aabb.max.y()));
+             hitPos.x > aabb.min.x &&
+             hitPos.x <= aabb.max.x &&
+             hitPos.y > aabb.min.y &&
+             hitPos.y <= aabb.max.y));
 }
 
-inline Vec2 calc_face_uv(VoxelFace voxelFace,
-                         const Vec3 & hitPos,
-                         const AABB_MinMax & aabb)
+inline glm::vec2 calc_face_uv(VoxelFace voxelFace,
+                              const glm::vec3 & hitPos,
+                              const AABB_MinMax & aabb)
 {
     // get the array of 6 floats so we can index easily
     const f32 * pAabbElems = reinterpret_cast<const f32*>(&aabb);
 
     // Couple asserts to make sure the hackish behavior above is valid
-    ASSERT(Vec3(pAabbElems[0], pAabbElems[1], pAabbElems[2]) == aabb.min);
-    ASSERT(Vec3(pAabbElems[3], pAabbElems[4], pAabbElems[5]) == aabb.max);
+    ASSERT(glm::vec3(pAabbElems[0], pAabbElems[1], pAabbElems[2]) == aabb.min);
+    ASSERT(glm::vec3(pAabbElems[3], pAabbElems[4], pAabbElems[5]) == aabb.max);
 
     u32 uHitElem = 0;
-    uHitElem = maxval(uHitElem, (u32)(voxelFace == VoxelFace::Left   || voxelFace == VoxelFace::Right) * 2); // z()
-    uHitElem = maxval(uHitElem, (u32)(voxelFace == VoxelFace::Bottom || voxelFace == VoxelFace::Top)   * 0); // x()
-    uHitElem = maxval(uHitElem, (u32)(voxelFace == VoxelFace::Back   || voxelFace == VoxelFace::Front) * 0); // x()
+    uHitElem = glm::max(uHitElem, (u32)(voxelFace == VoxelFace::Left   || voxelFace == VoxelFace::Right) * 2); // z()
+    uHitElem = glm::max(uHitElem, (u32)(voxelFace == VoxelFace::Bottom || voxelFace == VoxelFace::Top)   * 0); // x()
+    uHitElem = glm::max(uHitElem, (u32)(voxelFace == VoxelFace::Back   || voxelFace == VoxelFace::Front) * 0); // x()
 
     u32 vHitElem = 0;
-    vHitElem = maxval(vHitElem, (u32)(voxelFace == VoxelFace::Left   || voxelFace == VoxelFace::Right) * 1); // y()
-    vHitElem = maxval(vHitElem, (u32)(voxelFace == VoxelFace::Bottom || voxelFace == VoxelFace::Top)   * 2); // z()
-    vHitElem = maxval(vHitElem, (u32)(voxelFace == VoxelFace::Back   || voxelFace == VoxelFace::Front) * 1); // y()
+    vHitElem = glm::max(vHitElem, (u32)(voxelFace == VoxelFace::Left   || voxelFace == VoxelFace::Right) * 1); // y()
+    vHitElem = glm::max(vHitElem, (u32)(voxelFace == VoxelFace::Bottom || voxelFace == VoxelFace::Top)   * 2); // z()
+    vHitElem = glm::max(vHitElem, (u32)(voxelFace == VoxelFace::Back   || voxelFace == VoxelFace::Front) * 1); // y()
 
 
     u32 uAabbElem = 0;
-    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Left)   * 2);  // aabb.min.z()
-    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Right)  * 5);  // aabb.max.z()
-    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Bottom) * 0);  // aabb.min.x()
-    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Top)    * 0);  // aabb.min.x()
-    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Back)   * 3);  // aabb.max.x()
-    uAabbElem = maxval(uAabbElem, (u32)(voxelFace == VoxelFace::Front)  * 0);  // aabb.min.x()
+    uAabbElem = glm::max(uAabbElem, (u32)(voxelFace == VoxelFace::Left)   * 2);  // aabb.min.z
+    uAabbElem = glm::max(uAabbElem, (u32)(voxelFace == VoxelFace::Right)  * 5);  // aabb.max.z
+    uAabbElem = glm::max(uAabbElem, (u32)(voxelFace == VoxelFace::Bottom) * 0);  // aabb.min.x
+    uAabbElem = glm::max(uAabbElem, (u32)(voxelFace == VoxelFace::Top)    * 0);  // aabb.min.x
+    uAabbElem = glm::max(uAabbElem, (u32)(voxelFace == VoxelFace::Back)   * 3);  // aabb.max.x
+    uAabbElem = glm::max(uAabbElem, (u32)(voxelFace == VoxelFace::Front)  * 0);  // aabb.min.x
 
     u32 vAabbElem = 0;
-    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Left)   * 1);  // aabb.min.y()
-    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Right)  * 1);  // aabb.min.y()
-    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Bottom) * 2);  // aabb.min.z()
-    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Top)    * 5);  // aabb.max.z()
-    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Back)   * 1);  // aabb.min.y()
-    vAabbElem = maxval(vAabbElem, (u32)(voxelFace == VoxelFace::Front)  * 1);  // aabb.min.y()
+    vAabbElem = glm::max(vAabbElem, (u32)(voxelFace == VoxelFace::Left)   * 1);  // aabb.min.y
+    vAabbElem = glm::max(vAabbElem, (u32)(voxelFace == VoxelFace::Right)  * 1);  // aabb.min.y
+    vAabbElem = glm::max(vAabbElem, (u32)(voxelFace == VoxelFace::Bottom) * 2);  // aabb.min.z
+    vAabbElem = glm::max(vAabbElem, (u32)(voxelFace == VoxelFace::Top)    * 5);  // aabb.max.z
+    vAabbElem = glm::max(vAabbElem, (u32)(voxelFace == VoxelFace::Back)   * 1);  // aabb.min.y
+    vAabbElem = glm::max(vAabbElem, (u32)(voxelFace == VoxelFace::Front)  * 1);  // aabb.min.y
 
-    f32 aabbWidth = aabb.max.x() - aabb.min.x();
+    f32 aabbWidth = aabb.max.x - aabb.min.x;
 
-    return Vec2(abs(hitPos[uHitElem] - pAabbElems[uAabbElem]) / aabbWidth,
-                abs(hitPos[vHitElem] - pAabbElems[vAabbElem]) / aabbWidth);
+    return glm::vec2(abs(hitPos[uHitElem] - pAabbElems[uAabbElem]) / aabbWidth,
+                     abs(hitPos[vHitElem] - pAabbElems[vAabbElem]) / aabbWidth);
 }
 
 inline void eval_voxel_hit(const SubVoxel ** ppSearchOrder,
-                           Vec3 * pHitPos,
+                           glm::vec3 * pHitPos,
                            VoxelFace voxelFace,
                            f32 entryDist,
                            f32 exitDist,
-                           const Vec3 & rayPos,
-                           const Vec3 & rayDir,
+                           const glm::vec3 & rayPos,
+                           const glm::vec3 & rayDir,
                            const AABB_MinMax & aabb)
 {
     *pHitPos = rayPos + rayDir * entryDist;
@@ -627,7 +623,7 @@ struct VoxelRecurseInfo
     VoxelFace hitFace;
     f32 entryDist;
     f32 exitDist;
-    Vec3 hitPosLoc;
+    glm::vec3 hitPosLoc;
 };
 
 static VoxelRecurseInfo sStack[kMaxDepth];
@@ -643,23 +639,23 @@ inline VoxelRecurseInfo prep_stack_entry(const VoxelRef & voxelRef, const AABB_M
     stackEntry.hitFace = VoxelFace::None;
     stackEntry.entryDist = 0.0f;
     stackEntry.exitDist = 0.0f;
-    stackEntry.hitPosLoc = Vec3(0.0f, 0.0f, 0.0f);
+    stackEntry.hitPosLoc = glm::vec3(0.0f, 0.0f, 0.0f);
 
     return stackEntry;
 }
 
-bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, Vec2 * pFaceUv, const VoxelWorld & voxelWorld, const Vec3 & rayPos, const Vec3 & rayDir, const VoxelRoot & root, u32 maxDepth)
+bool test_ray_voxel(VoxelRef * pVoxelRef, glm::vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, glm::vec2 * pFaceUv, const VoxelWorld & voxelWorld, const glm::vec3 & rayPos, const glm::vec3 & rayDir, const VoxelRoot & root, u32 maxDepth)
 {
     // put ray into this voxel's space, so voxel is at 0,0,0 and 0,0,0 rotation
     // from ray's perspective.
 
     // Translate ray
-    Vec3 rayPosLoc = rayPos - root.pos;
+    glm::vec3 rayPosLoc = rayPos - root.pos;
 
     // Transpose of rotation matrix is the inverse
-    Mat3 rotInv = Mat3::transpose(root.rot);
-    Vec3 rayDirLoc = Mat3::multiply(rotInv, rayDir);
-    Vec3 invRayDirLoc = 1.0f / rayDirLoc;
+    glm::mat3 rotInv = glm::transpose(root.rot);
+    glm::vec3 rayDirLoc = rotInv * rayDir;
+    glm::vec3 invRayDirLoc = 1.0f / rayDirLoc;
 
     AABB_MinMax rootAabb(root.rad);
 
@@ -754,13 +750,13 @@ bool test_ray_voxel(VoxelRef * pVoxelRef, Vec3 * pNormal, f32 * pZDepth, VoxelFa
 
 
 bool test_ray_voxel_gpu(VoxelRef & voxelRef, // out
-                        Vec3 & normal,       // out
+                        glm::vec3 & normal,  // out
                         f32 & zDepth,        // out
                         u32 & face,          // out
-                        Vec2 & faceUv,       // out
+                        glm::vec2 & faceUv,  // out
                         const ImageBuffer * voxelData,
-                        const Vec3 & rayPos,
-                        const Vec3 & rayDir,
+                        const glm::vec3 & rayPos,
+                        const glm::vec3 & rayDir,
                         const VoxelRoot & root,
                         u32 maxDepth)
 {
@@ -768,12 +764,12 @@ bool test_ray_voxel_gpu(VoxelRef & voxelRef, // out
     // from ray's perspective.
 
     // Translate ray
-    Vec3 rayPosLoc = rayPos - root.pos;
+    glm::vec3 rayPosLoc = rayPos - root.pos;
 
     // Transpose of rotation matrix is the inverse
-    Mat3 rotInv = Mat3::transpose(root.rot);
-    Vec3 rayDirLoc = Mat3::multiply(rotInv, rayDir);
-    Vec3 invRayDirLoc = 1.0f / rayDirLoc;
+    glm::mat3 rotInv = glm::transpose(root.rot);
+    glm::vec3 rayDirLoc = rotInv * rayDir;
+    glm::vec3 invRayDirLoc = 1.0f / rayDirLoc;
 
     AABB_MinMax rootAabb(root.rad);
 

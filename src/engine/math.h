@@ -24,6 +24,10 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+// LORRTODO: Remove math.h/cpp when glm is fully tested and replaces all this stuff.
+// Define away this file for now, but keep around for reference.
+#if 0
+
 #ifndef GAEN_ENGINE_MATH_H
 #define GAEN_ENGINE_MATH_H
 
@@ -393,7 +397,7 @@ inline const f32 & Vec2::y() const
 
 inline Vec2 max_(const Vec2 & lhs, const Vec2 & rhs)
 {
-    return Vec2(maxval(lhs.x(), rhs.x()), maxval(lhs.y(), rhs.y()));
+    return Vec2(glm::max(lhs.x(), rhs.x()), glm::max(lhs.y(), rhs.y()));
 }
 
 
@@ -455,16 +459,16 @@ inline Vec3 Vec3::operator-() const
 
 inline Vec3 min_(const Vec3 & lhs, const Vec3 & rhs)
 {
-    return Vec3(minval(lhs.x(), rhs.x()),
-                minval(lhs.y(), rhs.y()),
-                minval(lhs.z(), rhs.z()));
+    return Vec3(glm::min(lhs.x(), rhs.x()),
+                glm::min(lhs.y(), rhs.y()),
+                glm::min(lhs.z(), rhs.z()));
 }
 
 inline Vec3 max_(const Vec3 & lhs, const Vec3 & rhs)
 {
-    return Vec3(maxval(lhs.x(), rhs.x()),
-                maxval(lhs.y(), rhs.y()),
-                maxval(lhs.z(), rhs.z()));
+    return Vec3(glm::max(lhs.x(), rhs.x()),
+                glm::max(lhs.y(), rhs.y()),
+                glm::max(lhs.z(), rhs.z()));
 }
 
 inline Vec3 operator+ (const Vec3 & lhs, const Vec3 & rhs)
@@ -1330,3 +1334,5 @@ static_assert(sizeof(Mat4[10]) == 640, "geometry struct has unexpected size");
 } // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_MATH_H
+
+#endif // #if 0

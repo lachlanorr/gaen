@@ -27,6 +27,8 @@
 #ifndef GAEN_ENGINE_COMPONENT_H
 #define GAEN_ENGINE_COMPONENT_H
 
+#include <glm/mat4x3.hpp>
+
 #include "engine/Message.h"
 #include "engine/Task.h"
 
@@ -59,7 +61,7 @@ protected:
     const Entity & entity() const { return *mpEntity; }
     Entity & entity() { return *mpEntity; }
 
-    const Mat34 & transform() const;
+    const glm::mat4x3 & transform() const;
     
     Task mScriptTask;
     Entity * mpEntity;

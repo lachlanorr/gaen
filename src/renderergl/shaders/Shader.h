@@ -27,8 +27,12 @@
 #ifndef GAEN_RENDERERGL_SHADERS_SHADER_H
 #define GAEN_RENDERERGL_SHADERS_SHADER_H
 
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat3x3.hpp>
+#include <glm/mat4x4.hpp>
+
 #include "core/base_defines.h"
-#include "engine/math.h"
 
 #include "renderergl/gaen_opengl.h"
 
@@ -50,11 +54,11 @@ public:
 
     void setUniformUint(u32 nameHash, u32 value);
 
-    void setUniformVec3(u32 nameHash, const Vec3 & value);
-    void setUniformVec4(u32 nameHash, const Vec4 & value);
+    void setUniformVec3(u32 nameHash, const glm::vec3 & value);
+    void setUniformVec4(u32 nameHash, const glm::vec4 & value);
 
-    void setUniformMat3(u32 nameHash, const Mat3 & value);
-    void setUniformMat4(u32 nameHash, const Mat4 & value);
+    void setUniformMat3(u32 nameHash, const glm::mat3 & value);
+    void setUniformMat4(u32 nameHash, const glm::mat4 & value);
 
     u32 textureLocation(u32 nameHash, u32 type);
 

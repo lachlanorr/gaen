@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "renderergl/RendererGL.h"
 
 #include "renderergl/shaders/Shader.h"
@@ -134,42 +136,42 @@ void Shader::setUniformUint(u32 nameHash, u32 value)
         ERR("UniformUint does not exist in shader");
 }
 
-void Shader::setUniformVec3(u32 nameHash, const Vec3 & value)
+void Shader::setUniformVec3(u32 nameHash, const glm::vec3 & value)
 {
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_VEC3);
     if(pUniform)
-        glUniform3fv(pUniform->location, 1, value.elems);
+        glUniform3fv(pUniform->location, 1, glm::value_ptr(value));
     else
         ERR("UniformVec3 does not exist in shader");
 }
 
-void Shader::setUniformVec4(u32 nameHash, const Vec4 & value)
+void Shader::setUniformVec4(u32 nameHash, const glm::vec4 & value)
 {
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_VEC4);
     if(pUniform)
-        glUniform4fv(pUniform->location, 1, value.elems);
+        glUniform4fv(pUniform->location, 1, glm::value_ptr(value));
     else
         ERR("UniformVec4 does not exist in shader");
 }
 
-void Shader::setUniformMat3(u32 nameHash, const Mat3 & value)
+void Shader::setUniformMat3(u32 nameHash, const glm::mat3 & value)
 {
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_MAT3);
     if(pUniform)
-        glUniformMatrix3fv(pUniform->location, 1, 0, value.elems);
+        glUniformMatrix3fv(pUniform->location, 1, 0, glm::value_ptr(value));
     else
         ERR("UniformMat3 does not exist in shader");
 }
 
-void Shader::setUniformMat4(u32 nameHash, const Mat4 & value)
+void Shader::setUniformMat4(u32 nameHash, const glm::mat4 & value)
 {
     ASSERT(mIsLoaded);
     VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_MAT4);
     if(pUniform)
-        glUniformMatrix4fv(pUniform->location, 1, 0, value.elems);
+        glUniformMatrix4fv(pUniform->location, 1, 0, glm::value_ptr(value));
     else
         ERR("UniformMat4 does not exist in shader");
 }

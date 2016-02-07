@@ -32,7 +32,7 @@
 namespace gaen
 {
 
-const Mat34 & Component::transform() const
+const glm::mat4x3 & Component::transform() const
 {
     ASSERT(mpEntity);
     return mpEntity->transform();

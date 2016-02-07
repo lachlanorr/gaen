@@ -27,14 +27,14 @@
 #ifndef GAEN_ENGINE_ENTITY_H
 #define GAEN_ENGINE_ENTITY_H
 
+#include <glm/mat4x3.hpp>
+
 #include "core/Vector.h"
 #include "core/List.h"
 
 #include "engine/Task.h"
 #include "engine/Component.h"
 #include "engine/MessageQueue.h"
-#include "engine/math.h"
-
 namespace gaen
 {
 
@@ -57,13 +57,13 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    const Mat34 & transform() const { return mTransform; }
-    void setTransform(const Mat34 & mat);
-    void applyTransform(bool isLocal, const Mat34 & mat);
+    const glm::mat4x3 & transform() const { return mTransform; }
+    void setTransform(const glm::mat4x3 & mat);
+    void applyTransform(bool isLocal, const glm::mat4x3 & mat);
 
     Entity * parent() { return mpParent; }
     void setParent(Entity * pEntity);
-    const Mat34 & parentTransform() const;
+    const glm::mat4x3 & parentTransform() const;
 
     void stageEntity(Entity * pEntity);
     Entity * unstageEntity(task_id id);
@@ -109,8 +109,8 @@ protected:
     Task mScriptTask;
 
     bool mIsTransformDirty;
-    Mat34 mTransform;
-    Mat34 mParentTransform;
+    glm::mat4x3 mTransform;
+    glm::mat4x3 mParentTransform;
 
     Component * mpComponents;
     u32 mComponentsMax;

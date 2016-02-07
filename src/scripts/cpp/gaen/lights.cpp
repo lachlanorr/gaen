@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 147aeddf3ccdfe4199a473a18ab8e284
+// HASH: dc411753d98b03cddd37c94bb4d65701
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -61,7 +61,7 @@ public:
         {
         case HASH::init_data:
             lightUid() = system_api::renderer_gen_uid(entity());
-            dir() = Vec3(1.00000001e-01f, 1.00000001e-01f, 2.00000003e-01f);
+            dir() = glm::vec3(1.00000001e-01f, 1.00000001e-01f, 2.00000003e-01f);
             col() = Color(255, 255, 255, 255);
             return MessageResult::Consumed;
         case HASH::set_property:
@@ -118,9 +118,9 @@ private:
         return mpBlocks[0].cells[3].u;
     }
 
-    Vec3& dir()
+    glm::vec3& dir()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
     }
 
     Color& col()

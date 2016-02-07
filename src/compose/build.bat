@@ -1,2 +1,7 @@
+@ECHO OFF
+SETLOCAL
+
+CD /d %~dp0
+
 bison -v compose.y
-flex compose.l
+flex --debug compose.l

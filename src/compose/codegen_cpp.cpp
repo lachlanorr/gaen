@@ -193,7 +193,7 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
         case kDT_vec4:
         case kDT_quat:
         case kDT_mat3:
-        case kDT_mat34:
+        case kDT_mat43:
         case kDT_mat4:
         case kDT_handle:
             ASSERT(blockInfo.cellIndex == 0);
@@ -432,17 +432,17 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
     case kDT_char:
         return S("0");
     case kDT_vec3:
-        return S("Vec3(0.0f, 0.0f, 0.0f)");
+        return S("glm::vec3(0.0f, 0.0f, 0.0f)");
     case kDT_vec4:
-        return S("Vec4(0.0, 0.0f, 0.0f, 1.0f)");
+        return S("glm::vec4(0.0, 0.0f, 0.0f, 1.0f)");
     case kDT_quat:
-        return S("Quat(0.0, 0.0f, 0.0f, 1.0f)");
+        return S("glm::quat(0.0, 0.0f, 0.0f, 1.0f)");
     case kDT_mat3:
-        return S("Mat3(1.0f)");
-    case kDT_mat34:
-        return S("Mat34(1.0f)");
+        return S("glm::mat3(1.0f)");
+    case kDT_mat43:
+        return S("glm::mat4x3(1.0f)");
     case kDT_mat4:
-        return S("Mat4(1.0f)");
+        return S("glm::mat4(1.0f)");
     case kDT_handle:
         return S("Handle::null()");
     case kDT_string:
@@ -620,7 +620,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                 case kDT_vec4:
                 case kDT_quat:
                 case kDT_mat3:
-                case kDT_mat34:
+                case kDT_mat43:
                 case kDT_mat4:
                     code += I + S("    *reinterpret_cast<") + S(pRhsSdt->cppTypeStr) + S("*>(&msgw[0].cells[0].u) = ") + codegen_recurse(pPropInit->pRhs, 0);
                     break;
@@ -1096,7 +1096,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_Vec3Init:
     {
-        S code = S("Vec3(");
+        S code = S("glm::vec3(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -1108,7 +1108,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_Vec4Init:
     {
-        S code = S("Vec4(");
+        S code = S("glm::vec4(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -1120,7 +1120,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_QuatInit:
     {
-        S code = S("Quat(");
+        S code = S("glm::quat(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -1130,9 +1130,9 @@ static S codegen_recurse(const Ast * pAst,
         code += S(")");
         return code;
     }
-    case kAST_Mat34Init:
+    case kAST_Mat43Init:
     {
-        S code = S("Mat34(");
+        S code = S("glm::mat4x3(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);

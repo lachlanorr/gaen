@@ -32,51 +32,6 @@
 namespace gaen
 {
 
-//------------------------------------------------------------------------------
-// GLSL Functions
-//------------------------------------------------------------------------------
-inline Vec3 quat_multiply(const Vec4 & qlhs, const Vec3 & vrhs)
-{
-    float x2 = qlhs.x() * 2.0f;
-    float y2 = qlhs.y() * 2.0f;
-    float z2 = qlhs.z() * 2.0f;
-    float xx2 = qlhs.x() * x2;
-    float yy2 = qlhs.y() * y2;
-    float zz2 = qlhs.z() * z2;
-    float xy2 = qlhs.x() * y2;
-    float xz2 = qlhs.x() * z2;
-    float yz2 = qlhs.y() * z2;
-    float wx2 = qlhs.w() * x2;
-    float wy2 = qlhs.w() * y2;
-    float wz2 = qlhs.w() * z2;
-
-    Vec3 vres;
-    vres.x() = (1.0f - (yy2 + zz2)) * vrhs.x() + (xy2 - wz2) * vrhs.y() + (xz2 + wy2) * vrhs.z();
-    vres.y() = (xy2 + wz2) * vrhs.x() + (1.0f - (xx2 + zz2)) * vrhs.y() + (yz2 - wx2) * vrhs.z();
-    vres.z() = (xz2 - wy2) * vrhs.x() + (yz2 + wx2) * vrhs.y() + (1.0f - (xx2 + yy2)) * vrhs.z();
-    return vres;
-}
-
-inline f32 int_bits_to_float(i32 rhs)
-{
-    return *reinterpret_cast<f32*>(&rhs);
-}
-
-inline f32 uint_bits_to_float(u32 rhs)
-{
-    return *reinterpret_cast<f32*>(&rhs);
-}
-
-inline i32 float_bits_to_int(f32 rhs)
-{
-    return *reinterpret_cast<i32*>(&rhs);
-}
-
-inline u32 float_bits_to_uint(f32 rhs)
-{
-    return *reinterpret_cast<u32*>(&rhs);
-}
-
 struct VoxelRefGpu
 {
     u32 type;
@@ -88,8 +43,8 @@ struct VoxelRefGpu
 
 struct VoxelRootGpu
 {
-    Mat3 rot;
-    Vec3 pos;
+    glm::mat3 rot;
+    glm::vec3 pos;
     VoxelRefGpu children;
     f32 rad;
 };
@@ -128,25 +83,25 @@ inline VoxelRootGpu extract_voxel_root(const ImageBuffer * voxelRoots, u32 voxel
 
     VoxelRootGpu root;
 
-    root.pos.x() = uint_bits_to_float(pix0.r);
-    root.pos.y() = uint_bits_to_float(pix0.g);
+    root.pos.x = glm::uintBitsToFloat(pix0.r);
+    root.pos.y = glm::uintBitsToFloat(pix0.g);
 
-    root.pos.z() = uint_bits_to_float(pix1.r);
-    root.rot.elems[0] = uint_bits_to_float(pix1.g);
+    root.pos.z = glm::uintBitsToFloat(pix1.r);
+    root.rot[0][0] = glm::uintBitsToFloat(pix1.g);
 
-    root.rot.elems[1] = uint_bits_to_float(pix2.r);
-    root.rot.elems[2] = uint_bits_to_float(pix2.g);
+    root.rot[0][1] = glm::uintBitsToFloat(pix2.r);
+    root.rot[0][2] = glm::uintBitsToFloat(pix2.g);
 
-    root.rot.elems[3] = uint_bits_to_float(pix3.r);
-    root.rot.elems[4] = uint_bits_to_float(pix3.g);
+    root.rot[1][0] = glm::uintBitsToFloat(pix3.r);
+    root.rot[1][1] = glm::uintBitsToFloat(pix3.g);
 
-    root.rot.elems[5] = uint_bits_to_float(pix4.r);
-    root.rot.elems[6] = uint_bits_to_float(pix4.g);
+    root.rot[1][2] = glm::uintBitsToFloat(pix4.r);
+    root.rot[2][0] = glm::uintBitsToFloat(pix4.g);
 
-    root.rot.elems[7] = uint_bits_to_float(pix5.r);
-    root.rot.elems[8] = uint_bits_to_float(pix5.g);
+    root.rot[2][1] = glm::uintBitsToFloat(pix5.r);
+    root.rot[2][2] = glm::uintBitsToFloat(pix5.g);
 
-    root.rad = uint_bits_to_float(pix6.r);
+    root.rad = glm::uintBitsToFloat(pix6.r);
     // pix6.g is padding in C struct
 
     root.children = unpack_voxel_ref(pix7);
@@ -164,15 +119,15 @@ ComputeShaderSimulator::~ComputeShaderSimulator()
         GDELETE(un_FrameBuffer);
 }
 
-void ComputeShaderSimulator::init(UVec3 workGroupSize,
-                                  UVec3 numWorkGroups)
+void ComputeShaderSimulator::init(glm::uvec3 workGroupSize,
+                                  glm::uvec3 numWorkGroups)
 {
     static const u32 kFrameBufferSize = 512;
     ASSERT(workGroupSize.x * numWorkGroups.x <= kFrameBufferSize);
     ASSERT(workGroupSize.y * numWorkGroups.y <= kFrameBufferSize);
 
     static const f32 kRad = 2.0f;
-    set_shape_generic(mVoxelWorld, 0, 0, 3, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
+    set_shape_generic(mVoxelWorld, 0, 0, 3, glm::vec3(1.0f, 2.0f, -20.0f), kRad, glm::mat3(1.0f), SphereHitTest(kRad));
 
     un_FrameBuffer = GNEW(kMEM_Engine, ImageBuffer, kFrameBufferSize, sizeof(RGB8));
 
@@ -188,7 +143,7 @@ void ComputeShaderSimulator::render(const RaycastCamera & camera, const List<kME
 {
     // prpare uniforms
     un_CameraPos = camera.position();
-    un_CameraDir = Vec4(camera.direction());
+    un_CameraDir = camera.direction();
     un_CameraProjectionInv = camera.projectionInv();
 
     for (gl_WorkGroupID.z = 0; gl_WorkGroupID.z < gl_NumWorkGroups.z; ++gl_WorkGroupID.z)
@@ -237,23 +192,24 @@ void ComputeShaderSimulator::compShader_Test()
 void ComputeShaderSimulator::compShader_Raycast_gpu()
 {
     // LORRTODO: Consider moving to uniform
-    Vec2 windowSize((f32)(gl_WorkGroupSize.x * gl_NumWorkGroups.x),
-                    (f32)(gl_WorkGroupSize.y * gl_NumWorkGroups.y));
+    glm::vec2 windowSize((f32)(gl_WorkGroupSize.x * gl_NumWorkGroups.x),
+                         (f32)(gl_WorkGroupSize.y * gl_NumWorkGroups.y));
 
-    Vec3 rayScreenPos(2.0f * gl_GlobalInvocationID.x / windowSize.x() - 1.0f,
-                      2.0f * gl_GlobalInvocationID.y / windowSize.y() - 1.0f,
-                      0.0f);
+    glm::vec4 rayScreenPos(2.0f * gl_GlobalInvocationID.x / windowSize.x - 1.0f,
+                           2.0f * gl_GlobalInvocationID.y / windowSize.y - 1.0f,
+                           0.0f,
+                           1.0f);
 
-    Vec3 rayDirProj = Vec3::normalize(Mat4::multiply(un_CameraProjectionInv, rayScreenPos));
+    glm::vec3 rayDirProj = glm::vec3(glm::normalize(un_CameraProjectionInv * rayScreenPos));
 
-    Vec3 rayDir = quat_multiply(un_CameraDir, rayDirProj);
-    Vec3 rayPos = un_CameraPos;
+    glm::vec3 rayDir = un_CameraDir * rayDirProj;
+    glm::vec3 rayPos = un_CameraPos;
 
-    Vec3 rayDirCol = (rayScreenPos + Vec3(1.0f, 1.0f, 1.0f)) / Vec3(2.0f, 2.0f, 2.0f);
+    glm::vec3 rayDirCol = (glm::vec3(rayScreenPos) + glm::vec3(1.0f, 1.0f, 1.0f)) / glm::vec3(2.0f, 2.0f, 2.0f);
 
     un_FrameBuffer->imageStore2d(gl_GlobalInvocationID.x,
                                  gl_GlobalInvocationID.y,
-                                 RGB8(rayDirCol.x(), rayDirCol.y(), rayDirCol.z()));
+                                 RGB8(rayDirCol.x, rayDirCol.y, rayDirCol.z));
 
     for (u32 rootId = 0; rootId < un_VoxelRootCount; ++rootId)
     {
@@ -261,45 +217,45 @@ void ComputeShaderSimulator::compShader_Raycast_gpu()
     }
     /*
         VoxelRef voxelRef;
-        Vec3 normal;
+        glm::vec3 normal;
         VoxelFace face;
-        Vec2 faceUv;
+        glm::vec2 faceUv;
         u32 hit = (u32)test_ray_voxel_gpu(&voxelRef, &normal, &zDepth, &face, &faceUv, voxelWorld, rayPos, rayDir, voxelRoot, 16);
 
     if (hit)
     {
-        f32 intensity = maxval(Vec3::dot(normal, lightDir), 0.0f);
+        f32 intensity = glm::max(glm::vec3::dot(normal, lightDir), 0.0f);
 
         switch (face)
         {
         case VoxelFace::Left:
             color.r = 150;
-            color.g = (u8)minval(150.0f, 150 * faceUv.x());
-            color.b = (u8)minval(150.0f, 150 * faceUv.y());
+            color.g = (u8)glm::min(150.0f, 150 * faceUv.x);
+            color.b = (u8)glm::min(150.0f, 150 * faceUv.y);
             break;
         case VoxelFace::Right:
             color.r = 255;
-            color.g = (u8)minval(255.0f, 255 * faceUv.x());
-            color.b = (u8)minval(255.0f, 255 * faceUv.y());
+            color.g = (u8)glm::min(255.0f, 255 * faceUv.x);
+            color.b = (u8)glm::min(255.0f, 255 * faceUv.y);
             break;
         case VoxelFace::Bottom:
-            color.r = (u8)minval(150.0f, 150 * faceUv.x());
+            color.r = (u8)glm::min(150.0f, 150 * faceUv.x);
             color.g = 150;
-            color.b = (u8)minval(150.0f, 150 * faceUv.y());
+            color.b = (u8)glm::min(150.0f, 150 * faceUv.y);
             break;
         case VoxelFace::Top:
-            color.r = (u8)minval(255.0f, 255 * faceUv.x());
+            color.r = (u8)glm::min(255.0f, 255 * faceUv.x);
             color.g = 255;
-            color.b = (u8)minval(255.0f, 255 * faceUv.y());
+            color.b = (u8)glm::min(255.0f, 255 * faceUv.y);
             break;
         case VoxelFace::Back:
-            color.r = (u8)minval(150.0f, 150 * faceUv.x());
-            color.g = (u8)minval(150.0f, 150 * faceUv.y());
+            color.r = (u8)glm::min(150.0f, 150 * faceUv.x);
+            color.g = (u8)glm::min(150.0f, 150 * faceUv.y);
             color.b = 150;
             break;
         case VoxelFace::Front:
-            color.r = (u8)minval(255.0f, 255 * faceUv.x());
-            color.g = (u8)minval(255.0f, 255 * faceUv.y());
+            color.r = (u8)glm::min(255.0f, 255 * faceUv.x);
+            color.g = (u8)glm::min(255.0f, 255 * faceUv.y);
             color.b = 255;
             break;
         }
@@ -428,13 +384,13 @@ void FragmentShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycast
     }
 
     // prep camera
-    cameraPos = Vec3(0.0f, 100.0f, 10.0f);
-    windowSize = Vec2((f32)outputImageSize, (f32)outputImageSize);
+    cameraPos = glm::vec3(0.0f, 100.0f, 10.0f);
+    windowSize = glm::vec2((f32)outputImageSize, (f32)outputImageSize);
     nearZ = 5.0f;
     farZ = 10000.0f;
 
     static const f32 kRad = 2.0f;
-    voxelRoot = set_shape_generic(voxelWorld, 0, 0, 3, Vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(Vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
+    voxelRoot = set_shape_generic(voxelWorld, 0, 0, 3, glm::vec3(1.0f, 2.0f, -20.0f), kRad, glm::mat3(1.0f), SphereHitTest(kRad));
 }
 
 void FragmentShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights)
@@ -492,66 +448,67 @@ void FragmentShaderSimulator::fragShader_Blue()
 
 void FragmentShaderSimulator::fragShader_Raycast()
 {
-    Vec3 rayScreenPos(2.0f * gl_FragCoord.x / windowSize.x() - 1.0f,
-                      2.0f * gl_FragCoord.y / windowSize.y() - 1.0f,
-                      0.0f);
+    glm::vec4 rayScreenPos(2.0f * gl_FragCoord.x / windowSize.x - 1.0f,
+                           2.0f * gl_FragCoord.y / windowSize.y - 1.0f,
+                           0.0f,
+                           1.0f);
 
-    Vec3 rayDirProj = Vec3::normalize(Mat4::multiply(projectionInv, rayScreenPos));
+    glm::vec3 rayDirProj = glm::vec3(glm::normalize(projectionInv * rayScreenPos));
 
-    Vec3 rayDir = Quat::multiply(mpRaycastCamera->direction(), rayDirProj);
-    Vec3 rayPos = cameraPos;
+    glm::vec3 rayDir = mpRaycastCamera->direction() * rayDirProj;
+    glm::vec3 rayPos = cameraPos;
     
     VoxelRef voxelRef;
-    Vec3 normal;
+    glm::vec3 normal;
     VoxelFace face;
-    Vec2 faceUv;
+    glm::vec2 faceUv;
     u32 hit = (u32)test_ray_voxel(&voxelRef, &normal, &zDepth, &face, &faceUv, voxelWorld, rayPos, rayDir, voxelRoot, 16);
 
     if (hit)
     {
         // LORRTEMP
         //LOG_INFO("HIT: pRi->searchOrder[pRi->searchIndex]: %d", pRi->searchOrder[pRi->searchIndex]);
-        //LOG_INFO("normal: %f, %f, %f", normal.x(), normal.y(), normal.z());
+        //LOG_INFO("normal: %f, %f, %f", normal.x, normal.y, normal.z);
 
-        f32 intensity = maxval(Vec3::dot(normal, lightDir), 0.0f);
+        f32 intensity = glm::max(glm::dot(normal, lightDir), 0.0f);
 
         switch (face)
         {
         case VoxelFace::Left:
             color.r = 150;
-            color.g = (u8)minval(150.0f, 150 * faceUv.x());
-            color.b = (u8)minval(150.0f, 150 * faceUv.y());
+            color.g = (u8)glm::min(150.0f, 150 * faceUv.x);
+            color.b = (u8)glm::min(150.0f, 150 * faceUv.y);
             break;
         case VoxelFace::Right:
             color.r = 255;
-            color.g = (u8)minval(255.0f, 255 * faceUv.x());
-            color.b = (u8)minval(255.0f, 255 * faceUv.y());
+            color.g = (u8)glm::min(255.0f, 255 * faceUv.x);
+            color.b = (u8)glm::min(255.0f, 255 * faceUv.y);
             break;
         case VoxelFace::Bottom:
-            color.r = (u8)minval(150.0f, 150 * faceUv.x());
+            color.r = (u8)glm::min(150.0f, 150 * faceUv.x);
             color.g = 150;
-            color.b = (u8)minval(150.0f, 150 * faceUv.y());
+            color.b = (u8)glm::min(150.0f, 150 * faceUv.y);
             break;
         case VoxelFace::Top:
-            color.r = (u8)minval(255.0f, 255 * faceUv.x());
+            color.r = (u8)glm::min(255.0f, 255 * faceUv.x);
             color.g = 255;
-            color.b = (u8)minval(255.0f, 255 * faceUv.y());
+            color.b = (u8)glm::min(255.0f, 255 * faceUv.y);
             break;
         case VoxelFace::Back:
-            color.r = (u8)minval(150.0f, 150 * faceUv.x());
-            color.g = (u8)minval(150.0f, 150 * faceUv.y());
+            color.r = (u8)glm::min(150.0f, 150 * faceUv.x);
+            color.g = (u8)glm::min(150.0f, 150 * faceUv.y);
             color.b = 150;
             break;
         case VoxelFace::Front:
-            color.r = (u8)minval(255.0f, 255 * faceUv.x());
-            color.g = (u8)minval(255.0f, 255 * faceUv.y());
+            color.r = (u8)glm::min(255.0f, 255 * faceUv.x);
+            color.g = (u8)glm::min(255.0f, 255 * faceUv.y);
             color.b = 255;
             break;
         }
 
-        //color.r = (u8)maxval(intensity * 255, 10.0f);
-        //color.g = (u8)maxval(intensity * 255, 10.0f);
-        //color.b = (u8)maxval(intensity * 255, 10.0f);
+        //color.r = (u8)glm::max(intensity * 255, 10.0f);
+        //color.g = (u8)glm::max(intensity * 255, 10.0f);
+        //color.b = (u8)glm::max(intensity * 255, 10.0f);
     }
     else
     {
@@ -562,15 +519,15 @@ void FragmentShaderSimulator::fragShader_Raycast()
     }
 
 /*
-    color.r = (u8)(abs(rayDir.x()) * 512.0f);
-    color.g = (u8)(abs(rayDir.y()) * 1024.0f);
-    color.b = (u8)(abs(rayDir.z()) * 255.0f);
+    color.r = (u8)(abs(rayDir.x) * 512.0f);
+    color.g = (u8)(abs(rayDir.y) * 1024.0f);
+    color.b = (u8)(abs(rayDir.z) * 255.0f);
     */
-//    color.r = (u8)((rayDir.x() + 1.0f) * 127.5f);
-//    color.g = (u8)((rayDir.y() + 1.0f) * 127.5f);
+//    color.r = (u8)((rayDir.x + 1.0f) * 127.5f);
+//    color.g = (u8)((rayDir.y + 1.0f) * 127.5f);
 
-//    color.r = (u8)(gl_FragCoord.x / windowSize.x() * 255.0f);
-//    color.g = (u8)(gl_FragCoord.y / windowSize.y() * 255.0f);
+//    color.r = (u8)(gl_FragCoord.x / windowSize.x * 255.0f);
+//    color.g = (u8)(gl_FragCoord.y / windowSize.y * 255.0f);
 }
 
 } // namespace gaen

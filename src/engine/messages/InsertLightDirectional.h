@@ -28,7 +28,7 @@
 #define GAEN_ENGINE_MESSAGES_INSERTLIGHTDIRECTIONALMESSAGE_H
 
 #include "engine/MessageWriter.h"
-#include "engine/math.h"
+#include "glm/vec3.hpp"
 #include "engine/Color.h"
 #include "core/threading.h"
 #include "engine/Model.h"
@@ -48,7 +48,7 @@ public:
 
     }
 
-    const Vec3 & direction() const { return *reinterpret_cast<const Vec3*>(&mMsgAcc[0].tCellPad.tCell); }
+    const glm::vec3 & direction() const { return *reinterpret_cast<const glm::vec3*>(&mMsgAcc[0].tCellPad.tCell); }
     Color color() const { return mMsgAcc[0].cells[3].color; }
     u32 uid() const { return mMsgAcc.message().payload.u; }
         
@@ -77,7 +77,7 @@ public:
                            1)
     {}
     
-    void setDirection(const Vec3 & val) { mMsgAcc[0].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
+    void setDirection(const glm::vec3 & val) { mMsgAcc[0].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
     void setColor(Color val) { mMsgAcc[0].cells[3].color = val; }
     void setUid(u32 val) { mMsgAcc.message().payload.u = val; }
 };
@@ -99,7 +99,7 @@ public:
                            mBlocks)
     {}
 
-    void setDirection(const Vec3 & val) { mMsgAcc[0].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
+    void setDirection(const glm::vec3 & val) { mMsgAcc[0].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
     void setColor(Color val) { mMsgAcc[0].cells[3].color = val; }
     void setUid(u32 val) { mMsgAcc.message().payload.u = val; }
 

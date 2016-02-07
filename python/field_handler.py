@@ -94,20 +94,23 @@ class PointerField(dcellField):
     union_type = 'p'
     type_name = 'void *'
 
-class Vec3Field(BaseField):
+class vec3Field(BaseField):
     cell_count = 3
-    includes = BaseField.includes + ['engine/math.h']
+    type_name = 'glm::vec3'
+    includes = BaseField.includes + ['glm/vec3.hpp']
 
 # qcell fields
-class Vec4Field(BaseField):
+class vec4Field(BaseField):
     cell_count = 4
     union_type = 'vec4'
-    includes = BaseField.includes + ['engine/math.h']
+    type_name = 'glm::vec4'
+    includes = BaseField.includes + ['glm/vec4.hpp']
 
-class QuatField(BaseField):
+class quatField(BaseField):
     cell_count = 4
     union_type = 'quat'
-    includes = BaseField.includes + ['engine/math.h']
+    type_name = 'glm::quat'
+    includes = BaseField.includes + ['glm/gtc/quaternion.hpp']
 
 
 # multi-block fields
@@ -115,9 +118,10 @@ class TaskField(BaseField):
     cell_count = 8
     includes = BaseField.includes + ['engine/Task.h']
 
-class Mat34Field(BaseField):
+class mat4x3Field(BaseField):
     cell_count = 12
-    includes = BaseField.includes + ['engine/math.h']
+    type_name = 'glm::mat4x3'
+    includes = BaseField.includes + ['glm/mat4x3.hpp']
 
 
 def fields_string(self):

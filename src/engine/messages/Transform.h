@@ -28,7 +28,7 @@
 #define GAEN_ENGINE_MESSAGES_TRANSFORMMESSAGE_H
 
 #include "engine/MessageWriter.h"
-#include "engine/math.h"
+#include "glm/mat4x3.hpp"
 #include "core/threading.h"
 
 namespace gaen
@@ -46,7 +46,7 @@ public:
         if (&msgAcc[2] > &msgAcc[0])
         {
             // field is contiguous in ring buffer
-            mpTransform = reinterpret_cast<const Mat34*>(&msgAcc[0]);
+            mpTransform = reinterpret_cast<const glm::mat4x3*>(&msgAcc[0]);
         }
         else
         {
@@ -60,15 +60,15 @@ public:
 
     }
 
-    const Mat34 & transform() const { return *mpTransform; }
+    const glm::mat4x3 & transform() const { return *mpTransform; }
     bool isLocal() const { return mMsgAcc.message().payload.b; }
         
 private:
     const T & mMsgAcc;
 
     // These members provide storage for fields larger than a block that wrap the ring buffer
-    Mat34 mTransform;
-    const Mat34 * mpTransform;
+    glm::mat4x3 mTransform;
+    const glm::mat4x3 * mpTransform;
 };
 
 typedef TransformR<MessageQueueAccessor> TransformQR;
@@ -90,7 +90,7 @@ public:
                            3)
     {}
     
-    void setTransform(const Mat34 & val)
+    void setTransform(const glm::mat4x3 & val)
     {
         for (u32 i = 0; i < 3; ++i)
         {
@@ -117,7 +117,7 @@ public:
                            mBlocks)
     {}
 
-    void setTransform(const Mat34 & val)
+    void setTransform(const glm::mat4x3 & val)
     {
         for (u32 i = 0; i < 3; ++i)
         {

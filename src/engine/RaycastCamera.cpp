@@ -43,52 +43,52 @@ void RaycastCamera::init(u32 screenWidth, u32 screenHeight, f32 fov, f32 nearZ, 
 
     mAspectRatio = mScreenWidth / mScreenHeight;
 
-    mProjection = Mat4::perspective(60.0f,
-                                    mAspectRatio,
-                                    mNearZ,
-                                    mFarZ);
-    mProjectionInv = Mat4::inverse(mProjection);
+    mProjection = glm::perspective(glm::radians(60.0f),
+                                   mAspectRatio,
+                                   mNearZ,
+                                   mFarZ);
+    mProjectionInv = glm::inverse(mProjection);
 
-    move(Vec3(0.0f, 0.0f, 10.0f), Quat::from_axis_angle(Vec3(0.0f, 0.0f, -1.0f), 0));
+    move(glm::vec3(0.0f, 0.0f, 10.0f), glm::quat(0, glm::vec3(0.0f, 0.0f, -1.0f)));
 
-    Vec3 rayBottomLeft  = Vec3::normalize(Mat4::multiply(mProjectionInv, Vec3(-1.0f, -1.0f, 0.0f)));
-    Vec3 rayBottomRight = Vec3(-rayBottomLeft.x(),  rayBottomLeft.y(), rayBottomLeft.z());
-    Vec3 rayTopLeft     = Vec3( rayBottomLeft.x(), -rayBottomLeft.y(), rayBottomLeft.z());
-    Vec3 rayTopRight    = Vec3(-rayBottomLeft.x(), -rayBottomLeft.y(), rayBottomLeft.z());
+    glm::vec3 rayBottomLeft  = glm::normalize(glm::vec3(mProjectionInv * glm::vec4(-1.0f, -1.0f, 0.0f, 1.0f)));
+    glm::vec3 rayBottomRight = glm::vec3(-rayBottomLeft.x,  rayBottomLeft.y, rayBottomLeft.z);
+    glm::vec3 rayTopLeft     = glm::vec3( rayBottomLeft.x, -rayBottomLeft.y, rayBottomLeft.z);
+    glm::vec3 rayTopRight    = glm::vec3(-rayBottomLeft.x, -rayBottomLeft.y, rayBottomLeft.z);
 
-    f32 cosAngle = Vec3::dot(rayBottomLeft, Vec3::normalize(Vec3(0.0f, 0.0f, mNearZ)));
+    f32 cosAngle = glm::dot(rayBottomLeft, glm::normalize(glm::vec3(0.0f, 0.0f, mNearZ)));
 
     f32 nearLen = -mNearZ / cosAngle;
     f32 farLen = -mFarZ / cosAngle;
 
     // calculate each corner
-    Vec3 corBLN = rayBottomLeft * nearLen;
-    Vec3 corBLF = rayBottomLeft * farLen;
+    glm::vec3 corBLN = rayBottomLeft * nearLen;
+    glm::vec3 corBLF = rayBottomLeft * farLen;
 
     mCornersInit[kCOR_BottomLeft].nearPos  = corBLN;
     mCornersInit[kCOR_BottomLeft].farPos   = corBLF;
 
-    mCornersInit[kCOR_BottomRight].nearPos = Vec3(-corBLN.x(), corBLN.y(), corBLN.z());
-    mCornersInit[kCOR_BottomRight].farPos  = Vec3(-corBLF.x(), corBLF.y(), corBLF.z());
+    mCornersInit[kCOR_BottomRight].nearPos = glm::vec3(-corBLN.x, corBLN.y, corBLN.z);
+    mCornersInit[kCOR_BottomRight].farPos  = glm::vec3(-corBLF.x, corBLF.y, corBLF.z);
 
-    mCornersInit[kCOR_TopLeft].nearPos = Vec3(corBLN.x(), -corBLN.y(), corBLN.z());
-    mCornersInit[kCOR_TopLeft].farPos  = Vec3(corBLF.x(), -corBLF.y(), corBLF.z());
+    mCornersInit[kCOR_TopLeft].nearPos = glm::vec3(corBLN.x, -corBLN.y, corBLN.z);
+    mCornersInit[kCOR_TopLeft].farPos  = glm::vec3(corBLF.x, -corBLF.y, corBLF.z);
 
-    mCornersInit[kCOR_TopRight].nearPos = Vec3(-corBLN.x(), -corBLN.y(), corBLN.z());
-    mCornersInit[kCOR_TopRight].farPos  = Vec3(-corBLF.x(), -corBLF.y(), corBLF.z());
+    mCornersInit[kCOR_TopRight].nearPos = glm::vec3(-corBLN.x, -corBLN.y, corBLN.z);
+    mCornersInit[kCOR_TopRight].farPos  = glm::vec3(-corBLF.x, -corBLF.y, corBLF.z);
 
     reset();
     calcPlanes();
 }
 
-void RaycastCamera::move(const Vec3 & pos, const Quat & dir)
+void RaycastCamera::move(const glm::vec3 & pos, const glm::quat & dir)
 {
     mPos = pos;
     mDir = dir;
 
-    //mView = Mat4::translation(-mPos) * Mat4::transpose(Mat4(mDir));
-    mView = Mat4::translation(-mPos) * (Mat4(mDir));
-    //mView = Mat4::inverse(mView);
+    //mView = glm::mat4::translation(-mPos) * glm::mat4::transpose(glm::mat4(mDir));
+    mView = glm::translate(glm::mat4(1.0f), -mPos) * glm::toMat4(mDir);
+    //mView = glm::mat4::inverse(mView);
     //mView.setTranslation(-pos);
 
     // Reset points to our default unmoved positions, and
@@ -102,11 +102,6 @@ void RaycastCamera::move(const Vec3 & pos, const Quat & dir)
     }
 
     calcPlanes();
-}
-
-void RaycastCamera::moveFps(const Vec3 & pos, f32 pitch, f32 yaw)
-{
-    mView = Mat4::fps_view(pos, pitch, yaw);
 }
 
 void RaycastCamera::reset()

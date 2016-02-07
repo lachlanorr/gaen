@@ -28,7 +28,8 @@
 #define GAEN_ENGINE_MESSAGES_MOVECAMERAMESSAGE_H
 
 #include "engine/MessageWriter.h"
-#include "engine/math.h"
+#include "glm/gtc/quaternion.hpp"
+#include "glm/vec3.hpp"
 
 namespace gaen
 {
@@ -45,8 +46,8 @@ public:
 
     }
 
-    Quat direction() const { return mMsgAcc[0].qCell.quat; }
-    const Vec3 & position() const { return *reinterpret_cast<const Vec3*>(&mMsgAcc[1].tCellPad.tCell); }
+    glm::quat direction() const { return mMsgAcc[0].qCell.quat; }
+    const glm::vec3 & position() const { return *reinterpret_cast<const glm::vec3*>(&mMsgAcc[1].tCellPad.tCell); }
         
 private:
     const T & mMsgAcc;
@@ -72,8 +73,8 @@ public:
                            2)
     {}
     
-    void setDirection(Quat val) { mMsgAcc[0].qCell.quat = val; }
-    void setPosition(const Vec3 & val) { mMsgAcc[1].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
+    void setDirection(glm::quat val) { mMsgAcc[0].qCell.quat = val; }
+    void setPosition(const glm::vec3 & val) { mMsgAcc[1].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
 };
 
 class MoveCameraBW : public MessageBlockWriter
@@ -92,8 +93,8 @@ public:
                            mBlocks)
     {}
 
-    void setDirection(Quat val) { mMsgAcc[0].qCell.quat = val; }
-    void setPosition(const Vec3 & val) { mMsgAcc[1].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
+    void setDirection(glm::quat val) { mMsgAcc[0].qCell.quat = val; }
+    void setPosition(const glm::vec3 & val) { mMsgAcc[1].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
 
 private:
     Block mBlocks[2 + 1]; // +1 for header

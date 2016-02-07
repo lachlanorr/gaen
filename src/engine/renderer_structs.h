@@ -27,11 +27,13 @@
 #ifndef GAEN_ENGINE_RENDERER_STRUCTS_H
 #define GAEN_ENGINE_RENDERER_STRUCTS_H
 
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+
 #include "core/base_defines.h"
 
 #include "engine/task.h"
 #include "engine/Color.h"
-#include "engine/math.h"
 
 namespace gaen
 {
@@ -50,10 +52,10 @@ struct Ruid
 struct DirectionalLight
 {
     Ruid ruid;
-    Vec3 direction;
-    Vec4 color;
+    glm::vec3 direction;
+    glm::vec4 color;
 
-    DirectionalLight(task_id owner, u32 uid, const Vec3& direction, Color color)
+    DirectionalLight(task_id owner, u32 uid, const glm::vec3 & direction, Color color)
       : ruid(owner, uid)
       , direction(direction)
       , color(Color::build_vec4(color))
@@ -63,10 +65,10 @@ struct DirectionalLight
 struct PointLight
 {
     Ruid ruid;
-    Vec3 location;
-    Vec4 color;
+    glm::vec3 location;
+    glm::vec4 color;
 
-    PointLight(task_id owner, u32 uid, const Vec3 & location, Color color)
+    PointLight(task_id owner, u32 uid, const glm::vec3 & location, Color color)
       : ruid(owner, uid)
       , location(location)
       , color(Color::build_vec4(color))

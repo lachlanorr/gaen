@@ -252,7 +252,7 @@ component WasdRot
         {
             pitch += pitching * deltaSecs * 100.0;
             yaw += yawing * deltaSecs * 100.0;
-            mat34 trans = $.mat34_rotation(vec3{$.radians(pitch), $.radians(yaw), 0.0});
+            mat43 trans = $.mat43_rotation(vec3{$.radians(pitch), $.radians(yaw), 0.0});
             @#transform(false, trans);
         }
     }

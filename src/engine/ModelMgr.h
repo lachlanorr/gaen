@@ -27,6 +27,8 @@
 #ifndef GAEN_ENGINE_MODELMGR_H
 #define GAEN_ENGINE_MODELMGR_H
 
+#include <glm/mat4x3.hpp>
+
 #include "core/Map.h"
 #include "core/List.h"
 #include "core/RefCounted.h"
@@ -45,14 +47,14 @@ struct ModelInstance
     ModelInstance(task_id owner,
                   u32 uid,
                   Model * pModel,
-                  const Mat34 & transform)
+                  const glm::mat4x3 & transform)
       : ruid(owner, uid)
       , transform(transform)
       , pModel(pModel)
     {}
         
     Ruid ruid;
-    Mat34 transform;
+    glm::mat4x3 transform;
     Model * pModel;
 };
     
@@ -194,7 +196,7 @@ public:
     void insertModelInstance(task_id owner,
                              u32 uid,
                              Model * pModel,
-                             const Mat34 & worldTransform,
+                             const glm::mat4x3 & worldTransform,
                              bool isAssetManaged)
     {
         // Insert into mModelMap if necessary

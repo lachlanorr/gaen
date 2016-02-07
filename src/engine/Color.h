@@ -27,7 +27,9 @@
 #ifndef GAEN_ENGINE_COLOR_H
 #define GAEN_ENGINE_COLOR_H
 
-#include "engine/math.h"
+#include <glm/vec4.hpp>
+
+#include "core/base_defines.h"
 
 namespace gaen
 {
@@ -57,9 +59,9 @@ public:
         setaf(a);
     }
 
-    void setChannels(Vec4 vec)
+    void setChannels(glm::vec4 vec)
     {
-        setChannels(vec.x(), vec.y(), vec.z(), vec.w());
+        setChannels(vec.x, vec.y, vec.z, vec.w);
     }
 
     u32 value() { return mColorValue.value; }
@@ -85,8 +87,8 @@ public:
     void setbf(f32 b) { setb(static_cast<u8>(clamp(b, 0.0f, 1.0f) * 255.0f + 0.5f)); }
     void setaf(f32 a) { seta(static_cast<u8>(clamp(a, 0.0f, 1.0f) * 255.0f + 0.5f)); }
 
-    Vec4 toVec4() const { return build_vec4(*this); }
-    static Vec4 build_vec4(const Color & col) { return Vec4(col.rf(), col.gf(), col.bf(), col.af()); }
+    glm::vec4 toVec4() const { return build_vec4(*this); }
+    static glm::vec4 build_vec4(const Color & col) { return glm::vec4(col.rf(), col.gf(), col.bf(), col.af()); }
 
 private:
     union ColorValue_

@@ -33,6 +33,8 @@ IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
   INCLUDE_DIRECTORIES (${ext_dir}/opengl-4.3)
 ENDIF()
 
+ADD_DEFINITIONS(-DGLM_FORCE_NO_CTOR_INIT)
+INCLUDE_DIRECTORIES (${ext_dir}/glm-0.9.7.2)
 
 # Packaging
 SET (packaged_dir ${CMAKE_BINARY_DIR}/packaged)

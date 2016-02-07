@@ -31,6 +31,8 @@
 #include <cstdio>
 #include <algorithm>
 
+#include <glm/common.hpp>
+
 #include "core/thread_local.h"
 #include "core/platutils.h"
 #include "core/sockets.h"
@@ -99,7 +101,7 @@ void Logger::log(LogSeverity severity, const char * message)
     lm.header.time = now();
     lm.header.sev = severity;
 
-    size_t msgLen = maxval(kMaxLogMessageSize-1, strlen(message) + 1);
+    size_t msgLen = glm::max(kMaxLogMessageSize-1, strlen(message) + 1);
     strncpy(lm.msg, message, msgLen-1);
     lm.msg[msgLen-1] = '\0';
 

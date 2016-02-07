@@ -29,6 +29,7 @@
 #include "core/mem.h"
 #include "core/logging.h"
 #include "engine/BlockMemory.h"
+#include "engine/glm_ext.h"
 #include "engine/hashes.h"
 #include "engine/Registry.h"
 
@@ -44,7 +45,7 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
   : mpParent(nullptr)
   , mpBlockMemory(nullptr)
 {
-    mTransform = Mat34::identity();
+    mTransform = glm::mat4x3(1.0f);
     mIsTransformDirty = false;
 
     mChildrenMax = childrenMax;
@@ -71,7 +72,7 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
         mpBlocks = nullptr;
 
     // Entity stage, we manage entities here that we've created but
-    // haven't yet been added to engien.
+    // haven't yet been added to engine.
     mEntityStageCount = 0;
     for (u32 i = 0; i < kMaxEntityStage; ++i)
     {
@@ -88,17 +89,17 @@ Entity::~Entity()
     GFREE(mpComponents);
 }
 
-void Entity::setTransform(const Mat34 & mat)
+void Entity::setTransform(const glm::mat4x3 & mat)
 {
     mIsTransformDirty = true;
     mTransform = mat;
 }
 
-void Entity::applyTransform(bool isLocal, const Mat34 & mat)
+void Entity::applyTransform(bool isLocal, const glm::mat4x3 & mat)
 {
     if (isLocal)
     {
-        Mat34 invTrans = Mat34::inverse(mTransform);
+        glm::mat4x3 invTrans = inverse(mTransform);
         setTransform(invTrans * mat * mTransform);
     }
     else
@@ -107,7 +108,7 @@ void Entity::applyTransform(bool isLocal, const Mat34 & mat)
             setTransform(mat);
         else
         {
-            Mat34 invParent = Mat34::inverse(mpParent->transform());
+            glm::mat4x3 invParent = inverse(mpParent->transform());
             setTransform(mTransform * mat * invParent);
         }
     }
@@ -121,16 +122,17 @@ void Entity::setParent(Entity * pEntity)
     {
         // Convert our global transform into local coords relative to parent
         mpParent = pEntity;
-        Mat34 invParent = Mat34::inverse(mpParent->transform());
+        glm::mat4x3 invParent = inverse(mpParent->transform());
         setTransform(mTransform * invParent);
     }
 }
 
-const Mat34 & Entity::parentTransform() const
+const glm::mat4x3 & Entity::parentTransform() const
 {
     if (!mpParent)
     {
-        return Mat34::identity();
+        static const glm::mat4x3 ident = glm::mat4x3(1.0);
+        return ident;
     }
     else
     {

@@ -27,8 +27,11 @@
 #ifndef GAEN_ENGINE_BLOCK_H
 #define GAEN_ENGINE_BLOCK_H
 
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/gtc/quaternion.hpp>
+
 #include "engine/Color.h"
-#include "engine/math.h"
 
 namespace gaen
 {
@@ -79,14 +82,14 @@ static_assert(sizeof(dcell) == 8, "dcell must be 8 bytes");
 
 union tcell
 {
-    Vec3 vec3;
+    glm::vec3 vec3;
 };
 static_assert(sizeof(tcell) == 12, "tcell must be 12 bytes");
 
 union qcell
 {
-    Vec4 vec4;
-    Quat quat;
+    glm::vec4 vec4;
+    glm::quat quat;
     cell cells[4];
     dcell dCells[2];
 };

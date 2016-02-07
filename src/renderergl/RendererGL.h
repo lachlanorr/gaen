@@ -27,9 +27,10 @@
 #ifndef GAEN_RENDERERGL_RENDERERGL_H
 #define GAEN_RENDERERGL_RENDERERGL_H
 
+#include <glm/mat4x4.hpp>
+
 #include "core/List.h"
 #include "core/HashMap.h"
-#include "engine/math.h"
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
 #include "engine/ModelMgr.h"
@@ -120,8 +121,8 @@ private:
     GLuint mVoxelRootsImageLocation;
     GLuint mVoxelRoots;
 
-    Mat4 mProjection;
-    Mat4 mGuiProjection;
+    glm::mat4 mProjection;
+    glm::mat4 mGuiProjection;
 
     ModelMgr<RendererGL> * mpModelMgr;
 

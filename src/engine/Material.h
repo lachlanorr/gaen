@@ -27,6 +27,8 @@
 #ifndef GAEN_ENGINE_MATERIAL_H
 #define GAEN_ENGINE_MATERIAL_H
 
+#include <glm/vec4.hpp>
+
 #include "engine/Color.h"
 
 namespace gaen
@@ -46,7 +48,7 @@ enum MaterialLayer
 
 typedef u32 material_id;
 
-typedef void(*SetShaderVec4VarCB)(u32 nameHash, const Vec4 & val, void * context);
+typedef void(*SetShaderVec4VarCB)(u32 nameHash, const glm::vec4 & val, void * context);
 
 class Material
 {
@@ -58,7 +60,7 @@ public:
 
     material_id id() const { return mId; }
 
-    void registerVec4Var(u32 nameHash, const Vec4 & value);
+    void registerVec4Var(u32 nameHash, const glm::vec4 & value);
 
     void setShaderVec4Vars(SetShaderVec4VarCB setCB, void * context);
 
@@ -67,7 +69,7 @@ private:
 
     struct Vec4Var
     {
-        Vec4 value;
+        glm::vec4 value;
         u32 nameHash;
     };
 

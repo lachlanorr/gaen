@@ -26,6 +26,8 @@
 
 #include <cstring>
 
+#include <glm/common.hpp>
+
 #include "engine/BlockMemory.h"
 
 #include "compose/comp_string.h"
@@ -154,7 +156,7 @@ FormatSpecifier find_next_specifier(const char * str)
             else if (is_number(*p))
             {
                 fs.width = (fs.width * 10) + (*p - '0');
-                fs.width = minval<i16>(fs.width, kMaxWidth);
+                fs.width = glm::min<i16>(fs.width, kMaxWidth);
             }
             else if (*p == '.')
             {
@@ -180,7 +182,7 @@ FormatSpecifier find_next_specifier(const char * str)
             else if (is_number(*p))
             {
                 fs.precision = (fs.precision * 10) + (*p - '0');
-                fs.precision = minval<i16>(fs.precision, kMaxPrecision);
+                fs.precision = glm::min<i16>(fs.precision, kMaxPrecision);
             }
             else
             {
@@ -626,7 +628,7 @@ FormatSize * specifier_max_size(FormatSpecifier * pFs, const char * val)
         i32 size = (i32)strnlen(val, kMaxCmpStringLength);
 
         if (pFs->width >= 0)
-            size = minval(size, (i32)pFs->width);
+            size = glm::min(size, (i32)pFs->width);
 
         return corrected_size(pFs, size);
     }

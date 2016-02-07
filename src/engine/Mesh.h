@@ -27,6 +27,9 @@
 #ifndef GAEN_ENGINE_MESH_H
 #define GAEN_ENGINE_MESH_H
 
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+
 #include "core/base_defines.h"
 #include "core/mem.h"
 #include "engine/Color.h"
@@ -62,21 +65,21 @@ enum PrimType
 struct VertPos
 {
     static const VertType kVertType = kVERT_Pos;
-    Vec3 position;
+    glm::vec3 position;
 };
 
 struct VertPosNorm
 {
     static const VertType kVertType = kVERT_PosNorm;
-    Vec3 position;
-    Vec3 normal;
+    glm::vec3 position;
+    glm::vec3 normal;
 };
 
 struct VertPosNormUv
 {
     static const VertType kVertType = kVERT_PosNormUv;
-    Vec3 position;
-    Vec3 normal;
+    glm::vec3 position;
+    glm::vec3 normal;
     f32 u;
     f32 v;
 };
@@ -84,16 +87,16 @@ struct VertPosNormUv
 struct VertPosNormUvTan
 {
     static const VertType kVertType = kVERT_PosNormUvTan;
-    Vec3 position;
-    Vec3 normal;
+    glm::vec3 position;
+    glm::vec3 normal;
     f32 u;
     f32 v;
-    Vec4 tangent;
+    glm::vec4 tangent;
 };
 
 const u32 kOffsetPosition = 0;
-const u32 kOffsetNormal   = kOffsetPosition + sizeof(Vec3);
-const u32 kOffsetUV       = kOffsetNormal + sizeof(Vec3);
+const u32 kOffsetNormal   = kOffsetPosition + sizeof(glm::vec3);
+const u32 kOffsetUV       = kOffsetNormal + sizeof(glm::vec3);
 const u32 kOffsetTangent  = kOffsetUV + sizeof(f32) + sizeof(f32);
 
 inline bool is_valid_vert_type(u32 vertType)

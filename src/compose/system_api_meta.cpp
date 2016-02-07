@@ -155,13 +155,13 @@ void register_system_apis(ParseData * pParseData)
         parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
     }
     {
-        // mat34_rotation
+        // mat43_rotation
         Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
         ast_add_child(pSystemApiDef, ast_create_function_arg("angles", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
-        size_t mangledLen = mangle_function_len("mat34_rotation", pSystemApiDef->pChildren);
+        size_t mangledLen = mangle_function_len("mat43_rotation", pSystemApiDef->pChildren);
         char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
-        mangle_function(mangledName, kMaxCmpId, "mat34_rotation", pSystemApiDef->pChildren);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "mat34", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
+        mangle_function(mangledName, kMaxCmpId, "mat43_rotation", pSystemApiDef->pChildren);
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "mat43", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
     }
     {
         // mat3_rotation
@@ -234,7 +234,7 @@ void register_system_apis(ParseData * pParseData)
         // renderer_transform_model_instance
         Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
         ast_add_child(pSystemApiDef, ast_create_function_arg("uid", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
-        ast_add_child(pSystemApiDef, ast_create_function_arg("transform", parsedata_find_type_symbol(pParseData, "mat34", 1, 1), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("transform", parsedata_find_type_symbol(pParseData, "mat43", 1, 1), pParseData));
         size_t mangledLen = mangle_function_len("renderer_transform_model_instance", pSystemApiDef->pChildren);
         char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
         mangle_function(mangledName, kMaxCmpId, "renderer_transform_model_instance", pSystemApiDef->pChildren);

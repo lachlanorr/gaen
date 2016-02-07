@@ -45,7 +45,7 @@ Material::Material(u32 shaderNameHash)
     memset(mVec4Vars, 0, sizeof(mVec4Vars));
 }
 
-void Material::registerVec4Var(u32 nameHash, const Vec4 & value)
+void Material::registerVec4Var(u32 nameHash, const glm::vec4 & value)
 {
     PANIC_IF(mVec4VarCount >= kMaxVec4Vars, "Too many Vec4 material vars");
     mVec4Vars[mVec4VarCount].nameHash = nameHash;

@@ -24,6 +24,10 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+// LORRTODO: Remove math.h/cpp when glm is fully tested and replaces all this stuff.
+// Define away this file for now, but keep around for reference.
+#if 0
+
 #include "engine/stdafx.h"
 
 #include "engine/math.h"
@@ -951,3 +955,5 @@ Mat4 Mat4::orthographic(f32 left, f32 right, f32 bottom, f32 top, f32 nearZ, f32
 
 
 }
+
+#endif // #if 0

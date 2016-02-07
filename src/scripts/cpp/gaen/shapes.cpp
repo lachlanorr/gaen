@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 7763725c17c0daad2fa5ab69638727b3
+// HASH: b15164e8b3659e29d72bf0a10554dae0
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -60,7 +60,7 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+            size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             diffuse() = Color(255, 0, 0, 255);
             model() = Handle::null();
             modelUid() = system_api::renderer_gen_uid(entity());
@@ -121,9 +121,9 @@ private:
     gaen__shapes__Box & operator=(const gaen__shapes__Box&)  = delete;
     gaen__shapes__Box & operator=(const gaen__shapes__Box&&) = delete;
 
-    Vec3& size()
+    glm::vec3& size()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
     }
 
     Color& diffuse()
@@ -170,7 +170,7 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+            size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = Handle::null();
@@ -242,9 +242,9 @@ private:
     gaen__shapes__Cone & operator=(const gaen__shapes__Cone&)  = delete;
     gaen__shapes__Cone & operator=(const gaen__shapes__Cone&&) = delete;
 
-    Vec3& size()
+    glm::vec3& size()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
     }
 
     u32& slices()
@@ -296,7 +296,7 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+            size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = Handle::null();
@@ -368,9 +368,9 @@ private:
     gaen__shapes__Cylinder & operator=(const gaen__shapes__Cylinder&)  = delete;
     gaen__shapes__Cylinder & operator=(const gaen__shapes__Cylinder&&) = delete;
 
-    Vec3& size()
+    glm::vec3& size()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
     }
 
     u32& slices()
@@ -422,7 +422,7 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+            size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             sections() = 16;
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
@@ -505,9 +505,9 @@ private:
     gaen__shapes__Sphere & operator=(const gaen__shapes__Sphere&)  = delete;
     gaen__shapes__Sphere & operator=(const gaen__shapes__Sphere&&) = delete;
 
-    Vec3& size()
+    glm::vec3& size()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
     }
 
     u32& sections()
@@ -564,7 +564,7 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            size() = Vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+            size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             sections() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = Handle::null();
@@ -636,9 +636,9 @@ private:
     gaen__shapes__QuadSphere & operator=(const gaen__shapes__QuadSphere&)  = delete;
     gaen__shapes__QuadSphere & operator=(const gaen__shapes__QuadSphere&&) = delete;
 
-    Vec3& size()
+    glm::vec3& size()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
     }
 
     u32& sections()

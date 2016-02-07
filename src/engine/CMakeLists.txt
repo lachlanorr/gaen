@@ -40,6 +40,7 @@ SET (engine_SOURCES
   Entity.cpp
   Entity.h
   FrameTime.h
+  glm_ext.h
   Handle.cpp
   Handle.h
   hashes.cpp
@@ -53,8 +54,6 @@ SET (engine_SOURCES
   InputMgr.h
   Material.cpp
   Material.h
-  math.cpp
-  math.h
   Mesh.cpp
   Mesh.h
   Message.h
@@ -89,7 +88,7 @@ SET (engine_SOURCES
   ${engine_messages_SOURCES}
   )
 
-MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
+#MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${engine_SOURCES}")
 IDE_SOURCE_PROPERTIES( "/messages" "${engine_messages_SOURCES}")
 

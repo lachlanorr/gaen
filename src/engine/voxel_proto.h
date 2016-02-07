@@ -27,10 +27,14 @@
 #ifndef GAEN_ENGINE_VOXEL_PROTO_H
 #define GAEN_ENGINE_VOXEL_PROTO_H
 
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+
 #include "core/base_defines.h"
 #include "core/mem.h"
 #include "core/List.h"
-#include "engine/math.h"
 #include "engine/RaycastCamera.h"
 #include "engine/renderer_structs.h"
 #include "engine/voxel.h"
@@ -38,42 +42,13 @@
 namespace gaen
 {
 
-struct UVec3
-{
-    u32 x;
-    u32 y;
-    u32 z;
-
-    UVec3()
-      : x(0)
-      , y(0)
-      , z(0)
-    {}
-
-    UVec3(u32 x, u32 y, u32 z)
-      : x(x)
-      , y(y)
-      , z(z)
-    {}
-
-    UVec3 operator+(const UVec3 & rhs)
-    {
-        return UVec3(x + rhs.x, y + rhs.y, z + rhs.z);
-    }
-
-    UVec3 operator*(const UVec3 & rhs)
-    {
-        return UVec3(x * rhs.x, y * rhs.y, z * rhs.z);
-    }
-};
-
 class ComputeShaderSimulator
 {
 public:
     ~ComputeShaderSimulator();
 
-    void init(UVec3 workGroupSize,
-              UVec3 numWorkGroups);
+    void init(glm::uvec3 workGroupSize,
+              glm::uvec3 numWorkGroups);
 
     const u8 * frameBuffer() { return un_FrameBuffer->buffer(); }
 
@@ -86,9 +61,9 @@ private:
     VoxelWorld mVoxelWorld;
 
     // uniforms
-    Vec3 un_CameraPos;
-    Vec4 un_CameraDir;
-    Mat4 un_CameraProjectionInv;
+    glm::vec3 un_CameraPos;
+    glm::quat un_CameraDir;
+    glm::mat4 un_CameraProjectionInv;
 
     ImageBuffer * un_FrameBuffer = nullptr;
     const ImageBuffer * un_VoxelData = nullptr;
@@ -97,13 +72,13 @@ private:
     u32 un_VoxelRootCount;
 
     // glsl variables
-    UVec3 gl_WorkGroupSize;
-    UVec3 gl_NumWorkGroups;
+    glm::uvec3 gl_WorkGroupSize;
+    glm::uvec3 gl_NumWorkGroups;
 
-    UVec3 gl_LocalInvocationID;
-    UVec3 gl_WorkGroupID;
+    glm::uvec3 gl_LocalInvocationID;
+    glm::uvec3 gl_WorkGroupID;
 
-    UVec3 gl_GlobalInvocationID;
+    glm::uvec3 gl_GlobalInvocationID;
     u32 gl_LocalInvocationIndex;
 };
 
@@ -152,11 +127,11 @@ private:
     u32 uniform0 = 0;
 
     // camera stuff
-    Mat4 projectionInv;
-    Vec3 cameraPos;
-    Vec3 lightDir;
-    Vec4 lightColor;
-    Vec2 windowSize;
+    glm::mat4 projectionInv;
+    glm::vec3 cameraPos;
+    glm::vec3 lightDir;
+    glm::vec4 lightColor;
+    glm::vec2 windowSize;
     f32 nearZ;
     f32 farZ;
 

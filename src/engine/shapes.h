@@ -27,6 +27,8 @@
 #ifndef GAEN_ENGINE_SHAPES_H
 #define GAEN_ENGINE_SHAPES_H
 
+#include <glm/vec3.hpp>
+
 #include "engine/Mesh.h"
 #include "engine/Model.h"
 #include "engine/Handle.h"
@@ -39,16 +41,23 @@ class ShapeBuilder
 public:
     ShapeBuilder(Mesh * pMesh);
 
-    void addTri(const Vec3 & p0,
-                 const Vec3 & p1,
-                 const Vec3 & p2);
-    void addTri(const Vec3 * pPoints);
+    void addTri(const glm::vec3 & p0,
+                const glm::vec3 & p1,
+                const glm::vec3 & p2);
+    void addTri(const glm::vec3 * pPoints);
+    void addTri(const glm::vec4 & p0,
+                const glm::vec4 & p1,
+                const glm::vec4 & p2);
 
-    void addQuad(const Vec3 & p0,
-                  const Vec3 & p1,
-                  const Vec3 & p2,
-                  const Vec3 & p3);
-    void addQuad(const Vec3 * pPoints);
+    void addQuad(const glm::vec3 & p0,
+                 const glm::vec3 & p1,
+                 const glm::vec3 & p2,
+                 const glm::vec3 & p3);
+    void addQuad(const glm::vec3 * pPoints);
+    void addQuad(const glm::vec4 & p0,
+                 const glm::vec4 & p1,
+                 const glm::vec4 & p2,
+                 const glm::vec4 & p3);
 
     void addMesh(const Mesh & mesh);
 
@@ -63,22 +72,22 @@ private:
 };
 
 
-Model * build_box(const Vec3 & size, Color color);
-Model * build_cone(const Vec3 & size, Color color);
-Model * build_cylinder(const Vec3 & size, u32 slices, Color color);
-Model * build_sphere(const Vec3 & size, u32 slices, u32 sections, Color color);
-Model * build_quad_sphere(const Vec3 & size, u32 sections, Color color);
+Model * build_box(const glm::vec3 & size, Color color);
+Model * build_cone(const glm::vec3 & size, Color color);
+Model * build_cylinder(const glm::vec3 & size, u32 slices, Color color);
+Model * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color);
+Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color);
 
 
 // Compose wrappers
 class Entity;
 namespace system_api
 {
-    Handle create_shape_box(const Vec3 & size, Color color, Entity & caller);
-    Handle create_shape_cone(const Vec3 & size, u32 slices, Color color, Entity & caller);
-    Handle create_shape_cylinder(const Vec3 & size, u32 slices, Color color, Entity & caller);
-    Handle create_shape_sphere(const Vec3 & size, u32 slices, u32 sections, Color color, Entity & caller);
-    Handle create_shape_quad_sphere(const Vec3 & size, u32 sections, Color color, Entity & caller);
+    Handle create_shape_box(const glm::vec3 & size, Color color, Entity & caller);
+    Handle create_shape_cone(const glm::vec3 & size, u32 slices, Color color, Entity & caller);
+    Handle create_shape_cylinder(const glm::vec3 & size, u32 slices, Color color, Entity & caller);
+    Handle create_shape_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color, Entity & caller);
+    Handle create_shape_quad_sphere(const glm::vec3 & size, u32 sections, Color color, Entity & caller);
 }
 
 } // namespace gaen

@@ -69,7 +69,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <numf> FLOAT_LITERAL
 
 /* This type list must match the DataType enum in compiler.h */
-%token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 QUAT MAT3 MAT34 MAT4 HANDLE_ ENTITY STRING
+%token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 QUAT MAT3 MAT43 MAT4 HANDLE_ ENTITY STRING
 %type <dataType> basic_type
 
 %token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS USING AS CONST_ THIS__ NONE
@@ -356,7 +356,7 @@ basic_type
     | VEC4
     | QUAT
     | MAT3
-    | MAT34
+    | MAT43
     | MAT4
     | HANDLE_
     | STRING

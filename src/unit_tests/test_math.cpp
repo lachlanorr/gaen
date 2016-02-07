@@ -26,168 +26,78 @@
 
 #include <gtest/gtest.h>
 
-#include "engine/math.h"
+#include <glm/glm.hpp>
+
 #include "engine/voxel.h"
 
 using namespace gaen;
-
-TEST(MathTest, Vec3)
-{
-    Vec3 v0(20.0f, 10.0f, 5.0f);
-
-    f32 len = v0.length();
-    EXPECT_TRUE(is_fp_eq(len, 22.9128780f));
-
-    v0.normalize();
-    len = v0.length();
-    EXPECT_TRUE(is_fp_eq(len, 1.0f));
-
-    EXPECT_TRUE(is_fp_eq(v0.x(), 0.87287158f));
-    EXPECT_TRUE(is_fp_eq(v0.y(), 0.43643579f));
-    EXPECT_TRUE(is_fp_eq(v0.z(), 0.21821789f));
-
-
-    v0.x() = 20.0f;
-    v0.y() = 10.0f;
-    v0.z() = 5.0f;
-
-    len = v0.length();
-    EXPECT_TRUE(is_fp_eq(len,22.9128780f));
-
-    v0.normalizeIfNecessary();
-    len = v0.length();
-    EXPECT_TRUE(is_fp_eq(len,1.0f));
-
-    EXPECT_TRUE(is_fp_eq(v0.x(),0.87287158f));
-    EXPECT_TRUE(is_fp_eq(v0.y(),0.43643579f));
-    EXPECT_TRUE(is_fp_eq(v0.z(),0.21821789f));
-
-
-    Vec3 v1(10.0f, -20.0f, 30.0f);
-    Vec3 v2(2.0f, 3.0f, -4.0f);
-    
-    f32 dotResult = Vec3::dot(v1, v2);
-    EXPECT_TRUE(is_fp_eq(dotResult, -160.0f));
-
-    Vec3 crossResult = Vec3::cross(v1, v2);
-    EXPECT_TRUE(is_fp_eq(crossResult.x(), -10.0f));
-    EXPECT_TRUE(is_fp_eq(crossResult.y(), 100.0f));
-    EXPECT_TRUE(is_fp_eq(crossResult.z(), 70.0f));
-
-    
-}
-
-TEST(MathTest, Vec4)
-{
-    Vec4 v0(20.0f, 10.0f, 5.0f, 0.0f);
-
-    f32 len = v0.length();
-    EXPECT_TRUE(is_fp_eq(len, 22.9128780f));
-
-    v0.normalize();
-    len = v0.length();
-    EXPECT_TRUE(is_fp_eq(len, 1.0f));
-
-    EXPECT_TRUE(is_fp_eq(v0.x(), 0.87287158f));
-    EXPECT_TRUE(is_fp_eq(v0.y(), 0.43643579f));
-    EXPECT_TRUE(is_fp_eq(v0.z(), 0.21821789f));
-
-
-    v0.x() = 20.0f;
-    v0.y() = 10.0f;
-    v0.z() = 5.0f;
-
-    len = v0.length();
-    EXPECT_TRUE(is_fp_eq(len,22.9128780f));
-
-    v0.normalizeIfNecessary();
-    len = v0.length();
-    EXPECT_TRUE(is_fp_eq(len,1.0f));
-
-    EXPECT_TRUE(is_fp_eq(v0.x(),0.87287158f));
-    EXPECT_TRUE(is_fp_eq(v0.y(),0.43643579f));
-    EXPECT_TRUE(is_fp_eq(v0.z(),0.21821789f));
-
-
-    Vec4 v1(10.0f, -20.0f, 30.0f, 0.0f);
-    Vec4 v2(2.0f, 3.0f, -4.0f, 0.0f);
-    
-    f32 dotResult = Vec4::dot(v1, v2);
-    EXPECT_TRUE(is_fp_eq(dotResult, -160.0f));
-
-    Vec4 crossResult = Vec4::cross(v1, v2);
-    EXPECT_TRUE(is_fp_eq(crossResult.x(), -10.0f));
-    EXPECT_TRUE(is_fp_eq(crossResult.y(), 100.0f));
-    EXPECT_TRUE(is_fp_eq(crossResult.z(), 70.0f));
-    
-}
 
 TEST(MathTest, VoxelNeighborNormals)
 {
     // test that prints out our normals
 
-    Vec3 norm;
+    glm::vec3 norm;
 
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_LeftBottomBack));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_LeftBottomMiddle));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_LeftBottomFront));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
+    norm = glm::normalize(voxel_neighbor_offset(kVN_LeftBottomBack));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_LeftBottomMiddle));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_LeftBottomFront));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
 
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_LeftMiddleBack));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_LeftMiddleMiddle));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_LeftMiddleFront));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
+    norm = glm::normalize(voxel_neighbor_offset(kVN_LeftMiddleBack));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_LeftMiddleMiddle));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_LeftMiddleFront));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
 
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_LeftTopBack));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_LeftTopMiddle));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_LeftTopFront));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
+    norm = glm::normalize(voxel_neighbor_offset(kVN_LeftTopBack));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_LeftTopMiddle));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_LeftTopFront));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
 
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_MiddleBottomBack));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_MiddleBottomMiddle));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_MiddleBottomFront));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
+    norm = glm::normalize(voxel_neighbor_offset(kVN_MiddleBottomBack));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_MiddleBottomMiddle));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_MiddleBottomFront));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
 
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_MiddleMiddleBack));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
+    norm = glm::normalize(voxel_neighbor_offset(kVN_MiddleMiddleBack));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
     //kVN_MiddleMiddleMiddle,
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_MiddleMiddleFront));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
+    norm = glm::normalize(voxel_neighbor_offset(kVN_MiddleMiddleFront));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
 
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_MiddleTopBack));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_MiddleTopMiddle));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_MiddleTopFront));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
+    norm = glm::normalize(voxel_neighbor_offset(kVN_MiddleTopBack));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_MiddleTopMiddle));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_MiddleTopFront));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
 
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_RightBottomBack));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_RightBottomMiddle));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_RightBottomFront));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
+    norm = glm::normalize(voxel_neighbor_offset(kVN_RightBottomBack));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_RightBottomMiddle));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_RightBottomFront));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
 
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_RightMiddleBack));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_RightMiddleMiddle));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_RightMiddleFront));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
+    norm = glm::normalize(voxel_neighbor_offset(kVN_RightMiddleBack));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_RightMiddleMiddle));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_RightMiddleFront));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
 
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_RightTopBack));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_RightTopMiddle));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
-    norm = Vec3::normalize(voxel_neighbor_offset(kVN_RightTopFront));
-    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x(), norm.y(), norm.z());
+    norm = glm::normalize(voxel_neighbor_offset(kVN_RightTopBack));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_RightTopMiddle));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
+    norm = glm::normalize(voxel_neighbor_offset(kVN_RightTopFront));
+    printf("%1.8ef, %1.8ef, %1.8ef\n", norm.x, norm.y, norm.z);
 
 }

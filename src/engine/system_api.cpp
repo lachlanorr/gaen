@@ -28,7 +28,7 @@
 #include "core/mem.h"
 #include "core/logging.h"
 #include "engine/hashes.h"
-#include "engine/math.h"
+#include "engine/glm_ext.h"
 #include "engine/shapes.h"
 #include "engine/InputMgr.h"
 #include "engine/MessageWriter.h"
@@ -38,7 +38,6 @@
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/UpdateLightDirectional.h"
 #include "engine/messages/MoveCamera.h"
-#include "engine/messages/MoveFpsCamera.h"
 #include "engine/messages/WatchInputState.h"
 #include "engine/messages/WatchMouse.h"
 
@@ -82,12 +81,12 @@ void insert_entity(u32 id, Entity & caller)
 
 f32 radians(f32 degrees, Entity & caller)
 {
-    return ::gaen::radians(degrees);
+    return glm::radians(degrees);
 }
 
 f32 degrees(f32 radians, Entity & caller)
 {
-    return ::gaen::degrees(radians);
+    return glm::degrees(radians);
 }
 
 
@@ -112,25 +111,25 @@ void watch_mouse(u32 moveMessage, u32 wheelMessage, Entity & caller)
     msgQW.setWheelMessage(wheelMessage);
 }
 
-Mat34 mat34_rotation(const Vec3 & angles, Entity & caller)
+glm::mat4x3 mat43_rotation(const glm::vec3 & angles, Entity & caller)
 {
-    return Mat34::rotation(angles);
+    return glm::mat43_rotation(angles);
 }
 
-Mat3 mat3_rotation(const Vec3 & angles, Entity & caller)
+glm::mat3 mat3_rotation(const glm::vec3 & angles, Entity & caller)
 {
-    return Mat3::rotation(angles);
+    return glm::mat3_rotation(angles);
 }
 
-Quat quat_from_axis_angle(const Vec3 & dir, f32 angle, Entity & caller)
+glm::quat quat_from_axis_angle(const glm::vec3 & dir, f32 angle, Entity & caller)
 {
-    return Quat::from_axis_angle(dir, angle, false);
+    return glm::quat(angle, dir);
 }
 
-Quat quat_normalize(const Quat & quat, Entity & caller)
+glm::quat quat_normalize(const glm::quat & quat, Entity & caller)
 {
-    Quat q = quat;
-    q.normalize();
+    glm::quat q = quat;
+    glm::normalize(q);
     return q;
 }
 
@@ -140,7 +139,7 @@ u32 renderer_gen_uid(Entity & caller)
     return sNextUid.fetch_add(1, std::memory_order_relaxed);
 }
 
-void renderer_move_camera(const Vec3 & position, const Quat & direction, Entity & caller)
+void renderer_move_camera(const glm::vec3 & position, const glm::quat & direction, Entity & caller)
 {
     messages::MoveCameraQW msgQW(HASH::renderer_move_camera,
                                  kMessageFlag_None,
@@ -149,18 +148,6 @@ void renderer_move_camera(const Vec3 & position, const Quat & direction, Entity 
 
     msgQW.setPosition(position);
     msgQW.setDirection(direction);
-}
-
-void renderer_move_fps_camera(const Vec3 & position, f32 pitch, f32 yaw, Entity & caller)
-{
-    messages::MoveFpsCameraQW msgQW(HASH::renderer_move_camera,
-                                    kMessageFlag_None,
-                                    caller.task().id(),
-                                    kRendererTaskId,
-                                    pitch);
-
-    msgQW.setYaw(yaw);
-    msgQW.setPosition(position);
 }
 
 void renderer_insert_model_instance(u32 uid,
@@ -180,7 +167,7 @@ void renderer_insert_model_instance(u32 uid,
     msgQW.setTransform(caller.transform());
 }
 
-void renderer_transform_model_instance(u32  uid, const Mat34 & transform, Entity & caller)
+void renderer_transform_model_instance(u32  uid, const glm::mat4x3 & transform, Entity & caller)
 {
     messages::TransformIdQW msgQW(HASH::renderer_transform_model_instance,
                                   kMessageFlag_None,
@@ -201,7 +188,7 @@ void renderer_remove_model_instance(u32  uid, Entity & caller)
 }
 
 void renderer_insert_light_directional(u32 uid,
-                                       const Vec3 & direction,
+                                       const glm::vec3 & direction,
                                        Color color,
                                        Entity & caller)
 {
@@ -215,7 +202,7 @@ void renderer_insert_light_directional(u32 uid,
 }
 
 void renderer_update_light_directional(u32 uid,
-                                       const Vec3 & direction,
+                                       const glm::vec3 & direction,
                                        Color color,
                                        Entity & caller)
 {

@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 6e41783bbde3699ef82ddde650494f45
+// HASH: 4af2d9b1c9dc4d44d0914fb6ddc9a8e5
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -180,14 +180,14 @@ public:
             if ((mouseDeltaX() != 0.00000000e+00f))
             {
                 f32 angle = (-(mouseDeltaX()) * rotDelta());
-                Quat orientDelta = system_api::quat_from_axis_angle(dirUp(), angle, entity());
+                glm::quat orientDelta = system_api::quat_from_axis_angle(dirUp(), angle, entity());
                 orientation() = (orientDelta * orientation());
                 hasRotated = 1;
             }
             if ((mouseDeltaY() != 0.00000000e+00f))
             {
                 f32 angle = (mouseDeltaY() * rotDelta());
-                Quat orientDelta = system_api::quat_from_axis_angle(dirRight(), angle, entity());
+                glm::quat orientDelta = system_api::quat_from_axis_angle(dirRight(), angle, entity());
                 orientation() = (orientDelta * orientation());
                 hasRotated = 1;
             }
@@ -225,14 +225,14 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
-            dirForwardInit() = Vec3(0.00000000e+00f, 0.00000000e+00f, -(1.00000000e+00f));
-            dirRightInit() = Vec3(1.00000000e+00f, 0.00000000e+00f, 0.00000000e+00f);
-            dirUpInit() = Vec3(0.00000000e+00f, 1.00000000e+00f, 0.00000000e+00f);
+            dirForwardInit() = glm::vec3(0.00000000e+00f, 0.00000000e+00f, -(1.00000000e+00f));
+            dirRightInit() = glm::vec3(1.00000000e+00f, 0.00000000e+00f, 0.00000000e+00f);
+            dirUpInit() = glm::vec3(0.00000000e+00f, 1.00000000e+00f, 0.00000000e+00f);
             dirForward() = dirForwardInit();
             dirRight() = dirRightInit();
             dirUp() = dirUpInit();
-            orientation() = Quat(0.00000000e+00f, 0.00000000e+00f, 0.00000000e+00f, 1.00000000e+00f);
-            pos() = Vec3(0.00000000e+00f, 0.00000000e+00f, 1.00000000e+01f);
+            orientation() = glm::quat(0.00000000e+00f, 0.00000000e+00f, 0.00000000e+00f, 1.00000000e+00f);
+            pos() = glm::vec3(0.00000000e+00f, 0.00000000e+00f, 1.00000000e+01f);
             moveDelta() = 5.00000000e+00f;
             rotDelta() = 5.00000024e-04f;
             forwardBackward() = 0.00000000e+00f;
@@ -348,44 +348,44 @@ private:
     gaen__utils__WasdCamera & operator=(const gaen__utils__WasdCamera&)  = delete;
     gaen__utils__WasdCamera & operator=(const gaen__utils__WasdCamera&&) = delete;
 
-    Vec3& dirForwardInit()
+    glm::vec3& dirForwardInit()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[1].qCell);
     }
 
-    Vec3& dirRightInit()
+    glm::vec3& dirRightInit()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[2].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[2].qCell);
     }
 
-    Vec3& dirUpInit()
+    glm::vec3& dirUpInit()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[3].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[3].qCell);
     }
 
-    Vec3& dirForward()
+    glm::vec3& dirForward()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[4].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[4].qCell);
     }
 
-    Vec3& dirRight()
+    glm::vec3& dirRight()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[5].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[5].qCell);
     }
 
-    Vec3& dirUp()
+    glm::vec3& dirUp()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[6].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[6].qCell);
     }
 
-    Quat& orientation()
+    glm::quat& orientation()
     {
-        return *reinterpret_cast<Quat*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::quat*>(&mpBlocks[0].qCell);
     }
 
-    Vec3& pos()
+    glm::vec3& pos()
     {
-        return *reinterpret_cast<Vec3*>(&mpBlocks[7].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[7].qCell);
     }
 
     f32& moveDelta()
@@ -456,7 +456,7 @@ public:
         {
             pitch() += ((pitching() * deltaSecs) * 1.00000000e+02f);
             yaw() += ((yawing() * deltaSecs) * 1.00000000e+02f);
-            Mat34 trans = system_api::mat34_rotation(Vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.00000000e+00f), entity());
+            glm::mat4x3 trans = system_api::mat43_rotation(glm::vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.00000000e+00f), entity());
             { // Send Message Block
                 // Compute block size, incorporating any BlockMemory parameters dynamically
                 u32 blockCount = 3;
