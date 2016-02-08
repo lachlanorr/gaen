@@ -126,7 +126,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 48 "compose.y" /* yacc.c:1909  */
+#line 49 "compose.y" /* yacc.c:1909  */
 
     int                 numi;
     float               numf;

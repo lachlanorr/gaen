@@ -70,9 +70,10 @@
 #include "compose/comp_mem.h"
 #define YYMALLOC COMP_ALLOC
 #define YYFREE COMP_FREE
+
 #include <stdio.h>
 
-#line 76 "compose_parser.c" /* yacc.c:339  */
+#line 77 "compose_parser.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -188,7 +189,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 48 "compose.y" /* yacc.c:355  */
+#line 49 "compose.y" /* yacc.c:355  */
 
     int                 numi;
     float               numf;
@@ -198,7 +199,7 @@ union YYSTYPE
     SymTab*             pSymTab;
     const SymDataType*  pSymDataType;
 
-#line 202 "compose_parser.c" /* yacc.c:355  */
+#line 203 "compose_parser.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -227,16 +228,25 @@ int yyparse (ParseData * pParseData);
 #endif /* !YY_YY_COMPOSE_PARSER_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
-#line 58 "compose.y" /* yacc.c:358  */
+#line 59 "compose.y" /* yacc.c:358  */
 
 #define YY_NO_UNISTD_H
 #include "compose/compose_scanner.h"
-#define YYLEX_PARAM parsedata_scanner(pParseData)
+
+/*
+   This is embarrassingly hackish, but Bison 3's deprecation of
+   YYLEX_PARAM doesn't give much choice.  Have researched as
+   throrougly as I'm interested in doing at the moment, and this is
+   the simplest (maybe only???) solution. Flex wants a scanner, and
+   Bison wants to send it a variable, not allowing us to process that
+   variable before sending through.
+*/
+#define SCANNER_FROM_PARSEDATA parsedata_scanner(pParseData)
 
 #define YYPRINT(file, type, value)   yyprint (file, type, value)
 static void yyprint(FILE * file, int type, YYSTYPE value);
 
-#line 240 "compose_parser.c" /* yacc.c:358  */
+#line 250 "compose_parser.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -543,21 +553,21 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   114,   114,   115,   119,   120,   124,   128,   132,   133,
-     137,   141,   142,   147,   148,   149,   150,   151,   155,   156,
-     160,   161,   165,   166,   167,   168,   169,   170,   174,   175,
-     176,   180,   181,   185,   186,   190,   191,   195,   196,   197,
-     201,   205,   206,   210,   211,   215,   216,   218,   219,   221,
-     223,   224,   226,   228,   230,   234,   237,   238,   239,   243,
-     245,   246,   248,   250,   252,   253,   254,   255,   256,   257,
-     258,   259,   260,   261,   262,   263,   265,   266,   267,   268,
-     269,   270,   271,   272,   273,   274,   275,   277,   278,   279,
-     281,   283,   284,   285,   286,   288,   290,   291,   292,   294,
-     296,   300,   301,   302,   303,   304,   305,   306,   310,   311,
-     312,   313,   317,   318,   322,   323,   327,   328,   329,   333,
-     334,   335,   336,   340,   341,   342,   343,   344,   345,   346,
-     347,   348,   349,   350,   351,   352,   353,   354,   355,   356,
-     357,   358,   359,   360,   361,   362,   367,   368,   369
+       0,   124,   124,   125,   129,   130,   134,   138,   142,   143,
+     147,   151,   152,   157,   158,   159,   160,   161,   165,   166,
+     170,   171,   175,   176,   177,   178,   179,   180,   184,   185,
+     186,   190,   191,   195,   196,   200,   201,   205,   206,   207,
+     211,   215,   216,   220,   221,   225,   226,   228,   229,   231,
+     233,   234,   236,   238,   240,   244,   247,   248,   249,   253,
+     255,   256,   258,   260,   262,   263,   264,   265,   266,   267,
+     268,   269,   270,   271,   272,   273,   275,   276,   277,   278,
+     279,   280,   281,   282,   283,   284,   285,   287,   288,   289,
+     291,   293,   294,   295,   296,   298,   300,   301,   302,   304,
+     306,   310,   311,   312,   313,   314,   315,   316,   320,   321,
+     322,   323,   327,   328,   332,   333,   337,   338,   339,   343,
+     344,   345,   346,   350,   351,   352,   353,   354,   355,   356,
+     357,   358,   359,   360,   361,   362,   363,   364,   365,   366,
+     367,   368,   369,   370,   371,   372,   377,   378,   379
 };
 #endif
 
@@ -1744,7 +1754,7 @@ yybackup:
   if (yychar == YYEMPTY)
     {
       YYDPRINTF ((stderr, "Reading a token: "));
-      yychar = yylex (&yylval, &yylloc, pParseData);
+      yychar = yylex (&yylval, &yylloc, SCANNER_FROM_PARSEDATA);
     }
 
   if (yychar <= YYEOF)
@@ -1824,733 +1834,733 @@ yyreduce:
   switch (yyn)
     {
         case 3:
-#line 115 "compose.y" /* yacc.c:1646  */
+#line 125 "compose.y" /* yacc.c:1646  */
     { ast_create_using_list((yyvsp[-1].pAst), pParseData); }
-#line 1830 "compose_parser.c" /* yacc.c:1646  */
+#line 1840 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 119 "compose.y" /* yacc.c:1646  */
+#line 129 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_UsingList, NULL, (yyvsp[0].pAst), pParseData); }
-#line 1836 "compose_parser.c" /* yacc.c:1646  */
+#line 1846 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 120 "compose.y" /* yacc.c:1646  */
+#line 130 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_UsingList, (yyvsp[-1].pAst), (yyvsp[0].pAst), pParseData); }
-#line 1842 "compose_parser.c" /* yacc.c:1646  */
+#line 1852 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 124 "compose.y" /* yacc.c:1646  */
+#line 134 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_using_stmt((yyvsp[-3].pAst), (yyvsp[-1].pAst), pParseData); }
-#line 1848 "compose_parser.c" /* yacc.c:1646  */
+#line 1858 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 128 "compose.y" /* yacc.c:1646  */
+#line 138 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_dotted_id((yyvsp[0].pAst), pParseData); }
-#line 1854 "compose_parser.c" /* yacc.c:1646  */
+#line 1864 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 132 "compose.y" /* yacc.c:1646  */
+#line 142 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_DottedId, NULL, (yyvsp[0].pAst), pParseData); }
-#line 1860 "compose_parser.c" /* yacc.c:1646  */
+#line 1870 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 133 "compose.y" /* yacc.c:1646  */
+#line 143 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_DottedId, (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 1866 "compose_parser.c" /* yacc.c:1646  */
+#line 1876 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 137 "compose.y" /* yacc.c:1646  */
+#line 147 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_with_str(kAST_DottedIdPart, (yyvsp[0].str), pParseData); }
-#line 1872 "compose_parser.c" /* yacc.c:1646  */
+#line 1882 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 147 "compose.y" /* yacc.c:1646  */
+#line 157 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_entity_def((yyvsp[-1].str), (yyvsp[0].pAst), pParseData); }
-#line 1878 "compose_parser.c" /* yacc.c:1646  */
+#line 1888 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 148 "compose.y" /* yacc.c:1646  */
+#line 158 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_component_def((yyvsp[-1].str), (yyvsp[0].pAst), pParseData); }
-#line 1884 "compose_parser.c" /* yacc.c:1646  */
+#line 1894 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 149 "compose.y" /* yacc.c:1646  */
+#line 159 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_function_def((yyvsp[-4].str), (yyvsp[-5].pSymDataType), (yyvsp[0].pAst), pParseData); }
-#line 1890 "compose_parser.c" /* yacc.c:1646  */
+#line 1900 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 150 "compose.y" /* yacc.c:1646  */
+#line 160 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_function_def((yyvsp[-4].str), parsedata_find_type(pParseData, "entity", 1, 0), (yyvsp[0].pAst), pParseData); }
-#line 1896 "compose_parser.c" /* yacc.c:1646  */
+#line 1906 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 151 "compose.y" /* yacc.c:1646  */
+#line 161 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_function_def((yyvsp[-4].str), parsedata_find_type(pParseData, "entity", 0, 0), (yyvsp[0].pAst), pParseData); }
-#line 1902 "compose_parser.c" /* yacc.c:1646  */
+#line 1912 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 155 "compose.y" /* yacc.c:1646  */
+#line 165 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_block(NULL, pParseData); }
-#line 1908 "compose_parser.c" /* yacc.c:1646  */
+#line 1918 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 156 "compose.y" /* yacc.c:1646  */
+#line 166 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_block((yyvsp[-1].pAst),   pParseData); }
-#line 1914 "compose_parser.c" /* yacc.c:1646  */
+#line 1924 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 160 "compose.y" /* yacc.c:1646  */
+#line 170 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_Block, NULL, (yyvsp[0].pAst), pParseData); }
-#line 1920 "compose_parser.c" /* yacc.c:1646  */
+#line 1930 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 161 "compose.y" /* yacc.c:1646  */
+#line 171 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_Block, (yyvsp[-1].pAst), (yyvsp[0].pAst), pParseData); }
-#line 1926 "compose_parser.c" /* yacc.c:1646  */
+#line 1936 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 165 "compose.y" /* yacc.c:1646  */
+#line 175 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_message_def((yyvsp[-4].str), (yyvsp[-2].pSymTab), (yyvsp[0].pAst), pParseData); }
-#line 1932 "compose_parser.c" /* yacc.c:1646  */
+#line 1942 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 166 "compose.y" /* yacc.c:1646  */
+#line 176 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_property_def((yyvsp[-3].str), (yyvsp[-4].pSymDataType), (yyvsp[-1].pAst), pParseData); }
-#line 1938 "compose_parser.c" /* yacc.c:1646  */
+#line 1948 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 167 "compose.y" /* yacc.c:1646  */
+#line 177 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_property_def((yyvsp[-1].str), (yyvsp[-2].pSymDataType), NULL, pParseData); }
-#line 1944 "compose_parser.c" /* yacc.c:1646  */
+#line 1954 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 168 "compose.y" /* yacc.c:1646  */
+#line 178 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_field_def((yyvsp[-3].str), (yyvsp[-4].pSymDataType), (yyvsp[-1].pAst), pParseData); }
-#line 1950 "compose_parser.c" /* yacc.c:1646  */
+#line 1960 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 169 "compose.y" /* yacc.c:1646  */
+#line 179 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_field_def((yyvsp[-1].str), (yyvsp[-2].pSymDataType), NULL, pParseData); }
-#line 1956 "compose_parser.c" /* yacc.c:1646  */
+#line 1966 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 170 "compose.y" /* yacc.c:1646  */
+#line 180 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_component_members((yyvsp[0].pAst), pParseData); }
-#line 1962 "compose_parser.c" /* yacc.c:1646  */
+#line 1972 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 174 "compose.y" /* yacc.c:1646  */
+#line 184 "compose.y" /* yacc.c:1646  */
     { (yyval.pSymTab) = parsedata_add_param(pParseData, NULL, NULL); }
-#line 1968 "compose_parser.c" /* yacc.c:1646  */
+#line 1978 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 175 "compose.y" /* yacc.c:1646  */
+#line 185 "compose.y" /* yacc.c:1646  */
     { (yyval.pSymTab) = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, (yyvsp[-1].pSymDataType), (yyvsp[0].str), NULL, pParseData)); }
-#line 1974 "compose_parser.c" /* yacc.c:1646  */
+#line 1984 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 176 "compose.y" /* yacc.c:1646  */
+#line 186 "compose.y" /* yacc.c:1646  */
     { (yyval.pSymTab) = parsedata_add_param(pParseData, (yyvsp[-3].pSymTab), symrec_create(kSYMT_Param, (yyvsp[-1].pSymDataType), (yyvsp[0].str), NULL, pParseData)); }
-#line 1980 "compose_parser.c" /* yacc.c:1646  */
+#line 1990 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 180 "compose.y" /* yacc.c:1646  */
+#line 190 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_with_child_list(kAST_ComponentMemberList, pParseData); }
-#line 1986 "compose_parser.c" /* yacc.c:1646  */
+#line 1996 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 181 "compose.y" /* yacc.c:1646  */
+#line 191 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = (yyvsp[-1].pAst); }
-#line 1992 "compose_parser.c" /* yacc.c:1646  */
+#line 2002 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 185 "compose.y" /* yacc.c:1646  */
+#line 195 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_ComponentMemberList, NULL, (yyvsp[0].pAst), pParseData); }
-#line 1998 "compose_parser.c" /* yacc.c:1646  */
+#line 2008 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 186 "compose.y" /* yacc.c:1646  */
+#line 196 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_ComponentMemberList, (yyvsp[-1].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2004 "compose_parser.c" /* yacc.c:1646  */
+#line 2014 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 190 "compose.y" /* yacc.c:1646  */
+#line 200 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_component_member((yyvsp[-1].pAst), ast_create(kAST_PropInit, pParseData), pParseData); }
-#line 2010 "compose_parser.c" /* yacc.c:1646  */
+#line 2020 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 191 "compose.y" /* yacc.c:1646  */
+#line 201 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_component_member((yyvsp[-4].pAst), (yyvsp[-2].pAst), pParseData); }
-#line 2016 "compose_parser.c" /* yacc.c:1646  */
+#line 2026 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 195 "compose.y" /* yacc.c:1646  */
+#line 205 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create(kAST_PropInitList, pParseData); }
-#line 2022 "compose_parser.c" /* yacc.c:1646  */
+#line 2032 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 196 "compose.y" /* yacc.c:1646  */
+#line 206 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_PropInitList, NULL, (yyvsp[0].pAst), pParseData); }
-#line 2028 "compose_parser.c" /* yacc.c:1646  */
+#line 2038 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 197 "compose.y" /* yacc.c:1646  */
+#line 207 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_PropInitList, (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2034 "compose_parser.c" /* yacc.c:1646  */
+#line 2044 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 201 "compose.y" /* yacc.c:1646  */
+#line 211 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_prop_init((yyvsp[-2].str), (yyvsp[0].pAst), pParseData); }
-#line 2040 "compose_parser.c" /* yacc.c:1646  */
+#line 2050 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 205 "compose.y" /* yacc.c:1646  */
+#line 215 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_block(NULL, pParseData); }
-#line 2046 "compose_parser.c" /* yacc.c:1646  */
+#line 2056 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 206 "compose.y" /* yacc.c:1646  */
+#line 216 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_block((yyvsp[-1].pAst),   pParseData); }
-#line 2052 "compose_parser.c" /* yacc.c:1646  */
+#line 2062 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 210 "compose.y" /* yacc.c:1646  */
+#line 220 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_Block, NULL, (yyvsp[0].pAst), pParseData); }
-#line 2058 "compose_parser.c" /* yacc.c:1646  */
+#line 2068 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 211 "compose.y" /* yacc.c:1646  */
+#line 221 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_Block, (yyvsp[-1].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2064 "compose_parser.c" /* yacc.c:1646  */
+#line 2074 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 215 "compose.y" /* yacc.c:1646  */
+#line 225 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_if((yyvsp[-2].pAst), (yyvsp[0].pAst), NULL, pParseData); }
-#line 2070 "compose_parser.c" /* yacc.c:1646  */
+#line 2080 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 216 "compose.y" /* yacc.c:1646  */
+#line 226 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_if((yyvsp[-4].pAst), (yyvsp[-2].pAst), (yyvsp[0].pAst),   pParseData); }
-#line 2076 "compose_parser.c" /* yacc.c:1646  */
+#line 2086 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 218 "compose.y" /* yacc.c:1646  */
+#line 228 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_while((yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2082 "compose_parser.c" /* yacc.c:1646  */
+#line 2092 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 219 "compose.y" /* yacc.c:1646  */
+#line 229 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_dowhile((yyvsp[-2].pAst), (yyvsp[-5].pAst), pParseData); }
-#line 2088 "compose_parser.c" /* yacc.c:1646  */
+#line 2098 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 221 "compose.y" /* yacc.c:1646  */
+#line 231 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_for((yyvsp[-6].pAst), (yyvsp[-4].pAst), (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2094 "compose_parser.c" /* yacc.c:1646  */
+#line 2104 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 223 "compose.y" /* yacc.c:1646  */
+#line 233 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_property_set((yyvsp[-4].pAst), (yyvsp[-3].str), (yyvsp[-1].pAst), pParseData); }
-#line 2100 "compose_parser.c" /* yacc.c:1646  */
+#line 2110 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 224 "compose.y" /* yacc.c:1646  */
+#line 234 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_message_send((yyvsp[-5].pAst), (yyvsp[-4].str), (yyvsp[-2].pAst), pParseData); }
-#line 2106 "compose_parser.c" /* yacc.c:1646  */
+#line 2116 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 226 "compose.y" /* yacc.c:1646  */
+#line 236 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_return((yyvsp[-1].pAst), pParseData); }
-#line 2112 "compose_parser.c" /* yacc.c:1646  */
+#line 2122 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 228 "compose.y" /* yacc.c:1646  */
+#line 238 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = (yyvsp[0].pAst); }
-#line 2118 "compose_parser.c" /* yacc.c:1646  */
+#line 2128 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 230 "compose.y" /* yacc.c:1646  */
+#line 240 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_simple_stmt((yyvsp[-1].pAst), pParseData); }
-#line 2124 "compose_parser.c" /* yacc.c:1646  */
+#line 2134 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 234 "compose.y" /* yacc.c:1646  */
+#line 244 "compose.y" /* yacc.c:1646  */
     { parsedata_handle_do_scope(pParseData); (yyval.pAst) = (yyvsp[0].pAst); }
-#line 2130 "compose_parser.c" /* yacc.c:1646  */
+#line 2140 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 237 "compose.y" /* yacc.c:1646  */
+#line 247 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = NULL; }
-#line 2136 "compose_parser.c" /* yacc.c:1646  */
+#line 2146 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 238 "compose.y" /* yacc.c:1646  */
+#line 248 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_identifier((yyvsp[0].str), pParseData); }
-#line 2142 "compose_parser.c" /* yacc.c:1646  */
+#line 2152 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 239 "compose.y" /* yacc.c:1646  */
+#line 249 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_int_literal((yyvsp[0].numi), pParseData); }
-#line 2148 "compose_parser.c" /* yacc.c:1646  */
+#line 2158 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 243 "compose.y" /* yacc.c:1646  */
+#line 253 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = (yyvsp[-1].pAst); }
-#line 2154 "compose_parser.c" /* yacc.c:1646  */
+#line 2164 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 245 "compose.y" /* yacc.c:1646  */
+#line 255 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, (yyvsp[-1].pSymDataType), (yyvsp[0].str), NULL, pParseData)); }
-#line 2160 "compose_parser.c" /* yacc.c:1646  */
+#line 2170 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 246 "compose.y" /* yacc.c:1646  */
+#line 256 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, (yyvsp[-3].pSymDataType), (yyvsp[-2].str), (yyvsp[0].pAst), pParseData)); }
-#line 2166 "compose_parser.c" /* yacc.c:1646  */
+#line 2176 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 248 "compose.y" /* yacc.c:1646  */
+#line 258 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_string_literal((yyvsp[0].str), pParseData); }
-#line 2172 "compose_parser.c" /* yacc.c:1646  */
+#line 2182 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 250 "compose.y" /* yacc.c:1646  */
+#line 260 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = (yyvsp[0].pAst); }
-#line 2178 "compose_parser.c" /* yacc.c:1646  */
+#line 2188 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 252 "compose.y" /* yacc.c:1646  */
+#line 262 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_Add,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2184 "compose_parser.c" /* yacc.c:1646  */
+#line 2194 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 253 "compose.y" /* yacc.c:1646  */
+#line 263 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_Sub,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2190 "compose_parser.c" /* yacc.c:1646  */
+#line 2200 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 254 "compose.y" /* yacc.c:1646  */
+#line 264 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_Mul,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2196 "compose_parser.c" /* yacc.c:1646  */
+#line 2206 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 255 "compose.y" /* yacc.c:1646  */
+#line 265 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_Div,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2202 "compose_parser.c" /* yacc.c:1646  */
+#line 2212 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 256 "compose.y" /* yacc.c:1646  */
+#line 266 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_Mod,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2208 "compose_parser.c" /* yacc.c:1646  */
+#line 2218 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 257 "compose.y" /* yacc.c:1646  */
+#line 267 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_LShift, (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2214 "compose_parser.c" /* yacc.c:1646  */
+#line 2224 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 258 "compose.y" /* yacc.c:1646  */
+#line 268 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_RShift, (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2220 "compose_parser.c" /* yacc.c:1646  */
+#line 2230 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 259 "compose.y" /* yacc.c:1646  */
+#line 269 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_Or,     (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2226 "compose_parser.c" /* yacc.c:1646  */
+#line 2236 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 260 "compose.y" /* yacc.c:1646  */
+#line 270 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_And,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2232 "compose_parser.c" /* yacc.c:1646  */
+#line 2242 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 73:
-#line 261 "compose.y" /* yacc.c:1646  */
+#line 271 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_BitOr,  (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2238 "compose_parser.c" /* yacc.c:1646  */
+#line 2248 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 262 "compose.y" /* yacc.c:1646  */
+#line 272 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_BitXor, (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2244 "compose_parser.c" /* yacc.c:1646  */
+#line 2254 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 75:
-#line 263 "compose.y" /* yacc.c:1646  */
+#line 273 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_BitAnd, (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2250 "compose_parser.c" /* yacc.c:1646  */
+#line 2260 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 265 "compose.y" /* yacc.c:1646  */
+#line 275 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_assign_op(kAST_Assign,       (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2256 "compose_parser.c" /* yacc.c:1646  */
+#line 2266 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 77:
-#line 266 "compose.y" /* yacc.c:1646  */
+#line 276 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_assign_op(kAST_AddAssign,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2262 "compose_parser.c" /* yacc.c:1646  */
+#line 2272 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 78:
-#line 267 "compose.y" /* yacc.c:1646  */
+#line 277 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_assign_op(kAST_SubAssign,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2268 "compose_parser.c" /* yacc.c:1646  */
+#line 2278 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 79:
-#line 268 "compose.y" /* yacc.c:1646  */
+#line 278 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_assign_op(kAST_MulAssign,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2274 "compose_parser.c" /* yacc.c:1646  */
+#line 2284 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 80:
-#line 269 "compose.y" /* yacc.c:1646  */
+#line 279 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_assign_op(kAST_DivAssign,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2280 "compose_parser.c" /* yacc.c:1646  */
+#line 2290 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 81:
-#line 270 "compose.y" /* yacc.c:1646  */
+#line 280 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_assign_op(kAST_ModAssign,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2286 "compose_parser.c" /* yacc.c:1646  */
+#line 2296 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 82:
-#line 271 "compose.y" /* yacc.c:1646  */
+#line 281 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_assign_op(kAST_LShiftAssign, (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2292 "compose_parser.c" /* yacc.c:1646  */
+#line 2302 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 83:
-#line 272 "compose.y" /* yacc.c:1646  */
+#line 282 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_assign_op(kAST_RShiftAssign, (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2298 "compose_parser.c" /* yacc.c:1646  */
+#line 2308 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 84:
-#line 273 "compose.y" /* yacc.c:1646  */
+#line 283 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_assign_op(kAST_AndAssign,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2304 "compose_parser.c" /* yacc.c:1646  */
+#line 2314 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 85:
-#line 274 "compose.y" /* yacc.c:1646  */
+#line 284 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_assign_op(kAST_XorAssign,    (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2310 "compose_parser.c" /* yacc.c:1646  */
+#line 2320 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 86:
-#line 275 "compose.y" /* yacc.c:1646  */
+#line 285 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_assign_op(kAST_OrAssign,     (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2316 "compose_parser.c" /* yacc.c:1646  */
+#line 2326 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 87:
-#line 277 "compose.y" /* yacc.c:1646  */
+#line 287 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_unary_op(kAST_Not,        (yyvsp[0].pAst), pParseData); }
-#line 2322 "compose_parser.c" /* yacc.c:1646  */
+#line 2332 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 88:
-#line 278 "compose.y" /* yacc.c:1646  */
+#line 288 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_unary_op(kAST_Complement, (yyvsp[0].pAst), pParseData); }
-#line 2328 "compose_parser.c" /* yacc.c:1646  */
+#line 2338 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 89:
-#line 279 "compose.y" /* yacc.c:1646  */
+#line 289 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_unary_op(kAST_Negate,     (yyvsp[0].pAst), pParseData); }
-#line 2334 "compose_parser.c" /* yacc.c:1646  */
+#line 2344 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 90:
-#line 281 "compose.y" /* yacc.c:1646  */
+#line 291 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_hash((yyvsp[0].str), pParseData); }
-#line 2340 "compose_parser.c" /* yacc.c:1646  */
+#line 2350 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 91:
-#line 283 "compose.y" /* yacc.c:1646  */
+#line 293 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_unary_op(kAST_PreInc, (yyvsp[0].pAst), pParseData); }
-#line 2346 "compose_parser.c" /* yacc.c:1646  */
+#line 2356 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 92:
-#line 284 "compose.y" /* yacc.c:1646  */
+#line 294 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_unary_op(kAST_PreDec, (yyvsp[0].pAst), pParseData); }
-#line 2352 "compose_parser.c" /* yacc.c:1646  */
+#line 2362 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 93:
-#line 285 "compose.y" /* yacc.c:1646  */
+#line 295 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_unary_op(kAST_PostInc, (yyvsp[-1].pAst), pParseData); }
-#line 2358 "compose_parser.c" /* yacc.c:1646  */
+#line 2368 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 94:
-#line 286 "compose.y" /* yacc.c:1646  */
+#line 296 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_unary_op(kAST_PostDec, (yyvsp[-1].pAst), pParseData); }
-#line 2364 "compose_parser.c" /* yacc.c:1646  */
+#line 2374 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 95:
-#line 288 "compose.y" /* yacc.c:1646  */
+#line 298 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = (yyvsp[0].pAst); }
-#line 2370 "compose_parser.c" /* yacc.c:1646  */
+#line 2380 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 96:
-#line 290 "compose.y" /* yacc.c:1646  */
+#line 300 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_type_init((yyvsp[-3].dataType), (yyvsp[-1].pAst), pParseData); }
-#line 2376 "compose_parser.c" /* yacc.c:1646  */
+#line 2386 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 97:
-#line 291 "compose.y" /* yacc.c:1646  */
+#line 301 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_entity_or_struct_init((yyvsp[-3].pAst), (yyvsp[-1].pAst), pParseData); }
-#line 2382 "compose_parser.c" /* yacc.c:1646  */
+#line 2392 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 98:
-#line 292 "compose.y" /* yacc.c:1646  */
+#line 302 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_function_call((yyvsp[-3].pAst), (yyvsp[-1].pAst), pParseData); }
-#line 2388 "compose_parser.c" /* yacc.c:1646  */
+#line 2398 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 99:
-#line 294 "compose.y" /* yacc.c:1646  */
+#line 304 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_system_api_call((yyvsp[-3].str), (yyvsp[-1].pAst), pParseData); }
-#line 2394 "compose_parser.c" /* yacc.c:1646  */
+#line 2404 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 100:
-#line 296 "compose.y" /* yacc.c:1646  */
+#line 306 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create(kAST_Transform, pParseData); }
-#line 2400 "compose_parser.c" /* yacc.c:1646  */
+#line 2410 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 101:
-#line 300 "compose.y" /* yacc.c:1646  */
+#line 310 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_Eq,  (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2406 "compose_parser.c" /* yacc.c:1646  */
+#line 2416 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 102:
-#line 301 "compose.y" /* yacc.c:1646  */
+#line 311 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_NEq, (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2412 "compose_parser.c" /* yacc.c:1646  */
+#line 2422 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 103:
-#line 302 "compose.y" /* yacc.c:1646  */
+#line 312 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_LTE, (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2418 "compose_parser.c" /* yacc.c:1646  */
+#line 2428 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 104:
-#line 303 "compose.y" /* yacc.c:1646  */
+#line 313 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_GTE, (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2424 "compose_parser.c" /* yacc.c:1646  */
+#line 2434 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 105:
-#line 304 "compose.y" /* yacc.c:1646  */
+#line 314 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_LT,  (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2430 "compose_parser.c" /* yacc.c:1646  */
+#line 2440 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 106:
-#line 305 "compose.y" /* yacc.c:1646  */
+#line 315 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_binary_op(kAST_GT,  (yyvsp[-2].pAst), (yyvsp[0].pAst), pParseData); }
-#line 2436 "compose_parser.c" /* yacc.c:1646  */
+#line 2446 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 107:
-#line 306 "compose.y" /* yacc.c:1646  */
+#line 316 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_symbol_ref((yyvsp[0].pAst), pParseData); }
-#line 2442 "compose_parser.c" /* yacc.c:1646  */
+#line 2452 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 108:
-#line 310 "compose.y" /* yacc.c:1646  */
+#line 320 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_int_literal((yyvsp[0].numi), pParseData); }
-#line 2448 "compose_parser.c" /* yacc.c:1646  */
+#line 2458 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 109:
-#line 311 "compose.y" /* yacc.c:1646  */
+#line 321 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_float_literal((yyvsp[0].numf), pParseData); }
-#line 2454 "compose_parser.c" /* yacc.c:1646  */
+#line 2464 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 110:
-#line 312 "compose.y" /* yacc.c:1646  */
+#line 322 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_int_literal(1, pParseData); }
-#line 2460 "compose_parser.c" /* yacc.c:1646  */
+#line 2470 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 111:
-#line 313 "compose.y" /* yacc.c:1646  */
+#line 323 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_create_int_literal(0, pParseData); }
-#line 2466 "compose_parser.c" /* yacc.c:1646  */
+#line 2476 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 112:
-#line 317 "compose.y" /* yacc.c:1646  */
+#line 327 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = NULL; }
-#line 2472 "compose_parser.c" /* yacc.c:1646  */
+#line 2482 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 113:
-#line 318 "compose.y" /* yacc.c:1646  */
+#line 328 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = (yyvsp[0].pAst); }
-#line 2478 "compose_parser.c" /* yacc.c:1646  */
+#line 2488 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 114:
-#line 322 "compose.y" /* yacc.c:1646  */
+#line 332 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = NULL; }
-#line 2484 "compose_parser.c" /* yacc.c:1646  */
+#line 2494 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 115:
-#line 323 "compose.y" /* yacc.c:1646  */
+#line 333 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = (yyvsp[0].pAst); }
-#line 2490 "compose_parser.c" /* yacc.c:1646  */
+#line 2500 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 116:
-#line 327 "compose.y" /* yacc.c:1646  */
+#line 337 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_FunctionParams, NULL, NULL, pParseData); }
-#line 2496 "compose_parser.c" /* yacc.c:1646  */
+#line 2506 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 117:
-#line 328 "compose.y" /* yacc.c:1646  */
+#line 338 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_FunctionParams, NULL, (yyvsp[0].pAst),   pParseData); }
-#line 2502 "compose_parser.c" /* yacc.c:1646  */
+#line 2512 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 118:
-#line 329 "compose.y" /* yacc.c:1646  */
+#line 339 "compose.y" /* yacc.c:1646  */
     { (yyval.pAst) = ast_append(kAST_FunctionParams, (yyvsp[-2].pAst),   (yyvsp[0].pAst),   pParseData); }
-#line 2508 "compose_parser.c" /* yacc.c:1646  */
+#line 2518 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 119:
-#line 333 "compose.y" /* yacc.c:1646  */
+#line 343 "compose.y" /* yacc.c:1646  */
     { (yyval.pSymDataType) = parsedata_find_basic_type(pParseData, (yyvsp[0].dataType), 1, 0); }
-#line 2514 "compose_parser.c" /* yacc.c:1646  */
+#line 2524 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 120:
-#line 334 "compose.y" /* yacc.c:1646  */
+#line 344 "compose.y" /* yacc.c:1646  */
     { (yyval.pSymDataType) = parsedata_find_basic_type(pParseData, (yyvsp[0].dataType), 0, 0); }
-#line 2520 "compose_parser.c" /* yacc.c:1646  */
+#line 2530 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 121:
-#line 335 "compose.y" /* yacc.c:1646  */
+#line 345 "compose.y" /* yacc.c:1646  */
     { (yyval.pSymDataType) = parsedata_find_type_from_dotted_id(pParseData, (yyvsp[0].pAst), 1, 0); }
-#line 2526 "compose_parser.c" /* yacc.c:1646  */
+#line 2536 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 122:
-#line 336 "compose.y" /* yacc.c:1646  */
+#line 346 "compose.y" /* yacc.c:1646  */
     { (yyval.pSymDataType) = parsedata_find_type_from_dotted_id(pParseData, (yyvsp[0].pAst), 0, 0); }
-#line 2532 "compose_parser.c" /* yacc.c:1646  */
+#line 2542 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 146:
-#line 367 "compose.y" /* yacc.c:1646  */
+#line 377 "compose.y" /* yacc.c:1646  */
     { (yyval.pSymDataType) = (yyvsp[0].pSymDataType); }
-#line 2538 "compose_parser.c" /* yacc.c:1646  */
+#line 2548 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 147:
-#line 368 "compose.y" /* yacc.c:1646  */
+#line 378 "compose.y" /* yacc.c:1646  */
     { (yyval.pSymDataType) = parsedata_find_type(pParseData, "entity", 1, 0); }
-#line 2544 "compose_parser.c" /* yacc.c:1646  */
+#line 2554 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 148:
-#line 369 "compose.y" /* yacc.c:1646  */
+#line 379 "compose.y" /* yacc.c:1646  */
     { (yyval.pSymDataType) = parsedata_find_type(pParseData, "entity", 0, 0); }
-#line 2550 "compose_parser.c" /* yacc.c:1646  */
+#line 2560 "compose_parser.c" /* yacc.c:1646  */
     break;
 
 
-#line 2554 "compose_parser.c" /* yacc.c:1646  */
+#line 2564 "compose_parser.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2785,7 +2795,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 372 "compose.y" /* yacc.c:1906  */
+#line 382 "compose.y" /* yacc.c:1906  */
 
 
 

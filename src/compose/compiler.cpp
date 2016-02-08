@@ -1958,10 +1958,7 @@ ParseData * parsedata_create(const char * fullPath,
 void parsedata_destroy(ParseData * pParseData)
 {
     ASSERT(pParseData);
-    if (pParseData->pScanner)
-    {
-        yylex_destroy(pParseData->pScanner);
-    }
+    COMP_FREE(pParseData);
 }
 
 const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dottedId)
@@ -2442,6 +2439,9 @@ ParseData * parse(const char * source,
     yy_scan_bytes(source, length, pParseData->pScanner);
 
     ret = yyparse(pParseData);
+
+    yylex_destroy(pParseData->pScanner);
+
     if (ret != 0)
     {
         return nullptr;
