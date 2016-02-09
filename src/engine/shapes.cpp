@@ -278,12 +278,19 @@ Mesh * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices)
             glm::vec4 p0_1 = rotMat1 * p0;
             glm::vec4 p1_1 = rotMat1 * p1;
 
+            // LORRTODO: Comparing the points no longer works with
+            // glm.  Floating point errors break it. However, the i==0
+            // thing doesn't work for closed forms. For example, it
+            // won't work with a torus, which we would like to
+            // support. So, someday we need a better solution,
+            // probably with epsilon comparison.
+
             // If first or last, make a tri
-            if (p0_0 == p0_1) // first, do a tri
+            if (i == 0)// (p0_0 == p0_1) // first, do a tri
             {
                 builder.addTri(p0_0, p1_0, p1_1);
             }
-            else if (p1_0 == p1_1) // last, do a tri
+            else if (i == count-2)// (p1_0 == p1_1) // last, do a tri
             {
                 builder.addTri(p0_0, p1_0, p0_1);
             }
