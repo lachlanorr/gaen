@@ -1,8 +1,8 @@
 //------------------------------------------------------------------------------
-// compute_present.cpp - Auto-generated shader from compute_present.shd
+// compute_present.h - Auto-generated shader from compute_present.shd
 //
 // Gaen Concurrency Engine - http://gaen.org
-// Copyright (c) 2014-2015 Lachlan Orr
+// Copyright (c) 2014-2016 Lachlan Orr
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages

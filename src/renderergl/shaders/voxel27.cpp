@@ -2,7 +2,7 @@
 // voxel27.cpp - Auto-generated shader from voxel27.shd
 //
 // Gaen Concurrency Engine - http://gaen.org
-// Copyright (c) 2014-2015 Lachlan Orr
+// Copyright (c) 2014-2016 Lachlan Orr
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -125,7 +125,7 @@ static const char * kShaderCode_shv =
     "    //vec4 position = vec4(un_VoxelMin + (vpd.gridCoords / lodGridSize), 1.0);\n"
     "    //vec4 position = vec4((vpd.gridCoords / lodGridSize), 1.0);\n"
     "    vec4 position = vec4((vpd.gridCoords / 81.0), 1.0);\n"
-    "    vColor = vec3(81.0, 81.0, 81.0); //vpd.gridCoords;\n"
+    "    vColor = vpd.gridCoords;\n"
     "\n"
     "    gl_PointSize = 4;\n"
     "    \n"

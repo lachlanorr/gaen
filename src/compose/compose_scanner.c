@@ -745,7 +745,7 @@ static yyconst flex_int16_t yy_rule_linenum[104] =
 compose.l - Flex definition for compose lexer
 
 Gaen Concurrency Engine - http://gaen.org
-Copyright (c) 2014-2015 Lachlan Orr
+Copyright (c) 2014-2016 Lachlan Orr
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

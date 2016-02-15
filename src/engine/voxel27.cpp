@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// voxel27.h - Septemvigesimal (27 degree) Voxels
+// voxel27.cpp - Septemvigesimal (27 degree) Voxels
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr

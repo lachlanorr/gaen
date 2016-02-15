@@ -4,7 +4,7 @@
 # make_win32gl.py - Prep windows function pointers from glcorearb.h
 #
 # Gaen Concurrency Engine - http://gaen.org
-# Copyright (c) 2014-2015 Lachlan Orr
+# Copyright (c) 2014-2016 Lachlan Orr
 #
 # This software is provided 'as-is', without any express or implied
 # warranty. In no event will the authors be held liable for any damages
@@ -145,7 +145,7 @@ WIN32GL_H_TEMPLATE = ('//-------------------------------------------------------
                       '// win32gl.h - win32 opengl function pointers\n'
                       '//\n'
                       '// Gaen Concurrency Engine - http://gaen.org\n'
-                      '// Copyright (c) 2014-2015 Lachlan Orr\n'
+                      '// Copyright (c) 2014-2016 Lachlan Orr\n'
                       '//\n'
                       '// This software is provided \'as-is\', without any express or implied\n'
                       '// warranty. In no event will the authors be held liable for any damages\n'
@@ -186,7 +186,7 @@ WIN32GL_CPP_TEMPLATE = ('//-----------------------------------------------------
                         '// win32gl.h - win32 opengl function pointers\n'
                         '//\n'
                         '// Gaen Concurrency Engine - http://gaen.org\n'
-                        '// Copyright (c) 2014-2015 Lachlan Orr\n'
+                        '// Copyright (c) 2014-2016 Lachlan Orr\n'
                         '//\n'
                         '// This software is provided \'as-is\', without any express or implied\n'
                         '// warranty. In no event will the authors be held liable for any damages\n'

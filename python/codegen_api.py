@@ -4,7 +4,7 @@
 # codegen_api.py - Update system_api_meta.cpp with definitions from system_api.h
 #
 # Gaen Concurrency Engine - http://gaen.org
-# Copyright (c) 2014-2015 Lachlan Orr
+# Copyright (c) 2014-2016 Lachlan Orr
 #
 # This software is provided 'as-is', without any express or implied
 # warranty. In no event will the authors be held liable for any damages
