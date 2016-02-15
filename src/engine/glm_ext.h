@@ -182,9 +182,9 @@ template <typename T, precision P>
 GLM_FUNC_QUALIFIER tmat3x3<T,P> mat3_rotation(glm::tvec3<T,P> angles)
 {
     tmat4x4<T,P> m4(1.0f);
-    glm::rotate(m4, angles.x, glm::tvec3<T,P>(1.0f, 0.0f, 0.0f));
-    glm::rotate(m4, angles.y, glm::tvec3<T,P>(0.0f, 1.0f, 0.0f));
-    glm::rotate(m4, angles.z, glm::tvec3<T,P>(0.0f, 0.0f, 1.0f));
+    m4 = glm::rotate(m4, angles.x, glm::tvec3<T,P>(1.0f, 0.0f, 0.0f));
+    m4 = glm::rotate(m4, angles.y, glm::tvec3<T,P>(0.0f, 1.0f, 0.0f));
+    m4 = glm::rotate(m4, angles.z, glm::tvec3<T,P>(0.0f, 0.0f, 1.0f));
     return to_mat3x3(m4);
 }
 
@@ -192,9 +192,9 @@ template <typename T, precision P>
 GLM_FUNC_QUALIFIER tmat4x3<T,P> mat43_rotation(glm::tvec3<T,P> angles)
 {
     tmat4x4<T,P> m4(1.0f);
-    glm::rotate(m4, angles.x, glm::tvec3<T,P>(1.0f, 0.0f, 0.0f));
-    glm::rotate(m4, angles.y, glm::tvec3<T,P>(0.0f, 1.0f, 0.0f));
-    glm::rotate(m4, angles.z, glm::tvec3<T,P>(0.0f, 0.0f, 1.0f));
+    m4 = glm::rotate(m4, angles.x, glm::tvec3<T,P>(1.0f, 0.0f, 0.0f));
+    m4 = glm::rotate(m4, angles.y, glm::tvec3<T,P>(0.0f, 1.0f, 0.0f));
+    m4 = glm::rotate(m4, angles.z, glm::tvec3<T,P>(0.0f, 0.0f, 1.0f));
     return to_mat4x3(m4);
 }
 
