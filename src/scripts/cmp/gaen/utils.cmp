@@ -237,8 +237,8 @@ component WasdRot
 
     #init()
     {
-        $.watch_input_state(#mouse_look, uint{0}, #mouse_look);
-        $.watch_mouse(#mouse_move, #mouse_wheel);
+        //$.watch_input_state(#mouse_look, uint{0}, #mouse_look);
+        //$.watch_mouse(#mouse_move, #mouse_wheel);
 
         $.watch_input_state(#forward, uint{0}, #forward);
         $.watch_input_state(#back, uint{0}, #back);

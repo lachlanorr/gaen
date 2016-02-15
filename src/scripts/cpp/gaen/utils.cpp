@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 0d335f0d2f7095ab1f4ebc1c8e28484f
+// HASH: 7f4d2b757e6ce35b72752a7124ff8728
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -487,8 +487,6 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            system_api::watch_input_state(HASH::mouse_look, (u32)0, HASH::mouse_look, entity());
-            system_api::watch_mouse(HASH::mouse_move, HASH::mouse_wheel, entity());
             system_api::watch_input_state(HASH::forward, (u32)0, HASH::forward, entity());
             system_api::watch_input_state(HASH::back, (u32)0, HASH::back, entity());
             system_api::watch_input_state(HASH::left, (u32)0, HASH::left, entity());
