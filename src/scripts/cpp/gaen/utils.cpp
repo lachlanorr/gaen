@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 233bc9525033bfe60bc407ff4dde593f
+// HASH: 0d335f0d2f7095ab1f4ebc1c8e28484f
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -209,7 +209,7 @@ public:
         }
         if ((leftRight() != 0.00000000e+00f))
         {
-            pos() += (-(dirRight()) * ((moveDelta() * leftRight()) * deltaSecs));
+            pos() += (dirRight() * ((moveDelta() * leftRight()) * deltaSecs));
             hasMoved = 1;
         }
         if (hasMoved)

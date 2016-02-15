@@ -144,7 +144,7 @@ component WasdCamera
         }
         if (leftRight != 0.0)
         {
-            pos += -dirRight * (moveDelta * leftRight * deltaSecs);
+            pos += dirRight * (moveDelta * leftRight * deltaSecs);
             hasMoved = true;
         }
         if (hasMoved)

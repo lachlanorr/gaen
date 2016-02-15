@@ -27,10 +27,43 @@
 #include <gtest/gtest.h>
 
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include "engine/glm_ext.h"
 
 #include "engine/voxel.h"
 
 using namespace gaen;
+
+TEST(MathTest, Mat3x4)
+{
+    glm::mat4 trans4(1.0f);
+    trans4 = glm::translate(trans4, glm::vec3(1.0f, 10.0f, 100.0f));
+    trans4 = glm::rotate(trans4, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    trans4 = glm::rotate(trans4, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    trans4 = glm::rotate(trans4, glm::radians(135.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    trans4 = glm::scale(trans4, glm::vec3(10.0f, 100.0f, 1000.0f));
+
+    glm::mat4x3 trans43 = glm::to_mat4x3(trans4);
+    glm::mat4 trans4Re = glm::to_mat4x4(trans43);
+
+    ASSERT_TRUE(trans4 == trans4Re);
+
+}
+
+TEST(MathTest, Mat3x3)
+{
+    glm::mat4 trans4(1.0f);
+    trans4 = glm::rotate(trans4, glm::radians(45.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    trans4 = glm::rotate(trans4, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    trans4 = glm::rotate(trans4, glm::radians(135.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    glm::mat3 trans3 = glm::to_mat3x3(trans4);
+    glm::mat4 trans4Re = glm::to_mat4x4(trans3);
+
+    ASSERT_TRUE(trans4 == trans4Re);
+
+}
 
 TEST(MathTest, VoxelNeighborNormals)
 {

@@ -31,6 +31,7 @@
 
 #include "engine/MessageQueue.h"
 #include "engine/ModelMgr.h"
+#include "engine/glm_ext.h"
 
 #include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/InsertLightDirectional.h"
@@ -471,9 +472,9 @@ void RendererGL::render()
         // LORRTEMP - Remove once we get materials setting the color properly
         mpActiveShader->setUniformVec4(HASH::uvColor, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
 
-        static glm::mat4 view = glm::translation(glm::vec3(0.0f, 0.0f, -5.0f));
-        glm::mat4 mvp = mProjection * view * matMeshInst.pModelInstance->transform;
-        glm::mat3 normalTrans = glm::mat3(view * matMeshInst.pModelInstance->transform);
+        static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+        glm::mat4 mvp = mProjection * view * glm::to_mat4x4(matMeshInst.pModelInstance->transform);
+        glm::mat3 normalTrans = glm::to_mat3x3(view * glm::to_mat4x4(matMeshInst.pModelInstance->transform));
 
         mpActiveShader->setUniformMat4(HASH::umMVP, mvp);
         mpActiveShader->setUniformMat3(HASH::umNormal, normalTrans);
