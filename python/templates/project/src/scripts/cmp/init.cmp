@@ -24,7 +24,7 @@ entity start
         // Simple test of sample fibonacci api function call.
         // This is for illustration only, to show you how to
         // create your own api calls.
-        $.print(string{"$.fibonacci(7) = %u", $.fibonacci(7)});
+        $.print(string{"$.fibonacci(7) = %u", $.fibonacci(uint{7})});
 
         // Make box and light entities
         entity box = Box{};
