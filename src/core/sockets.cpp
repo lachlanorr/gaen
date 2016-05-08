@@ -26,6 +26,12 @@
 
 #include "core/stdafx.h"
 
+// LORRTODO: Need to work out the IP6 solution with inet_notoa nad inet_addr below.
+// For now, pretty low priority.
+#if (IS_PLATFORM_WIN32)
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#endif // #if (IS_PLATFORM_WIN32)
+
 #include "core/sockets.h"
 
 namespace gaen

@@ -354,25 +354,25 @@ static void prepare_mesh_attributes(const Mesh & mesh)
     // position
     if (mesh.hasVertPosition())
     {
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)mesh.vertPositionOffset());
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertPositionOffset());
         glEnableVertexAttribArray(0);
 
         // normal
         if (mesh.hasVertNormal())
         {
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)mesh.vertNormalOffset());
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertNormalOffset());
             glEnableVertexAttribArray(1);
 
             // uv
             if (mesh.hasVertUv())
             {
-                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)mesh.vertUvOffset());
+                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertUvOffset());
                 glEnableVertexAttribArray(2);
 
                 // uv tangents
                 if (mesh.hasTan())
                 {
-                    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)mesh.vertTanOffset());
+                    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertTanOffset());
                     glEnableVertexAttribArray(3);
                 }
             }

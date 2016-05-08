@@ -70,13 +70,6 @@ int main(int argc, char ** argv)
 {
     using namespace gaen;
 
-#if IS_PLATFORM_WIN32
-    // Prevent windows printf from putting 3 exponent digits.  This is
-    // necessary to get the same cmpc output for all platforms, as the
-    // 3 digit thing windows does is non-standard.
-    _set_output_format(_TWO_DIGIT_EXPONENT);
-#endif
-
     if (argc < 2)
     {
         usage_and_exit();

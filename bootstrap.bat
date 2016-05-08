@@ -32,10 +32,10 @@ if not exist "%BUILD_DIR%" (
 cd %BUILD_DIR%
 
 if "%PLAT%"=="win64" (
-    cmake -G "Visual Studio 12 Win64" %GAEN_ROOT%
+    cmake -G "Visual Studio 14 Win64" %GAEN_ROOT%
 )
 if "%PLAT%"=="win32" (
-    cmake -G "Visual Studio 12" %GAEN_ROOT%
+    cmake -G "Visual Studio 14" %GAEN_ROOT%
 )
 
 

@@ -122,7 +122,7 @@ struct VoxelRef
     }
 
     VoxelRef(VoxelType type, u16 material, u32 imageIdx, u32 voxelIdx)
-      : type{type}
+      : type{(u64)type}
       , material{material}
       , imageIdx{imageIdx}
       , voxelIdx{voxelIdx}

@@ -128,7 +128,6 @@ namespace gaen
 
 // Some replacement defs for things missing in win32
 #if IS_PLATFORM_WIN32
-#define noexcept 
 #define snprintf c99_snprintf
 #define vsnprintf c99_vsnprintf
 int c99_snprintf(char* str, size_t size, const char* format, ...);
@@ -257,7 +256,7 @@ typedef double          f64;
 template <typename T>
 inline T align(T val, u32 alignment)
 {
-    return (val + alignment-1) & ~(alignment-1);
+    return (val + (T)alignment-1) & ~((T)alignment-1);
 }
 
 inline bool is_power_of_two(u32 val)

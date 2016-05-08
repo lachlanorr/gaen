@@ -99,7 +99,8 @@ void set_thread_affinity(u32 coreId)
 
     HANDLE hThread = GetCurrentThread(); // can't use ti.thread.native_handle() since it may not be set yet
 
-    DWORD_PTR affinityMask = 1 << coreId;
+    // LORRTODO - Works on 32 bit? VS2015 gave warning about following line and I added (u64) casts
+    DWORD_PTR affinityMask = (u64)1 << coreId;
     DWORD_PTR ret = SetThreadAffinityMask(hThread, affinityMask);
 
     if (ret == 0)
