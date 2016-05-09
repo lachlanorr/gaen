@@ -126,14 +126,6 @@ namespace gaen
 // Determines if memory allocs/deallocs are tracked for reporting.
 #define TRACK_MEM WHEN(HAS(DEV_BUILD))
 
-// Some replacement defs for things missing in win32
-#if IS_PLATFORM_WIN32
-#define snprintf c99_snprintf
-#define vsnprintf c99_vsnprintf
-int c99_snprintf(char* str, size_t size, const char* format, ...);
-int c99_vsnprintf(char* str, size_t size, const char* format, va_list ap);
-#endif
-
 // Platform specific way to halt on assert and breatk into debugger.
 // If you want to override about/break functions (as you might in unit
 // tests) call override_failure_funcs with your own functions.

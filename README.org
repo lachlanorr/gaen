@@ -43,7 +43,7 @@ me work through most of the Posix required changes. But, alas, I
 haven't ported to Linux yet.
 
 [[http://en.wikipedia.org/wiki/C++11][C++11]] features are used extensively, so you must have a recent
-compiler.  On Windows this means VC 2013 or above. On OSX, the most
+compiler.  On Windows this means VC 2015 or above. On OSX, the most
 recent Xcode will serve you well. On Linux, this will mean at least
 GCC 4.8.
 
