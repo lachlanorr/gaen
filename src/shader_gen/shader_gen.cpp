@@ -506,16 +506,16 @@ S generate_shader_h(const ShaderInfo & si)
     code += LF;
 
     // storage for codes, uniforms, and attributes
-    snprintf(scratch, kMaxPath, "    static const u32 kCodeCount = %u;\n", si.sources.size());
+    snprintf(scratch, kMaxPath, "    static const u32 kCodeCount = %u;\n", (u32)si.sources.size());
     code += scratch;
     if (si.uniforms.size() > 0)
     {
-        snprintf(scratch, kMaxPath, "    static const u32 kUniformCount = %u;\n", si.uniforms.size());
+        snprintf(scratch, kMaxPath, "    static const u32 kUniformCount = %u;\n", (u32)si.uniforms.size());
         code += scratch;
     }
     if (si.attributes.size() > 0)
     {
-        snprintf(scratch, kMaxPath, "    static const u32 kAttributeCount = %u;\n", si.attributes.size());
+        snprintf(scratch, kMaxPath, "    static const u32 kAttributeCount = %u;\n", (u32)si.attributes.size());
         code += scratch;
     }
 
