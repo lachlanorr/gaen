@@ -54,16 +54,16 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 :: Issue cmake command
 cd %BUILD_DIR%
 if "%PLAT%"=="win64" (
-    cmake -G "Visual Studio 12 Win64" %<<PROJECT_NAME_UPPER>>_ROOT%
+    cmake -G "Visual Studio 14 Win64" %<<PROJECT_NAME_UPPER>>_ROOT%
     if %errorlevel% neq 0 exit /b %errorlevel%
 )
 if "%PLAT%"=="win32" (
-    cmake -G "Visual Studio 12" %<<PROJECT_NAME_UPPER>>_ROOT%
+    cmake -G "Visual Studio 14" %<<PROJECT_NAME_UPPER>>_ROOT%
     if %errorlevel% neq 0 exit /b %errorlevel%
 )
 
 :: Build cmpc so we can run codegen.py and boostrap our scripts
-call "%VS120COMNTOOLS%\vsvars32.bat"
+call "%VS140COMNTOOLS%\vsvars32.bat"
 if %errorlevel% neq 0 exit /b %errorlevel%
 msbuild "%BUILD_DIR%\gaen\src\cmpc\cmpc.vcxproj"
 if %errorlevel% neq 0 exit /b %errorlevel%
@@ -78,11 +78,11 @@ echo.
 :: Re-run cmake since the compiled scripts have been added to
 :: the cmake files.
 if "%PLAT%"=="win64" (
-    cmake -G "Visual Studio 12 Win64" %<<PROJECT_NAME_UPPER>>_ROOT%
+    cmake -G "Visual Studio 14 Win64" %<<PROJECT_NAME_UPPER>>_ROOT%
     if %errorlevel% neq 0 exit /b %errorlevel%
 )
 if "%PLAT%"=="win32" (
-    cmake -G "Visual Studio 12" %<<PROJECT_NAME_UPPER>>_ROOT%
+    cmake -G "Visual Studio 14" %<<PROJECT_NAME_UPPER>>_ROOT%
     if %errorlevel% neq 0 exit /b %errorlevel%
 )
 
