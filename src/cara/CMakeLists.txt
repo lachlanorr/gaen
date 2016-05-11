@@ -24,43 +24,19 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (chef_SOURCES
-  Chef.cpp
-  Chef.h
-  CookerRegistry.cpp
-  CookerRegistry.h
-  cookers.cpp
-  cookers.h
-  cooker_utils.cpp
-  cooker_utils.h
-  Tga.cpp
-  Tga.h
-  main_chef.cpp
+SET (cara_SOURCES
+  cara.cpp
+  cara.h
   )
 
-MSVC_PRECOMPILED_HEADER (chef chef_SOURCES)
-IDE_SOURCE_PROPERTIES( "/" "${chef_SOURCES}")
+MSVC_PRECOMPILED_HEADER (cara cara_SOURCES)
+IDE_SOURCE_PROPERTIES( "/" "${cara_SOURCES}")
 
-ADD_EXECUTABLE (chef
-  ${chef_SOURCES}
+ADD_LIBRARY (cara
+  ${cara_SOURCES}
   )
 
-ADD_DEPENDENCIES(chef
-  freetype
-  )
-
-TARGET_LINK_LIBRARIES (chef
+ADD_DEPENDENCIES(cara
   core
   assets
-  optimized ${FREETYPE_LIB}
-  debug     ${FREETYPE_LIBD}
-  ${PLATFORM_LINK_LIBS}
-  )
-
-package (chef)
-
-ADD_CUSTOM_TARGET (
-  COOK_ASSETS
-  COMMAND ${packaged_dir}/chef
-  DEPENDS chef
   )

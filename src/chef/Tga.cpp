@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "chef/stdafx.h"
+
 #include "core/mem.h"
 #include "assets/Gimg.h"
 

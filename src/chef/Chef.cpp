@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "chef/stdafx.h"
+
 #include "core/base_defines.h"
 #include "core/thread_local.h"
 

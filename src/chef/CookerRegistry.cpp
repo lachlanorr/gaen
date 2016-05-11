@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "chef/stdafx.h"
+
 #include "assets/file_utils.h"
 
 #include "chef/Chef.h"
