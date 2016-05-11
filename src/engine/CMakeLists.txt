@@ -126,5 +126,5 @@ ADD_DEPENDENCIES(engine
   assets
   messages_gen
   fnv_hashes_precalc
+  freetype
   )
-
