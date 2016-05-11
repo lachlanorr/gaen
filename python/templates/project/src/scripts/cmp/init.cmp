@@ -17,7 +17,7 @@ entity Light
     }
 }
 
-entity start
+entity Start
 {
     #init()
     {
