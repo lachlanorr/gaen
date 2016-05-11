@@ -71,3 +71,15 @@ create_default_target_launcher(
     ARGS "-l 127.0.0.1"
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
 )
+
+
+SET (publish_dir "${CMAKE_BINARY_DIR}/publish")
+ADD_CUSTOM_TARGET (
+  PUBLISH
+  COMMAND ${CMAKE_COMMAND} -E remove_directory ${publish_dir}
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${publish_dir}
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:gaen> ${publish_dir}
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:gac> ${publish_dir}
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/cooked_win ${publish_dir}/assets
+  DEPENDS COOK_ASSETS gaen
+  )
