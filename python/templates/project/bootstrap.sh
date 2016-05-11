@@ -4,6 +4,17 @@
 <<PROJECT_NAME_UPPER>>_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BUILD_ROOT=$<<PROJECT_NAME_UPPER>>_ROOT/build
 
+# Clone gaen if it doesn't exist. This will need to happen for
+# anyone who has cloned the project specific repository and is running
+# bootstrap.sh for the first time.
+if [ ! -d "./gaen" ]; then
+    git clone -b <<GAEN_GIT_BRANCH>> <<GAEN_GIT_REMOTE>> gaen
+    cd gaen
+    git checkout <<GAEN_GIT_COMMIT>>
+    cd ..
+fi
+
+
 [ -d "$BUILD_ROOT" ] || mkdir -p "$BUILD_ROOT"
 
 elementIn () {

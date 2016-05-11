@@ -16,6 +16,10 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 IF NOT EXIST .\gaen (
   git clone -b <<GAEN_GIT_BRANCH>> <<GAEN_GIT_REMOTE>> gaen
   if %errorlevel% neq 0 exit /b %errorlevel%
+  cd gaen
+  git checkout <<GAEN_GIT_COMMIT>>
+  if %errorlevel% neq 0 exit /b %errorlevel%
+  cd ..
 )
 
 :: Write root directory to main <<PROJECT_NAME_UPPER>>_ROOT env var
