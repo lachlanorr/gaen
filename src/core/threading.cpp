@@ -84,7 +84,7 @@ bool is_threading_init()
     return sIsThreadingInit;
 }
 
-inline thread_id num_threads()
+thread_id num_threads()
 {
     return sNumThreads;
 }
