@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "chef/stdafx.h"
+
 #include <glm/common.hpp>
 
 #include "core/base_defines.h"

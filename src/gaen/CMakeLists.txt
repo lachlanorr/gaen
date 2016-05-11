@@ -78,10 +78,15 @@ ELSE(IOS)
     engine
     renderergl
     scripts
-    optimized ${FREETYPE_LIB}
-    debug     ${FREETYPE_LIBD}
     ${PROJECT_LINK_LIBS}
     ${PLATFORM_LINK_LIBS}
+    )
+
+  # Set debugging params for ALL_BUILD
+  create_target_launcher(
+    gaen
+    ARGS "-l 127.0.0.1"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     )
 
 ENDIF(IOS)

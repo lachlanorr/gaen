@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// file_utils.cpp - Various helper reoutines for file system activities
+// file_utils.cpp - Various helper routines for file system activities
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr

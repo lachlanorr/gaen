@@ -88,7 +88,7 @@ SET (engine_SOURCES
   ${engine_messages_SOURCES}
   )
 
-#MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
+MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${engine_SOURCES}")
 IDE_SOURCE_PROPERTIES( "/messages" "${engine_messages_SOURCES}")
 
@@ -126,5 +126,4 @@ ADD_DEPENDENCIES(engine
   assets
   messages_gen
   fnv_hashes_precalc
-  freetype
   )

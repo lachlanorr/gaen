@@ -51,12 +51,23 @@ ExternalProject_Add(freetype
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/freetype
   CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${FREETYPE_PATH}
 )
-INCLUDE_DIRECTORIES (${FREETYPE_PATH}/include)
+INCLUDE_DIRECTORIES (${FREETYPE_PATH}/include/freetype2)
 SET (FREETYPE_LIB "${FREETYPE_PATH}/lib/freetype.lib")
 SET (FREETYPE_LIBD "${FREETYPE_PATH}/lib/freetyped.lib")
 #-------------------------------------------------------------------------------
 # External dependencies (END)
 #-------------------------------------------------------------------------------
 
+# Support for creating launch params in Visual Studio
+LIST (APPEND CMAKE_MODULE_PATH "${ext_dir}/rpavlik-cmake")
+INCLUDE (CreateLaunchers)
+
 ADD_SUBDIRECTORY(src)
 
+
+# Set debugging params for ALL_BUILD
+create_default_target_launcher(
+    gaen
+    ARGS "-l 127.0.0.1"
+    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+)

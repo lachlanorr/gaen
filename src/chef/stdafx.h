@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// cooker_utils.cpp - Shared utilities used by various cookers
+// stdafx.h - Precompiled headers
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,35 +24,10 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "chef/stdafx.h"
+#ifndef GAEN_CHEF_STDAFX_H
+#define GAEN_CHEF_STDAFX_H
 
-#include "assets/file_utils.h"
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
-#include "chef/Tga.h"
-
-#include "chef/cooker_utils.h"
-
-namespace gaen
-{
-
-ImageInfo read_image_info(char * path)
-{
-    const char * ext = get_ext(path);
-
-    FileReader rdr(path);
-
-    if (0 == strcmp(ext, "tga"))
-    {
-        Tga tga;
-        rdr.read(&tga);
-        return ImageInfo(kORIG_TopLeft, tga.width, tga.height);
-    }
-    else
-    {
-        PANIC("Unknown image format: %s", ext);
-        return ImageInfo(kORIG_TopLeft, 0, 0);
-    }
-}
-
-
-} // namespace gaen
+#endif // #ifndef GAEN_CHEF_STDAFX_H

@@ -45,4 +45,3 @@ ADD_LIBRARY (assets
 ADD_DEPENDENCIES(assets
   core
   )
-
