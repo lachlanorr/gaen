@@ -38,5 +38,25 @@ SET (src_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 INCLUDE (${cmake_dir}/core_defs.cmake)
 
+#-------------------------------------------------------------------------------
+# External dependencies
+#-------------------------------------------------------------------------------
+INCLUDE (ExternalProject)
+
+# FreeType
+SET (FREETYPE_VER "freetype-2.6.3")
+SET (FREETYPE_PATH "${CMAKE_BINARY_DIR}/external/${FREETYPE_VER}")
+ExternalProject_Add(freetype
+  URL "http://download.savannah.gnu.org/releases/freetype/${FREETYPE_VER}.tar.gz"
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/freetype
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${FREETYPE_PATH}
+)
+INCLUDE_DIRECTORIES (${FREETYPE_PATH}/include)
+SET (FREETYPE_LIB "${FREETYPE_PATH}/lib/freetype.lib")
+SET (FREETYPE_LIBD "${FREETYPE_PATH}/lib/freetyped.lib")
+#-------------------------------------------------------------------------------
+# External dependencies (END)
+#-------------------------------------------------------------------------------
+
 ADD_SUBDIRECTORY(src)
 

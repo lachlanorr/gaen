@@ -78,6 +78,8 @@ ELSE(IOS)
     engine
     renderergl
     scripts
+    optimized ${FREETYPE_LIB}
+    debug     ${FREETYPE_LIBD}
     ${PROJECT_LINK_LIBS}
     ${PLATFORM_LINK_LIBS}
     )
