@@ -49,8 +49,16 @@ def get_git_branch():
     os.chdir(wd)
     o = o.splitlines()[0]
     if not o.startswith('On branch '):
-        print 'Unexepcted output from git status:', o
+        print 'Unexpected output from git status:', o
     o = o.split()[-1]
+    return o
+
+def get_git_commit():
+    wd = os.getcwd()
+    os.chdir(dirs.SCRIPT_DIR)
+    o = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
+    os.chdir(wd)
+    o = o.splitlines()[0]
     return o
 
 def project_name():
@@ -63,7 +71,8 @@ def project_name():
 REPLACEMENTS = { 'PROJECT_NAME': project_name(),
                  'PROJECT_NAME_UPPER': project_name().upper(),
                  'GAEN_GIT_REMOTE': get_git_remote(),
-                 'GAEN_GIT_BRANCH': get_git_branch()
+                 'GAEN_GIT_BRANCH': get_git_branch(),
+                 'GAEN_GIT_COMMIT': get_git_commit()
 }
 
 def write_file(out_f, data):
