@@ -25,8 +25,8 @@
 #-------------------------------------------------------------------------------
 
 SET (cara_SOURCES
-  cara.cpp
-  cara.h
+  Cara.cpp
+  Cara.h
   )
 
 MSVC_PRECOMPILED_HEADER (cara cara_SOURCES)
