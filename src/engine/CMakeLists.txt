@@ -27,6 +27,8 @@
 INCLUDE (messages/messages.cmake)
 
 SET (engine_SOURCES
+  AssetMgr.cpp
+  AssetMgr.h
   Block.h
   BlockData.h
   BlockMemory.cpp
