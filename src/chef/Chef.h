@@ -76,6 +76,9 @@ private:
     void overlayRecipes(Config<kMEM_Chef> & recipe, const RecipeList & recipes);
     bool convertRelativeDependencyPath(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath);
 
+	void getDependencyFilePath(char * dependencyFilePath, const char * path);
+	void deleteDependencyFile(const char * path);
+
     u32 mId;
     bool mForce;
     DependencyCB mDependencyCB;
