@@ -46,6 +46,7 @@ void recurse_dir(const char * root_path, void * context, RecurseDirCB cb);
 bool file_exists(const char * filePath);
 bool dir_exists(const char * dirPath);
 void process_path(char * path);
+void delete_file(const char * filePath);
 
 // Get parent directory of file_path
 void parent_dir(char * dirPath, const char * filePath);
