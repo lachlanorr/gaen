@@ -66,6 +66,10 @@ entity Camera
 
 entity Start
 {
+    // 2016-05-15 - Proposed asset keyword to allow us to preload all
+    // dependent assets before entity/component starts
+    //asset foo{"/fonts/profont.gatl"};
+
     #init()
     {
 //        $.print($.hashstr(#this_isATEST));
