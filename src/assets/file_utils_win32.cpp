@@ -50,6 +50,11 @@ bool dir_exists(const char * filePath)
             (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
+void delete_file(const char * filePath)
+{
+	DeleteFileA(filePath);
+}
+
 void make_dirs(const char * dirPath)
 {
     if (!dirPath || *dirPath == '\0')
