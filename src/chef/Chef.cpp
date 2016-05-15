@@ -295,6 +295,27 @@ bool Chef::convertRelativeDependencyPath(char * dependencyRawPath, const char * 
     return false;
 }
 
+void Chef::getDependencyFilePath(char * dependencyFilePath, const char * path)
+{
+    ASSERT(dependencyFilePath);
+    ASSERT(path);
+
+    strcpy(dependencyFilePath, path);
+    strcat(dependencyFilePath, ".dep");
+}
+
+void Chef::deleteDependencyFile(const char * path)
+{
+    ASSERT(path);
+
+    char depFilePath[kMaxPath+1];
+
+    getDependencyFilePath(depFilePath, path);
+
+    if (file_exists(depFilePath))
+        delete_file(depFilePath);
+}
+
 void Chef::reportDependency(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath)
 {
     // If passed in an output path, use it, otherwise us a scratch space
@@ -311,6 +332,18 @@ void Chef::reportDependency(char * dependencyRawPath, const char * sourceRawPath
     char rawRelativePath[kMaxPath+1];
     getRawRelativePath(rawRelativePath, depRawPath);
 
+    char depFilePath[kMaxPath+1];
+    getDependencyFilePath(depFilePath, sourceRawPath);
+
+    if (file_exists(depFilePath))
+    {
+        Config<kMEM_Chef> deps;
+        deps.read(depFilePath);
+
+        //deps.
+
+    }
+
     mDependencyCB(mId, sourceRawPath, rawRelativePath);
 }
 
@@ -326,6 +359,13 @@ bool Chef::shouldCook(const char * rawPath, const char * cookedPath, const Recip
     {
         if (is_file_newer(recipePath.c_str(), cookedPath))
             return true;
+    }
+
+    char depFile[kMaxPath + 1];
+    getDependencyFilePath(depFile, rawPath);
+    if (file_exists(depFile))
+    {
+        printf("TODO: Check each dependent file to see if it has changed.\n");
     }
 
     return false;
