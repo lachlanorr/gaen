@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// cara.h - User interface library, fonts, windows, etc
+// Cara.cpp - User interface library, fonts, windows, etc
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr

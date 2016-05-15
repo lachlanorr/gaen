@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// cara.h - User interface library, fonts, windows, etc
+// Cara.h - User interface library, fonts, windows, etc
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -29,6 +29,26 @@
 
 namespace gaen
 {
+
+class TextViewer
+{
+
+}; // class TextViewer
+
+class TextScroller
+{
+
+};
+
+
+class Cara
+{
+public:
+    Cara();
+
+private:
+
+}; // class Cara
 
 } // namespace gaen
 
