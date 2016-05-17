@@ -47,11 +47,6 @@ namespace gaen
 
 extern const bool reg;
 
-void record_dependency(u32 chefId, const char * assetRawPath, const char * dependencyRawPath)
-{
-    printf("TODO: record dependency %s -> %s\n", assetRawPath, dependencyRawPath);
-}
-
 void failure_cb(const char * msg)
 {
     printf("%s\n", msg);
@@ -89,9 +84,9 @@ void print_usage_and_exit(int retcode = 1)
     exit(retcode);
 }
 
-void chef_thread(SpscRingBuffer<CookInfo*> & spsc, const char * platform, const char * assetsDir, bool force, DependencyCB dependencyCB)
+void chef_thread(SpscRingBuffer<CookInfo*> & spsc, const char * platform, const char * assetsDir, bool force)
 {
-    Chef chef(active_thread_id(), platform, assetsDir, force, dependencyCB);
+    Chef chef(active_thread_id(), platform, assetsDir, force);
 }
 
 void recurse_dir_cb(const char * path, void * context)
@@ -220,7 +215,7 @@ int main(int argc, char ** argv)
     SpscRingBuffer<
     */
 
-    Chef chef(1, platform, assetsDir, force, gaen::record_dependency);
+    Chef chef(1, platform, assetsDir, force);
 
     if (dir_exists(path))
     {

@@ -58,8 +58,6 @@ bool Config<memType>::read(std::istream & input)
     TLARRAY(char, line, kMaxLine);
 
     const char * sectionName = addName(kGlobalSection);
-    mSectionNames.push_back(sectionName);
-    StringVec * pCurrSectionKeys = &mSectionKeys[sectionName];
 
     while (!input.eof())
     {
@@ -72,17 +70,12 @@ bool Config<memType>::read(std::istream & input)
         {
         case kPRT_KeyVal:
         {
-            const char * key = addName(res.lhs);
-            const char * val = addName(res.rhs);
-            pCurrSectionKeys->push_back(key);
-            mSectionData[sectionName][key] = val;
+            set(sectionName, res.lhs, res.rhs);
             break;
         }
         case kPRT_SectionStart:
         {
             sectionName = addName(res.lhs);
-            mSectionNames.push_back(sectionName);
-            pCurrSectionKeys = &mSectionKeys[sectionName];
             break;
         }
         case kPRT_Error:
@@ -100,24 +93,59 @@ bool Config<memType>::read(const char * path)
     ifs.open(path, std::ifstream::in | std::ifstream::binary);
     if (!ifs.good())
     {
-        ERR("Unable to open config file: %s", path);
+        ERR("Unable to open config file for reading: %s", path);
         return false;
     }
     return read(ifs);
 }
 
 template <MemType memType>
+void Config<memType>::writeKeyVal(std::ostream & output,
+                                  const char * key,
+                                  const char * val)
+{
+    output.write(key, strlen(key));
+    if (val && val[0] != '\0')
+    {
+        output.put('=');
+        output.write(val, strlen(val));
+    }
+    output.put('\n');
+}
+
+template <MemType memType>
 bool Config<memType>::write(std::ostream & output)
 {
-    PANIC("Not implemented");
-    return false;
+    for (auto section : mSectionNames)
+    {
+        if (0 != strcmp(section, kGlobalSection))
+        {
+            output.put('[');
+            output.write(section, strlen(section));
+            output.put(']');
+            output.put('\n');
+        }
+
+        for (auto keyValIt : mSectionData[section])
+            writeKeyVal(output, keyValIt.first, keyValIt.second);
+
+        output.put('\n');
+    }
+
+    return true;
 }
 
 template <MemType memType>
 bool Config<memType>::write(const char * path)
 {
-    PANIC("Not implemented");
-    return false;
+    std::ofstream ofs;
+    ofs.open(path, std::ifstream::out | std::ifstream::binary);
+    if (!ofs.good())
+    {
+        ERR("Unable to open config file writing: %s", path);
+        return false;
+    }
+    return write(ofs);
 }
 
 
@@ -146,6 +174,12 @@ typename Config<memType>::StringVec::const_iterator Config<memType>::keysBegin(c
     auto it = mSectionKeys.find(section);
     PANIC_IF(it == mSectionKeys.end(), "Section %s does not exist", section);
     return it->second.begin();
+}
+
+template <MemType memType>
+typename Config<memType>::StringVec::const_iterator Config<memType>::keysEnd()
+{
+    return keysEnd(kGlobalSection);
 }
 
 template <MemType memType>
@@ -312,22 +346,37 @@ typename Config<memType>::FloatVec Config<memType>::getFloatVec(const char * sec
     return vec;
 }
 
-
-
-
-
-/*
 template <MemType memType>
-void set(const char * key, const char * value)
+void Config<memType>::setValueless(const char * key)
+{
+    set(key, "");
+}
+
+template <MemType memType>
+void Config<memType>::setValueless(const char * section, const char * key)
+{
+    set(section, key, "");
+}
+
+template <MemType memType>
+void Config<memType>::set(const char * key, const char * value)
 {
     set(kGlobalSection, key, value);
 }
 
 template <MemType memType>
-void set(const char * section, const char * key, const char * value)
+void Config<memType>::set(const char * section, const char * key, const char * value)
 {
-    
+    section = addName(section);
+    if (!hasSection(section))
+        mSectionNames.push_back(section);
+    key = addName(key);
+    value = addName(value);
+    mSectionKeys[section].push_back(key);
+    mSectionData[section][key] = value;
 }
+
+/*
 
 template <MemType memType>
 void setInt(const char * key, i32 value)
@@ -513,6 +562,7 @@ typename Config<memType>::ProcessResult Config<memType>::processLine(char * line
     // de-escape any escaped chars
     char * eq = find_eq(line);
 
+    // A key/value pair
     if (eq)
     {
         // turn '=' into a null 
@@ -526,6 +576,7 @@ typename Config<memType>::ProcessResult Config<memType>::processLine(char * line
         return ProcessResult(kPRT_KeyVal, lhs, rhs);
     }
 
+    // A section header
     size_t lineLen = strlen(line);
     if (lineLen > 3 && line[0] == '[' && line[lineLen-1] == ']' && line[lineLen-2] != '\\')
     {
@@ -536,7 +587,9 @@ typename Config<memType>::ProcessResult Config<memType>::processLine(char * line
         return ProcessResult(kPRT_SectionStart, line);
     }
 
-    return ProcessResult(kPRT_Error);
+    // A line without a value is interpreted as a valueless key/value pair
+    de_escape(line);
+    return ProcessResult(kPRT_KeyVal, line, "");
 }
 
 // Template definitions for linker.
