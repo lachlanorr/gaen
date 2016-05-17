@@ -43,6 +43,7 @@ struct CookInfo
     const char * rawPath;
     const char * cookedPath;
     Config<kMEM_Chef> & recipe;
+    mutable List<kMEM_Chef, String<kMEM_Chef>> dependencies;
     
     CookInfo(Chef * pChef, const char * rawPath, const char * cookedPath, Config<kMEM_Chef> & recipe)
       : pChef(pChef)

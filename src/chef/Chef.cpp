@@ -37,10 +37,9 @@
 namespace gaen
 {
 
-Chef::Chef(u32 id, const char * platform, const char * assetsDir, bool force, DependencyCB dependencyCB)
+Chef::Chef(u32 id, const char * platform, const char * assetsDir, bool force)
   : mId(id)
   , mForce(force)
-  , mDependencyCB(dependencyCB)
 {
     ASSERT(platform);
     ASSERT(assetsDir);
@@ -122,7 +121,7 @@ void Chef::cook(const char * path)
     RecipeList recipes = findRecipes(rawPath);
 
     // verify we should cook
-    if (!shouldCook(rawPath, cookedPath, recipes) && !mForce)
+    if (!mForce && !shouldCook(rawPath, cookedPath, recipes))
         return;
 
     // make any directories needed in cookedPath
@@ -136,6 +135,8 @@ void Chef::cook(const char * path)
     CookInfo ci(this, rawPath, cookedPath, recipe);
 
     pCooker->cook(ci);
+
+    writeDependencyFile(ci);
 
     printf("Cooked: %s -> %s\n", ci.rawPath, ci.cookedPath);
 }
@@ -295,34 +296,77 @@ bool Chef::convertRelativeDependencyPath(char * dependencyRawPath, const char * 
     return false;
 }
 
-void Chef::getDependencyFilePath(char * dependencyFilePath, const char * path)
+void Chef::getDependencyFilePath(char * dependencyFilePath, const char * rawPath)
 {
     ASSERT(dependencyFilePath);
-    ASSERT(path);
+    ASSERT(rawPath);
 
-    strcpy(dependencyFilePath, path);
-    strcat(dependencyFilePath, ".dep");
+    strcpy(dependencyFilePath, rawPath);
+    strcat(dependencyFilePath, ".deps");
 }
 
-void Chef::deleteDependencyFile(const char * path)
+void Chef::deleteDependencyFile(const char * rawPath)
 {
-    ASSERT(path);
+    ASSERT(rawPath);
 
     char depFilePath[kMaxPath+1];
 
-    getDependencyFilePath(depFilePath, path);
+    getDependencyFilePath(depFilePath, rawPath);
 
     if (file_exists(depFilePath))
         delete_file(depFilePath);
 }
 
-void Chef::reportDependency(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath)
+void Chef::writeDependencyFile(const CookInfo & ci)
+{
+	if (ci.dependencies.size() > 0)
+	{
+        char depFilePath[kMaxPath + 1];
+        getDependencyFilePath(depFilePath, ci.rawPath);
+
+        Config<kMEM_Chef> depConf;
+        for (const String<kMEM_Chef> & dep : ci.dependencies)
+        {
+            depConf.setValueless(dep.c_str());
+        }
+
+        depConf.write(depFilePath);
+	}
+	else
+    {
+        // delete dependency file if it exists
+		deleteDependencyFile(ci.rawPath);
+    }
+}
+
+List<kMEM_Chef, String<kMEM_Chef>> Chef::readDependencyFile(const char * rawPath)
+{
+    char depFilePath[kMaxPath + 1];
+    getDependencyFilePath(depFilePath, rawPath);
+
+    List<kMEM_Chef, String<kMEM_Chef>> deps;
+
+    if (file_exists(depFilePath))
+    {
+        Config<kMEM_Chef> conf;
+        conf.read(depFilePath);
+
+        for (auto keyIt = conf.keysBegin(); keyIt != conf.keysEnd(); ++keyIt)
+        {
+            deps.emplace_back(*keyIt);
+        }
+    }
+
+    return deps;
+}
+
+void Chef::reportDependency(char * dependencyRawPath, const char * dependencyPath, const CookInfo & ci)
 {
     // If passed in an output path, use it, otherwise us a scratch space
     char scratch[kMaxPath+1];
     char * depRawPath = dependencyRawPath ? dependencyRawPath : scratch;
 
-    if (!convertRelativeDependencyPath(depRawPath, sourceRawPath, dependencyPath))
+    if (!convertRelativeDependencyPath(depRawPath, ci.rawPath, dependencyPath))
     {
         PANIC("Unable to convert dependency relative path to raw path: %s", dependencyPath);
     }
@@ -332,19 +376,7 @@ void Chef::reportDependency(char * dependencyRawPath, const char * sourceRawPath
     char rawRelativePath[kMaxPath+1];
     getRawRelativePath(rawRelativePath, depRawPath);
 
-    char depFilePath[kMaxPath+1];
-    getDependencyFilePath(depFilePath, sourceRawPath);
-
-    if (file_exists(depFilePath))
-    {
-        Config<kMEM_Chef> deps;
-        deps.read(depFilePath);
-
-        //deps.
-
-    }
-
-    mDependencyCB(mId, sourceRawPath, rawRelativePath);
+    ci.dependencies.emplace_back(dependencyPath);
 }
 
 bool Chef::shouldCook(const char * rawPath, const char * cookedPath, const RecipeList & recipes)
@@ -361,11 +393,17 @@ bool Chef::shouldCook(const char * rawPath, const char * cookedPath, const Recip
             return true;
     }
 
-    char depFile[kMaxPath + 1];
-    getDependencyFilePath(depFile, rawPath);
-    if (file_exists(depFile))
+    auto deps = readDependencyFile(rawPath);
+
+    for (auto dep : deps)
     {
-        printf("TODO: Check each dependent file to see if it has changed.\n");
+        char depRawPath[kMaxPath + 1];
+        if (!convertRelativeDependencyPath(depRawPath, rawPath, dep.c_str()))
+        {
+            PANIC("Unable to convert dependency relative path to raw path: %s", dep.c_str());
+        }
+        if (is_file_newer(depRawPath, cookedPath))
+            return true;
     }
 
     return false;

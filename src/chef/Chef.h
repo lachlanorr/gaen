@@ -34,14 +34,13 @@
 namespace gaen
 {
 
-typedef void(*DependencyCB)(u32 chefId, const char * assetRawPath, const char * dependencyRawPath);
-
 struct Cooker;
+struct CookInfo;
 
 class Chef
 {
 public:
-    Chef(u32 id, const char * platform, const char * assetsDir, bool force, DependencyCB dependencyCB);
+    Chef(u32 id, const char * platform, const char * assetsDir, bool force);
     
     static const char * default_platform();
     static bool is_valid_platform(const char * platform);
@@ -54,7 +53,7 @@ public:
 
     void cook(const char * path);
 
-    void reportDependency(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath);
+    void reportDependency(char * dependencyRawPath, const char * dependencyPath, const CookInfo & ci);
 
     // Path conversion functions
     bool isRawPath(const char * path);
@@ -76,12 +75,13 @@ private:
     void overlayRecipes(Config<kMEM_Chef> & recipe, const RecipeList & recipes);
     bool convertRelativeDependencyPath(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath);
 
-	void getDependencyFilePath(char * dependencyFilePath, const char * path);
-	void deleteDependencyFile(const char * path);
+	void getDependencyFilePath(char * dependencyFilePath, const char * rawPath);
+    void writeDependencyFile(const CookInfo & ci);
+    List<kMEM_Chef, String<kMEM_Chef>> readDependencyFile(const char * rawPath);
+	void deleteDependencyFile(const char * rawPath);
 
     u32 mId;
     bool mForce;
-    DependencyCB mDependencyCB;
 
     String<kMEM_Chef> mPlatform;
     String<kMEM_Chef> mAssetsDir;

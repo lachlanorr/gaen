@@ -64,7 +64,7 @@ void cook_fnt(const CookInfo & ci)
     // Crack open the image and get the width/height so we can calculate
     // proper u/v coords
     char imageRawPath[kMaxPath+1];
-    ci.pChef->reportDependency(imageRawPath, ci.rawPath, fnt.get(kImage));
+    ci.pChef->reportDependency(imageRawPath, fnt.get(kImage), ci);
     ImageInfo imageInfo = read_image_info(imageRawPath);
 
     // Pull out the fixed width/height if present

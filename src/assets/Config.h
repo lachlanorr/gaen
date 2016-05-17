@@ -58,6 +58,7 @@ public:
 
     typename StringVec::const_iterator keysBegin();
     typename StringVec::const_iterator keysBegin(const char * section);
+    typename StringVec::const_iterator keysEnd();
     typename StringVec::const_iterator keysEnd(const char * section);
 
     // Check for keys and sections
@@ -87,10 +88,12 @@ public:
     FloatVec getFloatVec(const char * key);
     FloatVec getFloatVec(const char * section, const char * key);
 
-/*
+    void setValueless(const char * key);
+    void setValueless(const char * section, const char * key);
     void set(const char * key, const char * value);
     void set(const char * section, const char * key, const char * value);
 
+/*
     void setInt(const char * key, i32 value);
     void setInt(const char * section, const char * key, i32 value);
 
@@ -138,6 +141,10 @@ private:
           , rhs(rhs)
         {}
     };
+
+    void writeKeyVal(std::ostream & output,
+                     const char * key,
+                     const char * val);
 
     const char * addName(const char * name);
     ProcessResult processLine(char * line);
