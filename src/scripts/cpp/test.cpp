@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: c5d84bf5be4b444ed4a79285448a8a67
+// HASH: 9309f643fcdd3c8caad1fae7946d08bc
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -79,9 +79,9 @@ private:
         mScriptTask = Task::create(this, HASH::test__Test);
     }
     test__Test(const test__Test&)              = delete;
-    test__Test(const test__Test&&)             = delete;
+    test__Test(test__Test&&)             = delete;
     test__Test & operator=(const test__Test&)  = delete;
-    test__Test & operator=(const test__Test&&) = delete;
+    test__Test & operator=(test__Test&&) = delete;
 
 }; // class test__Test
 

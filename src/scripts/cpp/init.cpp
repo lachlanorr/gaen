@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 4c03f71d452db6e1386f15d75476165e
+// HASH: 291652ed854259fe37cdf74a4566f007
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -107,9 +107,9 @@ private:
         }
     }
     init__Shape(const init__Shape&)              = delete;
-    init__Shape(const init__Shape&&)             = delete;
+    init__Shape(init__Shape&&)             = delete;
     init__Shape & operator=(const init__Shape&)  = delete;
-    init__Shape & operator=(const init__Shape&&) = delete;
+    init__Shape & operator=(init__Shape&&) = delete;
 
 }; // class init__Shape
 
@@ -166,9 +166,9 @@ private:
         }
     }
     init__Light(const init__Light&)              = delete;
-    init__Light(const init__Light&&)             = delete;
+    init__Light(init__Light&&)             = delete;
     init__Light & operator=(const init__Light&)  = delete;
-    init__Light & operator=(const init__Light&&) = delete;
+    init__Light & operator=(init__Light&&) = delete;
 
 }; // class init__Light
 
@@ -213,9 +213,9 @@ private:
         }
     }
     init__Camera(const init__Camera&)              = delete;
-    init__Camera(const init__Camera&&)             = delete;
+    init__Camera(init__Camera&&)             = delete;
     init__Camera & operator=(const init__Camera&)  = delete;
-    init__Camera & operator=(const init__Camera&&) = delete;
+    init__Camera & operator=(init__Camera&&) = delete;
 
 }; // class init__Camera
 
@@ -234,7 +234,7 @@ class init__Start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__Camera__85_23()
+    task_id entity_init__init__Camera__94_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Camera, 8);
         // Send init message
@@ -245,7 +245,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Light__88_25()
+    task_id entity_init__init__Light__97_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
         // Send init message
@@ -256,7 +256,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Shape__91_25()
+    task_id entity_init__init__Shape__100_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Shape, 8);
         // Send init message
@@ -283,11 +283,11 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            task_id cam = entity_init__init__Camera__85_23();
+            task_id cam = entity_init__init__Camera__94_23();
             system_api::insert_entity(cam, entity());
-            task_id light = entity_init__init__Light__88_25();
+            task_id light = entity_init__init__Light__97_25();
             system_api::insert_entity(light, entity());
-            task_id shape = entity_init__init__Shape__91_25();
+            task_id shape = entity_init__init__Shape__100_25();
             system_api::insert_entity(shape, entity());
             return MessageResult::Consumed;
         }
@@ -303,9 +303,9 @@ private:
         mScriptTask = Task::create(this, HASH::init__Start);
     }
     init__Start(const init__Start&)              = delete;
-    init__Start(const init__Start&&)             = delete;
+    init__Start(init__Start&&)             = delete;
     init__Start & operator=(const init__Start&)  = delete;
-    init__Start & operator=(const init__Start&&) = delete;
+    init__Start & operator=(init__Start&&) = delete;
 
 }; // class init__Start
 

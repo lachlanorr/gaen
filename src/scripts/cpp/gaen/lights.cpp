@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: dc411753d98b03cddd37c94bb4d65701
+// HASH: 202ab314dd88f99416b69b2933099e82
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -109,9 +109,9 @@ private:
         mBlockCount = 2;
     }
     gaen__lights__Directional(const gaen__lights__Directional&)              = delete;
-    gaen__lights__Directional(const gaen__lights__Directional&&)             = delete;
+    gaen__lights__Directional(gaen__lights__Directional&&)             = delete;
     gaen__lights__Directional & operator=(const gaen__lights__Directional&)  = delete;
-    gaen__lights__Directional & operator=(const gaen__lights__Directional&&) = delete;
+    gaen__lights__Directional & operator=(gaen__lights__Directional&&) = delete;
 
     u32& lightUid()
     {
