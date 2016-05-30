@@ -30,7 +30,7 @@
 
 namespace gaen
 {
-
+/*
 Asset::Asset(const char * path)
   : refCount(0)
 {
@@ -59,5 +59,5 @@ const u8 * Asset::load(const char * path)
 {
     
 }
-
+*/
 } // namespace gaen
