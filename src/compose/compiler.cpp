@@ -39,7 +39,7 @@
 
 extern "C" {
 // LORRNOTE: Uncomment below to enable stderr based debug messages from parser
-#define YYDEBUG 1
+//#define YYDEBUG 1
 #include "compose/compose_parser.h"
 #define YY_NO_UNISTD_H
 #include "compose/compose_scanner.h"
@@ -440,9 +440,6 @@ SymTab* symtab_add_symbol_with_fields(SymTab* pSymTab, SymRec * pSymRec, ParseDa
                                                   qualifiedName,
                                                   nullptr,
                                                   pParseData);
-
-            // LORRTEMP
-            printf("name: %s\n", qualifiedName);
 
             pFieldSymRec->flags |= (kSRFL_Member | pField->flags);
 
@@ -2366,7 +2363,7 @@ void parse_init()
     comp_reset_mem();
 
     // LORRNOTE: Uncomment below to enable stderr based debug messages from parser
-    yydebug = 1;
+    //yydebug = 1;
 }
 
 i32 read_file(const char * path, char ** output)
