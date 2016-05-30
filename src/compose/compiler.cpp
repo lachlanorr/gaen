@@ -47,7 +47,7 @@ extern "C" {
 
 using namespace gaen;
 
-static_assert(kDT_COUNT == 26, "Make sure DataType enum ids look right... seems they have changed");
+static_assert(kDT_COUNT == 27, "Make sure DataType enum ids look right... seems they have changed");
 
 static const char * kScriptsPath = "/src/scripts/cmp/";
 
@@ -933,6 +933,23 @@ Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData
     Ast * pAst = ast_create(kAST_PropInit, pParseData);
     pAst->str = name;
     ast_set_rhs(pAst, pVal);
+    return pAst;
+}
+
+Ast * ast_create_asset_members(Ast * pAst, ParseData * pParseData)
+{
+    parsedata_pop_scope(pParseData);
+
+    // LORRTODO: move asset definitions up one level in scope
+
+    return pAst;
+}
+
+Ast * ast_create_asset_member(const char * name, const char * path, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_AssetMember, pParseData);
+    ast_set_lhs(pAst, ast_create_identifier(name, pParseData));
+    ast_set_rhs(pAst, ast_create_string_literal(path, pParseData));
     return pAst;
 }
 

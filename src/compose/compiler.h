@@ -88,6 +88,8 @@ typedef enum
     kAST_ComponentBlock,
     kAST_ComponentMemberList,
     kAST_ComponentMember,
+    kAST_AssetMemberList,
+    kAST_AssetMember,
     kAST_PropInitList,
     kAST_PropInit,
     kAST_TypeId,
@@ -224,14 +226,15 @@ typedef enum
     kDT_mat4      = 21,
 
     kDT_handle    = 22,
+    kDT_asset     = 23,
 
-    kDT_entity    = 23,
+    kDT_entity    = 24,
 
     // Dynamic data structures
-    kDT_string    = 24,
+    kDT_string    = 25,
 
     // User defined struct
-    kDT_struct    = 25,
+    kDT_struct    = 26,
 
     kDT_COUNT
 
@@ -324,6 +327,9 @@ Ast * ast_create_function_arg(const char * name, SymRec * pDataTypeSymRec, Parse
 Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData);
 Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseData * pParseData);
 Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData);
+
+Ast * ast_create_asset_members(Ast * pAst, ParseData * pParseData);
+Ast * ast_create_asset_member(const char * name, const char * path, ParseData * pParseData);
 
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData);
 
