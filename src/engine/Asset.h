@@ -28,24 +28,25 @@
 #define GAEN_ENGINE_ASSET_MGR_H
 
 #include "core/base_defines.h"
-#icnlude "core/mem.h"
+#include "core/mem.h"
 
 namespace gaen
 {
-
+/*
 class Asset
 {
 public:
     explicit Asset(const char * path);
     ~Asset()
     {
-        if (mpParts.get())
+		if (mpParts.get())
             mpParts.reset();
     }
 
     bool isLoaded()
     {
-        ASSERT((pParts && pParts->path && pParts->pBuffer && pParts->refCount.load() > 0) ||
+
+		ASSERT((pParts && pParts->path && pParts->pBuffer && pParts->refCount.load() > 0) ||
                !pParts);
         return pParts && pParts->path && pParts->pBuffer;
     }
@@ -56,7 +57,7 @@ public:
         return pParts->path;
     }
 
-    const u8 * buffer() const;
+    const u8 * buffer() const
     {
         ASSERT(isLoaded());
         return pParts->pBuffer;
@@ -66,8 +67,7 @@ public:
     {
         if (!isLoaded() || !rhs.isLoaded())
             return false;
-
-        return 0 == strcmp(path(), rhs.path());
+		return 0 == strcmp(path(), rhs.path());
     }
 private:
     void release()
@@ -84,9 +84,9 @@ private:
         u8 * pBuffer      = nullptr;
     };
 
-    SharedPtr<AssetParts> mpParts;
+    //SharedPtr<AssetParts> mpParts;
 }; // class Asset
-
+*/
 } // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_ASSET_MGR_H
