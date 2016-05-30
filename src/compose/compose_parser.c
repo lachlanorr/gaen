@@ -64,7 +64,7 @@
 /* Copy the first part of user declarations.  */
 #line 27 "compose.y" /* yacc.c:339  */
 
-#define YYDEBUG 1
+//#define YYDEBUG 1
 #include "compose/compiler.h"
 
 #include "compose/comp_mem.h"

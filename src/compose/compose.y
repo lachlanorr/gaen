@@ -25,7 +25,7 @@ freely, subject to the following restrictions:
 ------------------------------------------------------------------------------*/
 
 %{
-#define YYDEBUG 1
+//#define YYDEBUG 1
 #include "compose/compiler.h"
 
 #include "compose/comp_mem.h"
