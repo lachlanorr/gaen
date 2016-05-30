@@ -97,6 +97,7 @@ ParseData * pParseData = yyextra;
 "mat4"   { yylval->dataType = kDT_mat4;   return MAT4;    }
 "void"   { yylval->dataType = kDT_void;   return VOID_;   }
 "handle" { yylval->dataType = kDT_handle; return HANDLE_; }
+"asset"  { yylval->dataType = kDT_asset;  return ASSET; }
 "string" { yylval->dataType = kDT_string; return STRING;  }
 
 "none"     { return NONE; }
@@ -119,6 +120,7 @@ ParseData * pParseData = yyextra;
 "using"      { return USING; }
 "as"         { return AS; }
 "components" { return COMPONENTS; }
+"assets"     { return ASSETS; }
 "entity"     { parsedata_push_top_level_stmt_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
 "component"  { parsedata_push_top_level_stmt_scope(pParseData); return COMPONENT; }
 
