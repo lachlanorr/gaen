@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 7f4d2b757e6ce35b72752a7124ff8728
+// HASH: acf6f6aa55acd8098aaf4eab2490fbfa
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -124,9 +124,9 @@ private:
         mBlockCount = 1;
     }
     gaen__utils__Timer(const gaen__utils__Timer&)              = delete;
-    gaen__utils__Timer(const gaen__utils__Timer&&)             = delete;
+    gaen__utils__Timer(gaen__utils__Timer&&)             = delete;
     gaen__utils__Timer & operator=(const gaen__utils__Timer&)  = delete;
-    gaen__utils__Timer & operator=(const gaen__utils__Timer&&) = delete;
+    gaen__utils__Timer & operator=(gaen__utils__Timer&&) = delete;
 
     f32& timer_interval()
     {
@@ -344,9 +344,9 @@ private:
         mBlockCount = 9;
     }
     gaen__utils__WasdCamera(const gaen__utils__WasdCamera&)              = delete;
-    gaen__utils__WasdCamera(const gaen__utils__WasdCamera&&)             = delete;
+    gaen__utils__WasdCamera(gaen__utils__WasdCamera&&)             = delete;
     gaen__utils__WasdCamera & operator=(const gaen__utils__WasdCamera&)  = delete;
-    gaen__utils__WasdCamera & operator=(const gaen__utils__WasdCamera&&) = delete;
+    gaen__utils__WasdCamera & operator=(gaen__utils__WasdCamera&&) = delete;
 
     glm::vec3& dirForwardInit()
     {
@@ -557,9 +557,9 @@ private:
         mBlockCount = 1;
     }
     gaen__utils__WasdRot(const gaen__utils__WasdRot&)              = delete;
-    gaen__utils__WasdRot(const gaen__utils__WasdRot&&)             = delete;
+    gaen__utils__WasdRot(gaen__utils__WasdRot&&)             = delete;
     gaen__utils__WasdRot & operator=(const gaen__utils__WasdRot&)  = delete;
-    gaen__utils__WasdRot & operator=(const gaen__utils__WasdRot&&) = delete;
+    gaen__utils__WasdRot & operator=(gaen__utils__WasdRot&&) = delete;
 
     f32& yawing()
     {
