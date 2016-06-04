@@ -449,7 +449,8 @@ void register_basic_types(ParseData * pParseData);
 void register_system_apis(ParseData * pParseData);
 
 ParseData * parse_file(const char * fullPath,
-                       CompList<CompString> * pIncludes,
+                       u32 apiIncludesCount,
+                       const char ** pApiIncludes,
                        MessageHandler messageHandler);
 
 } // namespace gaen

@@ -75,7 +75,12 @@ int main(int argc, char ** argv)
         usage_and_exit();
     }
 
-    gaen::CompList<gaen::CompString> includes;
+    parse_init();
+
+    static const u32 kMaxIncludes = 16;
+    const char * pIncludes[kMaxIncludes];
+    memset(pIncludes, 0, sizeof(const char *) * kMaxIncludes);
+    u32 includesCount = 0;
 
     // parse command line args
     for (i32 i = 1; i < argc - 2; ++i)
@@ -85,8 +90,8 @@ int main(int argc, char ** argv)
             switch (argv[i][1])
             {
             case 'i':
-                // add file to include api list
-                includes.push_back(argv[i+1]);
+                ASSERT_MSG(includesCount < kMaxIncludes, "Too many includes");
+                pIncludes[includesCount++] = argv[i+1];
                 i++;
                 break;
             default:
@@ -98,9 +103,9 @@ int main(int argc, char ** argv)
 
     const char * inFile = argv[argc-1];
 
-    parse_init();
     ParseData * pParseData = parse_file(inFile,
-                                        &includes,
+                                        includesCount,
+                                        pIncludes,
                                         &messageHandler);
 
     if (!pParseData || pParseData->hasErrors)

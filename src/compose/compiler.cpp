@@ -1941,7 +1941,8 @@ Scope * scope_create(ParseData * pParseData)
 // ParseData
 //------------------------------------------------------------------------------
 ParseData * parsedata_create(const char * fullPath,
-                             CompList<CompString> * pApiIncludes,
+                             u32 apiIncludesCount,
+                             const char ** pApiIncludes,
                              MessageHandler messageHandler)
 {
     ParseData * pParseData = COMP_NEW(ParseData);
@@ -1959,6 +1960,7 @@ ParseData * parsedata_create(const char * fullPath,
 
     pParseData->pRootScope->pSymTab->pAst = pParseData->pRootAst;
 
+    pParseData->apiIncludesCount = apiIncludesCount;
     pParseData->pApiIncludes = pApiIncludes;
 
     parsedata_prep_paths(pParseData, fullPath);
@@ -2328,7 +2330,7 @@ const Using * parsedata_parse_using(ParseData * pParseData,
                                     const char * namespace_,
                                     const char * fullPath)
 {
-    ParseData * pUsingParseData = parse_file(fullPath, pParseData->pApiIncludes, pParseData->messageHandler);
+    ParseData * pUsingParseData = parse_file(fullPath, pParseData->apiIncludesCount, pParseData->pApiIncludes, pParseData->messageHandler);
 
     if (!pUsingParseData)
     {
@@ -2424,12 +2426,13 @@ i32 read_file(const char * path, char ** output)
 ParseData * parse(const char * source,
                   size_t length,
                   const char * fullPath,
-                  CompList<CompString> * pApiIncludes,
+                  u32 apiIncludesCount,
+                  const char ** pApiIncludes,
                   MessageHandler messageHandler)
 {
     int ret;
 
-    ParseData * pParseData = parsedata_create(fullPath, pApiIncludes, messageHandler);
+    ParseData * pParseData = parsedata_create(fullPath, apiIncludesCount, pApiIncludes, messageHandler);
 
     if (!source)
     {
@@ -2477,12 +2480,12 @@ void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...)
 
 void *yyalloc(yy_size_t size, yyscan_t yyscanner)
 {
-	return COMP_ALLOC(size);
+    return COMP_ALLOC(size);
 }
 
 void *yyrealloc(void * ptr, yy_size_t size, yyscan_t yyscanner)
 {
-	return COMP_REALLOC(ptr, size);
+    return COMP_REALLOC(ptr, size);
 }
 
 void yyfree (void * ptr , yyscan_t yyscanner)
@@ -2568,10 +2571,11 @@ namespace gaen
     }
 
     ParseData * parse_file(const char * fullPath,
-                           CompList<CompString> * pApiIncludes,
+                           u32 apiIncludesCount,
+                           const char ** pApiIncludes,
                            MessageHandler messageHandler)
     {
-        return parse(nullptr, 0, fullPath, pApiIncludes, messageHandler);
+        return parse(nullptr, 0, fullPath, apiIncludesCount, pApiIncludes, messageHandler);
     }
 
 } // namespace gaen
