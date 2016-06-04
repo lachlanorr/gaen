@@ -233,7 +233,8 @@ struct ParseData
     bool skipNextScope;
     bool hasErrors;
 
-    CompList<CompString> * pApiIncludes;
+    u32 apiIncludesCount;
+    const char ** pApiIncludes;
 };
 
 #endif // #ifndef GAEN_COMPOSE_COMPILER_STRUCTS_H

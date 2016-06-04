@@ -35,7 +35,7 @@
 
 using namespace gaen;
 
-const size_t kCompMemSize = 1024 * 1024;
+const size_t kCompMemSize = 5 * 1024 * 1024;
 
 struct CompMemInfo
 {
@@ -56,6 +56,7 @@ static CompMemInfo * mem_info()
         pMemInfo->pBuffer = static_cast<u8*>(GALLOC(kMEM_Compose, kCompMemSize));
         pMemInfo->pCurrent = pMemInfo->pBuffer;
         pMemInfo->pEnd = pMemInfo->pBuffer + kCompMemSize;
+        spMemInfo = pMemInfo;
     }
 
     return pMemInfo;

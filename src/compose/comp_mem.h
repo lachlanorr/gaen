@@ -69,6 +69,8 @@ char * comp_strdup(const char * s);
 
 #include "core/base_defines.h"
 #include "core/hashing.h"
+#include "core/String.h"
+#include "core/List.h"
 
 #define COMP_NEW(type, ...)    new (COMP_ALLOC(sizeof(type))) type(##__VA_ARGS__)
 #define COMP_DELETE(ptr)       comp_delete(ptr)
@@ -127,13 +129,15 @@ public:
     {
         size_t byteCount = n * sizeof(T);
         pointer p = static_cast<pointer>(COMP_ALLOC(byteCount));
-//        printf("Compiler custom allocator, allocating %lu bytes\n", byteCount);
+//        printf("--> Compiler custom allocator, allocating %u bytes\n", (u32)byteCount);
         ASSERT_MSG(p, "Unable to allocate with CompAllocator, %lu bytes", byteCount);
         return p;
     }
     void deallocate (pointer p, size_type n)
     {
         // we don't deallocate, comp_reset_mem() should be called before compilation to reset all memory
+//        size_t byteCount = n * sizeof(T);
+//        printf("<-- Compiler custom de-allocator, allocating (%p) %u bytes\n", p, (u32)byteCount);
     }
     bool operator==(const CompAllocator& rhs) const { return true; }
 };

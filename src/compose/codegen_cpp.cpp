@@ -1693,10 +1693,10 @@ CodeCpp codegen_cpp(ParseData * pParseData)
     codeCpp.code += S("// system_api declarations\n");
     if (pParseData->pApiIncludes)
     {
-        for (const CompString & inc : *pParseData->pApiIncludes)
+        for (u32 i = 0; i < pParseData->apiIncludesCount; ++i)
         {
             codeCpp.code += S("#include \"");
-            codeCpp.code += S(inc.c_str());
+            codeCpp.code += S(pParseData->pApiIncludes[i]);
             codeCpp.code += S("\"\n");
         }
     }
