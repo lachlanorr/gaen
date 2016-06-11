@@ -43,6 +43,13 @@ static const task_id kInvalidTaskId      = kMaxTaskId - 0; // 536870911
 static const task_id kMainThreadTaskId   = kMaxTaskId - 1; // 536870910, special task id used to refer to the main thread as a task
 static const task_id kRendererTaskId     = kMaxTaskId - 3; // 536870908
 static const task_id kInputMgrTaskId     = kMaxTaskId - 4; // 536870907
+static const task_id kAssetMgrTaskId     = kMaxTaskId - 5; // 536870906
+
+// If another "special" task id is added, update this function appropriately.
+static inline bool IsPrimaryTask(task_id taskId)
+{
+    return taskId <= kRendererTaskId && taskId >= kAssetMgrTaskId;
+}
 
 enum class TaskStatus : u8
 {

@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 291652ed854259fe37cdf74a4566f007
+// HASH: 5a36532ba5874b113f318bcb0e332c1f
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -234,7 +234,7 @@ class init__Start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__Camera__94_23()
+    task_id entity_init__init__Camera__91_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Camera, 8);
         // Send init message
@@ -245,7 +245,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Light__97_25()
+    task_id entity_init__init__Light__94_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
         // Send init message
@@ -256,7 +256,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Shape__100_25()
+    task_id entity_init__init__Shape__97_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Shape, 8);
         // Send init message
@@ -283,11 +283,11 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            task_id cam = entity_init__init__Camera__94_23();
+            task_id cam = entity_init__init__Camera__91_23();
             system_api::insert_entity(cam, entity());
-            task_id light = entity_init__init__Light__97_25();
+            task_id light = entity_init__init__Light__94_25();
             system_api::insert_entity(light, entity());
-            task_id shape = entity_init__init__Shape__100_25();
+            task_id shape = entity_init__init__Shape__97_25();
             system_api::insert_entity(shape, entity());
             return MessageResult::Consumed;
         }

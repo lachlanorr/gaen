@@ -24,69 +24,73 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_ASSET_MGR_H
-#define GAEN_ENGINE_ASSET_MGR_H
+#ifndef GAEN_ENGINE_ASSET_H
+#define GAEN_ENGINE_ASSET_H
 
 #include "core/base_defines.h"
 #include "core/mem.h"
 
 namespace gaen
 {
-/*
+
 class Asset
 {
 public:
     explicit Asset(const char * path);
-    ~Asset()
-    {
-		if (mpParts.get())
-            mpParts.reset();
-    }
 
-    bool isLoaded()
+    bool isLoaded() const
     {
-
-		ASSERT((pParts && pParts->path && pParts->pBuffer && pParts->refCount.load() > 0) ||
-               !pParts);
-        return pParts && pParts->path && pParts->pBuffer;
+        return mpBuffer != nullptr;
     }
 
     const char * path() const
     {
-        ASSERT(isLoaded());
-        return pParts->path;
+        return mPath;
     }
 
     const u8 * buffer() const
     {
         ASSERT(isLoaded());
-        return pParts->pBuffer;
+        return mpBuffer;
     }
 
-    bool operator==(const Asset & rhs) const
+    const u64 size() const
     {
-        if (!isLoaded() || !rhs.isLoaded())
-            return false;
-		return 0 == strcmp(path(), rhs.path());
+        ASSERT(isLoaded());
+        return mSize;
     }
-private:
+
+    u32 statusFlags() const
+    {
+        return mStatusFlags;
+    }
+
+    void addRef()
+    {
+        ASSERT(isLoaded());
+        mRefCount++;
+    }
+
     void release()
     {
         ASSERT(isLoaded());
-        int oldVal = pParts->refCount.fetch_sub(1);
+        ASSERT(mRefCount > 0);
+        mRefCount--;
+        if (mRefCount == 0)
+            unload();
     }
 
-    static const u8 * load(const char * path);
-    
-    struct AssetParts
-    {
-        const char * path = nullptr;
-        u8 * pBuffer      = nullptr;
-    };
-
-    //SharedPtr<AssetParts> mpParts;
+    void load();
+    void unload();
+private:
+    u8 * mpBuffer;
+    char * mPath;
+    u32 mPathHash;
+    u32 mRefCount:16;
+    u32 mStatusFlags:16;
+    u64 mSize;
 }; // class Asset
-*/
+
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_ASSET_MGR_H
+#endif // #ifndef GAEN_ENGINE_ASSET_H

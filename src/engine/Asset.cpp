@@ -26,38 +26,59 @@
 
 #include "engine/stdafx.h"
 
+#include "core/mem.h"
+#include "engine/hashes.h"
+#include "assets/file_utils.h"
+#include "engine/AssetMgr.h"
+
 #include "engine/Asset.h"
 
 namespace gaen
 {
-/*
+
 Asset::Asset(const char * path)
-  : refCount(0)
+  : mpBuffer(nullptr)
+  , mRefCount(0)
+  , mStatusFlags(kASFL_None)
+  , mSize(0)
 {
     ASSERT(path);
 
-    const u8 * pBuffer = load(path);
+    size_t pathLen = strlen(path);
+    mPath = (char*)GALLOC(kMEM_Engine, pathLen + 1);
+    strcpy(mPath, path);
+    mPath[pathLen] = '\0'; // sanity
 
-    if (pBuffer != nullptr)
+    mPathHash = HASH::hash_func(mPath);
+}
+
+void Asset::load()
+{
+    PANIC_IF(isLoaded(), "load called on already loaded asset: %s", mPath);
+    mStatusFlags = kASFL_None;
+
+    FileReader rdr(mPath);
+    mStatusFlags = rdr.statusFlags();
+
+    if (rdr.isOk())
     {
-        pParts = GNEW(kMEM_Engine, Asset::AssetParts);
-
-        u32 pathLen = strlen(path);
-        pParts->path = GALLOC(kMEM_Engine, pathLen+1);
-        strncpy(pParts->path, path, pathLen);
-        pParts->path[pathLen] = '\0';
-
-        pParts->pBuffer = pBuffer;
-        pParts->refCount++;
-
-        ASSERT((pParts && pParts->path && pParts->pBuffer && refCount > 0) ||
-               !pParts);
+        mSize = rdr.size();
+        if (mSize > 0)
+        {
+            ASSERT(!mpBuffer);
+            MemType memType = AssetMgr::mem_type_from_ext(get_ext(mPath));
+            mpBuffer = (u8*)GALLOC(memType, mSize);
+            rdr.read(mpBuffer, mSize);
+        }
     }
 }
-
-const u8 * Asset::load(const char * path)
-{
     
+void Asset::unload()
+{
+    PANIC_IF(!isLoaded(), "unload called on unloaded asset: %s", mPath);
+    GFREE(mpBuffer);
+    mpBuffer = nullptr;
+    mStatusFlags = kASFL_None;
 }
-*/
+
 } // namespace gaen

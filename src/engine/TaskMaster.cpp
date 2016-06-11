@@ -1,3 +1,5 @@
+mpAssetMgr
+mpAssetMgr
 //------------------------------------------------------------------------------
 // TaskMaster.cpp - Manages tasks, one of these runs per core
 //
@@ -34,6 +36,7 @@
 #include "engine/Entity.h"
 #include "engine/messages/InsertTask.h"
 #include "engine/InputMgr.h"
+#include "engine/AssetMgr.h"
 #include "engine/renderer_api.h"
 
 #include "engine/TaskMaster.h"
@@ -172,11 +175,8 @@ MessageQueue * get_message_queue(u32 msgId,
     {
         thread_id targetThreadId = -1;
         // Check to see of target is a "standard" reserved target
-        if (target == kRendererTaskId ||
-            target == kInputMgrTaskId)
+        if (IsPrimaryTask(target))
         {
-            // send standard target messages to primary task master for now
-            // LORRTODO - InputMgr may not be located on primary task master, support that possibility
             targetThreadId = kPrimaryThreadId;
         }
         else
@@ -321,8 +321,7 @@ MessageQueue * TaskMaster::messageQueueForTarget(task_id target)
 
     // Special case the Renderer and InputManager since they
     // are so common.
-    if (target == kRendererTaskId ||
-        target == kInputMgrTaskId)
+    if (IsPrimaryTask(target))
     {
         targetThreadId = kPrimaryThreadId;
     }
@@ -363,6 +362,7 @@ void TaskMaster::runPrimaryGameLoop()
     ASSERT(!mIsRunning);
 
     mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr));
+    mpAssetMgr.reset(GNEW(kMEM_Engine, AssetMgr));
 
     renderer_init_device(mRendererTask);
     renderer_init_viewport(mRendererTask);
@@ -592,6 +592,11 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
     {
         ASSERT(mpInputMgr.get() != nullptr);
         mpInputMgr->message(msgAcc);
+    }
+    else if (msg.target == kAssetMgrTaskId)
+    {
+        ASSERT(mpAssetMgr.get() != nullptr);
+        mpAssetMgr->message(msgAcc);
     }
     else if (msg.target == kMainThreadTaskId)
     {
