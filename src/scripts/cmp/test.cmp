@@ -26,14 +26,23 @@
 
 entity Test
 {
-/*    int #prop1 = 20;
+    assets
+    {
+        foo = "/fonts/profont.gatl";
+        //bar = "/images/bar.tga";
+    }
+
+
+    int #prop1 = 20;
     string #prop2 = "abc";
     
     #msg1(int i, string s1, string s2, float f, vec3 v, string s3)
     {
         $.print(string{"prop1 = %d", prop1});
     }
-*/
+    
+
+    /*
     #init()
     {
         vec3 v0;
@@ -43,5 +52,7 @@ entity Test
         $.print(string{"x = %f", v0.x});
 
 //        $.print(string{"prop1 = %d, prop2 = \"%s\"", prop1, prop2});
+        
     }
+    */
 }

@@ -1060,7 +1060,12 @@ static S codegen_recurse(const Ast * pAst,
 
         return code;
     }
-
+    case kAST_AssetMemberList:
+    {
+        PANIC("Not Implemented");
+        S code = "foobar";
+        return code;
+    }
     case kAST_Block:
     {
         ASSERT(indentLevel > 0);

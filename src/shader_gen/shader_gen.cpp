@@ -280,6 +280,7 @@ S generate_shader_registration(const char * shadersDir)
 void parse_shd(ShaderInfo & si, const char * shdPath)
 {
     FileReader rdr(shdPath);
+    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", shdPath);
     Config<kMEM_Chef> shd;
     shd.read(rdr.ifs);
 
@@ -379,6 +380,7 @@ void process_shader_program(ShaderInfo & si)
     for (ShaderSource & source : si.sources)
     {
         FileReader sourceRdr(source.path.c_str());
+        PANIC_IF(!sourceRdr.isOk(), "Unable to load file: %s", source.path.c_str());
 
         Scoped_GFREE<char> sourceCode((char*)GALLOC(kMEM_Renderer, sourceRdr.size()+1)); // +1 for null we'll add to end
         sourceRdr.read(sourceCode.get(), sourceRdr.size());

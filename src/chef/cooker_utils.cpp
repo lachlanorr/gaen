@@ -40,6 +40,7 @@ ImageInfo read_image_info(char * path)
     const char * ext = get_ext(path);
 
     FileReader rdr(path);
+    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", path);
 
     if (0 == strcmp(ext, "tga"))
     {

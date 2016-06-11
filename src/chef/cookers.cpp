@@ -47,6 +47,7 @@ namespace gaen
 void cook_fnt(const CookInfo & ci)
 {
     FileReader rdr(ci.rawPath);
+    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", ci.rawPath);
     Config<kMEM_Chef> fnt;
     fnt.read(rdr.ifs);
 
@@ -161,6 +162,7 @@ void cook_fnt(const CookInfo & ci)
 void cook_tga(const CookInfo & ci)
 {
     FileReader rdr(ci.rawPath);
+    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", ci.rawPath);
     Tga header;
 
     rdr.read(&header);
@@ -199,6 +201,7 @@ void cook_passthrough(const CookInfo & ci)
 {
     // copy raw to cooked without modifications
     FileReader rdr(ci.rawPath);
+    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", ci.rawPath);
 
     Scoped_GFREE<char> pBuff((char*)GALLOC(kMEM_Chef, rdr.size()));
     rdr.ifs.read(pBuff.get(), rdr.size());

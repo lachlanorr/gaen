@@ -27,8 +27,9 @@
 #ifndef GAEN_ENGINE_ASSET_MGR_H
 #define GAEN_ENGINE_ASSET_MGR_H
 
-#include "engine/Message.h"
 #include "core/base_defines.h"
+#include "core/mem.h"
+#include "engine/Message.h"
 
 namespace gaen
 {
@@ -38,7 +39,9 @@ class AssetMgr
 public:
     template <typename T>
     MessageResult message(const T& msgAcc);
-    
+
+    static MemType mem_type_from_ext(const char * ext);
+
 }; // AssetMgr
 
 } // namespace gaen

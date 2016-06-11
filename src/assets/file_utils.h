@@ -79,16 +79,26 @@ bool is_file_newer(const char * path, const char * comparePath);
 
 bool write_file_if_contents_differ(const char * path, const char * contents);
 
+enum FileStatusFlag
+{
+    kASFL_None           = 0x0000,
+    kASFL_NotFound       = 0x0001,
+    kASFL_FailedToLoad   = 0x0002
+};
+
 struct FileReader
 {
     FileReader(const char * path)
+      : mStatusFlags(kASFL_None)
     {
         ifs.open(path, std::ifstream::in | std::ifstream::binary);
         auto flags = ifs.flags();
         bool fail = ifs.fail();
         if (!ifs.good())
         {
-            PANIC("Unable to open FileReader: %s", path);
+            mStatusFlags = kASFL_NotFound;
+            ERR("Unable to open FileReader: %s", path);
+            return;
         }
         ifs.seekg(0, ifs.end);
         mSize = (u64)ifs.tellg();
@@ -98,6 +108,16 @@ struct FileReader
     {
         if (ifs.is_open())
             ifs.close();
+    }
+
+    u32 statusFlags() const
+    {
+        return mStatusFlags;
+    }
+
+    bool isOk() const
+    {
+        return mStatusFlags == kASFL_None;
     }
 
     template <typename T>
@@ -121,6 +141,7 @@ struct FileReader
 
 private:
     u64 mSize;
+    u32 mStatusFlags;
 };
 
 struct FileWriter
