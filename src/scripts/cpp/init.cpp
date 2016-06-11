@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 5a36532ba5874b113f318bcb0e332c1f
+// HASH: 1c882fbf7170819c09721c7b813f8b92
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -107,9 +107,9 @@ private:
         }
     }
     init__Shape(const init__Shape&)              = delete;
-    init__Shape(init__Shape&&)             = delete;
+    init__Shape(init__Shape&&)                   = delete;
     init__Shape & operator=(const init__Shape&)  = delete;
-    init__Shape & operator=(init__Shape&&) = delete;
+    init__Shape & operator=(init__Shape&&)       = delete;
 
 }; // class init__Shape
 
@@ -166,9 +166,9 @@ private:
         }
     }
     init__Light(const init__Light&)              = delete;
-    init__Light(init__Light&&)             = delete;
+    init__Light(init__Light&&)                   = delete;
     init__Light & operator=(const init__Light&)  = delete;
-    init__Light & operator=(init__Light&&) = delete;
+    init__Light & operator=(init__Light&&)       = delete;
 
 }; // class init__Light
 
@@ -213,9 +213,9 @@ private:
         }
     }
     init__Camera(const init__Camera&)              = delete;
-    init__Camera(init__Camera&&)             = delete;
+    init__Camera(init__Camera&&)                   = delete;
     init__Camera & operator=(const init__Camera&)  = delete;
-    init__Camera & operator=(init__Camera&&) = delete;
+    init__Camera & operator=(init__Camera&&)       = delete;
 
 }; // class init__Camera
 
@@ -234,6 +234,30 @@ class init__Start : public Entity
 {
 private:
     // Helper functions
+    task_id entity_init__init__test_Test__80_21()
+    {
+        Entity * pEnt = get_registry().constructEntity(HASH::test__Test, 8);
+        // Init Property: prop1
+        {
+            StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop1));
+            msgw[0].cells[0].i = 500;
+            pEnt->task().message(msgw.accessor());
+        }
+        // Init Property: prop2
+        {
+            CmpString val = entity().blockMemory().stringAlloc("new value");
+            ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop2), val.blockCount());
+            val.writeMessage(msgw.accessor(), 0);
+            pEnt->task().message(msgw.accessor());
+        }
+        // Send init message
+        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgBW.accessor());
+
+        stageEntity(pEnt);
+        return pEnt->task().id();
+    }
+
     task_id entity_init__init__Camera__91_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Camera, 8);
@@ -283,6 +307,63 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
+            CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+00f, 10);
+            task_id t = entity_init__init__test_Test__80_21();
+            system_api::insert_entity(t, entity());
+            { // Send Message Block
+                // Compute block size, incorporating any BlockMemory parameters dynamically
+                u32 blockCount = 1;
+
+                // Prepare the queue writer
+                MessageQueueWriter msgw(HASH::set_property, kMessageFlag_None, entity().task().id(), t, to_cell(HASH::prop1), blockCount);
+
+                // Write parameters to message
+                *reinterpret_cast<i32*>(&msgw[0].cells[0]) = 5;
+
+                // MessageQueueWriter will send message through RAII when this scope is exited
+            }
+            { // Send Message Block
+                // Compute block size, incorporating any BlockMemory parameters dynamically
+                u32 blockCount = 0;
+                CmpString bmParam0 = s;
+                blockCount += bmParam0.blockCount();
+
+                // Prepare the queue writer
+                MessageQueueWriter msgw(HASH::set_property, kMessageFlag_None, entity().task().id(), t, to_cell(HASH::prop2), blockCount);
+
+                u32 startIndex = 0; // location in message to which to copy block memory items
+                // Write parameters to message
+                bmParam0.writeMessage(msgw, startIndex);
+                startIndex += bmParam0.blockCount();
+
+                // MessageQueueWriter will send message through RAII when this scope is exited
+            }
+            { // Send Message Block
+                // Compute block size, incorporating any BlockMemory parameters dynamically
+                u32 blockCount = 1;
+                CmpString bmParam0 = s;
+                blockCount += bmParam0.blockCount();
+                CmpString bmParam1 = entity().blockMemory().stringAlloc("a short one");
+                blockCount += bmParam1.blockCount();
+                CmpString bmParam2 = entity().blockMemory().stringAlloc("this is another string that is larger than one block, and then some more");
+                blockCount += bmParam2.blockCount();
+
+                // Prepare the queue writer
+                MessageQueueWriter msgw(HASH::msg1, kMessageFlag_None, entity().task().id(), t, to_cell(5), blockCount);
+
+                u32 startIndex = 1; // location in message to which to copy block memory items
+                // Write parameters to message
+                *reinterpret_cast<glm::vec3*>(&msgw[0].cells[0]) = glm::vec3(1.00000000e+00f, 2.00000000e+00f, 3.00000000e+00f);
+                *reinterpret_cast<f32*>(&msgw[0].cells[3]) = 1.20000005e+00f;
+                bmParam0.writeMessage(msgw, startIndex);
+                startIndex += bmParam0.blockCount();
+                bmParam1.writeMessage(msgw, startIndex);
+                startIndex += bmParam1.blockCount();
+                bmParam2.writeMessage(msgw, startIndex);
+                startIndex += bmParam2.blockCount();
+
+                // MessageQueueWriter will send message through RAII when this scope is exited
+            }
             task_id cam = entity_init__init__Camera__91_23();
             system_api::insert_entity(cam, entity());
             task_id light = entity_init__init__Light__94_25();
@@ -303,9 +384,9 @@ private:
         mScriptTask = Task::create(this, HASH::init__Start);
     }
     init__Start(const init__Start&)              = delete;
-    init__Start(init__Start&&)             = delete;
+    init__Start(init__Start&&)                   = delete;
     init__Start & operator=(const init__Start&)  = delete;
-    init__Start & operator=(init__Start&&) = delete;
+    init__Start & operator=(init__Start&&)       = delete;
 
 }; // class init__Start
 
