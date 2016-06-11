@@ -840,9 +840,9 @@ static S codegen_recurse(const Ast * pAst,
 
         // Delete copy constructor, assignment, etc.
         code += I + S("    ") + entName + S("(const ") + entName + S("&)              = delete;\n");
-        code += I + S("    ") + entName + S("(") + entName + S("&&)             = delete;\n");
+        code += I + S("    ") + entName + S("(") + entName + S("&&)                   = delete;\n");
         code += I + S("    ") + entName + S(" & operator=(const ") + entName + S("&)  = delete;\n");
-        code += I + S("    ") + entName + S(" & operator=(") + entName + S("&&) = delete;\n");
+        code += I + S("    ") + entName + S(" & operator=(") + entName + S("&&)       = delete;\n");
 
         code += S("\n");
 

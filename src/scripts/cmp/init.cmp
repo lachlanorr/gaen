@@ -75,10 +75,10 @@ entity Start
     #init()
     {
 //        $.print($.hashstr(#this_isATEST));
-//        string s = string{"float: %0.2f, int: %d, and make sure we're larger than one block", 1.2, 10};
+        string s = string{"float: %0.2f, int: %d, and make sure we're larger than one block", 1.2, 10};
 
         entity t = test.Test{prop1 = 500, prop2 = "new value"};
-//        $.insert_entity(t);
+        $.insert_entity(t);
 
 
         @t#prop1 = 5;
