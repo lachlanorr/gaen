@@ -283,7 +283,7 @@ MessageResult Entity::message(const T & msgAcc)
         // We consume this message. New init messages will be generated and
         // passed to Components when they are added to us.
 
-        // Call our subclassed message routine
+        // Call our sub-classed message routine
         mScriptTask.message(msgAcc);
 
         return MessageResult::Consumed;
