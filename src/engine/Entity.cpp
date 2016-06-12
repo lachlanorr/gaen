@@ -28,10 +28,12 @@
 
 #include "core/mem.h"
 #include "core/logging.h"
+#include "assets/file_utils.h"
 #include "engine/BlockMemory.h"
 #include "engine/glm_ext.h"
 #include "engine/hashes.h"
 #include "engine/Registry.h"
+#include "engine/Asset.h"
 
 #include "engine/messages/InsertComponent.h"
 #include "engine/messages/Transform.h"
@@ -84,6 +86,9 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
 
 Entity::~Entity()
 {
+	releaseAssets();
+	GFREE(mpAssets);
+
     GFREE(mpChildren);
     GFREE(mpBlocks);
     GFREE(mpComponents);
@@ -571,6 +576,53 @@ void Entity::removeChild(task_id taskId)
     }
     PANIC("Attempt to remove task that Entity does not have");
 }
+
+Asset * Entity::findAsset(u32 pathHash)
+{
+    if (!mpAssets || pathHash == 0)
+        return nullptr;
+
+    for (u32 i = 0; i < mAssetCount; ++i)
+    {
+        if (pathHash == mpAssets[i].pathHash())
+        {
+            ASSERT(mpAssets[i].isLoaded());
+            return &mpAssets[i];
+        }
+    }
+	return nullptr;
+}
+
+Entity::AssetLoadStatus Entity::assetsLoadStatus()
+{
+    bool foundError = false;
+    bool foundUnloaded = false;
+
+    for (u32 i = 0; i < mAssetCount; ++i)
+    {
+        if (mpAssets[i].statusFlags() != kASFL_None)
+            return kALS_Error;
+    }
+
+    ASSERT(mAssetCount <= mAssetsMax);
+
+    if (mAssetCount == mAssetsMax)
+        return kALS_Loaded;
+    else
+        return kALS_Pending;
+}
+
+void Entity::releaseAssets()
+{
+    ASSERT(assetsLoadStatus() != kALS_Pending);
+
+    for (u32 i = 0; i < mAssetCount; ++i)
+    {
+        if (mpAssets[i].statusFlags() == kASFL_None)
+            return; // LORRTODO FIX THIS
+    }
+}
+
 
 // Template decls so we can define message func here in the .cpp
 template MessageResult Entity::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);

@@ -40,6 +40,7 @@ Asset::Asset(const char * path)
   : mpBuffer(nullptr)
   , mRefCount(0)
   , mStatusFlags(kASFL_None)
+  , mIsWritable(0)
   , mSize(0)
 {
     ASSERT(path);
