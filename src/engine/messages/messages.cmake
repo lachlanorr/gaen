@@ -31,6 +31,7 @@ SET (engine_messages_SOURCES
   messages/InsertTask.h
   messages/MouseMove.h
   messages/MoveCamera.h
+  messages/ReleaseAsset.h
   messages/Transform.h
   messages/TransformId.h
   messages/UpdateLightDirectional.h

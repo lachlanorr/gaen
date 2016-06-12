@@ -36,6 +36,8 @@ namespace gaen
 class Asset
 {
 public:
+    friend class AssetMgr;
+
     explicit Asset(const char * path);
 
     bool isLoaded() const
@@ -48,10 +50,31 @@ public:
         return mPath;
     }
 
+    u32 pathHash() const
+    {
+        return mPathHash;
+    }
+
     const u8 * buffer() const
     {
         ASSERT(isLoaded());
         return mpBuffer;
+    }
+
+    u8 * writableBuffer()
+    {
+        ASSERT(isLoaded());
+        PANIC_IF(!isWritable(), "Write access requested to read only Asset: %s", mPath);
+        return mpBuffer;
+    }
+
+    bool isWritable() const
+    {
+        // LORRTODO: Base this value on the file extension allowing
+        // certain assets to be writable. Thus, we can use asset
+        // references to group entities on different TaskMasters based
+        // on their use of writable assets.
+        return mIsWritable;
     }
 
     const u64 size() const
@@ -65,6 +88,7 @@ public:
         return mStatusFlags;
     }
 
+private:
     void addRef()
     {
         ASSERT(isLoaded());
@@ -82,12 +106,13 @@ public:
 
     void load();
     void unload();
-private:
+
     u8 * mpBuffer;
     char * mPath;
     u32 mPathHash;
     u32 mRefCount:16;
-    u32 mStatusFlags:16;
+    u32 mStatusFlags:15;
+    u32 mIsWritable:1;
     u64 mSize;
 }; // class Asset
 

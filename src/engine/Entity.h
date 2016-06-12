@@ -38,6 +38,7 @@
 namespace gaen
 {
 
+class Asset;
 class BlockMemory;
 
 class Entity
@@ -72,6 +73,13 @@ public:
     void collect();
 
 protected:
+    enum AssetLoadStatus
+    {
+        kALS_Pending,
+        kALS_Loaded,
+        kALS_Error
+    };
+
     // Max entities that can be created before they're inserted into the engine
     static const u32 kMaxEntityStage = 16;
 
@@ -97,6 +105,10 @@ protected:
     void growComponents();
     void growBlocks(u32 minSizeIncrease);
     void growChildren();
+
+    Asset * findAsset(u32 pathHash);
+    AssetLoadStatus assetsLoadStatus();
+    void releaseAssets();
 
     // Task representing this base class update/message methods.  This
     // is the "public" task_id used external to the entity to refer to
@@ -139,8 +151,13 @@ protected:
 
     // Dynamic memory for scripts
     BlockMemory * mpBlockMemory;
+
+    // Asset pointers
+    Asset * mpAssets;
+    u32 mAssetsMax;
+    u32 mAssetCount;
 };
 
-} // namespcae gaen
+} // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_ENTITY_H
