@@ -72,6 +72,12 @@ entity Start
         bar = "/images/bar.tga";
     }
 
+    components
+    {
+        gaen.utils.Timer{timer_interval = 1.0,
+                         timer_message = #abc};
+    }
+
     #init()
     {
 //        $.print($.hashstr(#this_isATEST));
