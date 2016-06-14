@@ -39,7 +39,7 @@ namespace gaen
 Asset::Asset(const char * path)
   : mpBuffer(nullptr)
   , mRefCount(0)
-  , mStatusFlags(kASFL_None)
+  , mStatusFlags(kFSFL_None)
   , mIsWritable(0)
   , mSize(0)
 {
@@ -56,7 +56,7 @@ Asset::Asset(const char * path)
 void Asset::load()
 {
     PANIC_IF(isLoaded(), "load called on already loaded asset: %s", mPath);
-    mStatusFlags = kASFL_None;
+    mStatusFlags = kFSFL_None;
 
     FileReader rdr(mPath);
     mStatusFlags = rdr.statusFlags();
@@ -79,7 +79,7 @@ void Asset::unload()
     PANIC_IF(!isLoaded(), "unload called on unloaded asset: %s", mPath);
     GFREE(mpBuffer);
     mpBuffer = nullptr;
-    mStatusFlags = kASFL_None;
+    mStatusFlags = kFSFL_None;
 }
 
 } // namespace gaen

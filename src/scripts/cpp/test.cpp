@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: e2aae873b8be18223e243b8eca7dcad3
+// HASH: 7c7a299addc2d922b84f005b4fbc9c22
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -124,7 +124,7 @@ public:
 
 private:
     test__Test(u32 childCount)
-      : Entity(HASH::test__Test, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+      : Entity(HASH::test__Test, childCount, 36, 36, 0) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
         prop1() = 20;
         set_prop2(entity().blockMemory().stringAlloc("abc"));

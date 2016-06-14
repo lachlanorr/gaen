@@ -44,7 +44,7 @@ class BlockMemory;
 class Entity
 {
 public:
-    Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax);
+    Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax, u32 assetsMax);
     ~Entity();
 
     const Task & task() const { return mTask; }
@@ -107,7 +107,8 @@ protected:
     void growChildren();
 
     Asset * findAsset(u32 pathHash);
-    AssetLoadStatus assetsLoadStatus();
+	void insertAsset(Asset * pAsset);
+    AssetLoadStatus assetsLoadStatus() const { return mAssetsLoadStatus; }
     void releaseAssets();
 
     // Task representing this base class update/message methods.  This
@@ -153,9 +154,10 @@ protected:
     BlockMemory * mpBlockMemory;
 
     // Asset pointers
-    Asset * mpAssets;
+    Asset ** mpAssets;
     u32 mAssetsMax;
     u32 mAssetCount;
+    AssetLoadStatus mAssetsLoadStatus;
 };
 
 } // namespace gaen

@@ -43,7 +43,7 @@
 namespace gaen
 {
 
-Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
+Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax, u32 assetsMax)
   : mpParent(nullptr)
   , mpBlockMemory(nullptr)
 {
@@ -72,6 +72,18 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
         mpBlocks = (Block*)GALLOC(kMEM_Engine, sizeof(Block) * mBlocksMax);
     else
         mpBlocks = nullptr;
+
+    mAssetsMax = assetsMax;
+    mAssetCount = 0;
+    if (mAssetsMax > 0)
+    {
+        mpAssets = (Asset**)GALLOC(kMEM_Engine, sizeof(Asset*) * mAssetsMax);
+        mAssetsLoadStatus = kALS_Pending;
+    }
+    else
+    {
+        mAssetsLoadStatus = kALS_Loaded;
+    }
 
     // Entity stage, we manage entities here that we've created but
     // haven't yet been added to engine.
@@ -584,32 +596,30 @@ Asset * Entity::findAsset(u32 pathHash)
 
     for (u32 i = 0; i < mAssetCount; ++i)
     {
-        if (pathHash == mpAssets[i].pathHash())
+        if (pathHash == mpAssets[i]->pathHash())
         {
-            ASSERT(mpAssets[i].isLoaded());
-            return &mpAssets[i];
+            ASSERT(mpAssets[i]->isLoaded());
+            return mpAssets[i];
         }
     }
 	return nullptr;
 }
 
-Entity::AssetLoadStatus Entity::assetsLoadStatus()
+void Entity::insertAsset(Asset * pAsset)
 {
-    bool foundError = false;
-    bool foundUnloaded = false;
-
-    for (u32 i = 0; i < mAssetCount; ++i)
+    ASSERT(mAssetCount < mAssetsMax && mAssetsMax > 0 && mpAssets);
+    
+    mpAssets[mAssetCount++] = pAsset;
+    if (!pAsset->isOk())
     {
-        if (mpAssets[i].statusFlags() != kASFL_None)
-            return kALS_Error;
+        ERR("Failed to load asset: %s", pAsset->path());
+        mAssetsLoadStatus = kALS_Error;
     }
-
-    ASSERT(mAssetCount <= mAssetsMax);
-
-    if (mAssetCount == mAssetsMax)
-        return kALS_Loaded;
-    else
-        return kALS_Pending;
+    else if (mAssetCount == mAssetsMax && 
+             mAssetsLoadStatus != kALS_Error)
+    {
+        mAssetsLoadStatus = kALS_Loaded;
+    }
 }
 
 void Entity::releaseAssets()
@@ -618,7 +628,7 @@ void Entity::releaseAssets()
 
     for (u32 i = 0; i < mAssetCount; ++i)
     {
-        if (mpAssets[i].statusFlags() == kASFL_None)
+        if (mpAssets[i]->statusFlags() == kFSFL_None)
             return; // LORRTODO FIX THIS
     }
 }

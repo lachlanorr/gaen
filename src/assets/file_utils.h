@@ -81,22 +81,22 @@ bool write_file_if_contents_differ(const char * path, const char * contents);
 
 enum FileStatusFlag
 {
-    kASFL_None           = 0x0000,
-    kASFL_NotFound       = 0x0001,
-    kASFL_FailedToLoad   = 0x0002
+    kFSFL_None           = 0x0000,
+    kFSFL_NotFound       = 0x0001,
+    kFSFL_FailedToLoad   = 0x0002
 };
 
 struct FileReader
 {
     FileReader(const char * path)
-      : mStatusFlags(kASFL_None)
+      : mStatusFlags(kFSFL_None)
     {
         ifs.open(path, std::ifstream::in | std::ifstream::binary);
         auto flags = ifs.flags();
         bool fail = ifs.fail();
         if (!ifs.good())
         {
-            mStatusFlags = kASFL_NotFound;
+            mStatusFlags = kFSFL_NotFound;
             ERR("Unable to open FileReader: %s", path);
             return;
         }
@@ -117,7 +117,7 @@ struct FileReader
 
     bool isOk() const
     {
-        return mStatusFlags == kASFL_None;
+        return mStatusFlags == kFSFL_None;
     }
 
     template <typename T>

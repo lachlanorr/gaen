@@ -28,8 +28,8 @@ entity Test
 {
     assets
     {
-        foo = "/fonts/profont.gatl";
-        //bar = "/images/bar.tga";
+        foo = "/fonts/profont.gatl",
+        bar = "/images/bar.tga"
     }
 
 

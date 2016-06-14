@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: ef158737bc96f99d6cd390f5bdfcca50
+// HASH: 2c99018b9ee1b992e909ffcbbc938b19
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -61,7 +61,7 @@ public:
 
 private:
     init__Shape(u32 childCount)
-      : Entity(HASH::init__Shape, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+      : Entity(HASH::init__Shape, childCount, 36, 36, 0) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__Shape);
@@ -140,7 +140,7 @@ public:
 
 private:
     init__Light(u32 childCount)
-      : Entity(HASH::init__Light, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+      : Entity(HASH::init__Light, childCount, 36, 36, 0) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__Light);
@@ -199,7 +199,7 @@ public:
 
 private:
     init__Camera(u32 childCount)
-      : Entity(HASH::init__Camera, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+      : Entity(HASH::init__Camera, childCount, 36, 36, 0) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__Camera);
@@ -378,7 +378,7 @@ public:
 
 private:
     init__Start(u32 childCount)
-      : Entity(HASH::init__Start, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+      : Entity(HASH::init__Start, childCount, 36, 36, 0) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__Start);

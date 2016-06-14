@@ -83,6 +83,11 @@ public:
         return mSize;
     }
 
+    bool isOk() const
+    {
+        return mStatusFlags == kFSFL_None && isLoaded();
+    }
+
     u32 statusFlags() const
     {
         return mStatusFlags;

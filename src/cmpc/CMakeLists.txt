@@ -40,4 +40,10 @@ TARGET_LINK_LIBRARIES (cmpc
   ${PLATFORM_LINK_LIBS}
   )
 
+create_target_launcher(
+  cmpc
+  ARGS "-i engine/shapes.h -i engine/system_api.h ${CMAKE_SOURCE_DIR}/src/scripts/cmp/test.cmp"
+  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+)
+
 package (cmpc)

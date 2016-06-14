@@ -207,12 +207,12 @@ asset_block
     ;
 
 asset_member_list
-    : asset_member                   { $$ = ast_append(kAST_AssetMemberList, NULL, $1, pParseData); }
-    | asset_member_list asset_member { $$ = ast_append(kAST_AssetMemberList, $1, $2, pParseData); }
+    : asset_member                       { $$ = ast_append(kAST_AssetMemberList, NULL, $1, pParseData); }
+    | asset_member_list ',' asset_member { $$ = ast_append(kAST_AssetMemberList, $1, $3, pParseData); }
     ;
 
 asset_member
-    : IDENTIFIER '=' STRING_LITERAL ';'   { $$ = ast_create_asset_member($1, $3, pParseData); }
+    : IDENTIFIER '=' STRING_LITERAL   { $$ = ast_create_asset_member($1, $3, pParseData); }
     ;
 
 prop_init_list

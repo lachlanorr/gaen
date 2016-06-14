@@ -795,7 +795,7 @@ static S codegen_recurse(const Ast * pAst,
 
         // Constructor
         code += I + S("    ") + entName + S("(u32 childCount)\n");
-        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n"); 
+        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36, 0) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n"); 
         code += I + S("    {\n");
         // Initialize fields and properties
         code += init_data(pAst, indentLevel + 1);
