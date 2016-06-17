@@ -44,7 +44,7 @@ class BlockMemory;
 class Entity
 {
 public:
-    Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax, u32 assetsMax);
+    Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax);
     ~Entity();
 
     const Task & task() const { return mTask; }

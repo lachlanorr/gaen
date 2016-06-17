@@ -196,6 +196,7 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
         case kDT_mat43:
         case kDT_mat4:
         case kDT_handle:
+        case kDT_asset:
             ASSERT(blockInfo.cellIndex == 0);
             snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].qCell)", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex);
             return S(scratch);
@@ -444,6 +445,7 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
     case kDT_mat4:
         return S("glm::mat4(1.0f)");
     case kDT_handle:
+    case kDT_asset:
         return S("Handle::null()");
     case kDT_string:
         return S("entity().blockMemory().stringAlloc(\"\")");
@@ -795,7 +797,7 @@ static S codegen_recurse(const Ast * pAst,
 
         // Constructor
         code += I + S("    ") + entName + S("(u32 childCount)\n");
-        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36, 0) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n"); 
+        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n"); 
         code += I + S("    {\n");
         // Initialize fields and properties
         code += init_data(pAst, indentLevel + 1);
@@ -1058,12 +1060,6 @@ static S codegen_recurse(const Ast * pAst,
         }
         code += LF;
 
-        return code;
-    }
-    case kAST_AssetMemberList:
-    {
-        PANIC("Not Implemented");
-        S code = "foobar";
         return code;
     }
     case kAST_Block:

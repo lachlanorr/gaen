@@ -93,6 +93,8 @@ const Ast * find_component_members(const Ast * pAst)
 u32 calc_cell_count(const Ast * pAst)
 {
     const SymDataType * pSdt = pAst->pSymRec ? pAst->pSymRec->pSymDataType : ast_data_type(pAst);
+    if (!pSdt)
+        COMP_ERROR(pAst->pParseData, "Null cell count");
     return pSdt->cellCount;
 }
 

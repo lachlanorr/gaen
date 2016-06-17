@@ -66,11 +66,8 @@ entity Camera
 
 entity Start
 {
-    assets
-    {
-        foo = "/fonts/profont.gatl",
-        bar = "/images/bar.tga"
-    }
+    asset foo = "/fonts/profont.gatl";
+    asset bar = "/images/bar.tga";
 
     components
     {

@@ -88,38 +88,37 @@ extern int yydebug;
     RETURN = 298,
     COMPONENT = 299,
     COMPONENTS = 300,
-    ASSETS = 301,
-    USING = 302,
-    AS = 303,
-    CONST_ = 304,
-    THIS__ = 305,
-    NONE = 306,
-    ELSE = 307,
-    THEN = 308,
-    ADD_ASSIGN = 309,
-    SUB_ASSIGN = 310,
-    MUL_ASSIGN = 311,
-    DIV_ASSIGN = 312,
-    MOD_ASSIGN = 313,
-    LSHIFT_ASSIGN = 314,
-    RSHIFT_ASSIGN = 315,
-    AND_ASSIGN = 316,
-    XOR_ASSIGN = 317,
-    OR_ASSIGN = 318,
-    TRANSFORM = 319,
-    OR = 320,
-    AND = 321,
-    EQ = 322,
-    NEQ = 323,
-    LTE = 324,
-    GTE = 325,
-    LSHIFT = 326,
-    RSHIFT = 327,
-    INC = 328,
-    DEC = 329,
-    UMINUS = 330,
-    POSTINC = 331,
-    POSTDEC = 332
+    USING = 301,
+    AS = 302,
+    CONST_ = 303,
+    THIS__ = 304,
+    NONE = 305,
+    ELSE = 306,
+    THEN = 307,
+    ADD_ASSIGN = 308,
+    SUB_ASSIGN = 309,
+    MUL_ASSIGN = 310,
+    DIV_ASSIGN = 311,
+    MOD_ASSIGN = 312,
+    LSHIFT_ASSIGN = 313,
+    RSHIFT_ASSIGN = 314,
+    AND_ASSIGN = 315,
+    XOR_ASSIGN = 316,
+    OR_ASSIGN = 317,
+    TRANSFORM = 318,
+    OR = 319,
+    AND = 320,
+    EQ = 321,
+    NEQ = 322,
+    LTE = 323,
+    GTE = 324,
+    LSHIFT = 325,
+    RSHIFT = 326,
+    INC = 327,
+    DEC = 328,
+    UMINUS = 329,
+    POSTINC = 330,
+    POSTDEC = 331
   };
 #endif
 
@@ -138,7 +137,7 @@ union YYSTYPE
     SymTab*             pSymTab;
     const SymDataType*  pSymDataType;
 
-#line 142 "compose_parser.h" /* yacc.c:1909  */
+#line 141 "compose_parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

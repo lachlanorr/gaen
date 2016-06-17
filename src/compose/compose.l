@@ -120,7 +120,6 @@ ParseData * pParseData = yyextra;
 "using"      { return USING; }
 "as"         { return AS; }
 "components" { return COMPONENTS; }
-"assets"     { return ASSETS; }
 "entity"     { parsedata_push_top_level_stmt_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
 "component"  { parsedata_push_top_level_stmt_scope(pParseData); return COMPONENT; }
 

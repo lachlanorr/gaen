@@ -24,15 +24,14 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+component TestComp
+{
+    asset #foo = "/fonts/profont.gatl";
+    asset bar = "/images/bar.tga";
+}
+
 entity Test
 {
-    assets
-    {
-        foo = "/fonts/profont.gatl",
-        bar = "/images/bar.tga"
-    }
-
-
     int #prop1 = 20;
     string #prop2 = "abc";
     

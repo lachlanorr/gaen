@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 1841e5d125f280e7fc19a6829ab10ad3
+// HASH: 4cfc76b7640409d782372a92d1816cfd
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -114,7 +114,7 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create(this, HASH::gaen__shapes__Box);
-        mBlockCount = 2;
+        mBlockCount = 3;
     }
     gaen__shapes__Box(const gaen__shapes__Box&)              = delete;
     gaen__shapes__Box(gaen__shapes__Box&&)             = delete;
@@ -123,22 +123,22 @@ private:
 
     glm::vec3& size()
     {
-        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[1].qCell);
     }
 
     Color& diffuse()
     {
-        return mpBlocks[0].cells[3].color;
+        return mpBlocks[1].cells[3].color;
     }
 
     Handle& model()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
     }
 
     u32& modelUid()
     {
-        return mpBlocks[1].cells[2].u;
+        return mpBlocks[2].cells[0].u;
     }
 
 
@@ -235,7 +235,7 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create(this, HASH::gaen__shapes__Cone);
-        mBlockCount = 2;
+        mBlockCount = 3;
     }
     gaen__shapes__Cone(const gaen__shapes__Cone&)              = delete;
     gaen__shapes__Cone(gaen__shapes__Cone&&)             = delete;
@@ -244,27 +244,27 @@ private:
 
     glm::vec3& size()
     {
-        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[1].qCell);
     }
 
     u32& slices()
     {
-        return mpBlocks[0].cells[3].u;
+        return mpBlocks[1].cells[3].u;
     }
 
     Color& diffuse()
     {
-        return mpBlocks[1].cells[2].color;
+        return mpBlocks[2].cells[0].color;
     }
 
     Handle& model()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
     }
 
     u32& modelUid()
     {
-        return mpBlocks[1].cells[3].u;
+        return mpBlocks[2].cells[1].u;
     }
 
 
@@ -361,7 +361,7 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create(this, HASH::gaen__shapes__Cylinder);
-        mBlockCount = 2;
+        mBlockCount = 3;
     }
     gaen__shapes__Cylinder(const gaen__shapes__Cylinder&)              = delete;
     gaen__shapes__Cylinder(gaen__shapes__Cylinder&&)             = delete;
@@ -370,27 +370,27 @@ private:
 
     glm::vec3& size()
     {
-        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[1].qCell);
     }
 
     u32& slices()
     {
-        return mpBlocks[0].cells[3].u;
+        return mpBlocks[1].cells[3].u;
     }
 
     Color& diffuse()
     {
-        return mpBlocks[1].cells[2].color;
+        return mpBlocks[2].cells[0].color;
     }
 
     Handle& model()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
     }
 
     u32& modelUid()
     {
-        return mpBlocks[1].cells[3].u;
+        return mpBlocks[2].cells[1].u;
     }
 
 
@@ -507,32 +507,32 @@ private:
 
     glm::vec3& size()
     {
-        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[1].qCell);
     }
 
     u32& sections()
     {
-        return mpBlocks[0].cells[3].u;
+        return mpBlocks[1].cells[3].u;
     }
 
     u32& slices()
     {
-        return mpBlocks[1].cells[2].u;
+        return mpBlocks[2].cells[0].u;
     }
 
     Color& diffuse()
     {
-        return mpBlocks[1].cells[3].color;
+        return mpBlocks[2].cells[1].color;
     }
 
     Handle& model()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
     }
 
     u32& modelUid()
     {
-        return mpBlocks[2].cells[0].u;
+        return mpBlocks[2].cells[2].u;
     }
 
 
@@ -629,7 +629,7 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create(this, HASH::gaen__shapes__QuadSphere);
-        mBlockCount = 2;
+        mBlockCount = 3;
     }
     gaen__shapes__QuadSphere(const gaen__shapes__QuadSphere&)              = delete;
     gaen__shapes__QuadSphere(gaen__shapes__QuadSphere&&)             = delete;
@@ -638,27 +638,27 @@ private:
 
     glm::vec3& size()
     {
-        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[1].qCell);
     }
 
     u32& sections()
     {
-        return mpBlocks[0].cells[3].u;
+        return mpBlocks[1].cells[3].u;
     }
 
     Color& diffuse()
     {
-        return mpBlocks[1].cells[2].color;
+        return mpBlocks[2].cells[0].color;
     }
 
     Handle& model()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
     }
 
     u32& modelUid()
     {
-        return mpBlocks[1].cells[3].u;
+        return mpBlocks[2].cells[1].u;
     }
 
 

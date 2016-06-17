@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 7c7a299addc2d922b84f005b4fbc9c22
+// HASH: 7e958f41447ecabc43394a5c66751d95
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -41,6 +41,79 @@
 
 namespace gaen
 {
+
+namespace comp
+{
+
+class test__TestComp : public Component
+{
+public:
+    static Component * construct(void * place, Entity * pEntity)
+    {
+        return new (place) test__TestComp(pEntity);
+    }
+    
+    template <typename T>
+    MessageResult message(const T & msgAcc)
+    {
+        const Message & _msg = msgAcc.message();
+        switch(_msg.msgId)
+        {
+        case HASH::init_data:
+            foo() = entity().blockMemory().stringAlloc("/fonts/profont.gatl");
+            bar() = entity().blockMemory().stringAlloc("/images/bar.tga");
+            return MessageResult::Consumed;
+        case HASH::set_property:
+            switch (_msg.payload.u)
+            {
+            case HASH::foo:
+            {
+                u32 requiredBlockCount = 1;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    reinterpret_cast<Block*>(&foo())[0] = msgAcc[0];
+                    return MessageResult::Consumed;
+                }
+                break;
+            }
+            }
+            return MessageResult::Propogate; // Invalid property
+        }
+        return MessageResult::Propogate;
+}
+
+private:
+    test__TestComp(Entity * pEntity)
+      : Component(pEntity)
+    {
+        mScriptTask = Task::create(this, HASH::test__TestComp);
+        mBlockCount = 2;
+    }
+    test__TestComp(const test__TestComp&)              = delete;
+    test__TestComp(test__TestComp&&)             = delete;
+    test__TestComp & operator=(const test__TestComp&)  = delete;
+    test__TestComp & operator=(test__TestComp&&) = delete;
+
+    Handle& foo()
+    {
+        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
+    }
+
+    Handle& bar()
+    {
+        return *reinterpret_cast<Handle*>(&mpBlocks[1].qCell);
+    }
+
+
+}; // class test__TestComp
+
+} // namespace comp
+
+void register_component__test__TestComp(Registry & registry)
+{
+    if (!registry.registerComponentConstructor(HASH::test__TestComp, comp::test__TestComp::construct))
+        PANIC("Unable to register component: test__TestComp");
+}
 
 namespace ent
 {
@@ -124,7 +197,7 @@ public:
 
 private:
     test__Test(u32 childCount)
-      : Entity(HASH::test__Test, childCount, 36, 36, 0) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
+      : Entity(HASH::test__Test, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
         prop1() = 20;
         set_prop2(entity().blockMemory().stringAlloc("abc"));

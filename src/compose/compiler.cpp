@@ -933,23 +933,6 @@ Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData
     return pAst;
 }
 
-Ast * ast_create_asset_members(Ast * pAst, ParseData * pParseData)
-{
-    parsedata_pop_scope(pParseData);
-
-    // LORRTODO: move asset definitions up one level in scope
-
-    return pAst;
-}
-
-Ast * ast_create_asset_member(const char * name, const char * path, ParseData * pParseData)
-{
-    Ast * pAst = ast_create(kAST_AssetMember, pParseData);
-    ast_set_lhs(pAst, ast_create_identifier(name, pParseData));
-    ast_set_rhs(pAst, ast_create_string_literal(path, pParseData));
-    return pAst;
-}
-
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData)
 {
     ASSERT(pParseData);
@@ -2565,7 +2548,8 @@ namespace gaen
         register_basic_type(kDT_mat43, "mat43", "glm::mat4x3", 12, pParseData);
         register_basic_type(kDT_mat4,  "mat4",  "glm::mat4",   16, pParseData);
 
-        register_basic_type(kDT_handle, "handle", "Handle", 2, pParseData);
+        register_basic_type(kDT_handle, "handle", "Handle", 4, pParseData);
+        register_basic_type(kDT_asset, "asset", "Handle", 4, pParseData);
         register_basic_type(kDT_entity, "entity", "task_id", 1, pParseData);
         register_basic_type(kDT_string, "string", "CmpString", 2, pParseData);
     }

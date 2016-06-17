@@ -39,8 +39,21 @@ typedef void(*HandleFreeFunc)(Handle & handle);
 class Handle
 {
 public:
-    Handle(u32 typeHash, u32 nameHash, u32 ownerTaskId, u32 dataSize, void * pData, HandleFreeFunc pFreeFunc);
-    void free();
+    Handle(u32 typeHash, u32 nameHash, u32 ownerTaskId, u32 dataSize, void * pData, HandleFreeFunc pFreeFunc)
+      : mTypeHash(typeHash)
+      , mNameHash(nameHash)
+      , mOwnerTaskId(ownerTaskId)
+      , mDataSize(dataSize)
+      , mpData(pData)
+      , mpFreeFunc(pFreeFunc)
+    {
+    }
+
+    void free()
+    {
+        if (mpFreeFunc)
+            mpFreeFunc(*this);
+    }
 
     u32 typeHash() const { return mTypeHash; }
     u32 nameHash() const { return mNameHash; }

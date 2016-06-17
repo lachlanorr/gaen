@@ -45,7 +45,6 @@ SET (engine_SOURCES
   Entity.h
   FrameTime.h
   glm_ext.h
-  Handle.cpp
   Handle.h
   hashes.cpp
   hashes.h

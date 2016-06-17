@@ -41,7 +41,7 @@ void register_system_apis(ParseData * pParseData)
         size_t mangledLen = mangle_function_len("create_shape_box", pSystemApiDef->pChildren);
         char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
         mangle_function(mangledName, kMaxCmpId, "create_shape_box", pSystemApiDef->pChildren);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "handle", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "asset", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
     }
     {
         // create_shape_cone
@@ -52,7 +52,7 @@ void register_system_apis(ParseData * pParseData)
         size_t mangledLen = mangle_function_len("create_shape_cone", pSystemApiDef->pChildren);
         char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
         mangle_function(mangledName, kMaxCmpId, "create_shape_cone", pSystemApiDef->pChildren);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "handle", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "asset", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
     }
     {
         // create_shape_cylinder
@@ -63,7 +63,7 @@ void register_system_apis(ParseData * pParseData)
         size_t mangledLen = mangle_function_len("create_shape_cylinder", pSystemApiDef->pChildren);
         char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
         mangle_function(mangledName, kMaxCmpId, "create_shape_cylinder", pSystemApiDef->pChildren);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "handle", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "asset", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
     }
     {
         // create_shape_sphere
@@ -75,7 +75,7 @@ void register_system_apis(ParseData * pParseData)
         size_t mangledLen = mangle_function_len("create_shape_sphere", pSystemApiDef->pChildren);
         char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
         mangle_function(mangledName, kMaxCmpId, "create_shape_sphere", pSystemApiDef->pChildren);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "handle", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "asset", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
     }
     {
         // create_shape_quad_sphere
@@ -86,7 +86,7 @@ void register_system_apis(ParseData * pParseData)
         size_t mangledLen = mangle_function_len("create_shape_quad_sphere", pSystemApiDef->pChildren);
         char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
         mangle_function(mangledName, kMaxCmpId, "create_shape_quad_sphere", pSystemApiDef->pChildren);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "handle", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "asset", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
     }
     {
         // print
@@ -224,7 +224,7 @@ void register_system_apis(ParseData * pParseData)
         // renderer_insert_model_instance
         Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
         ast_add_child(pSystemApiDef, ast_create_function_arg("uid", parsedata_find_type_symbol(pParseData, "uint", 0, 0), pParseData));
-        ast_add_child(pSystemApiDef, ast_create_function_arg("modelHandle", parsedata_find_type_symbol(pParseData, "handle", 0, 1), pParseData));
+        ast_add_child(pSystemApiDef, ast_create_function_arg("modelHandle", parsedata_find_type_symbol(pParseData, "asset", 0, 1), pParseData));
         size_t mangledLen = mangle_function_len("renderer_insert_model_instance", pSystemApiDef->pChildren);
         char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
         mangle_function(mangledName, kMaxCmpId, "renderer_insert_model_instance", pSystemApiDef->pChildren);

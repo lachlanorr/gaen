@@ -43,7 +43,7 @@
 namespace gaen
 {
 
-Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax, u32 assetsMax)
+Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
   : mpParent(nullptr)
   , mpBlockMemory(nullptr)
 {
@@ -73,17 +73,10 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax, 
     else
         mpBlocks = nullptr;
 
-    mAssetsMax = assetsMax;
+    mAssetsMax = 0;
     mAssetCount = 0;
-    if (mAssetsMax > 0)
-    {
-        mpAssets = (Asset**)GALLOC(kMEM_Engine, sizeof(Asset*) * mAssetsMax);
-        mAssetsLoadStatus = kALS_Pending;
-    }
-    else
-    {
-        mAssetsLoadStatus = kALS_Loaded;
-    }
+	mAssetsLoadStatus = kALS_Loaded;
+	mpAssets = nullptr;
 
     // Entity stage, we manage entities here that we've created but
     // haven't yet been added to engine.
@@ -98,8 +91,9 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax, 
 
 Entity::~Entity()
 {
-	releaseAssets();
-	GFREE(mpAssets);
+    releaseAssets();
+    if (mpAssets)
+        GFREE(mpAssets);
 
     GFREE(mpChildren);
     GFREE(mpBlocks);

@@ -82,7 +82,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 QUAT MAT3 MAT43 MAT4 HANDLE_ ASSET ENTITY STRING
 %type <dataType> basic_type
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS ASSETS USING AS CONST_ THIS__ NONE
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS USING AS CONST_ THIS__ NONE
 %right ELSE THEN
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN TRANSFORM
@@ -114,7 +114,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> using_list using_stmt dotted_id dotted_id_proc dotted_id_part
 %type <pAst> message_block message_list message_prop target_expr
-%type <pAst> prop_init_list prop_init component_block component_member_list component_member asset_block asset_member_list asset_member
+%type <pAst> prop_init_list prop_init component_block component_member_list component_member
 
 %type <pSymTab> param_list
 
@@ -178,7 +178,6 @@ message_prop
     | type IDENTIFIER '=' expr ';'   { $$ = ast_create_field_def($2, $1, $4, pParseData); }
     | type IDENTIFIER ';'            { $$ = ast_create_field_def($2, $1, NULL, pParseData); }
     | COMPONENTS component_block     { $$ = ast_create_component_members($2, pParseData); }
-    | ASSETS asset_block             { $$ = ast_create_asset_members($2, pParseData); }
     ;
 
 param_list
@@ -200,19 +199,6 @@ component_member_list
 component_member
     : dotted_id ';'                        { $$ = ast_create_component_member($1, ast_create(kAST_PropInit, pParseData), pParseData); }
     | dotted_id '{' prop_init_list '}' ';' { $$ = ast_create_component_member($1, $3, pParseData); }
-    ;
-
-asset_block
-    : '{' asset_member_list '}'      { $$ = $2; }
-    ;
-
-asset_member_list
-    : asset_member                       { $$ = ast_append(kAST_AssetMemberList, NULL, $1, pParseData); }
-    | asset_member_list ',' asset_member { $$ = ast_append(kAST_AssetMemberList, $1, $3, pParseData); }
-    ;
-
-asset_member
-    : IDENTIFIER '=' STRING_LITERAL   { $$ = ast_create_asset_member($1, $3, pParseData); }
     ;
 
 prop_init_list

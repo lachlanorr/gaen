@@ -38,6 +38,7 @@ extern void register_component__gaen__shapes__Sphere(Registry & registry);
 extern void register_component__gaen__utils__Timer(Registry & registry);
 extern void register_component__gaen__utils__WasdCamera(Registry & registry);
 extern void register_component__gaen__utils__WasdRot(Registry & registry);
+extern void register_component__test__TestComp(Registry & registry);
 extern void register_entity__init__Camera(Registry & registry);
 extern void register_entity__init__Light(Registry & registry);
 extern void register_entity__init__Shape(Registry & registry);
@@ -55,6 +56,7 @@ void register_all_entities_and_components(Registry & registry)
     register_component__gaen__utils__Timer(registry);
     register_component__gaen__utils__WasdCamera(registry);
     register_component__gaen__utils__WasdRot(registry);
+    register_component__test__TestComp(registry);
     register_entity__init__Camera(registry);
     register_entity__init__Light(registry);
     register_entity__init__Shape(registry);
