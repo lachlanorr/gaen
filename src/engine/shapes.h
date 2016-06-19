@@ -83,11 +83,11 @@ Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color);
 class Entity;
 namespace system_api
 {
-    Handle create_shape_box(const glm::vec3 & size, Color color, Entity & caller);
-    Handle create_shape_cone(const glm::vec3 & size, u32 slices, Color color, Entity & caller);
-    Handle create_shape_cylinder(const glm::vec3 & size, u32 slices, Color color, Entity & caller);
-    Handle create_shape_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color, Entity & caller);
-    Handle create_shape_quad_sphere(const glm::vec3 & size, u32 sections, Color color, Entity & caller);
+    HandleP create_shape_box(const glm::vec3 & size, Color color, Entity & caller);
+    HandleP create_shape_cone(const glm::vec3 & size, u32 slices, Color color, Entity & caller);
+    HandleP create_shape_cylinder(const glm::vec3 & size, u32 slices, Color color, Entity & caller);
+    HandleP create_shape_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color, Entity & caller);
+    HandleP create_shape_quad_sphere(const glm::vec3 & size, u32 sections, Color color, Entity & caller);
 }
 
 } // namespace gaen

@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 4cfc76b7640409d782372a92d1816cfd
+// HASH: 323ae2f06ed8c63f676b0e1afb17b2de
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -60,10 +60,20 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            ASSERT(initStatus() < kIS_InitData);
+
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             diffuse() = Color(255, 0, 0, 255);
-            model() = Handle::null();
+            model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
+
+            setInitStatus(kIS_InitData);
+            return MessageResult::Consumed;
+        case HASH::init_assets:
+            ASSERT(initStatus() < kIS_InitAssets);
+
+
+            setInitStatus(kIS_InitAssets);
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -94,15 +104,21 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
+            ASSERT(initStatus() < kIS_Init);
+
             // Params look compatible, message body follows
             model() = system_api::create_shape_box(size(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
+
+            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::update_transform:
         {
+
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
+
             return MessageResult::Consumed;
         }
         }
@@ -114,7 +130,7 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create(this, HASH::gaen__shapes__Box);
-        mBlockCount = 3;
+        mBlockCount = 2;
     }
     gaen__shapes__Box(const gaen__shapes__Box&)              = delete;
     gaen__shapes__Box(gaen__shapes__Box&&)             = delete;
@@ -123,22 +139,22 @@ private:
 
     glm::vec3& size()
     {
-        return *reinterpret_cast<glm::vec3*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
     }
 
     Color& diffuse()
     {
-        return mpBlocks[1].cells[3].color;
+        return mpBlocks[0].cells[3].color;
     }
 
-    Handle& model()
+    HandleP& model()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<HandleP*>(&mpBlocks[1].cells[0]);
     }
 
     u32& modelUid()
     {
-        return mpBlocks[2].cells[0].u;
+        return mpBlocks[1].cells[2].u;
     }
 
 
@@ -170,11 +186,21 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            ASSERT(initStatus() < kIS_InitData);
+
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
-            model() = Handle::null();
+            model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
+
+            setInitStatus(kIS_InitData);
+            return MessageResult::Consumed;
+        case HASH::init_assets:
+            ASSERT(initStatus() < kIS_InitAssets);
+
+
+            setInitStatus(kIS_InitAssets);
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -215,15 +241,21 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
+            ASSERT(initStatus() < kIS_Init);
+
             // Params look compatible, message body follows
             model() = system_api::create_shape_cone(size(), slices(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
+
+            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::update_transform:
         {
+
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
+
             return MessageResult::Consumed;
         }
         }
@@ -235,7 +267,7 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create(this, HASH::gaen__shapes__Cone);
-        mBlockCount = 3;
+        mBlockCount = 2;
     }
     gaen__shapes__Cone(const gaen__shapes__Cone&)              = delete;
     gaen__shapes__Cone(gaen__shapes__Cone&&)             = delete;
@@ -244,27 +276,27 @@ private:
 
     glm::vec3& size()
     {
-        return *reinterpret_cast<glm::vec3*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
     }
 
     u32& slices()
     {
-        return mpBlocks[1].cells[3].u;
+        return mpBlocks[0].cells[3].u;
     }
 
     Color& diffuse()
     {
-        return mpBlocks[2].cells[0].color;
+        return mpBlocks[1].cells[2].color;
     }
 
-    Handle& model()
+    HandleP& model()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<HandleP*>(&mpBlocks[1].cells[0]);
     }
 
     u32& modelUid()
     {
-        return mpBlocks[2].cells[1].u;
+        return mpBlocks[1].cells[3].u;
     }
 
 
@@ -296,11 +328,21 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            ASSERT(initStatus() < kIS_InitData);
+
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
-            model() = Handle::null();
+            model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
+
+            setInitStatus(kIS_InitData);
+            return MessageResult::Consumed;
+        case HASH::init_assets:
+            ASSERT(initStatus() < kIS_InitAssets);
+
+
+            setInitStatus(kIS_InitAssets);
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -341,15 +383,21 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
+            ASSERT(initStatus() < kIS_Init);
+
             // Params look compatible, message body follows
             model() = system_api::create_shape_cylinder(size(), slices(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
+
+            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::update_transform:
         {
+
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
+
             return MessageResult::Consumed;
         }
         }
@@ -361,7 +409,7 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create(this, HASH::gaen__shapes__Cylinder);
-        mBlockCount = 3;
+        mBlockCount = 2;
     }
     gaen__shapes__Cylinder(const gaen__shapes__Cylinder&)              = delete;
     gaen__shapes__Cylinder(gaen__shapes__Cylinder&&)             = delete;
@@ -370,27 +418,27 @@ private:
 
     glm::vec3& size()
     {
-        return *reinterpret_cast<glm::vec3*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
     }
 
     u32& slices()
     {
-        return mpBlocks[1].cells[3].u;
+        return mpBlocks[0].cells[3].u;
     }
 
     Color& diffuse()
     {
-        return mpBlocks[2].cells[0].color;
+        return mpBlocks[1].cells[2].color;
     }
 
-    Handle& model()
+    HandleP& model()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<HandleP*>(&mpBlocks[1].cells[0]);
     }
 
     u32& modelUid()
     {
-        return mpBlocks[2].cells[1].u;
+        return mpBlocks[1].cells[3].u;
     }
 
 
@@ -422,12 +470,22 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            ASSERT(initStatus() < kIS_InitData);
+
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             sections() = 16;
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
-            model() = Handle::null();
+            model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
+
+            setInitStatus(kIS_InitData);
+            return MessageResult::Consumed;
+        case HASH::init_assets:
+            ASSERT(initStatus() < kIS_InitAssets);
+
+
+            setInitStatus(kIS_InitAssets);
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -478,15 +536,21 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
+            ASSERT(initStatus() < kIS_Init);
+
             // Params look compatible, message body follows
             model() = system_api::create_shape_sphere(size(), slices(), sections(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
+
+            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::update_transform:
         {
+
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
+
             return MessageResult::Consumed;
         }
         }
@@ -507,32 +571,32 @@ private:
 
     glm::vec3& size()
     {
-        return *reinterpret_cast<glm::vec3*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
     }
 
     u32& sections()
     {
-        return mpBlocks[1].cells[3].u;
+        return mpBlocks[0].cells[3].u;
     }
 
     u32& slices()
     {
-        return mpBlocks[2].cells[0].u;
+        return mpBlocks[1].cells[2].u;
     }
 
     Color& diffuse()
     {
-        return mpBlocks[2].cells[1].color;
+        return mpBlocks[1].cells[3].color;
     }
 
-    Handle& model()
+    HandleP& model()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<HandleP*>(&mpBlocks[1].cells[0]);
     }
 
     u32& modelUid()
     {
-        return mpBlocks[2].cells[2].u;
+        return mpBlocks[2].cells[0].u;
     }
 
 
@@ -564,11 +628,21 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            ASSERT(initStatus() < kIS_InitData);
+
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             sections() = 16;
             diffuse() = Color(255, 0, 0, 255);
-            model() = Handle::null();
+            model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
+
+            setInitStatus(kIS_InitData);
+            return MessageResult::Consumed;
+        case HASH::init_assets:
+            ASSERT(initStatus() < kIS_InitAssets);
+
+
+            setInitStatus(kIS_InitAssets);
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -609,15 +683,21 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
+            ASSERT(initStatus() < kIS_Init);
+
             // Params look compatible, message body follows
             model() = system_api::create_shape_quad_sphere(size(), sections(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
+
+            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::update_transform:
         {
+
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
+
             return MessageResult::Consumed;
         }
         }
@@ -629,7 +709,7 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create(this, HASH::gaen__shapes__QuadSphere);
-        mBlockCount = 3;
+        mBlockCount = 2;
     }
     gaen__shapes__QuadSphere(const gaen__shapes__QuadSphere&)              = delete;
     gaen__shapes__QuadSphere(gaen__shapes__QuadSphere&&)             = delete;
@@ -638,27 +718,27 @@ private:
 
     glm::vec3& size()
     {
-        return *reinterpret_cast<glm::vec3*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<glm::vec3*>(&mpBlocks[0].qCell);
     }
 
     u32& sections()
     {
-        return mpBlocks[1].cells[3].u;
+        return mpBlocks[0].cells[3].u;
     }
 
     Color& diffuse()
     {
-        return mpBlocks[2].cells[0].color;
+        return mpBlocks[1].cells[2].color;
     }
 
-    Handle& model()
+    HandleP& model()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<HandleP*>(&mpBlocks[1].cells[0]);
     }
 
     u32& modelUid()
     {
-        return mpBlocks[2].cells[1].u;
+        return mpBlocks[1].cells[3].u;
     }
 
 

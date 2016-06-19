@@ -29,8 +29,8 @@ INCLUDE (messages/messages.cmake)
 SET (engine_SOURCES
   Asset.cpp
   Asset.h
-  AssetMgr.cpp
-  AssetMgr.h
+  AssetLoader.cpp
+  AssetLoader.h
   Block.h
   BlockData.h
   BlockMemory.cpp
@@ -46,6 +46,8 @@ SET (engine_SOURCES
   FrameTime.h
   glm_ext.h
   Handle.h
+  HandleMgr.cpp
+  HandleMgr.h
   hashes.cpp
   hashes.h
   ImageBuffer.cpp

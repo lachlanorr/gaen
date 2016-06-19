@@ -404,10 +404,10 @@ static yyconst flex_int16_t yy_accept[256] =
       102,  102,   13,  102,   11,   22,   24,   29,   21,  102,
 
       102,  102,  102,   30,  102,   48,   10,  102,  102,  102,
-       18,   19,   20,   25,  102,   27,   39,   17,  102,   41,
+       18,   19,   20,   25,  102,   28,   39,   17,  102,   41,
       102,  102,  102,   49,   14,  102,   23,  102,    7,  102,
       102,  102,   12,  102,   42,   33,  102,  102,   15,   45,
-       26,   40,   28,   36,  102,    8,  102,   38,  102,  102,
+       26,   40,   27,   36,  102,    8,  102,   38,  102,  102,
       102,   46,   47,   44,    0
     } ;
 
@@ -1167,12 +1167,12 @@ YY_RULE_SETUP
 case 27:
 YY_RULE_SETUP
 #line 100 "compose.l"
-{ yylval->dataType = kDT_asset;  return ASSET; }
+{ yylval->dataType = kDT_string; return STRING;  }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
 #line 101 "compose.l"
-{ yylval->dataType = kDT_string; return STRING;  }
+{ yylval->dataType = kDT_asset;  return ASSET; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP

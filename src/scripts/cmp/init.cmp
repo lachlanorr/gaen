@@ -39,11 +39,11 @@ entity Shape
         gaen.shapes.Sphere{size    = vec3{1.0, 1.0, 1.0},
                            slices  = 32,
                            sections = 16,
-                           diffuse = color{255, 255, 0, 255}};
+                           diffuse = color{255, 255, 0, 255}},
 /*        gaen.shapes.QuadSphere{size   = vec3{3.0, 3.0, 3.0},
                                sections = 10,
                                diffuse = color{150, 255, 100, 255}};*/
-        gaen.utils.WasdRot{};        
+        gaen.utils.WasdRot{}
     }
 }
 
@@ -52,7 +52,7 @@ entity Light
     components
     {
         gaen.lights.Directional{dir = vec3{1.0, -0.7, -0.5},
-                                col = color{255, 255, 0, 255}};
+                                col = color{255, 255, 0, 255}}
     }
 }
 
@@ -60,7 +60,7 @@ entity Camera
 {
     components
     {
-        gaen.utils.WasdCamera{};
+        gaen.utils.WasdCamera{}
     }
 }
 
@@ -72,7 +72,7 @@ entity Start
     components
     {
         gaen.utils.Timer{timer_interval = 1.0,
-                         timer_message = #abc};
+                         timer_message = #abc}
     }
 
     #init()
@@ -80,7 +80,8 @@ entity Start
 //        $.print($.hashstr(#this_isATEST));
         string s = string{"float: %0.2f, int: %d, and make sure we're larger than one block", 1.2, 10};
 
-        entity t = test.Test{prop1 = 500, prop2 = "new value"};
+//        entity t = test.Test{prop1 = 500, prop2 = "new value"};
+        entity t = test.Test{};
         $.insert_entity(t);
 
 

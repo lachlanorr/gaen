@@ -41,3 +41,7 @@ ADD_LIBRARY (scripts
   ${scripts_SOURCES}
   )
 
+ADD_DEPENDENCIES(scripts
+  engine
+  fnv_hashes_precalc
+  )

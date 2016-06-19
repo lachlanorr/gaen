@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 2d8f3ce70989b18f9f820d522b11424a
+// HASH: 658e5e61d2f0ef746152a00e17e82235
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -234,22 +234,9 @@ class init__Start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__test_Test__83_21()
+    task_id entity_init__init__test_Test__84_86()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::test__Test, 8);
-        // Init Property: prop1
-        {
-            StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop1));
-            msgw[0].cells[0].i = 500;
-            pEnt->task().message(msgw.accessor());
-        }
-        // Init Property: prop2
-        {
-            CmpString val = entity().blockMemory().stringAlloc("new value");
-            ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop2), val.blockCount());
-            val.writeMessage(msgw.accessor(), 0);
-            pEnt->task().message(msgw.accessor());
-        }
         // Send init message
         StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
         pEnt->task().message(msgBW.accessor());
@@ -258,7 +245,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Camera__94_23()
+    task_id entity_init__init__Camera__95_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Camera, 8);
         // Send init message
@@ -269,7 +256,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Light__97_25()
+    task_id entity_init__init__Light__98_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
         // Send init message
@@ -280,7 +267,7 @@ private:
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Shape__100_25()
+    task_id entity_init__init__Shape__101_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Shape, 8);
         // Send init message
@@ -306,9 +293,11 @@ public:
         {
         case HASH::init:
         {
+            ASSERT(initStatus() < kIS_Init);
+
             // Params look compatible, message body follows
             CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+00f, 10);
-            task_id t = entity_init__init__test_Test__83_21();
+            task_id t = entity_init__init__test_Test__84_86();
             system_api::insert_entity(t, entity());
             { // Send Message Block
                 // Compute block size, incorporating any BlockMemory parameters dynamically
@@ -364,12 +353,14 @@ public:
 
                 // MessageQueueWriter will send message through RAII when this scope is exited
             }
-            task_id cam = entity_init__init__Camera__94_23();
+            task_id cam = entity_init__init__Camera__95_23();
             system_api::insert_entity(cam, entity());
-            task_id light = entity_init__init__Light__97_25();
+            task_id light = entity_init__init__Light__98_25();
             system_api::insert_entity(light, entity());
-            task_id shape = entity_init__init__Shape__100_25();
+            task_id shape = entity_init__init__Shape__101_25();
             system_api::insert_entity(shape, entity());
+
+            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         }
@@ -382,7 +373,7 @@ private:
     {
         foo() = entity().blockMemory().stringAlloc("/fonts/profont.gatl");
         bar() = entity().blockMemory().stringAlloc("/images/bar.tga");
-        mBlockCount = 2;
+        mBlockCount = 1;
         mScriptTask = Task::create(this, HASH::init__Start);
 
         // Component: gaen.utils.Timer
@@ -410,14 +401,14 @@ private:
     init__Start & operator=(const init__Start&)  = delete;
     init__Start & operator=(init__Start&&)       = delete;
 
-    Handle& foo()
+    CmpStringAsset& foo()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[0]);
     }
 
-    Handle& bar()
+    CmpStringAsset& bar()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[2]);
     }
 
 }; // class init__Start

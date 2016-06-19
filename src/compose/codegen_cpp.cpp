@@ -195,12 +195,12 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
         case kDT_mat3:
         case kDT_mat43:
         case kDT_mat4:
-        case kDT_handle:
-        case kDT_asset:
             ASSERT(blockInfo.cellIndex == 0);
             snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].qCell)", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex);
             return S(scratch);
         case kDT_string:
+        case kDT_asset:
+        case kDT_handle:
             snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].cells[%u])", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex, blockInfo.cellIndex);
             return S(scratch);
         default:
@@ -352,6 +352,11 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                 code += I1 + S("{\n");
                 if (!is_block_memory_type(pSymRec->pSymDataType))
                 {
+                    if (pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
+                    {
+                        snprintf(scratch, kScratchSize, "Asset property '%s' set after asset initialization", pSymRec->name);
+                        code += I2 + S("ERR_IF(initStatus() >= kIS_InitAssets, \"") + S(scratch) + S("\");\n");
+                    }
                     snprintf(scratch, kScratchSize, "u32 requiredBlockCount = %d;\n", blockCount);
                     code += I2 + S(scratch);
                     code += I2 + S("if (_msg.blockCount >= requiredBlockCount)\n");
@@ -445,9 +450,9 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
     case kDT_mat4:
         return S("glm::mat4(1.0f)");
     case kDT_handle:
-    case kDT_asset:
-        return S("Handle::null()");
+        return S("nullptr");
     case kDT_string:
+    case kDT_asset:
         return S("entity().blockMemory().stringAlloc(\"\")");
     default:
         COMP_ERROR(pParseData, "Unknown initial value for datatype: %d", pSdt->typeDesc.dataType);
@@ -502,6 +507,55 @@ static S init_data(const Ast * pAst, int indentLevel)
     return code;
 }
 
+static S init_assets(const Ast * pAst, int indentLevel)
+{
+    // LORRTODO: Implement this
+    PANIC("Not Implemented");
+    ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
+
+    S code = S("");
+    for (SymRec * pSymRec : pAst->pScope->pSymTab->orderedSymRecs)
+    {
+        if (is_prop_or_field(pSymRec) && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
+        {
+            if (!is_block_memory_type(pSymRec->pSymDataType))
+            {
+                code += I1 + symref(nullptr, pSymRec, pAst->pParseData);
+                code += S(" = ");
+
+                // Does the script initialize this with a value?
+                if (pSymRec->pAst)
+                {
+                    code += codegen_recurse(pSymRec->pAst, 0);
+                }
+                else
+                {
+                    // initialize with a default value based on the type
+                    code += data_type_init_value(pSymRec->pSymDataType, pAst->pParseData);
+                }
+                code += S(";\n");
+            }
+            else // ref counted go through set methods so we can addref/release properly
+            {
+                code += I + S("    set_") + pSymRec->name + S("(");
+
+                // Does the script initialize this with a value?
+                if (pSymRec->pAst)
+                {
+                    code += codegen_recurse(pSymRec->pAst, 0);
+                }
+                else
+                {
+                    // initialize with a default value based on the type
+                    code += data_type_init_value(pSymRec->pSymDataType, pAst->pParseData);
+                }
+                code += S(");\n");
+            }
+        }
+    }
+    return code;
+}
+
 static S message_def(const Ast * pAst, int indentLevel)
 {
     S code;
@@ -515,6 +569,14 @@ static S message_def(const Ast * pAst, int indentLevel)
     {
         code += I + S("case HASH::") + S(pAst->str) + S(":\n");
         code += I + S("{\n");
+
+        bool isInit = 0 == strcmp(pAst->str, "init");
+        bool isFin = 0 == strcmp(pAst->str, "fin");
+
+        if (isInit)
+            code += I1 + S("ASSERT(initStatus() < kIS_Init);\n");
+        else if (isFin)
+            code += I1 + S("ASSERT(initStatus() < kIS_Fin);\n");
 
         if (pAst->pBlockInfos->blockCount > 0 ||
             pAst->pBlockInfos->blockMemoryItemCount > 0)
@@ -558,11 +620,21 @@ static S message_def(const Ast * pAst, int indentLevel)
             code += LF;
         }
 
+        code += LF;
+
         code += I1 + S("// Params look compatible, message body follows\n");
         for (Ast * pChild : pAst->pChildren->nodes)
         {
             code += codegen_recurse(pChild, indentLevel + 1);
         }
+
+        code += LF;
+
+        if (isInit)
+            code += I1 + S("setInitStatus(kIS_Init);\n");
+        else if (isFin)
+            code += I1 + S("setInitStatus(kIS_Fin);\n");
+
         code += I + S("    return MessageResult::Consumed;\n");
         code += I + S("}\n");
     }
@@ -797,7 +869,7 @@ static S codegen_recurse(const Ast * pAst,
 
         // Constructor
         code += I + S("    ") + entName + S("(u32 childCount)\n");
-        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n"); 
+        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
         code += I + S("    {\n");
         // Initialize fields and properties
         code += init_data(pAst, indentLevel + 1);
@@ -889,7 +961,7 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    {\n");
         code += I + S("        return new (place) ") + compName + S("(pEntity);\n");
         code += I + S("    }\n");
-        code += I + S("    \n");
+        code += I + S("\n");
 
         // Update method, if we have one
         if (pUpdateDef)
@@ -906,10 +978,23 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("        switch(_msg.msgId)\n");
         code += I + S("        {\n");
 
-        // #init_data
+        // init_data
         code += I + S("        case HASH::") + S("init_data:\n");
+        code += I + S("            ASSERT(initStatus() < kIS_InitData);\n");
+        code += LF;
         code += init_data(pAst, indentLevel + 2);
-        code += I + S("            ") + S("return MessageResult::Consumed;\n");
+        code += LF;
+        code += I + S("            setInitStatus(kIS_InitData);\n");
+        code += I + S("            return MessageResult::Consumed;\n");
+
+        // init_assets
+        code += I + S("        case HASH::") + S("init_assets:\n");
+        code += I + S("            ASSERT(initStatus() < kIS_InitAssets);\n");
+        code += LF;
+        code += init_assets(pAst, indentLevel + 2);
+        code += LF;
+        code += I + S("            setInitStatus(kIS_InitAssets);\n");
+        code += I + S("            return MessageResult::Consumed;\n");
 
         code += set_property_handlers(pAst, indentLevel + 2);
         // property setters

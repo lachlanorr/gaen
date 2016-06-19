@@ -224,12 +224,12 @@ typedef enum
     kDT_mat4      = 21,
 
     kDT_handle    = 22,
-    kDT_asset     = 23,
 
-    kDT_entity    = 24,
+    kDT_entity    = 23,
 
     // Dynamic data structures
-    kDT_string    = 25,
+    kDT_string    = 24,
+    kDT_asset     = 25,
 
     // User defined struct
     kDT_struct    = 26,

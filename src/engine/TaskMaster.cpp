@@ -1,5 +1,3 @@
-mpAssetMgr
-mpAssetMgr
 //------------------------------------------------------------------------------
 // TaskMaster.cpp - Manages tasks, one of these runs per core
 //
@@ -36,7 +34,7 @@ mpAssetMgr
 #include "engine/Entity.h"
 #include "engine/messages/InsertTask.h"
 #include "engine/InputMgr.h"
-#include "engine/AssetMgr.h"
+#include "engine/HandleMgr.h"
 #include "engine/renderer_api.h"
 
 #include "engine/TaskMaster.h"
@@ -362,7 +360,7 @@ void TaskMaster::runPrimaryGameLoop()
     ASSERT(!mIsRunning);
 
     mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr));
-    mpAssetMgr.reset(GNEW(kMEM_Engine, AssetMgr));
+    mpHandleMgr.reset(GNEW(kMEM_Engine, HandleMgr));
 
     renderer_init_device(mRendererTask);
     renderer_init_viewport(mRendererTask);
@@ -593,10 +591,10 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
         ASSERT(mpInputMgr.get() != nullptr);
         mpInputMgr->message(msgAcc);
     }
-    else if (msg.target == kAssetMgrTaskId)
+    else if (msg.target == kHandleMgrTaskId)
     {
-        ASSERT(mpAssetMgr.get() != nullptr);
-        mpAssetMgr->message(msgAcc);
+        ASSERT(mpHandleMgr.get() != nullptr);
+        mpHandleMgr->message(msgAcc);
     }
     else if (msg.target == kMainThreadTaskId)
     {

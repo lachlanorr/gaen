@@ -151,10 +151,10 @@ void renderer_move_camera(const glm::vec3 & position, const glm::quat & directio
 }
 
 void renderer_insert_model_instance(u32 uid,
-                                    Handle & modelHandle,
+                                    HandleP modelHandle,
                                     Entity & caller)
 {
-    if (modelHandle.typeHash() != HASH::model)
+    if (modelHandle->typeHash() != HASH::model)
         PANIC("Invalid model handle");
 
     messages::InsertModelInstanceQW msgQW(HASH::renderer_insert_model_instance,
@@ -163,7 +163,7 @@ void renderer_insert_model_instance(u32 uid,
                                           kRendererTaskId,
                                           uid);
     msgQW.setIsAssetManaged(true);
-    msgQW.setModel((Model*)modelHandle.data());
+    msgQW.setModel((Model*)modelHandle->data());
     msgQW.setTransform(caller.transform());
 }
 

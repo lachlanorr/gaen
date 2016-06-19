@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// AssetMgr.cpp - Loads and unloads raw asset buffers
+// HandleMgr.cpp - Manages access to Handle data, enabling lockless concurrency
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -26,55 +26,15 @@
 
 #include "engine/stdafx.h"
 
-#include "core/HashMap.h"
 #include "engine/MessageQueue.h"
 
-#include "engine/AssetMgr.h"
+#include "engine/HandleMgr.h"
 
 namespace gaen
 {
 
-// 4cc is endian dangerous, but we only do this within a running process,
-// these 4 character codes are never persisted between processes.
-static inline u32 ext_to_4cc(const char * ext)
-{
-    ASSERT(strlen(ext) >= 3);
-    u32 cc = 0;
-    cc |= ext[0] << 3;
-    cc |= ext[1] << 2;
-    cc |= ext[2] << 1;
-    cc |= ext[3];
-    return cc;
-}
-
-MemType AssetMgr::mem_type_from_ext(const char * ext)
-{
-    static HashMap<kMEM_Engine, u32, MemType> sMap;
-    if (sMap.size() == 0)
-    {
-        // initialize, first time through
-        sMap[ext_to_4cc("gatl")] = kMEM_Engine;
-        sMap[ext_to_4cc("gimg")] = kMEM_Texture;
-        sMap[ext_to_4cc("gmat")] = kMEM_Renderer;
-        sMap[ext_to_4cc("gvtx")] = kMEM_Engine;
-        sMap[ext_to_4cc("gfrg")] = kMEM_Engine;
-    }
-
-    // ensure a 3 character (or longer) extension
-    if (!ext[0] || !ext[1] || !ext[2])
-        return kMEM_Unspecified;
-
-    u32 cc = ext_to_4cc(ext);
-    auto it= sMap.find(cc);
-    if (it != sMap.end())
-        return it->second;
-    else
-        return kMEM_Unspecified;
-}
-
-
 template <typename T>
-MessageResult AssetMgr::message(const T & msgAcc)
+MessageResult HandleMgr::message(const T & msgAcc)
 {
     const Message & msg = msgAcc.message();
 
@@ -139,6 +99,6 @@ MessageResult AssetMgr::message(const T & msgAcc)
 }
 
 // Template decls so we can define message func here in the .cpp
-template MessageResult AssetMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template MessageResult HandleMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
 
 } // namespace gaen

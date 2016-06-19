@@ -73,6 +73,8 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
     else
         mpBlocks = nullptr;
 
+    mInitStatus = kIS_Uninitialized;
+
     mAssetsMax = 0;
     mAssetCount = 0;
 	mAssetsLoadStatus = kALS_Loaded;

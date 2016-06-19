@@ -74,7 +74,8 @@ private:
     BlockData * mpBlockData;
 };
 
-
+// Typedef to differentiate assets from strings (which are internally both CmpString's)
+typedef CmpString CmpStringAsset;
 
 } // namespace gaen
 

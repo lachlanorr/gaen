@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 202ab314dd88f99416b69b2933099e82
+// HASH: b4d8c7b11b864572641d22f2a84e1976
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -60,9 +60,19 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            ASSERT(initStatus() < kIS_InitData);
+
             lightUid() = system_api::renderer_gen_uid(entity());
             dir() = glm::vec3(1.00000001e-01f, 1.00000001e-01f, 2.00000003e-01f);
             col() = Color(255, 255, 255, 255);
+
+            setInitStatus(kIS_InitData);
+            return MessageResult::Consumed;
+        case HASH::init_assets:
+            ASSERT(initStatus() < kIS_InitAssets);
+
+
+            setInitStatus(kIS_InitAssets);
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -93,8 +103,12 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
+            ASSERT(initStatus() < kIS_Init);
+
             // Params look compatible, message body follows
             system_api::renderer_insert_light_directional(lightUid(), dir(), col(), entity());
+
+            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         }

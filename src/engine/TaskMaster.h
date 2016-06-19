@@ -42,7 +42,7 @@ namespace gaen
 {
 
 class InputMgr;
-class AssetMgr;
+class HandleMgr;
 class MessageQueue;
 class Entity;
 
@@ -123,7 +123,7 @@ public:
     // must run within the same TaskMaster.
     void registerMutableDependency(task_id taskId, u32 path);
 
-    // Deregister a task from a mutable data dependency
+    // De-register a task from a mutable data dependency
     void deregisterMutableDependency(task_id taskId, u32 path);
 
     void setRenderer(const Task & rendererTask)
@@ -160,7 +160,7 @@ private:
     TaskOwnerMap mTaskOwnerMap;
 
     UniquePtr<InputMgr> mpInputMgr;
-    UniquePtr<AssetMgr> mpAssetMgr;
+    UniquePtr<HandleMgr> mpHandleMgr;
     Task mRendererTask;
 
     FrameTime mFrameTime;

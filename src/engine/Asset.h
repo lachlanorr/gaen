@@ -40,6 +40,11 @@ public:
 
     explicit Asset(const char * path);
 
+    Asset(const Asset&)        = delete;
+    Asset & operator=(Asset&)  = delete;
+    Asset(Asset&&)             = delete;
+    Asset & operator=(Asset&&) = delete;
+
     bool isLoaded() const
     {
         return mpBuffer != nullptr;

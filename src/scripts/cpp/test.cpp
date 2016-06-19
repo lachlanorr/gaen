@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 7e958f41447ecabc43394a5c66751d95
+// HASH: 353dd616148b96018e4bb950df3d8dd6
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -60,18 +60,32 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data:
+            ASSERT(initStatus() < kIS_InitData);
+
             foo() = entity().blockMemory().stringAlloc("/fonts/profont.gatl");
             bar() = entity().blockMemory().stringAlloc("/images/bar.tga");
+
+            setInitStatus(kIS_InitData);
+            return MessageResult::Consumed;
+        case HASH::init_assets:
+            ASSERT(initStatus() < kIS_InitAssets);
+
+            foo() = entity().blockMemory().stringAlloc("/fonts/profont.gatl");
+            bar() = entity().blockMemory().stringAlloc("/images/bar.tga");
+
+            setInitStatus(kIS_InitAssets);
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
             {
             case HASH::foo:
             {
+                ERR_IF(initStatus() >= kIS_InitAssets, "Asset property 'foo' set after asset initialization");
                 u32 requiredBlockCount = 1;
                 if (_msg.blockCount >= requiredBlockCount)
                 {
-                    reinterpret_cast<Block*>(&foo())[0] = msgAcc[0];
+                    reinterpret_cast<Block*>(&foo())[0].cells[0] = msgAcc[0].cells[0];
+                    reinterpret_cast<Block*>(&foo())[0].cells[1] = msgAcc[0].cells[1];
                     return MessageResult::Consumed;
                 }
                 break;
@@ -87,21 +101,21 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create(this, HASH::test__TestComp);
-        mBlockCount = 2;
+        mBlockCount = 1;
     }
     test__TestComp(const test__TestComp&)              = delete;
     test__TestComp(test__TestComp&&)             = delete;
     test__TestComp & operator=(const test__TestComp&)  = delete;
     test__TestComp & operator=(test__TestComp&&) = delete;
 
-    Handle& foo()
+    CmpStringAsset& foo()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[0].qCell);
+        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[0]);
     }
 
-    Handle& bar()
+    CmpStringAsset& bar()
     {
-        return *reinterpret_cast<Handle*>(&mpBlocks[1].qCell);
+        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[2]);
     }
 
 
@@ -113,6 +127,62 @@ void register_component__test__TestComp(Registry & registry)
 {
     if (!registry.registerComponentConstructor(HASH::test__TestComp, comp::test__TestComp::construct))
         PANIC("Unable to register component: test__TestComp");
+}
+
+namespace comp
+{
+
+class test__TestCompEmpty : public Component
+{
+public:
+    static Component * construct(void * place, Entity * pEntity)
+    {
+        return new (place) test__TestCompEmpty(pEntity);
+    }
+    
+    template <typename T>
+    MessageResult message(const T & msgAcc)
+    {
+        const Message & _msg = msgAcc.message();
+        switch(_msg.msgId)
+        {
+        case HASH::init_data:
+            ASSERT(initStatus() < kIS_InitData);
+
+
+            setInitStatus(kIS_InitData);
+            return MessageResult::Consumed;
+        case HASH::init_assets:
+            ASSERT(initStatus() < kIS_InitAssets);
+
+
+            setInitStatus(kIS_InitAssets);
+            return MessageResult::Consumed;
+        }
+        return MessageResult::Propogate;
+}
+
+private:
+    test__TestCompEmpty(Entity * pEntity)
+      : Component(pEntity)
+    {
+        mScriptTask = Task::create(this, HASH::test__TestCompEmpty);
+        mBlockCount = 0;
+    }
+    test__TestCompEmpty(const test__TestCompEmpty&)              = delete;
+    test__TestCompEmpty(test__TestCompEmpty&&)             = delete;
+    test__TestCompEmpty & operator=(const test__TestCompEmpty&)  = delete;
+    test__TestCompEmpty & operator=(test__TestCompEmpty&&) = delete;
+
+
+}; // class test__TestCompEmpty
+
+} // namespace comp
+
+void register_component__test__TestCompEmpty(Registry & registry)
+{
+    if (!registry.registerComponentConstructor(HASH::test__TestCompEmpty, comp::test__TestCompEmpty::construct))
+        PANIC("Unable to register component: test__TestCompEmpty");
 }
 
 namespace ent
@@ -135,60 +205,38 @@ public:
         case HASH::set_property:
             switch (_msg.payload.u)
             {
-            case HASH::prop1:
+            case HASH::testFoo:
             {
+                ERR_IF(initStatus() >= kIS_InitAssets, "Asset property 'testFoo' set after asset initialization");
                 u32 requiredBlockCount = 1;
                 if (_msg.blockCount >= requiredBlockCount)
                 {
-                    reinterpret_cast<Block*>(&prop1())[0].cells[0] = msgAcc[0].cells[0];
-                    return MessageResult::Consumed;
-                }
-                break;
-            }
-            case HASH::prop2:
-            {
-                if (_msg.blockCount < 1) break; // not enough even for BlockData header
-                const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[0]);
-                if (pBlockData->type != kBKTY_String) break; // incorrect BlockData type
-                u32 requiredBlockCount = pBlockData->blockCount;
-                if (_msg.blockCount >= requiredBlockCount)
-                {
-                    Address addr = entity().blockMemory().allocCopy(pBlockData);
-                    set_prop2(entity().blockMemory().string(addr));
+                    reinterpret_cast<Block*>(&testFoo())[0].cells[0] = msgAcc[0].cells[0];
+                    reinterpret_cast<Block*>(&testFoo())[0].cells[1] = msgAcc[0].cells[1];
                     return MessageResult::Consumed;
                 }
                 break;
             }
             }
             return MessageResult::Propogate; // Invalid property
-        case HASH::msg1:
+        case HASH::init:
         {
-            // Verify params look compatible with this message type
-            u32 expectedBlockSize = 2; // BlockCount without BlockMemory params
-            if (expectedBlockSize > msgAcc.available())
-                return MessageResult::Propogate;
-
-            // Check that block memory params exist in the message
-            u16 blockMemCount = 0;
-
-            blockMemCount = BlockData::validate_block_data(&msgAcc[expectedBlockSize], kBKTY_String);
-            expectedBlockSize += blockMemCount;
-            if (blockMemCount == 0 || expectedBlockSize > msgAcc.available())
-                return MessageResult::Propogate;
-
-            blockMemCount = BlockData::validate_block_data(&msgAcc[expectedBlockSize], kBKTY_String);
-            expectedBlockSize += blockMemCount;
-            if (blockMemCount == 0 || expectedBlockSize > msgAcc.available())
-                return MessageResult::Propogate;
-
-            blockMemCount = BlockData::validate_block_data(&msgAcc[expectedBlockSize], kBKTY_String);
-            expectedBlockSize += blockMemCount;
-            if (blockMemCount == 0 || expectedBlockSize > msgAcc.available())
-                return MessageResult::Propogate;
-
+            ASSERT(initStatus() < kIS_Init);
 
             // Params look compatible, message body follows
-            system_api::print(entity().blockMemory().stringFormat("prop1 = %d", prop1()), entity());
+            system_api::print(entity().blockMemory().stringAlloc("init"), entity());
+
+            setInitStatus(kIS_Init);
+            return MessageResult::Consumed;
+        }
+        case HASH::fin:
+        {
+            ASSERT(initStatus() < kIS_Fin);
+
+            // Params look compatible, message body follows
+            system_api::print(entity().blockMemory().stringAlloc("fin"), entity());
+
+            setInitStatus(kIS_Fin);
             return MessageResult::Consumed;
         }
         }
@@ -199,38 +247,33 @@ private:
     test__Test(u32 childCount)
       : Entity(HASH::test__Test, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-        prop1() = 20;
-        set_prop2(entity().blockMemory().stringAlloc("abc"));
+        testFoo() = entity().blockMemory().stringAlloc("/another/asset.foo");
         mBlockCount = 1;
         mScriptTask = Task::create(this, HASH::test__Test);
+
+        // Component: TestComp
+        {
+            Task & compTask = insertComponent(HASH::test__TestComp, mComponentCount);
+            // Init Property: foo
+            {
+                CmpString val = entity().blockMemory().stringAlloc("/some/other/path/foo");
+                ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::foo), val.blockCount());
+                val.writeMessage(msgw.accessor(), 0);
+                compTask.message(msgw.accessor());
+            }
+            // Send init message
+            StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgBW.accessor());
+        }
     }
     test__Test(const test__Test&)              = delete;
     test__Test(test__Test&&)                   = delete;
     test__Test & operator=(const test__Test&)  = delete;
     test__Test & operator=(test__Test&&)       = delete;
 
-    i32& prop1()
+    CmpStringAsset& testFoo()
     {
-        return mpBlocks[0].cells[2].i;
-    }
-
-    CmpString& prop2()
-    {
-        return *reinterpret_cast<CmpString*>(&mpBlocks[0].cells[0]);
-    }
-    bool mIs_prop2_Assigned = false;
-    void set_prop2(const CmpString& rhs)
-    {
-        if (mIs_prop2_Assigned)
-        {
-            entity().blockMemory().release(prop2());
-        }
-        else
-        {
-            mIs_prop2_Assigned = true;
-        }
-        prop2() = rhs;
-        entity().blockMemory().addRef(prop2());
+        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[0]);
     }
 
 }; // class test__Test

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// test.cmp - Scratch file for testing new language features
+// HandleMgr.h - Manages access to Handle data, enabling lockless concurrency
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,51 +24,22 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-component TestComp
-{
-    asset #foo = "/fonts/profont.gatl";
-    asset bar = "/images/bar.tga";
-}
+#ifndef GAEN_ENGINE_HANDLE_MGR_H
+#define GAEN_ENGINE_HANDLE_MGR_H
 
-component TestCompEmpty
-{
-}
+#include "engine/Message.h"
 
-entity Test
+namespace gaen
 {
 
-    asset #testFoo = "/another/asset.foo";
+class HandleMgr
+{
+public:
+    template <typename T>
+    MessageResult message(const T& msgAcc);
 
-    components
-    {
-        TestComp{foo = "/some/other/path/foo"}
-    }
+}; // HandleMgr
 
-/*
-    int #prop1 = 20;
-    string #prop2 = "abc";
-    
-    #msg1(int i, string s1, string s2, float f, vec3 v, string s3)
-    {
-        $.print(string{"prop1 = %d", prop1});
-    }
-*/
+} // namespace gaen
 
-
-    #init()
-    {
-
-//        vec3 v0;
-//        v0.x = 5.0;
-//        $.print(string{"x = %f", v0.x});
-
-//        $.print(string{"prop1 = %d, prop2 = \"%s\"", prop1, prop2});
-        $.print("init");
-    }
-
-    #fin()
-    {
-        $.print("fin");
-    }
-
-}
+#endif // #ifndef GAEN_ENGINE_HANDLE_MGR_H

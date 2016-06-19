@@ -2548,10 +2548,10 @@ namespace gaen
         register_basic_type(kDT_mat43, "mat43", "glm::mat4x3", 12, pParseData);
         register_basic_type(kDT_mat4,  "mat4",  "glm::mat4",   16, pParseData);
 
-        register_basic_type(kDT_handle, "handle", "Handle", 4, pParseData);
-        register_basic_type(kDT_asset, "asset", "Handle", 4, pParseData);
+        register_basic_type(kDT_handle, "handle", "HandleP", 2, pParseData);
         register_basic_type(kDT_entity, "entity", "task_id", 1, pParseData);
         register_basic_type(kDT_string, "string", "CmpString", 2, pParseData);
+        register_basic_type(kDT_asset, "asset", "CmpStringAsset", 2, pParseData);
     }
 
     ParseData * parse_file(const char * fullPath,

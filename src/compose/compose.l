@@ -97,8 +97,8 @@ ParseData * pParseData = yyextra;
 "mat4"   { yylval->dataType = kDT_mat4;   return MAT4;    }
 "void"   { yylval->dataType = kDT_void;   return VOID_;   }
 "handle" { yylval->dataType = kDT_handle; return HANDLE_; }
-"asset"  { yylval->dataType = kDT_asset;  return ASSET; }
 "string" { yylval->dataType = kDT_string; return STRING;  }
+"asset"  { yylval->dataType = kDT_asset;  return ASSET; }
 
 "none"     { return NONE; }
 "this"     { return THIS__; }

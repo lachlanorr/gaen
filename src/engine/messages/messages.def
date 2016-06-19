@@ -63,6 +63,6 @@ class MouseMove(FieldHandler):
     xDelta = u32Field(payload=True)
     yDelta = u32Field()
 
-class ReleaseAsset(FieldHandler):
-    pAsset = PointerField(type_name = 'Asset *',
-                          includes=['engine/Asset.h'])
+class Handle(FieldHandler):
+    pHandle = PointerField(type_name='Handle *',
+                           includes=['engine/Handle.h'])

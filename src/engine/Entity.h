@@ -47,6 +47,8 @@ public:
     Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax);
     ~Entity();
 
+    InitStatus initStatus() const { return mInitStatus; }
+
     const Task & task() const { return mTask; }
     Task & task() { return mTask; }
 
@@ -88,6 +90,8 @@ protected:
     const Entity & entity() const { return *this; }
     Entity & entity() { return *this; }
     
+    void setInitStatus(InitStatus rhs) { mInitStatus = rhs; }
+
     Task& insertComponent(u32 nameHash, u32 index);
 
     u32 findComponent(u32 nameHash);
@@ -132,6 +136,7 @@ protected:
     Block * mpBlocks;
     u32 mBlocksMax;
     u32 mBlockCount;
+    InitStatus mInitStatus;
 
     Entity * mpParent;
 

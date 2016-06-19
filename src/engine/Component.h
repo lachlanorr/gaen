@@ -41,6 +41,15 @@ enum class PropertyGroup
     Initial
 };
 
+enum InitStatus
+{
+    kIS_Uninitialized = 0,
+    kIS_InitData = 1,
+    kIS_InitAssets = 2,
+    kIS_Init = 3,
+    kIS_Fin = 4
+};
+
 struct ComponentDesc;
 
 class Entity;
@@ -53,9 +62,12 @@ class Component
 public:
     Component(Entity * pEntity)
       : mpEntity(pEntity)
-      , mIsInit(0) {}
+      , mInitStatus(kIS_Uninitialized) {}
 
     Task & task() { return mScriptTask; }
+
+    InitStatus initStatus() const { return (InitStatus)mInitStatus; }
+    void setInitStatus(InitStatus rhs) { mInitStatus = rhs; }
 
 protected:
     const Entity & entity() const { return *mpEntity; }
@@ -69,7 +81,7 @@ protected:
     Block *mpBlocks;
     PAD_IF_32BIT_B
     u32 mBlockCount:24;
-    u32 mIsInit:8;
+    u32 mInitStatus:8;
     u8 PADDING__[12];
 };
 

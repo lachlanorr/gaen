@@ -109,7 +109,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %right '(' '[' '{'
 %left  ')' ']' '}'
 
-%type <pSymDataType> type type_ent
+%type <pSymDataType> type type_ent type_asset
 
 %type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> using_list using_stmt dotted_id dotted_id_proc dotted_id_part
@@ -172,12 +172,12 @@ message_list
     ;
  
 message_prop
-    : HASH '(' param_list ')' block  { $$ = ast_create_message_def($1, $3, $5, pParseData); }
-    | type HASH '=' expr ';'         { $$ = ast_create_property_def($2, $1, $4, pParseData); }
-    | type HASH ';'                  { $$ = ast_create_property_def($2, $1, NULL, pParseData); }
-    | type IDENTIFIER '=' expr ';'   { $$ = ast_create_field_def($2, $1, $4, pParseData); }
-    | type IDENTIFIER ';'            { $$ = ast_create_field_def($2, $1, NULL, pParseData); }
-    | COMPONENTS component_block     { $$ = ast_create_component_members($2, pParseData); }
+    : HASH '(' param_list ')' block       { $$ = ast_create_message_def($1, $3, $5, pParseData); }
+    | type_asset HASH '=' expr ';'        { $$ = ast_create_property_def($2, $1, $4, pParseData); }
+    | type_asset HASH ';'                 { $$ = ast_create_property_def($2, $1, NULL, pParseData); }
+    | type_asset IDENTIFIER '=' expr ';'  { $$ = ast_create_field_def($2, $1, $4, pParseData); }
+    | type_asset IDENTIFIER ';'           { $$ = ast_create_field_def($2, $1, NULL, pParseData); }
+    | COMPONENTS component_block          { $$ = ast_create_component_members($2, pParseData); }
     ;
 
 param_list
@@ -192,13 +192,13 @@ component_block
     ;
 
 component_member_list
-    : component_member                       { $$ = ast_append(kAST_ComponentMemberList, NULL, $1, pParseData); }
-    | component_member_list component_member { $$ = ast_append(kAST_ComponentMemberList, $1, $2, pParseData); }
+    : component_member                           { $$ = ast_append(kAST_ComponentMemberList, NULL, $1, pParseData); }
+    | component_member_list ',' component_member { $$ = ast_append(kAST_ComponentMemberList, $1, $3, pParseData); }
     ;
 
 component_member
-    : dotted_id ';'                        { $$ = ast_create_component_member($1, ast_create(kAST_PropInit, pParseData), pParseData); }
-    | dotted_id '{' prop_init_list '}' ';' { $$ = ast_create_component_member($1, $3, pParseData); }
+    : dotted_id                        { $$ = ast_create_component_member($1, ast_create(kAST_PropInit, pParseData), pParseData); }
+    | dotted_id '{' prop_init_list '}' { $$ = ast_create_component_member($1, $3, pParseData); }
     ;
 
 prop_init_list
@@ -369,15 +369,26 @@ basic_type
     | MAT43
     | MAT4
     | HANDLE_
-    | ASSET
     | STRING
     ;
 
-/* Treat "entity" type specially since it is overloaded with use of defining entities */
+/*
+    Treat "entity" type specially since it is overloaded with use of
+    defining entities.
+*/
 type_ent
     : type           { $$ = $1; }
     | CONST_ ENTITY  { $$ = parsedata_find_type(pParseData, "entity", 1, 0); }
     | ENTITY         { $$ = parsedata_find_type(pParseData, "entity", 0, 0); }
+    ;
+
+/*
+   "asset" is sort of a type, but only applicable as a top level
+   statement within a component or entity, so we special case here.
+*/
+type_asset
+    : type           { $$ = $1; }
+    | ASSET          { $$ = parsedata_find_type(pParseData, "asset", 0, 0); }
     ;
 
 %%

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// AssetMgr.h - Loads and unloads raw asset buffers
+// AssetLoader.h - Loads assets from disk and manages lifetimes.
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,26 +24,21 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_ASSET_MGR_H
-#define GAEN_ENGINE_ASSET_MGR_H
+#ifndef GAEN_ENGINE_ASSET_LOADER_H
+#define GAEN_ENGINE_ASSET_LOADER_H
 
-#include "core/base_defines.h"
 #include "core/mem.h"
-#include "engine/Message.h"
 
 namespace gaen
 {
 
-class AssetMgr
+class AssetLoader
 {
 public:
-    template <typename T>
-    MessageResult message(const T& msgAcc);
-
     static MemType mem_type_from_ext(const char * ext);
 
-}; // AssetMgr
+}; // AssetLoader
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_ASSET_MGR_H
+#endif // #ifndef GAEN_ENGINE_ASSET_LOADER_H

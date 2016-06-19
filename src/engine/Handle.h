@@ -39,14 +39,24 @@ typedef void(*HandleFreeFunc)(Handle & handle);
 class Handle
 {
 public:
-    Handle(u32 typeHash, u32 nameHash, u32 ownerTaskId, u32 dataSize, void * pData, HandleFreeFunc pFreeFunc)
+    Handle(u32 typeHash, u32 nameHash, u32 ownerTaskId, void * pData, HandleFreeFunc pFreeFunc)
       : mTypeHash(typeHash)
       , mNameHash(nameHash)
-      , mOwnerTaskId(ownerTaskId)
-      , mDataSize(dataSize)
+      , mRefCount(0)
       , mpData(pData)
       , mpFreeFunc(pFreeFunc)
     {
+    }
+
+    void addRef()
+    {
+        mRefCount++;
+    }
+
+    void release()
+    {
+        ASSERT(mRefCount > 0);
+        mRefCount--;
     }
 
     void free()
@@ -57,34 +67,33 @@ public:
 
     u32 typeHash() const { return mTypeHash; }
     u32 nameHash() const { return mNameHash; }
-    u32 ownerTaskId() const { return mOwnerTaskId; }
 
-    u32 dataSize() const { return mDataSize; }
-    void * data() { return mpData; }
+    void * data() { ASSERT(!isNull()); return mpData; }
     const void * data() const { return mpData; }
 
     bool isNull() const { return mTypeHash == 0; }
-    static Handle null() { return Handle(0, 0, 0, 0, nullptr, nullptr); }
 
 private:
+    u32 mUuid;
     u32 mTypeHash;
     u32 mNameHash;
-    u32 mOwnerTaskId;
-    u32 mDataSize;
+    u32 mRefCount;
     void * mpData;
     PAD_IF_32BIT_A
     HandleFreeFunc mpFreeFunc;
     PAD_IF_32BIT_B
 };
 
+typedef Handle* HandleP;
+
 // We have 4 extra bytes for padding, but 32 will keep these
-// 16-byte block alligned properly if we need an array of them.
+// 16-byte block aligned properly if we need an array of them.
 static_assert(sizeof(Handle)==32, "Handle should be 32 bytes");
 
 
 // Simple free callbacks usable in most cases.
 // We want to call the mem.h macros to handle
-// memory tracking propertly when it is enabled.
+// memory tracking properly when it is enabled.
 inline void handle_free(Handle & handle)
 {
     GFREE(handle.data());
