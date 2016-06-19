@@ -611,10 +611,17 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             size_t taskIdx = it->second;
             ASSERT(taskIdx < mOwnedTasks.size());
             MessageResult mr = mOwnedTasks[taskIdx].message(msgAcc);
+#if HAS(TRACK_HASHES)
+            EXPECT_MSG(mr == MessageResult::Consumed,
+                       "Task did not consume a message intended for it, task name: %s, message: %s",
+                       HASH::reverse_hash(mOwnedTasks[taskIdx].nameHash()),
+                       HASH::reverse_hash(msg.msgId));
+#else
             EXPECT_MSG(mr == MessageResult::Consumed,
                        "Task did not consume a message intended for it, task nameHash: 0x%08x, message: 0x%08x",
                        mOwnedTasks[taskIdx].nameHash(),
                        msg.msgId);
+#endif
             return MessageResult::Consumed;
         }
         else
