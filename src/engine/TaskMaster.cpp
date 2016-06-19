@@ -433,9 +433,8 @@ void TaskMaster::runPrimaryGameLoop()
         // If we're not full of work, sleep a bit.
         // Don't sleep too aggressively since Windows
         // time slice is 10ms.
-        // LORRNOTE: Turning this off for primary loop so renderer isn't limited
-        //if (mFrameTime.deltaMeanLast10() < 0.06)
-        //    sleep(10);
+        if (mFrameTime.deltaMeanLast10() < 0.06)
+            sleep(10);
     };
 }
 
