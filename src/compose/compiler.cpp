@@ -47,7 +47,7 @@ extern "C" {
 
 using namespace gaen;
 
-static_assert(kDT_COUNT == 27, "Make sure DataType enum ids look right... seems they have changed");
+static_assert(kDT_COUNT == 28, "Make sure DataType enum ids look right... seems they have changed");
 
 static const char * kScriptsPath = "/src/scripts/cmp/";
 
@@ -849,42 +849,78 @@ Ast * ast_create_message_def(const char * name, SymTab * pSymTab, Ast * pBlock, 
     return pAst;
 }
 
-Ast * ast_create_property_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData)
+static Ast * ast_create_asset_handle_field_def(const char * assetName, ParseData * pParseData)
+{
+    const char * suffix = "__handle";
+    char * handleName = (char*)COMP_ALLOC(strlen(assetName) + strlen(suffix) + 1);
+    strcpy(handleName, assetName);
+    strcat(handleName, suffix);
+
+    const SymDataType * pHandleType = parsedata_find_type(pParseData, "handle", 0, 0);
+
+    return ast_create_field_def(handleName, pHandleType, nullptr, pParseData);
+}
+
+static Ast * ast_create_top_level_def(const char * name, AstType astType, SymType symType, const SymDataType * pDataType, Ast * pInitVal, bool specialCaseAssets, ParseData * pParseData)
 {
     ASSERT(pParseData);
 
-    Ast * pAst = ast_create(kAST_PropertyDef, pParseData);
+    Ast * pAst = ast_create(astType, pParseData);
 
-    pAst->pSymRec = symrec_create(kSYMT_Property,
-                                  pDataType,
-                                  name,
-                                  pInitVal,
-                                  pParseData);
+    // Assets are handles, but also strings for that path.
+    // Only the path can be set explicitly in code, the Handle
+    // is set automatically through asset loading code.
+    // Thus, declaring an "asset" property or field will creat
+    // two Ast*'s.
+    if (specialCaseAssets && pDataType->typeDesc.dataType == kDT_asset_handle)
+    {
+        const SymDataType * pPathType = parsedata_find_type(pParseData, "asset", 0, 0);
+
+        pAst->pSymRec = symrec_create(symType,
+                                      pPathType,
+                                      strcat_alloc(name, kAssetPathSuffix),
+                                      pInitVal,
+                                      pParseData);
+    }
+    else
+    {
+        pAst->pSymRec = symrec_create(symType,
+                                      pDataType,
+                                      name,
+                                      pInitVal,
+                                      pParseData);
+    }
+
     pAst->pSymRec->flags |= kSRFL_NeedsCppParens;
 
     Scope * pScope = pParseData->scopeStack.back();
     symtab_add_symbol_with_fields(pScope->pSymTab, pAst->pSymRec, pParseData);
+
+    // Assets produce 2 Ast's, one for the path and one for the handle.
+    // We build a kAST_MetaAstMulti to express this.
+    if (specialCaseAssets && pDataType->typeDesc.dataType == kDT_asset_handle)
+    {
+        Ast * pMetaAstMulti = ast_create(kAST_MetaAstMulti, pParseData);
+        pMetaAstMulti->pChildren = astlist_create();
+        Ast * pAssetHandleAst = ast_create_top_level_def(name, kAST_FieldDef, kSYMT_Field, pDataType, nullptr, false, pParseData);
+
+        astlist_append(pMetaAstMulti->pChildren, pAssetHandleAst);
+        astlist_append(pMetaAstMulti->pChildren, pAst);
+
+        pAst = pMetaAstMulti;
+    }
 
     return pAst;
 }
 
+Ast * ast_create_property_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData)
+{
+    return ast_create_top_level_def(name, kAST_PropertyDef, kSYMT_Property, pDataType, pInitVal, true, pParseData);
+}
+
 Ast * ast_create_field_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData)
 {
-    ASSERT(pParseData);
-
-    Ast * pAst = ast_create(kAST_FieldDef, pParseData);
-
-    pAst->pSymRec = symrec_create(kSYMT_Field,
-                                  pDataType,
-                                  name,
-                                  pInitVal,
-                                  pParseData);
-    pAst->pSymRec->flags |= kSRFL_NeedsCppParens;
-
-    Scope * pScope = pParseData->scopeStack.back();
-    symtab_add_symbol_with_fields(pScope->pSymTab, pAst->pSymRec, pParseData);
-
-    return pAst;
+    return ast_create_top_level_def(name, kAST_FieldDef, kSYMT_Field, pDataType, pInitVal, true, pParseData);
 }
 
 Ast * ast_create_function_arg(const char * name, SymRec * pDataTypeSymRec, ParseData * pParseData)
@@ -1749,7 +1785,19 @@ Ast * ast_append(AstType astType, Ast * pAst, Ast * pAstNew, ParseData * pParseD
     {
         pAst = ast_create(astType, pParseData);
     }
-    pAst->pChildren = astlist_append(pAst->pChildren, pAstNew);
+
+    if (!pAstNew || pAstNew->type != kAST_MetaAstMulti)
+    {
+        pAst->pChildren = astlist_append(pAst->pChildren, pAstNew);
+    }
+    else
+    {
+        ASSERT(pAstNew->pChildren);
+        for (Ast * pAstIt : pAstNew->pChildren->nodes)
+        {
+            pAst->pChildren = astlist_append(pAst->pChildren, pAstIt);
+        }
+    }
     return pAst;
 }
 
@@ -1888,13 +1936,28 @@ const SymDataType * non_const_data_type(ParseData * pParseData, const SymDataTyp
 
 int is_block_memory_type(const SymDataType * pSdt)
 {
-    return (pSdt->typeDesc.dataType == kDT_string ? 1 : 0);
+    switch (pSdt->typeDesc.dataType)
+    {
+    case kDT_string:
+    case kDT_asset:
+        return 1;
+    default:
+        return 0;
+    }
 }
 
 int is_integral_type(const SymDataType * pSdt)
 {
-    DataType dt = pSdt->typeDesc.dataType;
-    return (dt == kDT_int || dt== kDT_uint || dt == kDT_short || dt == kDT_ushort) ? 1 : 0;
+    switch (pSdt->typeDesc.dataType)
+    {
+    case kDT_int:
+    case kDT_uint:
+    case kDT_short:
+    case kDT_ushort:
+        return 1;
+    default:
+        return 0;
+    }
 }
 
 
@@ -2548,10 +2611,12 @@ namespace gaen
         register_basic_type(kDT_mat43, "mat43", "glm::mat4x3", 12, pParseData);
         register_basic_type(kDT_mat4,  "mat4",  "glm::mat4",   16, pParseData);
 
-        register_basic_type(kDT_handle, "handle", "HandleP", 2, pParseData);
+        register_basic_type(kDT_handle,       "handle", "HandleP", 2, pParseData);
+        register_basic_type(kDT_asset_handle, "asset_handle", "AssetHandleP", 2, pParseData);
+
         register_basic_type(kDT_entity, "entity", "task_id", 1, pParseData);
         register_basic_type(kDT_string, "string", "CmpString", 2, pParseData);
-        register_basic_type(kDT_asset, "asset", "CmpStringAsset", 2, pParseData);
+        register_basic_type(kDT_asset,  "asset",  "CmpStringAsset", 2, pParseData);
     }
 
     ParseData * parse_file(const char * fullPath,

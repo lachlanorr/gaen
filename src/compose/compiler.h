@@ -172,7 +172,14 @@ typedef enum
     kAST_Identifier,
     kAST_PropertySet,
     kAST_MessageSend,
-    kAST_Return
+    kAST_Return,
+
+    // Meta AST types are those that don't represent a language
+    // construct directly, but instruct the compiler to perform
+    // specially. For example, an "asset" top level ast defines
+    // both the string path as well as the handle to store the
+    // asset, thus both should be added to the parse tree.
+    kAST_MetaAstMulti
 
 } AstType;
 
@@ -223,16 +230,17 @@ typedef enum
     kDT_mat43     = 20,
     kDT_mat4      = 21,
 
-    kDT_handle    = 22,
+    kDT_handle       = 22,
+    kDT_asset_handle = 23,
 
-    kDT_entity    = 23,
+    kDT_entity    = 24,
 
     // Dynamic data structures
-    kDT_string    = 24,
-    kDT_asset     = 25,
+    kDT_string    = 25,
+    kDT_asset     = 26,
 
     // User defined struct
-    kDT_struct    = 26,
+    kDT_struct    = 27,
 
     kDT_COUNT
 

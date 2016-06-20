@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: b4d8c7b11b864572641d22f2a84e1976
+// HASH: 8e87de4904275110b396a7daaf672aa3
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -52,7 +52,7 @@ public:
     {
         return new (place) gaen__lights__Directional(pEntity);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
@@ -123,9 +123,9 @@ private:
         mBlockCount = 2;
     }
     gaen__lights__Directional(const gaen__lights__Directional&)              = delete;
-    gaen__lights__Directional(gaen__lights__Directional&&)             = delete;
+    gaen__lights__Directional(gaen__lights__Directional&&)                   = delete;
     gaen__lights__Directional & operator=(const gaen__lights__Directional&)  = delete;
-    gaen__lights__Directional & operator=(gaen__lights__Directional&&) = delete;
+    gaen__lights__Directional & operator=(gaen__lights__Directional&&)       = delete;
 
     u32& lightUid()
     {

@@ -63,6 +63,11 @@ CmpString hashstr(u32 hash, Entity & caller)
     return caller.blockMemory().stringAlloc(HASH::reverse_hash(hash));
 }
 
+void print_asset_info(AssetHandleP asset, Entity & caller)
+{
+    LOG_INFO("print_asset_info");
+}
+
 void insert_entity(u32 id, Entity & caller)
 {
     Entity * pEnt = caller.unstageEntity(id);

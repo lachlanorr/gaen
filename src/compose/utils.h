@@ -30,6 +30,10 @@
 namespace gaen
 {
 
+static const char * kAssetPathSuffix = "__path";
+
+char * strcat_alloc(const char * lhs, const char * rhs);
+
 const char * path_join(const char * rootDir,
                        const char * filename,
                        ParseData *pParseData);

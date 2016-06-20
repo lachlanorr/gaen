@@ -2576,7 +2576,7 @@ yyreduce:
 
   case 150:
 #line 391 "compose.y" /* yacc.c:1646  */
-    { (yyval.pSymDataType) = parsedata_find_type(pParseData, "asset", 0, 0); }
+    { (yyval.pSymDataType) = parsedata_find_type(pParseData, "asset_handle", 0, 0); }
 #line 2581 "compose_parser.c" /* yacc.c:1646  */
     break;
 

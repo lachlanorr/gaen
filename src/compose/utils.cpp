@@ -35,6 +35,7 @@
 
 #include "compose/utils.h"
 
+
 #if IS_PLATFORM_WIN32
 #include <windows.h>
 #endif
@@ -42,6 +43,13 @@
 namespace gaen
 {
 
+char * strcat_alloc(const char * lhs, const char * rhs)
+{
+    char * catstr = (char*)COMP_ALLOC(strlen(lhs) + strlen(rhs) + 1);
+    strcpy(catstr, lhs);
+    strcat(catstr, rhs);
+    return catstr;
+}
 
 const char * path_join(const char * rootDir,
                        const char * filename,
@@ -133,6 +141,5 @@ void make_posix_path(char * path)
     while ((p = strchr(p, '\\')))
         *p = '/';
 }
-
 
 }

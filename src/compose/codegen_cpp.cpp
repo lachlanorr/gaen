@@ -33,6 +33,7 @@
 #include "engine/BlockMemory.h"
 #include "compose/codegen_cpp.h"
 #include "compose/compiler_structs.h"
+#include "compose/utils.h"
 #include "compose/codegen_utils.h"
 
 namespace gaen
@@ -201,6 +202,7 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
         case kDT_string:
         case kDT_asset:
         case kDT_handle:
+        case kDT_asset_handle:
             snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].cells[%u])", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex, blockInfo.cellIndex);
             return S(scratch);
         default:
@@ -450,6 +452,7 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
     case kDT_mat4:
         return S("glm::mat4(1.0f)");
     case kDT_handle:
+    case kDT_asset_handle:
         return S("nullptr");
     case kDT_string:
     case kDT_asset:
@@ -509,8 +512,6 @@ static S init_data(const Ast * pAst, int indentLevel)
 
 static S init_assets(const Ast * pAst, int indentLevel)
 {
-    // LORRTODO: Implement this
-    PANIC("Not Implemented");
     ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
 
     S code = S("");
@@ -650,7 +651,15 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
         for (Ast * pPropInit : pAst->pChildren->nodes)
         {
             // Ensure the property is valid
-            SymRec * pSymRec = symtab_find_symbol(pPropsSymTab, pPropInit->str);
+            const char * propName = pPropInit->str;
+            SymRec * pSymRec = symtab_find_symbol(pPropsSymTab, propName);
+
+            if (pSymRec && pSymRec->type == kSYMT_Field && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
+            {
+                propName = strcat_alloc(pPropInit->str, kAssetPathSuffix);
+                pSymRec = symtab_find_symbol(pPropsSymTab, propName);
+            }
+
             if (!pSymRec || pSymRec->type != kSYMT_Property)
             {
                 COMP_ERROR(pAst->pParseData, "Invalid property: '%s'", pPropInit->str);
@@ -671,7 +680,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                          "    StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::%s));\n",
                          blockCount,
                          "set_property",
-                         pPropInit->str);
+                         propName);
 
                 code += I + S(scratch);
                 DataType dt = pRhsSdt->typeDesc.dataType;
@@ -713,11 +722,12 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                          pRhsSdt->cppTypeStr,
                          codegen_recurse(pPropInit->pRhs, 0).c_str());
                 code += I + S(scratch);
+
                 snprintf(scratch,
                          kScratchSize,
                          "    ThreadLocalMessageBlockWriter msgw(HASH::%s, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::%s), val.blockCount());\n",
                          "set_property",
-                         pPropInit->str);
+                         propName);
                 code += I + S(scratch);
                 code += I + S("    val.writeMessage(msgw.accessor(), 0);\n");
             }
@@ -1044,9 +1054,9 @@ static S codegen_recurse(const Ast * pAst,
 
         // Delete copy constructor, assignment, etc.
         code += I + S("    ") + compName + S("(const ") + compName + S("&)              = delete;\n");
-        code += I + S("    ") + compName + S("(") + compName + S("&&)             = delete;\n");
+        code += I + S("    ") + compName + S("(") + compName + S("&&)                   = delete;\n");
         code += I + S("    ") + compName + S(" & operator=(const ") + compName + S("&)  = delete;\n");
-        code += I + S("    ") + compName + S(" & operator=(") + compName + S("&&) = delete;\n");
+        code += I + S("    ") + compName + S(" & operator=(") + compName + S("&&)       = delete;\n");
 
         code += S("\n");
 

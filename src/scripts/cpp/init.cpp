@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 658e5e61d2f0ef746152a00e17e82235
+// HASH: 6c2d281cdf9ce631032f1713f47f1b87
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -371,9 +371,11 @@ private:
     init__Start(u32 childCount)
       : Entity(HASH::init__Start, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-        foo() = entity().blockMemory().stringAlloc("/fonts/profont.gatl");
-        bar() = entity().blockMemory().stringAlloc("/images/bar.tga");
-        mBlockCount = 1;
+        set_foo__path(entity().blockMemory().stringAlloc("/fonts/profont.gatl"));
+        foo() = nullptr;
+        set_bar__path(entity().blockMemory().stringAlloc("/images/bar.tga"));
+        bar() = nullptr;
+        mBlockCount = 2;
         mScriptTask = Task::create(this, HASH::init__Start);
 
         // Component: gaen.utils.Timer
@@ -401,14 +403,52 @@ private:
     init__Start & operator=(const init__Start&)  = delete;
     init__Start & operator=(init__Start&&)       = delete;
 
-    CmpStringAsset& foo()
+    AssetHandleP& foo()
     {
-        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[0]);
+        return *reinterpret_cast<AssetHandleP*>(&mpBlocks[0].cells[0]);
     }
 
-    CmpStringAsset& bar()
+    CmpStringAsset& foo__path()
     {
         return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[2]);
+    }
+    bool mIs_foo__path_Assigned = false;
+    void set_foo__path(const CmpStringAsset& rhs)
+    {
+        if (mIs_foo__path_Assigned)
+        {
+            entity().blockMemory().release(foo__path());
+        }
+        else
+        {
+            mIs_foo__path_Assigned = true;
+        }
+        foo__path() = rhs;
+        entity().blockMemory().addRef(foo__path());
+    }
+
+    AssetHandleP& bar()
+    {
+        return *reinterpret_cast<AssetHandleP*>(&mpBlocks[1].cells[0]);
+    }
+
+    CmpStringAsset& bar__path()
+    {
+        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[1].cells[2]);
+    }
+    bool mIs_bar__path_Assigned = false;
+    void set_bar__path(const CmpStringAsset& rhs)
+    {
+        if (mIs_bar__path_Assigned)
+        {
+            entity().blockMemory().release(bar__path());
+        }
+        else
+        {
+            mIs_bar__path_Assigned = true;
+        }
+        bar__path() = rhs;
+        entity().blockMemory().addRef(bar__path());
     }
 
 }; // class init__Start

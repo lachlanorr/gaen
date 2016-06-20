@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 353dd616148b96018e4bb950df3d8dd6
+// HASH: 40962a61651f2dbd7dfb8ef8d9f8612e
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -52,7 +52,7 @@ public:
     {
         return new (place) test__TestComp(pEntity);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
@@ -62,30 +62,60 @@ public:
         case HASH::init_data:
             ASSERT(initStatus() < kIS_InitData);
 
-            foo() = entity().blockMemory().stringAlloc("/fonts/profont.gatl");
-            bar() = entity().blockMemory().stringAlloc("/images/bar.tga");
+            set_foo__path(entity().blockMemory().stringAlloc("/fonts/profont.gatl"));
+            foo() = nullptr;
+            set_bar__path(entity().blockMemory().stringAlloc("/images/bar.tga"));
+            bar() = nullptr;
+            set_s(entity().blockMemory().stringAlloc("initval"));
+            a() = 0;
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
         case HASH::init_assets:
             ASSERT(initStatus() < kIS_InitAssets);
 
-            foo() = entity().blockMemory().stringAlloc("/fonts/profont.gatl");
-            bar() = entity().blockMemory().stringAlloc("/images/bar.tga");
+            set_foo__path(entity().blockMemory().stringAlloc("/fonts/profont.gatl"));
+            set_bar__path(entity().blockMemory().stringAlloc("/images/bar.tga"));
 
             setInitStatus(kIS_InitAssets);
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
             {
-            case HASH::foo:
+            case HASH::a:
             {
-                ERR_IF(initStatus() >= kIS_InitAssets, "Asset property 'foo' set after asset initialization");
                 u32 requiredBlockCount = 1;
                 if (_msg.blockCount >= requiredBlockCount)
                 {
-                    reinterpret_cast<Block*>(&foo())[0].cells[0] = msgAcc[0].cells[0];
-                    reinterpret_cast<Block*>(&foo())[0].cells[1] = msgAcc[0].cells[1];
+                    reinterpret_cast<Block*>(&a())[0].cells[0] = msgAcc[0].cells[0];
+                    return MessageResult::Consumed;
+                }
+                break;
+            }
+            case HASH::foo__path:
+            {
+                if (_msg.blockCount < 1) break; // not enough even for BlockData header
+                const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[0]);
+                if (pBlockData->type != kBKTY_String) break; // incorrect BlockData type
+                u32 requiredBlockCount = pBlockData->blockCount;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    Address addr = entity().blockMemory().allocCopy(pBlockData);
+                    set_foo__path(entity().blockMemory().string(addr));
+                    return MessageResult::Consumed;
+                }
+                break;
+            }
+            case HASH::s:
+            {
+                if (_msg.blockCount < 1) break; // not enough even for BlockData header
+                const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[0]);
+                if (pBlockData->type != kBKTY_String) break; // incorrect BlockData type
+                u32 requiredBlockCount = pBlockData->blockCount;
+                if (_msg.blockCount >= requiredBlockCount)
+                {
+                    Address addr = entity().blockMemory().allocCopy(pBlockData);
+                    set_s(entity().blockMemory().string(addr));
                     return MessageResult::Consumed;
                 }
                 break;
@@ -101,21 +131,83 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create(this, HASH::test__TestComp);
-        mBlockCount = 1;
+        mBlockCount = 3;
     }
     test__TestComp(const test__TestComp&)              = delete;
-    test__TestComp(test__TestComp&&)             = delete;
+    test__TestComp(test__TestComp&&)                   = delete;
     test__TestComp & operator=(const test__TestComp&)  = delete;
-    test__TestComp & operator=(test__TestComp&&) = delete;
+    test__TestComp & operator=(test__TestComp&&)       = delete;
 
-    CmpStringAsset& foo()
+    AssetHandleP& foo()
     {
-        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[0]);
+        return *reinterpret_cast<AssetHandleP*>(&mpBlocks[0].cells[0]);
     }
 
-    CmpStringAsset& bar()
+    CmpStringAsset& foo__path()
     {
         return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[2]);
+    }
+    bool mIs_foo__path_Assigned = false;
+    void set_foo__path(const CmpStringAsset& rhs)
+    {
+        if (mIs_foo__path_Assigned)
+        {
+            entity().blockMemory().release(foo__path());
+        }
+        else
+        {
+            mIs_foo__path_Assigned = true;
+        }
+        foo__path() = rhs;
+        entity().blockMemory().addRef(foo__path());
+    }
+
+    AssetHandleP& bar()
+    {
+        return *reinterpret_cast<AssetHandleP*>(&mpBlocks[1].cells[0]);
+    }
+
+    CmpStringAsset& bar__path()
+    {
+        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[1].cells[2]);
+    }
+    bool mIs_bar__path_Assigned = false;
+    void set_bar__path(const CmpStringAsset& rhs)
+    {
+        if (mIs_bar__path_Assigned)
+        {
+            entity().blockMemory().release(bar__path());
+        }
+        else
+        {
+            mIs_bar__path_Assigned = true;
+        }
+        bar__path() = rhs;
+        entity().blockMemory().addRef(bar__path());
+    }
+
+    CmpString& s()
+    {
+        return *reinterpret_cast<CmpString*>(&mpBlocks[2].cells[0]);
+    }
+    bool mIs_s_Assigned = false;
+    void set_s(const CmpString& rhs)
+    {
+        if (mIs_s_Assigned)
+        {
+            entity().blockMemory().release(s());
+        }
+        else
+        {
+            mIs_s_Assigned = true;
+        }
+        s() = rhs;
+        entity().blockMemory().addRef(s());
+    }
+
+    i32& a()
+    {
+        return mpBlocks[2].cells[2].i;
     }
 
 
@@ -139,7 +231,7 @@ public:
     {
         return new (place) test__TestCompEmpty(pEntity);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
@@ -170,9 +262,9 @@ private:
         mBlockCount = 0;
     }
     test__TestCompEmpty(const test__TestCompEmpty&)              = delete;
-    test__TestCompEmpty(test__TestCompEmpty&&)             = delete;
+    test__TestCompEmpty(test__TestCompEmpty&&)                   = delete;
     test__TestCompEmpty & operator=(const test__TestCompEmpty&)  = delete;
-    test__TestCompEmpty & operator=(test__TestCompEmpty&&) = delete;
+    test__TestCompEmpty & operator=(test__TestCompEmpty&&)       = delete;
 
 
 }; // class test__TestCompEmpty
@@ -205,14 +297,16 @@ public:
         case HASH::set_property:
             switch (_msg.payload.u)
             {
-            case HASH::testFoo:
+            case HASH::testFoo__path:
             {
-                ERR_IF(initStatus() >= kIS_InitAssets, "Asset property 'testFoo' set after asset initialization");
-                u32 requiredBlockCount = 1;
+                if (_msg.blockCount < 1) break; // not enough even for BlockData header
+                const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[0]);
+                if (pBlockData->type != kBKTY_String) break; // incorrect BlockData type
+                u32 requiredBlockCount = pBlockData->blockCount;
                 if (_msg.blockCount >= requiredBlockCount)
                 {
-                    reinterpret_cast<Block*>(&testFoo())[0].cells[0] = msgAcc[0].cells[0];
-                    reinterpret_cast<Block*>(&testFoo())[0].cells[1] = msgAcc[0].cells[1];
+                    Address addr = entity().blockMemory().allocCopy(pBlockData);
+                    set_testFoo__path(entity().blockMemory().string(addr));
                     return MessageResult::Consumed;
                 }
                 break;
@@ -225,6 +319,7 @@ public:
 
             // Params look compatible, message body follows
             system_api::print(entity().blockMemory().stringAlloc("init"), entity());
+            system_api::print_asset_info(testFoo(), entity());
 
             setInitStatus(kIS_Init);
             return MessageResult::Consumed;
@@ -247,7 +342,8 @@ private:
     test__Test(u32 childCount)
       : Entity(HASH::test__Test, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-        testFoo() = entity().blockMemory().stringAlloc("/another/asset.foo");
+        set_testFoo__path(entity().blockMemory().stringAlloc("/another/asset.foo"));
+        testFoo() = nullptr;
         mBlockCount = 1;
         mScriptTask = Task::create(this, HASH::test__Test);
 
@@ -257,8 +353,21 @@ private:
             // Init Property: foo
             {
                 CmpString val = entity().blockMemory().stringAlloc("/some/other/path/foo");
-                ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::foo), val.blockCount());
+                ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::foo__path), val.blockCount());
                 val.writeMessage(msgw.accessor(), 0);
+                compTask.message(msgw.accessor());
+            }
+            // Init Property: s
+            {
+                CmpString val = entity().blockMemory().stringAlloc("Changedval");
+                ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::s), val.blockCount());
+                val.writeMessage(msgw.accessor(), 0);
+                compTask.message(msgw.accessor());
+            }
+            // Init Property: a
+            {
+                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::a));
+                msgw[0].cells[0].i = 5;
                 compTask.message(msgw.accessor());
             }
             // Send init message
@@ -271,9 +380,28 @@ private:
     test__Test & operator=(const test__Test&)  = delete;
     test__Test & operator=(test__Test&&)       = delete;
 
-    CmpStringAsset& testFoo()
+    AssetHandleP& testFoo()
     {
-        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[0]);
+        return *reinterpret_cast<AssetHandleP*>(&mpBlocks[0].cells[0]);
+    }
+
+    CmpStringAsset& testFoo__path()
+    {
+        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[2]);
+    }
+    bool mIs_testFoo__path_Assigned = false;
+    void set_testFoo__path(const CmpStringAsset& rhs)
+    {
+        if (mIs_testFoo__path_Assigned)
+        {
+            entity().blockMemory().release(testFoo__path());
+        }
+        else
+        {
+            mIs_testFoo__path_Assigned = true;
+        }
+        testFoo__path() = rhs;
+        entity().blockMemory().addRef(testFoo__path());
     }
 
 }; // class test__Test

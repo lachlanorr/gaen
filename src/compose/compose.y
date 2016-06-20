@@ -388,7 +388,7 @@ type_ent
 */
 type_asset
     : type           { $$ = $1; }
-    | ASSET          { $$ = parsedata_find_type(pParseData, "asset", 0, 0); }
+    | ASSET          { $$ = parsedata_find_type(pParseData, "asset_handle", 0, 0); }
     ;
 
 %%

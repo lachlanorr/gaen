@@ -85,6 +85,7 @@ private:
 };
 
 typedef Handle* HandleP;
+typedef HandleP AssetHandleP;
 
 // We have 4 extra bytes for padding, but 32 will keep these
 // 16-byte block aligned properly if we need an array of them.

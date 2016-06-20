@@ -48,6 +48,7 @@ inline const char * compose_type_to_block_type(DataType dt)
     switch (dt)
     {
     case kDT_string:
+    case kDT_asset:
         return "kBKTY_String";
     default:
         PANIC("Invalid data type: %d", dt);

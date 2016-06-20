@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: f364e97566799bfea5cf1ed4eabe682f
+// HASH: 7920542e546ef6bfeaa2a6a6f9eb03ff
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -52,7 +52,7 @@ public:
     {
         return new (place) gaen__utils__Timer(pEntity);
     }
-    
+
     void update(float deltaSecs)
     {
         if ((timer_interval() > 0.00000000e+00f))
@@ -134,9 +134,9 @@ private:
         mBlockCount = 1;
     }
     gaen__utils__Timer(const gaen__utils__Timer&)              = delete;
-    gaen__utils__Timer(gaen__utils__Timer&&)             = delete;
+    gaen__utils__Timer(gaen__utils__Timer&&)                   = delete;
     gaen__utils__Timer & operator=(const gaen__utils__Timer&)  = delete;
-    gaen__utils__Timer & operator=(gaen__utils__Timer&&) = delete;
+    gaen__utils__Timer & operator=(gaen__utils__Timer&&)       = delete;
 
     f32& timer_interval()
     {
@@ -174,7 +174,7 @@ public:
     {
         return new (place) gaen__utils__WasdCamera(pEntity);
     }
-    
+
     void update(float deltaSecs)
     {
         bool hasMoved = 0;
@@ -382,9 +382,9 @@ private:
         mBlockCount = 9;
     }
     gaen__utils__WasdCamera(const gaen__utils__WasdCamera&)              = delete;
-    gaen__utils__WasdCamera(gaen__utils__WasdCamera&&)             = delete;
+    gaen__utils__WasdCamera(gaen__utils__WasdCamera&&)                   = delete;
     gaen__utils__WasdCamera & operator=(const gaen__utils__WasdCamera&)  = delete;
-    gaen__utils__WasdCamera & operator=(gaen__utils__WasdCamera&&) = delete;
+    gaen__utils__WasdCamera & operator=(gaen__utils__WasdCamera&&)       = delete;
 
     glm::vec3& dirForwardInit()
     {
@@ -487,7 +487,7 @@ public:
     {
         return new (place) gaen__utils__WasdRot(pEntity);
     }
-    
+
     void update(float deltaSecs)
     {
         if (((pitching() != 0.00000000e+00f) || (yawing() != 0.00000000e+00f)))
@@ -617,9 +617,9 @@ private:
         mBlockCount = 1;
     }
     gaen__utils__WasdRot(const gaen__utils__WasdRot&)              = delete;
-    gaen__utils__WasdRot(gaen__utils__WasdRot&&)             = delete;
+    gaen__utils__WasdRot(gaen__utils__WasdRot&&)                   = delete;
     gaen__utils__WasdRot & operator=(const gaen__utils__WasdRot&)  = delete;
-    gaen__utils__WasdRot & operator=(gaen__utils__WasdRot&&) = delete;
+    gaen__utils__WasdRot & operator=(gaen__utils__WasdRot&&)       = delete;
 
     f32& yawing()
     {

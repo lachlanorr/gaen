@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 323ae2f06ed8c63f676b0e1afb17b2de
+// HASH: d78ff6e2629bb48628aecc11072b99eb
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -52,7 +52,7 @@ public:
     {
         return new (place) gaen__shapes__Box(pEntity);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
@@ -133,9 +133,9 @@ private:
         mBlockCount = 2;
     }
     gaen__shapes__Box(const gaen__shapes__Box&)              = delete;
-    gaen__shapes__Box(gaen__shapes__Box&&)             = delete;
+    gaen__shapes__Box(gaen__shapes__Box&&)                   = delete;
     gaen__shapes__Box & operator=(const gaen__shapes__Box&)  = delete;
-    gaen__shapes__Box & operator=(gaen__shapes__Box&&) = delete;
+    gaen__shapes__Box & operator=(gaen__shapes__Box&&)       = delete;
 
     glm::vec3& size()
     {
@@ -178,7 +178,7 @@ public:
     {
         return new (place) gaen__shapes__Cone(pEntity);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
@@ -270,9 +270,9 @@ private:
         mBlockCount = 2;
     }
     gaen__shapes__Cone(const gaen__shapes__Cone&)              = delete;
-    gaen__shapes__Cone(gaen__shapes__Cone&&)             = delete;
+    gaen__shapes__Cone(gaen__shapes__Cone&&)                   = delete;
     gaen__shapes__Cone & operator=(const gaen__shapes__Cone&)  = delete;
-    gaen__shapes__Cone & operator=(gaen__shapes__Cone&&) = delete;
+    gaen__shapes__Cone & operator=(gaen__shapes__Cone&&)       = delete;
 
     glm::vec3& size()
     {
@@ -320,7 +320,7 @@ public:
     {
         return new (place) gaen__shapes__Cylinder(pEntity);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
@@ -412,9 +412,9 @@ private:
         mBlockCount = 2;
     }
     gaen__shapes__Cylinder(const gaen__shapes__Cylinder&)              = delete;
-    gaen__shapes__Cylinder(gaen__shapes__Cylinder&&)             = delete;
+    gaen__shapes__Cylinder(gaen__shapes__Cylinder&&)                   = delete;
     gaen__shapes__Cylinder & operator=(const gaen__shapes__Cylinder&)  = delete;
-    gaen__shapes__Cylinder & operator=(gaen__shapes__Cylinder&&) = delete;
+    gaen__shapes__Cylinder & operator=(gaen__shapes__Cylinder&&)       = delete;
 
     glm::vec3& size()
     {
@@ -462,7 +462,7 @@ public:
     {
         return new (place) gaen__shapes__Sphere(pEntity);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
@@ -565,9 +565,9 @@ private:
         mBlockCount = 3;
     }
     gaen__shapes__Sphere(const gaen__shapes__Sphere&)              = delete;
-    gaen__shapes__Sphere(gaen__shapes__Sphere&&)             = delete;
+    gaen__shapes__Sphere(gaen__shapes__Sphere&&)                   = delete;
     gaen__shapes__Sphere & operator=(const gaen__shapes__Sphere&)  = delete;
-    gaen__shapes__Sphere & operator=(gaen__shapes__Sphere&&) = delete;
+    gaen__shapes__Sphere & operator=(gaen__shapes__Sphere&&)       = delete;
 
     glm::vec3& size()
     {
@@ -620,7 +620,7 @@ public:
     {
         return new (place) gaen__shapes__QuadSphere(pEntity);
     }
-    
+
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
@@ -712,9 +712,9 @@ private:
         mBlockCount = 2;
     }
     gaen__shapes__QuadSphere(const gaen__shapes__QuadSphere&)              = delete;
-    gaen__shapes__QuadSphere(gaen__shapes__QuadSphere&&)             = delete;
+    gaen__shapes__QuadSphere(gaen__shapes__QuadSphere&&)                   = delete;
     gaen__shapes__QuadSphere & operator=(const gaen__shapes__QuadSphere&)  = delete;
-    gaen__shapes__QuadSphere & operator=(gaen__shapes__QuadSphere&&) = delete;
+    gaen__shapes__QuadSphere & operator=(gaen__shapes__QuadSphere&&)       = delete;
 
     glm::vec3& size()
     {
