@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 40962a61651f2dbd7dfb8ef8d9f8612e
+// HASH: 9ad1dfdfa88937a918e285012229384f
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -59,7 +59,7 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
+        case HASH::init_data__:
             ASSERT(initStatus() < kIS_InitData);
 
             set_foo__path(entity().blockMemory().stringAlloc("/fonts/profont.gatl"));
@@ -71,11 +71,11 @@ public:
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
-        case HASH::init_assets:
+        case HASH::init_assets__:
             ASSERT(initStatus() < kIS_InitAssets);
 
-            set_foo__path(entity().blockMemory().stringAlloc("/fonts/profont.gatl"));
-            set_bar__path(entity().blockMemory().stringAlloc("/images/bar.tga"));
+            entity().requestAsset(mScriptTask.id(), HASH::foo, foo__path());
+            entity().requestAsset(mScriptTask.id(), HASH::bar, bar__path());
 
             setInitStatus(kIS_InitAssets);
             return MessageResult::Consumed;
@@ -148,18 +148,21 @@ private:
         return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[2]);
     }
     bool mIs_foo__path_Assigned = false;
-    void set_foo__path(const CmpStringAsset& rhs)
+    void release_foo__path()
     {
         if (mIs_foo__path_Assigned)
         {
             entity().blockMemory().release(foo__path());
         }
-        else
-        {
-            mIs_foo__path_Assigned = true;
-        }
+        mIs_foo__path_Assigned = false;
+    }
+    void set_foo__path(const CmpStringAsset& rhs)
+    {
+        ERR("TODO: release block memory strings in #fin message!!!");
+        release_foo__path();
         foo__path() = rhs;
         entity().blockMemory().addRef(foo__path());
+        mIs_foo__path_Assigned = true;
     }
 
     AssetHandleP& bar()
@@ -172,18 +175,21 @@ private:
         return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[1].cells[2]);
     }
     bool mIs_bar__path_Assigned = false;
-    void set_bar__path(const CmpStringAsset& rhs)
+    void release_bar__path()
     {
         if (mIs_bar__path_Assigned)
         {
             entity().blockMemory().release(bar__path());
         }
-        else
-        {
-            mIs_bar__path_Assigned = true;
-        }
+        mIs_bar__path_Assigned = false;
+    }
+    void set_bar__path(const CmpStringAsset& rhs)
+    {
+        ERR("TODO: release block memory strings in #fin message!!!");
+        release_bar__path();
         bar__path() = rhs;
         entity().blockMemory().addRef(bar__path());
+        mIs_bar__path_Assigned = true;
     }
 
     CmpString& s()
@@ -191,18 +197,21 @@ private:
         return *reinterpret_cast<CmpString*>(&mpBlocks[2].cells[0]);
     }
     bool mIs_s_Assigned = false;
-    void set_s(const CmpString& rhs)
+    void release_s()
     {
         if (mIs_s_Assigned)
         {
             entity().blockMemory().release(s());
         }
-        else
-        {
-            mIs_s_Assigned = true;
-        }
+        mIs_s_Assigned = false;
+    }
+    void set_s(const CmpString& rhs)
+    {
+        ERR("TODO: release block memory strings in #fin message!!!");
+        release_s();
         s() = rhs;
         entity().blockMemory().addRef(s());
+        mIs_s_Assigned = true;
     }
 
     i32& a()
@@ -238,13 +247,13 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
+        case HASH::init_data__:
             ASSERT(initStatus() < kIS_InitData);
 
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
-        case HASH::init_assets:
+        case HASH::init_assets__:
             ASSERT(initStatus() < kIS_InitAssets);
 
 
@@ -315,23 +324,15 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
-            ASSERT(initStatus() < kIS_Init);
-
             // Params look compatible, message body follows
             system_api::print(entity().blockMemory().stringAlloc("init"), entity());
             system_api::print_asset_info(testFoo(), entity());
-
-            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::fin:
         {
-            ASSERT(initStatus() < kIS_Fin);
-
             // Params look compatible, message body follows
             system_api::print(entity().blockMemory().stringAlloc("fin"), entity());
-
-            setInitStatus(kIS_Fin);
             return MessageResult::Consumed;
         }
         }
@@ -370,9 +371,12 @@ private:
                 msgw[0].cells[0].i = 5;
                 compTask.message(msgw.accessor());
             }
+            // Send init_assets message
+            StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInitAssets.accessor());
             // Send init message
-            StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgBW.accessor());
+            StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInit.accessor());
         }
     }
     test__Test(const test__Test&)              = delete;
@@ -390,18 +394,21 @@ private:
         return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[2]);
     }
     bool mIs_testFoo__path_Assigned = false;
-    void set_testFoo__path(const CmpStringAsset& rhs)
+    void release_testFoo__path()
     {
         if (mIs_testFoo__path_Assigned)
         {
             entity().blockMemory().release(testFoo__path());
         }
-        else
-        {
-            mIs_testFoo__path_Assigned = true;
-        }
+        mIs_testFoo__path_Assigned = false;
+    }
+    void set_testFoo__path(const CmpStringAsset& rhs)
+    {
+        ERR("TODO: release block memory strings in #fin message!!!");
+        release_testFoo__path();
         testFoo__path() = rhs;
         entity().blockMemory().addRef(testFoo__path());
+        mIs_testFoo__path_Assigned = true;
     }
 
 }; // class test__Test

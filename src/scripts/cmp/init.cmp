@@ -45,6 +45,12 @@ entity Shape
                                diffuse = color{150, 255, 100, 255}};*/
         gaen.utils.WasdRot{}
     }
+
+	#init()
+	{
+        $.print("Shape init");
+	}
+
 }
 
 entity Light
@@ -82,7 +88,7 @@ entity Start
 
 //        entity t = test.Test{prop1 = 500, prop2 = "new value"};
         entity t = test.Test{};
-        $.insert_entity(t);
+        $.activate_entity(t);
 
 
         @t#prop1 = 5;
@@ -93,13 +99,13 @@ entity Start
 
 
         entity cam = Camera{};
-        $.insert_entity(cam);
+        $.activate_entity(cam);
 
         entity light = Light{};
-        $.insert_entity(light);
+        $.activate_entity(light);
 
         entity shape = Shape{};
-        $.insert_entity(shape);
+        $.activate_entity(shape);
 
     }
 }

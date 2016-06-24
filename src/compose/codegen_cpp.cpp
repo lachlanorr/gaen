@@ -354,11 +354,6 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                 code += I1 + S("{\n");
                 if (!is_block_memory_type(pSymRec->pSymDataType))
                 {
-                    if (pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
-                    {
-                        snprintf(scratch, kScratchSize, "Asset property '%s' set after asset initialization", pSymRec->name);
-                        code += I2 + S("ERR_IF(initStatus() >= kIS_InitAssets, \"") + S(scratch) + S("\");\n");
-                    }
                     snprintf(scratch, kScratchSize, "u32 requiredBlockCount = %d;\n", blockCount);
                     code += I2 + S(scratch);
                     code += I2 + S("if (_msg.blockCount >= requiredBlockCount)\n");
@@ -519,39 +514,8 @@ static S init_assets(const Ast * pAst, int indentLevel)
     {
         if (is_prop_or_field(pSymRec) && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
         {
-            if (!is_block_memory_type(pSymRec->pSymDataType))
-            {
-                code += I1 + symref(nullptr, pSymRec, pAst->pParseData);
-                code += S(" = ");
-
-                // Does the script initialize this with a value?
-                if (pSymRec->pAst)
-                {
-                    code += codegen_recurse(pSymRec->pAst, 0);
-                }
-                else
-                {
-                    // initialize with a default value based on the type
-                    code += data_type_init_value(pSymRec->pSymDataType, pAst->pParseData);
-                }
-                code += S(";\n");
-            }
-            else // ref counted go through set methods so we can addref/release properly
-            {
-                code += I + S("    set_") + pSymRec->name + S("(");
-
-                // Does the script initialize this with a value?
-                if (pSymRec->pAst)
-                {
-                    code += codegen_recurse(pSymRec->pAst, 0);
-                }
-                else
-                {
-                    // initialize with a default value based on the type
-                    code += data_type_init_value(pSymRec->pSymDataType, pAst->pParseData);
-                }
-                code += S(");\n");
-            }
+            const char * handleName = asset_handle_name(pSymRec->name);
+            code += I + S("entity().requestAsset(mScriptTask.id(), HASH::") + S(handleName) + S(", ") + S(pSymRec->name) + S("());\n");
         }
     }
     return code;
@@ -573,11 +537,6 @@ static S message_def(const Ast * pAst, int indentLevel)
 
         bool isInit = 0 == strcmp(pAst->str, "init");
         bool isFin = 0 == strcmp(pAst->str, "fin");
-
-        if (isInit)
-            code += I1 + S("ASSERT(initStatus() < kIS_Init);\n");
-        else if (isFin)
-            code += I1 + S("ASSERT(initStatus() < kIS_Fin);\n");
 
         if (pAst->pBlockInfos->blockCount > 0 ||
             pAst->pBlockInfos->blockMemoryItemCount > 0)
@@ -621,20 +580,11 @@ static S message_def(const Ast * pAst, int indentLevel)
             code += LF;
         }
 
-        code += LF;
-
         code += I1 + S("// Params look compatible, message body follows\n");
         for (Ast * pChild : pAst->pChildren->nodes)
         {
             code += codegen_recurse(pChild, indentLevel + 1);
         }
-
-        code += LF;
-
-        if (isInit)
-            code += I1 + S("setInitStatus(kIS_Init);\n");
-        else if (isFin)
-            code += I1 + S("setInitStatus(kIS_Fin);\n");
 
         code += I + S("    return MessageResult::Consumed;\n");
         code += I + S("}\n");
@@ -656,7 +606,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
 
             if (pSymRec && pSymRec->type == kSYMT_Field && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
             {
-                propName = strcat_alloc(pPropInit->str, kAssetPathSuffix);
+                propName = asset_path_name(pPropInit->str);
                 pSymRec = symtab_find_symbol(pPropsSymTab, propName);
             }
 
@@ -735,10 +685,6 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
             code += I + S("}\n");
         }
     }
-
-    code += I + S("// Send init message\n");
-    code += I + S("StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, ") + S(taskName) + S(".id(), ") + S(taskName) + S(".id(), to_cell(0));\n");
-    code += I + S(taskName) + S(".message(msgBW.accessor());\n");
 
     return code;
 }
@@ -988,22 +934,19 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("        switch(_msg.msgId)\n");
         code += I + S("        {\n");
 
-        // init_data
-        code += I + S("        case HASH::") + S("init_data:\n");
-        code += I + S("            ASSERT(initStatus() < kIS_InitData);\n");
-        code += LF;
+        // init_data__
+        code += I + S("        case HASH::init_data__:\n");
         code += init_data(pAst, indentLevel + 2);
-        code += LF;
-        code += I + S("            setInitStatus(kIS_InitData);\n");
         code += I + S("            return MessageResult::Consumed;\n");
 
-        // init_assets
-        code += I + S("        case HASH::") + S("init_assets:\n");
-        code += I + S("            ASSERT(initStatus() < kIS_InitAssets);\n");
-        code += LF;
-        code += init_assets(pAst, indentLevel + 2);
-        code += LF;
-        code += I + S("            setInitStatus(kIS_InitAssets);\n");
+        // init_assets__
+        code += I + S("        case HASH::init_assets__:\n");
+        code += init_assets(pAst, indentLevel + 3);
+        code += I + S("            return MessageResult::Consumed;\n");
+
+        // asset_ready__
+        code += I + S("        case HASH::asset_ready__:\n");
+        code += asset_ready(pAst, indentLevel + 3);
         code += I + S("            return MessageResult::Consumed;\n");
 
         code += set_property_handlers(pAst, indentLevel + 2);
@@ -1139,18 +1082,21 @@ static S codegen_recurse(const Ast * pAst,
         if (isRefCounted)
         {
             code += I + S("bool ") + assignedVar + S(" = false;\n");
-            code += I + S("void set_") + propName + S("(const ") + typeStr + S("& rhs)\n");
+            code += I + S("void release_") + propName + S("()\n");
             code += I + S("{\n");
             code += I + S("    if (") + assignedVar + S(")\n");
             code += I + S("    {\n");
             code += I + S("        entity().blockMemory().release(") + propName + S("());\n");
             code += I + S("    }\n");
-            code += I + S("    else\n");
-            code += I + S("    {\n");
-            code += I + S("        ") + assignedVar + S(" = true;\n");
-            code += I + S("    }\n");
+            code += I + S("    ") + assignedVar + S(" = false;\n");
+            code += I + S("}\n");
+            code += I + S("void set_") + propName + S("(const ") + typeStr + S("& rhs)\n");
+            code += I + S("{\n");
+            code += I + S("    ERR(\"TODO: release block memory strings in #fin message!!!\");\n");
+            code += I + S("    release_") + propName + S("();\n");
             code += I + S("    ") + propName + S("() = rhs;\n");
             code += I + S("    entity().blockMemory().addRef(") + propName + S("());\n");
+            code += I + S("    ") + assignedVar + S(" = true;\n");
             code += I + S("}\n");
         }
         code += LF;

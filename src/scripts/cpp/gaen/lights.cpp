@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 8e87de4904275110b396a7daaf672aa3
+// HASH: fb601fbb66ed495cd2aa90c2be511235
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -59,7 +59,7 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
+        case HASH::init_data__:
             ASSERT(initStatus() < kIS_InitData);
 
             lightUid() = system_api::renderer_gen_uid(entity());
@@ -68,7 +68,7 @@ public:
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
-        case HASH::init_assets:
+        case HASH::init_assets__:
             ASSERT(initStatus() < kIS_InitAssets);
 
 
@@ -103,12 +103,8 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
-            ASSERT(initStatus() < kIS_Init);
-
             // Params look compatible, message body follows
             system_api::renderer_insert_light_directional(lightUid(), dir(), col(), entity());
-
-            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         }

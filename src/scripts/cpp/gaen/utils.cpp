@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 7920542e546ef6bfeaa2a6a6f9eb03ff
+// HASH: d40d171b5fc0096fa888cadac417ef91
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -82,7 +82,7 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
+        case HASH::init_data__:
             ASSERT(initStatus() < kIS_InitData);
 
             timer_interval() = 0.00000000e+00f;
@@ -91,7 +91,7 @@ public:
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
-        case HASH::init_assets:
+        case HASH::init_assets__:
             ASSERT(initStatus() < kIS_InitAssets);
 
 
@@ -234,7 +234,7 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
+        case HASH::init_data__:
             ASSERT(initStatus() < kIS_InitData);
 
             dirForwardInit() = glm::vec3(0.00000000e+00f, 0.00000000e+00f, -(1.00000000e+00f));
@@ -256,7 +256,7 @@ public:
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
-        case HASH::init_assets:
+        case HASH::init_assets__:
             ASSERT(initStatus() < kIS_InitAssets);
 
 
@@ -264,8 +264,6 @@ public:
             return MessageResult::Consumed;
         case HASH::init:
         {
-            ASSERT(initStatus() < kIS_Init);
-
             // Params look compatible, message body follows
             system_api::watch_input_state(HASH::mouse_look, (u32)0, HASH::mouse_look, entity());
             system_api::watch_mouse(HASH::mouse_move, HASH::mouse_wheel, entity());
@@ -273,16 +271,12 @@ public:
             system_api::watch_input_state(HASH::back, (u32)0, HASH::back, entity());
             system_api::watch_input_state(HASH::left, (u32)0, HASH::left, entity());
             system_api::watch_input_state(HASH::right, (u32)0, HASH::right, entity());
-
-            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::mouse_look:
         {
-
             // Params look compatible, message body follows
             mouseLooking() = /*status*/msgAcc.message().payload.b;
-
             return MessageResult::Consumed;
         }
         case HASH::mouse_move:
@@ -292,27 +286,22 @@ public:
             if (expectedBlockSize > msgAcc.available())
                 return MessageResult::Propogate;
 
-
             // Params look compatible, message body follows
             if (mouseLooking())
             {
                 mouseDeltaX() += /*xDelta*/msgAcc.message().payload.i;
                 mouseDeltaY() += /*yDelta*/msgAcc[0].cells[0].i;
             }
-
             return MessageResult::Consumed;
         }
         case HASH::mouse_wheel:
         {
-
             // Params look compatible, message body follows
             mouseWheelDelta() += /*delta*/msgAcc.message().payload.i;
-
             return MessageResult::Consumed;
         }
         case HASH::forward:
         {
-
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
@@ -322,12 +311,10 @@ public:
             {
                 forwardBackward() = 0.00000000e+00f;
             }
-
             return MessageResult::Consumed;
         }
         case HASH::back:
         {
-
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
@@ -337,12 +324,10 @@ public:
             {
                 forwardBackward() = 0.00000000e+00f;
             }
-
             return MessageResult::Consumed;
         }
         case HASH::left:
         {
-
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
@@ -352,12 +337,10 @@ public:
             {
                 leftRight() = 0.00000000e+00f;
             }
-
             return MessageResult::Consumed;
         }
         case HASH::right:
         {
-
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
@@ -367,7 +350,6 @@ public:
             {
                 leftRight() = 0.00000000e+00f;
             }
-
             return MessageResult::Consumed;
         }
         }
@@ -516,7 +498,7 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
+        case HASH::init_data__:
             ASSERT(initStatus() < kIS_InitData);
 
             yawing() = 0.00000000e+00f;
@@ -526,7 +508,7 @@ public:
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
-        case HASH::init_assets:
+        case HASH::init_assets__:
             ASSERT(initStatus() < kIS_InitAssets);
 
 
@@ -534,20 +516,15 @@ public:
             return MessageResult::Consumed;
         case HASH::init:
         {
-            ASSERT(initStatus() < kIS_Init);
-
             // Params look compatible, message body follows
             system_api::watch_input_state(HASH::forward, (u32)0, HASH::forward, entity());
             system_api::watch_input_state(HASH::back, (u32)0, HASH::back, entity());
             system_api::watch_input_state(HASH::left, (u32)0, HASH::left, entity());
             system_api::watch_input_state(HASH::right, (u32)0, HASH::right, entity());
-
-            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::forward:
         {
-
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
@@ -557,12 +534,10 @@ public:
             {
                 pitching() = 0.00000000e+00f;
             }
-
             return MessageResult::Consumed;
         }
         case HASH::back:
         {
-
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
@@ -572,12 +547,10 @@ public:
             {
                 pitching() = 0.00000000e+00f;
             }
-
             return MessageResult::Consumed;
         }
         case HASH::left:
         {
-
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
@@ -587,12 +560,10 @@ public:
             {
                 yawing() = 0.00000000e+00f;
             }
-
             return MessageResult::Consumed;
         }
         case HASH::right:
         {
-
             // Params look compatible, message body follows
             if (/*status*/msgAcc.message().payload.b)
             {
@@ -602,7 +573,6 @@ public:
             {
                 yawing() = 0.00000000e+00f;
             }
-
             return MessageResult::Consumed;
         }
         }

@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 6c2d281cdf9ce631032f1713f47f1b87
+// HASH: f1b7b7795c5070af799f03225108cf12
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -56,6 +56,16 @@ public:
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
+        const Message & _msg = msgAcc.message();
+        switch(_msg.msgId)
+        {
+        case HASH::init:
+        {
+            // Params look compatible, message body follows
+            system_api::print(entity().blockMemory().stringAlloc("Shape init"), entity());
+            return MessageResult::Consumed;
+        }
+        }
         return MessageResult::Propogate;
     }
 
@@ -93,17 +103,23 @@ private:
                 msgw[0].cells[0].color = Color(255, 255, 0, 255);
                 compTask.message(msgw.accessor());
             }
+            // Send init_assets message
+            StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInitAssets.accessor());
             // Send init message
-            StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgBW.accessor());
+            StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInit.accessor());
         }
 
         // Component: gaen.utils.WasdRot
         {
             Task & compTask = insertComponent(HASH::gaen__utils__WasdRot, mComponentCount);
+            // Send init_assets message
+            StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInitAssets.accessor());
             // Send init message
-            StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgBW.accessor());
+            StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInit.accessor());
         }
     }
     init__Shape(const init__Shape&)              = delete;
@@ -160,9 +176,12 @@ private:
                 msgw[0].cells[0].color = Color(255, 255, 0, 255);
                 compTask.message(msgw.accessor());
             }
+            // Send init_assets message
+            StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInitAssets.accessor());
             // Send init message
-            StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgBW.accessor());
+            StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInit.accessor());
         }
     }
     init__Light(const init__Light&)              = delete;
@@ -207,9 +226,12 @@ private:
         // Component: gaen.utils.WasdCamera
         {
             Task & compTask = insertComponent(HASH::gaen__utils__WasdCamera, mComponentCount);
+            // Send init_assets message
+            StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInitAssets.accessor());
             // Send init message
-            StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgBW.accessor());
+            StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInit.accessor());
         }
     }
     init__Camera(const init__Camera&)              = delete;
@@ -234,45 +256,57 @@ class init__Start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__test_Test__84_86()
+    task_id entity_init__init__test_Test__90_86()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::test__Test, 8);
+        // Send init_assets message
+        StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgInitAssets.accessor());
         // Send init message
-        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgBW.accessor());
+        StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgInit.accessor());
 
         stageEntity(pEnt);
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Camera__95_23()
+    task_id entity_init__init__Camera__101_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Camera, 8);
+        // Send init_assets message
+        StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgInitAssets.accessor());
         // Send init message
-        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgBW.accessor());
+        StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgInit.accessor());
 
         stageEntity(pEnt);
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Light__98_25()
+    task_id entity_init__init__Light__104_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
+        // Send init_assets message
+        StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgInitAssets.accessor());
         // Send init message
-        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgBW.accessor());
+        StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgInit.accessor());
 
         stageEntity(pEnt);
         return pEnt->task().id();
     }
 
-    task_id entity_init__init__Shape__101_25()
+    task_id entity_init__init__Shape__107_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Shape, 8);
+        // Send init_assets message
+        StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgInitAssets.accessor());
         // Send init message
-        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgBW.accessor());
+        StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
+        pEnt->task().message(msgInit.accessor());
 
         stageEntity(pEnt);
         return pEnt->task().id();
@@ -293,11 +327,9 @@ public:
         {
         case HASH::init:
         {
-            ASSERT(initStatus() < kIS_Init);
-
             // Params look compatible, message body follows
             CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+00f, 10);
-            task_id t = entity_init__init__test_Test__84_86();
+            task_id t = entity_init__init__test_Test__90_86();
             system_api::insert_entity(t, entity());
             { // Send Message Block
                 // Compute block size, incorporating any BlockMemory parameters dynamically
@@ -353,14 +385,12 @@ public:
 
                 // MessageQueueWriter will send message through RAII when this scope is exited
             }
-            task_id cam = entity_init__init__Camera__95_23();
+            task_id cam = entity_init__init__Camera__101_23();
             system_api::insert_entity(cam, entity());
-            task_id light = entity_init__init__Light__98_25();
+            task_id light = entity_init__init__Light__104_25();
             system_api::insert_entity(light, entity());
-            task_id shape = entity_init__init__Shape__101_25();
+            task_id shape = entity_init__init__Shape__107_25();
             system_api::insert_entity(shape, entity());
-
-            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         }
@@ -393,9 +423,12 @@ private:
                 msgw[0].cells[0].u = HASH::abc;
                 compTask.message(msgw.accessor());
             }
+            // Send init_assets message
+            StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInitAssets.accessor());
             // Send init message
-            StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgBW.accessor());
+            StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
+            compTask.message(msgInit.accessor());
         }
     }
     init__Start(const init__Start&)              = delete;
@@ -413,18 +446,21 @@ private:
         return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[2]);
     }
     bool mIs_foo__path_Assigned = false;
-    void set_foo__path(const CmpStringAsset& rhs)
+    void release_foo__path()
     {
         if (mIs_foo__path_Assigned)
         {
             entity().blockMemory().release(foo__path());
         }
-        else
-        {
-            mIs_foo__path_Assigned = true;
-        }
+        mIs_foo__path_Assigned = false;
+    }
+    void set_foo__path(const CmpStringAsset& rhs)
+    {
+        ERR("TODO: release block memory strings in #fin message!!!");
+        release_foo__path();
         foo__path() = rhs;
         entity().blockMemory().addRef(foo__path());
+        mIs_foo__path_Assigned = true;
     }
 
     AssetHandleP& bar()
@@ -437,18 +473,21 @@ private:
         return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[1].cells[2]);
     }
     bool mIs_bar__path_Assigned = false;
-    void set_bar__path(const CmpStringAsset& rhs)
+    void release_bar__path()
     {
         if (mIs_bar__path_Assigned)
         {
             entity().blockMemory().release(bar__path());
         }
-        else
-        {
-            mIs_bar__path_Assigned = true;
-        }
+        mIs_bar__path_Assigned = false;
+    }
+    void set_bar__path(const CmpStringAsset& rhs)
+    {
+        ERR("TODO: release block memory strings in #fin message!!!");
+        release_bar__path();
         bar__path() = rhs;
         entity().blockMemory().addRef(bar__path());
+        mIs_bar__path_Assigned = true;
     }
 
 }; // class init__Start

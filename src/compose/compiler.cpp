@@ -878,7 +878,7 @@ static Ast * ast_create_top_level_def(const char * name, AstType astType, SymTyp
 
         pAst->pSymRec = symrec_create(symType,
                                       pPathType,
-                                      strcat_alloc(name, kAssetPathSuffix),
+                                      asset_path_name(name),
                                       pInitVal,
                                       pParseData);
     }

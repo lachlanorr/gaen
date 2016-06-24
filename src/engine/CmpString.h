@@ -42,11 +42,11 @@ public:
 
     char * c_str()             { ASSERT(mpBlockData); return &mpBlockData->data.string.chars[0]; }
     const char * c_str() const { ASSERT(mpBlockData); return &mpBlockData->data.string.chars[0]; }
-    u16 size()                 { ASSERT(mpBlockData); return mpBlockData->data.string.charCount; }
-    u16 blockCount()           { ASSERT(mpBlockData); return mpBlockData->blockCount; }
+    u16 size() const           { ASSERT(mpBlockData); return mpBlockData->data.string.charCount; }
+    u16 blockCount() const     { ASSERT(mpBlockData); return mpBlockData->blockCount; }
 
     template <typename T>
-    void writeMessage(T & msgAcc, u32 startIndex)
+    void writeMessage(T & msgAcc, u32 startIndex) const
     {
         ASSERT(mpBlockData);
 

@@ -40,14 +40,13 @@ namespace gaen
 
 class Asset;
 class BlockMemory;
+class CmpString;
 
 class Entity
 {
 public:
     Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax);
     ~Entity();
-
-    InitStatus initStatus() const { return mInitStatus; }
 
     const Task & task() const { return mTask; }
     Task & task() { return mTask; }
@@ -68,18 +67,27 @@ public:
     void setParent(Entity * pEntity);
     const glm::mat4x3 & parentTransform() const;
 
+    static Entity * create_start_entity(u32 entityHash);
     void stageEntity(Entity * pEntity);
-    Entity * unstageEntity(task_id id);
+    Entity * findStagedEntity(task_id id);
+    int findStagedEntityIndex(task_id id);
+    void activateEntity(task_id id);
+    void unstageEntity(task_id id);
 
     BlockMemory & blockMemory();
     void collect();
 
+    void requestAsset(u32 taskId, u32 name, const CmpString & path);
 protected:
-    enum AssetLoadStatus
+    enum InitStatus
     {
-        kALS_Pending,
-        kALS_Loaded,
-        kALS_Error
+        kIS_Uninitialized = 0,
+        kIS_InitData      = 1,
+        kIS_InitAssets    = 2,
+        kIS_AssetsReady   = 3,
+        kIS_Init          = 4,
+        kIS_Activated     = 5,
+        kIS_Fin           = 6
     };
 
     // Max entities that can be created before they're inserted into the engine
@@ -90,8 +98,6 @@ protected:
     const Entity & entity() const { return *this; }
     Entity & entity() { return *this; }
     
-    void setInitStatus(InitStatus rhs) { mInitStatus = rhs; }
-
     Task& insertComponent(u32 nameHash, u32 index);
 
     u32 findComponent(u32 nameHash);
@@ -110,10 +116,11 @@ protected:
     void growBlocks(u32 minSizeIncrease);
     void growChildren();
 
-    Asset * findAsset(u32 pathHash);
-	void insertAsset(Asset * pAsset);
-    AssetLoadStatus assetsLoadStatus() const { return mAssetsLoadStatus; }
-    void releaseAssets();
+    bool areAllAssetsLoaded()
+    {
+        ASSERT(mAssetsLoaded <= mAssetsRequested);
+        return mAssetsLoaded == mAssetsRequested;
+    }
 
     // Task representing this base class update/message methods.  This
     // is the "public" task_id used external to the entity to refer to
@@ -159,10 +166,8 @@ protected:
     BlockMemory * mpBlockMemory;
 
     // Asset pointers
-    Asset ** mpAssets;
-    u32 mAssetsMax;
-    u32 mAssetCount;
-    AssetLoadStatus mAssetsLoadStatus;
+    u32 mAssetsRequested;
+    u32 mAssetsLoaded;
 };
 
 } // namespace gaen

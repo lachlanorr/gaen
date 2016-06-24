@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: d78ff6e2629bb48628aecc11072b99eb
+// HASH: 5c88c24e8da7a2b5acd9f5ce81b16c25
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -59,7 +59,7 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
+        case HASH::init_data__:
             ASSERT(initStatus() < kIS_InitData);
 
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
@@ -69,7 +69,7 @@ public:
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
-        case HASH::init_assets:
+        case HASH::init_assets__:
             ASSERT(initStatus() < kIS_InitAssets);
 
 
@@ -104,21 +104,15 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
-            ASSERT(initStatus() < kIS_Init);
-
             // Params look compatible, message body follows
             model() = system_api::create_shape_box(size(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
-
-            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::update_transform:
         {
-
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
-
             return MessageResult::Consumed;
         }
         }
@@ -185,7 +179,7 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
+        case HASH::init_data__:
             ASSERT(initStatus() < kIS_InitData);
 
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
@@ -196,7 +190,7 @@ public:
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
-        case HASH::init_assets:
+        case HASH::init_assets__:
             ASSERT(initStatus() < kIS_InitAssets);
 
 
@@ -241,21 +235,15 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
-            ASSERT(initStatus() < kIS_Init);
-
             // Params look compatible, message body follows
             model() = system_api::create_shape_cone(size(), slices(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
-
-            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::update_transform:
         {
-
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
-
             return MessageResult::Consumed;
         }
         }
@@ -327,7 +315,7 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
+        case HASH::init_data__:
             ASSERT(initStatus() < kIS_InitData);
 
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
@@ -338,7 +326,7 @@ public:
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
-        case HASH::init_assets:
+        case HASH::init_assets__:
             ASSERT(initStatus() < kIS_InitAssets);
 
 
@@ -383,21 +371,15 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
-            ASSERT(initStatus() < kIS_Init);
-
             // Params look compatible, message body follows
             model() = system_api::create_shape_cylinder(size(), slices(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
-
-            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::update_transform:
         {
-
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
-
             return MessageResult::Consumed;
         }
         }
@@ -469,7 +451,7 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
+        case HASH::init_data__:
             ASSERT(initStatus() < kIS_InitData);
 
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
@@ -481,7 +463,7 @@ public:
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
-        case HASH::init_assets:
+        case HASH::init_assets__:
             ASSERT(initStatus() < kIS_InitAssets);
 
 
@@ -536,21 +518,15 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
-            ASSERT(initStatus() < kIS_Init);
-
             // Params look compatible, message body follows
             model() = system_api::create_shape_sphere(size(), slices(), sections(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
-
-            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::update_transform:
         {
-
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
-
             return MessageResult::Consumed;
         }
         }
@@ -627,7 +603,7 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data:
+        case HASH::init_data__:
             ASSERT(initStatus() < kIS_InitData);
 
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
@@ -638,7 +614,7 @@ public:
 
             setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
-        case HASH::init_assets:
+        case HASH::init_assets__:
             ASSERT(initStatus() < kIS_InitAssets);
 
 
@@ -683,21 +659,15 @@ public:
             return MessageResult::Propogate; // Invalid property
         case HASH::init:
         {
-            ASSERT(initStatus() < kIS_Init);
-
             // Params look compatible, message body follows
             model() = system_api::create_shape_quad_sphere(size(), sections(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
-
-            setInitStatus(kIS_Init);
             return MessageResult::Consumed;
         }
         case HASH::update_transform:
         {
-
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
-
             return MessageResult::Consumed;
         }
         }

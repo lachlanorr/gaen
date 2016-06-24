@@ -367,21 +367,12 @@ void TaskMaster::runPrimaryGameLoop()
 
     // LORRTODO - make start entity name dynamic based on command line args
     // Init the start entity now that we have a TaskMaster running.
-    Entity * pStartEntity = mRegistry.constructEntity(sStartEntityHash, 32);
+    mpStartEntity = Entiy::create_start_entity(sStartEntityHash);
 
-    if (pStartEntity)
+    if (mpStartEntity)
         LOG_INFO("Start entity: %s", HASH::reverse_hash(sStartEntityHash));
     else
         LOG_ERROR("Unable to start entity: %s", HASH::reverse_hash(sStartEntityHash));
-
-    if (pStartEntity)
-    {
-        // Send init message
-        StackMessageBlockWriter<0> msgBW(HASH::init, kMessageFlag_None, pStartEntity->task().id(), pStartEntity->task().id(), to_cell(0));
-        pStartEntity->message(msgBW.accessor());
-    
-        insertTask(threadId(), pStartEntity->task());
-    }
 
     mIsRunning = true;
     mFrameTime.init();

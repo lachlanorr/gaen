@@ -51,6 +51,24 @@ char * strcat_alloc(const char * lhs, const char * rhs)
     return catstr;
 }
 
+char * asset_path_name(const char * assetHandleName)
+{
+    ASSERT(assetHandleName);
+    return strcat_alloc(assetHandleName, kAssetPathSuffix);
+}
+
+char * asset_handle_name(const char * assetPathName)
+{
+    ASSERT(assetPathName);
+    const char * suffixPath = strstr(assetPathName, kAssetPathSuffix);
+    ASSERT(suffixPath);
+    size_t len = suffixPath - assetPathName;
+    char * handleName = (char*)COMP_ALLOC(len + 1);
+    strncpy(handleName, assetPathName, len);
+    handleName[len] = '\0';
+    return handleName;
+}
+
 const char * path_join(const char * rootDir,
                        const char * filename,
                        ParseData *pParseData)

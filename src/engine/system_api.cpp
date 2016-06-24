@@ -68,20 +68,10 @@ void print_asset_info(AssetHandleP asset, Entity & caller)
     LOG_INFO("print_asset_info");
 }
 
-void insert_entity(u32 id, Entity & caller)
+void activate_entity(u32 id, Entity & caller)
 {
-    Entity * pEnt = caller.unstageEntity(id);
-    if (pEnt)
-    {
-        ASSERT(sizeof(Task) % kBlockSize == 0);
-        messages::InsertTaskBW msgw(HASH::insert_task,
-                                    kMessageFlag_None,
-                                    caller.task().id(),
-                                    active_thread_id(),
-                                    active_thread_id());
-        msgw.setTask(pEnt->task());
-        broadcast_message(msgw.accessor());
-    }
+    static_assert(sizeof(Task) % kBlockSize == 0);
+    caller.activateEntity(id);
 }
 
 f32 radians(f32 degrees, Entity & caller)

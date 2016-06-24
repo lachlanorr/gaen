@@ -184,6 +184,9 @@ private:
     bool mIsInit = false;
     bool mIsRunning = false;
 
+    // Storage for initial entity
+    Entity * mpStartEntity = nullptr;
+
     Registry mRegistry;
 };
 
