@@ -88,7 +88,6 @@ entity Start
 
 //        entity t = test.Test{prop1 = 500, prop2 = "new value"};
         entity t = test.Test{};
-        $.activate_entity(t);
 
 
         @t#prop1 = 5;
@@ -99,13 +98,9 @@ entity Start
 
 
         entity cam = Camera{};
-        $.activate_entity(cam);
 
         entity light = Light{};
-        $.activate_entity(light);
 
         entity shape = Shape{};
-        $.activate_entity(shape);
-
     }
 }

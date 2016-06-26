@@ -33,6 +33,7 @@
 #include "engine/MessageQueue.h"
 #include "engine/Entity.h"
 #include "engine/messages/InsertTask.h"
+#include "engine/messages/TaskStatus.h"
 #include "engine/InputMgr.h"
 #include "engine/HandleMgr.h"
 #include "engine/renderer_api.h"
@@ -69,7 +70,7 @@ void fin_task_masters()
 {
     ASSERT(sIsInit);
     broadcast_message(HASH::fin,
-                      kMessageFlag_ForcePropogate,
+                      kMessageFlag_ForcePropagate,
                       kMainThreadTaskId);
     join_all_threads();
 }
@@ -281,7 +282,7 @@ void TaskMaster::cleanup()
 {
     // We can't do this cleanup in the fin() method, since message queues
     // are still active.
-    // This clenaup will get called when loop actually exits and we can
+    // This cleanup will get called when loop actually exits and we can
     // really clean up everything.
 
     if (mRendererTask.id() != 0)
@@ -338,7 +339,7 @@ MessageQueue * TaskMaster::messageQueueForTarget(task_id target)
         {
             // This task_id isn't registered with any task masters.
             // This can sometimes happen if the task was just created
-            // and the insert_task message hasn't propogated through
+            // and the insert_task message hasn't propagated through
             // yet. Callers of this method should decide what to do in
             // these cases, as it is not always an error to get
             // nullptr returned from here.
@@ -367,7 +368,7 @@ void TaskMaster::runPrimaryGameLoop()
 
     // LORRTODO - make start entity name dynamic based on command line args
     // Init the start entity now that we have a TaskMaster running.
-    mpStartEntity = Entiy::create_start_entity(sStartEntityHash);
+    mpStartEntity = Entity::activate_start_entity(sStartEntityHash);
 
     if (mpStartEntity)
         LOG_INFO("Start entity: %s", HASH::reverse_hash(sStartEntityHash));
@@ -376,7 +377,9 @@ void TaskMaster::runPrimaryGameLoop()
 
     mIsRunning = true;
     mFrameTime.init();
-    
+
+    mpStartEntity->activateEntity(mpStartEntity->task().id());
+
     while(mIsRunning)
     {
         // Render through the render adapter
@@ -416,6 +419,8 @@ void TaskMaster::runPrimaryGameLoop()
         // call update on each task owned by this TaskMaster
         for (Task & task : mOwnedTasks)
         {
+            // LORRTODO: remove dead tasks from the list
+
             task.update(deltaSecs);
         }
 
@@ -567,7 +572,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
         default:
         {
             ERR("Unhandled message type, msgId: %d", msg.msgId);
-            return MessageResult::Propogate;
+            return MessageResult::Propagate;
         }
         }
     }
@@ -600,6 +605,20 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
         {
             size_t taskIdx = it->second;
             ASSERT(taskIdx < mOwnedTasks.size());
+
+            // If it is an activate_task message, hand it specially here
+            if (msg.msgId == HASH::set_task_status)
+            {
+                messages::TaskStatusQR msgRdr(msgAcc);
+
+                // Make sure task status is a valid 2 bit value (only has 2 bits in definition of Task struct)
+                PANIC_IF((u32)msgRdr.status() >= 4,"Invalid task status %u", msg.payload.u);
+                TaskStatus stat = msgRdr.status();
+                mOwnedTasks[taskIdx].setStatus(stat);
+                return MessageResult::Consumed;
+            }
+
+            // send message to task
             MessageResult mr = mOwnedTasks[taskIdx].message(msgAcc);
 #if HAS(TRACK_HASHES)
             EXPECT_MSG(mr == MessageResult::Consumed,
@@ -622,7 +641,18 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             if (!pMsgQ)
             {
                 // Message directed to task we're not tracking, throw it away
-                LOG_INFO("Message to non-existent target; source: %u, target: %u, msgId: %u", msg.source, msg.target, msg.msgId);
+#if HAS(TRACK_HASHES)
+                LOG_INFO("Message to non-existent target, source: %u, target: %u, message: %s",
+                         msg.source,
+                         msg.target,
+                         HASH::reverse_hash(msg.msgId));
+#else
+                LOG_INFO("Message to non-existent target, source: %u, target: %u, message: %u",
+                         msg.source,
+                         msg.target,
+                         msg.msgId);
+#endif
+
                 return MessageResult::Consumed;
             }
 

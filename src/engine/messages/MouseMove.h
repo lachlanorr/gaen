@@ -29,6 +29,7 @@
 
 #include "engine/MessageWriter.h"
 #include "core/threading.h"
+#include "engine/Task.h"
 #include "engine/Model.h"
 
 namespace gaen
@@ -46,7 +47,7 @@ public:
 
     }
 
-    u32 xDelta() const { return mMsgAcc.message().payload.u; }
+    u32 xDelta() const { return (u32)mMsgAcc.message().payload.u; }
     u32 yDelta() const { return mMsgAcc[0].cells[0].u; }
         
 private:
@@ -74,7 +75,7 @@ public:
                            1)
     {}
     
-    void setXDelta(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setXDelta(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setYDelta(u32 val) { mMsgAcc[0].cells[0].u = val; }
 };
 
@@ -95,7 +96,7 @@ public:
                            mBlocks)
     {}
 
-    void setXDelta(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setXDelta(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setYDelta(u32 val) { mMsgAcc[0].cells[0].u = val; }
 
 private:

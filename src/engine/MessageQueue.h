@@ -28,6 +28,8 @@
 #define GAEN_ENGINE_MESSAGEQUEUE_H
 
 #include "core/SpscRingBuffer.h"
+#include "core/logging.h"
+#include "engine/hashes.h"
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
 
@@ -44,7 +46,7 @@ class MessageQueue
 {
     friend class MessageQueueAccessor;
 public:
-    MessageQueue(u32 messageCount)
+    explicit MessageQueue(u32 messageCount)
       : mRingBuffer(messageCount, kMEM_Engine)
     {}
     
@@ -76,6 +78,8 @@ public:
                    cell payload,
                    u32 blockCount)
     {
+        // LORRTEMP
+        //LOG_INFO("pushBegin %s, source: %u, target: %u", HASH::reverse_hash(msgId), source, target);
         pushHeader(pMsgAcc, msgId, flags, source, target, payload, blockCount);
     }
 
@@ -91,6 +95,11 @@ public:
 
         if (pMsgAcc->mAccessor.available() == 0)
             return false;
+
+        // LORRTEMP
+        //Message msg = pMsgAcc->message();
+        //LOG_INFO("popBegin %s, source: %u, target: %u", HASH::reverse_hash(pMsgAcc->message().msgId), pMsgAcc->message().source, pMsgAcc->message().target);
+
 
         // By inspecting the message, we know how many are actually available.
         ASSERT(pMsgAcc->mAccessor.available() >= pMsgAcc->mAccessor[0].blockCount + 1);
@@ -134,7 +143,7 @@ private:
 };
 
 
-} // namesapce gaen
+} // namespace gaen
 
 
 #endif // #ifndef GAEN_ENGINE_MESSAGEQUEUE_H

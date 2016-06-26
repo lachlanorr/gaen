@@ -29,6 +29,7 @@
 
 #include "engine/MessageWriter.h"
 #include "core/threading.h"
+#include "engine/Task.h"
 #include "engine/Model.h"
 #include "engine/Handle.h"
 
@@ -48,6 +49,8 @@ public:
     }
 
     Handle * handle() const { return static_cast<Handle *>(mMsgAcc[0].dCells[0].p); }
+    u32 nameHash() const { return mMsgAcc[0].cells[2].u; }
+    u32 taskId() const { return (u32)mMsgAcc.message().payload.u; }
         
 private:
     const T & mMsgAcc;
@@ -64,16 +67,19 @@ public:
     HandleQW(u32 msgId,
              u32 flags,
              task_id source,
-             task_id target)
+             task_id target,
+             u32 taskId)
       : MessageQueueWriter(msgId,
                            flags,
                            source,
                            target,
-                           to_cell(0),
+                           to_cell(taskId),
                            1)
     {}
     
     void setHandle(Handle * pVal) { mMsgAcc[0].dCells[0].p = pVal; }
+    void setNameHash(u32 val) { mMsgAcc[0].cells[2].u = val; }
+    void setTaskId(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 };
 
 class HandleBW : public MessageBlockWriter
@@ -82,17 +88,20 @@ public:
     HandleBW(u32 msgId,
              u32 flags,
              task_id source,
-             task_id target)
+             task_id target,
+             u32 taskId)
       : MessageBlockWriter(msgId,
                            flags,
                            source,
                            target,
-                           to_cell(0),
+                           to_cell(taskId),
                            1,
                            mBlocks)
     {}
 
     void setHandle(Handle * pVal) { mMsgAcc[0].dCells[0].p = pVal; }
+    void setNameHash(u32 val) { mMsgAcc[0].cells[2].u = val; }
+    void setTaskId(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 
 private:
     Block mBlocks[1 + 1]; // +1 for header

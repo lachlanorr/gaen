@@ -82,6 +82,7 @@ def gen_message_cmake(field_handlers):
     for field_handler in field_handlers:
         lines.append('  messages/%s.h' % field_handler.object_name)
     lines.sort()
+    lines = ['  messages/messages.def'] + lines
     return template_subst(Templates.CmakeFileList, {'files'       : '\n'.join(lines),
                                                     'autogen_type': 'messages'})
 
@@ -122,7 +123,7 @@ def gen_reader_getters(field_handler):
     for f in field_handler.fields:
         if f.payload:
             if TYPE_TO_UNION[f.raw_type] == f.union_type:
-                lines.append('    %s %s() const { return mMsgAcc.message().payload.%s; }' % (f.type_name, f.name, f.union_type))
+                lines.append('    %s %s() const { return (%s)mMsgAcc.message().payload.%s; }' % (f.type_name, f.name, f.type_name, f.union_type))
             else:
                 lines.append('    %s %s() const { return *reinterpret_cast<const %s*>(&mMsgAcc.message().payload.%s); }' % (f.type_name, f.name, f.type_name, f.union_type))
         elif type(f) == PointerField:
@@ -169,7 +170,7 @@ def gen_writer_setters(field_handler):
     for f in field_handler.fields:
         if f.payload:
             if TYPE_TO_UNION[f.raw_type] == f.union_type:
-                lines.append('    void %s(%s val) { mMsgAcc.message().payload.%s = val; }' % (f.setter_name, f.type_name, f.union_type))
+                lines.append('    void %s(%s val) { mMsgAcc.message().payload.%s = (%s)val; }' % (f.setter_name, f.type_name, f.union_type, f.raw_type))
             else:
                 lines.append('    void %s(%s val) { mMsgAcc.message().payload.%s = *reinterpret_cast<const %s*>(&val); }' % (f.setter_name, f.type_name, f.union_type, f.type_name))
         elif type(f) == PointerField:

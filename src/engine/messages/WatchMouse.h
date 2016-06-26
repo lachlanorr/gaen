@@ -29,6 +29,7 @@
 
 #include "engine/MessageWriter.h"
 #include "core/threading.h"
+#include "engine/Task.h"
 #include "engine/Model.h"
 
 namespace gaen
@@ -47,7 +48,7 @@ public:
     }
 
     u32 wheelMessage() const { return mMsgAcc[0].cells[0].u; }
-    u32 moveMessage() const { return mMsgAcc.message().payload.u; }
+    u32 moveMessage() const { return (u32)mMsgAcc.message().payload.u; }
         
 private:
     const T & mMsgAcc;
@@ -75,7 +76,7 @@ public:
     {}
     
     void setWheelMessage(u32 val) { mMsgAcc[0].cells[0].u = val; }
-    void setMoveMessage(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setMoveMessage(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 };
 
 class WatchMouseBW : public MessageBlockWriter
@@ -96,7 +97,7 @@ public:
     {}
 
     void setWheelMessage(u32 val) { mMsgAcc[0].cells[0].u = val; }
-    void setMoveMessage(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setMoveMessage(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 
 private:
     Block mBlocks[1 + 1]; // +1 for header

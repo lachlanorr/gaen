@@ -1,0 +1,4 @@
+* Requirements
+- git 2.7.x
+- cmake 3.5.x
+- python 2.7.x

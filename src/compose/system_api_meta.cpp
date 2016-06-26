@@ -116,15 +116,6 @@ void register_system_apis(ParseData * pParseData)
         parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
     }
     {
-        // insert_entity
-        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
-        ast_add_child(pSystemApiDef, ast_create_function_arg("id", parsedata_find_type_symbol(pParseData, "entity", 0, 0), pParseData));
-        size_t mangledLen = mangle_function_len("insert_entity", pSystemApiDef->pChildren);
-        char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
-        mangle_function(mangledName, kMaxCmpId, "insert_entity", pSystemApiDef->pChildren);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "void", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));
-    }
-    {
         // radians
         Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);
         ast_add_child(pSystemApiDef, ast_create_function_arg("degrees", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));

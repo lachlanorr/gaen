@@ -45,7 +45,7 @@ public:
     gaen::MessageResult message(const T & msgAcc)
     {
         printf("Entity1::message\n");
-        return gaen::MessageResult::Propogate;
+        return gaen::MessageResult::Propagate;
     }
 
 private:
@@ -67,7 +67,7 @@ public:
     gaen::MessageResult message(const T & msgAcc)
     {
         printf("Entity2::message\n");
-        return gaen::MessageResult::Propogate;
+        return gaen::MessageResult::Propagate;
     }
 
     

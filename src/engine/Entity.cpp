@@ -37,6 +37,8 @@
 #include "engine/Asset.h"
 
 #include "engine/messages/InsertComponent.h"
+#include "engine/messages/InsertTask.h"
+#include "engine/messages/TaskStatus.h"
 #include "engine/messages/Transform.h"
 
 #include "engine/Entity.h"
@@ -88,6 +90,9 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
     }
 
     mTask = Task::create_updatable(this, nameHash);
+
+    // LORRTEMP
+    LOG_INFO("Entity created: id: %u, name: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()));
 }
 
 Entity::~Entity()
@@ -108,6 +113,309 @@ Entity::~Entity()
     GFREE(mpBlocks);
     GFREE(mpComponents);
 }
+
+void Entity::activate()
+{
+    ASSERT(mInitStatus == kIS_Uninitialized);
+    ASSERT(mTask.status() == TaskStatus::Initializing);
+
+    // Insert Entity into the TaskMasters
+    messages::InsertTaskBW msgInsertTask(HASH::insert_task,
+                                         kMessageFlag_None,
+                                         mTask.id(),
+                                         active_thread_id(),
+                                         active_thread_id());
+    msgInsertTask.setTask(mTask);
+    broadcast_message(msgInsertTask.accessor());
+
+    // Start initialization sequence with #init_data__
+    // Entity will progress through initialization stages on its
+    // own, eventually reaching the "activated" state. Then it will
+    // be updated each frame by the TaskMasters.
+    MessageQueueWriter msgInitData(HASH::init_data__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0), 0);
+}
+
+Entity * Entity::activate_start_entity(u32 entityHash)
+{
+    Entity * pEntity = get_registry().constructEntity(entityHash, 32);
+
+    if (pEntity)
+    {
+        pEntity->activate();
+    }
+    else
+    {
+        PANIC("Unable to construct start entity, hash 0x%08x", entityHash);
+    }
+
+    return pEntity;
+}
+
+void Entity::update(f32 deltaSecs)
+{
+    ASSERT(mInitStatus == kIS_Activated);
+
+    mScriptTask.update(deltaSecs);
+
+    // send update our components
+    for (u32 i = 0; i < mComponentCount; ++i)
+        mpComponents[i].task().update(deltaSecs);
+
+    // send update to our child entities
+    for (u32 i = 0; i < mChildCount; ++i)
+        mpChildren[i]->update(deltaSecs);
+
+    // Now, if there has been any change to the transform,
+    // notify components and child entities.
+    // This has to happen in a separate stage to the update
+    // loops above since one of the updates may have altered
+    // our transform.
+    if (mIsTransformDirty)
+    {
+        // send update our components
+        for (u32 i = 0; i < mComponentCount; ++i)
+        {
+            Task & t = mpComponents[i].task();
+            StackMessageBlockWriter<0> msgw(HASH::update_transform,
+                kMessageFlag_ForcePropagate,
+                mTask.id(),
+                t.id(),
+                to_cell(0));
+            t.message(msgw.accessor());
+        }
+
+        // send update to our child entities
+        for (u32 i = 0; i < mChildCount; ++i)
+        {
+            Entity * pEnt = mpChildren[i];
+            StackMessageBlockWriter<0> msgw(HASH::update_transform,
+                kMessageFlag_ForcePropagate,
+                mTask.id(),
+                pEnt->task().id(),
+                to_cell(0));
+            pEnt->message(msgw.accessor());
+        }
+
+        mIsTransformDirty = false;
+    }
+
+    // Collect any unused BlockMemory
+    collect();
+}
+
+template <typename T>
+MessageResult Entity::message(const T & msgAcc)
+{
+    u32 msgId = msgAcc.message().msgId;
+
+    // Prioritize fin message
+    if (msgId == HASH::fin)
+    {
+        if (mInitStatus != kIS_Fin)
+        {
+            ERR("fin message received on already finalized Entity");
+            return MessageResult::Propagate;
+        }
+
+        // fin messages are like destructors and should be handled specially.
+        // fin method will propagate fin to all tasks/entity children
+        // and delete this entity.
+
+        // Send fin message to all children entities
+        for (u32 i = 0; i < mChildCount; ++i)
+        {
+            mpChildren[i]->message(msgAcc);
+        }
+
+        // Now, send fin to our components
+        for (u32 i = 0; i < mComponentCount; ++i)
+        {
+            mpComponents[i].task().message(msgAcc);
+        }
+
+        // Call our sub-classed message routine
+        mScriptTask.message(msgAcc);
+
+        // And finally, delete ourselves
+        GDELETE(this);
+
+        return MessageResult::Propagate;
+    }
+
+
+    // Interesting messages are handled here, initialization
+    // messages are below
+    if (mInitStatus == kIS_Activated)
+    {
+        switch (msgId)
+        {
+        case HASH::insert_component:
+        {
+            messages::InsertComponentR<T> msgr(msgAcc);
+            u32 index = msgr.index() == (u32)-1 ? mComponentCount : msgr.index();
+            insertComponent(msgr.nameHash(), index);
+            return MessageResult::Consumed;
+        }
+        case HASH::register_watcher:
+        {
+            // register a property watcher for some combination of:
+            // - component type
+            // - property id
+            PANIC("TODO");
+            return MessageResult::Consumed;
+        }
+        case HASH::transform:
+        {
+            messages::TransformR<T> msgr(msgAcc);
+            applyTransform(msgr.isLocal(), msgr.transform());
+            return MessageResult::Consumed;
+        }
+        case HASH::unstage__:
+        {
+            unstageEntity(msgAcc.message().source);
+            return MessageResult::Consumed;
+        }
+        }
+
+        MessageResult res;
+
+        // Call our subclassed message routine
+        res = mScriptTask.message(msgAcc);
+        if (res == MessageResult::Consumed && !msgAcc.message().ForcePropagate())
+            return MessageResult::Consumed;
+    
+        // Send the message to all components
+        for (u32 i = 0; i < mComponentCount; ++i)
+        {
+            res = mpComponents[i].task().message(msgAcc);
+            if (res == MessageResult::Consumed && !msgAcc.message().ForcePropagate())
+                return MessageResult::Consumed;
+        }
+
+        return MessageResult::Propagate;
+
+    }
+    else
+    {
+        // Entity initialization has a very strict ordering,
+        // and specific messages must arrive in the correct
+        // sequence.
+        switch (mInitStatus)
+        {
+        case kIS_Uninitialized:
+            if (msgId == HASH::init_data__)
+            {
+                // We don't need to send into components since they haven't been
+                // created yet. Passing into our mScriptTask will create components
+                // and pass init_data__ to each component as it is added to the
+                // entity.
+
+                // Send to our sub-classed message routine
+                mScriptTask.message(msgAcc);
+
+                mInitStatus = kIS_InitData;
+                // LORRTEMP
+                LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
+        
+                // Send ourself #init_assets__
+                StackMessageBlockWriter<0> msg(HASH::init_assets__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+                mTask.message(msg.accessor());
+
+                return MessageResult::Consumed;
+            }
+            break;
+        case kIS_InitData:
+            if (msgId == HASH::init_assets__)
+            {
+                // Send to our components
+                for (u32 i = 0; i < mComponentCount; ++i)
+                {
+                    mpComponents[i].task().message(msgAcc);
+                }
+
+                // Send to our sub-classed message routine
+                mScriptTask.message(msgAcc);
+
+                if (areAllAssetsLoaded())
+                    finalizeAssetInit();
+                else
+                {
+                    mInitStatus = kIS_InitAssets;
+                    // LORRTEMP
+                    LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
+                }
+
+                // HandleMgr will send us asset_ready__ messages as assets
+                // are loaded.
+            
+                return MessageResult::Consumed;
+            }
+            break;
+        case kIS_InitAssets:
+            if (msgId == HASH::asset_ready__)
+            {
+                ASSERT(!areAllAssetsLoaded());
+
+                // LORRTODO: if asset load was a failure, send ourselves #fin__
+                // 
+
+                mAssetsLoaded++;
+
+                // Send ourself #init if all assets have been loaded
+                if (areAllAssetsLoaded())
+                {
+                    finalizeAssetInit();
+                }
+
+                return MessageResult::Consumed;
+            }
+            break;
+        case kIS_AssetsReady:
+            if (msgId == HASH::init)
+            {
+                // Send to our components
+                for (u32 i = 0; i < mComponentCount; ++i)
+                {
+                    mpComponents[i].task().message(msgAcc);
+                }
+
+                // Send to our sub-classed message routine
+                mScriptTask.message(msgAcc);
+
+                mInitStatus = kIS_Activated;
+                // LORRTEMP
+                LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
+
+                // Set us running
+                // LORRTODO: Add mSetRunningOnInit flag and respect it.a
+                //if (mSetRunningOnInit)
+                {
+                    messages::TaskStatusQW msgW(HASH::set_task_status, kMessageFlag_Editor, mTask.id(), mTask.id(), TaskStatus::Running);
+                }
+
+                return MessageResult::Consumed;
+            }
+            break;
+        }
+    }
+
+    if (mInitStatus != kIS_Activated)
+    {
+#if HAS(TRACK_HASHES)
+        ERR("Message received in invalid state, task name: %s, message: %s, state: %d",
+            HASH::reverse_hash(mTask.nameHash()),
+            HASH::reverse_hash(msgAcc.message().msgId),
+            mInitStatus);
+#else
+        ERR("Message received in invalid state, task nameHash: 0x%08x, message: 0x%08x, state: %d",
+            mTask.nameHash(),
+            msgAcc.message().msgId,
+            mInitStatus);
+#endif
+    }
+    return MessageResult::Propagate;
+}
+
 
 void Entity::setTransform(const glm::mat4x3 & mat)
 {
@@ -161,23 +469,6 @@ const glm::mat4x3 & Entity::parentTransform() const
 }
 
 
-Entity * Entity::create_start_entity(u32 entityHash)
-{
-    Entity * pEntity = get_registry().constructEntity(entityHash, 32);
-
-    PANIC_IF(pEntity == nullptr, "Unable to construct start entity, hash 0x%08x", entityHash);
-
-    if (pEntity)
-    {
-        // Stage into ourselves... yes, like Inception.
-        pEntity->stageEntity(pEntity);
-
-    }
-
-    return pEntity;
-}
-
-
 void Entity::stageEntity(Entity * pEntity)
 {
     if (mEntityStageCount >= kMaxEntityStage)
@@ -206,22 +497,6 @@ Entity * Entity::findStagedEntity(task_id id)
 
 void Entity::activateEntity(task_id id)
 {
-    Entity * pEnt = findStagedEntity(id);
-    if (pEnt)
-    {
-        ASSERT(pEnt->mInitStatus == kIS_Uninitialized);
-
-        // Start initialization sequence with #init_data__
-        // Entity will progress through initialization stages on its
-        // on, eventually reaching the activated state. Then it can be
-        // unstaged into the engine by calling unstageEntity below.
-        StackMessageBlockWriter<0> msg(HASH::init_data__, kMessageFlag_None, mTask.id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msg.accessor());
-    }
-    else
-    {
-        PANIC("Unable to activate entity, not on stage: id = %u", id);
-    }
 }
 
 void Entity::unstageEntity(task_id id)
@@ -244,21 +519,9 @@ void Entity::unstageEntity(task_id id)
             }
             --mEntityStageCount;
 
-            // Initialization is complete, announce our arrival
-            // to the world, and start running in a TaskMaster.
-            messages::InsertTaskBW msgw(HASH::insert_task,
-                                        kMessageFlag_None,
-                                        pEnt->mTask.id(),
-                                        active_thread_id(),
-                                        active_thread_id());
-            msgw.setTask(pEnt->mTask);
-            broadcast_message(msgw.accessor());
-
-            return pEnt;
         }
     }
     PANIC("Unable to unstage entity, not on stage: id = %u", id);
-    return nullptr;
 }
 
 BlockMemory & Entity::blockMemory()
@@ -277,275 +540,6 @@ void Entity::collect()
         mpBlockMemory->collect();
 }
 
-void Entity::update(f32 deltaSecs)
-{
-    mScriptTask.update(deltaSecs);
-
-    // send update our components
-    for (u32 i = 0; i < mComponentCount; ++i)
-        mpComponents[i].task().update(deltaSecs);
-
-    // send update to our child entities
-    for (u32 i = 0; i < mChildCount; ++i)
-        mpChildren[i]->update(deltaSecs);
-
-    // Now, if there has been any change to the transform,
-    // notify components and child entities.
-    // This has to happen in a separate stage to the update
-    // loops above since one of the updates may have altered
-    // our transform.
-    if (mIsTransformDirty)
-    {
-        // send update our components
-        for (u32 i = 0; i < mComponentCount; ++i)
-        {
-            Task & t = mpComponents[i].task();
-            StackMessageBlockWriter<0> msgw(HASH::update_transform,
-                kMessageFlag_ForcePropogate,
-                mTask.id(),
-                t.id(),
-                to_cell(0));
-            t.message(msgw.accessor());
-        }
-
-        // send update to our child entities
-        for (u32 i = 0; i < mChildCount; ++i)
-        {
-            Entity * pEnt = mpChildren[i];
-            StackMessageBlockWriter<0> msgw(HASH::update_transform,
-                kMessageFlag_ForcePropogate,
-                mTask.id(),
-                pEnt->task().id(),
-                to_cell(0));
-            pEnt->message(msgw.accessor());
-        }
-
-        mIsTransformDirty = false;
-    }
-
-    // Collect any unused BlockMemory
-    collect();
-}
-
-template <typename T>
-MessageResult Entity::message(const T & msgAcc)
-{
-    u32 msgId = msgAcc.message().msgId;
-
-    // Prioritize fin message
-    if (msgId == HASH::fin)
-    {
-        PANIC_IF(initStatus() != kIS_Fin, "fin message received on already finalized Entity");
-
-        // fin messages are like destructors and should be handled specially.
-        // fin method will propagate fin to all tasks/entity children
-        // and delete this entity.
-
-        // Send fin message to all children entities
-        for (u32 i = 0; i < mChildCount; ++i)
-        {
-            mpChildren[i]->message(msgAcc);
-        }
-
-        // Now, send fin to our components
-        for (u32 i = 0; i < mComponentCount; ++i)
-        {
-            mpComponents[i].task().message(msgAcc);
-        }
-
-        // Call our sub-classed message routine
-        mScriptTask.message(msgAcc);
-
-        // And finally, delete ourselves
-        GDELETE(this);
-
-        return MessageResult::Propogate;
-    }
-
-
-    // Interesting messages are handled here, initialization
-    // messages are below
-    if (mInitStatus == kIS_Activated)
-    {
-        switch (msgId)
-        {
-        case HASH::insert_component:
-        {
-            messages::InsertComponentR<T> msgr(msgAcc);
-            u32 index = msgr.index() == (u32)-1 ? mComponentCount : msgr.index();
-            insertComponent(msgr.nameHash(), index);
-            return MessageResult::Consumed;
-        }
-        case HASH::register_watcher:
-        {
-            // register a property watcher for some combination of:
-            // - component type
-            // - property id
-            PANIC("TODO");
-            return MessageResult::Consumed;
-        }
-        case HASH::transform:
-        {
-            messages::TransformR<T> msgr(msgAcc);
-            applyTransform(msgr.isLocal(), msgr.transform());
-            return MessageResult::Consumed;
-        }
-        case HASH::unstage__:
-        {
-            unstageEntity(msgAcc.message().source);
-            return MessageResult::Consumed;
-        }
-        }
-
-        MessageResult res;
-
-        // Call our subclassed message routine
-        res = mScriptTask.message(msgAcc);
-        if (res == MessageResult::Consumed && !msgAcc.message().ForcePropogate())
-            return MessageResult::Consumed;
-    
-        // Send the message to all components
-        for (u32 i = 0; i < mComponentCount; ++i)
-        {
-            res = mpComponents[i].task().message(msgAcc);
-            if (res == MessageResult::Consumed && !msgAcc.message().ForcePropogate())
-                return MessageResult::Consumed;
-        }
-
-        return MessageResult::Propogate;
-
-    }
-    else
-    {
-        // Entity initialization has a very strict ordering,
-        // and specific messages must arrive in the correct
-        // sequence.
-        switch (mInitStatus)
-        {
-        case kIS_Uninitialized:
-            if (msgId == HASH::init_data__)
-            {
-                // Send to our components
-                for (u32 i = 0; i < mComponentCount; ++i)
-                {
-                    mpComponents[i].task().message(msgAcc);
-                }
-
-                // Send to our sub-classed message routine
-                mScriptTask.message(msgAcc);
-
-                mInitStatus = kIS_InitData;
-        
-                // Send ourself #init_assets__
-                StackMessageBlockWriter<0> msg(HASH::init_assets__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
-                mTask.message(msg.accessor());
-
-                return MessageResult::Consumed;
-            }
-            break;
-        case kIS_InitData:
-            if (msgId == HASH::init_assets__)
-            {
-                // Send to our components
-                for (u32 i = 0; i < mComponentCount; ++i)
-                {
-                    mpComponents[i].task().message(msgAcc);
-                }
-
-                // Send to our sub-classed message routine
-                mScriptTask.message(msgAcc);
-
-                mInitStatus = kIS_InitAssets;
-
-                // HandleMgr will send us asset_ready__ messages as assets
-                // are loaded.
-            
-                return MessageResult::Consumed;
-            }
-            break;
-        case kIS_InitAssets:
-            if (msgId == HASH::asset_ready__)
-            {
-                ASSERT(mAssetsLoaded <= mAssetsRequested);
-
-                // LORRTODO: if asset load was a failure, send ourselves #fin__
-
-                mAssetsLoaded++;
-
-                // Send ourself #init if all assets have been loaded
-                if (mAssetsLoaded == mAssetsRequested)
-                {
-                    mInitStatus = kIS_AssetsReady;
-                
-                    StackMessageBlockWriter<0> msg(HASH::init, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
-                    mTask.message(msg.accessor());
-                }
-
-                return MessageResult::Consumed;
-            }
-            break;
-        case kIS_AssetsReady:
-            if (msgId == HASH::init)
-            {
-                // Send to our components
-                for (u32 i = 0; i < mComponentCount; ++i)
-                {
-                    mpComponents[i].task().message(msgAcc);
-                }
-
-                // Send to our sub-classed message routine
-                mScriptTask.message(msgAcc);
-
-                mInitStatus = kIS_Init;
-
-                // HandleMgr will send us asset_ready__ messages as assets
-                // are loaded.
-            
-                return MessageResult::Consumed;
-            }
-            break;
-        case kIS_Init:
-            if (msgId == HASH::activate__)
-            {
-                mInitStatus = kIS_Activated;
-
-                // unstage us into engine
-                if (mpParent)
-                {
-                    StackMessageBlockWriter<0> msg(HASH::unstage__, kMessageFlag_None, mTask.id(), mpParent->task().id(), to_cell(0));
-                    mpParent->task().message(msg.accessor());
-                }
-                else
-                {
-                    // if no parent, we must be the start entity, thus we
-                    // are staged in ourself.
-                    StackMessageBlockWriter<0> msg(HASH::unstage__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
-                    mTask.message(msg.accessor());
-                }
-                
-                return MessageResult::Consumed;
-            }
-            break;
-        }
-    }
-
-    if (mInitStatus != kIS_Init)
-    {
-#if HAS(TRACK_HASHES)
-        ERR("Message received in invalid state, task name: %s, message: %s, state: %d",
-            HASH::reverse_hash(mTask.nameHash()),
-            HASH::reverse_hash(msgAcc.message().msgId),
-            mInitStatus);
-#else
-        ERR("Message received in invalid state, task nameHash: 0x%08x, message: 0x%08x, state: %d",
-            mTask.nameHash(),
-            msgAcc.message().msgId,
-            mInitStatus);
-#endif
-        return MessageResult::Consumed;
-    }
-    
-}
 
 void Entity::growComponents()
 {
@@ -591,6 +585,17 @@ void Entity::growBlocks(u32 minSizeIncrease)
     mpBlocks = pNewBlocks;
 }
 
+void Entity::finalizeAssetInit()
+{
+    mInitStatus = kIS_AssetsReady;
+
+    // LORRTEMP
+    LOG_INFO("Entity change state: taskid: %u, name: %s, newstate: %d", mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
+                
+    StackMessageBlockWriter<0> msg(HASH::init, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+    mTask.message(msg.accessor());
+}
+
 Task& Entity::insertComponent(u32 nameHash, u32 index)
 {
     ASSERT(mComponentCount <= mComponentsMax);
@@ -630,8 +635,14 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
     mComponentCount++;
 
     // Send int_data message
-    StackMessageBlockWriter<0> initDataMsgw(HASH::init_data__, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(pComp->task().id()));
+    StackMessageBlockWriter<0> initDataMsgw(HASH::init_data__, kMessageFlag_None, mScriptTask.id(), pComp->task().id(), to_cell(pComp->task().id()));
     pComp->task().message(initDataMsgw.accessor());
+
+    // LORRTEMP
+    LOG_INFO("Component inserted: entityId: %u, entityName: %s, taskId: %u, taskName: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()), pComp->task().id(), HASH::reverse_hash(pComp->task().nameHash()));
+
+    // Activate our component's task so it can perform updates
+    pComp->task().setStatus(TaskStatus::Running);
 
     return pComp->task();
 }
@@ -794,10 +805,12 @@ void Entity::removeChild(task_id taskId)
     PANIC("Attempt to remove task that Entity does not have");
 }
 
-void Entity::requestAsset(u32 taskId, u32 name, const CmpString & path)
+void Entity::requestAsset(u32 taskId, u32 nameHash, const CmpString & path)
 {
-    MessageQueueWriter msgw(HASH::request_asset, kMessageFlag_None, mScriptTask.id(), kHandleMgrTaskId, to_cell(taskId), path.blockCount() + 1);
-    msgw[0].cells[0].u = name;
+    mAssetsRequested++;
+
+    MessageQueueWriter msgw(HASH::request_asset, kMessageFlag_None, mTask.id(), kHandleMgrTaskId, to_cell(taskId), path.blockCount() + 1);
+    msgw[0].cells[0].u = nameHash;
     path.writeMessage(msgw.accessor(), 1);
 }
 

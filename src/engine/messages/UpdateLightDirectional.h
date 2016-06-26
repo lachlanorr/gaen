@@ -31,6 +31,7 @@
 #include "glm/vec3.hpp"
 #include "engine/Color.h"
 #include "core/threading.h"
+#include "engine/Task.h"
 #include "engine/Model.h"
 
 namespace gaen
@@ -50,7 +51,7 @@ public:
 
     const glm::vec3 & direction() const { return *reinterpret_cast<const glm::vec3*>(&mMsgAcc[0].tCellPad.tCell); }
     Color color() const { return mMsgAcc[0].cells[3].color; }
-    u32 uid() const { return mMsgAcc.message().payload.u; }
+    u32 uid() const { return (u32)mMsgAcc.message().payload.u; }
         
 private:
     const T & mMsgAcc;
@@ -79,7 +80,7 @@ public:
     
     void setDirection(const glm::vec3 & val) { mMsgAcc[0].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
     void setColor(Color val) { mMsgAcc[0].cells[3].color = val; }
-    void setUid(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setUid(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 };
 
 class UpdateLightDirectionalBW : public MessageBlockWriter
@@ -101,7 +102,7 @@ public:
 
     void setDirection(const glm::vec3 & val) { mMsgAcc[0].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
     void setColor(Color val) { mMsgAcc[0].cells[3].color = val; }
-    void setUid(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setUid(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 
 private:
     Block mBlocks[1 + 1]; // +1 for header

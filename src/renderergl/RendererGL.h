@@ -142,10 +142,12 @@ private:
     ComputeShaderSimulator mShaderSim;
 #endif
 
+#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL || RENDERTYPE == RENDERTYPE_GPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
     RaycastCamera mRaycastCamera;
 
     VoxelWorld mVoxelWorld;
     VoxelRoot mVoxelRoot;
+#endif
 };
 
 

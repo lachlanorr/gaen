@@ -54,6 +54,9 @@ public:
     const Task & scriptTask() const { return mScriptTask; }
     Task & scripTask() { return mScriptTask; }
 
+    void activate();
+    static Entity * activate_start_entity(u32 entityHash);
+
     void update(f32 deltaSecs);
 
     template <typename T>
@@ -67,17 +70,15 @@ public:
     void setParent(Entity * pEntity);
     const glm::mat4x3 & parentTransform() const;
 
-    static Entity * create_start_entity(u32 entityHash);
     void stageEntity(Entity * pEntity);
     Entity * findStagedEntity(task_id id);
-    int findStagedEntityIndex(task_id id);
     void activateEntity(task_id id);
     void unstageEntity(task_id id);
 
     BlockMemory & blockMemory();
     void collect();
 
-    void requestAsset(u32 taskId, u32 name, const CmpString & path);
+    void requestAsset(u32 taskId, u32 nameHash, const CmpString & path);
 protected:
     enum InitStatus
     {
@@ -85,9 +86,8 @@ protected:
         kIS_InitData      = 1,
         kIS_InitAssets    = 2,
         kIS_AssetsReady   = 3,
-        kIS_Init          = 4,
-        kIS_Activated     = 5,
-        kIS_Fin           = 6
+        kIS_Activated     = 4,
+        kIS_Fin           = 5
     };
 
     // Max entities that can be created before they're inserted into the engine
@@ -97,7 +97,9 @@ protected:
     // the c++ codegen
     const Entity & entity() const { return *this; }
     Entity & entity() { return *this; }
-    
+
+    void finalizeAssetInit();
+
     Task& insertComponent(u32 nameHash, u32 index);
 
     u32 findComponent(u32 nameHash);

@@ -553,8 +553,10 @@ MessageResult RendererGL::message(const T & msgAcc)
     }
     case HASH::renderer_move_camera:
     {
+#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL || RENDERTYPE == RENDERTYPE_GPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
         messages::MoveCameraR<T> msgr(msgAcc);
         mRaycastCamera.move(msgr.position(), msgr.direction());
+#endif
         break;
     }
     default:

@@ -1,6 +1,61 @@
-* init message
-** Should be syncronous
-* fin message
-** Should be syncronous - it will get called on all entities/components owned by the TaskMaster, and should be syncronous.
-In other words, processing the message should completely clean the entities/components, including deleteing themselves
+* Entity/Component initialization sequence
+Several "special" messages are sent in sequence to Entities and components as they initialize.
+
+** Entity is constructed
+** Entity::activate() is called
+*** Inserts entity into engine (Queued)
+*** Sends #init_data__(Queued) to EntityBase
+**** EntityBase sends #init_data__(Immediate) to EntityScript task
+***** EntityScript task initializes Properties and Fields
+***** For each Component in EntityScript
+****** Creates component
+****** Calls Entity::insertComponent
+****** Sends Component #init_data__(Immediate)
+******* Component initializes Properties and Fields
+****** EntityScript sends set_property messages to component for each property it is overriding
+**** EntityBase Sends init_assets__(Immediate) to self
+***** For each Component in Entity
+****** Send Component #init_assets__(Immediate)
+******* For each Asset declared in Component
+******** Call Entity::requestAsset
+********* EntityBase increments mAssetsRequested counter
+********* #request_asset(Queued) is sent to HandleMgr
+***** Send EntityScript #init_assets__(Immediate)
+******* For each Asset declared in EntityScript
+******** Call Entity::requestAsset
+********* EntityBase increments mAssetsRequested counter
+********* #request_asset(Queued) is sent to HandleMgr
+***** If there were no assets at all (mAssetsRequested == 0)
+****** EntityBase sends #init(Queued) to self
+***** If there are assets (mAssetsRequested > 0)
+****** Entity remains suspended, waiting for assets to be loaded
+** HandleMgr
+*** For each Asset that finishes loading, or is already pre loaded
+**** HandleMgr sends #asset_ready__(Queued) to requesting EntityBase
+***** EntityBase receives #asset_ready__(Queued)
+****** If Handle is good, asset loaded
+******* Find self or component that asset was intended for
+******* Send asset_ready__(Immediate) to correct task
+****** If Handle is bad, failed to load
+******* EntityBase sends #fin(Queued) to self to destroy.
+Failure to load an asset is considered fatal.
+****** Increment mAssetsLoaded
+******* If mAssetsLoaded == mAssetsRequested
+******** EntityBase sends #init(Queued) to self
+** EntityBase receives #init(Queued)
+*** For each Component in Entity
+**** Send Component #init(Immediate)
+***** No special code here, just what the Script specifies for the Component if specified at all.
+**** Send EntityScript #init(Immediate)
+***** No special code here, just what the Script specifies for the Entity if specified at all.
+*** EntityBase sends #set_task_status(Queued) with Running value to self
+TaskMaster handles this message specially and sets the status flag on the Task.
+
+
+
+* Standard Messages for Scripts
+** #init
+*** Called after Entity or Component is full loaded, immediately before it is set to start running in engine.
+** #fin
+*** Called when Entity or Component is being removed from the engine and about to be destroyed.
 

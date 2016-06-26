@@ -30,6 +30,7 @@
 #include "engine/MessageWriter.h"
 #include "glm/mat4x3.hpp"
 #include "core/threading.h"
+#include "engine/Task.h"
 #include "engine/Model.h"
 
 namespace gaen
@@ -63,7 +64,7 @@ public:
 
     const glm::mat4x3 & transform() const { return *mpTransform; }
     Model * model() const { return static_cast<Model *>(mMsgAcc[3].dCells[0].p); }
-    u32 uid() const { return mMsgAcc.message().payload.u; }
+    u32 uid() const { return (u32)mMsgAcc.message().payload.u; }
     bool isAssetManaged() const { return mMsgAcc[3].cells[2].b; }
         
 private:
@@ -101,7 +102,7 @@ public:
         }
     }
     void setModel(Model * pVal) { mMsgAcc[3].dCells[0].p = pVal; }
-    void setUid(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setUid(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setIsAssetManaged(bool val) { mMsgAcc[3].cells[2].b = val; }
 };
 
@@ -130,7 +131,7 @@ public:
         }
     }
     void setModel(Model * pVal) { mMsgAcc[3].dCells[0].p = pVal; }
-    void setUid(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setUid(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setIsAssetManaged(bool val) { mMsgAcc[3].cells[2].b = val; }
 
 private:

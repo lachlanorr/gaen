@@ -25,6 +25,7 @@
 #-------------------------------------------------------------------------------
 
 SET (engine_messages_SOURCES
+  messages/messages.def
   messages/Handle.h
   messages/InsertComponent.h
   messages/InsertLightDirectional.h
@@ -32,6 +33,7 @@ SET (engine_messages_SOURCES
   messages/InsertTask.h
   messages/MouseMove.h
   messages/MoveCamera.h
+  messages/TaskStatus.h
   messages/Transform.h
   messages/TransformId.h
   messages/UpdateLightDirectional.h

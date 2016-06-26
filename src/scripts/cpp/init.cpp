@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: f1b7b7795c5070af799f03225108cf12
+// HASH: 83a329935cb56e7cd5e0d34cc70a2153
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -59,6 +59,44 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
+        case HASH::init_data__:
+        {
+            // Component: gaen.shapes.Sphere
+            {
+                Task & compTask = insertComponent(HASH::gaen__shapes__Sphere, mComponentCount);
+                compTask.message(msgAcc); // propagate init_data__ into component
+                // Init Property: size
+                {
+                    StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
+                    *reinterpret_cast<glm::vec3*>(&msgw[0].cells[0].u) = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
+                    compTask.message(msgw.accessor());
+                }
+                // Init Property: slices
+                {
+                    StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::slices));
+                    msgw[0].cells[0].i = 32;
+                    compTask.message(msgw.accessor());
+                }
+                // Init Property: sections
+                {
+                    StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::sections));
+                    msgw[0].cells[0].i = 16;
+                    compTask.message(msgw.accessor());
+                }
+                // Init Property: diffuse
+                {
+                    StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::diffuse));
+                    msgw[0].cells[0].color = Color(255, 255, 0, 255);
+                    compTask.message(msgw.accessor());
+                }
+            }
+            // Component: gaen.utils.WasdRot
+            {
+                Task & compTask = insertComponent(HASH::gaen__utils__WasdRot, mComponentCount);
+                compTask.message(msgAcc); // propagate init_data__ into component
+            }
+            return MessageResult::Consumed;
+        } // case HASH::init_data__
         case HASH::init:
         {
             // Params look compatible, message body follows
@@ -66,7 +104,7 @@ public:
             return MessageResult::Consumed;
         }
         }
-        return MessageResult::Propogate;
+        return MessageResult::Propagate;
     }
 
 private:
@@ -75,53 +113,8 @@ private:
     {
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__Shape);
-
-        // Component: gaen.shapes.Sphere
-        {
-            Task & compTask = insertComponent(HASH::gaen__shapes__Sphere, mComponentCount);
-            // Init Property: size
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
-                *reinterpret_cast<glm::vec3*>(&msgw[0].cells[0].u) = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
-                compTask.message(msgw.accessor());
-            }
-            // Init Property: slices
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::slices));
-                msgw[0].cells[0].i = 32;
-                compTask.message(msgw.accessor());
-            }
-            // Init Property: sections
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::sections));
-                msgw[0].cells[0].i = 16;
-                compTask.message(msgw.accessor());
-            }
-            // Init Property: diffuse
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::diffuse));
-                msgw[0].cells[0].color = Color(255, 255, 0, 255);
-                compTask.message(msgw.accessor());
-            }
-            // Send init_assets message
-            StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgInitAssets.accessor());
-            // Send init message
-            StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgInit.accessor());
-        }
-
-        // Component: gaen.utils.WasdRot
-        {
-            Task & compTask = insertComponent(HASH::gaen__utils__WasdRot, mComponentCount);
-            // Send init_assets message
-            StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgInitAssets.accessor());
-            // Send init message
-            StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgInit.accessor());
-        }
     }
+
     init__Shape(const init__Shape&)              = delete;
     init__Shape(init__Shape&&)                   = delete;
     init__Shape & operator=(const init__Shape&)  = delete;
@@ -151,7 +144,32 @@ public:
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
-        return MessageResult::Propogate;
+        const Message & _msg = msgAcc.message();
+        switch(_msg.msgId)
+        {
+        case HASH::init_data__:
+        {
+            // Component: gaen.lights.Directional
+            {
+                Task & compTask = insertComponent(HASH::gaen__lights__Directional, mComponentCount);
+                compTask.message(msgAcc); // propagate init_data__ into component
+                // Init Property: dir
+                {
+                    StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::dir));
+                    *reinterpret_cast<glm::vec3*>(&msgw[0].cells[0].u) = glm::vec3(1.00000000e+00f, -(6.99999988e-01f), -(5.00000000e-01f));
+                    compTask.message(msgw.accessor());
+                }
+                // Init Property: col
+                {
+                    StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::col));
+                    msgw[0].cells[0].color = Color(255, 255, 0, 255);
+                    compTask.message(msgw.accessor());
+                }
+            }
+            return MessageResult::Consumed;
+        } // case HASH::init_data__
+        }
+        return MessageResult::Propagate;
     }
 
 private:
@@ -160,30 +178,8 @@ private:
     {
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__Light);
-
-        // Component: gaen.lights.Directional
-        {
-            Task & compTask = insertComponent(HASH::gaen__lights__Directional, mComponentCount);
-            // Init Property: dir
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::dir));
-                *reinterpret_cast<glm::vec3*>(&msgw[0].cells[0].u) = glm::vec3(1.00000000e+00f, -(6.99999988e-01f), -(5.00000000e-01f));
-                compTask.message(msgw.accessor());
-            }
-            // Init Property: col
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::col));
-                msgw[0].cells[0].color = Color(255, 255, 0, 255);
-                compTask.message(msgw.accessor());
-            }
-            // Send init_assets message
-            StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgInitAssets.accessor());
-            // Send init message
-            StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgInit.accessor());
-        }
     }
+
     init__Light(const init__Light&)              = delete;
     init__Light(init__Light&&)                   = delete;
     init__Light & operator=(const init__Light&)  = delete;
@@ -213,7 +209,20 @@ public:
     template <typename T>
     MessageResult message(const T & msgAcc)
     {
-        return MessageResult::Propogate;
+        const Message & _msg = msgAcc.message();
+        switch(_msg.msgId)
+        {
+        case HASH::init_data__:
+        {
+            // Component: gaen.utils.WasdCamera
+            {
+                Task & compTask = insertComponent(HASH::gaen__utils__WasdCamera, mComponentCount);
+                compTask.message(msgAcc); // propagate init_data__ into component
+            }
+            return MessageResult::Consumed;
+        } // case HASH::init_data__
+        }
+        return MessageResult::Propagate;
     }
 
 private:
@@ -222,18 +231,8 @@ private:
     {
         mBlockCount = 0;
         mScriptTask = Task::create(this, HASH::init__Camera);
-
-        // Component: gaen.utils.WasdCamera
-        {
-            Task & compTask = insertComponent(HASH::gaen__utils__WasdCamera, mComponentCount);
-            // Send init_assets message
-            StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgInitAssets.accessor());
-            // Send init message
-            StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgInit.accessor());
-        }
     }
+
     init__Camera(const init__Camera&)              = delete;
     init__Camera(init__Camera&&)                   = delete;
     init__Camera & operator=(const init__Camera&)  = delete;
@@ -259,57 +258,37 @@ private:
     task_id entity_init__init__test_Test__90_86()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::test__Test, 8);
-        // Send init_assets message
-        StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgInitAssets.accessor());
-        // Send init message
-        StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgInit.accessor());
 
-        stageEntity(pEnt);
-        return pEnt->task().id();
+        task_id tid = pEnt->task().id();
+        pEnt->activate();
+        return tid;
     }
 
-    task_id entity_init__init__Camera__101_23()
+    task_id entity_init__init__Camera__100_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Camera, 8);
-        // Send init_assets message
-        StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgInitAssets.accessor());
-        // Send init message
-        StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgInit.accessor());
 
-        stageEntity(pEnt);
-        return pEnt->task().id();
+        task_id tid = pEnt->task().id();
+        pEnt->activate();
+        return tid;
     }
 
-    task_id entity_init__init__Light__104_25()
+    task_id entity_init__init__Light__102_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
-        // Send init_assets message
-        StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgInitAssets.accessor());
-        // Send init message
-        StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgInit.accessor());
 
-        stageEntity(pEnt);
-        return pEnt->task().id();
+        task_id tid = pEnt->task().id();
+        pEnt->activate();
+        return tid;
     }
 
-    task_id entity_init__init__Shape__107_25()
+    task_id entity_init__init__Shape__104_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Shape, 8);
-        // Send init_assets message
-        StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgInitAssets.accessor());
-        // Send init message
-        StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, pEnt->task().id(), pEnt->task().id(), to_cell(0));
-        pEnt->task().message(msgInit.accessor());
 
-        stageEntity(pEnt);
-        return pEnt->task().id();
+        task_id tid = pEnt->task().id();
+        pEnt->activate();
+        return tid;
     }
 
 
@@ -325,12 +304,36 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
+        case HASH::init_data__:
+        {
+            set_foo__path(entity().blockMemory().stringAlloc("/fonts/profont.gatl"));
+            foo() = nullptr;
+            set_bar__path(entity().blockMemory().stringAlloc("/images/bar.tga"));
+            bar() = nullptr;
+            // Component: gaen.utils.Timer
+            {
+                Task & compTask = insertComponent(HASH::gaen__utils__Timer, mComponentCount);
+                compTask.message(msgAcc); // propagate init_data__ into component
+                // Init Property: timer_interval
+                {
+                    StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_interval));
+                    msgw[0].cells[0].f = 1.00000000e+00f;
+                    compTask.message(msgw.accessor());
+                }
+                // Init Property: timer_message
+                {
+                    StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_message));
+                    msgw[0].cells[0].u = HASH::abc;
+                    compTask.message(msgw.accessor());
+                }
+            }
+            return MessageResult::Consumed;
+        } // case HASH::init_data__
         case HASH::init:
         {
             // Params look compatible, message body follows
             CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+00f, 10);
             task_id t = entity_init__init__test_Test__90_86();
-            system_api::insert_entity(t, entity());
             { // Send Message Block
                 // Compute block size, incorporating any BlockMemory parameters dynamically
                 u32 blockCount = 1;
@@ -385,52 +388,23 @@ public:
 
                 // MessageQueueWriter will send message through RAII when this scope is exited
             }
-            task_id cam = entity_init__init__Camera__101_23();
-            system_api::insert_entity(cam, entity());
-            task_id light = entity_init__init__Light__104_25();
-            system_api::insert_entity(light, entity());
-            task_id shape = entity_init__init__Shape__107_25();
-            system_api::insert_entity(shape, entity());
+            task_id cam = entity_init__init__Camera__100_23();
+            task_id light = entity_init__init__Light__102_25();
+            task_id shape = entity_init__init__Shape__104_25();
             return MessageResult::Consumed;
         }
         }
-        return MessageResult::Propogate;
+        return MessageResult::Propagate;
     }
 
 private:
     init__Start(u32 childCount)
       : Entity(HASH::init__Start, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-        set_foo__path(entity().blockMemory().stringAlloc("/fonts/profont.gatl"));
-        foo() = nullptr;
-        set_bar__path(entity().blockMemory().stringAlloc("/images/bar.tga"));
-        bar() = nullptr;
         mBlockCount = 2;
         mScriptTask = Task::create(this, HASH::init__Start);
-
-        // Component: gaen.utils.Timer
-        {
-            Task & compTask = insertComponent(HASH::gaen__utils__Timer, mComponentCount);
-            // Init Property: timer_interval
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_interval));
-                msgw[0].cells[0].f = 1.00000000e+00f;
-                compTask.message(msgw.accessor());
-            }
-            // Init Property: timer_message
-            {
-                StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_message));
-                msgw[0].cells[0].u = HASH::abc;
-                compTask.message(msgw.accessor());
-            }
-            // Send init_assets message
-            StackMessageBlockWriter<0> msgInitAssets(HASH::init_assets__, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgInitAssets.accessor());
-            // Send init message
-            StackMessageBlockWriter<0> msgInit(HASH::init, kMessageFlag_None, compTask.id(), compTask.id(), to_cell(0));
-            compTask.message(msgInit.accessor());
-        }
     }
+
     init__Start(const init__Start&)              = delete;
     init__Start(init__Start&&)                   = delete;
     init__Start & operator=(const init__Start&)  = delete;

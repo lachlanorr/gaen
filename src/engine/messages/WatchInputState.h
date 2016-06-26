@@ -29,6 +29,7 @@
 
 #include "engine/MessageWriter.h"
 #include "core/threading.h"
+#include "engine/Task.h"
 #include "engine/Model.h"
 
 namespace gaen
@@ -47,7 +48,7 @@ public:
     }
 
     u32 message() const { return mMsgAcc[0].cells[0].u; }
-    u32 state() const { return mMsgAcc.message().payload.u; }
+    u32 state() const { return (u32)mMsgAcc.message().payload.u; }
     u32 deviceId() const { return mMsgAcc[0].cells[1].u; }
         
 private:
@@ -76,7 +77,7 @@ public:
     {}
     
     void setMessage(u32 val) { mMsgAcc[0].cells[0].u = val; }
-    void setState(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setState(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setDeviceId(u32 val) { mMsgAcc[0].cells[1].u = val; }
 };
 
@@ -98,7 +99,7 @@ public:
     {}
 
     void setMessage(u32 val) { mMsgAcc[0].cells[0].u = val; }
-    void setState(u32 val) { mMsgAcc.message().payload.u = val; }
+    void setState(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setDeviceId(u32 val) { mMsgAcc[0].cells[1].u = val; }
 
 private:

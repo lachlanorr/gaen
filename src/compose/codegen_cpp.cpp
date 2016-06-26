@@ -417,7 +417,7 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
             }
         }
         code += I1 + S("}\n");
-        code += I1 + S("return MessageResult::Propogate; // Invalid property\n");
+        code += I1 + S("return MessageResult::Propagate; // Invalid property\n");
     }
     return code;
 }
@@ -521,6 +521,22 @@ static S init_assets(const Ast * pAst, int indentLevel)
     return code;
 }
 
+static S asset_ready(const Ast * pAst, int indentLevel)
+{
+    ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
+
+    S code = S("");
+    for (SymRec * pSymRec : pAst->pScope->pSymTab->orderedSymRecs)
+    {
+        if (is_prop_or_field(pSymRec) && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
+        {
+            const char * handleName = asset_handle_name(pSymRec->name);
+            code += I + S("entity().requestAsset(mScriptTask.id(), HASH::") + S(handleName) + S(", ") + S(pSymRec->name) + S("());\n");
+        }
+    }
+    return code;
+}
+
 static S message_def(const Ast * pAst, int indentLevel)
 {
     S code;
@@ -551,7 +567,7 @@ static S message_def(const Ast * pAst, int indentLevel)
         if (pAst->pBlockInfos->blockCount > 0)
         {
             code += I1 + S("if (expectedBlockSize > msgAcc.available())\n");
-            code += I1 + S("    return MessageResult::Propogate;\n");
+            code += I1 + S("    return MessageResult::Propagate;\n");
             code += LF;
         }
 
@@ -573,7 +589,7 @@ static S message_def(const Ast * pAst, int indentLevel)
                     code += I1 + S("expectedBlockSize += blockMemCount;\n");
 
                     code += I1 + S("if (blockMemCount == 0 || expectedBlockSize > msgAcc.available())\n");
-                    code += I1 + S("    return MessageResult::Propogate;\n");
+                    code += I1 + S("    return MessageResult::Propagate;\n");
                     code += LF;
                 }
             }
@@ -710,8 +726,9 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
         code += I + S("    Entity * pEnt = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->fullName) + S(", 8);") + LF;
         code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEnt->task()", indentLevel + 1);
         code += LF;
-        code += I + S("    stageEntity(pEnt);") + LF;
-        code += I + S("    return pEnt->task().id();") + LF;
+        code += I + S("    task_id tid = pEnt->task().id();") + LF;
+        code += I + S("    pEnt->activate();") + LF;
+        code += I + S("    return tid;") + LF;
         code += I + S("}") + LF;
         code += LF;
         break;
@@ -802,12 +819,42 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    template <typename T>\n");
         code += I + S("    MessageResult message(const T & msgAcc)\n");
         code += I + S("    {\n");
+
+        const Ast * pCompMembers = find_component_members(pAst);
+
         // Only insert message related code if there are message handlers to add
-        if (msgCode.size() > 0 || propCode.size() > 0)
+        if (msgCode.size() > 0 || propCode.size() > 0 || pCompMembers->pChildren->nodes.size() > 0)
         {
             code += I + S("        const Message & _msg = msgAcc.message();\n");
             code += I + S("        switch(_msg.msgId)\n");
             code += I + S("        {\n");
+
+            code += I + S("        case HASH::init_data__:\n");
+            code += I + S("        {\n");
+
+            // Initialize fields and properties
+            code += init_data(pAst, indentLevel + 2);
+
+            // Add initial component members
+            // NOTE: This must happen after mBlocks is initialized to hold
+            // the data members of the entity.
+            if (pCompMembers)
+            {
+                for (Ast * pCompMember : pCompMembers->pChildren->nodes)
+                {
+                    code += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
+                    code += I2 + S("    {\n");
+                    code += I2 + S("        Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
+                    code += I2 + S("        compTask.message(msgAcc); // propagate init_data__ into component\n");
+                    ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
+                    code += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", indentLevel + 4);
+
+                    code += I2 + S("    }\n");
+                }
+            }
+            code += I2 + S("    return MessageResult::Consumed;\n");
+            code += I2 + S("} // case HASH::init_data__\n");
+        
 
             // property setters
             code += propCode;
@@ -817,7 +864,7 @@ static S codegen_recurse(const Ast * pAst,
 
             code += I + S("        }\n");
         }
-        code += I + S("        return MessageResult::Propogate;\n");
+        code += I + S("        return MessageResult::Propagate;\n");
         code += I + S("    }\n");
         code += I + S("\n");
 
@@ -827,15 +874,13 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    ") + entName + S("(u32 childCount)\n");
         code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
         code += I + S("    {\n");
-        // Initialize fields and properties
-        code += init_data(pAst, indentLevel + 1);
 
         // Initialize mBlockSize
         {
             scratch[kScratchSize] = '\0'; // sanity null terminator
             ASSERT(pAst->pBlockInfos);
             snprintf(scratch, kScratchSize, "%d", pAst->pBlockInfos->blockCount);
-            code += I + S("        mBlockCount = ") + S(scratch) + S(";\n");
+            code += I2 + S("mBlockCount = ") + S(scratch) + S(";\n");
         }
         // Prep task member
         {
@@ -844,29 +889,12 @@ static S codegen_recurse(const Ast * pAst,
                 createTaskMethod = S("create_updatable");
             else
                 createTaskMethod = S("create");
-            code += I + S("        ") + S("mScriptTask = Task::") + createTaskMethod + S("(this, HASH::") + entName + S(");\n");
+            code += I2 + S("mScriptTask = Task::") + createTaskMethod + S("(this, HASH::") + entName + S(");\n");
         }
 
-        // Add initial component members
-        // NOTE: This must happen after mBlocks is initialized to hold
-        // the data members of the entity.
-        const Ast * pCompMembers = find_component_members(pAst);
-        if (pCompMembers)
-        {
-            for (Ast * pCompMember : pCompMembers->pChildren->nodes)
-            {
-                code += S("\n");
-                code += I + S("        // Component: ") + S(pCompMember->str) + ("\n");
-                code += I + S("        {\n");
-                code += I + S("            Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
-                ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
-                code += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", indentLevel + 3);
-
-                code += S("        }\n");
-            }
-        }
-        
         code += I + S("    }\n");
+        code += LF;
+
 
         // Delete copy constructor, assignment, etc.
         code += I + S("    ") + entName + S("(const ") + entName + S("&)              = delete;\n");
@@ -959,7 +987,7 @@ static S codegen_recurse(const Ast * pAst,
         }
 
         code += I + S("        }\n");
-        code += I + S("        return MessageResult::Propogate;\n");
+        code += I + S("        return MessageResult::Propagate;\n");
         code += I + S("}\n");
         code += I + S("\n");
 

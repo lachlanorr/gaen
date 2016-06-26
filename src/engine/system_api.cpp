@@ -33,7 +33,6 @@
 #include "engine/InputMgr.h"
 #include "engine/MessageWriter.h"
 #include "engine/messages/InsertModelInstance.h"
-#include "engine/messages/InsertTask.h"
 #include "engine/messages/TransformId.h"
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/UpdateLightDirectional.h"
@@ -68,11 +67,10 @@ void print_asset_info(AssetHandleP asset, Entity & caller)
     LOG_INFO("print_asset_info");
 }
 
-void activate_entity(u32 id, Entity & caller)
-{
-    static_assert(sizeof(Task) % kBlockSize == 0);
-    caller.activateEntity(id);
-}
+//void activate_entity(u32 id, Entity & caller)
+//{
+//    caller.activateEntity(id);
+//}
 
 f32 radians(f32 degrees, Entity & caller)
 {

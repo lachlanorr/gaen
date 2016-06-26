@@ -28,7 +28,9 @@
 #define GAEN_ENGINE_TASK_H
 
 #include "core/base_defines.h"
+#include "core/logging.h"
 #include "engine/MessageAccessor.h"
+#include "engine/hashes.h"
 
 namespace gaen
 {
@@ -58,8 +60,8 @@ static inline bool IsPrimaryTask(task_id taskId)
 enum class TaskStatus : u8
 {
     Initializing = 0,
-    Paused = 1,
-    Running = 2,
+    Running = 1,
+    Paused = 2,
     Dead = 3
 };
 
@@ -171,7 +173,12 @@ public:
     u32 nameHash() const { return mNameHash; }
 
     TaskStatus status() const { return static_cast<TaskStatus>(mStatus); }
-    void setStatus(TaskStatus newStatus) { mStatus = static_cast<u8>(newStatus); }
+    void setStatus(TaskStatus newStatus)
+    {
+        // LORRTEMP
+        LOG_INFO("Task::setStatus - task: %s, oldStatus: %d, newStatus: %d", HASH::reverse_hash(mNameHash), mStatus, newStatus);
+        mStatus = static_cast<u8>(newStatus);
+    }
 
     TaskPermissions permissions() const { return static_cast<TaskPermissions>(mPermissions); }
     void setPermissions(TaskPermissions newPermissions) { mPermissions = static_cast<u8>(newPermissions); }
@@ -205,7 +212,8 @@ public:
         // update stub we do a little pointer arithmetic to get the
         // actual address.
 
-        if (mUpdateStubOffset != 0) // some tasks are not updatable
+        if (mUpdateStubOffset != 0 && // some tasks are not updatable
+            status() == TaskStatus::Running) // only running tasks are updated
         {
             std::intptr_t iptrMessageQueueStub = reinterpret_cast<std::intptr_t>(mpMessageQueueStub);
             std::intptr_t iptrUpdateStub = iptrMessageQueueStub + mUpdateStubOffset;
@@ -228,7 +236,7 @@ private:
 
     u32 mStatus:2;           // current running state
     u32 mPermissions:2;      // permissions for others to send messages
-    u32 mTaskId:28;          // our task id - NOTE Changeing this size requires changing kMaxTaskId in Task.h
+    u32 mTaskId:28;          // our task id - NOTE Changing this size requires changing kMaxTaskId in Task.h
 
     u32 mNameHash;           // storage for a name hash, typically an entity or component name
 

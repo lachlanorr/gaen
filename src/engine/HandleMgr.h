@@ -28,6 +28,7 @@
 #define GAEN_ENGINE_HANDLE_MGR_H
 
 #include "engine/Message.h"
+#include "engine/BlockMemory.h"
 
 namespace gaen
 {
@@ -37,7 +38,8 @@ class HandleMgr
 public:
     template <typename T>
     MessageResult message(const T& msgAcc);
-
+private:
+    BlockMemory mBlockMemory;
 }; // HandleMgr
 
 } // namespace gaen

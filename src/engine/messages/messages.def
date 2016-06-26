@@ -12,6 +12,11 @@ class InsertTask(FieldHandler):
                      includes=['core/threading.h'])
     task  = TaskField()
 
+class TaskStatus(FieldHandler):
+    status = i32Field(payload=True,
+                      type_name='TaskStatus',
+                      includes=['engine/Task.h'])
+
 # Instantiate and insert a component
 class InsertComponent(FieldHandler):
     nameHash = u32Field(payload=True)
@@ -64,5 +69,7 @@ class MouseMove(FieldHandler):
     yDelta = u32Field()
 
 class Handle(FieldHandler):
+    taskId = u32Field(payload=True)
+    nameHash = u32Field()
     pHandle = PointerField(type_name='Handle *',
                            includes=['engine/Handle.h'])

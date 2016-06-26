@@ -26,8 +26,10 @@
 
 #include "engine/stdafx.h"
 
+#include "core/logging.h"
+#include "engine/hashes.h"
+#include "engine/messages/Handle.h"
 #include "engine/MessageQueue.h"
-
 #include "engine/HandleMgr.h"
 
 namespace gaen
@@ -37,6 +39,41 @@ template <typename T>
 MessageResult HandleMgr::message(const T & msgAcc)
 {
     const Message & msg = msgAcc.message();
+
+    switch (msg.msgId)
+    {
+    case HASH::request_asset:
+    {
+        PANIC_IF(msg.blockCount < 2, "Too few bytes for request_asset message");
+
+        u32 requestorTaskId = msg.source;
+        u32 nameHash = msgAcc[0].cells[0].u;
+        
+        const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[1]);
+
+        PANIC_IF(pBlockData->type != kBKTY_String, "No path string sent in request_asset message");
+        
+        u32 requiredBlockCount = pBlockData->blockCount;
+
+        // -1 below is for the block 0 in the message required to send the requestorTaskId
+        PANIC_IF(msg.blockCount - 1 < requiredBlockCount, "Too few bytes for request_asset path string");
+
+        Address addr = mBlockMemory.allocCopy(pBlockData);
+        CmpString pathCmpString = mBlockMemory.string(addr);
+        const char * pathStr = pathCmpString.c_str();
+
+        // LORRTODO: Really load assets
+        
+        messages::HandleQW msgw(HASH::asset_ready__, kMessageFlag_None, kHandleMgrTaskId, msg.source, requestorTaskId);
+        msgw.setNameHash(nameHash);
+        msgw.setHandle(nullptr);
+
+        break;
+    }
+    default:
+        PANIC("Unknown HandleMgr message: %d", msg.msgId);
+    }
+    return MessageResult::Consumed;
 
 	/*
 	switch(msg.msgId)

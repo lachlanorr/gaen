@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 5c88c24e8da7a2b5acd9f5ce81b16c25
+// HASH: c4331d248cee5cefdfcf7cf244926f28
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -60,20 +60,14 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data__:
-            ASSERT(initStatus() < kIS_InitData);
-
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
-
-            setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
         case HASH::init_assets__:
-            ASSERT(initStatus() < kIS_InitAssets);
-
-
-            setInitStatus(kIS_InitAssets);
+            return MessageResult::Consumed;
+        case HASH::asset_ready__:
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -101,7 +95,7 @@ public:
                 break;
             }
             }
-            return MessageResult::Propogate; // Invalid property
+            return MessageResult::Propagate; // Invalid property
         case HASH::init:
         {
             // Params look compatible, message body follows
@@ -116,7 +110,7 @@ public:
             return MessageResult::Consumed;
         }
         }
-        return MessageResult::Propogate;
+        return MessageResult::Propagate;
 }
 
 private:
@@ -180,21 +174,15 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data__:
-            ASSERT(initStatus() < kIS_InitData);
-
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
-
-            setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
         case HASH::init_assets__:
-            ASSERT(initStatus() < kIS_InitAssets);
-
-
-            setInitStatus(kIS_InitAssets);
+            return MessageResult::Consumed;
+        case HASH::asset_ready__:
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -232,7 +220,7 @@ public:
                 break;
             }
             }
-            return MessageResult::Propogate; // Invalid property
+            return MessageResult::Propagate; // Invalid property
         case HASH::init:
         {
             // Params look compatible, message body follows
@@ -247,7 +235,7 @@ public:
             return MessageResult::Consumed;
         }
         }
-        return MessageResult::Propogate;
+        return MessageResult::Propagate;
 }
 
 private:
@@ -316,21 +304,15 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data__:
-            ASSERT(initStatus() < kIS_InitData);
-
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
-
-            setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
         case HASH::init_assets__:
-            ASSERT(initStatus() < kIS_InitAssets);
-
-
-            setInitStatus(kIS_InitAssets);
+            return MessageResult::Consumed;
+        case HASH::asset_ready__:
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -368,7 +350,7 @@ public:
                 break;
             }
             }
-            return MessageResult::Propogate; // Invalid property
+            return MessageResult::Propagate; // Invalid property
         case HASH::init:
         {
             // Params look compatible, message body follows
@@ -383,7 +365,7 @@ public:
             return MessageResult::Consumed;
         }
         }
-        return MessageResult::Propogate;
+        return MessageResult::Propagate;
 }
 
 private:
@@ -452,22 +434,16 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data__:
-            ASSERT(initStatus() < kIS_InitData);
-
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             sections() = 16;
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
-
-            setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
         case HASH::init_assets__:
-            ASSERT(initStatus() < kIS_InitAssets);
-
-
-            setInitStatus(kIS_InitAssets);
+            return MessageResult::Consumed;
+        case HASH::asset_ready__:
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -515,7 +491,7 @@ public:
                 break;
             }
             }
-            return MessageResult::Propogate; // Invalid property
+            return MessageResult::Propagate; // Invalid property
         case HASH::init:
         {
             // Params look compatible, message body follows
@@ -530,7 +506,7 @@ public:
             return MessageResult::Consumed;
         }
         }
-        return MessageResult::Propogate;
+        return MessageResult::Propagate;
 }
 
 private:
@@ -604,21 +580,15 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data__:
-            ASSERT(initStatus() < kIS_InitData);
-
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             sections() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
-
-            setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
         case HASH::init_assets__:
-            ASSERT(initStatus() < kIS_InitAssets);
-
-
-            setInitStatus(kIS_InitAssets);
+            return MessageResult::Consumed;
+        case HASH::asset_ready__:
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -656,7 +626,7 @@ public:
                 break;
             }
             }
-            return MessageResult::Propogate; // Invalid property
+            return MessageResult::Propagate; // Invalid property
         case HASH::init:
         {
             // Params look compatible, message body follows
@@ -671,7 +641,7 @@ public:
             return MessageResult::Consumed;
         }
         }
-        return MessageResult::Propogate;
+        return MessageResult::Propagate;
 }
 
 private:

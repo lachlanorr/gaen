@@ -32,6 +32,7 @@
 #include <malloc.h>
 #endif
 
+#include "core/logging.h"
 #include "core/mem.h"
 
 namespace gaen
@@ -174,11 +175,11 @@ void MemMgr::trackAllocation(MemType memType,
 {
     // LORRTODO
     /*
-    printf("ALLOC %lu bytes, %s category, %s:%d\n",
-           count,
-           sMemTypeText[memType],
-           file,
-           line);
+    LOG_INFO("ALLOC %u bytes, %d category, %s:%d",
+             (u32)count,
+             memType,
+             file,
+             line);
     */
     return;
 }

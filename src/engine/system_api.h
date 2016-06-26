@@ -53,7 +53,7 @@ CmpString hashstr(u32 hash, Entity & caller);
 
 void print_asset_info(AssetHandleP asset, Entity & caller);
 
-void insert_entity(task_id id, Entity & caller);
+//void activate_entity(task_id id, Entity & caller);
 
 f32 radians(f32 degrees, Entity & caller);
 f32 degrees(f32 radians, Entity & caller);

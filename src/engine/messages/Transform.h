@@ -30,6 +30,7 @@
 #include "engine/MessageWriter.h"
 #include "glm/mat4x3.hpp"
 #include "core/threading.h"
+#include "engine/Task.h"
 
 namespace gaen
 {
@@ -61,7 +62,7 @@ public:
     }
 
     const glm::mat4x3 & transform() const { return *mpTransform; }
-    bool isLocal() const { return mMsgAcc.message().payload.b; }
+    bool isLocal() const { return (bool)mMsgAcc.message().payload.b; }
         
 private:
     const T & mMsgAcc;
@@ -97,7 +98,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
-    void setIsLocal(bool val) { mMsgAcc.message().payload.b = val; }
+    void setIsLocal(bool val) { mMsgAcc.message().payload.b = (bool)val; }
 };
 
 class TransformBW : public MessageBlockWriter
@@ -124,7 +125,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
-    void setIsLocal(bool val) { mMsgAcc.message().payload.b = val; }
+    void setIsLocal(bool val) { mMsgAcc.message().payload.b = (bool)val; }
 
 private:
     Block mBlocks[3 + 1]; // +1 for header

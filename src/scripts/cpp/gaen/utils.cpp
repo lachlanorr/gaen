@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: d40d171b5fc0096fa888cadac417ef91
+// HASH: 37f35111d73c5dfe2a10d7f0240861a7
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -83,19 +83,13 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data__:
-            ASSERT(initStatus() < kIS_InitData);
-
             timer_interval() = 0.00000000e+00f;
             timer_message() = 0;
             last_notification() = 0.00000000e+00f;
-
-            setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
         case HASH::init_assets__:
-            ASSERT(initStatus() < kIS_InitAssets);
-
-
-            setInitStatus(kIS_InitAssets);
+            return MessageResult::Consumed;
+        case HASH::asset_ready__:
             return MessageResult::Consumed;
         case HASH::set_property:
             switch (_msg.payload.u)
@@ -121,9 +115,9 @@ public:
                 break;
             }
             }
-            return MessageResult::Propogate; // Invalid property
+            return MessageResult::Propagate; // Invalid property
         }
-        return MessageResult::Propogate;
+        return MessageResult::Propagate;
 }
 
 private:
@@ -235,8 +229,6 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data__:
-            ASSERT(initStatus() < kIS_InitData);
-
             dirForwardInit() = glm::vec3(0.00000000e+00f, 0.00000000e+00f, -(1.00000000e+00f));
             dirRightInit() = glm::vec3(1.00000000e+00f, 0.00000000e+00f, 0.00000000e+00f);
             dirUpInit() = glm::vec3(0.00000000e+00f, 1.00000000e+00f, 0.00000000e+00f);
@@ -253,14 +245,10 @@ public:
             mouseDeltaX() = 0.00000000e+00f;
             mouseDeltaY() = 0.00000000e+00f;
             mouseWheelDelta() = 0;
-
-            setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
         case HASH::init_assets__:
-            ASSERT(initStatus() < kIS_InitAssets);
-
-
-            setInitStatus(kIS_InitAssets);
+            return MessageResult::Consumed;
+        case HASH::asset_ready__:
             return MessageResult::Consumed;
         case HASH::init:
         {
@@ -284,7 +272,7 @@ public:
             // Verify params look compatible with this message type
             u32 expectedBlockSize = 1; // BlockCount without BlockMemory params
             if (expectedBlockSize > msgAcc.available())
-                return MessageResult::Propogate;
+                return MessageResult::Propagate;
 
             // Params look compatible, message body follows
             if (mouseLooking())
@@ -353,7 +341,7 @@ public:
             return MessageResult::Consumed;
         }
         }
-        return MessageResult::Propogate;
+        return MessageResult::Propagate;
 }
 
 private:
@@ -499,20 +487,14 @@ public:
         switch(_msg.msgId)
         {
         case HASH::init_data__:
-            ASSERT(initStatus() < kIS_InitData);
-
             yawing() = 0.00000000e+00f;
             yaw() = 0.00000000e+00f;
             pitching() = 0.00000000e+00f;
             pitch() = 0.00000000e+00f;
-
-            setInitStatus(kIS_InitData);
             return MessageResult::Consumed;
         case HASH::init_assets__:
-            ASSERT(initStatus() < kIS_InitAssets);
-
-
-            setInitStatus(kIS_InitAssets);
+            return MessageResult::Consumed;
+        case HASH::asset_ready__:
             return MessageResult::Consumed;
         case HASH::init:
         {
@@ -576,7 +558,7 @@ public:
             return MessageResult::Consumed;
         }
         }
-        return MessageResult::Propogate;
+        return MessageResult::Propagate;
 }
 
 private:

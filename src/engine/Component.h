@@ -52,8 +52,7 @@ class Component
     friend class Entity;
 public:
     Component(Entity * pEntity)
-      : mpEntity(pEntity)
-      , mInitStatus(kIS_Uninitialized) {}
+      : mpEntity(pEntity) {}
 
     Task & task() { return mScriptTask; }
 
