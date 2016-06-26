@@ -28,9 +28,19 @@
 #define GAEN_ENGINE_ASSET_LOADER_H
 
 #include "core/mem.h"
+#include "engine/MessageQueue.h"
 
 namespace gaen
 {
+
+class AssetLoadThread
+{
+public:
+    AssetLoadThread();
+
+private:
+    MessageQueue * mpMessageQueue;
+};
 
 class AssetLoader
 {

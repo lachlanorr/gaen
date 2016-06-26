@@ -89,6 +89,23 @@ public:
         mRingBuffer.pushCommit(msgAcc.mAccessor[0].blockCount + 1);
     }
 
+    // Transcribe a message into another queue
+    void transcribeMessage(const MessageQueueAccessor & sourceAcc)
+    {
+        MessageQueueAccessor targetAcc;
+
+        Message sourceMsg = sourceAcc.message();
+
+        mRingBuffer.pushBegin(&targetAcc.mAccessor, sourceMsg.blockCount + 1); // + 1 for header
+
+        for (u32 i = 0; i < sourceMsg.blockCount + 1; ++i) // + 1 for header
+        {
+            targetAcc.mAccessor[i] = sourceAcc.mAccessor[i];
+        }
+
+        mRingBuffer.pushCommit(sourceMsg.blockCount + 1); // + 1 for header
+    }
+
     bool popBegin(MessageQueueAccessor * pMsgAcc)
     {
         mRingBuffer.popBegin(&pMsgAcc->mAccessor);

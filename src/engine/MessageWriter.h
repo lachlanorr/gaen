@@ -38,6 +38,7 @@ namespace gaen
 class MessageQueueWriter
 {
 public:
+    // Choose standard message queue
     MessageQueueWriter(u32 msgId,
                        u32 flags,
                        task_id source,
@@ -46,6 +47,25 @@ public:
                        u32 blockCount)
     {
         mpMsgQueue = get_message_queue(msgId, flags, source, target);
+        mpMsgQueue->pushBegin(&mMsgAcc,
+                              msgId,
+                              flags,
+                              source,
+                              target,
+                              payload,
+                              blockCount);
+    }
+
+    // Specific message queue
+    MessageQueueWriter(u32 msgId,
+                       u32 flags,
+                       task_id source,
+                       task_id target,
+                       cell payload,
+                       u32 blockCount,
+                       MessageQueue * pMsgQueue)
+    {
+        mpMsgQueue = pMsgQueue;
         mpMsgQueue->pushBegin(&mMsgAcc,
                               msgId,
                               flags,
@@ -100,7 +120,7 @@ protected:
 
 // Similar to MessageWriter, but used when writing to a header/block array.
 // Used for messages not intended to be queued but constructed on the stack
-// and sent directly to a messsage handler.
+// and sent directly to a message handler.
 class MessageBlockWriter
 {
 public:
