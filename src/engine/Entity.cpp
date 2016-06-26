@@ -81,14 +81,6 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
     mAssetsRequested = 0;
     mAssetsLoaded = 0;
 
-    // Entity stage, we manage entities here that we've created but
-    // haven't yet been added to engine.
-    mEntityStageCount = 0;
-    for (u32 i = 0; i < kMaxEntityStage; ++i)
-    {
-        mpEntityStage[i] = 0;
-    }
-
     mTask = Task::create_updatable(this, nameHash);
 
     // LORRTEMP
@@ -97,15 +89,6 @@ Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
 
 Entity::~Entity()
 {
-    // Delete any staged entities that were never unstaged
-    for (u32 i = 0; i < kMaxEntityStage; ++i)
-    {
-        if (mpEntityStage[i])
-        {
-            mpEntityStage[i] = 0;
-        }
-    }
-
     if (!mpBlockMemory)
         GDELETE(mpBlockMemory);
 
@@ -268,11 +251,6 @@ MessageResult Entity::message(const T & msgAcc)
         {
             messages::TransformR<T> msgr(msgAcc);
             applyTransform(msgr.isLocal(), msgr.transform());
-            return MessageResult::Consumed;
-        }
-        case HASH::unstage__:
-        {
-            unstageEntity(msgAcc.message().source);
             return MessageResult::Consumed;
         }
         }
@@ -466,62 +444,6 @@ const glm::mat4x3 & Entity::parentTransform() const
     {
         return mpParent->transform();
     }
-}
-
-
-void Entity::stageEntity(Entity * pEntity)
-{
-    if (mEntityStageCount >= kMaxEntityStage)
-    {
-        PANIC("Unable to stage entity, stage is full, stage size: %u", kMaxEntityStage);
-        return;
-    }
-
-    mpEntityStage[mEntityStageCount] = pEntity;
-    ++mEntityStageCount;
-}
-
-Entity * Entity::findStagedEntity(task_id id)
-{
-    for (u32 i = 0; i < mEntityStageCount; ++i)
-    {
-        Entity * pEnt = mpEntityStage[i];
-        ASSERT(pEnt);
-        if (pEnt->task().id() == id)
-        {
-            return pEnt;
-        }
-    }
-    return nullptr;
-}
-
-void Entity::activateEntity(task_id id)
-{
-}
-
-void Entity::unstageEntity(task_id id)
-{
-    for (u32 i = 0; i < mEntityStageCount; ++i)
-    {
-        Entity * pEnt = mpEntityStage[i];
-        ASSERT(pEnt);
-        if (pEnt->task().id() == id)
-        {
-            ASSERT(pEnt->mInitStatus == kIS_Activated);
-
-            // remove entity
-            mpEntityStage[i] = nullptr;
-            // if we're not the last, replace with the last
-            if (i < (mEntityStageCount-1))
-            {
-                mpEntityStage[i] = mpEntityStage[mEntityStageCount-1];
-                mpEntityStage[mEntityStageCount-1] = nullptr;
-            }
-            --mEntityStageCount;
-
-        }
-    }
-    PANIC("Unable to unstage entity, not on stage: id = %u", id);
 }
 
 BlockMemory & Entity::blockMemory()

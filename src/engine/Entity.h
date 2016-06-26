@@ -70,11 +70,6 @@ public:
     void setParent(Entity * pEntity);
     const glm::mat4x3 & parentTransform() const;
 
-    void stageEntity(Entity * pEntity);
-    Entity * findStagedEntity(task_id id);
-    void activateEntity(task_id id);
-    void unstageEntity(task_id id);
-
     BlockMemory & blockMemory();
     void collect();
 
@@ -148,17 +143,6 @@ protected:
     InitStatus mInitStatus;
 
     Entity * mpParent;
-
-    // When entities are constructed by this entity, we must maintain
-    // pointers to them here.  Once they get inserted into the engine,
-    // they are no longer our responsibility and we don't have to
-    // clean them up, they'll get the "fin" message and delete
-    // themselves like all running entities.  But, there's the
-    // possibility that an entity is constructed but never added to
-    // the engine, in which case we must remember it so we can clean
-    // it up if we get cleaned up.
-    u32 mEntityStageCount;
-    Entity * mpEntityStage[kMaxEntityStage];
 
     Entity ** mpChildren;
     u32 mChildrenMax;

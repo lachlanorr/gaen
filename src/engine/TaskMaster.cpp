@@ -378,8 +378,6 @@ void TaskMaster::runPrimaryGameLoop()
     mIsRunning = true;
     mFrameTime.init();
 
-    mpStartEntity->activateEntity(mpStartEntity->task().id());
-
     while(mIsRunning)
     {
         // Render through the render adapter
