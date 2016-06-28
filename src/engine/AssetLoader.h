@@ -28,25 +28,68 @@
 #define GAEN_ENGINE_ASSET_LOADER_H
 
 #include "core/mem.h"
+#include "core/threading.h"
 #include "engine/MessageQueue.h"
+#include "engine/BlockMemory.h"
 
 namespace gaen
 {
 
-class AssetLoadThread
-{
-public:
-    AssetLoadThread();
-
-private:
-    MessageQueue * mpMessageQueue;
-};
-
 class AssetLoader
 {
 public:
+    static const u32 kMaxAssetMessages = 4096;
+
+    AssetLoader(u32 loaderId);
+    ~AssetLoader();
+
+    void queueRequest(const MessageQueueAccessor & msgAcc);
+    MessageQueue & readyQueue()
+    {
+        ASSERT(mCreatorThreadId == active_thread_id());
+        return *mpReadyQueue;
+    }
+
+    void stopAndJoin();
+
+    u32 queueSize()
+    {
+        ASSERT(mCreatorThreadId == active_thread_id());
+        return mQueueSize;
+    }
+    void incQueueSize()
+    {
+        ASSERT(mCreatorThreadId == active_thread_id());
+        mQueueSize++;
+    }
+    void decQueueSize()
+    {
+        ASSERT(mCreatorThreadId == active_thread_id());
+        mQueueSize--;
+    }
+
     static MemType mem_type_from_ext(const char * ext);
 
+private:
+    void threadProc();
+
+    MessageResult message(const MessageQueueAccessor& msgAcc);
+
+    // Track creator's thread id so we can ensure no other thread calls us.
+    // If they do, our SPSC queue design breaks down.
+    thread_id mCreatorThreadId;
+    
+    u32 mLoaderId;
+    bool mIsRunning = false;
+
+    u32 mQueueSize;
+
+    std::thread mThread;
+
+    BlockMemory mBlockMemory;
+
+    MessageQueue * mpRequestQueue;
+    MessageQueue * mpReadyQueue;
 }; // AssetLoader
 
 } // namespace gaen

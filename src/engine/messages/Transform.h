@@ -65,6 +65,11 @@ public:
     bool isLocal() const { return (bool)mMsgAcc.message().payload.b; }
         
 private:
+    TransformR(const TransformR &)              = delete;
+    TransformR(const TransformR &&)             = delete;
+    TransformR & operator=(const TransformR &)  = delete;
+    TransformR & operator=(const TransformR &&) = delete;
+
     const T & mMsgAcc;
 
     // These members provide storage for fields larger than a block that wrap the ring buffer
@@ -90,6 +95,21 @@ public:
                            to_cell(*reinterpret_cast<const u32*>(&isLocal)),
                            3)
     {}
+
+    TransformQW(u32 msgId,
+                u32 flags,
+                task_id source,
+                task_id target,
+                bool isLocal,
+                MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(*reinterpret_cast<const u32*>(&isLocal)),
+                           3,
+                           pMsgQueue)
+    {}
     
     void setTransform(const glm::mat4x3 & val)
     {
@@ -99,6 +119,11 @@ public:
         }
     }
     void setIsLocal(bool val) { mMsgAcc.message().payload.b = (bool)val; }
+private:
+    TransformQW(const TransformQW &)              = delete;
+    TransformQW(const TransformQW &&)             = delete;
+    TransformQW & operator=(const TransformQW &)  = delete;
+    TransformQW & operator=(const TransformQW &&) = delete;
 };
 
 class TransformBW : public MessageBlockWriter
@@ -128,6 +153,11 @@ public:
     void setIsLocal(bool val) { mMsgAcc.message().payload.b = (bool)val; }
 
 private:
+    TransformBW(const TransformBW &)              = delete;
+    TransformBW(const TransformBW &&)             = delete;
+    TransformBW & operator=(const TransformBW &)  = delete;
+    TransformBW & operator=(const TransformBW &&) = delete;
+
     Block mBlocks[3 + 1]; // +1 for header
 };
 

@@ -49,6 +49,11 @@ public:
     TaskStatus status() const { return (TaskStatus)mMsgAcc.message().payload.i; }
         
 private:
+    TaskStatusR(const TaskStatusR &)              = delete;
+    TaskStatusR(const TaskStatusR &&)             = delete;
+    TaskStatusR & operator=(const TaskStatusR &)  = delete;
+    TaskStatusR & operator=(const TaskStatusR &&) = delete;
+
     const T & mMsgAcc;
 
 
@@ -72,8 +77,28 @@ public:
                            to_cell(*reinterpret_cast<const u32*>(&status)),
                            0)
     {}
+
+    TaskStatusQW(u32 msgId,
+                 u32 flags,
+                 task_id source,
+                 task_id target,
+                 TaskStatus status,
+                 MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(*reinterpret_cast<const u32*>(&status)),
+                           0,
+                           pMsgQueue)
+    {}
     
     void setStatus(TaskStatus val) { mMsgAcc.message().payload.i = (i32)val; }
+private:
+    TaskStatusQW(const TaskStatusQW &)              = delete;
+    TaskStatusQW(const TaskStatusQW &&)             = delete;
+    TaskStatusQW & operator=(const TaskStatusQW &)  = delete;
+    TaskStatusQW & operator=(const TaskStatusQW &&) = delete;
 };
 
 class TaskStatusBW : public MessageBlockWriter
@@ -96,6 +121,11 @@ public:
     void setStatus(TaskStatus val) { mMsgAcc.message().payload.i = (i32)val; }
 
 private:
+    TaskStatusBW(const TaskStatusBW &)              = delete;
+    TaskStatusBW(const TaskStatusBW &&)             = delete;
+    TaskStatusBW & operator=(const TaskStatusBW &)  = delete;
+    TaskStatusBW & operator=(const TaskStatusBW &&) = delete;
+
     Block mBlocks[0 + 1]; // +1 for header
 };
 

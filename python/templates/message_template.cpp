@@ -46,6 +46,11 @@ public:
 <<reader_getters>>
         
 private:
+    <<message_name>>R(const <<message_name>>R &)              = delete;
+    <<message_name>>R(const <<message_name>>R &&)             = delete;
+    <<message_name>>R & operator=(const <<message_name>>R &)  = delete;
+    <<message_name>>R & operator=(const <<message_name>>R &&) = delete;
+
     const T & mMsgAcc;
 
 <<reader_data_members>>
@@ -68,8 +73,27 @@ public:
                            to_cell(<<payload_value>>),
                            <<block_count>>)
     {}
+
+    <<message_name>>QW(u32 msgId,
+    <<message_name_indent>> u32 flags,
+    <<message_name_indent>> task_id source,
+    <<message_name_indent>> task_id target<<payload_decl>>,
+    <<message_name_indent>> MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(<<payload_value>>),
+                           <<block_count>>,
+                           pMsgQueue)
+    {}
     
 <<writer_setters>>
+private:
+    <<message_name>>QW(const <<message_name>>QW &)              = delete;
+    <<message_name>>QW(const <<message_name>>QW &&)             = delete;
+    <<message_name>>QW & operator=(const <<message_name>>QW &)  = delete;
+    <<message_name>>QW & operator=(const <<message_name>>QW &&) = delete;
 };
 
 class <<message_name>>BW : public MessageBlockWriter
@@ -91,6 +115,11 @@ public:
 <<writer_setters>>
 
 private:
+    <<message_name>>BW(const <<message_name>>BW &)              = delete;
+    <<message_name>>BW(const <<message_name>>BW &&)             = delete;
+    <<message_name>>BW & operator=(const <<message_name>>BW &)  = delete;
+    <<message_name>>BW & operator=(const <<message_name>>BW &&) = delete;
+
     Block mBlocks[<<block_count>> + 1]; // +1 for header
 };
 

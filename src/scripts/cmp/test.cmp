@@ -24,70 +24,55 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-//component TestComp
-//{
-//    asset #foo = "/fonts/profont.gatl";
-//    asset bar = "/images/bar.tga";
-//    string #s = "initval";
-//    int #a;
-//}
-
-//component TestCompEmpty
-//{
-//}
-
-entity Light
+component TestComp
 {
-    components
-    {
-        gaen.lights.Directional{dir = vec3{1.0, -0.7, -0.5},
-                                col = color{255, 255, 0, 255}}
-    }
+    asset #foo = "/fonts/profont.gatl";
+    asset bar = "/images/bar.tga";
+    string #s = "initval";
+    int #a;
+}
+
+component TestCompEmpty
+{
 }
 
 entity Test
 {
+    asset #testFoo = "/another/asset.foo";
+
+    components
+    {
+        TestComp{foo = "/some/other/path/foo",
+                 s   = "Changedval",
+                 a   = 5}
+    }
+
+
+    int #prop1 = 20;
+    string #prop2 = "abc";
+    
+    #msg1(int i, string s1, string s2, float f, vec3 v, string s3)
+    {
+        $.print(string{"prop1 = %d", prop1});
+    }
+
+
 
     #init()
     {
-        entity light = Light{};
+
+        vec3 v0;
+        v0.x = 5.0;
+        $.print(string{"x = %f", v0.x});
+
+        $.print(string{"prop1 = %d, prop2 = \"%s\"", prop1, prop2});
+        $.print("init");
+		$.print_asset_info(testFoo);
     }
 
-//    asset #testFoo = "/another/asset.foo";
-//
-//    components
-//    {
-//        TestComp{foo = "/some/other/path/foo",
-//                 s   = "Changedval",
-//                 a   = 5}
-//    }
-
-
-//    int #prop1 = 20;
-//    string #prop2 = "abc";
-//    
-//    #msg1(int i, string s1, string s2, float f, vec3 v, string s3)
-//    {
-//        $.print(string{"prop1 = %d", prop1});
-//    }
-
-
-
-//    #init()
-//    {
-
-//        vec3 v0;
-//        v0.x = 5.0;
-//        $.print(string{"x = %f", v0.x});
-
-//        $.print(string{"prop1 = %d, prop2 = \"%s\"", prop1, prop2});
-//        $.print("init");
-//		$.print_asset_info(testFoo);
-//    }
-
-//    #fin()
-//    {
-//        $.print("fin");
-//    }
+    #fin()
+    {
+        $.print("fin");
+    }
 
 }

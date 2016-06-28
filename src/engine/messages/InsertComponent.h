@@ -50,6 +50,11 @@ public:
     u32 index() const { return mMsgAcc[0].cells[0].u; }
         
 private:
+    InsertComponentR(const InsertComponentR &)              = delete;
+    InsertComponentR(const InsertComponentR &&)             = delete;
+    InsertComponentR & operator=(const InsertComponentR &)  = delete;
+    InsertComponentR & operator=(const InsertComponentR &&) = delete;
+
     const T & mMsgAcc;
 
 
@@ -73,9 +78,29 @@ public:
                            to_cell(nameHash),
                            1)
     {}
+
+    InsertComponentQW(u32 msgId,
+                      u32 flags,
+                      task_id source,
+                      task_id target,
+                      u32 nameHash,
+                      MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(nameHash),
+                           1,
+                           pMsgQueue)
+    {}
     
     void setNameHash(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setIndex(u32 val) { mMsgAcc[0].cells[0].u = val; }
+private:
+    InsertComponentQW(const InsertComponentQW &)              = delete;
+    InsertComponentQW(const InsertComponentQW &&)             = delete;
+    InsertComponentQW & operator=(const InsertComponentQW &)  = delete;
+    InsertComponentQW & operator=(const InsertComponentQW &&) = delete;
 };
 
 class InsertComponentBW : public MessageBlockWriter
@@ -99,6 +124,11 @@ public:
     void setIndex(u32 val) { mMsgAcc[0].cells[0].u = val; }
 
 private:
+    InsertComponentBW(const InsertComponentBW &)              = delete;
+    InsertComponentBW(const InsertComponentBW &&)             = delete;
+    InsertComponentBW & operator=(const InsertComponentBW &)  = delete;
+    InsertComponentBW & operator=(const InsertComponentBW &&) = delete;
+
     Block mBlocks[1 + 1]; // +1 for header
 };
 

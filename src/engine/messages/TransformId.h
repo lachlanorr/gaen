@@ -65,6 +65,11 @@ public:
     u32 id() const { return (u32)mMsgAcc.message().payload.u; }
         
 private:
+    TransformIdR(const TransformIdR &)              = delete;
+    TransformIdR(const TransformIdR &&)             = delete;
+    TransformIdR & operator=(const TransformIdR &)  = delete;
+    TransformIdR & operator=(const TransformIdR &&) = delete;
+
     const T & mMsgAcc;
 
     // These members provide storage for fields larger than a block that wrap the ring buffer
@@ -90,6 +95,21 @@ public:
                            to_cell(id),
                            3)
     {}
+
+    TransformIdQW(u32 msgId,
+                  u32 flags,
+                  task_id source,
+                  task_id target,
+                  u32 id,
+                  MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(id),
+                           3,
+                           pMsgQueue)
+    {}
     
     void setTransform(const glm::mat4x3 & val)
     {
@@ -99,6 +119,11 @@ public:
         }
     }
     void setId(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
+private:
+    TransformIdQW(const TransformIdQW &)              = delete;
+    TransformIdQW(const TransformIdQW &&)             = delete;
+    TransformIdQW & operator=(const TransformIdQW &)  = delete;
+    TransformIdQW & operator=(const TransformIdQW &&) = delete;
 };
 
 class TransformIdBW : public MessageBlockWriter
@@ -128,6 +153,11 @@ public:
     void setId(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 
 private:
+    TransformIdBW(const TransformIdBW &)              = delete;
+    TransformIdBW(const TransformIdBW &&)             = delete;
+    TransformIdBW & operator=(const TransformIdBW &)  = delete;
+    TransformIdBW & operator=(const TransformIdBW &&) = delete;
+
     Block mBlocks[3 + 1]; // +1 for header
 };
 

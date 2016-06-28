@@ -38,31 +38,15 @@ typedef void(*HandleFreeFunc)(Handle & handle);
 
 class Handle
 {
+    friend class HandleMgr;
 public:
-    Handle(u32 typeHash, u32 nameHash, u32 ownerTaskId, void * pData, HandleFreeFunc pFreeFunc)
+    Handle(u32 typeHash, u32 nameHash, void * pData, HandleFreeFunc pFreeFunc)
       : mTypeHash(typeHash)
       , mNameHash(nameHash)
       , mRefCount(0)
       , mpData(pData)
       , mpFreeFunc(pFreeFunc)
     {
-    }
-
-    void addRef()
-    {
-        mRefCount++;
-    }
-
-    void release()
-    {
-        ASSERT(mRefCount > 0);
-        mRefCount--;
-    }
-
-    void free()
-    {
-        if (mpFreeFunc)
-            mpFreeFunc(*this);
     }
 
     u32 typeHash() const { return mTypeHash; }
@@ -74,6 +58,25 @@ public:
     bool isNull() const { return mTypeHash == 0; }
 
 private:
+    void free()
+    {
+        if (mpFreeFunc)
+            mpFreeFunc(*this);
+    }
+
+    void addRef()
+    {
+        mRefCount++;
+    }
+
+    bool release()
+    {
+        ASSERT(mRefCount > 0);
+        mRefCount--;
+
+        return mRefCount == 0;
+    }
+
     u32 mUuid;
     u32 mTypeHash;
     u32 mNameHash;

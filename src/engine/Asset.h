@@ -39,6 +39,7 @@ public:
     friend class AssetMgr;
 
     explicit Asset(const char * path);
+    ~Asset();
 
     Asset(const Asset&)        = delete;
     Asset & operator=(Asset&)  = delete;
@@ -88,40 +89,13 @@ public:
         return mSize;
     }
 
-    bool isOk() const
-    {
-        return mStatusFlags == kFSFL_None && isLoaded();
-    }
-
-    u32 statusFlags() const
-    {
-        return mStatusFlags;
-    }
-
 private:
-    void addRef()
-    {
-        ASSERT(isLoaded());
-        mRefCount++;
-    }
-
-    void release()
-    {
-        ASSERT(isLoaded());
-        ASSERT(mRefCount > 0);
-        mRefCount--;
-        if (mRefCount == 0)
-            unload();
-    }
-
     void load();
     void unload();
 
     u8 * mpBuffer;
     char * mPath;
     u32 mPathHash;
-    u32 mRefCount:16;
-    u32 mStatusFlags:15;
     u32 mIsWritable:1;
     u64 mSize;
 }; // class Asset

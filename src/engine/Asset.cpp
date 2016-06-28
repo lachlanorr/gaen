@@ -38,8 +38,6 @@ namespace gaen
 
 Asset::Asset(const char * path)
   : mpBuffer(nullptr)
-  , mRefCount(0)
-  , mStatusFlags(kFSFL_None)
   , mIsWritable(0)
   , mSize(0)
 {
@@ -51,15 +49,22 @@ Asset::Asset(const char * path)
     mPath[pathLen] = '\0'; // sanity
 
     mPathHash = HASH::hash_func(mPath);
+
+    load();
+}
+
+Asset::~Asset()
+{
+    if (isLoaded())
+        unload();
+    GFREE(mPath);
 }
 
 void Asset::load()
 {
     PANIC_IF(isLoaded(), "load called on already loaded asset: %s", mPath);
-    mStatusFlags = kFSFL_None;
 
     FileReader rdr(mPath);
-    mStatusFlags = rdr.statusFlags();
 
     if (rdr.isOk())
     {
@@ -79,7 +84,6 @@ void Asset::unload()
     PANIC_IF(!isLoaded(), "unload called on unloaded asset: %s", mPath);
     GFREE(mpBuffer);
     mpBuffer = nullptr;
-    mStatusFlags = kFSFL_None;
 }
 
 } // namespace gaen

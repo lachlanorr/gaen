@@ -68,6 +68,11 @@ public:
     bool isAssetManaged() const { return mMsgAcc[3].cells[2].b; }
         
 private:
+    InsertModelInstanceR(const InsertModelInstanceR &)              = delete;
+    InsertModelInstanceR(const InsertModelInstanceR &&)             = delete;
+    InsertModelInstanceR & operator=(const InsertModelInstanceR &)  = delete;
+    InsertModelInstanceR & operator=(const InsertModelInstanceR &&) = delete;
+
     const T & mMsgAcc;
 
     // These members provide storage for fields larger than a block that wrap the ring buffer
@@ -93,6 +98,21 @@ public:
                            to_cell(uid),
                            4)
     {}
+
+    InsertModelInstanceQW(u32 msgId,
+                          u32 flags,
+                          task_id source,
+                          task_id target,
+                          u32 uid,
+                          MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(uid),
+                           4,
+                           pMsgQueue)
+    {}
     
     void setTransform(const glm::mat4x3 & val)
     {
@@ -104,6 +124,11 @@ public:
     void setModel(Model * pVal) { mMsgAcc[3].dCells[0].p = pVal; }
     void setUid(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setIsAssetManaged(bool val) { mMsgAcc[3].cells[2].b = val; }
+private:
+    InsertModelInstanceQW(const InsertModelInstanceQW &)              = delete;
+    InsertModelInstanceQW(const InsertModelInstanceQW &&)             = delete;
+    InsertModelInstanceQW & operator=(const InsertModelInstanceQW &)  = delete;
+    InsertModelInstanceQW & operator=(const InsertModelInstanceQW &&) = delete;
 };
 
 class InsertModelInstanceBW : public MessageBlockWriter
@@ -135,6 +160,11 @@ public:
     void setIsAssetManaged(bool val) { mMsgAcc[3].cells[2].b = val; }
 
 private:
+    InsertModelInstanceBW(const InsertModelInstanceBW &)              = delete;
+    InsertModelInstanceBW(const InsertModelInstanceBW &&)             = delete;
+    InsertModelInstanceBW & operator=(const InsertModelInstanceBW &)  = delete;
+    InsertModelInstanceBW & operator=(const InsertModelInstanceBW &&) = delete;
+
     Block mBlocks[4 + 1]; // +1 for header
 };
 

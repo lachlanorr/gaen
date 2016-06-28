@@ -50,6 +50,11 @@ public:
     const glm::vec3 & position() const { return *reinterpret_cast<const glm::vec3*>(&mMsgAcc[1].tCellPad.tCell); }
         
 private:
+    MoveCameraR(const MoveCameraR &)              = delete;
+    MoveCameraR(const MoveCameraR &&)             = delete;
+    MoveCameraR & operator=(const MoveCameraR &)  = delete;
+    MoveCameraR & operator=(const MoveCameraR &&) = delete;
+
     const T & mMsgAcc;
 
 
@@ -72,9 +77,28 @@ public:
                            to_cell(0),
                            2)
     {}
+
+    MoveCameraQW(u32 msgId,
+                 u32 flags,
+                 task_id source,
+                 task_id target,
+                 MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(0),
+                           2,
+                           pMsgQueue)
+    {}
     
     void setDirection(glm::quat val) { mMsgAcc[0].qCell.quat = val; }
     void setPosition(const glm::vec3 & val) { mMsgAcc[1].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
+private:
+    MoveCameraQW(const MoveCameraQW &)              = delete;
+    MoveCameraQW(const MoveCameraQW &&)             = delete;
+    MoveCameraQW & operator=(const MoveCameraQW &)  = delete;
+    MoveCameraQW & operator=(const MoveCameraQW &&) = delete;
 };
 
 class MoveCameraBW : public MessageBlockWriter
@@ -97,6 +121,11 @@ public:
     void setPosition(const glm::vec3 & val) { mMsgAcc[1].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
 
 private:
+    MoveCameraBW(const MoveCameraBW &)              = delete;
+    MoveCameraBW(const MoveCameraBW &&)             = delete;
+    MoveCameraBW & operator=(const MoveCameraBW &)  = delete;
+    MoveCameraBW & operator=(const MoveCameraBW &&) = delete;
+
     Block mBlocks[2 + 1]; // +1 for header
 };
 

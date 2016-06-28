@@ -146,7 +146,7 @@ void join_all_threads()
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
         ThreadInfo & ti = sThreadInfos[tid];
-        ti.thread.join();        
+        ti.thread.join();
     }
 }
 

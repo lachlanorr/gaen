@@ -53,6 +53,11 @@ public:
     u32 taskId() const { return (u32)mMsgAcc.message().payload.u; }
         
 private:
+    HandleR(const HandleR &)              = delete;
+    HandleR(const HandleR &&)             = delete;
+    HandleR & operator=(const HandleR &)  = delete;
+    HandleR & operator=(const HandleR &&) = delete;
+
     const T & mMsgAcc;
 
 
@@ -76,10 +81,30 @@ public:
                            to_cell(taskId),
                            1)
     {}
+
+    HandleQW(u32 msgId,
+             u32 flags,
+             task_id source,
+             task_id target,
+             u32 taskId,
+             MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(taskId),
+                           1,
+                           pMsgQueue)
+    {}
     
     void setHandle(Handle * pVal) { mMsgAcc[0].dCells[0].p = pVal; }
     void setNameHash(u32 val) { mMsgAcc[0].cells[2].u = val; }
     void setTaskId(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
+private:
+    HandleQW(const HandleQW &)              = delete;
+    HandleQW(const HandleQW &&)             = delete;
+    HandleQW & operator=(const HandleQW &)  = delete;
+    HandleQW & operator=(const HandleQW &&) = delete;
 };
 
 class HandleBW : public MessageBlockWriter
@@ -104,6 +129,11 @@ public:
     void setTaskId(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 
 private:
+    HandleBW(const HandleBW &)              = delete;
+    HandleBW(const HandleBW &&)             = delete;
+    HandleBW & operator=(const HandleBW &)  = delete;
+    HandleBW & operator=(const HandleBW &&) = delete;
+
     Block mBlocks[1 + 1]; // +1 for header
 };
 

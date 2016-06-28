@@ -146,9 +146,7 @@ Registry & get_registry()
     return tm.registry();
 }
 
-MessageQueue * get_message_queue(u32 msgId,
-                                 u32 flags,
-                                 task_id source,
+MessageQueue * get_message_queue(task_id source,
                                  task_id target)
 {
     ASSERT(sIsInit);
@@ -361,7 +359,7 @@ void TaskMaster::runPrimaryGameLoop()
     ASSERT(!mIsRunning);
 
     mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr));
-    mpHandleMgr.reset(GNEW(kMEM_Engine, HandleMgr));
+    mpHandleMgr.reset(GNEW(kMEM_Engine, HandleMgr, 4));
 
     renderer_init_device(mRendererTask);
     renderer_init_viewport(mRendererTask);
@@ -400,7 +398,6 @@ void TaskMaster::runPrimaryGameLoop()
                      fi.last10000);
         }
 #endif
-
         // process messages accumulated since last frame
         processMessages(*mpMainMessageQueue); // messages from main thread
 
@@ -421,6 +418,9 @@ void TaskMaster::runPrimaryGameLoop()
 
             task.update(deltaSecs);
         }
+
+        // Give HandleMgr an opportunity to process messages
+        mpHandleMgr->process();
 
         renderer_end_frame(mRendererTask);
 

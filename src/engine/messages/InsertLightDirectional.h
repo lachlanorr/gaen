@@ -54,6 +54,11 @@ public:
     u32 uid() const { return (u32)mMsgAcc.message().payload.u; }
         
 private:
+    InsertLightDirectionalR(const InsertLightDirectionalR &)              = delete;
+    InsertLightDirectionalR(const InsertLightDirectionalR &&)             = delete;
+    InsertLightDirectionalR & operator=(const InsertLightDirectionalR &)  = delete;
+    InsertLightDirectionalR & operator=(const InsertLightDirectionalR &&) = delete;
+
     const T & mMsgAcc;
 
 
@@ -77,10 +82,30 @@ public:
                            to_cell(uid),
                            1)
     {}
+
+    InsertLightDirectionalQW(u32 msgId,
+                             u32 flags,
+                             task_id source,
+                             task_id target,
+                             u32 uid,
+                             MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(uid),
+                           1,
+                           pMsgQueue)
+    {}
     
     void setDirection(const glm::vec3 & val) { mMsgAcc[0].tCellPad.tCell = *reinterpret_cast<const tcell*>(&val); }
     void setColor(Color val) { mMsgAcc[0].cells[3].color = val; }
     void setUid(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
+private:
+    InsertLightDirectionalQW(const InsertLightDirectionalQW &)              = delete;
+    InsertLightDirectionalQW(const InsertLightDirectionalQW &&)             = delete;
+    InsertLightDirectionalQW & operator=(const InsertLightDirectionalQW &)  = delete;
+    InsertLightDirectionalQW & operator=(const InsertLightDirectionalQW &&) = delete;
 };
 
 class InsertLightDirectionalBW : public MessageBlockWriter
@@ -105,6 +130,11 @@ public:
     void setUid(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 
 private:
+    InsertLightDirectionalBW(const InsertLightDirectionalBW &)              = delete;
+    InsertLightDirectionalBW(const InsertLightDirectionalBW &&)             = delete;
+    InsertLightDirectionalBW & operator=(const InsertLightDirectionalBW &)  = delete;
+    InsertLightDirectionalBW & operator=(const InsertLightDirectionalBW &&) = delete;
+
     Block mBlocks[1 + 1]; // +1 for header
 };
 

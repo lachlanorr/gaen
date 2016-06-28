@@ -126,12 +126,14 @@ bool sock_sendto(Sock sock,
     if (sendSize == SOCKET_ERROR)
     {
         int err = WSAGetLastError();
-        ERR("Unable to send on socket, WSAGetLastError: %d, %x", err, err);
+        // LORRNOTE: Don't log (ERR/ASSERT) here since our logging
+        // depends on this code so errors can lead to infinite loops.
         return false;
     }
     if (sendSize != dataSize)
     {
-        ERR("Unable to send entire packet on socket, sent/attempted = %d/%d", sendSize, dataSize);
+        // LORRNOTE: Don't log (ERR/ASSERT) here since our logging
+        // depends on this code so errors can lead to infinite loops.
         return false;
     }
     return true;
@@ -157,7 +159,8 @@ bool sock_recvfrom(Sock sock,
     if (*pRecvSize == SOCKET_ERROR)
     {
         int err = WSAGetLastError();
-        ERR("Failure during recv, WSAGetLastError: %d, %x", err, err);
+        // LORRNOTE: Don't log (ERR/ASSERT) here since our logging
+        // depends on this code so errors can lead to infinite loops.
         return false;
     }
     *pFromIp = winAddr.sin_addr.s_addr;

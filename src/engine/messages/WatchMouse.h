@@ -51,6 +51,11 @@ public:
     u32 moveMessage() const { return (u32)mMsgAcc.message().payload.u; }
         
 private:
+    WatchMouseR(const WatchMouseR &)              = delete;
+    WatchMouseR(const WatchMouseR &&)             = delete;
+    WatchMouseR & operator=(const WatchMouseR &)  = delete;
+    WatchMouseR & operator=(const WatchMouseR &&) = delete;
+
     const T & mMsgAcc;
 
 
@@ -74,9 +79,29 @@ public:
                            to_cell(moveMessage),
                            1)
     {}
+
+    WatchMouseQW(u32 msgId,
+                 u32 flags,
+                 task_id source,
+                 task_id target,
+                 u32 moveMessage,
+                 MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(moveMessage),
+                           1,
+                           pMsgQueue)
+    {}
     
     void setWheelMessage(u32 val) { mMsgAcc[0].cells[0].u = val; }
     void setMoveMessage(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
+private:
+    WatchMouseQW(const WatchMouseQW &)              = delete;
+    WatchMouseQW(const WatchMouseQW &&)             = delete;
+    WatchMouseQW & operator=(const WatchMouseQW &)  = delete;
+    WatchMouseQW & operator=(const WatchMouseQW &&) = delete;
 };
 
 class WatchMouseBW : public MessageBlockWriter
@@ -100,6 +125,11 @@ public:
     void setMoveMessage(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 
 private:
+    WatchMouseBW(const WatchMouseBW &)              = delete;
+    WatchMouseBW(const WatchMouseBW &&)             = delete;
+    WatchMouseBW & operator=(const WatchMouseBW &)  = delete;
+    WatchMouseBW & operator=(const WatchMouseBW &&) = delete;
+
     Block mBlocks[1 + 1]; // +1 for header
 };
 

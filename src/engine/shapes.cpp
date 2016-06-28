@@ -467,35 +467,35 @@ namespace system_api
     {
         Model * pModel = build_box(size, color);
         ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
-        return new Handle(HASH::model, 0, 0, pModel, nullptr);
+        return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_box, pModel, nullptr);
     }
 
     HandleP create_shape_cone(const glm::vec3 & size, u32 slices, Color color, Entity & caller)
     {
         Model * pModel = build_cone(size, slices, color);
         ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
-        return new Handle(HASH::model, 0, 0, pModel, nullptr);
+        return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_cone, pModel, nullptr);
     }
 
     HandleP create_shape_cylinder(const glm::vec3 & size, u32 slices, Color color, Entity & caller)
     {
         Model * pModel = build_cylinder(size, slices, color);
         ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
-        return new Handle(HASH::model, 0, 0, pModel, nullptr);
+        return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_cylinder, pModel, nullptr);
     }
 
     HandleP create_shape_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color, Entity & caller)
     {
         Model * pModel = build_sphere(size, slices, sections, color);
         ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
-        return new Handle(HASH::model, 0, 0, pModel, nullptr);
+        return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_sphere, pModel, nullptr);
     }
 
     HandleP create_shape_quad_sphere(const glm::vec3 & size, u32 sections, Color color, Entity & caller)
     {
         Model * pModel = build_quad_sphere(size, sections, color);
         ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
-        return new Handle(HASH::model, 0, 0, pModel, nullptr);
+        return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_quad_sphere, pModel, nullptr);
     }
 }
 

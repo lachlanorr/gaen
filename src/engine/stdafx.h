@@ -39,6 +39,7 @@
 #include <algorithm>
 #include <atomic>
 #include <list>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>

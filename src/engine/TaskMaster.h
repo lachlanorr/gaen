@@ -65,9 +65,7 @@ void set_start_entity(const char * startEntity);
 Registry & get_registry();
 
 // Get the correct message queue against which you should queue
-MessageQueue * get_message_queue(u32 msgId,
-                                 u32 flags,
-                                 task_id source,
+MessageQueue * get_message_queue(task_id source,
                                  task_id target);
 // Broadcast a message to all TaskMasters
 void broadcast_message(u32 msgId,

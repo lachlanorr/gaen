@@ -78,6 +78,7 @@ ELSE(IOS)
     engine
     renderergl
     scripts
+    assets
     ${PROJECT_LINK_LIBS}
     ${PLATFORM_LINK_LIBS}
     )

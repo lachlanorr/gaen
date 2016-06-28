@@ -51,6 +51,11 @@ public:
     u32 yDelta() const { return mMsgAcc[0].cells[0].u; }
         
 private:
+    MouseMoveR(const MouseMoveR &)              = delete;
+    MouseMoveR(const MouseMoveR &&)             = delete;
+    MouseMoveR & operator=(const MouseMoveR &)  = delete;
+    MouseMoveR & operator=(const MouseMoveR &&) = delete;
+
     const T & mMsgAcc;
 
 
@@ -74,9 +79,29 @@ public:
                            to_cell(xDelta),
                            1)
     {}
+
+    MouseMoveQW(u32 msgId,
+                u32 flags,
+                task_id source,
+                task_id target,
+                u32 xDelta,
+                MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(xDelta),
+                           1,
+                           pMsgQueue)
+    {}
     
     void setXDelta(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setYDelta(u32 val) { mMsgAcc[0].cells[0].u = val; }
+private:
+    MouseMoveQW(const MouseMoveQW &)              = delete;
+    MouseMoveQW(const MouseMoveQW &&)             = delete;
+    MouseMoveQW & operator=(const MouseMoveQW &)  = delete;
+    MouseMoveQW & operator=(const MouseMoveQW &&) = delete;
 };
 
 class MouseMoveBW : public MessageBlockWriter
@@ -100,6 +125,11 @@ public:
     void setYDelta(u32 val) { mMsgAcc[0].cells[0].u = val; }
 
 private:
+    MouseMoveBW(const MouseMoveBW &)              = delete;
+    MouseMoveBW(const MouseMoveBW &&)             = delete;
+    MouseMoveBW & operator=(const MouseMoveBW &)  = delete;
+    MouseMoveBW & operator=(const MouseMoveBW &&) = delete;
+
     Block mBlocks[1 + 1]; // +1 for header
 };
 

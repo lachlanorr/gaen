@@ -27,19 +27,35 @@
 #ifndef GAEN_ENGINE_HANDLE_MGR_H
 #define GAEN_ENGINE_HANDLE_MGR_H
 
+#include "core/Vector.h"
 #include "engine/Message.h"
 #include "engine/BlockMemory.h"
 
 namespace gaen
 {
 
+class AssetLoader;
+
 class HandleMgr
 {
 public:
+    HandleMgr(u32 assetLoaderCount);
+    ~HandleMgr();
+
+    void process();
+
     template <typename T>
     MessageResult message(const T& msgAcc);
 private:
-    BlockMemory mBlockMemory;
+    AssetLoader * findLeastBusyAssetLoader();
+
+    // Track creator's thread id so we can ensure no other thread calls us.
+    // If they do, our SPSC queue design breaks down.
+    thread_id mCreatorThreadId;
+
+    u32 mAssetLoaderCount;
+    Vector<kMEM_Engine, AssetLoader*> mAssetLoaders;
+
 }; // HandleMgr
 
 } // namespace gaen

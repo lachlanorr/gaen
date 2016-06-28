@@ -27,113 +27,110 @@
 #include "engine/stdafx.h"
 
 #include "core/logging.h"
+#include "core/mem.h"
 #include "engine/hashes.h"
 #include "engine/messages/Handle.h"
 #include "engine/MessageQueue.h"
+#include "engine/AssetLoader.h"
+#include "engine/TaskMaster.h"
 #include "engine/HandleMgr.h"
 
 namespace gaen
 {
 
+// Easily distinguish AssetLoader threads from TaskManager threads
+static const u32 kInitialAssetLoaderThreadId = 0xA55E70; // 10837616
+
+HandleMgr::HandleMgr(u32 assetLoaderCount)
+{
+    mCreatorThreadId = active_thread_id();
+
+    ASSERT(assetLoaderCount > 0 && assetLoaderCount <= 4);
+    mAssetLoaderCount = assetLoaderCount;
+
+    mAssetLoaders.reserve(mAssetLoaderCount);
+
+    for (u32 i = 0; i < mAssetLoaderCount; ++i)
+    {
+        mAssetLoaders.push_back(GNEW(kMEM_Engine, AssetLoader, i + kInitialAssetLoaderThreadId));
+    }
+}
+
+HandleMgr::~HandleMgr()
+{
+    for (auto pLdr : mAssetLoaders)
+    {
+        pLdr->stopAndJoin();
+        GDELETE(pLdr);
+    }
+}
+
+void HandleMgr::process()
+{
+    ASSERT(mCreatorThreadId == active_thread_id());
+
+    MessageQueueAccessor msgAcc;
+
+    for (auto pLdr : mAssetLoaders)
+    {
+        while (pLdr->readyQueue().popBegin(&msgAcc))
+        {
+            message(msgAcc);
+            pLdr->readyQueue().popCommit(msgAcc);
+            pLdr->decQueueSize();
+        }
+    }
+}
+
 template <typename T>
 MessageResult HandleMgr::message(const T & msgAcc)
 {
+    ASSERT(mCreatorThreadId == active_thread_id());
+
     const Message & msg = msgAcc.message();
 
     switch (msg.msgId)
     {
-    case HASH::request_asset:
+    case HASH::request_asset__:
     {
-        PANIC_IF(msg.blockCount < 2, "Too few bytes for request_asset message");
-
-        u32 requestorTaskId = msg.source;
-        u32 nameHash = msgAcc[0].cells[0].u;
-        
-        const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[1]);
-
-        PANIC_IF(pBlockData->type != kBKTY_String, "No path string sent in request_asset message");
-        
-        u32 requiredBlockCount = pBlockData->blockCount;
-
-        // -1 below is for the block 0 in the message required to send the requestorTaskId
-        PANIC_IF(msg.blockCount - 1 < requiredBlockCount, "Too few bytes for request_asset path string");
-
-        Address addr = mBlockMemory.allocCopy(pBlockData);
-        CmpString pathCmpString = mBlockMemory.string(addr);
-        const char * pathStr = pathCmpString.c_str();
-
-        // LORRTODO: Really load assets
-        
-        messages::HandleQW msgw(HASH::asset_ready__, kMessageFlag_None, kHandleMgrTaskId, msg.source, requestorTaskId);
-        msgw.setNameHash(nameHash);
-        msgw.setHandle(nullptr);
-
-        break;
+        AssetLoader * pLdr = findLeastBusyAssetLoader();
+        pLdr->queueRequest(msgAcc);
+        pLdr->incQueueSize();
+        return MessageResult::Consumed;
+    }
+    case HASH::asset_ready__:
+    {
+        MessageQueue * pMsgQ = get_message_queue(msgAcc.message().source,
+                                                 msgAcc.message().source);
+        pMsgQ->transcribeMessage(msgAcc);
+        return MessageResult::Consumed;
     }
     default:
         PANIC("Unknown HandleMgr message: %d", msg.msgId);
     }
     return MessageResult::Consumed;
-
-	/*
-	switch(msg.msgId)
-    {
-
-    case HASH::renderer_insert_model_instance:
-    {
-        messages::InsertModelInstanceR<T> msgr(msgAcc);
-        mpModelMgr->insertModelInstance(msgAcc.message().source,
-                                        msgr.uid(),
-                                        msgr.model(),
-                                        msgr.transform(),
-                                        msgr.isAssetManaged());
-        break;
-    }
-    case HASH::renderer_transform_model_instance:
-    {
-        messages::TransformIdR<T> msgr(msgAcc);
-        ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.id());
-        ASSERT(pModelInst);
-        pModelInst->transform = msgr.transform();
-        break;
-    }
-    case HASH::renderer_remove_model_instance:
-    {
-        mpModelMgr->removeModelInstance(msg.source, msg.payload.u);
-        break;
-    }
-    case HASH::renderer_insert_light_directional:
-    {
-        messages::InsertLightDirectionalR<T> msgr(msgAcc);
-        glm::vec3 normDir = glm::normalize(msgr.direction());
-        glm::vec3 relDir = -normDir; // flip direction of vector relative to objects
-        mDirectionalLights.emplace_back(msgAcc.message().source,
-                                        msgr.uid(),
-                                        relDir,
-                                        msgr.color());
-        break;
-    }
-    case HASH::renderer_update_light_directional:
-    {
-        messages::InsertLightDirectionalR<T> msgr(msgAcc);
-        mDirectionalLights.emplace_back(msgAcc.message().source,
-                                        msgr.uid(),
-                                        msgr.direction(),
-                                        msgr.color());
-        break;
-    }
-    case HASH::renderer_move_camera:
-    {
-        messages::MoveCameraR<T> msgr(msgAcc);
-        mRaycastCamera.move(msgr.position(), msgr.direction());
-        break;
-    }
-    default:
-        PANIC("Unknown renderer message: %d", msg.msgId);
-    }
-*/
-    return MessageResult::Consumed;
 }
+
+AssetLoader * HandleMgr::findLeastBusyAssetLoader()
+{
+    ASSERT(mCreatorThreadId == active_thread_id());
+
+    AssetLoader * pLoader = nullptr;
+    u32 queueSize = std::numeric_limits<u32>::max();;
+
+    for (auto pLdr : mAssetLoaders)
+    {
+        if (pLdr->queueSize() < queueSize)
+        {
+            queueSize = pLdr->queueSize();
+            pLoader = pLdr;
+        }
+    }
+
+    ASSERT(pLoader);
+    return pLoader;
+}
+
 
 // Template decls so we can define message func here in the .cpp
 template MessageResult HandleMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);

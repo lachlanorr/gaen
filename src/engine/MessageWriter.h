@@ -46,7 +46,7 @@ public:
                        cell payload,
                        u32 blockCount)
     {
-        mpMsgQueue = get_message_queue(msgId, flags, source, target);
+        mpMsgQueue = get_message_queue(source, target);
         mpMsgQueue->pushBegin(&mMsgAcc,
                               msgId,
                               flags,

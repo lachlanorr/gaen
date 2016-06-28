@@ -27,12 +27,111 @@
 #include "engine/stdafx.h"
 
 #include "core/HashMap.h"
+#include "assets/file_utils.h"
 #include "engine/MessageQueue.h"
+#include "engine/Asset.h"
+
+#include "engine/messages/Handle.h"
 
 #include "engine/AssetLoader.h"
 
 namespace gaen
 {
+
+AssetLoader::AssetLoader(u32 loaderId)
+{
+    mCreatorThreadId = active_thread_id();
+
+    mLoaderId = loaderId;
+    mQueueSize = 0;
+
+    mpRequestQueue = GNEW(kMEM_Engine, MessageQueue, kMaxAssetMessages);
+    mpReadyQueue = GNEW(kMEM_Engine, MessageQueue, kMaxAssetMessages);
+
+    mThread = std::thread(&AssetLoader::threadProc, this);
+}
+
+AssetLoader::~AssetLoader()
+{
+    ASSERT(!mIsRunning);
+
+    GDELETE(mpRequestQueue);
+    GDELETE(mpReadyQueue);
+}
+
+void AssetLoader::queueRequest(const MessageQueueAccessor & msgAcc)
+{
+    ASSERT(mCreatorThreadId == active_thread_id());
+    mpRequestQueue->transcribeMessage(msgAcc);
+}
+
+void AssetLoader::stopAndJoin()
+{
+    mIsRunning = false;
+    mThread.join();
+}
+
+
+void AssetLoader::threadProc()
+{
+    init_time(); // must be initialized on every thread to support logging timestamps
+    set_active_thread_id(mLoaderId); // set thread id for tracking purposes
+
+    mIsRunning = true;
+
+    MessageQueueAccessor msgAcc;
+
+    while (mIsRunning)
+    {
+        while (mpRequestQueue->popBegin(&msgAcc))
+        {
+            message(msgAcc);
+            mpRequestQueue->popCommit(msgAcc);
+        }
+    }
+}
+
+MessageResult AssetLoader::message(const MessageQueueAccessor& msgAcc)
+{
+    Message msg = msgAcc.message();
+
+    switch (msg.msgId)
+    {
+    case HASH::request_asset__:
+    {
+        PANIC_IF(msg.blockCount < 2, "Too few bytes for request_asset message");
+
+        u32 requestorTaskId = msg.source;
+        u32 nameHash = msgAcc[0].cells[0].u;
+
+        const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[1]);
+
+        PANIC_IF(pBlockData->type != kBKTY_String, "No path string sent in request_asset message");
+
+        u32 requiredBlockCount = pBlockData->blockCount;
+
+        // -1 below is for the block 0 in the message required to send the requestorTaskId
+        PANIC_IF(msg.blockCount - 1 < requiredBlockCount, "Too few bytes for request_asset path string");
+
+        Address addr = mBlockMemory.allocCopy(pBlockData);
+        CmpString pathCmpString = mBlockMemory.string(addr);
+        const char * pathStr = pathCmpString.c_str();
+
+        Asset * pAsset = GNEW(kMEM_Engine, Asset, pathStr);
+        Handle * pHandle = GNEW(kMEM_Engine, Handle, HASH::asset, HASH::hash_func(pathStr), pAsset, handle_delete<Asset>);
+
+        messages::HandleQW msgw(HASH::asset_ready__, kMessageFlag_None, kHandleMgrTaskId, msg.source, requestorTaskId, mpReadyQueue);
+        msgw.setNameHash(nameHash);
+        msgw.setHandle(pHandle);
+
+        return MessageResult::Consumed;
+    }
+    default:
+        PANIC("Unhandled message id sent to AssetLoader: %u", msg.msgId);
+        return MessageResult::Consumed;
+    }
+}
+
 
 // 4cc is endian dangerous, but we only do this within a running process,
 // these 4 character codes are never persisted between processes.

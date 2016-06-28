@@ -64,6 +64,11 @@ public:
     thread_id owner() const { return (thread_id)mMsgAcc.message().payload.u; }
         
 private:
+    InsertTaskR(const InsertTaskR &)              = delete;
+    InsertTaskR(const InsertTaskR &&)             = delete;
+    InsertTaskR & operator=(const InsertTaskR &)  = delete;
+    InsertTaskR & operator=(const InsertTaskR &&) = delete;
+
     const T & mMsgAcc;
 
     // These members provide storage for fields larger than a block that wrap the ring buffer
@@ -89,6 +94,21 @@ public:
                            to_cell(*reinterpret_cast<const u32*>(&owner)),
                            2)
     {}
+
+    InsertTaskQW(u32 msgId,
+                 u32 flags,
+                 task_id source,
+                 task_id target,
+                 thread_id owner,
+                 MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(*reinterpret_cast<const u32*>(&owner)),
+                           2,
+                           pMsgQueue)
+    {}
     
     void setTask(const Task & val)
     {
@@ -98,6 +118,11 @@ public:
         }
     }
     void setOwner(thread_id val) { mMsgAcc.message().payload.u = (u32)val; }
+private:
+    InsertTaskQW(const InsertTaskQW &)              = delete;
+    InsertTaskQW(const InsertTaskQW &&)             = delete;
+    InsertTaskQW & operator=(const InsertTaskQW &)  = delete;
+    InsertTaskQW & operator=(const InsertTaskQW &&) = delete;
 };
 
 class InsertTaskBW : public MessageBlockWriter
@@ -127,6 +152,11 @@ public:
     void setOwner(thread_id val) { mMsgAcc.message().payload.u = (u32)val; }
 
 private:
+    InsertTaskBW(const InsertTaskBW &)              = delete;
+    InsertTaskBW(const InsertTaskBW &&)             = delete;
+    InsertTaskBW & operator=(const InsertTaskBW &)  = delete;
+    InsertTaskBW & operator=(const InsertTaskBW &&) = delete;
+
     Block mBlocks[2 + 1]; // +1 for header
 };
 

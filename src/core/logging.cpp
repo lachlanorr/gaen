@@ -87,9 +87,6 @@ void Logger::fin()
 
 void Logger::log(LogSeverity severity, const char * message)
 {
-    ASSERT(mIsInit);
-    ASSERT(message);
-
     TL(LogMessage, tLogMessage);
 
     // Necessary to pull out of TreadLocal class.

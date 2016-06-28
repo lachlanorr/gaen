@@ -52,6 +52,11 @@ public:
     u32 deviceId() const { return mMsgAcc[0].cells[1].u; }
         
 private:
+    WatchInputStateR(const WatchInputStateR &)              = delete;
+    WatchInputStateR(const WatchInputStateR &&)             = delete;
+    WatchInputStateR & operator=(const WatchInputStateR &)  = delete;
+    WatchInputStateR & operator=(const WatchInputStateR &&) = delete;
+
     const T & mMsgAcc;
 
 
@@ -75,10 +80,30 @@ public:
                            to_cell(state),
                            1)
     {}
+
+    WatchInputStateQW(u32 msgId,
+                      u32 flags,
+                      task_id source,
+                      task_id target,
+                      u32 state,
+                      MessageQueue * pMsgQueue)
+      : MessageQueueWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(state),
+                           1,
+                           pMsgQueue)
+    {}
     
     void setMessage(u32 val) { mMsgAcc[0].cells[0].u = val; }
     void setState(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setDeviceId(u32 val) { mMsgAcc[0].cells[1].u = val; }
+private:
+    WatchInputStateQW(const WatchInputStateQW &)              = delete;
+    WatchInputStateQW(const WatchInputStateQW &&)             = delete;
+    WatchInputStateQW & operator=(const WatchInputStateQW &)  = delete;
+    WatchInputStateQW & operator=(const WatchInputStateQW &&) = delete;
 };
 
 class WatchInputStateBW : public MessageBlockWriter
@@ -103,6 +128,11 @@ public:
     void setDeviceId(u32 val) { mMsgAcc[0].cells[1].u = val; }
 
 private:
+    WatchInputStateBW(const WatchInputStateBW &)              = delete;
+    WatchInputStateBW(const WatchInputStateBW &&)             = delete;
+    WatchInputStateBW & operator=(const WatchInputStateBW &)  = delete;
+    WatchInputStateBW & operator=(const WatchInputStateBW &&) = delete;
+
     Block mBlocks[1 + 1]; // +1 for header
 };
 

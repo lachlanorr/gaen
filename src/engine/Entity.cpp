@@ -36,6 +36,7 @@
 #include "engine/Registry.h"
 #include "engine/Asset.h"
 
+#include "engine/messages/Handle.h"
 #include "engine/messages/InsertComponent.h"
 #include "engine/messages/InsertTask.h"
 #include "engine/messages/TaskStatus.h"
@@ -333,6 +334,11 @@ MessageResult Entity::message(const T & msgAcc)
             if (msgId == HASH::asset_ready__)
             {
                 ASSERT(!areAllAssetsLoaded());
+
+                messages::HandleR<T> msgr(msgAcc);
+
+                Handle * pHandle = msgr.handle();
+                Asset * pAsset = (Asset*)pHandle->data();
 
                 // LORRTODO: if asset load was a failure, send ourselves #fin__
                 // 
@@ -731,7 +737,7 @@ void Entity::requestAsset(u32 taskId, u32 nameHash, const CmpString & path)
 {
     mAssetsRequested++;
 
-    MessageQueueWriter msgw(HASH::request_asset, kMessageFlag_None, mTask.id(), kHandleMgrTaskId, to_cell(taskId), path.blockCount() + 1);
+    MessageQueueWriter msgw(HASH::request_asset__, kMessageFlag_None, mTask.id(), kHandleMgrTaskId, to_cell(taskId), path.blockCount() + 1);
     msgw[0].cells[0].u = nameHash;
     path.writeMessage(msgw.accessor(), 1);
 }
