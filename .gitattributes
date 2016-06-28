@@ -1,7 +1,7 @@
 # Since we codegen various files in the repository,
 # force all into unix line endings.
 
-# text=auto
+* text=auto
 
 # source files
 *.cpp   eol=lf
