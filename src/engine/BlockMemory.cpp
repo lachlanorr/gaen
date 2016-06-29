@@ -70,8 +70,6 @@ Chunk::Chunk(u8 chunkIdx)
 
 u8 Chunk::alloc(u8 blockCount)
 {
-    mHeader.needsCollection = true;
-
     ASSERT(blockCount <= kBlocksPerChunk);
     if (blockCount > mHeader.freeCount)
         return Address::kInvalidIdx;
