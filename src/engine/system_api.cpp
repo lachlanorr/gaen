@@ -158,6 +158,9 @@ void renderer_insert_model_instance(u32 uid,
     msgQW.setIsAssetManaged(true);
     msgQW.setModel((Model*)modelHandle->data());
     msgQW.setTransform(caller.transform());
+
+    // Renderer now owns the model
+    modelHandle->clearData();
 }
 
 void renderer_transform_model_instance(u32  uid, const glm::mat4x3 & transform, Entity & caller)

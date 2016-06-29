@@ -35,7 +35,7 @@
 #include "engine/messages/InsertTask.h"
 #include "engine/messages/TaskStatus.h"
 #include "engine/InputMgr.h"
-#include "engine/HandleMgr.h"
+#include "engine/AssetMgr.h"
 #include "engine/renderer_api.h"
 
 #include "engine/TaskMaster.h"
@@ -359,7 +359,7 @@ void TaskMaster::runPrimaryGameLoop()
     ASSERT(!mIsRunning);
 
     mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr));
-    mpHandleMgr.reset(GNEW(kMEM_Engine, HandleMgr, 4));
+    mpAssetMgr.reset(GNEW(kMEM_Engine, AssetMgr, 4));
 
     renderer_init_device(mRendererTask);
     renderer_init_viewport(mRendererTask);
@@ -419,8 +419,8 @@ void TaskMaster::runPrimaryGameLoop()
             task.update(deltaSecs);
         }
 
-        // Give HandleMgr an opportunity to process messages
-        mpHandleMgr->process();
+        // Give AssetMgr an opportunity to process messages
+        mpAssetMgr->process();
 
         renderer_end_frame(mRendererTask);
 
@@ -584,10 +584,10 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
         ASSERT(mpInputMgr.get() != nullptr);
         mpInputMgr->message(msgAcc);
     }
-    else if (msg.target == kHandleMgrTaskId)
+    else if (msg.target == kAssetMgrTaskId)
     {
-        ASSERT(mpHandleMgr.get() != nullptr);
-        mpHandleMgr->message(msgAcc);
+        ASSERT(mpAssetMgr.get() != nullptr);
+        mpAssetMgr->message(msgAcc);
     }
     else if (msg.target == kMainThreadTaskId)
     {

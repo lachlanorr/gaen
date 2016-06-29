@@ -337,8 +337,10 @@ MessageResult Entity::message(const T & msgAcc)
 
                 messages::HandleR<T> msgr(msgAcc);
 
-                Handle * pHandle = msgr.handle();
-                Asset * pAsset = (Asset*)pHandle->data();
+                task_id subTask = msgr.taskId();
+                u32 nameHash = msgr.nameHash();
+                const Handle * pHandle = msgr.handle();
+                const Asset * pAsset = reinterpret_cast<const Asset*>(pHandle->data());
 
                 // LORRTODO: if asset load was a failure, send ourselves #fin__
                 // 
@@ -737,7 +739,7 @@ void Entity::requestAsset(u32 taskId, u32 nameHash, const CmpString & path)
 {
     mAssetsRequested++;
 
-    MessageQueueWriter msgw(HASH::request_asset__, kMessageFlag_None, mTask.id(), kHandleMgrTaskId, to_cell(taskId), path.blockCount() + 1);
+    MessageQueueWriter msgw(HASH::request_asset__, kMessageFlag_None, mTask.id(), kAssetMgrTaskId, to_cell(taskId), path.blockCount() + 1);
     msgw[0].cells[0].u = nameHash;
     path.writeMessage(msgw.accessor(), 1);
 }

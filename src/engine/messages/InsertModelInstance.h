@@ -121,7 +121,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
-    void setModel(Model * pVal) { mMsgAcc[3].dCells[0].p = pVal; }
+    void setModel(Model * pVal) { mMsgAcc[3].dCells[0].p = (void*)pVal; }
     void setUid(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setIsAssetManaged(bool val) { mMsgAcc[3].cells[2].b = val; }
 private:
@@ -155,7 +155,7 @@ public:
             mMsgAcc[i + 0] = block_at(&val, i);
         }
     }
-    void setModel(Model * pVal) { mMsgAcc[3].dCells[0].p = pVal; }
+    void setModel(Model * pVal) { mMsgAcc[3].dCells[0].p = (void*)pVal; }
     void setUid(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
     void setIsAssetManaged(bool val) { mMsgAcc[3].cells[2].b = val; }
 

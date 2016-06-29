@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Asset.cpp - Smart wrapper for raw asset buffers
+// Asset.h - Manages asset loading
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,64 +24,44 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "engine/stdafx.h"
+#ifndef GAEN_ENGINE_ASSET_MGR_H
+#define GAEN_ENGINE_ASSET_MGR_H
 
-#include "core/mem.h"
-#include "engine/hashes.h"
-#include "assets/file_utils.h"
-#include "engine/AssetLoader.h"
-
-#include "engine/Asset.h"
+#include "core/Vector.h"
+#include "engine/Message.h"
+#include "engine/BlockMemory.h"
 
 namespace gaen
 {
 
-Asset::Asset(const char * path)
-  : mPath(path)
-  , mRefCount(0)
-  , mpBuffer(nullptr)
-  , mSize(0)
-  , mIsMutable(false)
+class AssetLoader;
+
+class AssetMgr
 {
-    ASSERT(path);
+public:
+    AssetMgr(u32 assetLoaderCount);
+    ~AssetMgr();
 
-    static std::atomic<u64> sUidCounter(0);
-    mUid = ++sUidCounter;
-    
-    mPathHash = HASH::hash_func(path);
-    load();
-}
+    void process();
 
-Asset::~Asset()
-{
-    if (isLoaded())
-        unload();
-}
+    template <typename T>
+    MessageResult message(const T& msgAcc);
+private:
+    AssetLoader * findLeastBusyAssetLoader();
+    void sendAssetReadyHandle(const Asset * pAsset,
+                              task_id entityTask,
+                              task_id entitySubTask,
+                              u32 nameHash);
 
-void Asset::load()
-{
-    PANIC_IF(isLoaded(), "load called on already loaded asset: %s", mPath);
+    // Track creator's thread id so we can ensure no other thread calls us.
+    // If they do, our SPSC queue design breaks down.
+    thread_id mCreatorThreadId;
 
-    FileReader rdr(mPath.c_str());
+    u32 mAssetLoaderCount;
+    Vector<kMEM_Engine, AssetLoader*> mAssetLoaders;
 
-    if (rdr.isOk())
-    {
-        mSize = rdr.size();
-        if (mSize > 0)
-        {
-            ASSERT(!mpBuffer);
-            MemType memType = AssetLoader::mem_type_from_ext(get_ext(mPath.c_str()));
-            mpBuffer = (u8*)GALLOC(memType, mSize);
-            rdr.read(mpBuffer, mSize);
-        }
-    }
-}
-    
-void Asset::unload()
-{
-    PANIC_IF(!isLoaded(), "unload called on unloaded asset: %s", mPath);
-    GFREE(mpBuffer);
-    mpBuffer = nullptr;
-}
+}; // AssetMgr
 
 } // namespace gaen
+
+#endif // #ifndef GAEN_ENGINE_ASSET_MGR_H

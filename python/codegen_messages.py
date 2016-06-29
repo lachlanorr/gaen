@@ -174,7 +174,7 @@ def gen_writer_setters(field_handler):
             else:
                 lines.append('    void %s(%s val) { mMsgAcc.message().payload.%s = *reinterpret_cast<const %s*>(&val); }' % (f.setter_name, f.type_name, f.union_type, f.type_name))
         elif type(f) == PointerField:
-            lines.append('    void %s(%s pVal) { mMsgAcc[%d].%s.p = pVal; }' % (f.setter_name, f.type_name, f.block_start, f.block_accessor))
+            lines.append('    void %s(%s pVal) { mMsgAcc[%d].%s.p = (void*)pVal; }' % (f.setter_name, f.type_name, f.block_start, f.block_accessor))
         elif f.type_name == 'glm::vec3':
             lines.append('    void %s(const %s & val) { mMsgAcc[%d].%s = *reinterpret_cast<const tcell*>(&val); }' % (f.setter_name, f.type_name, f.block_start, f.block_accessor))
         elif f.block_count <= 1:

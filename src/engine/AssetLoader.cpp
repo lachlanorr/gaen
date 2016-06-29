@@ -31,7 +31,7 @@
 #include "engine/MessageQueue.h"
 #include "engine/Asset.h"
 
-#include "engine/messages/Handle.h"
+#include "engine/messages/Asset.h"
 
 #include "engine/AssetLoader.h"
 
@@ -118,11 +118,10 @@ MessageResult AssetLoader::message(const MessageQueueAccessor& msgAcc)
         const char * pathStr = pathCmpString.c_str();
 
         Asset * pAsset = GNEW(kMEM_Engine, Asset, pathStr);
-        Handle * pHandle = GNEW(kMEM_Engine, Handle, HASH::asset, HASH::hash_func(pathStr), pAsset, handle_delete<Asset>);
 
-        messages::HandleQW msgw(HASH::asset_ready__, kMessageFlag_None, kHandleMgrTaskId, msg.source, requestorTaskId, mpReadyQueue);
+        messages::AssetQW msgw(HASH::asset_ready__, kMessageFlag_None, kAssetMgrTaskId, msg.source, requestorTaskId, mpReadyQueue);
         msgw.setNameHash(nameHash);
-        msgw.setHandle(pHandle);
+        msgw.setAsset(pAsset);
 
         return MessageResult::Consumed;
     }

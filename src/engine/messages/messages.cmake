@@ -26,6 +26,7 @@
 
 SET (engine_messages_SOURCES
   messages/messages.def
+  messages/Asset.h
   messages/Handle.h
   messages/InsertComponent.h
   messages/InsertLightDirectional.h

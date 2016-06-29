@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// HandleMgr.h - Manages access to Handle data, enabling lockless concurrency
+// Handle.cpp - Enables external data references in compose scripts
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,40 +24,21 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_HANDLE_MGR_H
-#define GAEN_ENGINE_HANDLE_MGR_H
+#include "engine/stdafx.h"
 
-#include "core/Vector.h"
-#include "engine/Message.h"
-#include "engine/BlockMemory.h"
+#include "engine/Handle.h"
 
 namespace gaen
 {
 
-class AssetLoader;
-
-class HandleMgr
+void handle_free(Handle & handle)
 {
-public:
-    HandleMgr(u32 assetLoaderCount);
-    ~HandleMgr();
-
-    void process();
-
-    template <typename T>
-    MessageResult message(const T& msgAcc);
-private:
-    AssetLoader * findLeastBusyAssetLoader();
-
-    // Track creator's thread id so we can ensure no other thread calls us.
-    // If they do, our SPSC queue design breaks down.
-    thread_id mCreatorThreadId;
-
-    u32 mAssetLoaderCount;
-    Vector<kMEM_Engine, AssetLoader*> mAssetLoaders;
-
-}; // HandleMgr
+    if (handle.data())
+    {
+        void * pData = const_cast<void*>(handle.data());
+        GFREE(pData);
+    }
+}
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_HANDLE_MGR_H

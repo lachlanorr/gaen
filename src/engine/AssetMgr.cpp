@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// HandleMgr.cpp - Manages access to Handle data, enabling lockless concurrency
+// Asset.cpp - Manages asset loading
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -33,7 +33,11 @@
 #include "engine/MessageQueue.h"
 #include "engine/AssetLoader.h"
 #include "engine/TaskMaster.h"
-#include "engine/HandleMgr.h"
+
+#include "engine/messages/Asset.h"
+
+#include "engine/AssetMgr.h"
+
 
 namespace gaen
 {
@@ -41,7 +45,18 @@ namespace gaen
 // Easily distinguish AssetLoader threads from TaskManager threads
 static const u32 kInitialAssetLoaderThreadId = 0xA55E70; // 10837616
 
-HandleMgr::HandleMgr(u32 assetLoaderCount)
+void asset_handle_free(Handle & handle)
+{
+    ASSERT(handle.typeHash() == HASH::asset);
+    if (handle.data())
+    {
+        const Asset * pAsset = reinterpret_cast<const Asset*>(handle.data());
+        messages::AssetQW msgw(HASH::release_asset__, kMessageFlag_None, handle.owner(), kAssetMgrTaskId, 0);
+        msgw.setAsset(pAsset);
+    }
+}
+
+AssetMgr::AssetMgr(u32 assetLoaderCount)
 {
     mCreatorThreadId = active_thread_id();
 
@@ -56,7 +71,7 @@ HandleMgr::HandleMgr(u32 assetLoaderCount)
     }
 }
 
-HandleMgr::~HandleMgr()
+AssetMgr::~AssetMgr()
 {
     for (auto pLdr : mAssetLoaders)
     {
@@ -65,7 +80,7 @@ HandleMgr::~HandleMgr()
     }
 }
 
-void HandleMgr::process()
+void AssetMgr::process()
 {
     ASSERT(mCreatorThreadId == active_thread_id());
 
@@ -82,8 +97,30 @@ void HandleMgr::process()
     }
 }
 
+void AssetMgr::sendAssetReadyHandle(const Asset * pAsset,
+                                    task_id entityTask,
+                                    task_id entitySubTask,
+                                    u32 nameHash)
+{
+    ASSERT(mCreatorThreadId == active_thread_id());
+
+    // Prep a Handle wrapper for the asset
+    Handle * pHandle = GNEW(kMEM_Engine,
+                            Handle,
+                            HASH::asset,
+                            pAsset->pathHash(),
+                            entitySubTask,
+                            pAsset,
+                            asset_handle_free);
+
+    messages::HandleQW msgw(HASH::asset_ready__, kMessageFlag_None, kAssetMgrTaskId, entityTask, entitySubTask);
+    msgw.setNameHash(nameHash);
+    msgw.setHandle(pHandle);
+}
+
+
 template <typename T>
-MessageResult HandleMgr::message(const T & msgAcc)
+MessageResult AssetMgr::message(const T & msgAcc)
 {
     ASSERT(mCreatorThreadId == active_thread_id());
 
@@ -100,18 +137,24 @@ MessageResult HandleMgr::message(const T & msgAcc)
     }
     case HASH::asset_ready__:
     {
-        MessageQueue * pMsgQ = get_message_queue(msgAcc.message().source,
-                                                 msgAcc.message().source);
-        pMsgQ->transcribeMessage(msgAcc);
+        messages::AssetR<T> msgr(msgAcc);
+        const Asset * pAsset = msgr.asset();
+
+        // LORRNOTE: In this case, msg.source is the original entity
+        // task_id that requested the asset since AssetLoader sends it
+        // back to us.
+
+        sendAssetReadyHandle(pAsset, msg.target, msgr.taskId(), msgr.nameHash());
+
         return MessageResult::Consumed;
     }
     default:
-        PANIC("Unknown HandleMgr message: %d", msg.msgId);
+        PANIC("Unknown AssetMgr message: %d", msg.msgId);
     }
     return MessageResult::Consumed;
 }
 
-AssetLoader * HandleMgr::findLeastBusyAssetLoader()
+AssetLoader * AssetMgr::findLeastBusyAssetLoader()
 {
     ASSERT(mCreatorThreadId == active_thread_id());
 
@@ -133,6 +176,6 @@ AssetLoader * HandleMgr::findLeastBusyAssetLoader()
 
 
 // Template decls so we can define message func here in the .cpp
-template MessageResult HandleMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template MessageResult AssetMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
 
 } // namespace gaen

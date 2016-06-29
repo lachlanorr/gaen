@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Handle.h - Manages data reference sharing and access from Compose scripts
+// Handle.h - Enables external data references in compose scripts
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -29,85 +29,68 @@
 
 #include "core/base_defines.h"
 #include "core/mem.h"
+#include "engine/task.h"
 
 namespace gaen
 {
 
 class Handle;
-typedef void(*HandleFreeFunc)(Handle & handle);
+typedef void(*HandleReleaseFunc)(Handle & handle);
 
 class Handle
 {
-    friend class HandleMgr;
 public:
-    Handle(u32 typeHash, u32 nameHash, void * pData, HandleFreeFunc pFreeFunc)
+    Handle(u32 typeHash, u32 nameHash, task_id owner, const void * pData, HandleReleaseFunc pReleaseFunc)
       : mTypeHash(typeHash)
       , mNameHash(nameHash)
-      , mRefCount(0)
+      , mOwner(owner)
       , mpData(pData)
-      , mpFreeFunc(pFreeFunc)
+      , mpReleaseFunc(pReleaseFunc)
     {
     }
 
+    task_id owner() const { return mOwner; }
     u32 typeHash() const { return mTypeHash; }
     u32 nameHash() const { return mNameHash; }
 
-    void * data() { ASSERT(!isNull()); return mpData; }
     const void * data() const { return mpData; }
+
+    // Clear the data pointer, useful if handle was temporary
+    // and only needed to pass through to another system_api
+    // call from a compose script.
+    void clearData() { mpData = nullptr; }
 
     bool isNull() const { return mTypeHash == 0; }
 
-    void free()
+    void release()
     {
-        if (mpFreeFunc)
-            mpFreeFunc(*this);
+        if (mpReleaseFunc)
+            mpReleaseFunc(*this);
         GDELETE(this);
     }
 
 private:
-    void addRef()
-    {
-        mRefCount++;
-    }
-
-    bool release()
-    {
-        ASSERT(mRefCount > 0);
-        mRefCount--;
-
-        return mRefCount == 0;
-    }
-
-    u32 mUuid;
+    task_id mOwner;
     u32 mTypeHash;
     u32 mNameHash;
-    u32 mRefCount;
-    void * mpData;
-    PAD_IF_32BIT_A
-    HandleFreeFunc mpFreeFunc;
-    PAD_IF_32BIT_B
+    const void * mpData;
+    HandleReleaseFunc mpReleaseFunc;
 };
 
 typedef Handle* HandleP;
 typedef HandleP AssetHandleP;
 
-// We have 4 extra bytes for padding, but 32 will keep these
-// 16-byte block aligned properly if we need an array of them.
-static_assert(sizeof(Handle)==32, "Handle should be 32 bytes");
-
-
-// Simple free callbacks usable in most cases.
+// Simple release callbacks usable in many cases.
 // We want to call the mem.h macros to handle
 // memory tracking properly when it is enabled.
-inline void handle_free(Handle & handle)
-{
-    GFREE(handle.data());
-}
+void handle_free(Handle & handle);
+
 template <class T>
-inline void handle_delete(Handle & handle)
+void handle_delete(Handle & handle)
 {
-    T * tPtr = reinterpret_cast<T*>(handle.data());
-    GDELETE(tPtr);
+    T * tPtr = const_cast<T*>(reinterpret_cast<const T*>(handle.data()));
+    if (tPtr)
+        GDELETE(tPtr);
 }
 
 } // namespace gaen

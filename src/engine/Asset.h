@@ -29,14 +29,15 @@
 
 #include "core/base_defines.h"
 #include "core/mem.h"
+#include "core/String.h"
 
 namespace gaen
 {
 
 class Asset
 {
-public:
     friend class AssetMgr;
+public:
 
     explicit Asset(const char * path);
     ~Asset();
@@ -46,6 +47,13 @@ public:
     Asset(Asset&&)             = delete;
     Asset & operator=(Asset&&) = delete;
 
+    bool operator==(const Asset & rhs)
+    {
+        // Use mPathHash for fast comparisons
+        return (mPathHash == rhs.mPathHash &&
+                mPath == rhs.mPath);
+    }
+    
     bool isLoaded() const
     {
         return mpBuffer != nullptr;
@@ -53,7 +61,7 @@ public:
 
     const char * path() const
     {
-        return mPath;
+        return mPath.c_str();
     }
 
     u32 pathHash() const
@@ -61,26 +69,28 @@ public:
         return mPathHash;
     }
 
-    const u8 * buffer() const
+    template <typename T>
+    const T * buffer() const
     {
         ASSERT(isLoaded());
         return mpBuffer;
     }
 
-    u8 * writableBuffer()
+    template <typename T>
+    T * mutableBuffer()
     {
         ASSERT(isLoaded());
-        PANIC_IF(!isWritable(), "Write access requested to read only Asset: %s", mPath);
+        PANIC_IF(!isMutable(), "Write access requested to read only Asset: %s", mPath);
         return mpBuffer;
     }
 
-    bool isWritable() const
+    bool isMutable() const
     {
         // LORRTODO: Base this value on the file extension allowing
-        // certain assets to be writable. Thus, we can use asset
+        // certain assets to be mutable. Thus, we can use asset
         // references to group entities on different TaskMasters based
-        // on their use of writable assets.
-        return mIsWritable;
+        // on their use of mutable assets.
+        return mIsMutable;
     }
 
     const u64 size() const
@@ -89,15 +99,45 @@ public:
         return mSize;
     }
 
+    const u64 uid() const
+    {
+        return mUid;
+    }
+
 private:
+    void addRef()
+    {
+        mRefCount++;
+    }
+
+    bool release()
+    {
+        ASSERT(mRefCount > 0);
+        mRefCount--;
+
+        return mRefCount == 0;
+    }
+
+    u32 refCount()
+    {
+        return mRefCount;
+    }
+
     void load();
     void unload();
 
-    u8 * mpBuffer;
-    char * mPath;
+    String<kMEM_Engine> mPath;
     u32 mPathHash;
-    u32 mIsWritable:1;
+    u32 mRefCount;
+
+    u8 * mpBuffer;
+
     u64 mSize;
+
+    u64 mUid;
+    
+    bool mIsMutable;
+
 }; // class Asset
 
 } // namespace gaen

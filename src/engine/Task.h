@@ -48,7 +48,7 @@ static const task_id kMainThreadTaskId   = kMaxTaskId - 1; // 536870910, special
 static const task_id kPrimaryTaskIdMax   = kMaxTaskId - 3; // 536870908 -- Change as appropriate if we add more "primary" task ids
 static const task_id kRendererTaskId     = kMaxTaskId - 3; // 536870908
 static const task_id kInputMgrTaskId     = kMaxTaskId - 4; // 536870907
-static const task_id kHandleMgrTaskId    = kMaxTaskId - 5; // 536870906
+static const task_id kAssetMgrTaskId     = kMaxTaskId - 5; // 536870906
 static const task_id kPrimaryTaskIdMin   = kMaxTaskId - 5; // 536870906 -- Change as appropriate if we add more "primary" task ids
 
 // If another "special" task id is added, update this function appropriately.

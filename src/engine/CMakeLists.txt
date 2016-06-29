@@ -31,6 +31,8 @@ SET (engine_SOURCES
   Asset.h
   AssetLoader.cpp
   AssetLoader.h
+  AssetMgr.cpp
+  AssetMgr.h
   Block.h
   BlockData.h
   BlockMemory.cpp
@@ -45,9 +47,8 @@ SET (engine_SOURCES
   Entity.h
   FrameTime.h
   glm_ext.h
+  Handle.cpp
   Handle.h
-  HandleMgr.cpp
-  HandleMgr.h
   hashes.cpp
   hashes.h
   ImageBuffer.cpp

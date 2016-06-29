@@ -71,5 +71,11 @@ class MouseMove(FieldHandler):
 class Handle(FieldHandler):
     taskId = u32Field(payload=True)
     nameHash = u32Field()
-    pHandle = PointerField(type_name='Handle *',
+    pHandle = PointerField(type_name='const Handle *',
                            includes=['engine/Handle.h'])
+
+class Asset(FieldHandler):
+    taskId = u32Field(payload=True)
+    nameHash = u32Field()
+    pAsset = PointerField(type_name='const Asset *',
+                          includes=['engine/Asset.h'])

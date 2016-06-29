@@ -42,7 +42,7 @@ namespace gaen
 {
 
 class InputMgr;
-class HandleMgr;
+class AssetMgr;
 class MessageQueue;
 class Entity;
 
@@ -158,7 +158,7 @@ private:
     TaskOwnerMap mTaskOwnerMap;
 
     UniquePtr<InputMgr> mpInputMgr;
-    UniquePtr<HandleMgr> mpHandleMgr;
+    UniquePtr<AssetMgr> mpAssetMgr;
     Task mRendererTask;
 
     FrameTime mFrameTime;
