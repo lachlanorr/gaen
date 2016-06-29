@@ -57,13 +57,14 @@ public:
 
     bool isNull() const { return mTypeHash == 0; }
 
-private:
     void free()
     {
         if (mpFreeFunc)
             mpFreeFunc(*this);
+        GDELETE(this);
     }
 
+private:
     void addRef()
     {
         mRefCount++;

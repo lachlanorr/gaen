@@ -109,7 +109,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %right '(' '[' '{'
 %left  ')' ']' '}'
 
-%type <pSymDataType> type type_ent type_asset
+%type <pSymDataType> type type_ent type_handle_asset
 
 %type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> using_list using_stmt dotted_id dotted_id_proc dotted_id_part
@@ -172,18 +172,18 @@ message_list
     ;
  
 message_prop
-    : HASH '(' param_list ')' block       { $$ = ast_create_message_def($1, $3, $5, pParseData); }
-    | type_asset HASH '=' expr ';'        { $$ = ast_create_property_def($2, $1, $4, pParseData); }
-    | type_asset HASH ';'                 { $$ = ast_create_property_def($2, $1, NULL, pParseData); }
-    | type_asset IDENTIFIER '=' expr ';'  { $$ = ast_create_field_def($2, $1, $4, pParseData); }
-    | type_asset IDENTIFIER ';'           { $$ = ast_create_field_def($2, $1, NULL, pParseData); }
-    | COMPONENTS component_block          { $$ = ast_create_component_members($2, pParseData); }
+    : HASH '(' param_list ')' block             { $$ = ast_create_message_def($1, $3, $5, pParseData); }
+    | type_handle_asset HASH '=' expr ';'       { $$ = ast_create_property_def($2, $1, $4, pParseData); }
+    | type_handle_asset HASH ';'                { $$ = ast_create_property_def($2, $1, NULL, pParseData); }
+    | type_handle_asset IDENTIFIER '=' expr ';' { $$ = ast_create_field_def($2, $1, $4, pParseData); }
+    | type_handle_asset IDENTIFIER ';'          { $$ = ast_create_field_def($2, $1, NULL, pParseData); }
+    | COMPONENTS component_block                { $$ = ast_create_component_members($2, pParseData); }
     ;
 
 param_list
-    : /* empty */                           { $$ = parsedata_add_param(pParseData, NULL, NULL); }
-    | type_ent IDENTIFIER                   { $$ = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, $1, $2, NULL, pParseData)); }
-    | param_list ',' type_ent IDENTIFIER    { $$ = parsedata_add_param(pParseData, $1, symrec_create(kSYMT_Param, $3, $4, NULL, pParseData)); }
+    : /* empty */                                  { $$ = parsedata_add_param(pParseData, NULL, NULL); }
+    | type_handle_asset IDENTIFIER                 { $$ = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, $1, $2, NULL, pParseData)); }
+    | param_list ',' type_handle_asset IDENTIFIER  { $$ = parsedata_add_param(pParseData, $1, symrec_create(kSYMT_Param, $3, $4, NULL, pParseData)); }
     ;
 
 component_block
@@ -368,7 +368,6 @@ basic_type
     | MAT3
     | MAT43
     | MAT4
-    | HANDLE_
     | STRING
     ;
 
@@ -386,9 +385,10 @@ type_ent
    "asset" is sort of a type, but only applicable as a top level
    statement within a component or entity, so we special case here.
 */
-type_asset
-    : type           { $$ = $1; }
-    | ASSET          { $$ = parsedata_find_type(pParseData, "asset_handle", 0, 0); }
+type_handle_asset
+    : type_ent   { $$ = $1; }
+    | HANDLE_    { $$ = parsedata_find_type(pParseData, "handle", 0, 0); }
+    | ASSET      { $$ = parsedata_find_type(pParseData, "asset_handle", 0, 0); }
     ;
 
 %%

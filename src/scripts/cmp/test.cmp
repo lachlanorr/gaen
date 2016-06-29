@@ -60,7 +60,6 @@ entity Test
 
     #init()
     {
-
         vec3 v0;
         v0.x = 5.0;
         $.print(string{"x = %f", v0.x});

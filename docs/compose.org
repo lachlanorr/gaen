@@ -1,0 +1,19 @@
+* Memory Management Notes
+** All variables are stored within Entity block data.
+** CmpString (and in future other Block data types)
+*** When declared as fields or properties
+**** release is first called on lhs if it contains a value
+**** addRef is called upon assignment
+*** When declared as a local variable in a message handler
+**** addRef is never called, so Block data will get freed upon completion of message handler
+**** rapid re-assignment of block data types within a message handler
+This can lead to more and more block memory usage since we don't free
+until handler completes.  In practice I'm not worried about this since
+message handlers are not intended to do this kind of activity.
+
+We are a cooperative multitasking system, and an individual compose
+script message handler is not the place to iterate over large amounts of
+data. That kind of code should be made into a system_api call.
+** Handles and Assets
+*** These are only allowed as fields or properties (no local variables)
+**** As such, we addref/release properly like we do with CmpString fields and properties
