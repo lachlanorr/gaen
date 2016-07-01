@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 83a329935cb56e7cd5e0d34cc70a2153
+// HASH: 77fc5267c441d7ad8d93d9d2aecea4c2
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -34,6 +34,8 @@
 #include "engine/Registry.h"
 #include "engine/Component.h"
 #include "engine/Entity.h"
+
+#include "engine/messages/Handle.h"
 
 // system_api declarations
 #include "engine/shapes.h"
@@ -59,12 +61,13 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
         {
+            // Initialize properties and fields to default values
             // Component: gaen.shapes.Sphere
             {
                 Task & compTask = insertComponent(HASH::gaen__shapes__Sphere, mComponentCount);
-                compTask.message(msgAcc); // propagate init_data__ into component
+                compTask.message(msgAcc); // propagate init__ into component
                 // Init Property: size
                 {
                     StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::size));
@@ -93,16 +96,31 @@ public:
             // Component: gaen.utils.WasdRot
             {
                 Task & compTask = insertComponent(HASH::gaen__utils__WasdRot, mComponentCount);
-                compTask.message(msgAcc); // propagate init_data__ into component
+                compTask.message(msgAcc); // propagate init__ into component
             }
             return MessageResult::Consumed;
-        } // case HASH::init_data__
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
+            return MessageResult::Consumed;
+        } // HASH::request_assets__
+        case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
+            return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::init:
         {
             // Params look compatible, message body follows
             system_api::print(entity().blockMemory().stringAlloc("Shape init"), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::init
         }
         return MessageResult::Propagate;
     }
@@ -147,12 +165,13 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
         {
+            // Initialize properties and fields to default values
             // Component: gaen.lights.Directional
             {
                 Task & compTask = insertComponent(HASH::gaen__lights__Directional, mComponentCount);
-                compTask.message(msgAcc); // propagate init_data__ into component
+                compTask.message(msgAcc); // propagate init__ into component
                 // Init Property: dir
                 {
                     StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::dir));
@@ -167,7 +186,22 @@ public:
                 }
             }
             return MessageResult::Consumed;
-        } // case HASH::init_data__
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
+            return MessageResult::Consumed;
+        } // HASH::request_assets__
+        case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
+            return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         }
         return MessageResult::Propagate;
     }
@@ -212,15 +246,31 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
         {
+            // Initialize properties and fields to default values
             // Component: gaen.utils.WasdCamera
             {
                 Task & compTask = insertComponent(HASH::gaen__utils__WasdCamera, mComponentCount);
-                compTask.message(msgAcc); // propagate init_data__ into component
+                compTask.message(msgAcc); // propagate init__ into component
             }
             return MessageResult::Consumed;
-        } // case HASH::init_data__
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
+            return MessageResult::Consumed;
+        } // HASH::request_assets__
+        case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
+            return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         }
         return MessageResult::Propagate;
     }
@@ -255,16 +305,29 @@ class init__Start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__test_Test__90_86()
+    task_id entity_init__init__test_Test__90_21()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::test__Test, 8);
+        // Init Property: prop1
+        {
+            StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop1));
+            msgw[0].cells[0].i = 500;
+            pEnt->task().message(msgw.accessor());
+        }
+        // Init Property: prop2
+        {
+            CmpString val = entity().blockMemory().stringAlloc("new value");
+            ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop2), val.blockCount());
+            val.writeMessage(msgw.accessor(), 0);
+            pEnt->task().message(msgw.accessor());
+        }
 
         task_id tid = pEnt->task().id();
         pEnt->activate();
         return tid;
     }
 
-    task_id entity_init__init__Camera__100_23()
+    task_id entity_init__init__Camera__99_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Camera, 8);
 
@@ -273,7 +336,7 @@ private:
         return tid;
     }
 
-    task_id entity_init__init__Light__102_25()
+    task_id entity_init__init__Light__101_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
 
@@ -282,7 +345,7 @@ private:
         return tid;
     }
 
-    task_id entity_init__init__Shape__104_25()
+    task_id entity_init__init__Shape__103_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Shape, 8);
 
@@ -304,16 +367,15 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
         {
+            // Initialize properties and fields to default values
             set_foo__path(entity().blockMemory().stringAlloc("/fonts/profont.gatl"));
             foo() = nullptr;
-            set_bar__path(entity().blockMemory().stringAlloc("/images/bar.tga"));
-            bar() = nullptr;
             // Component: gaen.utils.Timer
             {
                 Task & compTask = insertComponent(HASH::gaen__utils__Timer, mComponentCount);
-                compTask.message(msgAcc); // propagate init_data__ into component
+                compTask.message(msgAcc); // propagate init__ into component
                 // Init Property: timer_interval
                 {
                     StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::timer_interval));
@@ -328,12 +390,41 @@ public:
                 }
             }
             return MessageResult::Consumed;
-        } // case HASH::init_data__
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
+            entity().requestAsset(mScriptTask.id(), HASH::foo, foo__path());
+            return MessageResult::Consumed;
+        } // HASH::request_assets__
+        case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
+            {
+                messages::HandleR<T> msgr(msgAcc);
+                ASSERT(msgr.taskId() == task().id());
+                switch (msgr.nameHash())
+                {
+                case HASH::foo:
+                    foo() = msgr.handle();
+                default:
+                    ERR("Invalid asset nameHash: %u", msgr.nameHash());
+                }
+            }
+            return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            release_foo__path();
+            release_foo();
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::init:
         {
             // Params look compatible, message body follows
             CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+00f, 10);
-            task_id t = entity_init__init__test_Test__90_86();
+            task_id t = entity_init__init__test_Test__90_21();
             { // Send Message Block
                 // Compute block size, incorporating any BlockMemory parameters dynamically
                 u32 blockCount = 1;
@@ -388,11 +479,11 @@ public:
 
                 // MessageQueueWriter will send message through RAII when this scope is exited
             }
-            task_id cam = entity_init__init__Camera__100_23();
-            task_id light = entity_init__init__Light__102_25();
-            task_id shape = entity_init__init__Shape__104_25();
+            task_id cam = entity_init__init__Camera__99_23();
+            task_id light = entity_init__init__Light__101_25();
+            task_id shape = entity_init__init__Shape__103_25();
             return MessageResult::Consumed;
-        }
+        } // HASH::init
         }
         return MessageResult::Propagate;
     }
@@ -401,7 +492,7 @@ private:
     init__Start(u32 childCount)
       : Entity(HASH::init__Start, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-        mBlockCount = 2;
+        mBlockCount = 1;
         mScriptTask = Task::create(this, HASH::init__Start);
     }
 
@@ -413,6 +504,13 @@ private:
     AssetHandleP& foo()
     {
         return *reinterpret_cast<AssetHandleP*>(&mpBlocks[0].cells[0]);
+    }
+    void release_foo()
+    {
+        if (foo() != nullptr)
+        {
+            foo()->release();
+        }
     }
 
     CmpStringAsset& foo__path()
@@ -430,38 +528,10 @@ private:
     }
     void set_foo__path(const CmpStringAsset& rhs)
     {
-        ERR("TODO: release block memory strings in #fin message!!!");
         release_foo__path();
         foo__path() = rhs;
         entity().blockMemory().addRef(foo__path());
         mIs_foo__path_Assigned = true;
-    }
-
-    AssetHandleP& bar()
-    {
-        return *reinterpret_cast<AssetHandleP*>(&mpBlocks[1].cells[0]);
-    }
-
-    CmpStringAsset& bar__path()
-    {
-        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[1].cells[2]);
-    }
-    bool mIs_bar__path_Assigned = false;
-    void release_bar__path()
-    {
-        if (mIs_bar__path_Assigned)
-        {
-            entity().blockMemory().release(bar__path());
-        }
-        mIs_bar__path_Assigned = false;
-    }
-    void set_bar__path(const CmpStringAsset& rhs)
-    {
-        ERR("TODO: release block memory strings in #fin message!!!");
-        release_bar__path();
-        bar__path() = rhs;
-        entity().blockMemory().addRef(bar__path());
-        mIs_bar__path_Assigned = true;
     }
 
 }; // class init__Start

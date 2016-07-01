@@ -23,14 +23,15 @@ EXTS = ['.cpp',
 
 for subdir, direc, files in os.walk(dirs.PROJECT_DIR):
     for file in files:
-        p = os.path.join(subdir, file).lower()
-        if os.path.splitext(p)[1] in EXTS:
-            with open(p, 'rb') as f:
-                d = f.read()
-                drep = d.replace("\r", "")
-            if drep != d:
-                print "Fixing " + p
-                with open(p, 'wb') as f:
-                    f.write(drep)
+        p = os.path.join(subdir, file).replace('\\', '/')
+        if not p.startswith(dirs.BUILD_DIR_P + '/'):
+            if os.path.splitext(p)[1] in EXTS:
+                with open(p, 'rb') as f:
+                    d = f.read()
+                    drep = d.replace("\r", "")
+                if drep != d:
+                    print "Fixing " + p
+                    with open(p, 'wb') as f:
+                        f.write(drep)
 
                 

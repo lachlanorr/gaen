@@ -196,6 +196,126 @@ void upper(char * str)
     }
 }
 
+//------------------------------------------------------------------------------
+// Asset cooking path manipulation
+//------------------------------------------------------------------------------
+const char * default_platform()
+{
+#if IS_PLATFORM_WIN32
+    return "win";
+#elif IS_PLATFORM_OSX
+    return "osx";
+#elif IS_PLATFORM_IOS
+    return "ios";
+#else
+#error Invalid platform for cooking, no default
+#endif
+}
+
+bool is_valid_platform(const char * platform)
+{
+    ASSERT(platform);
+    return (0 == strcmp(platform, "win") ||
+            0 == strcmp(platform, "osx") ||
+            0 == strcmp(platform, "ios"));
+}
+
+void assets_raw_dir(char * assetsRawDir, const char * assetsDir)
+{
+    ASSERT(assetsRawDir);
+    ASSERT(assetsDir);
+    normalize_path(assetsRawDir, assetsDir);
+    strcat(assetsRawDir, "/raw");
+}
+
+void assets_cooked_dir(char * assetsCookedDir, const char * platform, const char * assetsDir)
+{
+    ASSERT(assetsCookedDir);
+    ASSERT(platform);
+    ASSERT(assetsDir);
+    ASSERT(is_valid_platform(platform));
+    normalize_path(assetsCookedDir, assetsDir);
+    strcat(assetsCookedDir, "/cooked_");
+    strcat(assetsCookedDir, platform);
+}
+
+void find_assets_cooking_dir(char * assetsDir)
+{
+    char path[kMaxPath+1];
+    char checkPath[kMaxPath+1];
+
+    process_path(path);
+    parent_dir(path);
+
+    for(;;)
+    {
+        PANIC_IF(!*path, "Unable to find assets dir, make sure chef executable is located under a gaen or gaen project directory tree.");
+
+        snprintf(checkPath, kMaxPath, "%s/assets/raw/", path);
+        if (dir_exists(checkPath))
+        {
+            // get rid of /raw/ at end
+            size_t checkPathLen = strlen(checkPath);
+            checkPath[checkPathLen - 5] = '\0';
+            strcpy(assetsDir, checkPath);
+            return;
+        }
+        parent_dir(path);
+    }
+}
+
+void find_assets_runtime_dir(char * assetsDir)
+{
+    char path[kMaxPath+1];
+    char checkPath[kMaxPath+1];
+    char assetToFind[kMaxPath+1];
+
+    // There should always be profont, since our engine
+    // depends on it for some debugging output.
+    const char * kAssetToFind = "/fonts/profont.gatl";
+    strcpy(assetToFind, kAssetToFind);
+
+    // Get current process path
+    process_path(path);
+    parent_dir(path);
+
+    // By default, check if it looks like our process is
+    // within the assets directory, which should be true
+    // in a packaged release.
+    snprintf(checkPath, kMaxPath, "%s%s", path, assetToFind);
+    if (file_exists(checkPath))
+    {
+        strcpy(assetsDir, path);
+        return;
+    }
+
+    // If we haven't found the assets, start looking in parent
+    // directories for the cooked_<platform> based file path. This would be the case for a development machine
+    // where gaen.exe exists in somewhere in the build hierarchy.
+    snprintf(assetToFind, kMaxPath, "/assets/cooked_%s%s", default_platform(), kAssetToFind);
+
+    for(;;)
+    {
+        PANIC_IF(!*path, "Unable to find assets dir, make sure assets are cooked.");
+
+        snprintf(checkPath, kMaxPath, "%s%s", path, assetToFind);
+        if (file_exists(checkPath))
+        {
+            // get rid of kAssetToFind at end
+            size_t checkPathLen = strlen(checkPath);
+            checkPath[checkPathLen - strlen(kAssetToFind)] = '\0';
+            strcpy(assetsDir, checkPath);
+            return;
+        }
+        parent_dir(path);
+    }
+}
+
+//------------------------------------------------------------------------------
+// Asset cooking path manipulation (END)
+//------------------------------------------------------------------------------
+
+
 bool write_file_if_contents_differ(const char * path, const char * contents)
 {
     ASSERT(path);

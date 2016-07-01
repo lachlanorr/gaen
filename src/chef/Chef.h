@@ -42,12 +42,6 @@ class Chef
 public:
     Chef(u32 id, const char * platform, const char * assetsDir, bool force);
     
-    static const char * default_platform();
-    static bool is_valid_platform(const char * platform);
-
-    static void assets_raw_dir(char * assetsRawDir, const char * assetsDir);
-    static void assets_cooked_dir(char * assetsCookedDir, const char * platform, const char * assetsDir);
-
     u32 id() { return mId; }
     const char * platform() { return mPlatform.c_str(); }
 

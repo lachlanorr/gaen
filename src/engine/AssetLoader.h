@@ -29,6 +29,7 @@
 
 #include "core/mem.h"
 #include "core/threading.h"
+#include "core/String.h"
 #include "engine/MessageQueue.h"
 #include "engine/BlockMemory.h"
 
@@ -40,7 +41,7 @@ class AssetLoader
 public:
     static const u32 kMaxAssetMessages = 4096;
 
-    AssetLoader(u32 loaderId);
+    AssetLoader(u32 loaderId, const String<kMEM_Engine> & assetsRootPath);
     ~AssetLoader();
 
     void queueRequest(const MessageQueueAccessor & msgAcc);
@@ -69,7 +70,11 @@ public:
     }
 
     static MemType mem_type_from_ext(const char * ext);
-
+    static void extract_request_asset(const MessageQueueAccessor & msgAcc,
+                                      BlockMemory & blockMemory,
+                                      CmpString & pathCmpString,
+                                      u32 & requestorTaskId,
+                                      u32 & nameHash);
 private:
     void threadProc();
 
@@ -80,6 +85,8 @@ private:
     thread_id mCreatorThreadId;
     
     u32 mLoaderId;
+    const String<kMEM_Engine> & mAssetsRootPath;
+
     bool mIsRunning = false;
 
     u32 mQueueSize;

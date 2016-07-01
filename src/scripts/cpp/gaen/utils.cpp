@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 37f35111d73c5dfe2a10d7f0240861a7
+// HASH: 5687d356be9f2900742d8bbc65e4a5d5
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -34,6 +34,8 @@
 #include "engine/Registry.h"
 #include "engine/Component.h"
 #include "engine/Entity.h"
+
+#include "engine/messages/Handle.h"
 
 // system_api declarations
 #include "engine/shapes.h"
@@ -74,7 +76,7 @@ public:
                 last_notification() = 0.00000000e+00f;
             }
         }
-    }
+    } // update
 
     template <typename T>
     MessageResult message(const T & msgAcc)
@@ -82,15 +84,29 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
+        {
+            // Initialize properties and fields to default values
             timer_interval() = 0.00000000e+00f;
             timer_message() = 0;
             last_notification() = 0.00000000e+00f;
             return MessageResult::Consumed;
-        case HASH::init_assets__:
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
             return MessageResult::Consumed;
+        } // HASH::request_assets__
         case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
             return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::set_property:
             switch (_msg.payload.u)
             {
@@ -220,7 +236,7 @@ public:
         {
             system_api::renderer_move_camera(pos(), orientation(), entity());
         }
-    }
+    } // update
 
     template <typename T>
     MessageResult message(const T & msgAcc)
@@ -228,7 +244,9 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
+        {
+            // Initialize properties and fields to default values
             dirForwardInit() = glm::vec3(0.00000000e+00f, 0.00000000e+00f, -(1.00000000e+00f));
             dirRightInit() = glm::vec3(1.00000000e+00f, 0.00000000e+00f, 0.00000000e+00f);
             dirUpInit() = glm::vec3(0.00000000e+00f, 1.00000000e+00f, 0.00000000e+00f);
@@ -246,10 +264,22 @@ public:
             mouseDeltaY() = 0.00000000e+00f;
             mouseWheelDelta() = 0;
             return MessageResult::Consumed;
-        case HASH::init_assets__:
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
             return MessageResult::Consumed;
+        } // HASH::request_assets__
         case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
             return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::init:
         {
             // Params look compatible, message body follows
@@ -260,13 +290,13 @@ public:
             system_api::watch_input_state(HASH::left, (u32)0, HASH::left, entity());
             system_api::watch_input_state(HASH::right, (u32)0, HASH::right, entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::init
         case HASH::mouse_look:
         {
             // Params look compatible, message body follows
             mouseLooking() = /*status*/msgAcc.message().payload.b;
             return MessageResult::Consumed;
-        }
+        } // HASH::mouse_look
         case HASH::mouse_move:
         {
             // Verify params look compatible with this message type
@@ -281,13 +311,13 @@ public:
                 mouseDeltaY() += /*yDelta*/msgAcc[0].cells[0].i;
             }
             return MessageResult::Consumed;
-        }
+        } // HASH::mouse_move
         case HASH::mouse_wheel:
         {
             // Params look compatible, message body follows
             mouseWheelDelta() += /*delta*/msgAcc.message().payload.i;
             return MessageResult::Consumed;
-        }
+        } // HASH::mouse_wheel
         case HASH::forward:
         {
             // Params look compatible, message body follows
@@ -300,7 +330,7 @@ public:
                 forwardBackward() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
-        }
+        } // HASH::forward
         case HASH::back:
         {
             // Params look compatible, message body follows
@@ -313,7 +343,7 @@ public:
                 forwardBackward() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
-        }
+        } // HASH::back
         case HASH::left:
         {
             // Params look compatible, message body follows
@@ -326,7 +356,7 @@ public:
                 leftRight() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
-        }
+        } // HASH::left
         case HASH::right:
         {
             // Params look compatible, message body follows
@@ -339,7 +369,7 @@ public:
                 leftRight() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
-        }
+        } // HASH::right
         }
         return MessageResult::Propagate;
 }
@@ -478,7 +508,7 @@ public:
                 // MessageQueueWriter will send message through RAII when this scope is exited
             }
         }
-    }
+    } // update
 
     template <typename T>
     MessageResult message(const T & msgAcc)
@@ -486,16 +516,30 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
+        {
+            // Initialize properties and fields to default values
             yawing() = 0.00000000e+00f;
             yaw() = 0.00000000e+00f;
             pitching() = 0.00000000e+00f;
             pitch() = 0.00000000e+00f;
             return MessageResult::Consumed;
-        case HASH::init_assets__:
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
             return MessageResult::Consumed;
+        } // HASH::request_assets__
         case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
             return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::init:
         {
             // Params look compatible, message body follows
@@ -504,7 +548,7 @@ public:
             system_api::watch_input_state(HASH::left, (u32)0, HASH::left, entity());
             system_api::watch_input_state(HASH::right, (u32)0, HASH::right, entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::init
         case HASH::forward:
         {
             // Params look compatible, message body follows
@@ -517,7 +561,7 @@ public:
                 pitching() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
-        }
+        } // HASH::forward
         case HASH::back:
         {
             // Params look compatible, message body follows
@@ -530,7 +574,7 @@ public:
                 pitching() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
-        }
+        } // HASH::back
         case HASH::left:
         {
             // Params look compatible, message body follows
@@ -543,7 +587,7 @@ public:
                 yawing() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
-        }
+        } // HASH::left
         case HASH::right:
         {
             // Params look compatible, message body follows
@@ -556,7 +600,7 @@ public:
                 yawing() = 0.00000000e+00f;
             }
             return MessageResult::Consumed;
-        }
+        } // HASH::right
         }
         return MessageResult::Propagate;
 }

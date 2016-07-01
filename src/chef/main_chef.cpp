@@ -52,31 +52,6 @@ void failure_cb(const char * msg)
     printf("%s\n", msg);
 }
 
-void find_assets_dir(char * assetsDir)
-{
-    char path[kMaxPath+1];
-    char checkPath[kMaxPath+1];
-
-    process_path(path);
-    parent_dir(path);
-
-    for(;;)
-    {
-        PANIC_IF(!*path, "Unable to find assets dir, make sure chef executable is located under a gaen or gaen project directory tree.");
-
-        snprintf(checkPath, kMaxPath, "%s/assets/raw/", path);
-        if (dir_exists(checkPath))
-        {
-            // get rid of /raw/ at end
-            size_t checkPathLen = strlen(checkPath);
-            checkPath[checkPathLen - 5] = '\0';
-            strcpy(assetsDir, checkPath);
-            return;
-        }
-        parent_dir(path);
-    }
-}
-
 void print_usage_and_exit(int retcode = 1)
 {
     printf("Usage: chef [-f] [-p win|osx|ios] [-t threads] [-i path]\n");
@@ -113,10 +88,10 @@ int main(int argc, char ** argv)
 
     // find assets dir based on where our process is running out of
     char assetsDir[kMaxPath+1];
-    find_assets_dir(assetsDir);
+    find_assets_cooking_dir(assetsDir);
 
     char assetsRawDir[kMaxPath+1];
-    Chef::assets_raw_dir(assetsRawDir, assetsDir);
+    assets_raw_dir(assetsRawDir, assetsDir);
 
     // ----------------
     // parse arguments
@@ -127,7 +102,7 @@ int main(int argc, char ** argv)
 
     // assume active platform based on what we're running on
     char platform[kMaxPath+1];
-    strcpy(platform, Chef::default_platform());
+    strcpy(platform, default_platform());
 
     bool force = false;
     u32 threadCount = platform_core_count();
@@ -145,7 +120,7 @@ int main(int argc, char ** argv)
             case 'p':
                 if (i == argc-1)
                     print_usage_and_exit();
-                if (!Chef::is_valid_platform(argv[i+1]))
+                if (!is_valid_platform(argv[i+1]))
                 {
                     ERR("Invalid platform: %s", argv[i+1]);
                     print_usage_and_exit();

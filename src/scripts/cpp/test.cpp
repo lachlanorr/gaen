@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 78364bc64e464f997a237d5e66f475c5
+// HASH: ad8ca7d1d9fcf5b2a7fee537ce90c18b
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -34,6 +34,8 @@
 #include "engine/Registry.h"
 #include "engine/Component.h"
 #include "engine/Entity.h"
+
+#include "engine/messages/Handle.h"
 
 // system_api declarations
 #include "engine/shapes.h"
@@ -59,22 +61,29 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
-            set_foo__path(entity().blockMemory().stringAlloc("/fonts/profont.gatl"));
-            foo() = nullptr;
-            set_bar__path(entity().blockMemory().stringAlloc("/images/bar.tga"));
-            bar() = nullptr;
+        case HASH::init__:
+        {
+            // Initialize properties and fields to default values
             set_s(entity().blockMemory().stringAlloc("initval"));
             a() = 0;
             return MessageResult::Consumed;
-        case HASH::init_assets__:
-            entity().requestAsset(mScriptTask.id(), HASH::foo, foo__path());
-            entity().requestAsset(mScriptTask.id(), HASH::bar, bar__path());
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
             return MessageResult::Consumed;
+        } // HASH::request_assets__
         case HASH::asset_ready__:
-            entity().requestAsset(mScriptTask.id(), HASH::foo, foo__path());
-            entity().requestAsset(mScriptTask.id(), HASH::bar, bar__path());
+        {
+            // Asset is loaded and a handle to it has been sent to us
             return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            release_s();
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::set_property:
             switch (_msg.payload.u)
             {
@@ -84,20 +93,6 @@ public:
                 if (_msg.blockCount >= requiredBlockCount)
                 {
                     reinterpret_cast<Block*>(&a())[0].cells[0] = msgAcc[0].cells[0];
-                    return MessageResult::Consumed;
-                }
-                break;
-            }
-            case HASH::foo__path:
-            {
-                if (_msg.blockCount < 1) break; // not enough even for BlockData header
-                const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[0]);
-                if (pBlockData->type != kBKTY_String) break; // incorrect BlockData type
-                u32 requiredBlockCount = pBlockData->blockCount;
-                if (_msg.blockCount >= requiredBlockCount)
-                {
-                    Address addr = entity().blockMemory().allocCopy(pBlockData);
-                    set_foo__path(entity().blockMemory().string(addr));
                     return MessageResult::Consumed;
                 }
                 break;
@@ -127,70 +122,16 @@ private:
       : Component(pEntity)
     {
         mScriptTask = Task::create(this, HASH::test__TestComp);
-        mBlockCount = 3;
+        mBlockCount = 1;
     }
     test__TestComp(const test__TestComp&)              = delete;
     test__TestComp(test__TestComp&&)                   = delete;
     test__TestComp & operator=(const test__TestComp&)  = delete;
     test__TestComp & operator=(test__TestComp&&)       = delete;
 
-    AssetHandleP& foo()
-    {
-        return *reinterpret_cast<AssetHandleP*>(&mpBlocks[0].cells[0]);
-    }
-
-    CmpStringAsset& foo__path()
-    {
-        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[0].cells[2]);
-    }
-    bool mIs_foo__path_Assigned = false;
-    void release_foo__path()
-    {
-        if (mIs_foo__path_Assigned)
-        {
-            entity().blockMemory().release(foo__path());
-        }
-        mIs_foo__path_Assigned = false;
-    }
-    void set_foo__path(const CmpStringAsset& rhs)
-    {
-        ERR("TODO: release block memory strings in #fin message!!!");
-        release_foo__path();
-        foo__path() = rhs;
-        entity().blockMemory().addRef(foo__path());
-        mIs_foo__path_Assigned = true;
-    }
-
-    AssetHandleP& bar()
-    {
-        return *reinterpret_cast<AssetHandleP*>(&mpBlocks[1].cells[0]);
-    }
-
-    CmpStringAsset& bar__path()
-    {
-        return *reinterpret_cast<CmpStringAsset*>(&mpBlocks[1].cells[2]);
-    }
-    bool mIs_bar__path_Assigned = false;
-    void release_bar__path()
-    {
-        if (mIs_bar__path_Assigned)
-        {
-            entity().blockMemory().release(bar__path());
-        }
-        mIs_bar__path_Assigned = false;
-    }
-    void set_bar__path(const CmpStringAsset& rhs)
-    {
-        ERR("TODO: release block memory strings in #fin message!!!");
-        release_bar__path();
-        bar__path() = rhs;
-        entity().blockMemory().addRef(bar__path());
-        mIs_bar__path_Assigned = true;
-    }
-
     CmpString& s()
     {
-        return *reinterpret_cast<CmpString*>(&mpBlocks[2].cells[0]);
+        return *reinterpret_cast<CmpString*>(&mpBlocks[0].cells[0]);
     }
     bool mIs_s_Assigned = false;
     void release_s()
@@ -203,7 +144,6 @@ private:
     }
     void set_s(const CmpString& rhs)
     {
-        ERR("TODO: release block memory strings in #fin message!!!");
         release_s();
         s() = rhs;
         entity().blockMemory().addRef(s());
@@ -212,7 +152,7 @@ private:
 
     i32& a()
     {
-        return mpBlocks[2].cells[2].i;
+        return mpBlocks[0].cells[2].i;
     }
 
 
@@ -243,12 +183,26 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
+        {
+            // Initialize properties and fields to default values
             return MessageResult::Consumed;
-        case HASH::init_assets__:
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
             return MessageResult::Consumed;
+        } // HASH::request_assets__
         case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
             return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         }
         return MessageResult::Propagate;
 }
@@ -293,23 +247,17 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
         {
-            set_testFoo__path(entity().blockMemory().stringAlloc("/another/asset.foo"));
+            // Initialize properties and fields to default values
+            set_testFoo__path(entity().blockMemory().stringAlloc("/fonts/profont.gimg"));
             testFoo() = nullptr;
             prop1() = 20;
             set_prop2(entity().blockMemory().stringAlloc("abc"));
             // Component: TestComp
             {
                 Task & compTask = insertComponent(HASH::test__TestComp, mComponentCount);
-                compTask.message(msgAcc); // propagate init_data__ into component
-                // Init Property: foo
-                {
-                    CmpString val = entity().blockMemory().stringAlloc("/some/other/path/foo");
-                    ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::foo__path), val.blockCount());
-                    val.writeMessage(msgw.accessor(), 0);
-                    compTask.message(msgw.accessor());
-                }
+                compTask.message(msgAcc); // propagate init__ into component
                 // Init Property: s
                 {
                     CmpString val = entity().blockMemory().stringAlloc("Changedval");
@@ -325,7 +273,37 @@ public:
                 }
             }
             return MessageResult::Consumed;
-        } // case HASH::init_data__
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
+            entity().requestAsset(mScriptTask.id(), HASH::testFoo, testFoo__path());
+            return MessageResult::Consumed;
+        } // HASH::request_assets__
+        case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
+            {
+                messages::HandleR<T> msgr(msgAcc);
+                ASSERT(msgr.taskId() == task().id());
+                switch (msgr.nameHash())
+                {
+                case HASH::testFoo:
+                    testFoo() = msgr.handle();
+                default:
+                    ERR("Invalid asset nameHash: %u", msgr.nameHash());
+                }
+            }
+            return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            release_testFoo__path();
+            release_testFoo();
+            release_prop2();
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::set_property:
             switch (_msg.payload.u)
             {
@@ -398,7 +376,7 @@ public:
             // Params look compatible, message body follows
             system_api::print(entity().blockMemory().stringFormat("prop1 = %d", prop1()), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::msg1
         case HASH::init:
         {
             // Params look compatible, message body follows
@@ -409,13 +387,13 @@ public:
             system_api::print(entity().blockMemory().stringAlloc("init"), entity());
             system_api::print_asset_info(testFoo(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::init
         case HASH::fin:
         {
             // Params look compatible, message body follows
             system_api::print(entity().blockMemory().stringAlloc("fin"), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::fin
         }
         return MessageResult::Propagate;
     }
@@ -437,6 +415,13 @@ private:
     {
         return *reinterpret_cast<AssetHandleP*>(&mpBlocks[0].cells[0]);
     }
+    void release_testFoo()
+    {
+        if (testFoo() != nullptr)
+        {
+            testFoo()->release();
+        }
+    }
 
     CmpStringAsset& testFoo__path()
     {
@@ -453,7 +438,6 @@ private:
     }
     void set_testFoo__path(const CmpStringAsset& rhs)
     {
-        ERR("TODO: release block memory strings in #fin message!!!");
         release_testFoo__path();
         testFoo__path() = rhs;
         entity().blockMemory().addRef(testFoo__path());
@@ -480,7 +464,6 @@ private:
     }
     void set_prop2(const CmpString& rhs)
     {
-        ERR("TODO: release block memory strings in #fin message!!!");
         release_prop2();
         prop2() = rhs;
         entity().blockMemory().addRef(prop2());

@@ -38,6 +38,10 @@ class CmpString
 {
     friend class BlockMemory;
 public:
+    CmpString()
+      : mpBlockData(nullptr)
+    {}
+
     CmpString(BlockData * pBlockData);
 
     char * c_str()             { ASSERT(mpBlockData); return &mpBlockData->data.string.chars[0]; }

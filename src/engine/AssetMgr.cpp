@@ -28,6 +28,7 @@
 
 #include "core/logging.h"
 #include "core/mem.h"
+#include "assets/file_utils.h"
 #include "engine/hashes.h"
 #include "engine/messages/Handle.h"
 #include "engine/MessageQueue.h"
@@ -50,7 +51,7 @@ void asset_handle_free(Handle & handle)
     ASSERT(handle.typeHash() == HASH::asset);
     if (handle.data())
     {
-        const Asset * pAsset = reinterpret_cast<const Asset*>(handle.data());
+        Asset * pAsset = reinterpret_cast<Asset*>(handle.data());
         messages::AssetQW msgw(HASH::release_asset__, kMessageFlag_None, handle.owner(), kAssetMgrTaskId, 0);
         msgw.setAsset(pAsset);
     }
@@ -60,6 +61,11 @@ AssetMgr::AssetMgr(u32 assetLoaderCount)
 {
     mCreatorThreadId = active_thread_id();
 
+    // find assets path
+    char assetsPath[kMaxPath+1];
+    find_assets_runtime_dir(assetsPath);
+    mAssetsRootPath = assetsPath;
+
     ASSERT(assetLoaderCount > 0 && assetLoaderCount <= 4);
     mAssetLoaderCount = assetLoaderCount;
 
@@ -67,7 +73,7 @@ AssetMgr::AssetMgr(u32 assetLoaderCount)
 
     for (u32 i = 0; i < mAssetLoaderCount; ++i)
     {
-        mAssetLoaders.push_back(GNEW(kMEM_Engine, AssetLoader, i + kInitialAssetLoaderThreadId));
+        mAssetLoaders.push_back(GNEW(kMEM_Engine, AssetLoader, i + kInitialAssetLoaderThreadId, mAssetsRootPath));
     }
 }
 
@@ -97,7 +103,7 @@ void AssetMgr::process()
     }
 }
 
-void AssetMgr::sendAssetReadyHandle(const Asset * pAsset,
+void AssetMgr::sendAssetReadyHandle(Asset * pAsset,
                                     task_id entityTask,
                                     task_id entitySubTask,
                                     u32 nameHash)
@@ -130,15 +136,38 @@ MessageResult AssetMgr::message(const T & msgAcc)
     {
     case HASH::request_asset__:
     {
-        AssetLoader * pLdr = findLeastBusyAssetLoader();
-        pLdr->queueRequest(msgAcc);
-        pLdr->incQueueSize();
+        CmpString pathCmpString;
+        u32 requestorTaskId;
+        u32 nameHash;
+
+        AssetLoader::extract_request_asset(msgAcc,
+                                           mBlockMemory,
+                                           pathCmpString,
+                                           requestorTaskId,
+                                           nameHash);
+
+        const char * pathStr = pathCmpString.c_str();
+
+        Asset * pAsset = findAsset(pathStr);
+
+        if (pAsset)
+        {
+            // Asset is already loaded
+            sendAssetReadyHandle(pAsset, msg.source, requestorTaskId, nameHash);
+        }
+        else
+        {
+            AssetLoader * pLdr = findLeastBusyAssetLoader();
+            pLdr->queueRequest(msgAcc);
+            pLdr->incQueueSize();
+        }
+
         return MessageResult::Consumed;
     }
     case HASH::asset_ready__:
     {
         messages::AssetR<T> msgr(msgAcc);
-        const Asset * pAsset = msgr.asset();
+        Asset * pAsset = msgr.asset();
 
         // LORRNOTE: In this case, msg.source is the original entity
         // task_id that requested the asset since AssetLoader sends it
@@ -147,6 +176,10 @@ MessageResult AssetMgr::message(const T & msgAcc)
         sendAssetReadyHandle(pAsset, msg.target, msgr.taskId(), msgr.nameHash());
 
         return MessageResult::Consumed;
+    }
+    case HASH::release_asset__:
+    {
+        ERR("TODO: Releasing asset");
     }
     default:
         PANIC("Unknown AssetMgr message: %d", msg.msgId);
@@ -174,6 +207,14 @@ AssetLoader * AssetMgr::findLeastBusyAssetLoader()
     return pLoader;
 }
 
+Asset * AssetMgr::findAsset(const char * path)
+{
+    auto it = mAssets.find(path);
+    if (it != mAssets.end())
+        return it->second;
+    else
+        return nullptr;
+}
 
 // Template decls so we can define message func here in the .cpp
 template MessageResult AssetMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);

@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: c4331d248cee5cefdfcf7cf244926f28
+// HASH: 4b6e97e3b9030acaba8effbe24cb9206
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -34,6 +34,8 @@
 #include "engine/Registry.h"
 #include "engine/Component.h"
 #include "engine/Entity.h"
+
+#include "engine/messages/Handle.h"
 
 // system_api declarations
 #include "engine/shapes.h"
@@ -59,16 +61,30 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
+        {
+            // Initialize properties and fields to default values
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
             return MessageResult::Consumed;
-        case HASH::init_assets__:
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
             return MessageResult::Consumed;
+        } // HASH::request_assets__
         case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
             return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::set_property:
             switch (_msg.payload.u)
             {
@@ -102,13 +118,13 @@ public:
             model() = system_api::create_shape_box(size(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::init
         case HASH::update_transform:
         {
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::update_transform
         }
         return MessageResult::Propagate;
 }
@@ -173,17 +189,31 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
+        {
+            // Initialize properties and fields to default values
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
             return MessageResult::Consumed;
-        case HASH::init_assets__:
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
             return MessageResult::Consumed;
+        } // HASH::request_assets__
         case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
             return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::set_property:
             switch (_msg.payload.u)
             {
@@ -227,13 +257,13 @@ public:
             model() = system_api::create_shape_cone(size(), slices(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::init
         case HASH::update_transform:
         {
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::update_transform
         }
         return MessageResult::Propagate;
 }
@@ -303,17 +333,31 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
+        {
+            // Initialize properties and fields to default values
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
             return MessageResult::Consumed;
-        case HASH::init_assets__:
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
             return MessageResult::Consumed;
+        } // HASH::request_assets__
         case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
             return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::set_property:
             switch (_msg.payload.u)
             {
@@ -357,13 +401,13 @@ public:
             model() = system_api::create_shape_cylinder(size(), slices(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::init
         case HASH::update_transform:
         {
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::update_transform
         }
         return MessageResult::Propagate;
 }
@@ -433,7 +477,9 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
+        {
+            // Initialize properties and fields to default values
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             sections() = 16;
             slices() = 16;
@@ -441,10 +487,22 @@ public:
             model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
             return MessageResult::Consumed;
-        case HASH::init_assets__:
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
             return MessageResult::Consumed;
+        } // HASH::request_assets__
         case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
             return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::set_property:
             switch (_msg.payload.u)
             {
@@ -498,13 +556,13 @@ public:
             model() = system_api::create_shape_sphere(size(), slices(), sections(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::init
         case HASH::update_transform:
         {
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::update_transform
         }
         return MessageResult::Propagate;
 }
@@ -579,17 +637,31 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
+        {
+            // Initialize properties and fields to default values
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             sections() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
             modelUid() = system_api::renderer_gen_uid(entity());
             return MessageResult::Consumed;
-        case HASH::init_assets__:
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
             return MessageResult::Consumed;
+        } // HASH::request_assets__
         case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
             return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::set_property:
             switch (_msg.payload.u)
             {
@@ -633,13 +705,13 @@ public:
             model() = system_api::create_shape_quad_sphere(size(), sections(), diffuse(), entity());
             system_api::renderer_insert_model_instance(modelUid(), model(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::init
         case HASH::update_transform:
         {
             // Params look compatible, message body follows
             system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::update_transform
         }
         return MessageResult::Propagate;
 }

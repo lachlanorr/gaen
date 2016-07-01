@@ -26,8 +26,8 @@
 
 component TestComp
 {
-    asset #foo = "/fonts/profont.gatl";
-    asset bar = "/images/bar.tga";
+    //asset #foo = "/fonts/profont.gatl";
+    //asset bar = "/images/bar.tga";
     string #s = "initval";
     int #a;
 }
@@ -38,11 +38,11 @@ component TestCompEmpty
 
 entity Test
 {
-    asset #testFoo = "/another/asset.foo";
+    asset #testFoo = "/fonts/profont.gimg";
 
     components
     {
-        TestComp{foo = "/some/other/path/foo",
+        TestComp{//foo = "/some/other/path/foo",
                  s   = "Changedval",
                  a   = 5}
     }

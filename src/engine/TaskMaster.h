@@ -141,6 +141,7 @@ private:
     MessageResult message(const MessageQueueAccessor& msgAcc);
     
     void insertTask(thread_id threadOwner, const Task & task);
+    void removeTask(task_id taskId);
 
     MessageQueue * mpMainMessageQueue; // messages from main queue here
     Vector<kMEM_Engine, MessageQueue*> mTaskMasterMessageQueues; // message from other task masters queue here

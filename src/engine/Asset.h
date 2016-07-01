@@ -59,9 +59,9 @@ public:
         return mpBuffer != nullptr;
     }
 
-    const char * path() const
+    const String<kMEM_Engine> & path() const
     {
-        return mPath.c_str();
+        return mPath;
     }
 
     u32 pathHash() const

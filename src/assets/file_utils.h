@@ -77,6 +77,24 @@ void full_path(char * outPath, char * path);
 
 bool is_file_newer(const char * path, const char * comparePath);
 
+
+//------------------------------------------------------------------------------
+// Asset cooking path manipulation
+//------------------------------------------------------------------------------
+const char * default_platform();
+bool is_valid_platform(const char * platform);
+
+void assets_raw_dir(char * assetsRawDir, const char * assetsDir);
+void assets_cooked_dir(char * assetsCookedDir, const char * platform, const char * assetsDir);
+
+void find_assets_cooking_dir(char * assetsDir);
+void find_assets_runtime_dir(char * assetsDir);
+//------------------------------------------------------------------------------
+// Asset cooking path manipulation (END)
+//------------------------------------------------------------------------------
+
+
+
 bool write_file_if_contents_differ(const char * path, const char * contents);
 
 enum FileStatusFlag

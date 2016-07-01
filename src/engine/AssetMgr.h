@@ -27,6 +27,8 @@
 #ifndef GAEN_ENGINE_ASSET_MGR_H
 #define GAEN_ENGINE_ASSET_MGR_H
 
+#include "core/HashMap.h"
+#include "core/String.h"
 #include "core/Vector.h"
 #include "engine/Message.h"
 #include "engine/BlockMemory.h"
@@ -48,17 +50,25 @@ public:
     MessageResult message(const T& msgAcc);
 private:
     AssetLoader * findLeastBusyAssetLoader();
-    void sendAssetReadyHandle(const Asset * pAsset,
+    void sendAssetReadyHandle(Asset * pAsset,
                               task_id entityTask,
                               task_id entitySubTask,
                               u32 nameHash);
+
+    Asset * findAsset(const char * path);
 
     // Track creator's thread id so we can ensure no other thread calls us.
     // If they do, our SPSC queue design breaks down.
     thread_id mCreatorThreadId;
 
+    BlockMemory mBlockMemory;
+
+    String<kMEM_Engine> mAssetsRootPath;
+
     u32 mAssetLoaderCount;
     Vector<kMEM_Engine, AssetLoader*> mAssetLoaders;
+
+    HashMap<kMEM_Engine, String<kMEM_Engine>, Asset*> mAssets;
 
 }; // AssetMgr
 

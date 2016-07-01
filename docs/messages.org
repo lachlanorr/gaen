@@ -4,23 +4,23 @@ Several "special" messages are sent in sequence to Entities and components as th
 ** Entity is constructed
 ** Entity::activate() is called
 *** Inserts entity into engine (Queued)
-*** Sends #init_data__(Queued) to EntityBase
-**** EntityBase sends #init_data__(Immediate) to EntityScript task
+*** Sends #init__(Queued) to EntityBase
+**** EntityBase sends #init__(Immediate) to EntityScript task
 ***** EntityScript task initializes Properties and Fields
 ***** For each Component in EntityScript
 ****** Creates component
 ****** Calls Entity::insertComponent
-****** Sends Component #init_data__(Immediate)
+****** Sends Component #init__(Immediate)
 ******* Component initializes Properties and Fields
 ****** EntityScript sends set_property messages to component for each property it is overriding
-**** EntityBase Sends init_assets__(Immediate) to self
+**** EntityBase Sends request_assets__(Immediate) to self
 ***** For each Component in Entity
-****** Send Component #init_assets__(Immediate)
+****** Send Component #request_assets__(Immediate)
 ******* For each Asset declared in Component
 ******** Call Entity::requestAsset
 ********* EntityBase increments mAssetsRequested counter
 ********* #request_asset(Queued) is sent to HandleMgr
-***** Send EntityScript #init_assets__(Immediate)
+***** Send EntityScript #request_assets__(Immediate)
 ******* For each Asset declared in EntityScript
 ******** Call Entity::requestAsset
 ********* EntityBase increments mAssetsRequested counter
@@ -50,6 +50,20 @@ Failure to load an asset is considered fatal.
 ***** No special code here, just what the Script specifies for the Entity if specified at all.
 *** EntityBase sends #set_task_status(Queued) with Running value to self
 TaskMaster handles this message specially and sets the status flag on the Task.
+
+* Entity/Component finalization sequence
+** #fin is sent to EntityBase
+*** For each child Entity
+**** #fin is sent
+*** For each Component in EntityScript
+**** #fin is sent
+*** #fin is sent to EntityScript
+*** For each child Entity
+**** #fin__ is sent
+*** For each Component in EntityScript
+**** #fin__ is sent
+*** #fin__ is sent to EntityScript
+** EntityBase calls its own destructor
 
 
 

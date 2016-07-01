@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 78f4d9cbfc47dcec0d9b412db550aec2
+// HASH: bbcdcfc02d93307cd772544c10c72a2a
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -34,6 +34,8 @@
 #include "engine/Registry.h"
 #include "engine/Component.h"
 #include "engine/Entity.h"
+
+#include "engine/messages/Handle.h"
 
 // system_api declarations
 #include "engine/shapes.h"
@@ -59,15 +61,29 @@ public:
         const Message & _msg = msgAcc.message();
         switch(_msg.msgId)
         {
-        case HASH::init_data__:
+        case HASH::init__:
+        {
+            // Initialize properties and fields to default values
             lightUid() = system_api::renderer_gen_uid(entity());
             dir() = glm::vec3(1.00000001e-01f, 1.00000001e-01f, 2.00000003e-01f);
             col() = Color(255, 255, 255, 255);
             return MessageResult::Consumed;
-        case HASH::init_assets__:
+        } // HASH::init__
+        case HASH::request_assets__:
+        {
+            // Request any assets we require
             return MessageResult::Consumed;
+        } // HASH::request_assets__
         case HASH::asset_ready__:
+        {
+            // Asset is loaded and a handle to it has been sent to us
             return MessageResult::Consumed;
+        } // HASH::assets_ready__
+        case HASH::fin__:
+        {
+            // Release any block data or handle fields and properties
+            return MessageResult::Consumed;
+        } // HASH::fin__
         case HASH::set_property:
             switch (_msg.payload.u)
             {
@@ -100,7 +116,7 @@ public:
             // Params look compatible, message body follows
             system_api::renderer_insert_light_directional(lightUid(), dir(), col(), entity());
             return MessageResult::Consumed;
-        }
+        } // HASH::init
         }
         return MessageResult::Propagate;
 }

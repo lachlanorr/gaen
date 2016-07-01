@@ -1740,8 +1740,10 @@ Ast * ast_create_block(Ast* pBlock, ParseData * pParseData)
 
 Ast * ast_create_identifier(const char * name, ParseData * pParseData)
 {
-    Ast * pAst = ast_create(kAST_Identifier, pParseData);
-    pAst->str = name;
+    Ast * pNameAst = ast_create_with_str(kAST_DottedIdPart, name, pParseData);
+    Ast * pDottedIdList = ast_append(kAST_DottedId, NULL, pNameAst, pParseData);
+    Ast * pDottedId = ast_create_dotted_id(pDottedIdList, pParseData);
+    Ast * pAst = ast_create_symbol_ref(pDottedId, pParseData);
     return pAst;
 }
 

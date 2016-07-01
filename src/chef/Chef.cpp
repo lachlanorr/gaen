@@ -57,46 +57,6 @@ Chef::Chef(u32 id, const char * platform, const char * assetsDir, bool force)
     mAssetsCookedDir = scratch;
 }
 
-const char * Chef::default_platform()
-{
-#if IS_PLATFORM_WIN32
-    return "win";
-#elif IS_PLATFORM_OSX
-    return "osx";
-#elif IS_PLATFORM_IOS
-    return "ios";
-#else
-#error Invalid platform for cooking, no default
-#endif
-}
-
-bool Chef::is_valid_platform(const char * platform)
-{
-    ASSERT(platform);
-    return (0 == strcmp(platform, "win") ||
-            0 == strcmp(platform, "osx") ||
-            0 == strcmp(platform, "ios"));
-}
-
-void Chef::assets_raw_dir(char * assetsRawDir, const char * assetsDir)
-{
-    ASSERT(assetsRawDir);
-    ASSERT(assetsDir);
-    normalize_path(assetsRawDir, assetsDir);
-    strcat(assetsRawDir, "/raw");
-}
-
-void Chef::assets_cooked_dir(char * assetsCookedDir, const char * platform, const char * assetsDir)
-{
-    ASSERT(assetsCookedDir);
-    ASSERT(platform);
-    ASSERT(assetsDir);
-    ASSERT(is_valid_platform(platform));
-    normalize_path(assetsCookedDir, assetsDir);
-    strcat(assetsCookedDir, "/cooked_");
-    strcat(assetsCookedDir, platform);
-}
-
 void Chef::cook(const char * path)
 {
     ASSERT(path);

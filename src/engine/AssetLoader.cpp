@@ -38,11 +38,12 @@
 namespace gaen
 {
 
-AssetLoader::AssetLoader(u32 loaderId)
+AssetLoader::AssetLoader(u32 loaderId, const String<kMEM_Engine> & assetsRootPath)
+  : mLoaderId(loaderId)
+  , mAssetsRootPath(assetsRootPath)
 {
     mCreatorThreadId = active_thread_id();
 
-    mLoaderId = loaderId;
     mQueueSize = 0;
 
     mpRequestQueue = GNEW(kMEM_Engine, MessageQueue, kMaxAssetMessages);
@@ -99,23 +100,19 @@ MessageResult AssetLoader::message(const MessageQueueAccessor& msgAcc)
     {
     case HASH::request_asset__:
     {
-        PANIC_IF(msg.blockCount < 2, "Too few bytes for request_asset message");
+        CmpString pathCmpString;
+        u32 requestorTaskId;
+        u32 nameHash;
 
-        u32 requestorTaskId = msg.source;
-        u32 nameHash = msgAcc[0].cells[0].u;
+        extract_request_asset(msgAcc,
+                              mBlockMemory,
+                              pathCmpString,
+                              requestorTaskId,
+                              nameHash);
 
-        const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[1]);
-
-        PANIC_IF(pBlockData->type != kBKTY_String, "No path string sent in request_asset message");
-
-        u32 requiredBlockCount = pBlockData->blockCount;
-
-        // -1 below is for the block 0 in the message required to send the requestorTaskId
-        PANIC_IF(msg.blockCount - 1 < requiredBlockCount, "Too few bytes for request_asset path string");
-
-        Address addr = mBlockMemory.allocCopy(pBlockData);
-        CmpString pathCmpString = mBlockMemory.string(addr);
-        const char * pathStr = pathCmpString.c_str();
+        char pathStr[kMaxPath+1];
+        strcpy(pathStr, mAssetsRootPath.c_str());
+        strcat(pathStr, pathCmpString.c_str());
 
         Asset * pAsset = GNEW(kMEM_Engine, Asset, pathStr);
 
@@ -169,5 +166,33 @@ MemType AssetLoader::mem_type_from_ext(const char * ext)
     else
         return kMEM_Unspecified;
 }
+
+void AssetLoader::extract_request_asset(const MessageQueueAccessor & msgAcc,
+                                        BlockMemory & blockMemory,
+                                        CmpString & pathCmpString,
+                                        u32 & requestorTaskId,
+                                        u32 & nameHash)
+{
+    Message msg = msgAcc.message();
+
+    ASSERT(msg.msgId == HASH::request_asset__);
+    PANIC_IF(msg.blockCount < 2, "Too few bytes for request_asset message");
+
+    requestorTaskId = msg.source;
+    nameHash = msgAcc[0].cells[0].u;
+
+    const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[1]);
+
+    PANIC_IF(pBlockData->type != kBKTY_String, "No path string sent in request_asset message");
+
+    u32 requiredBlockCount = pBlockData->blockCount;
+
+    // -1 below is for the block 0 in the message required to send the requestorTaskId
+    PANIC_IF(msg.blockCount - 1 < requiredBlockCount, "Too few bytes for request_asset path string");
+
+    Address addr = blockMemory.allocCopy(pBlockData);
+    pathCmpString = blockMemory.string(addr);
+}
+
 
 } // namespace gaen

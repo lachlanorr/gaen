@@ -40,7 +40,7 @@ typedef void(*HandleReleaseFunc)(Handle & handle);
 class Handle
 {
 public:
-    Handle(u32 typeHash, u32 nameHash, task_id owner, const void * pData, HandleReleaseFunc pReleaseFunc)
+    Handle(u32 typeHash, u32 nameHash, task_id owner, void * pData, HandleReleaseFunc pReleaseFunc)
       : mTypeHash(typeHash)
       , mNameHash(nameHash)
       , mOwner(owner)
@@ -53,6 +53,7 @@ public:
     u32 typeHash() const { return mTypeHash; }
     u32 nameHash() const { return mNameHash; }
 
+    void * data() { return mpData; }
     const void * data() const { return mpData; }
 
     // Clear the data pointer, useful if handle was temporary
@@ -73,7 +74,7 @@ private:
     task_id mOwner;
     u32 mTypeHash;
     u32 mNameHash;
-    const void * mpData;
+    void * mpData;
     HandleReleaseFunc mpReleaseFunc;
 };
 
@@ -88,7 +89,7 @@ void handle_free(Handle & handle);
 template <class T>
 void handle_delete(Handle & handle)
 {
-    T * tPtr = const_cast<T*>(reinterpret_cast<const T*>(handle.data()));
+    T * tPtr = reinterpret_cast<T*>(handle.data());
     if (tPtr)
         GDELETE(tPtr);
 }

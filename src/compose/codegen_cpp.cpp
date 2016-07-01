@@ -88,6 +88,7 @@ static const char * cell_field_str(const SymDataType * pSdt, ParseData * pParseD
     case kDT_int:
         return "i";
     case kDT_uint:
+    case kDT_entity:
         return "u";
     case kDT_float:
         return "f";
@@ -188,6 +189,7 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
         case kDT_bool:
         case kDT_char:
         case kDT_color:
+        case kDT_entity:
             snprintf(scratch, kScratchSize, "%s[%u].cells[%u].%s", blockVarName, blockInfo.blockIndex, blockInfo.cellIndex, cell_field_str(pSdt, pParseData));
             return S(scratch);
         case kDT_vec3:
@@ -512,7 +514,8 @@ static S init_assets(const Ast * pAst, int indentLevel)
     S code = S("");
     for (SymRec * pSymRec : pAst->pScope->pSymTab->orderedSymRecs)
     {
-        if (is_prop_or_field(pSymRec) && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
+        if (is_prop_or_field(pSymRec) &&
+            pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
         {
             const char * handleName = asset_handle_name(pSymRec->name);
             code += I + S("entity().requestAsset(mScriptTask.id(), HASH::") + S(handleName) + S(", ") + S(pSymRec->name) + S("());\n");
@@ -525,15 +528,102 @@ static S asset_ready(const Ast * pAst, int indentLevel)
 {
     ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
 
-    S code = S("");
+    // check if there are any asset properties or fields
+    bool hasAssets = false;
     for (SymRec * pSymRec : pAst->pScope->pSymTab->orderedSymRecs)
     {
         if (is_prop_or_field(pSymRec) && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
         {
-            const char * handleName = asset_handle_name(pSymRec->name);
-            code += I + S("entity().requestAsset(mScriptTask.id(), HASH::") + S(handleName) + S(", ") + S(pSymRec->name) + S("());\n");
+            hasAssets = true;
+            break;
         }
     }
+
+    S code = S("");
+
+    if (hasAssets)
+    {
+        code += I + S("{\n");
+        code += I + S("    messages::HandleR<T> msgr(msgAcc);\n");
+        code += I + S("    ASSERT(msgr.taskId() == task().id());\n");
+        code += I + S("    switch (msgr.nameHash())\n");
+        code += I + S("    {\n");
+        for (SymRec * pSymRec : pAst->pScope->pSymTab->orderedSymRecs)
+        {
+            if (is_prop_or_field(pSymRec) && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
+            {
+                const char * handleName = asset_handle_name(pSymRec->name);
+                code += I + S("    case HASH::") + S(handleName) + S(":\n");
+                code += I + S("        ") + S(handleName) + ("() = msgr.handle();\n");
+            }
+        }
+
+        code += I + S("    default:\n");
+        code += I + S("        ERR(\"Invalid asset nameHash: %u\", msgr.nameHash());\n");
+
+        code += I + S("    }\n");
+        code += I + S("}\n");
+    }
+    return code;
+}
+
+static S fin(const Ast * pAst, int indentLevel)
+{
+    ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
+
+    S code = S("");
+    for (SymRec * pSymRec : pAst->pScope->pSymTab->orderedSymRecs)
+    {
+        if (is_prop_or_field(pSymRec))
+        {
+            if (is_block_memory_type(pSymRec->pSymDataType) ||
+                pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
+            {
+                code += I + S("release_");
+                code += symref(nullptr, pSymRec, pAst->pParseData) + S(";") + LF;
+            }
+        }
+    }
+    return code;
+}
+
+static S initialization_message_handlers(const Ast * pAst, const S& postInit, int indentLevel)
+{
+    S code;
+
+    // init__
+    code += I + S("        case HASH::init__:\n");
+    code += I + S("        {\n");
+    code += I + S("            // Initialize properties and fields to default values\n");
+    code += init_data(pAst, indentLevel + 2);
+    code += postInit;
+    code += I + S("            return MessageResult::Consumed;\n");
+    code += I + S("        } // HASH::init__\n");
+
+    // request_assets__
+    code += I + S("        case HASH::request_assets__:\n");
+    code += I + S("        {\n");
+    code += I + S("            // Request any assets we require\n");
+    code += init_assets(pAst, indentLevel + 3);
+    code += I + S("            return MessageResult::Consumed;\n");
+    code += I + S("        } // HASH::request_assets__\n");
+
+    // asset_ready__
+    code += I + S("        case HASH::asset_ready__:\n");
+    code += I + S("        {\n");
+    code += I + S("            // Asset is loaded and a handle to it has been sent to us\n");
+    code += asset_ready(pAst, indentLevel + 3);
+    code += I + S("            return MessageResult::Consumed;\n");
+    code += I + S("        } // HASH::assets_ready__\n");
+
+    // fin__
+    code += I + S("        case HASH::fin__:\n");
+    code += I + S("        {\n");
+    code += I + S("            // Release any block data or handle fields and properties\n");
+    code += fin(pAst, indentLevel + 3);
+    code += I + S("            return MessageResult::Consumed;\n");
+    code += I + S("        } // HASH::fin__\n");
+
     return code;
 }
 
@@ -603,7 +693,7 @@ static S message_def(const Ast * pAst, int indentLevel)
         }
 
         code += I + S("    return MessageResult::Consumed;\n");
-        code += I + S("}\n");
+        code += I + S("} // HASH::") + S(pAst->str) + S("\n");
     }
 
     return code;
@@ -781,6 +871,7 @@ static S codegen_recurse(const Ast * pAst,
     {
     case kAST_FunctionDef:
     {
+        ERR("No codegen for kAST_FunctionDef");
         return S("");
     }
     case kAST_EntityDef:
@@ -829,32 +920,27 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("        switch(_msg.msgId)\n");
             code += I + S("        {\n");
 
-            code += I + S("        case HASH::init_data__:\n");
-            code += I + S("        {\n");
-
-            // Initialize fields and properties
-            code += init_data(pAst, indentLevel + 2);
-
             // Add initial component members
             // NOTE: This must happen after mBlocks is initialized to hold
             // the data members of the entity.
+            S compMembers = S("");
             if (pCompMembers)
             {
                 for (Ast * pCompMember : pCompMembers->pChildren->nodes)
                 {
-                    code += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
-                    code += I2 + S("    {\n");
-                    code += I2 + S("        Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
-                    code += I2 + S("        compTask.message(msgAcc); // propagate init_data__ into component\n");
+                    compMembers += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
+                    compMembers += I2 + S("    {\n");
+                    compMembers += I2 + S("        Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
+                    compMembers += I2 + S("        compTask.message(msgAcc); // propagate init__ into component\n");
                     ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
-                    code += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", indentLevel + 4);
+                    compMembers += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", indentLevel + 4);
 
-                    code += I2 + S("    }\n");
+                    compMembers += I2 + S("    }\n");
                 }
             }
-            code += I2 + S("    return MessageResult::Consumed;\n");
-            code += I2 + S("} // case HASH::init_data__\n");
-        
+
+            // init__, request_assets__, etc.
+            code += initialization_message_handlers(pAst, compMembers, indentLevel);
 
             // property setters
             code += propCode;
@@ -962,20 +1048,8 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("        switch(_msg.msgId)\n");
         code += I + S("        {\n");
 
-        // init_data__
-        code += I + S("        case HASH::init_data__:\n");
-        code += init_data(pAst, indentLevel + 2);
-        code += I + S("            return MessageResult::Consumed;\n");
-
-        // init_assets__
-        code += I + S("        case HASH::init_assets__:\n");
-        code += init_assets(pAst, indentLevel + 3);
-        code += I + S("            return MessageResult::Consumed;\n");
-
-        // asset_ready__
-        code += I + S("        case HASH::asset_ready__:\n");
-        code += asset_ready(pAst, indentLevel + 3);
-        code += I + S("            return MessageResult::Consumed;\n");
+        // init__, request_assets__, etc.
+        code += initialization_message_handlers(pAst, S(""), indentLevel);
 
         code += set_property_handlers(pAst, indentLevel + 2);
         // property setters
@@ -1072,7 +1146,7 @@ static S codegen_recurse(const Ast * pAst,
             {
                 code += codegen_recurse(pChild, indentLevel + 1);
             }
-            code += I + S("}\n");
+            code += I + S("} // update\n");
         }
         else
         {
@@ -1120,11 +1194,21 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("}\n");
             code += I + S("void set_") + propName + S("(const ") + typeStr + S("& rhs)\n");
             code += I + S("{\n");
-            code += I + S("    ERR(\"TODO: release block memory strings in #fin message!!!\");\n");
             code += I + S("    release_") + propName + S("();\n");
             code += I + S("    ") + propName + S("() = rhs;\n");
             code += I + S("    entity().blockMemory().addRef(") + propName + S("());\n");
             code += I + S("    ") + assignedVar + S(" = true;\n");
+            code += I + S("}\n");
+        }
+        else if (ast_data_type(pAst)->typeDesc.dataType == kDT_asset || 
+                 ast_data_type(pAst)->typeDesc.dataType == kDT_asset_handle)
+        {
+            code += I + S("void release_") + propName + S("()\n");
+            code += I + S("{\n");
+            code += I + S("    if (" + propName + "() != nullptr)\n");
+            code += I + S("    {\n");
+            code += I + S("        ") + propName + S("()->release();\n");
+            code += I + S("    }\n");
             code += I + S("}\n");
         }
         code += LF;
@@ -1758,6 +1842,8 @@ CodeCpp codegen_cpp(ParseData * pParseData)
     codeCpp.code += S("#include \"engine/Registry.h\"\n");
     codeCpp.code += S("#include \"engine/Component.h\"\n");
     codeCpp.code += S("#include \"engine/Entity.h\"\n");
+    codeCpp.code += S("\n");
+    codeCpp.code += S("#include \"engine/messages/Handle.h\"\n");
 
     codeCpp.code += S("\n");
     codeCpp.code += S("// system_api declarations\n");

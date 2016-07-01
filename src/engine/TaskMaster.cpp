@@ -567,6 +567,12 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             insertTask(msgr.owner(), msgr.task());
             return MessageResult::Consumed;
         }
+        case HASH::remove_task:
+        {
+            task_id taskToRemove = msg.payload.u;
+            removeTask(taskToRemove);
+            return MessageResult::Consumed;
+        }
         default:
         {
             ERR("Unhandled message type, msgId: %d", msg.msgId);
@@ -690,6 +696,43 @@ void TaskMaster::insertTask(thread_id threadOwner, const Task & task)
     }
 }
 
+void TaskMaster::removeTask(task_id taskId)
+{
+    // Are we the owner?
+    auto itOTM = mOwnedTaskMap.find(taskId);
+    if (itOTM != mOwnedTaskMap.end())
+    {
+        size_t idx = itOTM->second;
+        // If there is more than one item in mOwnedTaskMap,
+        // we swap with the last item, then pop off the last item.
+        if (mOwnedTaskMap.size() > 1)
+        {
+            // replace item with the last one in vector
+            mOwnedTasks[idx] = mOwnedTasks.back();
+
+            // remove last task in vector (now it is in position of the task we are removing)
+            mOwnedTasks.pop_back();
+
+            // remove from mOwnedTaskMap
+            mOwnedTaskMap.erase(itOTM);
+
+            // adjust mOwnedTaskMap so it can find what was the last task that has moved indexes
+            mOwnedTaskMap[mOwnedTasks[idx].id()] = idx;
+        }
+        else
+        {
+            ASSERT(mOwnedTasks.size() == 1); // verify our two containers have the same size
+            // just remove it
+            mOwnedTasks.pop_back();
+            mOwnedTaskMap.erase(itOTM);
+        }
+    }
+
+    // In either case (we own or don't own), we remove from mTaskOwnerMap
+    auto itTOM = mTaskOwnerMap.find(taskId);
+    if (itTOM != mTaskOwnerMap.end())
+        mTaskOwnerMap.erase(itTOM);
+}
 
 } // namespace gaen
 

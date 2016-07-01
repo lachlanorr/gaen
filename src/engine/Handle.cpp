@@ -35,8 +35,7 @@ void handle_free(Handle & handle)
 {
     if (handle.data())
     {
-        void * pData = const_cast<void*>(handle.data());
-        GFREE(pData);
+        GFREE(handle.data());
     }
 }
 

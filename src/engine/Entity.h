@@ -78,8 +78,8 @@ protected:
     enum InitStatus
     {
         kIS_Uninitialized = 0,
-        kIS_InitData      = 1,
-        kIS_InitAssets    = 2,
+        kIS_Init          = 1,
+        kIS_RequestAssets = 2,
         kIS_AssetsReady   = 3,
         kIS_Activated     = 4,
         kIS_Fin           = 5
@@ -92,6 +92,8 @@ protected:
     // the c++ codegen
     const Entity & entity() const { return *this; }
     Entity & entity() { return *this; }
+
+    void finSelf();
 
     void finalizeAssetInit();
 
@@ -128,6 +130,8 @@ protected:
     // Task representing Entity "sub class" created by writing an
     // entity Compose script.
     Task mScriptTask;
+
+    bool mIsFinSelfSent;
 
     bool mIsTransformDirty;
     glm::mat4x3 mTransform;

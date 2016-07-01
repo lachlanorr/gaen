@@ -127,7 +127,7 @@ cmp_file
 
 using_list
     : using_stmt             { $$ = ast_append(kAST_UsingList, NULL, $1, pParseData); }
-    | using_list using_stmt { $$ = ast_append(kAST_UsingList, $1, $2, pParseData); }
+    | using_list using_stmt  { $$ = ast_append(kAST_UsingList, $1, $2, pParseData); }
     ;
 
 using_stmt

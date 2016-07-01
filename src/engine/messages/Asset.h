@@ -49,7 +49,7 @@ public:
 
     }
 
-    const Asset * asset() const { return static_cast<const Asset *>(mMsgAcc[0].dCells[0].p); }
+    Asset * asset() const { return static_cast<Asset *>(mMsgAcc[0].dCells[0].p); }
     u32 nameHash() const { return mMsgAcc[0].cells[2].u; }
     u32 taskId() const { return (u32)mMsgAcc.message().payload.u; }
         
@@ -98,7 +98,7 @@ public:
                            pMsgQueue)
     {}
     
-    void setAsset(const Asset * pVal) { mMsgAcc[0].dCells[0].p = (void*)pVal; }
+    void setAsset(Asset * pVal) { mMsgAcc[0].dCells[0].p = (void*)pVal; }
     void setNameHash(u32 val) { mMsgAcc[0].cells[2].u = val; }
     void setTaskId(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 private:
@@ -125,7 +125,7 @@ public:
                            mBlocks)
     {}
 
-    void setAsset(const Asset * pVal) { mMsgAcc[0].dCells[0].p = (void*)pVal; }
+    void setAsset(Asset * pVal) { mMsgAcc[0].dCells[0].p = (void*)pVal; }
     void setNameHash(u32 val) { mMsgAcc[0].cells[2].u = val; }
     void setTaskId(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 

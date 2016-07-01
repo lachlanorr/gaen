@@ -33,6 +33,14 @@
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
 
+#define VERBOSE_MESSAGE_LOGGING HAS__
+
+#if HAS(VERBOSE_MESSAGE_LOGGING)
+#define LOG_MESSAGE_DETAILS(caption, msgId, source, target) LOG_INFO("%s %s, source: %u, target: %u", caption, HASH::reverse_hash(msgId), source, target);
+#else
+#define LOG_MESSAGE_DETAILS(caption, msgId, source, target) do {} while(0)
+#endif
+
 namespace gaen
 {
 
@@ -78,13 +86,15 @@ public:
                    cell payload,
                    u32 blockCount)
     {
-        // LORRTEMP
-        //LOG_INFO("pushBegin %s, source: %u, target: %u", HASH::reverse_hash(msgId), source, target);
+        LOG_MESSAGE_DETAILS("pushBegin", msgId, source, target);
+
         pushHeader(pMsgAcc, msgId, flags, source, target, payload, blockCount);
     }
 
     void pushCommit(const MessageQueueAccessor & msgAcc)
     {
+        LOG_MESSAGE_DETAILS("pushCommit", msgAcc.message().msgId, msgAcc.message().source, msgAcc.message().target);
+
         // We always commit the Message Header, plus any additional Blocks
         mRingBuffer.pushCommit(msgAcc.mAccessor[0].blockCount + 1);
     }
@@ -113,10 +123,7 @@ public:
         if (pMsgAcc->mAccessor.available() == 0)
             return false;
 
-        // LORRTEMP
-        //Message msg = pMsgAcc->message();
-        //LOG_INFO("popBegin %s, source: %u, target: %u", HASH::reverse_hash(pMsgAcc->message().msgId), pMsgAcc->message().source, pMsgAcc->message().target);
-
+        LOG_MESSAGE_DETAILS("popBegin", pMsgAcc->message().msgId, pMsgAcc->message().source, pMsgAcc->message().target);
 
         // By inspecting the message, we know how many are actually available.
         ASSERT(pMsgAcc->mAccessor.available() >= pMsgAcc->mAccessor[0].blockCount + 1);
@@ -127,6 +134,8 @@ public:
 
     void popCommit(const MessageQueueAccessor & msgAcc)
     {
+        LOG_MESSAGE_DETAILS("popCommit", msgAcc.message().msgId, msgAcc.message().source, msgAcc.message().target);
+
         ASSERT(msgAcc.mAccessor.available() >= msgAcc.mAccessor[0].blockCount + (u32)1);
         mRingBuffer.popCommit(msgAcc.mAccessor[0].blockCount + (u32)1);
     }

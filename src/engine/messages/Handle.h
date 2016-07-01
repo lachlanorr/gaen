@@ -48,7 +48,7 @@ public:
 
     }
 
-    const Handle * handle() const { return static_cast<const Handle *>(mMsgAcc[0].dCells[0].p); }
+    Handle * handle() const { return static_cast<Handle *>(mMsgAcc[0].dCells[0].p); }
     u32 nameHash() const { return mMsgAcc[0].cells[2].u; }
     u32 taskId() const { return (u32)mMsgAcc.message().payload.u; }
         
@@ -97,7 +97,7 @@ public:
                            pMsgQueue)
     {}
     
-    void setHandle(const Handle * pVal) { mMsgAcc[0].dCells[0].p = (void*)pVal; }
+    void setHandle(Handle * pVal) { mMsgAcc[0].dCells[0].p = (void*)pVal; }
     void setNameHash(u32 val) { mMsgAcc[0].cells[2].u = val; }
     void setTaskId(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 private:
@@ -124,7 +124,7 @@ public:
                            mBlocks)
     {}
 
-    void setHandle(const Handle * pVal) { mMsgAcc[0].dCells[0].p = (void*)pVal; }
+    void setHandle(Handle * pVal) { mMsgAcc[0].dCells[0].p = (void*)pVal; }
     void setNameHash(u32 val) { mMsgAcc[0].cells[2].u = val; }
     void setTaskId(u32 val) { mMsgAcc.message().payload.u = (u32)val; }
 
