@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 5687d356be9f2900742d8bbc65e4a5d5
+// HASH: ffd3f885e777b639f5cd8b04df29b524
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -67,7 +67,7 @@ public:
                     u32 blockCount = 0;
 
                     // Prepare the queue writer
-                    MessageQueueWriter msgw(HASH::timer, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(timer_message()), blockCount);
+                    MessageQueueWriter msgw(HASH::timer, kMessageFlag_None, self().task().id(), self().task().id(), to_cell(timer_message()), blockCount);
 
                     // Write parameters to message
 
@@ -200,20 +200,20 @@ public:
             if ((mouseDeltaX() != 0.00000000e+00f))
             {
                 f32 angle = (-(mouseDeltaX()) * rotDelta());
-                glm::quat orientDelta = system_api::quat_from_axis_angle(dirUp(), angle, entity());
+                glm::quat orientDelta = system_api::quat_from_axis_angle(dirUp(), angle, self());
                 orientation() = (orientDelta * orientation());
                 hasRotated = 1;
             }
             if ((mouseDeltaY() != 0.00000000e+00f))
             {
                 f32 angle = (mouseDeltaY() * rotDelta());
-                glm::quat orientDelta = system_api::quat_from_axis_angle(dirRight(), angle, entity());
+                glm::quat orientDelta = system_api::quat_from_axis_angle(dirRight(), angle, self());
                 orientation() = (orientDelta * orientation());
                 hasRotated = 1;
             }
             if (hasRotated)
             {
-                orientation() = system_api::quat_normalize(orientation(), entity());
+                orientation() = system_api::quat_normalize(orientation(), self());
                 dirForward() = (orientation() * dirForwardInit());
                 dirRight() = (orientation() * dirRightInit());
                 dirUp() = (orientation() * dirUpInit());
@@ -234,7 +234,7 @@ public:
         }
         if (hasMoved)
         {
-            system_api::renderer_move_camera(pos(), orientation(), entity());
+            system_api::renderer_move_camera(pos(), orientation(), self());
         }
     } // update
 
@@ -283,12 +283,12 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            system_api::watch_input_state(HASH::mouse_look, (u32)0, HASH::mouse_look, entity());
-            system_api::watch_mouse(HASH::mouse_move, HASH::mouse_wheel, entity());
-            system_api::watch_input_state(HASH::forward, (u32)0, HASH::forward, entity());
-            system_api::watch_input_state(HASH::back, (u32)0, HASH::back, entity());
-            system_api::watch_input_state(HASH::left, (u32)0, HASH::left, entity());
-            system_api::watch_input_state(HASH::right, (u32)0, HASH::right, entity());
+            system_api::watch_input_state(HASH::mouse_look, (u32)0, HASH::mouse_look, self());
+            system_api::watch_mouse(HASH::mouse_move, HASH::mouse_wheel, self());
+            system_api::watch_input_state(HASH::forward, (u32)0, HASH::forward, self());
+            system_api::watch_input_state(HASH::back, (u32)0, HASH::back, self());
+            system_api::watch_input_state(HASH::left, (u32)0, HASH::left, self());
+            system_api::watch_input_state(HASH::right, (u32)0, HASH::right, self());
             return MessageResult::Consumed;
         } // HASH::init
         case HASH::mouse_look:
@@ -494,13 +494,13 @@ public:
         {
             pitch() += ((pitching() * deltaSecs) * 1.00000000e+02f);
             yaw() += ((yawing() * deltaSecs) * 1.00000000e+02f);
-            glm::mat4x3 trans = system_api::mat43_rotation(glm::vec3(system_api::radians(pitch(), entity()), system_api::radians(yaw(), entity()), 0.00000000e+00f), entity());
+            glm::mat4x3 trans = system_api::mat43_rotation(glm::vec3(system_api::radians(pitch(), self()), system_api::radians(yaw(), self()), 0.00000000e+00f), self());
             { // Send Message Block
                 // Compute block size, incorporating any BlockMemory parameters dynamically
                 u32 blockCount = 3;
 
                 // Prepare the queue writer
-                MessageQueueWriter msgw(HASH::transform, kMessageFlag_None, entity().task().id(), entity().task().id(), to_cell(0), blockCount);
+                MessageQueueWriter msgw(HASH::transform, kMessageFlag_None, self().task().id(), self().task().id(), to_cell(0), blockCount);
 
                 // Write parameters to message
                 msgw.insertBlocks(0, trans);
@@ -543,10 +543,10 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            system_api::watch_input_state(HASH::forward, (u32)0, HASH::forward, entity());
-            system_api::watch_input_state(HASH::back, (u32)0, HASH::back, entity());
-            system_api::watch_input_state(HASH::left, (u32)0, HASH::left, entity());
-            system_api::watch_input_state(HASH::right, (u32)0, HASH::right, entity());
+            system_api::watch_input_state(HASH::forward, (u32)0, HASH::forward, self());
+            system_api::watch_input_state(HASH::back, (u32)0, HASH::back, self());
+            system_api::watch_input_state(HASH::left, (u32)0, HASH::left, self());
+            system_api::watch_input_state(HASH::right, (u32)0, HASH::right, self());
             return MessageResult::Consumed;
         } // HASH::init
         case HASH::forward:

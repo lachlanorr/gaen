@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: a6c616d0a2ca3c0b2522c79bc6d0f912
+// HASH: a12545ad09a2d57e7c031ad1e2a491e8
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -118,7 +118,7 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            system_api::print(entity().blockMemory().stringAlloc("Shape init"), entity());
+            system_api::print(self().blockMemory().stringAlloc("Shape init"), self());
             return MessageResult::Consumed;
         } // HASH::init
         }
@@ -316,7 +316,7 @@ private:
         }
         // Init Property: prop2
         {
-            CmpString val = entity().blockMemory().stringAlloc("new value");
+            CmpString val = self().blockMemory().stringAlloc("new value");
             ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop2), val.blockCount());
             val.writeMessage(msgw.accessor(), 0);
             pEnt->task().message(msgw.accessor());
@@ -338,7 +338,7 @@ private:
         }
         // Init Property: prop2
         {
-            CmpString val = entity().blockMemory().stringAlloc("new value");
+            CmpString val = self().blockMemory().stringAlloc("new value");
             ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop2), val.blockCount());
             val.writeMessage(msgw.accessor(), 0);
             pEnt->task().message(msgw.accessor());
@@ -392,7 +392,7 @@ public:
         case HASH::init__:
         {
             // Initialize properties and fields to default values
-            set_foo__path(entity().blockMemory().stringAlloc("/fonts/profont.gatl"));
+            set_foo__path(self().blockMemory().stringAlloc("/fonts/profont.gatl"));
             foo() = nullptr;
             trooo() = entity_init__init__test_Test__88_21();
             // Component: gaen.utils.Timer
@@ -417,7 +417,7 @@ public:
         case HASH::request_assets__:
         {
             // Request any assets we require
-            entity().requestAsset(mScriptTask.id(), HASH::foo, foo__path());
+            self().requestAsset(mScriptTask.id(), HASH::foo, foo__path());
             return MessageResult::Consumed;
         } // HASH::request_assets__
         case HASH::asset_ready__:
@@ -451,14 +451,14 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+00f, 10);
+            CmpString s = self().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+00f, 10);
             task_id t = entity_init__init__test_Test__97_50();
             { // Send Message Block
                 // Compute block size, incorporating any BlockMemory parameters dynamically
                 u32 blockCount = 1;
 
                 // Prepare the queue writer
-                MessageQueueWriter msgw(HASH::set_property, kMessageFlag_None, entity().task().id(), t, to_cell(HASH::prop1), blockCount);
+                MessageQueueWriter msgw(HASH::set_property, kMessageFlag_None, self().task().id(), t, to_cell(HASH::prop1), blockCount);
 
                 // Write parameters to message
                 *reinterpret_cast<i32*>(&msgw[0].cells[0]) = 5;
@@ -472,7 +472,7 @@ public:
                 blockCount += bmParam0.blockCount();
 
                 // Prepare the queue writer
-                MessageQueueWriter msgw(HASH::set_property, kMessageFlag_None, entity().task().id(), t, to_cell(HASH::prop2), blockCount);
+                MessageQueueWriter msgw(HASH::set_property, kMessageFlag_None, self().task().id(), t, to_cell(HASH::prop2), blockCount);
 
                 u32 startIndex = 0; // location in message to which to copy block memory items
                 // Write parameters to message
@@ -486,13 +486,13 @@ public:
                 u32 blockCount = 1;
                 CmpString bmParam0 = s;
                 blockCount += bmParam0.blockCount();
-                CmpString bmParam1 = entity().blockMemory().stringAlloc("a short one");
+                CmpString bmParam1 = self().blockMemory().stringAlloc("a short one");
                 blockCount += bmParam1.blockCount();
-                CmpString bmParam2 = entity().blockMemory().stringAlloc("this is another string that is larger than one block, and then some more");
+                CmpString bmParam2 = self().blockMemory().stringAlloc("this is another string that is larger than one block, and then some more");
                 blockCount += bmParam2.blockCount();
 
                 // Prepare the queue writer
-                MessageQueueWriter msgw(HASH::msg1, kMessageFlag_None, entity().task().id(), t, to_cell(5), blockCount);
+                MessageQueueWriter msgw(HASH::msg1, kMessageFlag_None, self().task().id(), t, to_cell(5), blockCount);
 
                 u32 startIndex = 1; // location in message to which to copy block memory items
                 // Write parameters to message
@@ -550,7 +550,7 @@ private:
     {
         if (mIs_foo__path_Assigned)
         {
-            entity().blockMemory().release(foo__path());
+            self().blockMemory().release(foo__path());
         }
         mIs_foo__path_Assigned = false;
     }
@@ -558,7 +558,7 @@ private:
     {
         release_foo__path();
         foo__path() = rhs;
-        entity().blockMemory().addRef(foo__path());
+        self().blockMemory().addRef(foo__path());
         mIs_foo__path_Assigned = true;
     }
 

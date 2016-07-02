@@ -126,8 +126,6 @@ void Entity::finSelf()
     if (!mIsFinSelfSent)
     {
         MessageQueueWriter msgw(HASH::fin, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0), 0);
-        msgw.commit(); // explicit commit here to pop HASH::fin before we start pushing HASH::remove_task
-        broadcast_message(HASH::remove_task, kMessageFlag_None, mTask.id(), to_cell(mTask.id()));
     }
     mIsFinSelfSent = true;
 }
@@ -245,11 +243,18 @@ MessageResult Entity::message(const T & msgAcc)
         // Call our sub-classed message routine
         mScriptTask.message(finMsgW.accessor());
 
+        // Remove us from TaskMasters
+        broadcast_message(HASH::remove_task, kMessageFlag_None, mTask.id(), to_cell(mTask.id()));
+
+        return MessageResult::Consumed;
+    }
+    else if (msgId == HASH::fin__)
+    {
+        // Our owning task master will send us this message immediately after
+        // we're removed from the task list.
 
         // And finally, delete ourselves
         GDELETE(this);
-
-        return MessageResult::Consumed;
     }
 
     // Always pass set_property through to our mScriptTask

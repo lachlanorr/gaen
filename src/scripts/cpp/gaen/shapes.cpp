@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 4b6e97e3b9030acaba8effbe24cb9206
+// HASH: 5df2939b4b8f1ad6797cd40d5c631a0a
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -67,7 +67,7 @@ public:
             size() = glm::vec3(1.00000000e+00f, 1.00000000e+00f, 1.00000000e+00f);
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
-            modelUid() = system_api::renderer_gen_uid(entity());
+            modelUid() = system_api::renderer_gen_uid(self());
             return MessageResult::Consumed;
         } // HASH::init__
         case HASH::request_assets__:
@@ -115,14 +115,14 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            model() = system_api::create_shape_box(size(), diffuse(), entity());
-            system_api::renderer_insert_model_instance(modelUid(), model(), entity());
+            model() = system_api::create_shape_box(size(), diffuse(), self());
+            system_api::renderer_insert_model_instance(modelUid(), model(), self());
             return MessageResult::Consumed;
         } // HASH::init
         case HASH::update_transform:
         {
             // Params look compatible, message body follows
-            system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
+            system_api::renderer_transform_model_instance(modelUid(), transform(), self());
             return MessageResult::Consumed;
         } // HASH::update_transform
         }
@@ -196,7 +196,7 @@ public:
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
-            modelUid() = system_api::renderer_gen_uid(entity());
+            modelUid() = system_api::renderer_gen_uid(self());
             return MessageResult::Consumed;
         } // HASH::init__
         case HASH::request_assets__:
@@ -254,14 +254,14 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            model() = system_api::create_shape_cone(size(), slices(), diffuse(), entity());
-            system_api::renderer_insert_model_instance(modelUid(), model(), entity());
+            model() = system_api::create_shape_cone(size(), slices(), diffuse(), self());
+            system_api::renderer_insert_model_instance(modelUid(), model(), self());
             return MessageResult::Consumed;
         } // HASH::init
         case HASH::update_transform:
         {
             // Params look compatible, message body follows
-            system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
+            system_api::renderer_transform_model_instance(modelUid(), transform(), self());
             return MessageResult::Consumed;
         } // HASH::update_transform
         }
@@ -340,7 +340,7 @@ public:
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
-            modelUid() = system_api::renderer_gen_uid(entity());
+            modelUid() = system_api::renderer_gen_uid(self());
             return MessageResult::Consumed;
         } // HASH::init__
         case HASH::request_assets__:
@@ -398,14 +398,14 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            model() = system_api::create_shape_cylinder(size(), slices(), diffuse(), entity());
-            system_api::renderer_insert_model_instance(modelUid(), model(), entity());
+            model() = system_api::create_shape_cylinder(size(), slices(), diffuse(), self());
+            system_api::renderer_insert_model_instance(modelUid(), model(), self());
             return MessageResult::Consumed;
         } // HASH::init
         case HASH::update_transform:
         {
             // Params look compatible, message body follows
-            system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
+            system_api::renderer_transform_model_instance(modelUid(), transform(), self());
             return MessageResult::Consumed;
         } // HASH::update_transform
         }
@@ -485,7 +485,7 @@ public:
             slices() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
-            modelUid() = system_api::renderer_gen_uid(entity());
+            modelUid() = system_api::renderer_gen_uid(self());
             return MessageResult::Consumed;
         } // HASH::init__
         case HASH::request_assets__:
@@ -553,14 +553,14 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            model() = system_api::create_shape_sphere(size(), slices(), sections(), diffuse(), entity());
-            system_api::renderer_insert_model_instance(modelUid(), model(), entity());
+            model() = system_api::create_shape_sphere(size(), slices(), sections(), diffuse(), self());
+            system_api::renderer_insert_model_instance(modelUid(), model(), self());
             return MessageResult::Consumed;
         } // HASH::init
         case HASH::update_transform:
         {
             // Params look compatible, message body follows
-            system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
+            system_api::renderer_transform_model_instance(modelUid(), transform(), self());
             return MessageResult::Consumed;
         } // HASH::update_transform
         }
@@ -644,7 +644,7 @@ public:
             sections() = 16;
             diffuse() = Color(255, 0, 0, 255);
             model() = nullptr;
-            modelUid() = system_api::renderer_gen_uid(entity());
+            modelUid() = system_api::renderer_gen_uid(self());
             return MessageResult::Consumed;
         } // HASH::init__
         case HASH::request_assets__:
@@ -702,14 +702,14 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            model() = system_api::create_shape_quad_sphere(size(), sections(), diffuse(), entity());
-            system_api::renderer_insert_model_instance(modelUid(), model(), entity());
+            model() = system_api::create_shape_quad_sphere(size(), sections(), diffuse(), self());
+            system_api::renderer_insert_model_instance(modelUid(), model(), self());
             return MessageResult::Consumed;
         } // HASH::init
         case HASH::update_transform:
         {
             // Params look compatible, message body follows
-            system_api::renderer_transform_model_instance(modelUid(), transform(), entity());
+            system_api::renderer_transform_model_instance(modelUid(), transform(), self());
             return MessageResult::Consumed;
         } // HASH::update_transform
         }

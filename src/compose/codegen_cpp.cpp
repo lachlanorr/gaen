@@ -287,7 +287,7 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
 
                 snprintf(scratch,
                          kScratchSize,
-                         "entity().blockMemory().stringReadMessage(msgAcc, %u, %u)",
+                         "self().blockMemory().stringReadMessage(msgAcc, %u, %u)",
                          pSymRec->pAst->pBlockInfos->blockCount,
                          pBlockInfo->blockMemoryIndex);
                 code = S(scratch);
@@ -409,8 +409,8 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                     code += I2 + S("u32 requiredBlockCount = pBlockData->blockCount;\n");
                     code += I2 + S("if (_msg.blockCount >= requiredBlockCount)\n");
                     code += I2 + S("{\n");
-                    code += I2 + S("    Address addr = entity().blockMemory().allocCopy(pBlockData);\n");
-                    code += I2 + S("    set_") + S(pSymRec->name) + S("(entity().blockMemory().string(addr));\n");
+                    code += I2 + S("    Address addr = self().blockMemory().allocCopy(pBlockData);\n");
+                    code += I2 + S("    set_") + S(pSymRec->name) + S("(self().blockMemory().string(addr));\n");
                     code += I2 + S("    return MessageResult::Consumed;\n");
                     code += I2 + S("}\n");
                     code += I2 + S("break;\n");
@@ -453,7 +453,7 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
         return S("nullptr");
     case kDT_string:
     case kDT_asset:
-        return S("entity().blockMemory().stringAlloc(\"\")");
+        return S("self().blockMemory().stringAlloc(\"\")");
     default:
         COMP_ERROR(pParseData, "Unknown initial value for datatype: %d", pSdt->typeDesc.dataType);
         return S("");
@@ -518,7 +518,7 @@ static S init_assets(const Ast * pAst, int indentLevel)
             pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
         {
             const char * handleName = asset_handle_name(pSymRec->name);
-            code += I + S("entity().requestAsset(mScriptTask.id(), HASH::") + S(handleName) + S(", ") + S(pSymRec->name) + S("());\n");
+            code += I + S("self().requestAsset(mScriptTask.id(), HASH::") + S(handleName) + S(", ") + S(pSymRec->name) + S("());\n");
         }
     }
     return code;
@@ -1188,7 +1188,7 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("{\n");
             code += I + S("    if (") + assignedVar + S(")\n");
             code += I + S("    {\n");
-            code += I + S("        entity().blockMemory().release(") + propName + S("());\n");
+            code += I + S("        self().blockMemory().release(") + propName + S("());\n");
             code += I + S("    }\n");
             code += I + S("    ") + assignedVar + S(" = false;\n");
             code += I + S("}\n");
@@ -1196,7 +1196,7 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("{\n");
             code += I + S("    release_") + propName + S("();\n");
             code += I + S("    ") + propName + S("() = rhs;\n");
-            code += I + S("    entity().blockMemory().addRef(") + propName + S("());\n");
+            code += I + S("    self().blockMemory().addRef(") + propName + S("());\n");
             code += I + S("    ") + assignedVar + S(" = true;\n");
             code += I + S("}\n");
         }
@@ -1315,7 +1315,7 @@ static S codegen_recurse(const Ast * pAst,
             code += codegen_recurse(pParam, indentLevel+1) + S(", ");
         }
         // Always add our entity as last parameter
-        code += S("entity())");
+        code += S("self())");
 
         return code;
     }
@@ -1532,6 +1532,11 @@ static S codegen_recurse(const Ast * pAst,
         return S("/* LORRTODO: Add support for kAST_StructInit Ast Type */");
     }
 
+    case kAST_Self:
+    {
+        return S("self().task().id()");
+    }
+
     case kAST_Transform:
     {
         return S("transform()");
@@ -1552,7 +1557,7 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_StringLiteral:
     {
         encode_string(scratch, kScratchSize, pAst->str);
-        return S("entity().blockMemory().stringAlloc(") + S(scratch) + S(")");
+        return S("self().blockMemory().stringAlloc(") + S(scratch) + S(")");
     }
     case kAST_StringInit:
     {
@@ -1568,7 +1573,7 @@ static S codegen_recurse(const Ast * pAst,
             if (pChild == pAst->pChildren->nodes.front())
             {
                 encode_string(scratch, kScratchSize, pChild->str);
-                code += S("entity().blockMemory().stringFormat(") + S(scratch);
+                code += S("self().blockMemory().stringFormat(") + S(scratch);
             }
             else
             {
@@ -1655,14 +1660,14 @@ static S codegen_recurse(const Ast * pAst,
 
         S target;
         if (pAst->pLhs == 0)
-            target = S("entity().task().id()");
+            target = S("self().task().id()");
         else
             target = codegen_recurse(pAst->pLhs, 0);
 
         code += I1 + S("// Prepare the queue writer\n");
         snprintf(scratch,
                  kScratchSize,
-                 "MessageQueueWriter msgw(HASH::%s, kMessageFlag_None, entity().task().id(), %s, to_cell(%s), blockCount);\n",
+                 "MessageQueueWriter msgw(HASH::%s, kMessageFlag_None, self().task().id(), %s, to_cell(%s), blockCount);\n",
                  pAst->str,
                  target.c_str(),
                  payload.c_str());

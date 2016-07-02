@@ -102,6 +102,7 @@ typedef enum
     
     kAST_SimpleStmt,
 
+    kAST_Self,
     kAST_Transform,
 
     kAST_If,

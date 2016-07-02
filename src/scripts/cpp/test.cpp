@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: ad8ca7d1d9fcf5b2a7fee537ce90c18b
+// HASH: 4bf6c5c46c8bb1bc1b5e7209e564133c
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -64,7 +64,7 @@ public:
         case HASH::init__:
         {
             // Initialize properties and fields to default values
-            set_s(entity().blockMemory().stringAlloc("initval"));
+            set_s(self().blockMemory().stringAlloc("initval"));
             a() = 0;
             return MessageResult::Consumed;
         } // HASH::init__
@@ -105,8 +105,8 @@ public:
                 u32 requiredBlockCount = pBlockData->blockCount;
                 if (_msg.blockCount >= requiredBlockCount)
                 {
-                    Address addr = entity().blockMemory().allocCopy(pBlockData);
-                    set_s(entity().blockMemory().string(addr));
+                    Address addr = self().blockMemory().allocCopy(pBlockData);
+                    set_s(self().blockMemory().string(addr));
                     return MessageResult::Consumed;
                 }
                 break;
@@ -138,7 +138,7 @@ private:
     {
         if (mIs_s_Assigned)
         {
-            entity().blockMemory().release(s());
+            self().blockMemory().release(s());
         }
         mIs_s_Assigned = false;
     }
@@ -146,7 +146,7 @@ private:
     {
         release_s();
         s() = rhs;
-        entity().blockMemory().addRef(s());
+        self().blockMemory().addRef(s());
         mIs_s_Assigned = true;
     }
 
@@ -250,17 +250,17 @@ public:
         case HASH::init__:
         {
             // Initialize properties and fields to default values
-            set_testFoo__path(entity().blockMemory().stringAlloc("/fonts/profont.gimg"));
+            set_testFoo__path(self().blockMemory().stringAlloc("/fonts/profont.gatl"));
             testFoo() = nullptr;
             prop1() = 20;
-            set_prop2(entity().blockMemory().stringAlloc("abc"));
+            set_prop2(self().blockMemory().stringAlloc("abc"));
             // Component: TestComp
             {
                 Task & compTask = insertComponent(HASH::test__TestComp, mComponentCount);
                 compTask.message(msgAcc); // propagate init__ into component
                 // Init Property: s
                 {
-                    CmpString val = entity().blockMemory().stringAlloc("Changedval");
+                    CmpString val = self().blockMemory().stringAlloc("Changedval");
                     ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::s), val.blockCount());
                     val.writeMessage(msgw.accessor(), 0);
                     compTask.message(msgw.accessor());
@@ -277,7 +277,7 @@ public:
         case HASH::request_assets__:
         {
             // Request any assets we require
-            entity().requestAsset(mScriptTask.id(), HASH::testFoo, testFoo__path());
+            self().requestAsset(mScriptTask.id(), HASH::testFoo, testFoo__path());
             return MessageResult::Consumed;
         } // HASH::request_assets__
         case HASH::asset_ready__:
@@ -325,8 +325,8 @@ public:
                 u32 requiredBlockCount = pBlockData->blockCount;
                 if (_msg.blockCount >= requiredBlockCount)
                 {
-                    Address addr = entity().blockMemory().allocCopy(pBlockData);
-                    set_prop2(entity().blockMemory().string(addr));
+                    Address addr = self().blockMemory().allocCopy(pBlockData);
+                    set_prop2(self().blockMemory().string(addr));
                     return MessageResult::Consumed;
                 }
                 break;
@@ -339,8 +339,8 @@ public:
                 u32 requiredBlockCount = pBlockData->blockCount;
                 if (_msg.blockCount >= requiredBlockCount)
                 {
-                    Address addr = entity().blockMemory().allocCopy(pBlockData);
-                    set_testFoo__path(entity().blockMemory().string(addr));
+                    Address addr = self().blockMemory().allocCopy(pBlockData);
+                    set_testFoo__path(self().blockMemory().string(addr));
                     return MessageResult::Consumed;
                 }
                 break;
@@ -374,24 +374,29 @@ public:
 
 
             // Params look compatible, message body follows
-            system_api::print(entity().blockMemory().stringFormat("prop1 = %d", prop1()), entity());
+            system_api::print(self().blockMemory().stringFormat("prop1 = %d", prop1()), self());
             return MessageResult::Consumed;
         } // HASH::msg1
         case HASH::init:
         {
             // Params look compatible, message body follows
-            glm::vec3 v0;
-            v0.x = 5.00000000e+00f;
-            system_api::print(entity().blockMemory().stringFormat("x = %f", v0.x), entity());
-            system_api::print(entity().blockMemory().stringFormat("prop1 = %d, prop2 = \"%s\"", prop1(), prop2().c_str()), entity());
-            system_api::print(entity().blockMemory().stringAlloc("init"), entity());
-            system_api::print_asset_info(testFoo(), entity());
+            { // Send Message Block
+                // Compute block size, incorporating any BlockMemory parameters dynamically
+                u32 blockCount = 0;
+
+                // Prepare the queue writer
+                MessageQueueWriter msgw(HASH::fin, kMessageFlag_None, self().task().id(), self().task().id(), to_cell(0 /* no payload */), blockCount);
+
+                // Write parameters to message
+
+                // MessageQueueWriter will send message through RAII when this scope is exited
+            }
             return MessageResult::Consumed;
         } // HASH::init
         case HASH::fin:
         {
             // Params look compatible, message body follows
-            system_api::print(entity().blockMemory().stringAlloc("fin"), entity());
+            system_api::print(self().blockMemory().stringAlloc("fin"), self());
             return MessageResult::Consumed;
         } // HASH::fin
         }
@@ -432,7 +437,7 @@ private:
     {
         if (mIs_testFoo__path_Assigned)
         {
-            entity().blockMemory().release(testFoo__path());
+            self().blockMemory().release(testFoo__path());
         }
         mIs_testFoo__path_Assigned = false;
     }
@@ -440,7 +445,7 @@ private:
     {
         release_testFoo__path();
         testFoo__path() = rhs;
-        entity().blockMemory().addRef(testFoo__path());
+        self().blockMemory().addRef(testFoo__path());
         mIs_testFoo__path_Assigned = true;
     }
 
@@ -458,7 +463,7 @@ private:
     {
         if (mIs_prop2_Assigned)
         {
-            entity().blockMemory().release(prop2());
+            self().blockMemory().release(prop2());
         }
         mIs_prop2_Assigned = false;
     }
@@ -466,7 +471,7 @@ private:
     {
         release_prop2();
         prop2() = rhs;
-        entity().blockMemory().addRef(prop2());
+        self().blockMemory().addRef(prop2());
         mIs_prop2_Assigned = true;
     }
 

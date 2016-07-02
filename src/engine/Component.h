@@ -57,8 +57,8 @@ public:
     Task & task() { return mScriptTask; }
 
 protected:
-    const Entity & entity() const { return *mpEntity; }
-    Entity & entity() { return *mpEntity; }
+    const Entity & self() const { return *mpEntity; }
+    Entity & self() { return *mpEntity; }
 
     const glm::mat4x3 & transform() const;
     

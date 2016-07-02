@@ -82,7 +82,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 QUAT MAT3 MAT43 MAT4 HANDLE_ ASSET ENTITY STRING
 %type <dataType> basic_type
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS USING AS CONST_ THIS__ NONE
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS USING AS CONST_ SELF
 %right ELSE THEN
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN TRANSFORM
@@ -246,6 +246,7 @@ do_stmt
 target_expr
     : /* empty */  { $$ = NULL; }
     | IDENTIFIER   { $$ = ast_create_identifier($1, pParseData); }
+    | SELF         { $$ = ast_create(kAST_Self, pParseData); }
     | INT_LITERAL  { $$ = ast_create_int_literal($1, pParseData); }
     ;
 

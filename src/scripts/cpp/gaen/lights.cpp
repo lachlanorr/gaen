@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: bbcdcfc02d93307cd772544c10c72a2a
+// HASH: 2a0b182804c3e0c45ced4d88bbdb5c64
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -64,7 +64,7 @@ public:
         case HASH::init__:
         {
             // Initialize properties and fields to default values
-            lightUid() = system_api::renderer_gen_uid(entity());
+            lightUid() = system_api::renderer_gen_uid(self());
             dir() = glm::vec3(1.00000001e-01f, 1.00000001e-01f, 2.00000003e-01f);
             col() = Color(255, 255, 255, 255);
             return MessageResult::Consumed;
@@ -114,7 +114,7 @@ public:
         case HASH::init:
         {
             // Params look compatible, message body follows
-            system_api::renderer_insert_light_directional(lightUid(), dir(), col(), entity());
+            system_api::renderer_insert_light_directional(lightUid(), dir(), col(), self());
             return MessageResult::Consumed;
         } // HASH::init
         }

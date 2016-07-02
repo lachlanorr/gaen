@@ -100,8 +100,7 @@ ParseData * pParseData = yyextra;
 "string" { yylval->dataType = kDT_string; return STRING;  }
 "asset"  { yylval->dataType = kDT_asset;  return ASSET; }
 
-"none"     { return NONE; }
-"this"     { return THIS__; }
+"self"     { return SELF; }
 
 "if"       { parsedata_push_stmt_scope(pParseData); return IF;     }
 "else"     { parsedata_push_stmt_scope(pParseData); return ELSE;   }

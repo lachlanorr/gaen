@@ -88,10 +88,10 @@ protected:
     // Max entities that can be created before they're inserted into the engine
     static const u32 kMaxEntityStage = 16;
 
-    // Make "entity()" consistent in Component and Entity to simplify
+    // Make "self()" consistent in Component and Entity to simplify
     // the c++ codegen
-    const Entity & entity() const { return *this; }
-    Entity & entity() { return *this; }
+    const Entity & self() const { return *this; }
+    Entity & self() { return *this; }
 
     void finSelf();
 

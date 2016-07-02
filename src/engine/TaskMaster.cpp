@@ -569,8 +569,18 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
         }
         case HASH::remove_task:
         {
-            task_id taskToRemove = msg.payload.u;
-            removeTask(taskToRemove);
+            task_id taskIdToRemove = msg.payload.u;
+
+            auto ownedIt = mOwnedTaskMap.find(taskIdToRemove);
+            if (ownedIt != mOwnedTaskMap.end())
+            {
+                // Send an immediate fin__ to the task so it can delete itself
+                StackMessageBlockWriter<0> finw(HASH::fin__, kMessageFlag_Editor, active_thread_id(), taskIdToRemove, to_cell(0));
+                mOwnedTasks[ownedIt->second].message(finw.accessor());
+            }
+
+            removeTask(taskIdToRemove);
+
             return MessageResult::Consumed;
         }
         default:
