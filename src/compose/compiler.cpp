@@ -892,6 +892,7 @@ static Ast * ast_create_top_level_def(const char * name, AstType astType, SymTyp
     }
 
     pAst->pSymRec->flags |= kSRFL_NeedsCppParens;
+    ast_set_rhs(pAst, pInitVal);
 
     Scope * pScope = pParseData->scopeStack.back();
     symtab_add_symbol_with_fields(pScope->pSymTab, pAst->pSymRec, pParseData);

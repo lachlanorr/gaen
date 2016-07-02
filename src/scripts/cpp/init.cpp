@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 77fc5267c441d7ad8d93d9d2aecea4c2
+// HASH: a6c616d0a2ca3c0b2522c79bc6d0f912
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -305,7 +305,7 @@ class init__Start : public Entity
 {
 private:
     // Helper functions
-    task_id entity_init__init__test_Test__90_21()
+    task_id entity_init__init__test_Test__88_21()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::test__Test, 8);
         // Init Property: prop1
@@ -327,7 +327,29 @@ private:
         return tid;
     }
 
-    task_id entity_init__init__Camera__99_23()
+    task_id entity_init__init__test_Test__97_50()
+    {
+        Entity * pEnt = get_registry().constructEntity(HASH::test__Test, 8);
+        // Init Property: prop1
+        {
+            StackMessageBlockWriter<1> msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop1));
+            msgw[0].cells[0].i = 500;
+            pEnt->task().message(msgw.accessor());
+        }
+        // Init Property: prop2
+        {
+            CmpString val = entity().blockMemory().stringAlloc("new value");
+            ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::prop2), val.blockCount());
+            val.writeMessage(msgw.accessor(), 0);
+            pEnt->task().message(msgw.accessor());
+        }
+
+        task_id tid = pEnt->task().id();
+        pEnt->activate();
+        return tid;
+    }
+
+    task_id entity_init__init__Camera__104_23()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Camera, 8);
 
@@ -336,7 +358,7 @@ private:
         return tid;
     }
 
-    task_id entity_init__init__Light__101_25()
+    task_id entity_init__init__Light__106_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Light, 8);
 
@@ -345,7 +367,7 @@ private:
         return tid;
     }
 
-    task_id entity_init__init__Shape__103_25()
+    task_id entity_init__init__Shape__108_25()
     {
         Entity * pEnt = get_registry().constructEntity(HASH::init__Shape, 8);
 
@@ -372,6 +394,7 @@ public:
             // Initialize properties and fields to default values
             set_foo__path(entity().blockMemory().stringAlloc("/fonts/profont.gatl"));
             foo() = nullptr;
+            trooo() = entity_init__init__test_Test__88_21();
             // Component: gaen.utils.Timer
             {
                 Task & compTask = insertComponent(HASH::gaen__utils__Timer, mComponentCount);
@@ -420,11 +443,16 @@ public:
             release_foo();
             return MessageResult::Consumed;
         } // HASH::fin__
+        case HASH::abc:
+        {
+            // Params look compatible, message body follows
+            return MessageResult::Consumed;
+        } // HASH::abc
         case HASH::init:
         {
             // Params look compatible, message body follows
             CmpString s = entity().blockMemory().stringFormat("float: %0.2f, int: %d, and make sure we're larger than one block", 1.20000005e+00f, 10);
-            task_id t = entity_init__init__test_Test__90_21();
+            task_id t = entity_init__init__test_Test__97_50();
             { // Send Message Block
                 // Compute block size, incorporating any BlockMemory parameters dynamically
                 u32 blockCount = 1;
@@ -479,9 +507,9 @@ public:
 
                 // MessageQueueWriter will send message through RAII when this scope is exited
             }
-            task_id cam = entity_init__init__Camera__99_23();
-            task_id light = entity_init__init__Light__101_25();
-            task_id shape = entity_init__init__Shape__103_25();
+            task_id cam = entity_init__init__Camera__104_23();
+            task_id light = entity_init__init__Light__106_25();
+            task_id shape = entity_init__init__Shape__108_25();
             return MessageResult::Consumed;
         } // HASH::init
         }
@@ -492,7 +520,7 @@ private:
     init__Start(u32 childCount)
       : Entity(HASH::init__Start, childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax
     {
-        mBlockCount = 1;
+        mBlockCount = 2;
         mScriptTask = Task::create(this, HASH::init__Start);
     }
 
@@ -532,6 +560,11 @@ private:
         foo__path() = rhs;
         entity().blockMemory().addRef(foo__path());
         mIs_foo__path_Assigned = true;
+    }
+
+    task_id& trooo()
+    {
+        return mpBlocks[1].cells[0].u;
     }
 
 }; // class init__Start

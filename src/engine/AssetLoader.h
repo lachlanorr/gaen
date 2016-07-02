@@ -36,12 +36,16 @@
 namespace gaen
 {
 
+class AssetTypes;
+
 class AssetLoader
 {
 public:
     static const u32 kMaxAssetMessages = 4096;
 
-    AssetLoader(u32 loaderId, const String<kMEM_Engine> & assetsRootPath);
+    AssetLoader(u32 loaderId,
+                const String<kMEM_Engine> & assetsRootPath,
+                const AssetTypes & assetTypes);
     ~AssetLoader();
 
     void queueRequest(const MessageQueueAccessor & msgAcc);
@@ -69,7 +73,6 @@ public:
         mQueueSize--;
     }
 
-    static MemType mem_type_from_ext(const char * ext);
     static void extract_request_asset(const MessageQueueAccessor & msgAcc,
                                       BlockMemory & blockMemory,
                                       CmpString & pathCmpString,
@@ -86,6 +89,7 @@ private:
     
     u32 mLoaderId;
     const String<kMEM_Engine> & mAssetsRootPath;
+    const AssetTypes & mAssetTypes;
 
     bool mIsRunning = false;
 

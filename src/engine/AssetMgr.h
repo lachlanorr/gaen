@@ -32,6 +32,7 @@
 #include "core/Vector.h"
 #include "engine/Message.h"
 #include "engine/BlockMemory.h"
+#include "engine/Asset.h"
 
 namespace gaen
 {
@@ -60,6 +61,8 @@ private:
     // Track creator's thread id so we can ensure no other thread calls us.
     // If they do, our SPSC queue design breaks down.
     thread_id mCreatorThreadId;
+
+    AssetTypes mAssetTypes;
 
     BlockMemory mBlockMemory;
 

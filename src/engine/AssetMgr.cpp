@@ -61,19 +61,19 @@ AssetMgr::AssetMgr(u32 assetLoaderCount)
 {
     mCreatorThreadId = active_thread_id();
 
+    ASSERT(assetLoaderCount > 0 && assetLoaderCount <= 4);
+    mAssetLoaderCount = assetLoaderCount;
+
     // find assets path
     char assetsPath[kMaxPath+1];
     find_assets_runtime_dir(assetsPath);
     mAssetsRootPath = assetsPath;
 
-    ASSERT(assetLoaderCount > 0 && assetLoaderCount <= 4);
-    mAssetLoaderCount = assetLoaderCount;
-
     mAssetLoaders.reserve(mAssetLoaderCount);
 
     for (u32 i = 0; i < mAssetLoaderCount; ++i)
     {
-        mAssetLoaders.push_back(GNEW(kMEM_Engine, AssetLoader, i + kInitialAssetLoaderThreadId, mAssetsRootPath));
+        mAssetLoaders.push_back(GNEW(kMEM_Engine, AssetLoader, i + kInitialAssetLoaderThreadId, mAssetsRootPath, mAssetTypes));
     }
 }
 

@@ -842,12 +842,12 @@ static S codegen_helper_funcs(const Ast * pAst)
 {
     S entityInits = S("");
 
-    for (Ast * pAst : pAst->pChildren->nodes)
+    for (Ast * pChild : pAst->pChildren->nodes)
     {
         // only process top level AST nodes from the primary file
-        if (pAst->fullPath == pAst->pParseData->fullPath)
+        if (pChild->fullPath == pChild->pParseData->fullPath)
         {
-            entityInits += codegen_helper_funcs_recurse(pAst);
+            entityInits += codegen_helper_funcs_recurse(pChild);
         }
     }
 
@@ -914,7 +914,7 @@ static S codegen_recurse(const Ast * pAst,
         const Ast * pCompMembers = find_component_members(pAst);
 
         // Only insert message related code if there are message handlers to add
-        if (msgCode.size() > 0 || propCode.size() > 0 || pCompMembers->pChildren->nodes.size() > 0)
+        if (msgCode.size() > 0 || propCode.size() > 0 || (pCompMembers && pCompMembers->pChildren->nodes.size() > 0))
         {
             code += I + S("        const Message & _msg = msgAcc.message();\n");
             code += I + S("        switch(_msg.msgId)\n");
