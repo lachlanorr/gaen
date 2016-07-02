@@ -85,7 +85,9 @@ class Asset
     friend class AssetMgr;
 public:
 
-    explicit Asset(const char * path, const AssetTypes & assetTypes);
+    explicit Asset(const char * path,
+                   const char * fullPath,
+                   const AssetTypes & assetTypes);
     ~Asset();
 
     Asset(const Asset&)        = delete;
@@ -169,7 +171,8 @@ private:
         return mRefCount;
     }
 
-    void load(const AssetTypes & assetTypes);
+    void load(const char * fullPath,
+              const AssetTypes & assetTypes);
     void unload();
 
     String<kMEM_Engine> mPath;

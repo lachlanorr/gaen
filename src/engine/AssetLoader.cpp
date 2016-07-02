@@ -112,11 +112,11 @@ MessageResult AssetLoader::message(const MessageQueueAccessor& msgAcc)
                               requestorTaskId,
                               nameHash);
 
-        char pathStr[kMaxPath+1];
-        strcpy(pathStr, mAssetsRootPath.c_str());
-        strcat(pathStr, pathCmpString.c_str());
+        char fullPath[kMaxPath+1];
+        strcpy(fullPath, mAssetsRootPath.c_str());
+        strcat(fullPath, pathCmpString.c_str());
 
-        Asset * pAsset = GNEW(kMEM_Engine, Asset, pathStr, mAssetTypes);
+        Asset * pAsset = GNEW(kMEM_Engine, Asset, pathCmpString.c_str(), fullPath, mAssetTypes);
 
         messages::AssetQW msgw(HASH::asset_ready__, kMessageFlag_None, kAssetMgrTaskId, msg.source, requestorTaskId, mpReadyQueue);
         msgw.setNameHash(nameHash);

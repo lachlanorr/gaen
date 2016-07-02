@@ -110,6 +110,10 @@ void AssetMgr::sendAssetReadyHandle(Asset * pAsset,
 {
     ASSERT(mCreatorThreadId == active_thread_id());
 
+    // Everytime we send this asset to an Entity, we increase
+    // reference count.
+    pAsset->addRef();
+
     // Prep a Handle wrapper for the asset
     Handle * pHandle = GNEW(kMEM_Engine,
                             Handle,
@@ -148,18 +152,31 @@ MessageResult AssetMgr::message(const T & msgAcc)
 
         const char * pathStr = pathCmpString.c_str();
 
-        Asset * pAsset = findAsset(pathStr);
+        auto it = mAssets.find(pathStr);
 
-        if (pAsset)
+        // Only conduct load if asset hasn't already started loading
+        if (it == mAssets.end())
         {
-            // Asset is already loaded
-            sendAssetReadyHandle(pAsset, msg.source, requestorTaskId, nameHash);
-        }
-        else
-        {
+            // insert null placeholder so we know it is already
+            // loading in case it is requested again before loading
+            // finishes.
+            mAssets[pathStr] = nullptr;
+
             AssetLoader * pLdr = findLeastBusyAssetLoader();
             pLdr->queueRequest(msgAcc);
             pLdr->incQueueSize();
+        }
+        else if (it->second != nullptr)
+        {
+            // Asset is already loaded
+            sendAssetReadyHandle(it->second, msg.source, requestorTaskId, nameHash);
+        }
+        else
+        {
+            // Asset is in the process of loading, started by some other entity.
+            // Record the requestor's info so we can send them asset_ready__
+            // when loading is complete.
+            mDuplicateRequestTargets[pathStr].emplace_back(msg.source, requestorTaskId, nameHash);
         }
 
         return MessageResult::Consumed;
@@ -169,17 +186,41 @@ MessageResult AssetMgr::message(const T & msgAcc)
         messages::AssetR<T> msgr(msgAcc);
         Asset * pAsset = msgr.asset();
 
+        mAssets[pAsset->path()] = pAsset;
+
         // LORRNOTE: In this case, msg.source is the original entity
         // task_id that requested the asset since AssetLoader sends it
         // back to us.
 
         sendAssetReadyHandle(pAsset, msg.target, msgr.taskId(), msgr.nameHash());
 
+        auto dupIt = mDuplicateRequestTargets.find(pAsset->path());
+        if (dupIt != mDuplicateRequestTargets.end())
+        {
+            for (auto & req : dupIt->second)
+            {
+                task_id targetTaskId = std::get<0>(req);
+                task_id requestorTaskId = std::get<1>(req);
+                u32 nameHash = std::get<2>(req);
+                sendAssetReadyHandle(pAsset, targetTaskId, requestorTaskId, nameHash);
+            }
+            mDuplicateRequestTargets.erase(dupIt);
+        }
+
         return MessageResult::Consumed;
     }
     case HASH::release_asset__:
     {
-        ERR("TODO: Releasing asset");
+        messages::AssetR<T> msgr(msgAcc);
+        Asset * pAsset = msgr.asset();
+        ASSERT(pAsset && pAsset->refCount() > 0);
+        if (pAsset->release())
+        {
+            mAssets.erase(pAsset->path());
+            GDELETE(pAsset);
+        }
+
+        return MessageResult::Consumed;
     }
     default:
         PANIC("Unknown AssetMgr message: %d", msg.msgId);
@@ -205,15 +246,6 @@ AssetLoader * AssetMgr::findLeastBusyAssetLoader()
 
     ASSERT(pLoader);
     return pLoader;
-}
-
-Asset * AssetMgr::findAsset(const char * path)
-{
-    auto it = mAssets.find(path);
-    if (it != mAssets.end())
-        return it->second;
-    else
-        return nullptr;
 }
 
 // Template decls so we can define message func here in the .cpp

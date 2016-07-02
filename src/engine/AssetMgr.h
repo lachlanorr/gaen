@@ -56,8 +56,6 @@ private:
                               task_id entitySubTask,
                               u32 nameHash);
 
-    Asset * findAsset(const char * path);
-
     // Track creator's thread id so we can ensure no other thread calls us.
     // If they do, our SPSC queue design breaks down.
     thread_id mCreatorThreadId;
@@ -72,6 +70,7 @@ private:
     Vector<kMEM_Engine, AssetLoader*> mAssetLoaders;
 
     HashMap<kMEM_Engine, String<kMEM_Engine>, Asset*> mAssets;
+    HashMap<kMEM_Engine, String<kMEM_Engine>, std::list<std::tuple<task_id, task_id, u32>>> mDuplicateRequestTargets;
 
 }; // AssetMgr
 

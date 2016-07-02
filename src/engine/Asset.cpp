@@ -36,7 +36,9 @@
 namespace gaen
 {
 
-Asset::Asset(const char * path, const AssetTypes & assetTypes)
+Asset::Asset(const char * path,
+             const char * fullPath,
+             const AssetTypes & assetTypes)
   : mPath(path)
   , mRefCount(0)
   , mpBuffer(nullptr)
@@ -49,7 +51,7 @@ Asset::Asset(const char * path, const AssetTypes & assetTypes)
     mUid = ++sUidCounter;
     
     mPathHash = HASH::hash_func(path);
-    load(assetTypes);
+    load(fullPath, assetTypes);
 }
 
 Asset::~Asset()
@@ -58,11 +60,12 @@ Asset::~Asset()
         unload();
 }
 
-void Asset::load(const AssetTypes & assetTypes)
+void Asset::load(const char * fullPath,
+                 const AssetTypes & assetTypes)
 {
     PANIC_IF(isLoaded(), "load called on already loaded asset: %s", mPath);
 
-    FileReader rdr(mPath.c_str());
+    FileReader rdr(fullPath);
 
     if (rdr.isOk())
     {
