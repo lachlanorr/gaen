@@ -272,7 +272,7 @@ void find_assets_runtime_dir(char * assetsDir)
 
     // There should always be profont, since our engine
     // depends on it for some debugging output.
-    const char * kAssetToFind = "/fonts/profont.gatl";
+    const char * kAssetToFind = "/gaen/fonts/profont.gatl";
     strcpy(assetToFind, kAssetToFind);
 
     // Get current process path

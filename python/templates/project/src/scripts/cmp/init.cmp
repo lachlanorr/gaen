@@ -4,8 +4,8 @@ entity Box
     components
     {
         gaen.shapes.Box{size    = vec3{3.0, 2.0, 1.0},
-                        diffuse = color{255, 255, 0, 255}};
-        gaen.utils.WasdRot{};
+                        diffuse = color{255, 255, 0, 255}},
+        gaen.utils.WasdRot{}
     }
 }
 
@@ -13,7 +13,7 @@ entity Light
 {
     components
     {
-        gaen.lights.Directional{};
+        gaen.lights.Directional{}
     }
 }
 
@@ -29,9 +29,5 @@ entity Start
         // Make box and light entities
         entity box = Box{};
         entity light = Light{};
-
-        // Insert the entities into the engine
-        $.insert_entity(box);
-        $.insert_entity(light);
     }
 }

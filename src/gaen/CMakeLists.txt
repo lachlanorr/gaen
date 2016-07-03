@@ -85,7 +85,7 @@ ELSE(IOS)
 
   # Set debugging params for ALL_BUILD
   create_target_launcher(
-    gaen
+    ${CMAKE_PROJECT_NAME}
     ARGS "-l 127.0.0.1"
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     )

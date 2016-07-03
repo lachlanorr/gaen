@@ -67,7 +67,7 @@ ADD_SUBDIRECTORY(src)
 
 # Set debugging params for ALL_BUILD
 create_default_target_launcher(
-    gaen
+    ${CMAKE_PROJECT_NAME}
     ARGS "-l 127.0.0.1"
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
 )
@@ -78,8 +78,8 @@ ADD_CUSTOM_TARGET (
   PUBLISH
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${publish_dir}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${publish_dir}
-  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:gaen> ${publish_dir}
+  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${publish_dir}
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:gac> ${publish_dir}
   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/cooked_win ${publish_dir}/assets
-  DEPENDS COOK_ASSETS gaen
+  DEPENDS COOK_ASSETS ${CMAKE_PROJECT_NAME}
   )

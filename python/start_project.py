@@ -30,6 +30,7 @@ import sys
 import os
 import subprocess
 import re
+import shutil
 
 import dirs
 
@@ -108,6 +109,14 @@ def copy_gaen_scripts():
             out_f = in_f.replace(gaen_cmp_dir, os.path.join(dirs.GAEN_PARENT_DIR, gaen_cmp_subdir))
             fill_template(in_f, out_f)
 
+def copy_gaen_assets():
+    gaen_assets_subdir = os.path.join('assets', 'raw', 'gaen')
+    gaen_assets_dir = os.path.join(dirs.GAEN_DIR, gaen_assets_subdir)
+    project_assets_dir = os.path.join(dirs.GAEN_PARENT_DIR, gaen_assets_subdir)
+    print gaen_assets_dir
+    print project_assets_dir
+    shutil.copytree(gaen_assets_dir, project_assets_dir)
+
 def err_and_exit(msg, code):
     print(msg)
     sys.exit(code)
@@ -135,6 +144,7 @@ def main():
     if i == '' or i.lower() == 'y':
         proc_templates()
         copy_gaen_scripts()
+        copy_gaen_assets()
         print
         print "Gaen project '%s' created in current directory." % project_name()
         print bootstrap_msg()
