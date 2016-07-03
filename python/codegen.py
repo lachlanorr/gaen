@@ -116,7 +116,7 @@ def write_file(filename, data):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
         
-    f = open(filename, 'w')
+    f = open(filename, 'wb')
     f.write(data)
     f.close()
     

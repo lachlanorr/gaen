@@ -46,4 +46,19 @@ create_target_launcher(
   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
 )
 
+ADD_CUSTOM_TARGET (
+  CODEGEN_API
+  COMMAND python ${python_dir}/codegen_api.py
+  )
+
+ADD_DEPENDENCIES(cmpc
+  CODEGEN_API
+  )
+
 package (cmpc)
+
+ADD_CUSTOM_TARGET (
+  CODEGEN_SCRIPTS
+  COMMAND python ${python_dir}/codegen.py
+  DEPENDS cmpc
+  )

@@ -43,7 +43,7 @@ def read_file_data(path):
 def replace_file_if_different(path, data):
     if read_file_data(path) != data:
         print 'Writing ' + path
-        with open(path, 'w') as out_f:
+        with open(path, 'wb') as out_f:
             out_f.write(data)
 
 def python_path():

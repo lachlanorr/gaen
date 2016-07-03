@@ -254,7 +254,7 @@ def write_metadata():
     old_data = read_file(dirs.SYSTEM_API_META_CPP_PATH)
     if new_data != old_data:
         print "Writing " + dirs.SYSTEM_API_META_CPP_PATH
-        with open(dirs.SYSTEM_API_META_CPP_PATH, 'w') as f:
+        with open(dirs.SYSTEM_API_META_CPP_PATH, 'wb') as f:
             f.write(new_data)
     return includes
 

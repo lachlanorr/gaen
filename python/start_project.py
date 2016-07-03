@@ -81,7 +81,7 @@ def write_file(out_f, data):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
         
-    f = open(out_f, 'w')
+    f = open(out_f, 'wb')
     f.write(data)
     f.close()
 

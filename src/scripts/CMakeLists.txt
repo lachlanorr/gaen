@@ -44,4 +44,5 @@ ADD_LIBRARY (scripts
 ADD_DEPENDENCIES(scripts
   engine
   fnv_hashes_precalc
+  CODEGEN_SCRIPTS
   )

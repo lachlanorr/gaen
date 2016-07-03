@@ -231,11 +231,11 @@ def proc_file(filename):
     funcs = get_funcs(lines)
     externs, vars, inits = proc_funcs(funcs)
 
-    win32gl_h = open('win32gl.h', 'w')
+    win32gl_h = open('win32gl.h', 'wb')
     win32gl_h.write(WIN32GL_H_TEMPLATE % '\n'.join(externs))
     win32gl_h.close()
 
-    win32gl_cpp = open('win32gl.cpp', 'w')
+    win32gl_cpp = open('win32gl.cpp', 'wb')
     win32gl_cpp.write(WIN32GL_CPP_TEMPLATE % ('\n'.join(vars), '\n'.join(inits)))
     win32gl_cpp.close()
 

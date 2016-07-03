@@ -127,7 +127,7 @@ def is_file_different(path, data):
 
 def write_file_if_different(path, new_data):
     if is_file_different(path, new_data):
-        f = open(path, 'w')
+        f = open(path, 'wb')
         f.write(new_data)
         f.close()
 
