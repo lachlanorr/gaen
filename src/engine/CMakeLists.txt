@@ -110,7 +110,7 @@ EXECUTE_PROCESS (
 
 # Run each time we build.
 ADD_CUSTOM_TARGET (
-  messages_gen
+  CODEGEN_MESSAGES
   COMMAND python ${python_dir}/codegen_messages.py
   )
 
@@ -121,7 +121,7 @@ EXECUTE_PROCESS (
 
 # Run each time we build. FNV.h/cpp will only get replaced if they change.
 ADD_CUSTOM_TARGET (
-  fnv_hashes_precalc
+  CODEGEN_HASHES
   COMMAND python ${python_dir}/update_hashes.py
   )
 
@@ -130,6 +130,4 @@ ADD_CUSTOM_TARGET (
 ADD_DEPENDENCIES(engine
   core
   assets
-  messages_gen
-  fnv_hashes_precalc
   )

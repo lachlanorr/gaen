@@ -41,8 +41,8 @@ ADD_LIBRARY (scripts
   ${scripts_SOURCES}
   )
 
-ADD_DEPENDENCIES(scripts
-  engine
-  fnv_hashes_precalc
-  CODEGEN_SCRIPTS
+ADD_CUSTOM_TARGET (
+  CODEGEN_SCRIPTS ALL
+  COMMAND python ${python_dir}/codegen.py
+  DEPENDS cmpc
   )

@@ -51,14 +51,5 @@ ADD_CUSTOM_TARGET (
   COMMAND python ${python_dir}/codegen_api.py
   )
 
-ADD_DEPENDENCIES(cmpc
-  CODEGEN_API
-  )
-
 package (cmpc)
 
-ADD_CUSTOM_TARGET (
-  CODEGEN_SCRIPTS
-  COMMAND python ${python_dir}/codegen.py
-  DEPENDS cmpc
-  )
