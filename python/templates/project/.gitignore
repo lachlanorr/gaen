@@ -1,10 +1,15 @@
-gaen
-!src/**/gaen
-
 setcc.sh
 build
 *.pyc
 *.codegen
+
+src/engine/hashes.h
+src/engine/hashes.cpp
+src/compose/compose_parser.output
+
+# cooked assets
+assets/cooked_*
+assets/raw/**/*.deps
 
 # apple stuff
 .DS_Store
