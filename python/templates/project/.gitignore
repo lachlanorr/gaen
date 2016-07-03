@@ -1,3 +1,6 @@
+gaen
+!src/**/gaen
+
 setcc.sh
 build
 *.pyc
