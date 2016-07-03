@@ -1,4 +1,5 @@
 gaen
+!assets/raw/gaen
 !src/**/gaen
 
 setcc.sh
