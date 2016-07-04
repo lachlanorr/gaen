@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// cookers.h - Cookers for various asset types
+// AssetTypes.h - Mapping of asset extension to various asset properties
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,16 +24,35 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKERS_H
-#define GAEN_CHEF_COOKERS_H
+#ifndef GAEN_ENGINE_ASSET_TYPES_H
+#define GAEN_ENGINE_ASSET_TYPES_H
 
 namespace gaen
 {
 
-void register_cookers();
+class AssetTypes
+{
+public:
+    AssetTypes();
 
-void register_project_cookers();
+    void registerProjectAssetTypes();
+
+    MemType memTypeFromExt(const char * ext) const;
+
+    // 4cc is endian dangerous, but we only do this within a running process,
+    // these 4 character codes are never persisted between processes.
+    static u32 ext_to_4cc(const char * ext)
+    {
+        ASSERT(strlen(ext) >= 4);
+        return *reinterpret_cast<const u32*>(ext);
+    }
+
+private:
+    HashMap<kMEM_Engine, u32, MemType> mExtToMemTypeMap;
+};
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKERS_H
+#endif // #ifndef GAEN_ENGINE_ASSET_TYPES_H
+
+

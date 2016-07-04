@@ -115,17 +115,21 @@ void append_path(char * path, const char * append)
 {
     ASSERT(path);
     ASSERT(append);
+
+    // ensure path has trailing slash
     if (*path)
     {
         size_t pathLen = strlen(path);
         if (path[pathLen-1] != '/')
             strcat(path, "/");
-        strcat(path, append);
     }
+
+    // if append contains leading slash,
+    // skip past it so we don't have "//".
+    if (append[0] == '/')
+        strcat(path, append + 1);
     else
-    {
-        strcpy(path, append);
-    }
+        strcat(path, append);
 }
 
 void change_ext(char * path, const char * ext)

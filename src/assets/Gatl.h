@@ -33,6 +33,8 @@
 namespace gaen
 {
 
+class Gimg;
+
 struct GlyphCoords
 {
     f32 topLeftU;
@@ -48,32 +50,32 @@ struct GlyphCoords
     }
 };
 
+struct GlyphAlias
+{
+    u32 hash;
+    u32 index;
+};
+
 struct Gatl
 {
 public:
-    static u32 header_and_path_size(const char * gimgPath);
-    static u32 total_size(const char * gimgPath, u8 minChar, u8 maxChar);
+    static u32 total_size(u32 glyphCount, u32 aliasCount);
 
-    static Gatl * create(MemType memType, const char * gimgPath, u8 minChar, u8 maxChar, u8 defaultChar);
-    
-    const char * gimgPath() const;
+    static Gatl * create(MemType memType, );
 
-    u32 headerAndPathSize() const;
     u32 totalSize() const;
-    GlyphCoords & glyphCoords(char c);
-    const GlyphCoords & glyphCoords(char c) const;
 
-    char minChar();
-    char maxChar();
+    const GlyphCoords * glyphCoords(u32 idx) const;
+    const GlyphCoords * glyphCoordsFromAlias(u32 alias) const;
 
+    Gimg * image();
+    const Gimg * image() const;
 private:
-    u8 mGimgPathSize;
-    u8 mMinChar;
-    u8 mMaxChar;
-    u8 mDefaultChar; // character to use if requested char is not present
+    u32 glyphCount;
+    u32 aliasCount;
 };
 
-static_assert(sizeof(Gatl) == 4, "Gatl unexpected size");
+//static_assert(sizeof(Gatl) == 4, "Gatl unexpected size");
 
 } // namespace gaen
 

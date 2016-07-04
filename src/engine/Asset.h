@@ -34,52 +34,6 @@
 namespace gaen
 {
 
-class AssetTypes
-{
-public:
-    AssetTypes()
-    {
-        // Initialize mapping between extensions and memory types so when
-        // we allocate buffers for assets we can place them in appropriate
-        // buckets.
-        mExtToMemTypeMap[ext_to_4cc("gatl")] = kMEM_Engine;
-        mExtToMemTypeMap[ext_to_4cc("gimg")] = kMEM_Texture;
-        mExtToMemTypeMap[ext_to_4cc("gmat")] = kMEM_Renderer;
-        mExtToMemTypeMap[ext_to_4cc("gvtx")] = kMEM_Engine;
-        mExtToMemTypeMap[ext_to_4cc("gfrg")] = kMEM_Engine;
-    }
-
-    MemType memTypeFromExt(const char * ext) const
-    {
-        // ensure a 3 character (or longer) extension
-        if (!ext[0] || !ext[1] || !ext[2])
-            return kMEM_Unspecified;
-
-        u32 cc = ext_to_4cc(ext);
-        auto it = mExtToMemTypeMap.find(cc);
-        if (it != mExtToMemTypeMap.end())
-            return it->second;
-        else
-            return kMEM_Unspecified;
-    }
-
-    // 4cc is endian dangerous, but we only do this within a running process,
-    // these 4 character codes are never persisted between processes.
-    static u32 ext_to_4cc(const char * ext)
-    {
-        ASSERT(strlen(ext) >= 3);
-        u32 cc = 0;
-        cc |= ext[0] << 3;
-        cc |= ext[1] << 2;
-        cc |= ext[2] << 1;
-        cc |= ext[3];
-        return cc;
-    }
-
-private:
-    HashMap<kMEM_Engine, u32, MemType> mExtToMemTypeMap;
-};
-
 class Asset
 {
     friend class AssetMgr;

@@ -44,12 +44,12 @@
 namespace gaen
 {
 
-void cook_fnt(const CookInfo & ci)
+void cook_atl(const CookInfo & ci)
 {
     FileReader rdr(ci.rawPath);
     PANIC_IF(!rdr.isOk(), "Unable to load file: %s", ci.rawPath);
-    Config<kMEM_Chef> fnt;
-    fnt.read(rdr.ifs);
+    Config<kMEM_Chef> atl;
+    atl.read(rdr.ifs);
 
     char minChar = 127;
     char maxChar = 0;
@@ -59,22 +59,22 @@ void cook_fnt(const CookInfo & ci)
     static const char * kImage = "image";
     static const char * kDefaultGlyph = "default_char";
 
-    PANIC_IF(!fnt.hasKey(kImage), "Missing image in .fnt");
-    PANIC_IF(!fnt.hasSection(kGlyphs), "Missing [glyphs] section in .fnt");
+    PANIC_IF(!atl.hasKey(kImage), "Missing image in .fnt");
+    PANIC_IF(!atl.hasSection(kGlyphs), "Missing [glyphs] section in .fnt");
 
     // Crack open the image and get the width/height so we can calculate
     // proper u/v coords
     char imageRawPath[kMaxPath+1];
-    ci.pChef->reportDependency(imageRawPath, fnt.get(kImage), ci);
+    ci.pChef->reportDependency(imageRawPath, atl.get(kImage), ci);
     ImageInfo imageInfo = read_image_info(imageRawPath);
 
     // Pull out the fixed width/height if present
     bool hasFixedSize = false;
     f32 fixedWidth = 0.0f;
     f32 fixedHeight = 0.0f;
-    if (fnt.hasKey(kFixedSize))
+    if (atl.hasKey(kFixedSize))
     {
-        auto fsv = fnt.getIntVec(kFixedSize);
+        auto fsv = atl.getIntVec(kFixedSize);
         PANIC_IF(fsv.size() != 2, "%s must be a list of 2 integers", kFixedSize);
         fixedWidth = (f32)fsv.front();
         fixedHeight = (f32)fsv.back();
@@ -83,8 +83,8 @@ void cook_fnt(const CookInfo & ci)
     }
 
     // Iterate over keys once to find min/max character values
-    auto keyIt = fnt.keysBegin(kGlyphs);
-    auto keyItEnd = fnt.keysEnd(kGlyphs);
+    auto keyIt = atl.keysBegin(kGlyphs);
+    auto keyItEnd = atl.keysEnd(kGlyphs);
     while (keyIt != keyItEnd)
     {
         const char * key = *keyIt;
@@ -102,11 +102,11 @@ void cook_fnt(const CookInfo & ci)
 
     // Extract default glyph if it has been provided
     char defaultChar = minChar;
-    if (fnt.hasKey(kDefaultGlyph))
+    if (atl.hasKey(kDefaultGlyph))
     {
-        const char * defCharStr = fnt.get(kDefaultGlyph);
+        const char * defCharStr = atl.get(kDefaultGlyph);
         PANIC_IF(strlen(defCharStr) != 1, "Invalid %s: %s", kDefaultGlyph, defCharStr);
-        PANIC_IF(!fnt.hasKey(kGlyphs, defCharStr), "Default character not defined");
+        PANIC_IF(!atl.hasKey(kGlyphs, defCharStr), "Default character not defined");
         defaultChar = defCharStr[0];
         PANIC_IF(defaultChar < minChar || defaultChar > maxChar, "DefaultChar not found");
     }
@@ -121,14 +121,14 @@ void cook_fnt(const CookInfo & ci)
         GlyphCoords & coords = pGatl->glyphCoords(c);
         cKey[0] = c;
 
-        if (!fnt.hasKey(kGlyphs, cKey))
+        if (!atl.hasKey(kGlyphs, cKey))
         {
             cKey[0] = defaultChar;
         }
 
-        auto cv = fnt.getIntVec(kGlyphs, cKey);
-        PANIC_IF(cv.size() != 2 && cv.size() != 4, "Invalid glyph coordinates: %s=%s", cKey, fnt.get(kGlyphs, cKey));
-        PANIC_IF(cv.size() == 2 && !hasFixedSize, "Glyph without size: %s=%s", cKey, fnt.get(kGlyphs, cKey));
+        auto cv = atl.getIntVec(kGlyphs, cKey);
+        PANIC_IF(cv.size() != 2 && cv.size() != 4, "Invalid glyph coordinates: %s=%s", cKey, atl.get(kGlyphs, cKey));
+        PANIC_IF(cv.size() == 2 && !hasFixedSize, "Glyph without size: %s=%s", cKey, atl.get(kGlyphs, cKey));
 
         f32 glyphLeft = (f32)cv[0];
         f32 glyphTop = (f32)cv[1];
@@ -213,12 +213,21 @@ void cook_passthrough(const CookInfo & ci)
 
 void register_cookers()
 {
-    CookerRegistry::register_cooker("atl", "gatl", cook_fnt);
+    CookerRegistry::register_cooker("atl", "gatl", cook_atl);
     CookerRegistry::register_cooker("tga", "gimg", cook_tga);
 
     CookerRegistry::register_cooker("mat", "gmat", cook_passthrough);
     CookerRegistry::register_cooker("vtx", "gvtx", cook_passthrough);
     CookerRegistry::register_cooker("frg", "gfrg", cook_passthrough);
+
+    register_project_cookers();
 }
+
+#ifdef IS_GAEN_PROJECT
+void register_project_cookers()
+{
+    // If we're compiling gaen as a project, no custom asset cookers.
+}
+#endif
 
 } // namespace gaen

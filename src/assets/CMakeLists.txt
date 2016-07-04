@@ -25,6 +25,8 @@
 #-------------------------------------------------------------------------------
 
 SET (assets_SOURCES
+  AssetTypes.cpp
+  AssetTypes.h
   Config.cpp
   Config.h
   file_utils.cpp

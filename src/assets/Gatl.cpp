@@ -24,14 +24,15 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "assets/Gimg.h"
 #include "assets/Gatl.h"
 
 namespace gaen
 {
 
-u32 Gatl::header_and_path_size(const char * gimgPath)
+u32 Gatl::header_and_path_size(const char * path)
 {
-    u32 pathSize = (u32)strlen(gimgPath) + 1; // +1 for null
+    u32 pathSize = (u32)strlen(path) + 1; // +1 for null
     u32 headerAndPathSize = pathSize + sizeof(Gatl);
 
     // align size to 16 bytes so our coords start o 16 byte boundary
@@ -40,39 +41,41 @@ u32 Gatl::header_and_path_size(const char * gimgPath)
     return headerAndPathSize;
 }
 
-u32 Gatl::total_size(const char * gimgPath, u8 minChar, u8 maxChar)
+u32 Gatl::total_size(const char * path, u8 minChar, u8 maxChar)
 {
     u32 charCount = maxChar - minChar + 1;
     u32 coordSize = charCount * sizeof(GlyphCoords);
 
-    u32 headerAndPathSize = header_and_path_size(gimgPath);
+    u32 headerAndPathSize = header_and_path_size(path);
     return headerAndPathSize + coordSize;
 }
 
 
 
-Gatl * Gatl::create(MemType memType, const char * gimgPath, u8 minChar, u8 maxChar, u8 defaultChar)
+Gatl * Gatl::create(MemType memType, const char * path, u8 minChar, u8 maxChar, u8 defaultChar)
 {
     PANIC_IF(maxChar < minChar, "Invalid maxChar/minChar == %u/%u", minChar, maxChar);
     PANIC_IF(defaultChar < minChar || defaultChar > maxChar, "Invalid defaultChar: %u", defaultChar);
 
-    char * pBuff = (char*)GALLOC(memType, total_size(gimgPath, minChar, maxChar));
+    char * pBuff = (char*)GALLOC(memType, total_size(path, minChar, maxChar));
 
     Gatl * pGatl = reinterpret_cast<Gatl*>(pBuff);
 
-    size_t pathSize = strlen(gimgPath) + 1; // +1 for null
+
+/*
+    size_t pathSize = strlen(path) + 1; // +1 for null
     PANIC_IF(pathSize > 255, "GimgPathSize too large: %u", pathSize);
     pGatl->mGimgPathSize = (u8)pathSize;
 
     char * pPath = pBuff + sizeof(Gatl);
-    strcpy(pPath, gimgPath);
+    strcpy(pPath, path);
 
-    ASSERT(align(pGatl->mGimgPathSize + sizeof(Gatl), 16) == header_and_path_size(gimgPath));
+    ASSERT(align(pGatl->mGimgPathSize + sizeof(Gatl), 16) == header_and_path_size(path));
     
     pGatl->mMinChar = minChar;
     pGatl->mMaxChar = maxChar;
     pGatl->mDefaultChar = defaultChar;
-
+*/
     return pGatl;
 }
 

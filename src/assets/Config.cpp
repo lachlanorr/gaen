@@ -49,7 +49,7 @@ static inline bool is_whitespace(char c)
 
 static inline bool is_comment_start(char c)
 {
-    return (c == '#');
+    return (c == ';');
 }
 
 template <MemType memType>

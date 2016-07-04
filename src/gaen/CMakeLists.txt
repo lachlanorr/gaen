@@ -79,6 +79,7 @@ ELSE(IOS)
     renderergl
     scripts
     assets
+    ${PROJECT_ASSETS_LIB}
     ${PROJECT_LINK_LIBS}
     ${PLATFORM_LINK_LIBS}
     )

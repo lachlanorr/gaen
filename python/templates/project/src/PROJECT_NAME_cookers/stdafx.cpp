@@ -7,4 +7,4 @@
 //
 //------------------------------------------------------------------------------
 
-#include "<<PROJECT_NAME>>_lib/stdafx.h"
+#include "<<PROJECT_NAME>>_cookers/stdafx.h"

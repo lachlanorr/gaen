@@ -38,6 +38,19 @@ SET (src_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 INCLUDE (${cmake_dir}/core_defs.cmake)
 
+# If we're compiling gaen as a project (instead of a project that uses
+# gaen) set IS_GAEN_PROJECT so we can selectively include some hooks
+# for the project to register asset types and cookers.
+IF ("${CMAKE_PROJECT_NAME}" STREQUAL "gaen")
+  ADD_DEFINITIONS("-DIS_GAEN_PROJECT=1")
+  SET(PROJECT_ASSETS_LIB
+    "${CMAKE_PROJECT_NAME}_assets"
+    )
+  SET(PROJECT_COOKERS_LIB
+    "${CMAKE_PROJECT_NAME}_cookers"
+    )
+ENDIF ()
+
 #-------------------------------------------------------------------------------
 # External dependencies
 #-------------------------------------------------------------------------------

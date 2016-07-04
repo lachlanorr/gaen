@@ -53,12 +53,12 @@ inline u8 luminance(u8 r, u8 g, u8 b)
     return static_cast<u8>(r * 0.299 + g * 0.587 + b * 0.114 + 0.5);
 }
 
-struct Gimg
+class Gimg
 {
 public:
     static bool is_valid(const u8 * pBuffer, u32 size);
     
-    static u32 required_size(PixelFormat pixelFormat, u32 width, u32 height);
+    static u64 required_size(PixelFormat pixelFormat, u32 width, u32 height);
 
     static Gimg * create(MemType memType, PixelFormat pixelFormat, u32 width, u32 height);
 
@@ -69,16 +69,24 @@ public:
 
     void convertFormat(Gimg ** pGimg, MemType memType, PixelFormat newPixelFormat) const;
 
-    PixelFormat pixelFormat;
-    
-    u16 width;
-    u16 height;
+    PixelFormat pixelFormat() const { return mPixelFormat; }
+    u16 width() const { return mWidth; }
+    u16 height() const { return mHeight; }
 
 private:
     // Class should not be constructed directly.  Use cast and create static methods.
     Gimg() = default;
     Gimg(const Gimg&) = delete;
     Gimg & operator=(const Gimg&) = delete;
+
+    static const char * kMagic = "gimg";
+    char mMagic[4];
+
+    PixelFormat mPixelFormat;
+    
+    u16 mWidth;
+    u16 mHeight;
+
 };
 
 static_assert(sizeof(Gimg) == 8, "Gimg expected to be 8 bytes");

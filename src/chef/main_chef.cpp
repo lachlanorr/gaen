@@ -54,7 +54,7 @@ void failure_cb(const char * msg)
 
 void print_usage_and_exit(int retcode = 1)
 {
-    printf("Usage: chef [-f] [-p win|osx|ios] [-t threads] [-i path]\n");
+    printf("Usage: chef [-f] [-p win|osx|ios] [-t threads] [path]\n");
     fin_memory_manager();
     exit(retcode);
 }
@@ -108,9 +108,11 @@ int main(int argc, char ** argv)
     u32 threadCount = platform_core_count();
     u32 maxThreadCount = platform_core_count() * 4;
 
+    bool hasInputPath = false;
+
     for (int i = 1; i < argc; ++i)
     {
-        if (argv[i][0] == '-' || argv[i][0] == '/')
+        if (argv[i][0] == '-')
         {
             switch (argv[i][1])
             {
@@ -141,22 +143,20 @@ int main(int argc, char ** argv)
                 }
                 i++;
                 break;
-            case 'i':
-                if (i == argc-1)
-                    print_usage_and_exit();
-                full_path(path, argv[i+1]);
-                if (strstr(path, assetsRawDir) != path)
-                {
-                    ERR("Path not within raw assets directory: %s", assetsRawDir);
-                    print_usage_and_exit();
-                }
-                i++;
-                break;
             default:
-                ERR("Invalid option: %s", argv[i]);
-                print_usage_and_exit();
                 break;
             }
+        }
+        else if (!hasInputPath)
+        {
+            full_path(path, argv[i]);
+            if (strstr(path, assetsRawDir) != path)
+            {
+                // prepend our raw directory
+                strcpy(path, assetsRawDir);
+                append_path(path, argv[i]);
+            }
+            hasInputPath = true;
         }
         else
         {

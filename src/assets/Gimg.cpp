@@ -80,14 +80,14 @@ bool Gimg::is_valid(const u8 * pBuffer, u32 size)
     if (pGimg->totalSize() != size)
         return false;
 
-    switch (pGimg->pixelFormat)
+    switch (pGimg->mPixelFormat)
     {
     case kPXL_RGB_DXT1:
     case kPXL_RGBA_DXT1:
     case kPXL_RGBA_DXT3:
     case kPXL_RGBA_DXT5:
         // DXT textures should have multiples of 4 for width and height
-        if (pGimg->width % 4 != 0 || pGimg->height % 4 != 0)
+        if (pGimg->mWidth % 4 != 0 || pGimg->mHeight % 4 != 0)
             return false;
     }
 
@@ -128,36 +128,36 @@ Gimg * Gimg::create(MemType memType, PixelFormat pixelFormat, u32 width, u32 hei
 {
     u32 size = Gimg::required_size(pixelFormat, width, height);
     Gimg * pGimg = (Gimg*)GALLOC(memType, size);
-    pGimg->pixelFormat = pixelFormat;
-    pGimg->width = width;
-    pGimg->height = height;
+    pGimg->mPixelFormat = pixelFormat;
+    pGimg->mWidth = width;
+    pGimg->mHeight = height;
     return pGimg;
 }
 
 u32 Gimg::totalSize() const
 {
-    return required_size(pixelFormat, width, height);
+    return required_size(mPixelFormat, mWidth, mHeight);
 }
 
 u8 * Gimg::scanline(u32 idx)
 {
-    PANIC_IF(idx + 1 > height, "Invalid scanline %d, for image with height %d", idx, height);
+    PANIC_IF(idx + 1 > mHeight, "Invalid scanline %d, for image with height %d", idx, mHeight);
     
     u8 * pScanline = (u8*)this + sizeof(Gimg);
     
-    switch (pixelFormat)
+    switch (mPixelFormat)
     {
     case kPXL_R8:
-        pScanline += idx * width;
+        pScanline += idx * mWidth;
         break;
     case kPXL_RGB8:
-        pScanline += idx * width * 3;
+        pScanline += idx * mWidth * 3;
         break;
     case kPXL_RGBA8:
-        pScanline += idx * width * 4;
+        pScanline += idx * mWidth * 4;
         break;
     default:
-        PANIC("Unable to return scanline for this PixelFormat: %s", pixel_format_to_str(pixelFormat));
+        PANIC("Unable to return scanline for this PixelFormat: %s", pixel_format_to_str(mPixelFormat));
         break;
     }
 
@@ -172,16 +172,16 @@ const u8 * Gimg::scanline(u32 idx) const
 
 void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixelFormat) const
 {
-    Gimg *pGimg = Gimg::create(kMEM_Chef, newPixelFormat, width, height);
+    Gimg *pGimg = Gimg::create(kMEM_Chef, newPixelFormat, mWidth, mHeight);
     *pGimgOut = pGimg;
 
-    if (pixelFormat == newPixelFormat)
+    if (mPixelFormat == newPixelFormat)
     {
         memcpy(pGimg, this, totalSize());
         return;
     }
 
-    switch (pixelFormat)
+    switch (mPixelFormat)
     {
     case kPXL_R8:
     {
@@ -189,11 +189,11 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
         {
         case kPXL_RGB8:
         {
-            for (u32 line = 0; line < height; ++line)
+            for (u32 line = 0; line < mHeight; ++line)
             {
                 const u8 * fromLine = scanline(line);
                 u8 * toLine = pGimg->scanline(line);
-                for (u32 pix = 0; pix < width; ++pix)
+                for (u32 pix = 0; pix < mWidth; ++pix)
                 {
                     u32 fpix = pix;
                     u32 tpix = 3 * pix;
@@ -206,11 +206,11 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
         }
         case kPXL_RGBA8:
         {
-            for (u32 line = 0; line < height; ++line)
+            for (u32 line = 0; line < mHeight; ++line)
             {
                 const u8 * fromLine = scanline(line);
                 u8 * toLine = pGimg->scanline(line);
-                for (u32 pix = 0; pix < width; ++pix)
+                for (u32 pix = 0; pix < mWidth; ++pix)
                 {
                     u32 fpix = pix;
                     u32 tpix = 4 * pix;
@@ -231,11 +231,11 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
         {
         case kPXL_R8:
         {
-            for (u32 line = 0; line < height; ++line)
+            for (u32 line = 0; line < mHeight; ++line)
             {
                 const u8 * fromLine = scanline(line);
                 u8 * toLine = pGimg->scanline(line);
-                for (u32 pix = 0; pix < width; ++pix)
+                for (u32 pix = 0; pix < mWidth; ++pix)
                 {
                     u32 fpix = 3 * pix;
                     u32 tpix = pix;
@@ -250,11 +250,11 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
         }
         case kPXL_RGBA8:
         {
-            for (u32 line = 0; line < height; ++line)
+            for (u32 line = 0; line < mHeight; ++line)
             {
                 const u8 * fromLine = scanline(line);
                 u8 * toLine = pGimg->scanline(line);
-                for (u32 pix = 0; pix < width; ++pix)
+                for (u32 pix = 0; pix < mWidth; ++pix)
                 {
                     u32 fpix = 3 * pix;
                     u32 tpix = 4 * pix;
@@ -276,11 +276,11 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
         {
         case kPXL_R8:
         {
-            for (u32 line = 0; line < height; ++line)
+            for (u32 line = 0; line < mHeight; ++line)
             {
                 const u8 * fromLine = scanline(line);
                 u8 * toLine = pGimg->scanline(line);
-                for (u32 pix = 0; pix < width; ++pix)
+                for (u32 pix = 0; pix < mWidth; ++pix)
                 {
                     u32 fpix = 4 * pix;
                     u32 tpix = pix;
@@ -295,11 +295,11 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
         }
         case kPXL_RGB8:
         {
-            for (u32 line = 0; line < height; ++line)
+            for (u32 line = 0; line < mHeight; ++line)
             {
                 const u8 * fromLine = scanline(line);
                 u8 * toLine = pGimg->scanline(line);
-                for (u32 pix = 0; pix < width; ++pix)
+                for (u32 pix = 0; pix < mWidth; ++pix)
                 {
                     u32 fpix = 4 * pix;
                     u32 tpix = 3 * pix;
@@ -317,7 +317,7 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
     }
 
     GFREE(pGimg);
-    PANIC("Unsupported Gimg conversion from: %d -> %d", pixelFormat, newPixelFormat);
+    PANIC("Unsupported Gimg conversion from: %d -> %d", mPixelFormat, newPixelFormat);
 }
 
 
