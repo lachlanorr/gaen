@@ -6,6 +6,8 @@ CMAKE_POLICY(SET CMP0054 NEW)
 CMAKE_POLICY(SET CMP0026 OLD)
 
 SET (cmake_dir ${CMAKE_CURRENT_SOURCE_DIR}/gaen/cmake)
+SET (python_dir ${CMAKE_CURRENT_SOURCE_DIR}/gaen/python)
+
 INCLUDE (${cmake_dir}/core_defs.cmake)
 
 ADD_DEFINITIONS(-DGLM_FORCE_NO_CTOR_INIT)

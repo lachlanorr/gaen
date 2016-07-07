@@ -15,3 +15,8 @@ ADD_LIBRARY (scripts
   ${scripts_SOURCES}
   )
 
+ADD_CUSTOM_TARGET (
+  CODEGEN_SCRIPTS ALL
+  COMMAND python ${python_dir}/codegen.py
+  DEPENDS cmpc
+  )

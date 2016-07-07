@@ -3,7 +3,7 @@
 namespace gaen
 {
 
-void register_project_cookers();
+void register_project_cookers()
 {
     // Register custom asset cookers here.
 }
