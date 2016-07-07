@@ -62,17 +62,4 @@ MemType AssetTypes::memTypeFromExt(const char * ext) const
         return kMEM_Unspecified;
 }
 
-// 4cc is endian dangerous, but we only do this within a running process,
-// these 4 character codes are never persisted between processes.
-u32 AssetTypes::ext_to_4cc(const char * ext)
-{
-    ASSERT(ext && strlen(ext) >= 4);
-    u32 cc = 0;
-    cc |= ext[0] << 3;
-    cc |= ext[1] << 2;
-    cc |= ext[2] << 1;
-    cc |= ext[3];
-    return cc;
-}
-
 } // namespace gaen

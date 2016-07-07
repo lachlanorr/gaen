@@ -55,5 +55,27 @@ u32 fnv1a_32(const char *str)
     return hval;
 }
 
+u32 fnv1a_32(const u8 *pBuff, const size_t buffSize)
+{
+    ASSERT(pBuff && buffSize > 0);
+
+    u32 hval = kFnv1_32Init;
+
+    const u8 *p = pBuff;
+    const u8 *end = pBuff + buffSize;
+
+    // FNV-1a hash each octet in the buffer
+    while (p < end)
+    {
+        // xor the bottom with the current octet
+        hval ^= static_cast<u32>(*p++);
+
+        // multiply by the 32 bit FNV magic prime mod 2^32
+        hval *= kFnv1_32Prime;
+    }
+    return hval;
+}
+
+
 } // namespace gaen
 

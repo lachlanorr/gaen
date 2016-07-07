@@ -30,6 +30,7 @@
 #include "core/HashMap.h"
 #include "core/String.h"
 #include "core/Vector.h"
+#include "assets/AssetTypes.h"
 #include "engine/Message.h"
 #include "engine/BlockMemory.h"
 #include "engine/Asset.h"

@@ -56,7 +56,7 @@ struct ImageInfo
     u16 height;
 };
 
-ImageInfo read_image_info(char * path);
+ImageInfo read_image_info(const char * path);
 
 
 

@@ -27,10 +27,13 @@
 #include "core/HashMap.h"
 #include "core/String.h"
 
+#include "assets/AssetTypes.h"
 #include "assets/Gimg.h"
 
 namespace gaen
 {
+const char * Gimg::kMagic = "gimg";
+const u32 Gimg::kMagic4cc = AssetTypes::ext_to_4cc(Gimg::kMagic);
 
 typedef HashMap<kMEM_Const, PixelFormat, String<kMEM_Const>> PixelFormatToStrMap;
 typedef HashMap<kMEM_Const, String<kMEM_Const>, PixelFormat> PixelFormatFromStrMap;
@@ -70,14 +73,17 @@ const PixelFormat pixel_format_from_str(const char * str)
 }
 
 
-bool Gimg::is_valid(const u8 * pBuffer, u32 size)
+bool Gimg::is_valid(const void * pBuffer, u64 size)
 {
     if (size < sizeof(Gimg))
         return false;
 
     const Gimg * pGimg = reinterpret_cast<const Gimg*>(pBuffer);
 
-    if (pGimg->totalSize() != size)
+    if (0 != strncmp(kMagic, pGimg->mMagic, 4))
+        return false;
+
+    if (pGimg->size() != size)
         return false;
 
     switch (pGimg->mPixelFormat)
@@ -94,9 +100,31 @@ bool Gimg::is_valid(const u8 * pBuffer, u32 size)
     return true;
 }
 
-u32 Gimg::required_size(PixelFormat pixelFormat, u32 width, u32 height)
+Gimg * Gimg::instance(void * pBuffer, u64 size)
 {
-    u32 size = sizeof(Gimg);
+    if (!is_valid(pBuffer, size))
+    {
+        PANIC("Invalid Gimg buffer");
+        return nullptr;
+    }
+
+    return reinterpret_cast<Gimg*>(pBuffer);
+}
+
+const Gimg * Gimg::instance(const void * pBuffer, u64 size)
+{
+    if (!is_valid(pBuffer, size))
+    {
+        PANIC("Invalid Gimg buffer");
+        return nullptr;
+    }
+
+    return reinterpret_cast<const Gimg*>(pBuffer);
+}
+
+u64 Gimg::required_size(PixelFormat pixelFormat, u32 width, u32 height)
+{
+    u64 size = sizeof(Gimg);
     
     switch (pixelFormat)
     {
@@ -124,17 +152,23 @@ u32 Gimg::required_size(PixelFormat pixelFormat, u32 width, u32 height)
     return size;
 }
 
-Gimg * Gimg::create(MemType memType, PixelFormat pixelFormat, u32 width, u32 height)
+Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
 {
-    u32 size = Gimg::required_size(pixelFormat, width, height);
-    Gimg * pGimg = (Gimg*)GALLOC(memType, size);
+    u64 size = Gimg::required_size(pixelFormat, width, height);
+    Gimg * pGimg = (Gimg*)GALLOC(kMEM_Texture, size);
+
+    ASSERT(strlen(kMagic) == 4);
+    strcpy(pGimg->mMagic, kMagic);
     pGimg->mPixelFormat = pixelFormat;
     pGimg->mWidth = width;
     pGimg->mHeight = height;
+
+    ASSERT(is_valid(pGimg, required_size(pixelFormat, width, height)));
+
     return pGimg;
 }
 
-u32 Gimg::totalSize() const
+u64 Gimg::size() const
 {
     return required_size(mPixelFormat, mWidth, mHeight);
 }
@@ -172,12 +206,12 @@ const u8 * Gimg::scanline(u32 idx) const
 
 void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixelFormat) const
 {
-    Gimg *pGimg = Gimg::create(kMEM_Chef, newPixelFormat, mWidth, mHeight);
+    Gimg *pGimg = Gimg::create(newPixelFormat, mWidth, mHeight);
     *pGimgOut = pGimg;
 
     if (mPixelFormat == newPixelFormat)
     {
-        memcpy(pGimg, this, totalSize());
+        memcpy(pGimg, this, size());
         return;
     }
 

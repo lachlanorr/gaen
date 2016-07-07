@@ -43,6 +43,7 @@ INCLUDE (${cmake_dir}/core_defs.cmake)
 # for the project to register asset types and cookers.
 IF ("${CMAKE_PROJECT_NAME}" STREQUAL "gaen")
   ADD_DEFINITIONS("-DIS_GAEN_PROJECT=1")
+ELSE ()
   SET(PROJECT_ASSETS_LIB
     "${CMAKE_PROJECT_NAME}_assets"
     )

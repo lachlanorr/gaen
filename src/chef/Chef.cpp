@@ -57,48 +57,65 @@ Chef::Chef(u32 id, const char * platform, const char * assetsDir, bool force)
     mAssetsCookedDir = scratch;
 }
 
-void Chef::cook(const char * path)
+UniquePtr<CookInfo> Chef::cook(const char * path, CookFlags flags)
 {
     ASSERT(path);
     PANIC_IF(strlen(path) > kMaxPath-1, "File path too long, max size allowed: %u, %s", kMaxPath-1, path);
 
-    // prepare input and output paths
     char rawPath[kMaxPath+1];
-    char cookedPath[kMaxPath+1];
-
     getRawPath(rawPath, path);
+
     Cooker * pCooker = CookerRegistry::find_cooker_from_raw(rawPath);
     if (!pCooker)
     {
         // not a cookable file
-        return;
+        return UniquePtr<CookInfo>();
     }
-    getCookedPath(cookedPath, path);
+
+    char cookedPath[kMaxPath+1];
+    getCookedPath(cookedPath, rawPath);
 
     // check if file exists
     PANIC_IF(!file_exists(rawPath), "Raw file does not exist: %s", rawPath);
 
     RecipeList recipes = findRecipes(rawPath);
+    UniquePtr<CookInfo> pCi(GNEW(kMEM_Chef, CookInfo, this, flags, rawPath, cookedPath, recipes));
 
     // verify we should cook
-    if (!mForce && !shouldCook(rawPath, cookedPath, recipes))
-        return;
+    if (!shouldCook(*pCi, recipes, mForce))
+        return pCi;
 
     // make any directories needed in cookedPath
     char cookedDir[kMaxPath+1];
     parent_dir(cookedDir, cookedPath);
     make_dirs(cookedDir);
 
-    Config<kMEM_Chef> recipe;
-    overlayRecipes(recipe, recipes);
+    pCooker->cook(*pCi);
 
-    CookInfo ci(this, rawPath, cookedPath, recipe);
+    return pCi;
+}
 
-    pCooker->cook(ci);
+UniquePtr<CookInfo> Chef::cookDependency(const char * path)
+{
+    return cook(path, kCF_CookingDependency);
+}
 
-    writeDependencyFile(ci);
+void Chef::cookAndWrite(const char * path)
+{
+    UniquePtr<CookInfo> pCi(cook(path, kCF_None));
 
-    printf("Cooked: %s -> %s\n", ci.rawPath, ci.cookedPath);
+    if (pCi.get() && pCi->isCooked())
+    {
+        writeDependencyFile(*pCi);
+
+        if (pCi->isCooked())
+        {
+            // write out file
+            FileWriter wrtr(pCi->cookedPath());
+            wrtr.ofs.write((const char *)pCi->cookedBuffer(), pCi->cookedBufferSize());
+            printf("Cooked: %s -> %s\n", pCi->rawPath(), pCi->cookedPath());
+        }
+    }
 }
 
 bool Chef::isRawPath(const char * path)
@@ -279,13 +296,13 @@ void Chef::deleteDependencyFile(const char * rawPath)
 
 void Chef::writeDependencyFile(const CookInfo & ci)
 {
-	if (ci.dependencies.size() > 0)
+	if (ci.dependencies().size() > 0)
 	{
         char depFilePath[kMaxPath + 1];
-        getDependencyFilePath(depFilePath, ci.rawPath);
+        getDependencyFilePath(depFilePath, ci.rawPath());
 
         Config<kMEM_Chef> depConf;
-        for (const String<kMEM_Chef> & dep : ci.dependencies)
+        for (const String<kMEM_Chef> & dep : ci.dependencies())
         {
             depConf.setValueless(dep.c_str());
         }
@@ -295,7 +312,7 @@ void Chef::writeDependencyFile(const CookInfo & ci)
 	else
     {
         // delete dependency file if it exists
-		deleteDependencyFile(ci.rawPath);
+		deleteDependencyFile(ci.rawPath());
     }
 }
 
@@ -320,56 +337,47 @@ List<kMEM_Chef, String<kMEM_Chef>> Chef::readDependencyFile(const char * rawPath
     return deps;
 }
 
-void Chef::reportDependency(char * dependencyRawPath, const char * dependencyPath, const CookInfo & ci)
+bool Chef::shouldCook(const CookInfo & ci, const RecipeList & recipes, bool force)
 {
-    // If passed in an output path, use it, otherwise us a scratch space
-    char scratch[kMaxPath+1];
-    char * depRawPath = dependencyRawPath ? dependencyRawPath : scratch;
+    // If this is a dependent file, we don't cook it as an individual
+    // file, but let the asset that is its parent cook it.
+    if ((ci.flags() & kCF_CookingDependency) == kCF_CookingDependency)
+        return true;
+    else if (ci.recipe().getBool("is_dependent"))
+        return false;
 
-    if (!convertRelativeDependencyPath(depRawPath, ci.rawPath, dependencyPath))
-    {
-        PANIC("Unable to convert dependency relative path to raw path: %s", dependencyPath);
-    }
-
-    // We only want to record the portion relative to the 
-    // raw assets directory.
-    char rawRelativePath[kMaxPath+1];
-    getRawRelativePath(rawRelativePath, depRawPath);
-
-    ci.dependencies.emplace_back(dependencyPath);
-}
-
-bool Chef::shouldCook(const char * rawPath, const char * cookedPath, const RecipeList & recipes)
-{
-    if (!file_exists(cookedPath))
+    if (force)
         return true;
 
-    if (is_file_newer(rawPath, cookedPath))
+    if (!file_exists(ci.cookedPath()))
+        return true;
+
+    if (is_file_newer(ci.rawPath(), ci.cookedPath()))
         return true;
 
     for (const String<kMEM_Chef> & recipePath : recipes)
     {
-        if (is_file_newer(recipePath.c_str(), cookedPath))
+        if (is_file_newer(recipePath.c_str(), ci.cookedPath()))
             return true;
     }
 
-    auto deps = readDependencyFile(rawPath);
+    auto deps = readDependencyFile(ci.rawPath());
 
     for (auto dep : deps)
     {
         char depRawPath[kMaxPath + 1];
-        if (!convertRelativeDependencyPath(depRawPath, rawPath, dep.c_str()))
+        if (!convertRelativeDependencyPath(depRawPath, ci.rawPath(), dep.c_str()))
         {
             PANIC("Unable to convert dependency relative path to raw path: %s", dep.c_str());
         }
-        if (is_file_newer(depRawPath, cookedPath))
+        if (is_file_newer(depRawPath, ci.cookedPath()))
             return true;
     }
 
     return false;
 }
 
-Chef::RecipeList Chef::findRecipes(const char * rawPath)
+RecipeList Chef::findRecipes(const char * rawPath)
 {
     RecipeList recipes;
 
@@ -404,7 +412,7 @@ Chef::RecipeList Chef::findRecipes(const char * rawPath)
     return recipes;
 }
 
-void Chef::overlayRecipes(Config<kMEM_Chef> & recipe, const Chef::RecipeList & recipes)
+void Chef::overlayRecipes(Config<kMEM_Chef> & recipe, const RecipeList & recipes)
 {
     for (String<kMEM_Chef> rcp : recipes)
     {

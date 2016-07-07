@@ -27,6 +27,9 @@
 #ifndef GAEN_ENGINE_ASSET_TYPES_H
 #define GAEN_ENGINE_ASSET_TYPES_H
 
+#include "core/mem.h"
+#include "core/HashMap.h"
+
 namespace gaen
 {
 
@@ -39,11 +42,11 @@ public:
 
     MemType memTypeFromExt(const char * ext) const;
 
-    // 4cc is endian dangerous, but we only do this within a running process,
-    // these 4 character codes are never persisted between processes.
+    // Dealing with 4 character codes can be endian dangerous, but we
+    // only do this within a running process, these 4 character codes
+    // are never persisted between processes.
     static u32 ext_to_4cc(const char * ext)
     {
-        ASSERT(strlen(ext) >= 4);
         return *reinterpret_cast<const u32*>(ext);
     }
 

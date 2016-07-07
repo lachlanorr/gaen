@@ -24,98 +24,94 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "assets/AssetTypes.h"
 #include "assets/Gimg.h"
 #include "assets/Gatl.h"
 
 namespace gaen
 {
+const char * Gatl::kMagic = "gatl";
+const u32 Gatl::kMagic4cc = AssetTypes::ext_to_4cc(Gatl::kMagic);
 
-u32 Gatl::header_and_path_size(const char * path)
+bool Gatl::is_valid(const void * pBuffer, u64 size)
 {
-    u32 pathSize = (u32)strlen(path) + 1; // +1 for null
-    u32 headerAndPathSize = pathSize + sizeof(Gatl);
+    if (size < sizeof(Gatl))
+        return false;
 
-    // align size to 16 bytes so our coords start o 16 byte boundary
-    headerAndPathSize = align(headerAndPathSize, 16);
-    
-    return headerAndPathSize;
+    const Gatl * pGatl = reinterpret_cast<const Gatl*>(pBuffer);
+
+    if (0 != strncmp(kMagic, pGatl->mMagic, 4))
+        return false;
+
+    if (pGatl->mDefaultIndex >= pGatl->glyphCount())
+        return false;
+
+    if (pGatl->size() != size)
+        return false;
+
+    return true;
 }
 
-u32 Gatl::total_size(const char * path, u8 minChar, u8 maxChar)
+Gatl * Gatl::instance(void * pBuffer, u64 size)
 {
-    u32 charCount = maxChar - minChar + 1;
-    u32 coordSize = charCount * sizeof(GlyphCoords);
+    if (!is_valid(pBuffer, size))
+    {
+        PANIC("Invalid Gimg buffer");
+        return nullptr;
+    }
 
-    u32 headerAndPathSize = header_and_path_size(path);
-    return headerAndPathSize + coordSize;
+    return reinterpret_cast<Gatl*>(pBuffer);
 }
 
-
-
-Gatl * Gatl::create(MemType memType, const char * path, u8 minChar, u8 maxChar, u8 defaultChar)
+u64 Gatl::required_size(u32 glyphCount, u32 aliasCount, const Gimg & image)
 {
-    PANIC_IF(maxChar < minChar, "Invalid maxChar/minChar == %u/%u", minChar, maxChar);
-    PANIC_IF(defaultChar < minChar || defaultChar > maxChar, "Invalid defaultChar: %u", defaultChar);
+    return sizeof(Gatl) + glyphCount * sizeof(GlyphCoords) + aliasCount * sizeof(GlyphAlias) + image.size();
+    return 0;
+}
 
-    char * pBuff = (char*)GALLOC(memType, total_size(path, minChar, maxChar));
+Gatl * Gatl::create(u32 glyphCount, u32 aliasCount, u32 defaultIndex, const Gimg & image)
+{
+    u64 size = Gatl::required_size(glyphCount, aliasCount, image);
+    Gatl * pGatl = (Gatl*)GALLOC(kMEM_Texture, size);
 
-    Gatl * pGatl = reinterpret_cast<Gatl*>(pBuff);
+    ASSERT(strlen(kMagic) == 4);
+    strcpy(pGatl->mMagic, kMagic);
 
-
-/*
-    size_t pathSize = strlen(path) + 1; // +1 for null
-    PANIC_IF(pathSize > 255, "GimgPathSize too large: %u", pathSize);
-    pGatl->mGimgPathSize = (u8)pathSize;
-
-    char * pPath = pBuff + sizeof(Gatl);
-    strcpy(pPath, path);
-
-    ASSERT(align(pGatl->mGimgPathSize + sizeof(Gatl), 16) == header_and_path_size(path));
+    if (defaultIndex >= glyphCount)
+        PANIC("Failed to create Gatl, defaultIndex too large: %u", defaultIndex);
     
-    pGatl->mMinChar = minChar;
-    pGatl->mMaxChar = maxChar;
-    pGatl->mDefaultChar = defaultChar;
-*/
+    pGatl->mGlyphCount = glyphCount;
+    pGatl->mAliasCount = aliasCount;
+    pGatl->mDefaultIndex = defaultIndex;
+
+    memcpy(&pGatl->image(), &image, image.size());
+
+    ASSERT(is_valid(pGatl, required_size(glyphCount, aliasCount, image)));
     return pGatl;
 }
 
-const char * Gatl::gimgPath() const
+u64 Gatl::size() const
 {
-    ASSERT((std::intptr_t)this % 16 == 0);
-    return reinterpret_cast<const char*>(this) + sizeof(Gatl);
+    return required_size(mGlyphCount, mAliasCount, image());
 }
 
-u32 Gatl::headerAndPathSize() const
+GlyphCoords & Gatl::coordsFromAlias(u32 aliasHash)
 {
-    return align((u32)sizeof(Gatl) + mGimgPathSize, 16);
+    GlyphAlias * pAlias = aliases();
+    GlyphAlias * pAliasesEnd = aliases() + mAliasCount;
+
+    while (pAlias++ < pAliasesEnd)
+    {
+        if (aliasHash == pAlias->hash)
+        {
+            return coords(pAlias->index);
+        }
+    }
+
+    // we didn't find the hash
+    ERR("Failed to find alias hash: %u", aliasHash);
+    return defaultCoords();
 }
-
-u32 Gatl::totalSize() const
-{
-    u32 charCount = mMaxChar - mMinChar + 1;
-    u32 coordSize = charCount * sizeof(GlyphCoords);
-    return headerAndPathSize() + coordSize;
-}
-
-GlyphCoords & Gatl::glyphCoords(char c)
-{
-    const Gatl * pGatlConst = const_cast<const Gatl*>(this);
-    return const_cast<GlyphCoords&>(pGatlConst->glyphCoords(c));
-}
-
-const GlyphCoords & Gatl::glyphCoords(char c) const
-{
-    ASSERT((std::intptr_t)this % 16 == 0);
-    if (c < mMinChar || c > mMaxChar)
-        c = mDefaultChar;
-
-    const GlyphCoords * pCoords = reinterpret_cast<const GlyphCoords*>(reinterpret_cast<const u8*>(this) + headerAndPathSize());
-    
-    u32 idx = c - mMinChar;
-    return pCoords[idx];
-}
-
-
 
 } // namespace gaen
 

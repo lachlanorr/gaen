@@ -28,16 +28,21 @@
 #define GAEN_CORE_SET_H
 
 #include <set>
+#include <functional>
 
 #include "core/mem.h"
 
 namespace gaen
 {
 
-// Declare sets with the aditional MemType enum parameter, E.g.:
+// Declare sets with the additional MemType enum parameter, E.g.:
 //   Set<int, kMT_Texture> mySet;
-template <MemType memType, class T>
-using Set = std::set<T, gaen::Allocator<memType, T>>;
+template <MemType memType,
+          class Key,
+          class Comparer = std::less<Key>>
+using Set = std::set<Key,
+                     Comparer,
+                     gaen::Allocator<memType, Key>>;
 
 
 } // namespace gaen

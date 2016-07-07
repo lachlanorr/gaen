@@ -35,7 +35,7 @@
 namespace gaen
 {
 
-ImageInfo read_image_info(char * path)
+ImageInfo read_image_info(const char * path)
 {
     const char * ext = get_ext(path);
 

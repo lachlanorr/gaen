@@ -33,9 +33,11 @@ SET (chef_SOURCES
   cookers.h
   cooker_utils.cpp
   cooker_utils.h
+  CookInfo.cpp
+  CookInfo.h
+  main_chef.cpp
   Tga.cpp
   Tga.h
-  main_chef.cpp
   )
 
 MSVC_PRECOMPILED_HEADER (chef chef_SOURCES)

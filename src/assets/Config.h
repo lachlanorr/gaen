@@ -53,40 +53,46 @@ public:
     bool write(const char * path);
 
     // iteration
-    typename StringVec::const_iterator sectionsBegin();
-    typename StringVec::const_iterator sectionsEnd();
+    typename StringVec::const_iterator sectionsBegin() const;
+    typename StringVec::const_iterator sectionsEnd() const;
 
-    typename StringVec::const_iterator keysBegin();
-    typename StringVec::const_iterator keysBegin(const char * section);
-    typename StringVec::const_iterator keysEnd();
-    typename StringVec::const_iterator keysEnd(const char * section);
+    typename StringVec::const_iterator keysBegin() const;
+    typename StringVec::const_iterator keysBegin(const char * section) const;
+    typename StringVec::const_iterator keysEnd() const;
+    typename StringVec::const_iterator keysEnd(const char * section) const;
 
     // Check for keys and sections
-    bool hasSection(const char * section);
-    bool hasKey(const char * key);
-    bool hasKey(const char * section, const char * key);
+    bool hasSection(const char * section) const;
+    bool hasKey(const char * key) const;
+    bool hasKey(const char * section, const char * key) const;
+
+    u32 sectionCount() const;
+    u32 sectionKeyCount(const char * section) const;
 
     // Getters
-    const char * get(const char * key);
-    const char * get(const char * section, const char * key);
+    const char * get(const char * key) const;
+    const char * get(const char * section, const char * key) const;
 
-    const char * getWithDefault(const char * key, const char * defaultValue);
-    const char * getWithDefault(const char * section, const char * key, const char * defaultValue);
+    const char * getWithDefault(const char * key, const char * defaultValue) const;
+    const char * getWithDefault(const char * section, const char * key, const char * defaultValue) const;
 
-    i32 getInt(const char * key);
-    i32 getInt(const char * section, const char * key);
+    bool getBool(const char * key) const;
+    bool getBool(const char * section, const char * key) const;
 
-    f32 getFloat(const char * key);
-    f32 getFloat(const char * section, const char * key);
+    i32 getInt(const char * key) const;
+    i32 getInt(const char * section, const char * key) const;
 
-    StringVec getVec(const char * key);
-    StringVec getVec(const char * section, const char * key);
+    f32 getFloat(const char * key) const;
+    f32 getFloat(const char * section, const char * key) const;
 
-    IntVec getIntVec(const char * key);
-    IntVec getIntVec(const char * section, const char * key);
+    StringVec getVec(const char * key) const;
+    StringVec getVec(const char * section, const char * key) const;
 
-    FloatVec getFloatVec(const char * key);
-    FloatVec getFloatVec(const char * section, const char * key);
+    IntVec getIntVec(const char * key) const;
+    IntVec getIntVec(const char * section, const char * key) const;
+
+    FloatVec getFloatVec(const char * key) const;
+    FloatVec getFloatVec(const char * section, const char * key) const;
 
     void setValueless(const char * key);
     void setValueless(const char * section, const char * key);
@@ -149,7 +155,7 @@ private:
     const char * addName(const char * name);
     ProcessResult processLine(char * line);
 
-    Names mNames;
+    mutable Names mNames;
     StringVec mSectionNames;
     SectionKeys mSectionKeys;
     SectionData mSectionData;

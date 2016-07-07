@@ -56,13 +56,16 @@ inline u8 luminance(u8 r, u8 g, u8 b)
 class Gimg
 {
 public:
-    static bool is_valid(const u8 * pBuffer, u32 size);
+    static bool is_valid(const void * pBuffer, u64 size);
+    static Gimg * instance(void * pBuffer, u64 size);
+    static const Gimg * instance(const void * pBuffer, u64 size);
     
     static u64 required_size(PixelFormat pixelFormat, u32 width, u32 height);
 
-    static Gimg * create(MemType memType, PixelFormat pixelFormat, u32 width, u32 height);
+    static Gimg * create(PixelFormat pixelFormat, u32 width, u32 height);
+    static Gimg * load(const char * rawPath);
 
-    u32 totalSize() const;
+    u64 size() const;
 
     u8 * scanline(u32 idx);
     const u8 * scanline(u32 idx) const;
@@ -70,8 +73,8 @@ public:
     void convertFormat(Gimg ** pGimg, MemType memType, PixelFormat newPixelFormat) const;
 
     PixelFormat pixelFormat() const { return mPixelFormat; }
-    u16 width() const { return mWidth; }
-    u16 height() const { return mHeight; }
+    u32 width() const { return mWidth; }
+    u32 height() const { return mHeight; }
 
 private:
     // Class should not be constructed directly.  Use cast and create static methods.
@@ -79,17 +82,17 @@ private:
     Gimg(const Gimg&) = delete;
     Gimg & operator=(const Gimg&) = delete;
 
-    static const char * kMagic = "gimg";
+    static const char * kMagic;
+    static const u32 kMagic4cc;
     char mMagic[4];
 
     PixelFormat mPixelFormat;
     
-    u16 mWidth;
-    u16 mHeight;
-
+    u32 mWidth;
+    u32 mHeight;
 };
 
-static_assert(sizeof(Gimg) == 8, "Gimg expected to be 8 bytes");
+static_assert(sizeof(Gimg) == 16, "Gimg expected to be 8 bytes");
 
 } // namespace gaen
 

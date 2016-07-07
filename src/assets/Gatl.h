@@ -50,6 +50,26 @@ struct GlyphCoords
     }
 };
 
+// support for HashMap
+struct GlyphCoordsHash
+{
+    u64 operator()(const GlyphCoords & val) const
+    {
+        const u8 * pBuff = reinterpret_cast<const u8*>(&val);
+        return fnv1a_32(pBuff, sizeof(GlyphCoords));
+    }
+};
+struct GlyphCoordsEquals
+{
+    u64 operator()(const GlyphCoords & lhs, const GlyphCoords & rhs) const
+    {
+        return (lhs.topLeftU == rhs.topLeftU &&
+                lhs.topLeftV == rhs.topLeftV &&
+                lhs.bottomRightU == rhs.bottomRightU &&
+                lhs.bottomRightV == rhs.bottomRightV);
+    }
+};
+
 struct GlyphAlias
 {
     u32 hash;
@@ -59,23 +79,84 @@ struct GlyphAlias
 struct Gatl
 {
 public:
-    static u32 total_size(u32 glyphCount, u32 aliasCount);
+    static bool is_valid(const void * pBuffer, u64 size);
+    static Gatl * instance(void * pBuffer,u64 size);
 
-    static Gatl * create(MemType memType, );
+    static u64 required_size(u32 glyphCount, u32 aliasCount, const Gimg & image);
 
-    u32 totalSize() const;
+    static Gatl * create(u32 glyphCount, u32 aliasCount, u32 defaultIndex, const Gimg & image);
 
-    const GlyphCoords * glyphCoords(u32 idx) const;
-    const GlyphCoords * glyphCoordsFromAlias(u32 alias) const;
+    u64 size() const;
 
-    Gimg * image();
-    const Gimg * image() const;
+    u32 glyphCount() const { return mGlyphCount; }
+    u32 aliasCount() const { return mAliasCount; }
+
+    GlyphCoords & coords(u32 idx)
+    {
+        if (idx >= mGlyphCount)
+            idx = mDefaultIndex;
+        return glyphs()[idx];
+    }
+    const GlyphCoords & coords(u32 idx) const
+    {
+        Gatl * pGatl = const_cast<Gatl*>(this);
+        return pGatl->coords(idx);
+    }
+
+    GlyphCoords & defaultCoords() { return coords(mDefaultIndex); }
+    const GlyphCoords & defaultCoords() const { return coords(mDefaultIndex); }
+
+    GlyphCoords & coordsFromAlias(u32 aliasHash);
+    const GlyphCoords & coordsFromAlias(u32 aliasHash) const
+    {
+        Gatl * pGatl = const_cast<Gatl*>(this);
+        return pGatl->coordsFromAlias(aliasHash);
+    }
+
+
+    GlyphAlias & alias(u32 idx)
+    {
+        idx %= mAliasCount; // treat glyphs as a circular buffer
+        return aliases()[idx];
+    }
+    const GlyphAlias & alias(u32 idx) const
+    {
+        Gatl * pGatl = const_cast<Gatl*>(this);
+        return pGatl->alias(idx);
+    }
+
+
+    Gimg & image()
+    {
+        return *reinterpret_cast<Gimg*>(aliases() + mAliasCount);
+    }
+    const Gimg & image() const
+    {
+        Gatl * pGatl = const_cast<Gatl*>(this);
+        return pGatl->image();
+    }
 private:
-    u32 glyphCount;
-    u32 aliasCount;
+    GlyphCoords * glyphs()
+    {
+        return reinterpret_cast<GlyphCoords*>(reinterpret_cast<u8*>(this) + sizeof(*this));
+    }
+
+    GlyphAlias * aliases()
+    {
+        return reinterpret_cast<GlyphAlias*>(glyphs() + mGlyphCount);
+    }
+
+    static const char * kMagic;
+    static const u32 kMagic4cc;
+    char mMagic[4];
+
+    u32 mGlyphCount;
+    u32 mAliasCount;
+
+    u32 mDefaultIndex;
 };
 
-//static_assert(sizeof(Gatl) == 4, "Gatl unexpected size");
+static_assert(sizeof(Gatl) == 16, "Gatl unexpected size");
 
 } // namespace gaen
 

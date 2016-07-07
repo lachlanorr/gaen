@@ -33,6 +33,7 @@ namespace gaen
 {
 
 u32 fnv1a_32(const char *str);
+u32 fnv1a_32(const u8 *pBuff, const size_t buffSize);
 
 // Use this everywhere, avoid using fnv1a_32 direectly since we may
 // change the algorithm some day.

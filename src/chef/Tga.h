@@ -32,7 +32,7 @@
 namespace gaen
 {
 
-struct Gimg;
+class Gimg;
 
 enum TgaImageType
 {

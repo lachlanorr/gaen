@@ -30,24 +30,25 @@
 #include "core/mem.h"
 #include "core/String.h"
 #include "assets/Config.h"
+#include "chef/CookInfo.h"
 
 namespace gaen
 {
 
 struct Cooker;
-struct CookInfo;
+class CookInfo;
 
 class Chef
 {
+    friend class CookInfo;
 public:
     Chef(u32 id, const char * platform, const char * assetsDir, bool force);
     
     u32 id() { return mId; }
     const char * platform() { return mPlatform.c_str(); }
 
-    void cook(const char * path);
-
-    void reportDependency(char * dependencyRawPath, const char * dependencyPath, const CookInfo & ci);
+    UniquePtr<CookInfo> cookDependency(const char * path);
+    void cookAndWrite(const char * path);
 
     // Path conversion functions
     bool isRawPath(const char * path);
@@ -60,11 +61,10 @@ public:
     void getGamePath(char * gamePath, const char * path, Cooker * pCooker = nullptr);
 
 private:
-    typedef List<kMEM_Chef, String<kMEM_Chef>> RecipeList;
-    
     const size_t kMaxPlatform = 4;
 
-    bool shouldCook(const char * rawPath, const char * cookedPath, const RecipeList & recipes);
+    UniquePtr<CookInfo> cook(const char * path, CookFlags flags);
+    bool shouldCook(const CookInfo & ci, const RecipeList & recipes, bool force);
     RecipeList findRecipes(const char * rawPath);
     void overlayRecipes(Config<kMEM_Chef> & recipe, const RecipeList & recipes);
     bool convertRelativeDependencyPath(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath);

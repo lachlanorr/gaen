@@ -143,7 +143,7 @@ void Tga::convertToGimg(Gimg ** pGimgOut)
     else
         PANIC("Unable to convert tga to Gimg, invalid format");
 
-    Gimg * pGimg = Gimg::create(kMEM_Chef, pixFmt, width, height);
+    Gimg * pGimg = Gimg::create(pixFmt, width, height);
 
     for (u32 line = 0; line < height; ++line)
     {

@@ -34,6 +34,8 @@
 namespace gaen
 {
 
+class AssetTypes;
+
 class Asset
 {
     friend class AssetMgr;

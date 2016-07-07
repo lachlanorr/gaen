@@ -30,6 +30,7 @@
 
 #include "core/base_defines.h"
 #include "core/thread_local.h"
+#include "core/hashing.h"
 
 #include "assets/file_utils.h"
 #include "assets/Gimg.h"
@@ -44,141 +45,181 @@
 namespace gaen
 {
 
+static GlyphCoords glyph_coords(i32 left, i32 top, i32 width, i32 height, const ImageInfo & imageInfo)
+{
+    PANIC_IF(left < 0 || top < 0 || left >= imageInfo.width || top >= imageInfo.height ||  width > imageInfo.width || height > imageInfo.height, "Invalid parameters for GlyphInfo");
+
+    // convert to bottom left coords if source image is top left (which is almost always true)
+    if (imageInfo.origin == kORIG_TopLeft)
+    {
+        top = imageInfo.height - top - 1;
+    }
+
+    // convert pixel coords to uv space
+    GlyphCoords coords;
+    coords.topLeftU = (f32)left / (imageInfo.width - 1);
+    coords.topLeftV = (f32)top / (imageInfo.height - 1);
+    coords.bottomRightU = (f32)(left + width) / (imageInfo.width - 1);
+    coords.bottomRightV = (f32)(top - height) / (imageInfo.height - 1);
+
+    return coords;
+}
+
 void cook_atl(const CookInfo & ci)
 {
-    FileReader rdr(ci.rawPath);
-    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", ci.rawPath);
     Config<kMEM_Chef> atl;
-    atl.read(rdr.ifs);
-
-    char minChar = 127;
-    char maxChar = 0;
+    {
+        FileReader rdr(ci.rawPath());
+        PANIC_IF(!rdr.isOk(), "Unable to load file: %s", ci.rawPath());
+        atl.read(rdr.ifs);
+    }
 
     static const char * kGlyphs = "glyphs";
     static const char * kFixedSize = "fixed_size";
     static const char * kImage = "image";
-    static const char * kDefaultGlyph = "default_char";
 
     PANIC_IF(!atl.hasKey(kImage), "Missing image in .fnt");
-    PANIC_IF(!atl.hasSection(kGlyphs), "Missing [glyphs] section in .fnt");
 
-    // Crack open the image and get the width/height so we can calculate
-    // proper u/v coords
-    char imageRawPath[kMaxPath+1];
-    ci.pChef->reportDependency(imageRawPath, atl.get(kImage), ci);
-    ImageInfo imageInfo = read_image_info(imageRawPath);
+    // Cook our dependent image
+    UniquePtr<CookInfo> pCiImage = ci.cookDependency(atl.get(kImage));
+    PANIC_IF(!pCiImage.get() || !pCiImage->isCooked(), "Failed to cook dependent file: %s", atl.get(kImage));
+    const Gimg * pImage = Gimg::instance(pCiImage->cookedBuffer(), pCiImage->cookedBufferSize());
+
+    // Grab some info out of the source image, which will be needed
+    // when considering coordinates.
+    ImageInfo imageInfo = read_image_info(pCiImage->rawPath());
 
     // Pull out the fixed width/height if present
     bool hasFixedSize = false;
-    f32 fixedWidth = 0.0f;
-    f32 fixedHeight = 0.0f;
+    i32 fixedWidth = 0;
+    i32 fixedHeight = 0;
     if (atl.hasKey(kFixedSize))
     {
         auto fsv = atl.getIntVec(kFixedSize);
         PANIC_IF(fsv.size() != 2, "%s must be a list of 2 integers", kFixedSize);
-        fixedWidth = (f32)fsv.front();
-        fixedHeight = (f32)fsv.back();
+        fixedWidth = fsv.front();
+        fixedHeight = fsv.back();
         hasFixedSize = true;
-        PANIC_IF(fixedWidth < 1.0f || fixedHeight < 1.0f, "Invalid %s: %d,%d", kFixedSize, fixedWidth, fixedHeight);
+        PANIC_IF(fixedWidth > imageInfo.width || fixedHeight > imageInfo.height, "Invalid %s: %d,%d", kFixedSize, fixedWidth, fixedHeight);
     }
 
-    // Iterate over keys once to find min/max character values
-    auto keyIt = atl.keysBegin(kGlyphs);
-    auto keyItEnd = atl.keysEnd(kGlyphs);
-    while (keyIt != keyItEnd)
+    List<kMEM_Chef, GlyphCoords> coordsList;
+    HashSet<kMEM_Chef, GlyphCoords, GlyphCoordsHash, GlyphCoordsEquals> coordsSet;
+    List<kMEM_Chef, GlyphAlias> aliasesList;
+    HashSet<kMEM_Chef, u32> aliasesSet;
+    u32 defaultIndex = 0;
+
+    if (atl.hasSection(kGlyphs))
     {
-        const char * key = *keyIt;
-        PANIC_IF(strlen(key) != 1, "Multi character key in .fnt file: %s", key);
-        char keyChar = key[0];
-        PANIC_IF(keyChar < 0 || keyChar > 128, "Invalid character in .fnt file: %c", keyChar);
-        minChar = glm::min(minChar, keyChar);
-        maxChar = glm::max(maxChar, keyChar);
-        ++keyIt;
+        // Iterate over keys once to find min/max character values
+        auto keyIt = atl.keysBegin(kGlyphs);
+        auto keyItEnd = atl.keysEnd(kGlyphs);
+        while (keyIt != keyItEnd)
+        {
+            const char * key = *keyIt;
+            PANIC_IF(!key || !key[0], "Empyty glyph key(%s) in atl file: %s", ci.rawPath(), key);
+
+            GlyphAlias alias;
+
+            if (key[1] == '\0')
+            {
+                // treat key as a literal value (i.e. a font character)
+                alias.hash = key[0];
+            }
+            else
+            {
+                // hash the key
+                alias.hash = gaen_hash(key);
+            }
+
+            PANIC_IF(aliasesSet.find(alias.hash) != aliasesSet.end(), "Alias(%u) multiply defined in atl file: %s", alias.hash, ci.rawPath());
+
+            auto cv = atl.getIntVec(kGlyphs, key);
+            PANIC_IF(cv.size() != 2 && cv.size() != 4, "Invalid glyph coordinates: %s=%s", key, atl.get(kGlyphs, key));
+            PANIC_IF(cv.size() == 2 && !hasFixedSize, "Glyph without size: %s=%s", key, atl.get(kGlyphs, key));
+
+            i32 width = fixedWidth;
+            i32 height = fixedHeight;
+            if (cv.size() == 4)
+            {
+                width = cv[2];
+                height = cv[3];
+            }
+
+            GlyphCoords coords = glyph_coords(cv[0], cv[1], width, height, imageInfo);
+
+            PANIC_IF(coordsSet.find(coords) != coordsSet.end(), "Coords multiply defined within atl file: %s", ci.rawPath());
+
+            alias.index = (u32)coordsList.size();
+            if (alias.hash == gaen_hash("default"))
+                defaultIndex = alias.index;
+
+            aliasesSet.insert(alias.hash);
+            coordsSet.insert(coords);
+            coordsList.push_back(coords);
+            aliasesList.push_back(alias);
+
+            ++keyIt;
+        }
     }
-    PANIC_IF(minChar > maxChar, "minChar > maxChar in .fnt file, something is horribly wrong");
-
-    char imageGamePath[kMaxPath+1];
-    ci.pChef->getGamePath(imageGamePath, imageRawPath);
-
-    // Extract default glyph if it has been provided
-    char defaultChar = minChar;
-    if (atl.hasKey(kDefaultGlyph))
+    else if (hasFixedSize &&
+             (imageInfo.width % fixedWidth == 0) &&
+             (imageInfo.height % fixedHeight == 0))
     {
-        const char * defCharStr = atl.get(kDefaultGlyph);
-        PANIC_IF(strlen(defCharStr) != 1, "Invalid %s: %s", kDefaultGlyph, defCharStr);
-        PANIC_IF(!atl.hasKey(kGlyphs, defCharStr), "Default character not defined");
-        defaultChar = defCharStr[0];
-        PANIC_IF(defaultChar < minChar || defaultChar > maxChar, "DefaultChar not found");
+        // No explicit glyphs, so see if we can infer them based on sizes
+        i32 currX = 0;
+        i32 currY = 0;
+
+        for (i32 currY = 0; currY < imageInfo.height; ++currY)
+        {
+            for (i32 currX = 0; currX < imageInfo.width; ++currX)
+            {
+                GlyphCoords coords = glyph_coords(currX, currY, fixedWidth, fixedHeight, imageInfo);
+                coordsList.push_back(coords);
+            }
+        }
     }
-
-    Gatl * pGatl = Gatl::create(kMEM_Chef, imageGamePath, minChar, maxChar, defaultChar);
-
-    // Iterate again to set glyphs in our Gatl
-    char cKey[2];
-    cKey[1] = '\0';
-    for (char c = minChar; c < maxChar; ++c)
+    else
     {
-        GlyphCoords & coords = pGatl->glyphCoords(c);
-        cKey[0] = c;
-
-        if (!atl.hasKey(kGlyphs, cKey))
-        {
-            cKey[0] = defaultChar;
-        }
-
-        auto cv = atl.getIntVec(kGlyphs, cKey);
-        PANIC_IF(cv.size() != 2 && cv.size() != 4, "Invalid glyph coordinates: %s=%s", cKey, atl.get(kGlyphs, cKey));
-        PANIC_IF(cv.size() == 2 && !hasFixedSize, "Glyph without size: %s=%s", cKey, atl.get(kGlyphs, cKey));
-
-        f32 glyphLeft = (f32)cv[0];
-        f32 glyphTop = (f32)cv[1];
-
-        f32 glyphWidth = fixedWidth;
-        f32 glyphHeight = fixedHeight;
-        if (cv.size() == 4)
-        {
-            glyphWidth = (f32)cv[2];
-            glyphWidth = (f32)cv[3];
-        }
-
-        // convert to bottom left coords if source image is top left (which is almost always true)
-        if (imageInfo.origin == kORIG_TopLeft)
-        {
-            glyphTop = imageInfo.height - glyphTop - 1;
-        }
-
-        // convert pixel coords to uv space
-        coords.topLeftU = glyphLeft / (imageInfo.width - 1);
-        coords.topLeftV = glyphTop / (imageInfo.height - 1);
-        coords.bottomRightU = (glyphLeft + glyphWidth) / (imageInfo.width - 1);
-        coords.bottomRightV = (glyphTop - glyphHeight) / (imageInfo.height - 1);
+        PANIC("No glyphs specified, and invalid fixed_size: %s", ci.rawPath());
     }
 
-    // write out file
-    FileWriter wrtr(ci.cookedPath);
-    wrtr.ofs.write((const char *)pGatl, pGatl->totalSize());
+    Gatl * pGatl = Gatl::create((u32)coordsList.size(), (u32)aliasesList.size(), defaultIndex, *pImage);
+    ASSERT(pGatl);
+
+    // Place coords into Gatl buffer
+    u32 idx = 0;
+    for (const auto & coord : coordsList)
+        pGatl->coords(idx++) = coord;
+
+    // Place aliases into Gatl buffer
+    idx = 0;
+    for (const auto & alias : aliasesList)
+        pGatl->alias(idx++) = alias;
+
+    ci.setCookedBuffer(pGatl, pGatl->size());
 }
 
 void cook_tga(const CookInfo & ci)
 {
-    FileReader rdr(ci.rawPath);
-    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", ci.rawPath);
+    FileReader rdr(ci.rawPath());
+    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", ci.rawPath());
     Tga header;
 
     rdr.read(&header);
-    PANIC_IF(!rdr.ifs.good() || rdr.ifs.gcount() != sizeof(Tga), "Invalid .tga header: %s", ci.rawPath);
+    PANIC_IF(!rdr.ifs.good() || rdr.ifs.gcount() != sizeof(Tga), "Invalid .tga header: %s", ci.rawPath());
 
     u32 size = header.totalSize();
-    PANIC_IF(size > 100 * 1024 * 1024, "File too large for cooking: size: %u, path: %s", size, ci.rawPath); // sanity check
+    PANIC_IF(size > 100 * 1024 * 1024, "File too large for cooking: size: %u, path: %s", size, ci.rawPath()); // sanity check
 
     // allocate a buffer
     Scoped_GFREE<char> pBuf((char*)GALLOC(kMEM_Chef, size));
     memcpy(pBuf.get(), &header, sizeof(Tga));
 
     rdr.ifs.read(pBuf.get() + sizeof(Tga), size - sizeof(Tga));
-    PANIC_IF(!rdr.ifs.good() || rdr.ifs.gcount() != size - sizeof(Tga), "Bad .tga file: %s", ci.rawPath);
+    PANIC_IF(!rdr.ifs.good() || rdr.ifs.gcount() != size - sizeof(Tga), "Bad .tga file: %s", ci.rawPath());
 
-    PANIC_IF(!header.is_valid((u8*)pBuf.get(), size), "Invalid .tga file: %s", ci.rawPath);
+    PANIC_IF(!header.is_valid((u8*)pBuf.get(), size), "Invalid .tga file: %s", ci.rawPath());
     Tga * pTga = reinterpret_cast<Tga*>(pBuf.get());
 
     // Convert to a Gimg with same-ish pixel format
@@ -186,29 +227,28 @@ void cook_tga(const CookInfo & ci)
     pTga->convertToGimg(&pGimgTga);
     Scoped_GFREE<Gimg> pGimg_sp(pGimgTga);
 
-    PixelFormat pixFmt = pixel_format_from_str(ci.recipe.getWithDefault("pixel_format", "RGBA8"));
+    PixelFormat pixFmt = pixel_format_from_str(ci.recipe().getWithDefault("pixel_format", "RGBA8"));
 
     // Convert the pixel format if necessary
     Gimg * pGimg;
     pGimgTga->convertFormat(&pGimg, kMEM_Chef, pixFmt);
 
-    // write out file
-    FileWriter wrtr(ci.cookedPath);
-    wrtr.ofs.write((const char *)pGimg, pGimg->totalSize());
+    ASSERT(pGimg);
+    ci.setCookedBuffer(pGimg, pGimg->size());
 }
 
 void cook_passthrough(const CookInfo & ci)
 {
     // copy raw to cooked without modifications
-    FileReader rdr(ci.rawPath);
-    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", ci.rawPath);
+    FileReader rdr(ci.rawPath());
+    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", ci.rawPath());
 
-    Scoped_GFREE<char> pBuff((char*)GALLOC(kMEM_Chef, rdr.size()));
-    rdr.ifs.read(pBuff.get(), rdr.size());
-    PANIC_IF(!rdr.ifs.good() || rdr.ifs.gcount() != rdr.size(), "Read failure of: %s", ci.rawPath);
+    char * pBuf = (char*)GALLOC(kMEM_Chef, rdr.size());
 
-    FileWriter wrtr(ci.cookedPath);
-    wrtr.ofs.write(pBuff.get(), rdr.size());
+    rdr.ifs.read(pBuf, rdr.size());
+    PANIC_IF(!rdr.ifs.good() || rdr.ifs.gcount() != rdr.size(), "Read failure of: %s", ci.rawPath());
+
+    ci.setCookedBuffer(pBuf, rdr.size());
 }
 
 void register_cookers()

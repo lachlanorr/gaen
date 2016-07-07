@@ -68,7 +68,7 @@ void recurse_dir_cb(const char * path, void * context)
 {
     Chef * pChef = reinterpret_cast<Chef*>(context);
 
-    pChef->cook(path);
+    pChef->cookAndWrite(path);
 }
 
 } // namespace gaen
@@ -170,26 +170,6 @@ int main(int argc, char ** argv)
     // Register any cookers defined in gaen
     register_cookers();
 
-    // LORRTODO - For projects, include a #ifdef block here that
-    // optionally calls the project's register_cookers function as
-    // well.
-
-
-/*
-    static const u32 kMaxQueued = 1024 * 128;
-    Vector<kMEM_Chef, CookInfo*> cookInfos(kMaxQueued);
-
-    Vector<kMEM_Chef, SpscRingBuffer> spscs(threadCount);
-
-    for (u32 i = 0; i < threadCount; ++i)
-    {
-        start_thread(chef_thread, spspc[i], platform, assetsDir, gaen::record_dependency)
-    }
-
-    init_threading(threadCount);
-    SpscRingBuffer<
-    */
-
     Chef chef(1, platform, assetsDir, force);
 
     if (dir_exists(path))
@@ -199,7 +179,7 @@ int main(int argc, char ** argv)
     }
     else if (file_exists(path))
     {
-        chef.cook(path);
+        chef.cookAndWrite(path);
     }
     else
     {

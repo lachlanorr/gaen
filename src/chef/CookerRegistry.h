@@ -32,27 +32,10 @@
 #include "core/List.h"
 #include "core/String.h"
 #include "assets/Config.h"
+#include "chef/CookInfo.h"
 
 namespace gaen
 {
-
-class Chef;
-struct CookInfo
-{
-    Chef * pChef;
-    const char * rawPath;
-    const char * cookedPath;
-    Config<kMEM_Chef> & recipe;
-    mutable List<kMEM_Chef, String<kMEM_Chef>> dependencies;
-    
-    CookInfo(Chef * pChef, const char * rawPath, const char * cookedPath, Config<kMEM_Chef> & recipe)
-      : pChef(pChef)
-      , rawPath(rawPath)
-      , cookedPath(cookedPath)
-      , recipe(recipe)
-    {}
-};
-
 typedef void(*CookCB)(const CookInfo & ci);
 
 struct Cooker
