@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: a12545ad09a2d57e7c031ad1e2a491e8
+// HASH: 73d1b2a8604bba1bcfc161d75457da2d
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -392,7 +392,7 @@ public:
         case HASH::init__:
         {
             // Initialize properties and fields to default values
-            set_foo__path(self().blockMemory().stringAlloc("/fonts/profont.gatl"));
+            set_foo__path(self().blockMemory().stringAlloc("/gaen/fonts/profont.gatl"));
             foo() = nullptr;
             trooo() = entity_init__init__test_Test__88_21();
             // Component: gaen.utils.Timer

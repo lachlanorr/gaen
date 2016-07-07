@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: 4bf6c5c46c8bb1bc1b5e7209e564133c
+// HASH: 125b07f06c5edec8c9ca3b5af68b9ead
 #include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
@@ -250,7 +250,7 @@ public:
         case HASH::init__:
         {
             // Initialize properties and fields to default values
-            set_testFoo__path(self().blockMemory().stringAlloc("/fonts/profont.gatl"));
+            set_testFoo__path(self().blockMemory().stringAlloc("/gaen/fonts/profont.gatl"));
             testFoo() = nullptr;
             prop1() = 20;
             set_prop2(self().blockMemory().stringAlloc("abc"));

@@ -250,11 +250,12 @@ def read_file(filename):
     return d
 
 def write_metadata():
+    system_api_meta_path = sys.argv[1]
     new_data, includes = build_metadata()
-    old_data = read_file(dirs.SYSTEM_API_META_CPP_PATH)
+    old_data = read_file(system_api_meta_path)
     if new_data != old_data:
-        print "Writing " + dirs.SYSTEM_API_META_CPP_PATH
-        with open(dirs.SYSTEM_API_META_CPP_PATH, 'wb') as f:
+        print "Writing " + system_api_meta_path
+        with open(system_api_meta_path, 'wb') as f:
             f.write(new_data)
     return includes
 

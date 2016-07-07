@@ -44,15 +44,12 @@ SET (compose_SOURCES
   compose_scanner.h
   utils.cpp
   utils.h
+  "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
   )
 
-# If there's a project specific system_api_meta.cpp file,
-# include it here, otherwise default to our system_api_meta.cpp.
-IF (EXISTS "${CMAKE_SOURCE_DIR}/src/${CMAKE_PROJECT_NAME}_lib/system_api_meta.cpp")
-  SET (compose_SOURCES ${compose_SOURCES} "${CMAKE_SOURCE_DIR}/src/${CMAKE_PROJECT_NAME}_lib/system_api_meta.cpp")
-ELSE ()
-  SET (compose_SOURCES ${compose_SOURCES} system_api_meta.cpp)
-ENDIF()
+ADD_CUSTOM_COMMAND(OUTPUT system_api_meta.cpp
+                   COMMAND python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
+                   COMMENT "Generating system_api_meta.cpp")
 
 IDE_SOURCE_PROPERTIES( "/" "${compose_SOURCES}")
 

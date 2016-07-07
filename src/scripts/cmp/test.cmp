@@ -38,7 +38,7 @@ component TestCompEmpty
 
 entity Test
 {
-    asset #testFoo = "/fonts/profont.gatl";
+    asset #testFoo = "/gaen/fonts/profont.gatl";
 
     components
     {

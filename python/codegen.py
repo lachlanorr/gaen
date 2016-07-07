@@ -288,9 +288,9 @@ def find_source_files(scripts_dir, source_files):
                 source_files.append(posixpath.join(root.replace('\\', '/'), f))
 
 def main():
-    # run codegen_api first so the compiler has the latest api
-    # metadata to work against.
-    includes = codegen_api.write_metadata()
+    # run codegen_api first to get include list from most
+    # recent api code
+    new_data, includes = codegen_api.build_metadata()
 
     if CMPC is None:
         print "ERROR: cmpc not found, do you need to build?"

@@ -46,10 +46,6 @@ if not exist "%BUILD_DIR%" (
    if %errorlevel% neq 0 exit /b %errorlevel%
 )
 
-:: Create our project specific system_api_meta.cpp
-python "%~dp0\gaen\python\codegen_api.py"
-if %errorlevel% neq 0 exit /b %errorlevel%
-
 :: Issue cmake command
 cd %BUILD_DIR%
 if "%PLAT%"=="win64" (

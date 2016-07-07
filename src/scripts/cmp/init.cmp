@@ -72,7 +72,7 @@ entity Camera
 
 entity Start
 {
-    asset foo = "/fonts/profont.gatl";
+    asset foo = "/gaen/fonts/profont.gatl";
     //asset bar = "/images/bar.tga";
 
     components
