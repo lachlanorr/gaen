@@ -50,3 +50,7 @@ IDE_SOURCE_PROPERTIES( "/" "${renderergl_SOURCES}")
 ADD_LIBRARY (renderergl
   ${renderergl_SOURCES}
   )
+
+ADD_DEPENDENCIES(renderergl
+  hashes
+  )

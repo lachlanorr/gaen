@@ -33,7 +33,9 @@ Looks for patterns of type "HAHS::[a-zA-Z_][a-zA-Z0-9_]*" in the code, and
 inserts the corresponding fnv hashes in src/engine/hashes.h/cpp.
 '''
 
+import sys
 import os
+import posixpath
 import re
 
 def fnv32a(s):
@@ -85,10 +87,10 @@ def project_src_dir():
         return None
 
 def hashes_h_path():
-    return os.path.join(src_dir(), 'engine/hashes.h')
+    return posixpath.join(sys.argv[1], 'hashes.h')
 
 def hashes_cpp_path():
-    return os.path.join(src_dir(), 'engine/hashes.cpp')
+    return posixpath.join(sys.argv[1], 'hashes.cpp')
 
 def build_hash_list():
     hash_list = process_dir(src_dir())
@@ -223,10 +225,8 @@ HASHES_CPP_TEMPLATE = ('//------------------------------------------------------
                     '//   distribution.\n'
                     '//------------------------------------------------------------------------------\n'
                     '\n'
-                    '#include "engine/stdafx.h"\n'
-                    '\n'
                     '#include "core/hashing.h"\n'
-                    '#include "engine/hashes.h"\n'
+                    '#include "hashes/hashes.h"\n'
                     '\n'
                     '#if HAS(TRACK_HASHES)\n'
                     '#include <mutex>\n'

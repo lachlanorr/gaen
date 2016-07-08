@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "engine/hashes.h"
+#include "hashes/hashes.h"
 #include "renderergl/ShaderRegistry.h"
 #include "renderergl/shaders/compute_present.h"
 #include "renderergl/shaders/compute_test.h"

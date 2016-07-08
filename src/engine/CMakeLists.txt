@@ -49,8 +49,6 @@ SET (engine_SOURCES
   glm_ext.h
   Handle.cpp
   Handle.h
-  hashes.cpp
-  hashes.h
   ImageBuffer.cpp
   ImageBuffer.h
   input.cpp
@@ -102,32 +100,16 @@ ADD_LIBRARY (engine
   ${engine_SOURCES}
   )
 
-
-# Run during configure.
-EXECUTE_PROCESS (
-  COMMAND python ${python_dir}/codegen_messages.py
-  )
-
 # Run each time we build.
 ADD_CUSTOM_TARGET (
-  CODEGEN_MESSAGES
-  COMMAND python ${python_dir}/codegen_messages.py
+  CODEGEN_MESSAGES ALL
+  python ${python_dir}/codegen_messages.py
+  COMMENT "Generating message classes"
   )
-
-# Run during configure so we have FNV.h/cpp existing for .sln creation
-EXECUTE_PROCESS (
-  COMMAND python ${python_dir}/update_hashes.py
-  )
-
-# Run each time we build. FNV.h/cpp will only get replaced if they change.
-ADD_CUSTOM_TARGET (
-  CODEGEN_HASHES
-  COMMAND python ${python_dir}/update_hashes.py
-  )
-
-
 
 ADD_DEPENDENCIES(engine
   core
+  hashes
   assets
+  CODEGEN_MESSAGES
   )

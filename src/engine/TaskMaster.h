@@ -33,7 +33,7 @@
 #include "core/List.h"
 #include "core/Vector.h"
 #include "engine/FrameTime.h"
-#include "engine/hashes.h"
+#include "hashes/hashes.h"
 #include "engine/Message.h"
 #include "engine/Task.h"
 #include "engine/Registry.h"

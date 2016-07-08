@@ -24,34 +24,28 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-INCLUDE (codegen.cmake)
-
-SET (scripts_standard_SOURCES
-  registration.cpp
+# Run during configure so we have FNV.h/cpp existing for .sln creation
+EXECUTE_PROCESS (
+  COMMAND python ${python_dir}/update_hashes.py "${CMAKE_CURRENT_BINARY_DIR}"
   )
 
-SET (scripts_SOURCES
-  ${scripts_standard_SOURCES}
-  ${scripts_codegen_SOURCES}
+SET (hashes_SOURCES
+  "${CMAKE_CURRENT_BINARY_DIR}/hashes.cpp"
+  "${CMAKE_CURRENT_BINARY_DIR}/hashes.h"
   )
 
-IDE_SOURCE_PROPERTIES( "/" "${scripts_standard_SOURCES}" )
+IDE_SOURCE_PROPERTIES( "/" "${hashes_SOURCES}")
 
-ADD_LIBRARY (scripts
-  ${scripts_SOURCES}
+ADD_CUSTOM_TARGET(
+  CODEGEN_HASHES ALL
+  python ${python_dir}/update_hashes.py "${CMAKE_CURRENT_BINARY_DIR}"
+  COMMENT "Generating hashes.h/cpp"
   )
 
-ADD_CUSTOM_TARGET (
-  CODEGEN_SCRIPTS ALL
-  python ${python_dir}/codegen.py
-  # re-run update_hashes.py since generated .cpp files will likely
-  # have new hashes to consider.
-  COMMAND python ${python_dir}/update_hashes.py "${CMAKE_BINARY_DIR}/src/hashes"
-  DEPENDS cmpc
-  COMMENT "Generating scripts"
+ADD_LIBRARY (hashes
+  ${hashes_SOURCES}
   )
 
-ADD_DEPENDENCIES(scripts
-  hashes
-  CODEGEN_SCRIPTS
+ADD_DEPENDENCIES(hashes
+  CODEGEN_HASHES
   )

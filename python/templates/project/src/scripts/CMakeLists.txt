@@ -17,6 +17,15 @@ ADD_LIBRARY (scripts
 
 ADD_CUSTOM_TARGET (
   CODEGEN_SCRIPTS ALL
-  COMMAND python ${python_dir}/codegen.py
+  python ${python_dir}/codegen.py
+  # re-run update_hashes.py since generated .cpp files will likely
+  # have new hashes to consider.
+  COMMAND python ${python_dir}/update_hashes.py "${CMAKE_BINARY_DIR}/src/hashes"
   DEPENDS cmpc
+  COMMENT "Generating scripts"
+  )
+
+ADD_DEPENDENCIES(scripts
+  hashes
+  CODEGEN_SCRIPTS
   )

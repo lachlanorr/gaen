@@ -27,7 +27,7 @@
 #include "engine/stdafx.h"
 
 #include "core/mem.h"
-#include "engine/hashes.h"
+#include "hashes/hashes.h"
 #include "assets/file_utils.h"
 #include "assets/AssetTypes.h"
 #include "engine/AssetLoader.h"

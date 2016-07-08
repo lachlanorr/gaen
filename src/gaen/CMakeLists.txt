@@ -75,10 +75,11 @@ ELSE(IOS)
 
   TARGET_LINK_LIBRARIES (${CMAKE_PROJECT_NAME}
     core
+    hashes
+    assets
     engine
     renderergl
     scripts
-    assets
     ${PROJECT_ASSETS_LIB}
     ${PROJECT_LINK_LIBS}
     ${PLATFORM_LINK_LIBS}

@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-// HASH: ffd3f885e777b639f5cd8b04df29b524
-#include "engine/hashes.h"
+// HASH: a7717fa7dc101c99abcb83d5b28d13af
+#include "hashes/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
 #include "engine/MessageWriter.h"
