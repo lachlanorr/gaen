@@ -27,5 +27,6 @@ ADD_CUSTOM_TARGET (
 
 ADD_DEPENDENCIES(scripts
   hashes
+  engine
   CODEGEN_SCRIPTS
   )

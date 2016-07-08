@@ -24,7 +24,9 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-INCLUDE (messages/messages.cmake)
+IF (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/messages/messages.cmake")
+  INCLUDE ("${CMAKE_CURRENT_BINARY_DIR}/messages/messages.cmake")
+ENDIF ()
 
 SET (engine_SOURCES
   Asset.cpp
@@ -65,6 +67,7 @@ SET (engine_SOURCES
   MessageQueue.h
   MessageWriter.cpp
   MessageWriter.h
+  messages_def.py
   Model.cpp
   Model.h
   ModelMgr.h
@@ -88,7 +91,6 @@ SET (engine_SOURCES
   voxel27.h
   voxel_proto.cpp
   voxel_proto.h
-  ${engine_codegen_SOURCES}
   ${engine_messages_SOURCES}
   )
 
@@ -103,7 +105,7 @@ ADD_LIBRARY (engine
 # Run each time we build.
 ADD_CUSTOM_TARGET (
   CODEGEN_MESSAGES ALL
-  python ${python_dir}/codegen_messages.py
+  python ${python_dir}/codegen_messages.py "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating message classes"
   )
 

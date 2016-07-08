@@ -53,4 +53,5 @@ ADD_LIBRARY (renderergl
 
 ADD_DEPENDENCIES(renderergl
   hashes
+  engine
   )
