@@ -108,8 +108,6 @@ ADD_CUSTOM_TARGET (
   )
 
 ADD_DEPENDENCIES(engine
-  core
   hashes
-  assets
   CODEGEN_MESSAGES
   )

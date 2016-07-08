@@ -35,8 +35,3 @@ IDE_SOURCE_PROPERTIES( "/" "${cara_SOURCES}")
 ADD_LIBRARY (cara
   ${cara_SOURCES}
   )
-
-ADD_DEPENDENCIES(cara
-  core
-  assets
-  )

@@ -43,7 +43,3 @@ IDE_SOURCE_PROPERTIES( "/" "${assets_SOURCES}")
 ADD_LIBRARY (assets
   ${assets_SOURCES}
   )
-
-ADD_DEPENDENCIES(assets
-  core
-  )

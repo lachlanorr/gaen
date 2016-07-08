@@ -65,6 +65,5 @@ ADD_LIBRARY (compose
   )
 
 ADD_DEPENDENCIES(compose
-  core
   CODEGEN_API
   )
