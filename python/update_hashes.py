@@ -76,6 +76,14 @@ def src_dir():
     srcdir = os.path.join(gaendir, 'src')
     return srcdir
 
+def scripts_target_dir():
+    hashesdir = os.path.split(sys.argv[1])[0]
+    srcbindir = os.path.split(hashesdir)[0]
+    if os.path.exists(srcbindir):
+        return srcbindir
+    else:
+        return None
+
 def project_src_dir():
     scriptdir = os.path.split(os.path.abspath(__file__))[0]
     gaendir = os.path.split(scriptdir)[0]
@@ -97,6 +105,9 @@ def build_hash_list():
     psrc = project_src_dir()
     if psrc:
         hash_list += process_dir(psrc)
+    scrsrc = scripts_target_dir()
+    if scrsrc:
+        hash_list += process_dir(scrsrc)
     hash_list = [hash[len("HASH::"):] for hash in hash_list]
     hash_list = sorted(set(hash_list), key=lambda s: s.lower())
     hash_list = [(hash, fnv32a(hash)) for hash in hash_list]
@@ -129,6 +140,7 @@ def is_file_different(path, data):
 
 def write_file_if_different(path, new_data):
     if is_file_different(path, new_data):
+        print 'Writing ' + path
         f = open(path, 'wb')
         f.write(new_data)
         f.close()
@@ -139,7 +151,6 @@ def update_hashes_files():
     write_file_if_different(hashes_cpp_path(), hashes_cpp_construct(hash_list))
 
 def main():
-    hash_list = build_hash_list()
     update_hashes_files()
 
 

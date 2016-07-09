@@ -54,9 +54,11 @@ CMAKE_TEMPLATE = '''\
 SET (scripts_dir <<scripts_dir>>)
 
 SET (scripts_codegen_SOURCES
+  ${CMAKE_CURRENT_BINARY_DIR}/registration.cpp
 <<files>>
 )
 
+IDE_SOURCE_PROPERTIES( "/" "${CMAKE_CURRENT_BINARY_DIR}/registration.cpp" )
 <<ide_source_props>>
 '''
 
@@ -120,11 +122,14 @@ def write_file(filename, data):
     f.write(data)
     f.close()
     
+def bindir():
+    return sys.argv[1].replace('\\', '/')
 
 class ScriptInfo(object):
     def __init__(self, cmpFullPath, includes):
         self.cmpFullPath = cmpFullPath
-        self.cppFullPath = cmpFullPath.replace('/cmp/', '/cpp/').replace('.cmp', '.cpp')
+        cppPath = cmpFullPath[cmpFullPath.index('/src/scripts/cmp')+len('/src/scripts'):].replace('/cmp/', '/cpp/').replace('.cmp', '.cpp')
+        self.cppFullPath = bindir() + cppPath
         self.hFullPath = self.cppFullPath.replace('.cpp', '.h')
         self.cmpFilename = posixpath.split(self.cmpFullPath)[1]
         self.cppFilename = posixpath.split(self.cppFullPath)[1]
@@ -231,7 +236,7 @@ def license_text(comment_chars, file_path):
         
         
 def registration_cpp_path():
-    return posixpath.join(dirs.CMP_SCRIPTS_DIR_P, "registration.cpp")
+    return posixpath.join(sys.argv[1], "registration.cpp")
 
 def write_registration_cpp(script_infos):
     registration_lines = []
@@ -251,9 +256,15 @@ def write_registration_cpp(script_infos):
     if not os.path.exists(reg_cpp_path) or read_file(reg_cpp_path) != reg_cpp:
         print "Writing %s" % reg_cpp_path
         write_file(reg_cpp_path, reg_cpp)
+    os.utime(reg_cpp_path, None)
 
 
-def cmakeify_script_path(p):
+def cmakeify_bin_script_path(p):
+    if bindir() in p:
+        return p.replace(bindir(), '  ${CMAKE_CURRENT_BINARY_DIR}')
+    return p
+
+def cmakeify_src_script_path(p):
     if dirs.CMP_SCRIPTS_DIR_P in p:
         return p.replace(dirs.CMP_SCRIPTS_DIR_P, '  ${scripts_dir}')
     return p
@@ -261,17 +272,17 @@ def cmakeify_script_path(p):
 def strip_scripts_dir(p):
     dirpath = posixpath.split(p.lstrip())[0]
     dirpath = dirpath.replace('${scripts_dir}', '')
-    dirpath = dirpath.replace(dirs.CMP_SCRIPTS_DIR_P, '')
+    dirpath = dirpath.replace('${CMAKE_CURRENT_BINARY_DIR}', '')
     return dirpath
 
 def write_cmake(cmp_files, cpp_files, h_files):
-    cmp_rel_files = [cmakeify_script_path(f) for f in cmp_files]
-    cpp_rel_files = [cmakeify_script_path(f) for f in cpp_files]
-    h_rel_files = [cmakeify_script_path(f) for f in h_files]
+    cmp_rel_files = [cmakeify_src_script_path(f) for f in cmp_files]
+    cpp_rel_files = [cmakeify_bin_script_path(f) for f in cpp_files]
+    h_rel_files = [cmakeify_bin_script_path(f) for f in h_files]
     ide_src_props = ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (strip_scripts_dir(r), r.lstrip()) for r in cmp_rel_files]
     ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (strip_scripts_dir(r), r.lstrip()) for r in cpp_rel_files]
     ide_src_props += ['IDE_SOURCE_PROPERTIES( "%s" "%s" )' % (strip_scripts_dir(r), r.lstrip()) for r in h_rel_files]
-    cmake_path = posixpath.join(dirs.PROJECT_DIR_P, 'src/scripts/codegen.cmake')
+    cmake_path = posixpath.join(sys.argv[1], 'codegen.cmake')
     template = CMAKE_TEMPLATE
     template = template.replace('<<scripts_dir>>', cmake_scripts_dir())
     template = template.replace('<<license>>', license_text('#', cmake_path))
@@ -280,6 +291,10 @@ def write_cmake(cmp_files, cpp_files, h_files):
     if not os.path.exists(cmake_path) or read_file(cmake_path) != template:
         print "Writing %s" % cmake_path
         write_file(cmake_path, template)
+    # touch the scripts/CMakeLists.txt file since we generated
+    # codegen.cmake and want to poke cmake to reprocess
+    os.utime(posixpath.join(dirs.CMP_SCRIPTS_DIR, 'CMakeLists.txt'), None)
+
 
 def find_source_files(scripts_dir, source_files):
     for root, _, files in os.walk(scripts_dir):
@@ -316,6 +331,7 @@ def main():
                     h_files.append(si.hFullPath)
         except:
             print "ERROR: %s failed to compile" % f
+            raise
             has_errors = True;
 
     if not has_errors:

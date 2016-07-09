@@ -1,23 +1,21 @@
-INCLUDE (codegen.cmake)
-
-SET (scripts_standard_SOURCES
-  registration.cpp
-  )
+IF (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/codegen.cmake")
+  INCLUDE ("${CMAKE_CURRENT_BINARY_DIR}/codegen.cmake")
+ENDIF ()
 
 SET (scripts_SOURCES
-  ${scripts_standard_SOURCES}
   ${scripts_codegen_SOURCES}
   )
 
-IDE_SOURCE_PROPERTIES( "/" "${scripts_standard_SOURCES}" )
-
 ADD_LIBRARY (scripts
+  DUMMY.cpp
   ${scripts_SOURCES}
   )
 
+IDE_SOURCE_PROPERTIES( "/" "DUMMY.cpp" )
+
 ADD_CUSTOM_TARGET (
   CODEGEN_SCRIPTS ALL
-  python ${python_dir}/codegen.py
+  python ${python_dir}/codegen.py "${CMAKE_CURRENT_BINARY_DIR}"
   # re-run update_hashes.py since generated .cpp files will likely
   # have new hashes to consider.
   COMMAND python ${python_dir}/update_hashes.py "${CMAKE_BINARY_DIR}/src/hashes"
