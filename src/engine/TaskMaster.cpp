@@ -29,7 +29,7 @@
 #include "core/platutils.h"
 #include "core/logging.h"
 
-#include "engine/hashes.h"
+#include "hashes/hashes.h"
 #include "engine/MessageQueue.h"
 #include "engine/Entity.h"
 #include "engine/messages/InsertTask.h"

@@ -27,7 +27,7 @@
 #include "engine/stdafx.h"
 
 #include "engine/glm_ext.h"
-#include "engine/hashes.h"
+#include "hashes/hashes.h"
 #include "engine/entity.h"
 #include "engine/shapes.h"
 

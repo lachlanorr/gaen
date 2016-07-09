@@ -49,12 +49,6 @@ def __project_name():
     else:
         return 'gaen'
 
-def __system_api_meta_cpp_path():
-    if IS_PROJECT:
-        return os.path.join(PROJECT_DIR, 'src', PROJECT_NAME + '_lib', 'system_api_meta.cpp')
-    else:
-        return os.path.join(GAEN_DIR, 'src', 'compose', 'system_api_meta.cpp')
-
 SCRIPT_DIR        = os.path.split(os.path.abspath(__file__))[0]
 TEMPLATE_DIR      = os.path.join(SCRIPT_DIR, 'templates', 'project')
 GAEN_DIR          = os.path.split(SCRIPT_DIR)[0]
@@ -69,7 +63,6 @@ PROJECT_SRC_DIR   = os.path.join(PROJECT_DIR, 'src')
 BUILD_DIR         = os.path.join(PROJECT_DIR, 'build')
 CMP_SCRIPTS_DIR   = os.path.join(PROJECT_DIR, 'src', 'scripts')
 PROJECT_NAME      = __project_name()
-SYSTEM_API_META_CPP_PATH = __system_api_meta_cpp_path()
 
 # create posix versions of all paths
 for a in dir(sys.modules[__name__]):

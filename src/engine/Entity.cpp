@@ -32,7 +32,7 @@
 #include "engine/BlockMemory.h"
 #include "engine/MessageWriter.h"
 #include "engine/glm_ext.h"
-#include "engine/hashes.h"
+#include "hashes/hashes.h"
 #include "engine/Registry.h"
 #include "engine/Asset.h"
 

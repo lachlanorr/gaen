@@ -27,16 +27,17 @@
 SET (scripts_dir ${CMAKE_CURRENT_SOURCE_DIR})
 
 SET (scripts_codegen_SOURCES
+  ${CMAKE_CURRENT_BINARY_DIR}/registration.cpp
   ${scripts_dir}/cmp/init.cmp
   ${scripts_dir}/cmp/test.cmp
   ${scripts_dir}/cmp/gaen/lights.cmp
   ${scripts_dir}/cmp/gaen/shapes.cmp
   ${scripts_dir}/cmp/gaen/utils.cmp
-  ${scripts_dir}/cpp/init.cpp
-  ${scripts_dir}/cpp/test.cpp
-  ${scripts_dir}/cpp/gaen/lights.cpp
-  ${scripts_dir}/cpp/gaen/shapes.cpp
-  ${scripts_dir}/cpp/gaen/utils.cpp
+C:/code/gaen/build/win64/src/scripts/cpp/init.cpp
+C:/code/gaen/build/win64/src/scripts/cpp/test.cpp
+C:/code/gaen/build/win64/src/scripts/cpp/gaen/lights.cpp
+C:/code/gaen/build/win64/src/scripts/cpp/gaen/shapes.cpp
+C:/code/gaen/build/win64/src/scripts/cpp/gaen/utils.cpp
 )
 
 IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/init.cmp" )
@@ -44,8 +45,8 @@ IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/test.cmp" )
 IDE_SOURCE_PROPERTIES( "/cmp/gaen" "${scripts_dir}/cmp/gaen/lights.cmp" )
 IDE_SOURCE_PROPERTIES( "/cmp/gaen" "${scripts_dir}/cmp/gaen/shapes.cmp" )
 IDE_SOURCE_PROPERTIES( "/cmp/gaen" "${scripts_dir}/cmp/gaen/utils.cmp" )
-IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/init.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp" "${scripts_dir}/cpp/test.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp/gaen" "${scripts_dir}/cpp/gaen/lights.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp/gaen" "${scripts_dir}/cpp/gaen/shapes.cpp" )
-IDE_SOURCE_PROPERTIES( "/cpp/gaen" "${scripts_dir}/cpp/gaen/utils.cpp" )
+IDE_SOURCE_PROPERTIES( "C:/code/gaen/build/win64/src/scripts/cpp" "C:/code/gaen/build/win64/src/scripts/cpp/init.cpp" )
+IDE_SOURCE_PROPERTIES( "C:/code/gaen/build/win64/src/scripts/cpp" "C:/code/gaen/build/win64/src/scripts/cpp/test.cpp" )
+IDE_SOURCE_PROPERTIES( "C:/code/gaen/build/win64/src/scripts/cpp/gaen" "C:/code/gaen/build/win64/src/scripts/cpp/gaen/lights.cpp" )
+IDE_SOURCE_PROPERTIES( "C:/code/gaen/build/win64/src/scripts/cpp/gaen" "C:/code/gaen/build/win64/src/scripts/cpp/gaen/shapes.cpp" )
+IDE_SOURCE_PROPERTIES( "C:/code/gaen/build/win64/src/scripts/cpp/gaen" "C:/code/gaen/build/win64/src/scripts/cpp/gaen/utils.cpp" )

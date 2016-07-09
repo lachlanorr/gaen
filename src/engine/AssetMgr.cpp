@@ -29,7 +29,7 @@
 #include "core/logging.h"
 #include "core/mem.h"
 #include "assets/file_utils.h"
-#include "engine/hashes.h"
+#include "hashes/hashes.h"
 #include "engine/messages/Handle.h"
 #include "engine/MessageQueue.h"
 #include "engine/AssetLoader.h"

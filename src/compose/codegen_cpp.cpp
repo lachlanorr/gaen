@@ -28,7 +28,6 @@
 
 #include "core/thread_local.h"
 #include "core/List.h"
-#include "engine/hashes.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
 #include "compose/codegen_cpp.h"
@@ -1838,7 +1837,7 @@ CodeCpp codegen_cpp(ParseData * pParseData)
 
     extract_filenames(pParseData->fullPath, codeCpp, pParseData);
     
-    codeCpp.code += S("#include \"engine/hashes.h\"\n");
+    codeCpp.code += S("#include \"hashes/hashes.h\"\n");
     codeCpp.code += S("#include \"engine/Block.h\"\n");
     codeCpp.code += S("#include \"engine/BlockMemory.h\"\n");
     codeCpp.code += S("#include \"engine/MessageWriter.h\"\n");

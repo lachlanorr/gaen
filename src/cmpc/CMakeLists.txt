@@ -46,10 +46,5 @@ create_target_launcher(
   WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
 )
 
-ADD_CUSTOM_TARGET (
-  CODEGEN_API
-  COMMAND python ${python_dir}/codegen_api.py
-  )
-
 package (cmpc)
 

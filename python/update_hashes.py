@@ -33,7 +33,9 @@ Looks for patterns of type "HAHS::[a-zA-Z_][a-zA-Z0-9_]*" in the code, and
 inserts the corresponding fnv hashes in src/engine/hashes.h/cpp.
 '''
 
+import sys
 import os
+import posixpath
 import re
 
 def fnv32a(s):
@@ -74,6 +76,14 @@ def src_dir():
     srcdir = os.path.join(gaendir, 'src')
     return srcdir
 
+def scripts_target_dir():
+    hashesdir = os.path.split(sys.argv[1])[0]
+    srcbindir = os.path.split(hashesdir)[0]
+    if os.path.exists(srcbindir):
+        return srcbindir
+    else:
+        return None
+
 def project_src_dir():
     scriptdir = os.path.split(os.path.abspath(__file__))[0]
     gaendir = os.path.split(scriptdir)[0]
@@ -84,17 +94,23 @@ def project_src_dir():
     else:
         return None
 
-def hashes_h_path():
-    return os.path.join(src_dir(), 'engine/hashes.h')
-
 def hashes_cpp_path():
-    return os.path.join(src_dir(), 'engine/hashes.cpp')
+    p = posixpath.join(sys.argv[1], 'hashes.cpp')
+    if '/gaen/src/hashes/' not in p:
+        p = p.replace('/src/hashes/', '/gaen/src/hashes/', 1)
+    return p
+
+def hashes_h_path():
+    return hashes_cpp_path().replace('.cpp', '.h')
 
 def build_hash_list():
     hash_list = process_dir(src_dir())
     psrc = project_src_dir()
     if psrc:
         hash_list += process_dir(psrc)
+    scrsrc = scripts_target_dir()
+    if scrsrc:
+        hash_list += process_dir(scrsrc)
     hash_list = [hash[len("HASH::"):] for hash in hash_list]
     hash_list = sorted(set(hash_list), key=lambda s: s.lower())
     hash_list = [(hash, fnv32a(hash)) for hash in hash_list]
@@ -127,6 +143,7 @@ def is_file_different(path, data):
 
 def write_file_if_different(path, new_data):
     if is_file_different(path, new_data):
+        print 'Writing ' + path
         f = open(path, 'wb')
         f.write(new_data)
         f.close()
@@ -137,7 +154,6 @@ def update_hashes_files():
     write_file_if_different(hashes_cpp_path(), hashes_cpp_construct(hash_list))
 
 def main():
-    hash_list = build_hash_list()
     update_hashes_files()
 
 
@@ -223,10 +239,8 @@ HASHES_CPP_TEMPLATE = ('//------------------------------------------------------
                     '//   distribution.\n'
                     '//------------------------------------------------------------------------------\n'
                     '\n'
-                    '#include "engine/stdafx.h"\n'
-                    '\n'
                     '#include "core/hashing.h"\n'
-                    '#include "engine/hashes.h"\n'
+                    '#include "hashes/hashes.h"\n'
                     '\n'
                     '#if HAS(TRACK_HASHES)\n'
                     '#include <mutex>\n'

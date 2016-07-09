@@ -26,8 +26,10 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
+import sys
 import posixpath
 import os
+import dirs
 
 TYPE_TO_UNION = { 'u32': 'u',
                   'i32': 'i',
@@ -45,6 +47,8 @@ def replace_file_if_different(path, data):
         print 'Writing ' + path
         with open(path, 'wb') as out_f:
             out_f.write(data)
+            return True
+    return False
 
 def python_path():
     scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
@@ -74,15 +78,17 @@ class Templates:
     MessageClass   = read_file_data(posixpath.join(python_path(), 'templates/message_template.cpp'))
     CmakeFileList  = read_file_data(posixpath.join(python_path(), 'templates/filelist_template.cmake'))
     
+def output_path():
+    return posixpath.join(sys.argv[1], 'messages')
+
 def messages_def_path():
-    return posixpath.join(gaen_path(), 'src/engine/messages')
+    return posixpath.join(gaen_path(), 'src/engine')
 
 def gen_message_cmake(field_handlers):
     lines = []
     for field_handler in field_handlers:
-        lines.append('  messages/%s.h' % field_handler.object_name)
+        lines.append('  "${CMAKE_CURRENT_BINARY_DIR}/messages/%s.h"' % field_handler.object_name)
     lines.sort()
-    lines = ['  messages/messages.def'] + lines
     return template_subst(Templates.CmakeFileList, {'files'       : '\n'.join(lines),
                                                     'autogen_type': 'messages'})
 
@@ -91,7 +97,7 @@ def parse_messages_def():
     context['FIELD_HANDLERS'] = []
     with open(posixpath.join(python_path(), 'field_handler.py')) as f:
         exec f in context
-    def_path = posixpath.join(messages_def_path(), 'messages.def')
+    def_path = posixpath.join(messages_def_path(), 'messages_def.py')
     with open(def_path) as f:
         exec f in context
     return context['FIELD_HANDLERS']
@@ -207,13 +213,20 @@ def gen_message_class(field_handler):
 
 def gen_message_classes():
     field_handlers = parse_messages_def()
+
+    if not os.path.exists(output_path()):
+        os.makedirs(output_path())
+
     for field_handler in field_handlers:
         cpp_data = gen_message_class(field_handler)
-        cpp_path = posixpath.join(messages_def_path(), field_handler.object_name + '.h')
+        cpp_path = posixpath.join(output_path(), field_handler.object_name + '.h')
         replace_file_if_different(cpp_path, cpp_data)
     cmake_data = gen_message_cmake(field_handlers)
-    cmake_path = posixpath.join(messages_def_path(), 'messages.cmake')
-    replace_file_if_different(cmake_path, cmake_data)
+    cmake_path = posixpath.join(output_path(), 'messages.cmake')
+    if replace_file_if_different(cmake_path, cmake_data):
+        # touch the engine/CMakeLists.txt file since we generated
+        # messages.cmake and want to poke cmake to reprocess
+        os.utime(posixpath.join(dirs.GAEN_SRC_DIR, 'engine/CMakeLists.txt'), None)
         
 
 if __name__ == '__main__':

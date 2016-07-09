@@ -29,7 +29,7 @@
 
 #include "core/SpscRingBuffer.h"
 #include "core/logging.h"
-#include "engine/hashes.h"
+#include "hashes/hashes.h"
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
 

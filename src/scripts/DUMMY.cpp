@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// ShaderRegistry_codegen.cpp - Shader factory class
+// DUMMY.cpp - Dummy file to tell cmake what type of project this is
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,27 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "hashes/hashes.h"
-#include "renderergl/ShaderRegistry.h"
-#include "renderergl/shaders/compute_present.h"
-#include "renderergl/shaders/compute_test.h"
-#include "renderergl/shaders/faceted.h"
-#include "renderergl/shaders/voxel27.h"
-#include "renderergl/shaders/voxel_cast.h"
-#include "renderergl/shaders/voxel_cast_frag.h"
+// This file is needed so our scripts project has a .cpp file at cmake run time
+// so that cmake can discern the linker language for the target.
 
-namespace gaen
-{
-
-void ShaderRegistry::registerAllShaderConstructors()
-{
-    registerShaderConstructor(HASH::compute_present, shaders::compute_present::construct);
-    registerShaderConstructor(HASH::compute_test, shaders::compute_test::construct);
-    registerShaderConstructor(HASH::faceted, shaders::faceted::construct);
-    registerShaderConstructor(HASH::voxel27, shaders::voxel27::construct);
-    registerShaderConstructor(HASH::voxel_cast, shaders::voxel_cast::construct);
-    registerShaderConstructor(HASH::voxel_cast_frag, shaders::voxel_cast_frag::construct);
-}
-
-
-} // namespace gaen
+// If in the future we add some other useful .cpp file to the scripts target,
+// we can likely remove this.

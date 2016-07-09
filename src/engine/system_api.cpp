@@ -27,7 +27,7 @@
 
 #include "core/mem.h"
 #include "core/logging.h"
-#include "engine/hashes.h"
+#include "hashes/hashes.h"
 #include "engine/glm_ext.h"
 #include "engine/shapes.h"
 #include "engine/InputMgr.h"

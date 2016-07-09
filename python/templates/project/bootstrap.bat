@@ -46,10 +46,6 @@ if not exist "%BUILD_DIR%" (
    if %errorlevel% neq 0 exit /b %errorlevel%
 )
 
-:: Create our project specific system_api_meta.cpp
-python "%~dp0\gaen\python\codegen_api.py"
-if %errorlevel% neq 0 exit /b %errorlevel%
-
 :: Issue cmake command
 cd %BUILD_DIR%
 if "%PLAT%"=="win64" (
@@ -59,6 +55,16 @@ if "%PLAT%"=="win64" (
 if "%PLAT%"=="win32" (
     cmake -G "Visual Studio 14" %<<PROJECT_NAME_UPPER>>_ROOT%
     if %errorlevel% neq 0 exit /b %errorlevel%
+)
+
+:: Build scripts for the first time to ensure codegen happens
+:: before VS is loaded. Otherwise the first build in VS will
+:: not compile the scripts (it will generate them though)
+if not exist "%BUILD_DIR%\src\scripts\registration.cpp" (
+  call "%VS140COMNTOOLS%\vsvars32.bat"
+  if %errorlevel% neq 0 exit /b %errorlevel%
+  msbuild "%BUILD_DIR%\src\scripts\scripts.vcxproj"
+  if %errorlevel% neq 0 exit /b %errorlevel%
 )
 
 echo.

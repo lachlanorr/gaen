@@ -30,7 +30,7 @@
 #include "core/base_defines.h"
 #include "core/logging.h"
 #include "engine/MessageAccessor.h"
-#include "engine/hashes.h"
+#include "hashes/hashes.h"
 
 namespace gaen
 {
