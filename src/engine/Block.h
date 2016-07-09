@@ -76,7 +76,7 @@ union dcell
     f64 f;
     void * p;
     cell cells[2];
-    // LORRTODO - Add Vec2 here once we implement it
+    glm::vec2 vec2;
 };
 static_assert(sizeof(dcell) == 8, "dcell must be 8 bytes");
 

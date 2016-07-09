@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "renderergl/RendererGL.h"
+#include "renderergl/Renderer.h"
 
 #include "gaen/gaen.h"
 
@@ -33,7 +33,7 @@
 extern int g_argc;
 extern char ** g_argv;
 
-extern gaen::RendererGL * g_pRenderer;
+extern gaen::RendererType * g_pRenderer;
 
 @interface AppDelegate ()
 

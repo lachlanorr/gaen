@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// RendererGL.cpp - OpenGL Renderer
+// RendererProto.cpp - Prototype and experimental rendering code
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -44,7 +44,7 @@
 #include "renderergl/shaders/Shader.h"
 #include "renderergl/ShaderRegistry.h"
 
-#include "renderergl/RendererGL.h"
+#include "renderergl/RendererProto.h"
 
 namespace gaen
 {
@@ -119,7 +119,7 @@ static_assert(sizeof(kVoxelPoints) == sizeof(u32) * 8, "kVoxelPoints unexpected 
 #endif
 
 
-void RendererGL::init(device_context deviceContext,
+void RendererProto::init(device_context deviceContext,
                       render_context renderContext,
                       u32 screenWidth,
                       u32 screenHeight)
@@ -129,7 +129,7 @@ void RendererGL::init(device_context deviceContext,
     mScreenWidth = screenWidth;
     mScreenHeight = screenHeight;
 
-    mpModelMgr = GNEW(kMEM_Engine, ModelMgr<RendererGL>, *this);
+    mpModelMgr = GNEW(kMEM_Engine, ModelMgr<RendererProto>, *this);
 
 #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL
     mShaderSim.init(kPresentImgSize, &mRaycastCamera);
@@ -140,7 +140,7 @@ void RendererGL::init(device_context deviceContext,
     mIsInit = true;
 }
 
-void RendererGL::fin()
+void RendererProto::fin()
 {
     ASSERT(mIsInit);
     mpModelMgr->fin();
@@ -150,7 +150,7 @@ void RendererGL::fin()
 
 static glm::mat4 sMVPMat(1.0f);
 
-void RendererGL::initViewport()
+void RendererProto::initViewport()
 {
     ASSERT(mIsInit);
 
@@ -380,7 +380,7 @@ static void prepare_mesh_attributes(const Mesh & mesh)
     }
 }
 
-void RendererGL::render()
+void RendererProto::render()
 {
     ASSERT(mIsInit);
 
@@ -451,8 +451,8 @@ void RendererGL::render()
     glDrawArrays(GL_POINTS, 0, 8);
 
 #elif RENDERTYPE == RENDERTYPE_MESH
-    ModelMgr<RendererGL>::MeshIterator meshIt = mpModelMgr->begin();
-    ModelMgr<RendererGL>::MeshIterator meshItEnd = mpModelMgr->end();
+    ModelMgr<RendererProto>::MeshIterator meshIt = mpModelMgr->begin();
+    ModelMgr<RendererProto>::MeshIterator meshItEnd = mpModelMgr->end();
 
     while (meshIt != meshItEnd)
     {
@@ -502,7 +502,7 @@ void RendererGL::render()
 }
 
 template <typename T>
-MessageResult RendererGL::message(const T & msgAcc)
+MessageResult RendererProto::message(const T & msgAcc)
 {
     const Message & msg = msgAcc.message();
 
@@ -566,7 +566,7 @@ MessageResult RendererGL::message(const T & msgAcc)
     return MessageResult::Consumed;
 }
 
-void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
+void RendererProto::loadMaterialMesh(Model::MaterialMesh & matMesh)
 {
     Mesh & mesh = matMesh.mesh();
 
@@ -604,7 +604,7 @@ void RendererGL::loadMaterialMesh(Model::MaterialMesh & matMesh)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void RendererGL::setActiveShader(u32 nameHash)
+void RendererProto::setActiveShader(u32 nameHash)
 {
     if (!mpActiveShader || mpActiveShader->nameHash() != nameHash)
     {
@@ -613,7 +613,7 @@ void RendererGL::setActiveShader(u32 nameHash)
     }
 }
 
-shaders::Shader * RendererGL::getShader(u32 nameHash)
+shaders::Shader * RendererProto::getShader(u32 nameHash)
 {
     auto it = mShaders.find(nameHash);
     if (it != mShaders.end())
@@ -626,8 +626,8 @@ shaders::Shader * RendererGL::getShader(u32 nameHash)
 
 
 // Template decls so we can define message func here in the .cpp
-template MessageResult RendererGL::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
-template MessageResult RendererGL::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
+template MessageResult RendererProto::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template MessageResult RendererProto::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
 
 } // namespace gaen
 

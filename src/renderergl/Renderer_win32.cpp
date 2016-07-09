@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// renderer_api.cpp - OpenGL renderer versions of renderer_api.h functions
+// Renderer_win32.cpp - OpenGL Renderer
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,41 +24,33 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "engine/renderer_api.h"
+#include "core/base_defines.h"
 
+#include "renderergl/gaen_opengl.h"
 #include "renderergl/Renderer.h"
 
 namespace gaen
 {
 
-void renderer_fin(Task & rendererTask)
+void RENDERER_TYPE::initRenderDevice()
 {
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->fin();
+    ASSERT(mIsInit);
+
+    if (!wglMakeCurrent(mDeviceContext, mRenderContext))
+        PANIC("Cannot activate GL rendering context");
+
+    // Prepare our GL function pointers.
+    // We have to wait until here to do this since if you call it too
+    // early, the GL driver dll hasn't been loaded and
+    // wglGetProcAddress will return NULL for all functions.
+    init_win32gl();
 }
 
-void renderer_init_device(Task & rendererTask)
+void RENDERER_TYPE::endFrame()
 {
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initRenderDevice();
-}
+    ASSERT(mIsInit);
 
-void renderer_init_viewport(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initViewport();
-}
-
-void renderer_render(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->render();
-}
-
-void renderer_end_frame(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->endFrame();
+    SwapBuffers(mDeviceContext);
 }
 
 } // namespace gaen

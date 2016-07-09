@@ -29,7 +29,7 @@
 
 #include "engine/renderer_api.h"
 #include "engine/input.h"
-#include "renderergl/RendererGL.h"
+#include "renderergl/Renderer.h"
 #include "gaen/gaen.h"
 
 //------------------------------------------------------------------------------
@@ -141,7 +141,7 @@
     NSWindow * _pWindow;
     OpenGLView * _pView;
     NSEvent * _pEventMonitor;
-    gaen::RendererGL * _pRenderer;
+    gaen::RendererType * _pRenderer;
 }
 @end
 @implementation AppDelegate
@@ -217,7 +217,7 @@
 
     init_gaen(_argc, _argv);
 
-    _pRenderer = GNEW(kMEM_Renderer, RendererGL);
+    _pRenderer = GNEW(kMEM_Renderer, RendererType);
     _pRenderer->init(nullptr, _pView.openGLContext, kScreenWidth, kScreenHeight);
     Task rendererTask = Task::create(_pRenderer, HASH::renderer);
     set_renderer(rendererTask);

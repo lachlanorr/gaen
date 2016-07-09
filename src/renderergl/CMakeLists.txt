@@ -29,10 +29,13 @@ INCLUDE (${shaders_dir}/codegen.cmake)
 
 SET (renderergl_SOURCES
   gaen_opengl.h
+  Renderer.h
+  Renderer2D.h
+  Renderer2D.cpp
+  RendererProto.h
+  RendererProto.cpp
+  Renderer_${platform}.${platform_ext}
   renderer_api.cpp
-  RendererGL.h
-  RendererGL.cpp
-  RendererGL_${platform}.${platform_ext}
   ShaderRegistry.cpp
   ShaderRegistry.h
   ${shaders_codegen_SOURCES}

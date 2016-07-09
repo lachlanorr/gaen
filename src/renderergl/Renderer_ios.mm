@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// RendererGL_ios.mm - OpenGL Renderer
+// Renderer_ios.mm - OpenGL Renderer
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -30,19 +30,19 @@
 #include "core/base_defines.h"
 
 #include "renderergl/gaen_opengl.h"
-#include "renderergl/RendererGL.h"
+#include "renderergl/Renderer.h"
 
 namespace gaen
 {
 
-void RendererGL::initRenderDevice()
+void RENDERER_TYPE::initRenderDevice()
 {
     ASSERT(mIsInit);
 
     [EAGLContext setCurrentContext: (EAGLContext*)mRenderContext];
 }
 
-void RendererGL::endFrame()
+void RENDERER_TYPE::endFrame()
 {
     ASSERT(mIsInit);
 

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// RendererGL_win32.cpp - OpenGL Renderer
+// Renderer_osx.mm - OpenGL Renderer
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,33 +24,29 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#import <Cocoa/Cocoa.h>
+#import <OpenGL/gl3.h>
+
 #include "core/base_defines.h"
 
 #include "renderergl/gaen_opengl.h"
-#include "renderergl/RendererGL.h"
+#include "renderergl/Renderer.h"
 
 namespace gaen
 {
 
-void RendererGL::initRenderDevice()
+void RENDERER_TYPE::initRenderDevice()
 {
     ASSERT(mIsInit);
 
-    if (!wglMakeCurrent(mDeviceContext, mRenderContext))
-        PANIC("Cannot activate GL rendering context");
-
-    // Prepare our GL function pointers.
-    // We have to wait until here to do this since if you call it too
-    // early, the GL driver dll hasn't been loaded and
-    // wglGetProcAddress will return NULL for all functions.
-    init_win32gl();
+    [(id)mRenderContext makeCurrentContext];
 }
 
-void RendererGL::endFrame()
+void RENDERER_TYPE::endFrame()
 {
     ASSERT(mIsInit);
 
-    SwapBuffers(mDeviceContext);
+    [(id)mRenderContext flushBuffer];
 }
 
 } // namespace gaen

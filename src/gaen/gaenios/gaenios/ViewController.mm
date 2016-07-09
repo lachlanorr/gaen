@@ -30,12 +30,12 @@
 
 #include "engine/renderer_api.h"
 #include "engine/input.h"
-#include "renderergl/RendererGL.h"
+#include "renderergl/Renderer.h"
 #include "gaen/gaen.h"
 
 #import "ViewController.h"
 
-gaen::RendererGL * g_pRenderer = nullptr;
+gaen::RendererType * g_pRenderer = nullptr;
 
 @interface ViewController ()
 
@@ -65,7 +65,7 @@ gaen::RendererGL * g_pRenderer = nullptr;
     CGFloat screenWidth = screenRect.size.width;
     CGFloat screenHeight = screenRect.size.height;
 
-    g_pRenderer = GNEW(kMEM_Renderer, RendererGL);
+    g_pRenderer = GNEW(kMEM_Renderer, RendererType);
     g_pRenderer->init(nullptr, (__bridge void*)view.context, screenWidth, screenHeight);
     Task rendererTask = Task::create(g_pRenderer, HASH::renderer);
     set_renderer(rendererTask);

@@ -26,7 +26,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "renderergl/RendererGL.h"
+#include "renderergl/Renderer.h"
 
 #include "renderergl/shaders/Shader.h"
 

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// RendererGL.h - OpenGL Renderer
+// RendererProto.h - Prototype and experimental rendering code
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_RENDERERGL_RENDERERGL_H
-#define GAEN_RENDERERGL_RENDERERGL_H
+#ifndef GAEN_RENDERERGL_RENDERERPROTO_H
+#define GAEN_RENDERERGL_RENDERERPROTO_H
 
 #include <glm/mat4x4.hpp>
 
@@ -60,7 +60,7 @@
 
 namespace gaen
 {
-class RendererGL
+class RendererProto
 {
 public:
     enum MeshReservedIndex
@@ -124,7 +124,7 @@ private:
     glm::mat4 mProjection;
     glm::mat4 mGuiProjection;
 
-    ModelMgr<RendererGL> * mpModelMgr;
+    ModelMgr<RendererProto> * mpModelMgr;
 
     List<kMEM_Renderer, DirectionalLight> mDirectionalLights;
     List<kMEM_Renderer, PointLight> mPointLights;
@@ -150,9 +150,8 @@ private:
 #endif
 };
 
-
 } // namespace gaen
 
-#endif // #ifndef GAEN_RENDERERGL_RENDERERGL_H
+#endif // #ifndef GAEN_RENDERERGL_RENDERERPROTO_H
 
 

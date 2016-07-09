@@ -94,6 +94,12 @@ class PointerField(dcellField):
     union_type = 'p'
     type_name = 'void *'
 
+class vec2Field(BaseField):
+    cell_count = 2
+    type_name = 'glm::vec2'
+    union_type = 'vec2'
+    includes = BaseField.includes + ['glm/vec2.hpp']
+    
 class vec3Field(BaseField):
     cell_count = 3
     type_name = 'glm::vec3'

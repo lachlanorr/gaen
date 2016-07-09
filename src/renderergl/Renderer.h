@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// RendererGL_osx.mm - OpenGL Renderer
+// Renderer.h - Generic renderer include that defines RendererType
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,30 +24,29 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#import <Cocoa/Cocoa.h>
-#import <OpenGL/gl3.h>
+#ifndef GAEN_RENDERERGL_RENDERER_H
+#define GAEN_RENDERERGL_RENDERER_H
 
 #include "core/base_defines.h"
 
-#include "renderergl/gaen_opengl.h"
-#include "renderergl/RendererGL.h"
+#define USE_PROTOTYPE_RENDERER HAS__
 
+#if HAS(USE_PROTOTYPE_RENDERER)
+#include "renderergl/RendererProto.h"
+#define RENDERER_TYPE RendererProto
 namespace gaen
 {
-
-void RendererGL::initRenderDevice()
-{
-    ASSERT(mIsInit);
-
-    [(id)mRenderContext makeCurrentContext];
+typedef RendererProto RendererType;
 }
 
-void RendererGL::endFrame()
+#else // #if HAS(USE_PROTOTYPE_RENDERER)
+#include "renderergl/Renderer2D.h"
+#define RENDERER_TYPE Renderer2D
+namespace gaen
 {
-    ASSERT(mIsInit);
-
-    [(id)mRenderContext flushBuffer];
+typedef Renderer2D RendererType;
 }
 
-} // namespace gaen
+#endif // #if HAS(USE_PROTOTYPE_RENDERER)
 
+#endif // #ifndef GAEN_RENDERERGL_RENDERER_H

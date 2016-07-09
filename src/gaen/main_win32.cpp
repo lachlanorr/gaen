@@ -33,7 +33,7 @@
 #include "core/platutils.h"
 #include "engine/renderer_api.h"
 #include "engine/input.h"
-#include "renderergl/RendererGL.h"
+#include "renderergl/Renderer.h"
 #include "renderergl/gaen_opengl.h"
 #include "gaen/gaen.h"
 
@@ -375,7 +375,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     init_gaen(__argc, __argv);
 
-    RendererGL renderer;
+    RendererType renderer;
     renderer.init(sHdc, sHrc, kScreenWidth, kScreenHeight);
     Task rendererTask = Task::create(&renderer, HASH::renderer);
     set_renderer(rendererTask);
