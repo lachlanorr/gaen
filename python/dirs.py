@@ -62,6 +62,7 @@ PROJECT_DIR       = __project_dir()
 PROJECT_SRC_DIR   = os.path.join(PROJECT_DIR, 'src')
 BUILD_DIR         = os.path.join(PROJECT_DIR, 'build')
 CMP_SCRIPTS_DIR   = os.path.join(PROJECT_DIR, 'src', 'scripts')
+GAEN_SCRIPTS_DIR  = os.path.join(GAEN_SRC_DIR, 'scripts')
 PROJECT_NAME      = __project_name()
 
 # create posix versions of all paths

@@ -60,10 +60,10 @@ if "%PLAT%"=="win32" (
 :: Build scripts for the first time to ensure codegen happens
 :: before VS is loaded. Otherwise the first build in VS will
 :: not compile the scripts (it will generate them though)
-if not exist "%BUILD_DIR%\src\scripts\registration.cpp" (
+if not exist "%BUILD_DIR%\gaen\src\scripts\registration.cpp" (
   call "%VS140COMNTOOLS%\vsvars32.bat"
   if %errorlevel% neq 0 exit /b %errorlevel%
-  msbuild "%BUILD_DIR%\src\scripts\scripts.vcxproj"
+  msbuild "%BUILD_DIR%\gaen\src\scripts\scripts.vcxproj"
   if %errorlevel% neq 0 exit /b %errorlevel%
 )
 

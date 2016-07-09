@@ -64,14 +64,8 @@ ADD_SUBDIRECTORY (chef)
 ADD_SUBDIRECTORY (shader_gen)
 ADD_SUBDIRECTORY (renderergl)
 ADD_SUBDIRECTORY (compose)
+ADD_SUBDIRECTORY (scripts)
 ADD_SUBDIRECTORY (gaen)
-
-# If building gaen standalone (not part of a project),
-# include our scripts. Otherwise, we assume project specific
-# scripts are added by project's root CMakeLists.txt.
-IF ("${CMAKE_SOURCE_DIR}/src" MATCHES "${CMAKE_CURRENT_SOURCE_DIR}")
-  ADD_SUBDIRECTORY (scripts)
-ENDIF()
 
 #exes
 IF (NOT IOS)

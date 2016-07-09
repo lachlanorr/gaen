@@ -83,7 +83,7 @@ void register_all_entities_and_components(Registry & registry)
 '''
 
 def cmake_scripts_dir():
-    return "${CMAKE_CURRENT_SOURCE_DIR}"
+    return dirs.CMP_SCRIPTS_DIR_P
 
 def modification_time(filename):
     t = os.path.getmtime(filename)
@@ -292,13 +292,14 @@ def write_cmake(cmp_files, cpp_files, h_files):
         write_file(cmake_path, template)
         # touch the scripts/CMakeLists.txt file since we generated
         # codegen.cmake and want to poke cmake to reprocess
-        os.utime(posixpath.join(dirs.CMP_SCRIPTS_DIR, 'CMakeLists.txt'), None)
+        os.utime(posixpath.join(dirs.GAEN_SCRIPTS_DIR, 'CMakeLists.txt'), None)
 
 
 def find_source_files(scripts_dir, source_files):
     for root, _, files in os.walk(scripts_dir):
         for f in files:
             if f.endswith('cmp'):
+                print posixpath.join(root, f)
                 source_files.append(posixpath.join(root.replace('\\', '/'), f))
 
 def main():
