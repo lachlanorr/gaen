@@ -256,7 +256,6 @@ def write_registration_cpp(script_infos):
     if not os.path.exists(reg_cpp_path) or read_file(reg_cpp_path) != reg_cpp:
         print "Writing %s" % reg_cpp_path
         write_file(reg_cpp_path, reg_cpp)
-    os.utime(reg_cpp_path, None)
 
 
 def cmakeify_bin_script_path(p):
@@ -291,9 +290,9 @@ def write_cmake(cmp_files, cpp_files, h_files):
     if not os.path.exists(cmake_path) or read_file(cmake_path) != template:
         print "Writing %s" % cmake_path
         write_file(cmake_path, template)
-    # touch the scripts/CMakeLists.txt file since we generated
-    # codegen.cmake and want to poke cmake to reprocess
-    os.utime(posixpath.join(dirs.CMP_SCRIPTS_DIR, 'CMakeLists.txt'), None)
+        # touch the scripts/CMakeLists.txt file since we generated
+        # codegen.cmake and want to poke cmake to reprocess
+        os.utime(posixpath.join(dirs.CMP_SCRIPTS_DIR, 'CMakeLists.txt'), None)
 
 
 def find_source_files(scripts_dir, source_files):
