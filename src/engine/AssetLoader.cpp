@@ -91,6 +91,7 @@ void AssetLoader::threadProc()
             message(msgAcc);
             mpRequestQueue->popCommit(msgAcc);
         }
+        sleep(10);
     }
 }
 
