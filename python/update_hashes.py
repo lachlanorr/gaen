@@ -94,11 +94,14 @@ def project_src_dir():
     else:
         return None
 
-def hashes_h_path():
-    return posixpath.join(sys.argv[1], 'hashes.h')
-
 def hashes_cpp_path():
-    return posixpath.join(sys.argv[1], 'hashes.cpp')
+    p = posixpath.join(sys.argv[1], 'hashes.cpp')
+    if '/gaen/src/hashes/' not in p:
+        p = p.replace('/src/hashes/', '/gaen/src/hashes/', 1)
+    return p
+
+def hashes_h_path():
+    return hashes_cpp_path().replace('.cpp', '.h')
 
 def build_hash_list():
     hash_list = process_dir(src_dir())
