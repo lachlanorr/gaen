@@ -38,6 +38,8 @@ import os
 import posixpath
 import re
 
+import dirs
+
 def fnv32a(s):
     hval = 0x811c9dc5
     fnv_32_prime = 0x01000193
@@ -96,7 +98,7 @@ def project_src_dir():
 
 def hashes_cpp_path():
     p = posixpath.join(sys.argv[1], 'hashes.cpp')
-    if '/gaen/src/hashes/' not in p:
+    if dirs.IS_PROJECT and '/gaen/src/hashes/' not in p:
         p = p.replace('/src/hashes/', '/gaen/src/hashes/', 1)
     return p
 
