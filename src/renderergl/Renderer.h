@@ -29,17 +29,10 @@
 
 #include "core/base_defines.h"
 
-#define USE_PROTOTYPE_RENDERER HAS__
+#define USE_RENDERER_2D     HAS_X
+#define USE_RENDERER_PROTO  HAS__
 
-#if HAS(USE_PROTOTYPE_RENDERER)
-#include "renderergl/RendererProto.h"
-#define RENDERER_TYPE RendererProto
-namespace gaen
-{
-typedef RendererProto RendererType;
-}
-
-#else // #if HAS(USE_PROTOTYPE_RENDERER)
+#if HAS(USE_RENDERER_2D)
 #include "renderergl/Renderer2D.h"
 #define RENDERER_TYPE Renderer2D
 namespace gaen
@@ -47,6 +40,16 @@ namespace gaen
 typedef Renderer2D RendererType;
 }
 
+#elif HAS(USE_RENDERER_PROTO) // #if HAS(USE_RENDERER_2D)
+#include "renderergl/RendererProto.h"
+#define RENDERER_TYPE RendererProto
+namespace gaen
+{
+typedef RendererProto RendererType;
+}
+
+#else
+#error No renderer defined
 #endif // #if HAS(USE_PROTOTYPE_RENDERER)
 
 #endif // #ifndef GAEN_RENDERERGL_RENDERER_H

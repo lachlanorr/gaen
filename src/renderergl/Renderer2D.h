@@ -36,27 +36,8 @@
 #include "engine/ModelMgr.h"
 #include "engine/renderer_structs.h"
 
-// LORRTODO: probably a temp include only until we get voxel stuff more defined
-#include "engine/voxel_proto.h"
-
-#include "engine/RaycastCamera.h"
-
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/ShaderRegistry.h"
-
-#define RENDERTYPE_MESH 0
-#define RENDERTYPE_CPUFRAGVOXEL 1
-#define RENDERTYPE_CPUCOMPVOXEL 2
-#define RENDERTYPE_GPUFRAGVOXEL 3
-#define RENDERTYPE_GPUCOMPVOXEL 4
-#define RENDERTYPE_VOXEL27      5
-
-#define RENDERTYPE RENDERTYPE_MESH
-//#define RENDERTYPE RENDERTYPE_CPUFRAGVOXEL
-//#define RENDERTYPE RENDERTYPE_CPUCOMPVOXEL
-//#define RENDERTYPE RENDERTYPE_GPUFRAGVOXEL
-//#define RENDERTYPE RENDERTYPE_GPUCOMPVOXEL
-//#define RENDERTYPE RENDERTYPE_VOXEL27
 
 namespace gaen
 {
@@ -104,22 +85,11 @@ private:
     GLint mMaxTextureImageUnits = 0;
     GLint mMaxTextureSize = 0;
 
-    // GPU custom renderer presentation support
-    // I.E. a surface to render our GPU generated texture upon for display.
-    shaders::Shader * mpVoxelCast;
     GLuint mPresentVAO;
     GLuint mPresentVertexBuffer;
     GLuint mPresentImage;
     GLuint mPresentImageLocation;
     shaders::Shader * mpPresentShader;
-
-    GLuint mVoxelDataImage;
-    GLuint mVoxelDataImageLocation;
-    GLuint mVoxelData;
-
-    GLuint mVoxelRootsImage;
-    GLuint mVoxelRootsImageLocation;
-    GLuint mVoxelRoots;
 
     glm::mat4 mProjection;
     glm::mat4 mGuiProjection;
@@ -133,21 +103,6 @@ private:
 
     ShaderRegistry mShaderRegistry;
     HashMap<kMEM_Renderer, u32, shaders::Shader*> mShaders;
-
-
-    // LORRTODO: temp voxel experiment stuff
-#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL
-    FragmentShaderSimulator mShaderSim;
-#elif RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
-    ComputeShaderSimulator mShaderSim;
-#endif
-
-#if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL || RENDERTYPE == RENDERTYPE_GPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
-    RaycastCamera mRaycastCamera;
-
-    VoxelWorld mVoxelWorld;
-    VoxelRoot mVoxelRoot;
-#endif
 };
 
 } // namespace gaen
