@@ -1,0 +1,2 @@
+vertex_shader=sprite.shv
+fragment_shader=sprite.shf

@@ -253,7 +253,7 @@ S generate_shader_registration(const char * shadersDir)
         "//   distribution.\n"
         "//------------------------------------------------------------------------------\n"
         "\n"
-        "#include \"engine/hashes.h\"\n"
+        "#include \"hashes/hashes.h\"\n"
         "#include \"renderergl/ShaderRegistry.h\"\n";
 
     recurse_dir(shadersDir, &code, append_shader_registration_file_includes_cb);
@@ -742,10 +742,12 @@ void process_shd_file_cb(const char * path, void * context)
 }
 
 
-void find_shaders_dir(char * assetsDir)
+void find_shaders_dir(char * shadersDir)
 {
     char path[kMaxPath+1];
     char checkPath[kMaxPath+1];
+    char checkProjectPath[kMaxPath+1];
+    char * foundPath = nullptr;
 
     process_path(path);
     parent_dir(path);
@@ -755,12 +757,22 @@ void find_shaders_dir(char * assetsDir)
         PANIC_IF(!*path, "Unable to find shaders dir, make sure shader_gen executable is located under a gaen or gaen project directory tree.");
 
         snprintf(checkPath, kMaxPath, "%s/src/renderergl/shaders/", path);
+        snprintf(checkProjectPath, kMaxPath, "%s/gaen/src/renderergl/shaders/", path);
         if (dir_exists(checkPath))
         {
+            foundPath = checkPath;
+        }
+        else if (dir_exists(checkProjectPath))
+        {
+            foundPath = checkProjectPath;
+        }
+
+        if (foundPath)
+        {
             // get rid of / at end
-            size_t checkPathLen = strlen(checkPath);
-            checkPath[checkPathLen] = '\0';
-            strcpy(assetsDir, checkPath);
+            size_t foundPathLen = strlen(foundPath);
+            foundPath[foundPathLen-1] = '\0';
+            strcpy(shadersDir, foundPath);
             return;
         }
         parent_dir(path);

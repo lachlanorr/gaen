@@ -42,6 +42,11 @@ SET (shaders_codegen_SOURCES
   ${shaders_dir}/Shader.cpp
   ${shaders_dir}/Shader.h
   ${shaders_dir}/ShaderRegistry_codegen.cpp
+  ${shaders_dir}/sprite.cpp
+  ${shaders_dir}/sprite.h
+  ${shaders_dir}/sprite.shd
+  ${shaders_dir}/sprite.shf
+  ${shaders_dir}/sprite.shv
   ${shaders_dir}/voxel27.cpp
   ${shaders_dir}/voxel27.h
   ${shaders_dir}/voxel27.shd
