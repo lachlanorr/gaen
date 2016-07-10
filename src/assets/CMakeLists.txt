@@ -27,6 +27,7 @@
 SET (assets_SOURCES
   AssetTypes.cpp
   AssetTypes.h
+  Color.h
   Config.cpp
   Config.h
   file_utils.cpp

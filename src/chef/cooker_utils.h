@@ -45,11 +45,7 @@ struct ImageInfo
       : origin(origin)
       , width(width)
       , height(height)
-    {
-        // sanity check dimensions, as we always work with textures
-        PANIC_IF(width != height, "Texture has mismatched width and height: width=%u, height=%u", width, height);
-        PANIC_IF(!is_power_of_two(width) || !is_power_of_two(height), "Texture has non power of 2 width or height: width=%u, height=%u", width, height);
-    }
+    {}
 
     ImageOrigin origin;
     u16 width;

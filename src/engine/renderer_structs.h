@@ -32,8 +32,8 @@
 
 #include "core/base_defines.h"
 
+#include "assets/Color.h"
 #include "engine/task.h"
-#include "engine/Color.h"
 
 namespace gaen
 {

@@ -30,6 +30,8 @@
 #include "core/base_defines.h"
 #include "core/mem.h"
 
+#include "assets/Color.h"
+
 namespace gaen
 {
 
@@ -47,11 +49,6 @@ enum PixelFormat
 
 const char * pixel_format_to_str(PixelFormat pixelType);
 const PixelFormat pixel_format_from_str(const char * str);
-
-inline u8 luminance(u8 r, u8 g, u8 b)
-{
-    return static_cast<u8>(r * 0.299 + g * 0.587 + b * 0.114 + 0.5);
-}
 
 class Gimg
 {
@@ -71,6 +68,8 @@ public:
     const u8 * scanline(u32 idx) const;
 
     void convertFormat(Gimg ** pGimg, MemType memType, PixelFormat newPixelFormat) const;
+
+    void clear(Color col);
 
     PixelFormat pixelFormat() const { return mPixelFormat; }
     u32 width() const { return mWidth; }

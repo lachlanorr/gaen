@@ -42,7 +42,6 @@ SET (engine_SOURCES
   CmpString.cpp
   CmpString.h
   collision.h
-  Color.h
   Component.cpp
   Component.h
   Entity.cpp

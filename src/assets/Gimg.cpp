@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include <glm/common.hpp>
+
 #include "core/HashMap.h"
 #include "core/String.h"
 
@@ -154,6 +156,9 @@ u64 Gimg::required_size(PixelFormat pixelFormat, u32 width, u32 height)
 
 Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
 {
+    // adjust width and height to ensure power of 2 and equal size
+    width = height = next_power_of_two(glm::max(width, height));
+
     u64 size = Gimg::required_size(pixelFormat, width, height);
     Gimg * pGimg = (Gimg*)GALLOC(kMEM_Texture, size);
 
@@ -274,9 +279,9 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
                     u32 fpix = 3 * pix;
                     u32 tpix = pix;
 
-                    u8 lum = luminance(fromLine[fpix+0],
-                                       fromLine[fpix+1],
-                                       fromLine[fpix+2]);
+                    u8 lum = Color::luminance(fromLine[fpix+0],
+                                              fromLine[fpix+1],
+                                              fromLine[fpix+2]);
                     toLine[tpix] = lum;
                 }
             }
@@ -319,9 +324,9 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
                     u32 fpix = 4 * pix;
                     u32 tpix = pix;
 
-                    u8 lum = luminance(fromLine[fpix+0],
-                                       fromLine[fpix+1],
-                                       fromLine[fpix+2]);
+                    u8 lum = Color::luminance(fromLine[fpix+0],
+                                              fromLine[fpix+1],
+                                              fromLine[fpix+2]);
                     toLine[tpix] = lum;
                 }
             }
@@ -354,7 +359,51 @@ void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixel
     PANIC("Unsupported Gimg conversion from: %d -> %d", mPixelFormat, newPixelFormat);
 }
 
+void Gimg::clear(Color col)
+{
+    switch (mPixelFormat)
+    {
+    case kPXL_R8:
+        for (u32 line = 0; line < mHeight; ++line)
+        {
+            u8 * pLine = scanline(line);
+            for (u32 pix = 0; pix < mWidth; ++pix)
+            {
+                pLine[pix] = col.luminance();
+            }
+        }
+        return;
+    case kPXL_RGB8:
+        for (u32 line = 0; line < mHeight; ++line)
+        {
+            u8 * pLine = scanline(line);
+            for (u32 pix = 0; pix < mWidth; ++pix)
+            {
+                u32 idx = pix * 3;
+                pLine[idx] = col.r() * col.a();
+                pLine[idx+1] = col.g() * col.a();
+                pLine[idx+2] = col.b() * col.a();
+            }
+        }
+        return;
+    case kPXL_RGBA8:
+        for (u32 line = 0; line < mHeight; ++line)
+        {
+            u8 * pLine = scanline(line);
+            for (u32 pix = 0; pix < mWidth; ++pix)
+            {
+                u32 idx = pix * 4;
+                pLine[idx] = col.r();
+                pLine[idx+1] = col.g();
+                pLine[idx+2] = col.b();
+                pLine[idx+3] = col.a();
+            }
+        }
+        return;
+    }
 
+    PANIC("Unsupported PixelFormat to clear: %d", mPixelFormat);
+}
 
 } // namespace gaen
 

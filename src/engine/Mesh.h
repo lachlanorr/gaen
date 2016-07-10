@@ -32,7 +32,7 @@
 
 #include "core/base_defines.h"
 #include "core/mem.h"
-#include "engine/Color.h"
+#include "assets/Color.h"
 
 namespace gaen
 {

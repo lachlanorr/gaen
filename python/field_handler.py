@@ -68,7 +68,7 @@ class boolField(cellField):
 class ColorField(cellField):
     raw_type = 'Color'
     union_type = 'color'
-    includes = cellField.includes + ['engine/Color.h']
+    includes = cellField.includes + ['assets/Color.h']
 
 class EnumField(cellField):
     union_type = 'i'

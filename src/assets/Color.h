@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_COLOR_H
-#define GAEN_ENGINE_COLOR_H
+#ifndef GAEN_ASSETS_COLOR_H
+#define GAEN_ASSETS_COLOR_H
 
 #include <glm/vec4.hpp>
 
@@ -90,6 +90,16 @@ public:
     glm::vec4 toVec4() const { return build_vec4(*this); }
     static glm::vec4 build_vec4(const Color & col) { return glm::vec4(col.rf(), col.gf(), col.bf(), col.af()); }
 
+    u8 luminance()
+    {
+        return luminance(r(), g(), b()) * a();
+    }
+
+    static u8 luminance(u8 r, u8 g, u8 b)
+    {
+        return static_cast<u8>(r * 0.299 + g * 0.587 + b * 0.114 + 0.5);
+    }
+
 private:
     union ColorValue_
     {
@@ -108,4 +118,4 @@ static_assert(sizeof(Color)==4,"");
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_COLOR_H
+#endif // #ifndef GAEN_ASSETS_COLOR_H

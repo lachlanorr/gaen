@@ -45,7 +45,7 @@ bool Tga::is_valid(u8 * pBuffer, u32 size)
 
     Tga * pTga = reinterpret_cast<Tga*>(pBuffer);
 
-    if (pTga->width != pTga->height)
+/*    if (pTga->width != pTga->height)
     {
         ERR("tga doesn't have matching width and height: width=%u, height=%u", pTga->width, pTga->height);
         return false;
@@ -56,7 +56,7 @@ bool Tga::is_valid(u8 * pBuffer, u32 size)
         ERR("tga doesn't have power of two width or height: width=%u, height=%u", pTga->width, pTga->height);
         return false;
     }
-
+    */
     if (size < pTga->totalSize())
     {
         ERR("tga buffer smaller than required, size: %u", size);
@@ -144,11 +144,15 @@ void Tga::convertToGimg(Gimg ** pGimgOut)
         PANIC("Unable to convert tga to Gimg, invalid format");
 
     Gimg * pGimg = Gimg::create(pixFmt, width, height);
+    // If pGimg is larger since we're not power of two or our width
+    // and height differ, go ahead and zero out the image.
+    if (width != pGimg->width() || height != pGimg->height())
+        pGimg->clear(Color(0, 0, 0, 255));
 
     for (u32 line = 0; line < height; ++line)
     {
         u8 * tgaLine = scanline(line);
-        u8 * gimgLine = pGimg->scanline(height - line - 1); // reverse row order for opengl
+        u8 * gimgLine = pGimg->scanline(pGimg->height() - line - 1); // reverse row order for opengl
 
         for (u32 pix = 0; pix < width; ++pix)
         {

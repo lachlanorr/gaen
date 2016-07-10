@@ -34,9 +34,9 @@
 #include "core/base_defines.h"
 #include "core/mem.h"
 #include "core/Vector.h"
+#include "assets/Color.h"
 #include "engine/ImageBuffer.h"
 #include "engine/collision.h"
-#include "engine/Color.h"
 
 namespace gaen
 {

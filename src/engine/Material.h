@@ -29,7 +29,7 @@
 
 #include <glm/vec4.hpp>
 
-#include "engine/Color.h"
+#include "assets/Color.h"
 
 namespace gaen
 {
