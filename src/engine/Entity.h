@@ -73,7 +73,7 @@ public:
     BlockMemory & blockMemory();
     void collect();
 
-    void requestAsset(u32 taskId, u32 nameHash, const CmpString & path);
+    void requestAsset(u32 subTaskId, u32 nameHash, const CmpString & path);
 protected:
     enum InitStatus
     {

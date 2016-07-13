@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// AssetTypes.h - Mapping of asset extension to various asset properties
+// Gspr.h - Sprites with animations, depend on a gatl for images
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,42 +24,56 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_ASSET_TYPES_H
-#define GAEN_ENGINE_ASSET_TYPES_H
-
-#include "core/mem.h"
-#include "core/HashMap.h"
-
-#include "assets/AssetType.h"
+#ifndef GAEN_ASSETS_GSPR_H
+#define GAEN_ASSETS_GSPR_H
 
 namespace gaen
 {
 
-class AssetTypes
+class Gatl;
+struct GlyphCoords;
+
+class Gspr
 {
+    friend class AssetTypeGspr;
 public:
-    AssetTypes();
+    static bool is_valid(const void * pBuffer, u64 size);
+    static Gspr * instance(void * pBuffer, u64 size);
+    static const Gspr * instance(const void * pBuffer, u64 size);
 
-    void registerAssetType(const AssetType & assetType);
+    static u64 required_size();
 
-    void registerProjectAssetTypes();
+    static Gspr * create();
 
-    const AssetType * assetTypeFromExt(const char * ext) const;
+    u64 size() const;
 
-    // Dealing with 4 character codes can be endian dangerous, but we
-    // only do this within a running process, these 4 character codes
-    // are never persisted between processes.
-    static u32 ext_to_4cc(const char * ext)
+    u32 glyphWidth();
+    u32 glyphHeight();
+
+    u32 animCount();
+    u32 frameCount(u32 animHash);
+    const GlyphCoords & getFrame(u32 animHash, u32 frameIdx);
+
+    const char * atlasPath() const;
+    
+    const Gatl * atlas() const
     {
-        return *reinterpret_cast<const u32*>(ext);
+        ASSERT(pAtlas);
+        return pAtlas;
     }
 
 private:
-    HashMap<kMEM_Engine, u32, AssetType> mExtToAssetTypeMap;
+    static const char * kMagic;
+    static const u32 kMagic4cc;
+    char mMagic[4];
+
+    u32 mAnimCount;
+    
+    
+    const Gatl * pAtlas;
 };
 
-} // namespace gaen
-
-#endif // #ifndef GAEN_ENGINE_ASSET_TYPES_H
+} // namespace
 
 
+#endif // #ifndef GAEN_ASSETS_GSPR_H

@@ -73,6 +73,8 @@ private:
     HashMap<kMEM_Engine, String<kMEM_Engine>, Asset*> mAssets;
     HashMap<kMEM_Engine, String<kMEM_Engine>, std::list<std::tuple<task_id, task_id, u32>>> mDuplicateRequestTargets;
 
+    HashMap<kMEM_Engine, String<kMEM_Engine>, std::list<std::tuple<u32, Asset*, task_id, task_id, u32>>> mAssetsWaitingForDependent;
+
 }; // AssetMgr
 
 } // namespace gaen

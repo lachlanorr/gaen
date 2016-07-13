@@ -104,13 +104,13 @@ MessageResult AssetLoader::message(const MessageQueueAccessor& msgAcc)
     case HASH::request_asset__:
     {
         CmpString pathCmpString;
-        u32 requestorTaskId;
+        u32 subTaskId;
         u32 nameHash;
 
         extract_request_asset(msgAcc,
                               mBlockMemory,
                               pathCmpString,
-                              requestorTaskId,
+                              subTaskId,
                               nameHash);
 
         char fullPath[kMaxPath+1];
@@ -119,7 +119,8 @@ MessageResult AssetLoader::message(const MessageQueueAccessor& msgAcc)
 
         Asset * pAsset = GNEW(kMEM_Engine, Asset, pathCmpString.c_str(), fullPath, mAssetTypes);
 
-        messages::AssetQW msgw(HASH::asset_ready__, kMessageFlag_None, kAssetMgrTaskId, msg.source, requestorTaskId, mpReadyQueue);
+        messages::AssetQW msgw(HASH::asset_ready__, kMessageFlag_None, kAssetMgrTaskId, kAssetMgrTaskId, msg.source, mpReadyQueue);
+        msgw.setSubTaskId(subTaskId);
         msgw.setNameHash(nameHash);
         msgw.setAsset(pAsset);
 
@@ -134,7 +135,7 @@ MessageResult AssetLoader::message(const MessageQueueAccessor& msgAcc)
 void AssetLoader::extract_request_asset(const MessageQueueAccessor & msgAcc,
                                         BlockMemory & blockMemory,
                                         CmpString & pathCmpString,
-                                        u32 & requestorTaskId,
+                                        u32 & subTaskid,
                                         u32 & nameHash)
 {
     Message msg = msgAcc.message();
@@ -142,7 +143,7 @@ void AssetLoader::extract_request_asset(const MessageQueueAccessor & msgAcc,
     ASSERT(msg.msgId == HASH::request_asset__);
     PANIC_IF(msg.blockCount < 2, "Too few bytes for request_asset message");
 
-    requestorTaskId = msg.source;
+    subTaskid = msg.payload.u;
     nameHash = msgAcc[0].cells[0].u;
 
     const BlockData * pBlockData = reinterpret_cast<const BlockData*>(&msgAcc[1]);
@@ -151,7 +152,7 @@ void AssetLoader::extract_request_asset(const MessageQueueAccessor & msgAcc,
 
     u32 requiredBlockCount = pBlockData->blockCount;
 
-    // -1 below is for the block 0 in the message required to send the requestorTaskId
+    // -1 below is for the block 0 in the message required to send the nameHash
     PANIC_IF(msg.blockCount - 1 < requiredBlockCount, "Too few bytes for request_asset path string");
 
     Address addr = blockMemory.allocCopy(pBlockData);

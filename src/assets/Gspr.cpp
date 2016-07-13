@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// AssetTypes.h - Mapping of asset extension to various asset properties
+// Gspr.cpp - Sprites with animations, depend on a gatl for images
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,42 +24,83 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_ASSET_TYPES_H
-#define GAEN_ENGINE_ASSET_TYPES_H
-
-#include "core/mem.h"
-#include "core/HashMap.h"
-
-#include "assets/AssetType.h"
+#include "assets/Gatl.h"
+#include "assets/Gspr.h"
 
 namespace gaen
 {
 
-class AssetTypes
+bool Gspr::is_valid(const void * pBuffer, u64 size)
 {
-public:
-    AssetTypes();
+    PANIC("TODO");
+    return false;
+}
 
-    void registerAssetType(const AssetType & assetType);
+Gspr * Gspr::instance(void * pBuffer, u64 size)
+{
+    PANIC("TODO");
+    return nullptr;
+}
 
-    void registerProjectAssetTypes();
+const Gspr * Gspr::instance(const void * pBuffer, u64 size)
+{
+    PANIC("TODO");
+    return nullptr;
+}
 
-    const AssetType * assetTypeFromExt(const char * ext) const;
+u64 Gspr::required_size()
+{
+    PANIC("TODO");
+    return 0;
+}
 
-    // Dealing with 4 character codes can be endian dangerous, but we
-    // only do this within a running process, these 4 character codes
-    // are never persisted between processes.
-    static u32 ext_to_4cc(const char * ext)
-    {
-        return *reinterpret_cast<const u32*>(ext);
-    }
+Gspr * Gspr::create()
+{
+    PANIC("TODO");
+    return nullptr;
+}
 
-private:
-    HashMap<kMEM_Engine, u32, AssetType> mExtToAssetTypeMap;
-};
+u64 Gspr::size() const
+{
+    PANIC("TODO");
+    return 0;
+}
+
+u32 Gspr::glyphWidth()
+{
+    PANIC("TODO");
+    return 0;
+}
+
+u32 Gspr::glyphHeight()
+{
+    PANIC("TODO");
+    return 0;
+}
+
+u32 Gspr::animCount()
+{
+    PANIC("TODO");
+    return 0;
+}
+
+u32 Gspr::frameCount(u32 animHash)
+{
+    PANIC("TODO");
+    return 0;
+}
+
+const GlyphCoords & Gspr::getFrame(u32 animHash, u32 frameIdx)
+{
+    PANIC("TODO");
+    return GlyphCoords();
+}
+
+const char * Gspr::atlasPath() const
+{
+    PANIC("TODO");
+    return nullptr;
+}
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_ENGINE_ASSET_TYPES_H
-
 

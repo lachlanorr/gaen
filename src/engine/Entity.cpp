@@ -383,7 +383,7 @@ MessageResult Entity::message(const T & msgAcc)
                 const Asset * pAsset = reinterpret_cast<const Asset*>(pHandle->data());
 
 
-                if (pAsset->isLoaded())
+                if (!pAsset->hadError())
                 {
                     mAssetsLoaded++;
 
@@ -780,11 +780,11 @@ void Entity::removeChild(task_id taskId)
     PANIC("Attempt to remove task that Entity does not have");
 }
 
-void Entity::requestAsset(u32 taskId, u32 nameHash, const CmpString & path)
+void Entity::requestAsset(u32 subTaskId, u32 nameHash, const CmpString & path)
 {
     mAssetsRequested++;
 
-    MessageQueueWriter msgw(HASH::request_asset__, kMessageFlag_None, mTask.id(), kAssetMgrTaskId, to_cell(taskId), path.blockCount() + 1);
+    MessageQueueWriter msgw(HASH::request_asset__, kMessageFlag_None, mTask.id(), kAssetMgrTaskId, to_cell(subTaskId), path.blockCount() + 1);
     msgw[0].cells[0].u = nameHash;
     path.writeMessage(msgw.accessor(), 1);
 }

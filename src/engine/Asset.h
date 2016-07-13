@@ -31,6 +31,8 @@
 #include "core/mem.h"
 #include "core/String.h"
 
+#include "assets/AssetType.h"
+
 namespace gaen
 {
 
@@ -60,7 +62,12 @@ public:
     
     bool isLoaded() const
     {
-        return mpBuffer != nullptr;
+        return !mHadError && mpAssetType->isFullyLoaded(mpBuffer, mSize);
+    }
+
+    bool hadError() const
+    {
+        return mHadError;
     }
 
     const String<kMEM_Engine> & path() const
@@ -136,12 +143,14 @@ private:
     u32 mRefCount;
 
     u8 * mpBuffer;
-
     u64 mSize;
 
     u64 mUid;
+
+    const AssetType * mpAssetType;
     
     bool mIsMutable;
+    bool mHadError;
 
 }; // class Asset
 

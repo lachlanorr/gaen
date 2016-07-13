@@ -25,6 +25,9 @@
 #-------------------------------------------------------------------------------
 
 SET (assets_SOURCES
+  AssetType.h
+  AssetTypeGspr.cpp
+  AssetTypeGspr.h
   AssetTypes.cpp
   AssetTypes.h
   Color.h
@@ -33,10 +36,12 @@ SET (assets_SOURCES
   file_utils.cpp
   file_utils.h
   file_utils_${platform}.cpp
-  Gimg.cpp
-  Gimg.h
   Gatl.cpp
   Gatl.h
+  Gimg.cpp
+  Gimg.h
+  Gspr.cpp
+  Gspr.h
   )
 
 IDE_SOURCE_PROPERTIES( "/" "${assets_SOURCES}")

@@ -76,6 +76,7 @@ class Handle(FieldHandler):
 
 class Asset(FieldHandler):
     taskId = u32Field(payload=True)
+    subTaskId = u32Field()
     nameHash = u32Field()
     pAsset = PointerField(type_name='Asset *',
                           includes=['engine/Asset.h'])

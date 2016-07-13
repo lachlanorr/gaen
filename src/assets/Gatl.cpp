@@ -63,6 +63,11 @@ Gatl * Gatl::instance(void * pBuffer, u64 size)
     return reinterpret_cast<Gatl*>(pBuffer);
 }
 
+const Gatl * Gatl::instance(const void * pBuffer, u64 size)
+{
+    return instance(const_cast<void*>(pBuffer), size);
+}
+
 u64 Gatl::required_size(u32 glyphCount, u32 aliasCount, const Gimg & image)
 {
     return sizeof(Gatl) + glyphCount * sizeof(GlyphCoords) + aliasCount * sizeof(GlyphAlias) + image.size();

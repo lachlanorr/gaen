@@ -52,7 +52,9 @@ void asset_handle_free(Handle & handle)
     if (handle.data())
     {
         Asset * pAsset = reinterpret_cast<Asset*>(handle.data());
-        messages::AssetQW msgw(HASH::release_asset__, kMessageFlag_None, handle.owner(), kAssetMgrTaskId, 0);
+        messages::AssetQW msgw(HASH::release_asset__, kMessageFlag_None, handle.owner(), kAssetMgrTaskId, handle.owner());
+        msgw.setSubTaskId(0);
+        msgw.setNameHash(0);
         msgw.setAsset(pAsset);
     }
 }
@@ -110,7 +112,7 @@ void AssetMgr::sendAssetReadyHandle(Asset * pAsset,
 {
     ASSERT(mCreatorThreadId == active_thread_id());
 
-    // Everytime we send this asset to an Entity, we increase
+    // Every time we send this asset to an Entity, we increase
     // reference count.
     pAsset->addRef();
 
@@ -141,13 +143,13 @@ MessageResult AssetMgr::message(const T & msgAcc)
     case HASH::request_asset__:
     {
         CmpString pathCmpString;
-        u32 requestorTaskId;
+        u32 subTaskId;
         u32 nameHash;
 
         AssetLoader::extract_request_asset(msgAcc,
                                            mBlockMemory,
                                            pathCmpString,
-                                           requestorTaskId,
+                                           subTaskId,
                                            nameHash);
 
         const char * pathStr = pathCmpString.c_str();
@@ -169,14 +171,14 @@ MessageResult AssetMgr::message(const T & msgAcc)
         else if (it->second != nullptr)
         {
             // Asset is already loaded
-            sendAssetReadyHandle(it->second, msg.source, requestorTaskId, nameHash);
+            sendAssetReadyHandle(it->second, msg.source, subTaskId, nameHash);
         }
         else
         {
             // Asset is in the process of loading, started by some other entity.
             // Record the requestor's info so we can send them asset_ready__
             // when loading is complete.
-            mDuplicateRequestTargets[pathStr].emplace_back(msg.source, requestorTaskId, nameHash);
+            mDuplicateRequestTargets[pathStr].emplace_back(msg.source, subTaskId, nameHash);
         }
 
         return MessageResult::Consumed;
@@ -188,24 +190,164 @@ MessageResult AssetMgr::message(const T & msgAcc)
 
         mAssets[pAsset->path()] = pAsset;
 
-        // LORRNOTE: In this case, msg.source is the original entity
-        // task_id that requested the asset since AssetLoader sends it
-        // back to us.
 
-        sendAssetReadyHandle(pAsset, msg.target, msgr.taskId(), msgr.nameHash());
-
-        auto dupIt = mDuplicateRequestTargets.find(pAsset->path());
-        if (dupIt != mDuplicateRequestTargets.end())
+        if (pAsset->hadError() || pAsset->isLoaded())
         {
-            for (auto & req : dupIt->second)
+            // If asset starts as full loaded or has an error upon
+            // entering this handler, notify all tasks that are
+            // waiting for it.
+
+            sendAssetReadyHandle(pAsset, msgr.taskId(), msgr.subTaskId(), msgr.nameHash());
+
+            auto dupIt = mDuplicateRequestTargets.find(pAsset->path());
+            if (dupIt != mDuplicateRequestTargets.end())
             {
-                task_id targetTaskId = std::get<0>(req);
-                task_id requestorTaskId = std::get<1>(req);
-                u32 nameHash = std::get<2>(req);
-                sendAssetReadyHandle(pAsset, targetTaskId, requestorTaskId, nameHash);
+                for (auto & req : dupIt->second)
+                {
+                    task_id targetTaskId = std::get<0>(req);
+                    task_id requestorTaskId = std::get<1>(req);
+                    u32 nameHash = std::get<2>(req);
+
+                    sendAssetReadyHandle(pAsset, targetTaskId, requestorTaskId, nameHash);
+                }
+                mDuplicateRequestTargets.erase(dupIt);
             }
-            mDuplicateRequestTargets.erase(dupIt);
+
+
+            // If asset is loaded or there was an error, check the
+            // AssetsWaitingForDependent list to see if any other asset
+            // was waiting on it as a dependent, and update that asset. If
+            // an asset that was waiting on us is now complete, resend to
+            // asset_ready__ so we can process it again with this message
+            // handler logic.
+
+            // check to see if any assets are waiting on this as a dependent
+            auto itList = mAssetsWaitingForDependent.find(pAsset->path());
+            if (itList != mAssetsWaitingForDependent.end())
+            {
+                for (auto tup : itList->second)
+                {
+                    u32 dependentNameHash = std::get<0>(tup);
+                    Asset * pWaitingAsset = std::get<1>(tup);
+
+                    if (pAsset->isLoaded())
+                    {
+                        ASSERT(pWaitingAsset->mpBuffer && pWaitingAsset->mSize > 0 && pAsset->mpBuffer && pAsset->mSize > 0);
+                        // set the dependent
+                        pWaitingAsset->mpAssetType->setDependent(dependentNameHash,
+                                                                 pWaitingAsset->mpBuffer,
+                                                                 pWaitingAsset->mSize,
+                                                                 pAsset->mpBuffer,
+                                                                 pAsset->mSize);
+                    }
+                    else if (pAsset->hadError())
+                    {
+                        pWaitingAsset->mHadError = true;
+                    }
+                    else
+                    {
+                        PANIC("Invalid branch, sanity check");
+                    }
+
+
+                    // If it's now full loaded or an error, send us the
+                    // asset_ready__ message again so we can properly
+                    // process it.
+                    //
+                    // NOTE: We don't simply send asset_ready__ to the
+                    // requestor because it's possible there are items
+                    // in the mDuplicateRequestTargets that are also
+                    // waiting for it, so the simplest thing is to
+                    // just pass it through this message handler
+                    // again.
+                    if (pWaitingAsset->isLoaded())
+                    {
+                        task_id targetTaskId = std::get<2>(tup);
+                        task_id subTaskId = std::get<3>(tup);
+                        u32 nameHash = std::get<4>(tup);
+
+                        messages::AssetQW msgw(HASH::asset_ready__,
+                                               kMessageFlag_None,
+                                               kAssetMgrTaskId,
+                                               kAssetMgrTaskId,
+                                               targetTaskId);
+                        msgw.setSubTaskId(subTaskId);
+                        msgw.setNameHash(nameHash);
+                        msgw.setAsset(pAsset);
+                    }
+                }
+                mAssetsWaitingForDependent.erase(pAsset->path());
+            }
         }
+
+
+        else if (!pAsset->isLoaded())
+        {
+            // If  the asset isn't fully loaded, deal with dependents:
+            // 1. For each loaded dependent, set it on the asset
+            // 2. For each non-loaded dependent, send request_asset__
+            //    messages to ourselves and add this asset to the
+            //    AssetsWaitingForDependent list for each asset is is
+            //    waiting on.
+            ASSERT(pAsset->mpBuffer && pAsset->mSize > 0);
+            DependentVecUP deps = pAsset->mpAssetType->dependents(pAsset->mpBuffer, pAsset->mSize);
+
+            if (deps.get() != nullptr)
+            {
+                ASSERT(deps->size() > 0);
+            
+                for (const Dependent & dep : *deps)
+                {
+                    // check to see if it's already loaded
+                    auto it = mAssets.find(dep.path);
+
+                    // Only conduct load if asset hasn't already started loading
+                    if (it == mAssets.end())
+                    {
+                        // insert null placeholder so we know it is already
+                        // loading in case it is requested again before loading
+                        // finishes.
+                        mAssets[dep.path] = nullptr;
+
+                        AssetLoader * pLdr = findLeastBusyAssetLoader();
+                        pLdr->queueRequest(msgAcc);
+                        pLdr->incQueueSize();
+                    }
+                    else if (it->second != nullptr)
+                    {
+                        // Asset is already loaded, set the dependent
+                        pAsset->mpAssetType->setDependent(dep.nameHash,
+                                                          pAsset->mpBuffer,
+                                                          pAsset->mSize,
+                                                          it->second->mpBuffer,
+                                                          it->second->mSize);
+                    }
+                    else
+                    {
+                        // Asset is in the process of loading, started by some other entity.
+                        // Record the requestor's info so we can send them asset_ready__
+                        // when loading is complete.
+                        mAssetsWaitingForDependent[dep.path].emplace_back(dep.nameHash, pAsset, msgr.taskId(), msgr.subTaskId(), msgr.nameHash());
+                    }
+                }
+
+                if (pAsset->isLoaded())
+                {
+                    // We got lucky, all dependents were already loaded,
+                    // send us an asset_ready__ back to ourselves so we
+                    // can process this asset again immediately.
+                    messages::AssetQW msgw(HASH::asset_ready__,
+                                           kMessageFlag_None,
+                                           kAssetMgrTaskId,
+                                           kAssetMgrTaskId,
+                                           msgr.taskId());
+                    msgw.setSubTaskId(msgr.subTaskId());
+                    msgw.setNameHash(msgr.nameHash());
+                    msgw.setAsset(msgr.asset());
+                }
+            }
+        }
+
 
         return MessageResult::Consumed;
     }

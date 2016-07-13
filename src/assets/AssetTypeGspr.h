@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// AssetTypes.h - Mapping of asset extension to various asset properties
+// AssetTypeGspr.h - Custom asset type for Gspr
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,42 +24,33 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_ASSET_TYPES_H
-#define GAEN_ENGINE_ASSET_TYPES_H
-
-#include "core/mem.h"
-#include "core/HashMap.h"
+#ifndef GAEN_ASSETS_ASSET_TYPE_GSPR_H
+#define GAEN_ASSETS_ASSET_TYPE_GSPR_H
 
 #include "assets/AssetType.h"
 
 namespace gaen
 {
 
-class AssetTypes
+class AssetTypeGspr : public AssetType
 {
 public:
-    AssetTypes();
+    AssetTypeGspr();
 
-    void registerAssetType(const AssetType & assetType);
+    virtual bool isFullyLoaded(const void * pBuffer,
+                               u64 size) const;
 
-    void registerProjectAssetTypes();
+    virtual DependentVecUP dependents(const void * pBuffer,
+                                      u64 size) const;
+    
+    virtual void setDependent(u32 nameHash,
+                              void * pBuffer,
+                              u64 size,
+                              const void * pDependentBuffer,
+                              u64 dependentSize) const;
 
-    const AssetType * assetTypeFromExt(const char * ext) const;
-
-    // Dealing with 4 character codes can be endian dangerous, but we
-    // only do this within a running process, these 4 character codes
-    // are never persisted between processes.
-    static u32 ext_to_4cc(const char * ext)
-    {
-        return *reinterpret_cast<const u32*>(ext);
-    }
-
-private:
-    HashMap<kMEM_Engine, u32, AssetType> mExtToAssetTypeMap;
 };
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_ASSET_TYPES_H
-
-
+#endif // #ifndef GAEN_ASSETS_ASSET_TYPE_GSPR_H

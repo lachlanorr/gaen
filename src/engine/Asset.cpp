@@ -45,13 +45,17 @@ Asset::Asset(const char * path,
   , mpBuffer(nullptr)
   , mSize(0)
   , mIsMutable(false)
+  , mHadError(true) // will get set to false if asset loads successfully
 {
     ASSERT(path);
 
+    mPathHash = HASH::hash_func(path);
+
     static std::atomic<u64> sUidCounter(0);
     mUid = ++sUidCounter;
+
+    mpAssetType = assetTypes.assetTypeFromExt(get_ext(mPath.c_str()));
     
-    mPathHash = HASH::hash_func(path);
     load(fullPath, assetTypes);
 }
 
@@ -74,9 +78,9 @@ void Asset::load(const char * fullPath,
         if (mSize > 0)
         {
             ASSERT(!mpBuffer);
-            MemType memType = assetTypes.memTypeFromExt(get_ext(mPath.c_str()));
-            mpBuffer = (u8*)GALLOC(memType, mSize);
+            mpBuffer = (u8*)GALLOC(mpAssetType->memType(), mSize);
             rdr.read(mpBuffer, mSize);
+            mHadError = false;
         }
     }
 }
