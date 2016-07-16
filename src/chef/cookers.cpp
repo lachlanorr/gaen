@@ -35,6 +35,7 @@
 #include "assets/file_utils.h"
 #include "assets/Gimg.h"
 #include "assets/Gatl.h"
+#include "assets/Gspr.h"
 
 #include "chef/Chef.h"
 #include "chef/CookerRegistry.h"
@@ -65,6 +66,88 @@ static GlyphCoords glyph_coords(i32 left, i32 top, i32 width, i32 height, const 
     return coords;
 }
 
+void cook_spr(const CookInfo & ci)
+{
+    Config<kMEM_Chef> spr;
+    {
+        FileReader rdr(ci.rawPath());
+        PANIC_IF(!rdr.isOk(), "Unable to load file: %s", ci.rawPath());
+        spr.read(rdr.ifs);
+    }
+
+    static const char * kAtlas = "atlas";
+    static const char * kFrameSize = "size";
+    static const char * kFrames = "frames";
+
+    PANIC_IF(!spr.hasKey(kAtlas), "Missing atlas in .spr: %s", ci.rawPath());
+    PANIC_IF(!spr.hasKey(kFrameSize), "Missing frame_size in .spr: %s", ci.rawPath());
+
+    u32 animCount = 0;
+    u32 totalFrameCount = 0;
+
+    // Iterate over sections to discover how many animations and total
+    // frames there are.
+    for (auto secIt = spr.sectionsBegin();
+         secIt != spr.sectionsEnd();
+         secIt++)
+    {
+        if (!spr.isGlobalSection(*secIt) && spr.hasKey(*secIt, kFrames))
+        {
+            Config<kMEM_Chef>::IntVec frameVec = spr.getIntVec(*secIt, kFrames);
+            PANIC_IF(frameVec.size() == 0, "No frames specified in .spr animation: %s, %s", *secIt, ci.rawPath());
+            animCount++;
+            totalFrameCount += (u32)frameVec.size();
+        }
+    }
+
+    PANIC_IF(animCount == 0, "No animations in .spr: %s", ci.rawPath());
+    PANIC_IF(totalFrameCount == 0, "No frames specified in .spr: %s", ci.rawPath());
+
+    Config<kMEM_Chef>::IntVec frameSizeVec = spr.getIntVec(kFrameSize);
+    PANIC_IF(frameSizeVec.size() != 2, "frame_size doesn't contain 2 ints in .spr: %s", ci.rawPath());
+
+    const char * atlasPath = spr.get(kAtlas);
+    ci.recordDependency(atlasPath);
+
+    Gspr * pGspr = Gspr::create(frameSizeVec[0],
+                                frameSizeVec[1],
+                                atlasPath,
+                                animCount,
+                                totalFrameCount);
+    ASSERT(pGspr);
+
+    // Iterate over sections again to insert animation frame data into
+    // the gspr.
+    u32 currFrame = 0;
+    AnimInfo * pAnimInfo = pGspr->anims();
+    u32 * pFrames = pGspr->frames();
+    for (auto secIt = spr.sectionsBegin();
+         secIt != spr.sectionsEnd();
+         secIt++)
+    {
+        if (!spr.isGlobalSection(*secIt) && spr.hasKey(*secIt, kFrames))
+        {
+            Config<kMEM_Chef>::IntVec frameVec = spr.getIntVec(*secIt, kFrames);
+            PANIC_IF(frameVec.size() == 0, "No frames specified in .spr animation: %s, %s", ci.rawPath(), *secIt);
+
+            pAnimInfo->animHash = gaen_hash(*secIt);
+            pAnimInfo->frameCount = (u32)frameVec.size();
+            pAnimInfo->firstFrame = currFrame;
+
+            for (i32 i : frameVec)
+            {
+                *pFrames++ = i;
+            }
+
+            currFrame += pAnimInfo->frameCount;
+            pAnimInfo++;
+        }
+    }
+
+    ASSERT(Gspr::is_valid(pGspr, pGspr->size()));
+    ci.setCookedBuffer(pGspr, pGspr->size());
+}
+
 void cook_atl(const CookInfo & ci)
 {
     Config<kMEM_Chef> atl;
@@ -78,7 +161,7 @@ void cook_atl(const CookInfo & ci)
     static const char * kFixedSize = "fixed_size";
     static const char * kImage = "image";
 
-    PANIC_IF(!atl.hasKey(kImage), "Missing image in .fnt");
+    PANIC_IF(!atl.hasKey(kImage), "Missing image in .atl");
 
     // Cook our dependent image
     UniquePtr<CookInfo> pCiImage = ci.cookDependency(atl.get(kImage));
@@ -254,6 +337,7 @@ void cook_passthrough(const CookInfo & ci)
 void register_cookers()
 {
     CookerRegistry::register_cooker("atl", "gatl", cook_atl);
+    CookerRegistry::register_cooker("spr", "gspr", cook_spr);
     CookerRegistry::register_cooker("tga", "gimg", cook_tga);
 
     CookerRegistry::register_cooker("mat", "gmat", cook_passthrough);

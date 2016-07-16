@@ -60,6 +60,11 @@ CookInfo::~CookInfo()
     }
 }
 
+void CookInfo::recordDependency(const char * path) const
+{
+    mDependencies.emplace(path);
+}
+
 UniquePtr<CookInfo> CookInfo::cookDependency(const char * path) const
 {
     char depRawPath[kMaxPath+1];
@@ -70,7 +75,7 @@ UniquePtr<CookInfo> CookInfo::cookDependency(const char * path) const
     }
 
     UniquePtr<CookInfo> pCi = mpChef->cookDependency(depRawPath);
-    PANIC_IF(!pCi->cookedBuffer() || pCi->cookedBufferSize() == 0, "Failed to cook gatl image dependency: %s", path);
+    PANIC_IF(!pCi->cookedBuffer() || pCi->cookedBufferSize() == 0, "Failed to cook dependency: %s", path);
 
     char rawRelativePath[kMaxPath+1];
     mpChef->getRawRelativePath(rawRelativePath, depRawPath);

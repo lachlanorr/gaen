@@ -38,6 +38,8 @@
 namespace gaen
 {
 
+static const char * kGlobalSection = "GLOBAL";
+
 template <MemType memType>
 class Config
 {
@@ -60,6 +62,8 @@ public:
     typename StringVec::const_iterator keysBegin(const char * section) const;
     typename StringVec::const_iterator keysEnd() const;
     typename StringVec::const_iterator keysEnd(const char * section) const;
+
+    bool isGlobalSection(const char * section) const;
 
     // Check for keys and sections
     bool hasSection(const char * section) const;

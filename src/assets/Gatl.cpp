@@ -38,15 +38,15 @@ bool Gatl::is_valid(const void * pBuffer, u64 size)
     if (size < sizeof(Gatl))
         return false;
 
-    const Gatl * pGatl = reinterpret_cast<const Gatl*>(pBuffer);
+    const Gatl * pAssetData = reinterpret_cast<const Gatl*>(pBuffer);
 
-    if (0 != strncmp(kMagic, pGatl->mMagic, 4))
+    if (0 != strncmp(kMagic, pAssetData->mMagic, 4))
         return false;
 
-    if (pGatl->mDefaultIndex >= pGatl->glyphCount())
+    if (pAssetData->mDefaultIndex >= pAssetData->glyphCount())
         return false;
 
-    if (pGatl->size() != size)
+    if (pAssetData->size() != size)
         return false;
 
     return true;
@@ -56,7 +56,7 @@ Gatl * Gatl::instance(void * pBuffer, u64 size)
 {
     if (!is_valid(pBuffer, size))
     {
-        PANIC("Invalid Gimg buffer");
+        PANIC("Invalid Gatl buffer");
         return nullptr;
     }
 
@@ -80,7 +80,7 @@ Gatl * Gatl::create(u32 glyphCount, u32 aliasCount, u32 defaultIndex, const Gimg
     Gatl * pGatl = (Gatl*)GALLOC(kMEM_Texture, size);
 
     ASSERT(strlen(kMagic) == 4);
-    strcpy(pGatl->mMagic, kMagic);
+    strncpy(pGatl->mMagic, kMagic, 4);
 
     if (defaultIndex >= glyphCount)
         PANIC("Failed to create Gatl, defaultIndex too large: %u", defaultIndex);

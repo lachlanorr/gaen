@@ -80,22 +80,22 @@ bool Gimg::is_valid(const void * pBuffer, u64 size)
     if (size < sizeof(Gimg))
         return false;
 
-    const Gimg * pGimg = reinterpret_cast<const Gimg*>(pBuffer);
+    const Gimg * pAssetData = reinterpret_cast<const Gimg*>(pBuffer);
 
-    if (0 != strncmp(kMagic, pGimg->mMagic, 4))
+    if (0 != strncmp(kMagic, pAssetData->mMagic, 4))
         return false;
 
-    if (pGimg->size() != size)
+    if (pAssetData->size() != size)
         return false;
 
-    switch (pGimg->mPixelFormat)
+    switch (pAssetData->mPixelFormat)
     {
     case kPXL_RGB_DXT1:
     case kPXL_RGBA_DXT1:
     case kPXL_RGBA_DXT3:
     case kPXL_RGBA_DXT5:
         // DXT textures should have multiples of 4 for width and height
-        if (pGimg->mWidth % 4 != 0 || pGimg->mHeight % 4 != 0)
+        if (pAssetData->mWidth % 4 != 0 || pAssetData->mHeight % 4 != 0)
             return false;
     }
 
@@ -163,7 +163,8 @@ Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
     Gimg * pGimg = (Gimg*)GALLOC(kMEM_Texture, size);
 
     ASSERT(strlen(kMagic) == 4);
-    strcpy(pGimg->mMagic, kMagic);
+    strncpy(pGimg->mMagic, kMagic, 4);
+
     pGimg->mPixelFormat = pixelFormat;
     pGimg->mWidth = width;
     pGimg->mHeight = height;

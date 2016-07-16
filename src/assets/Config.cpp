@@ -36,8 +36,6 @@ namespace gaen
 
 static const u32 kMaxLine = 1024;
 
-const char * kGlobalSection = "GLOBAL";
-
 static inline bool is_whitespace(char c)
 {
     return (c == ' ' ||
@@ -188,6 +186,12 @@ typename Config<memType>::StringVec::const_iterator Config<memType>::keysEnd(con
     return it->second.end();
 }
 
+template <MemType memType>
+bool Config<memType>::isGlobalSection(const char * section) const
+{
+    ASSERT(section);
+    return 0 == strcmp(section, kGlobalSection);
+}
 
 template <MemType memType>
 bool Config<memType>::hasSection(const char * section) const
@@ -334,18 +338,26 @@ typename Config<memType>::StringVec Config<memType>::getVec(const char * section
     StringVec vec;
     const char * val = get(section, key);
     const char * comma = strchr(val, ',');
-    while (comma)
+    if (!comma)
     {
-        auto it = mNames.emplace(val, comma-val);
+        auto it = mNames.emplace(val);
         vec.emplace_back(it.first->c_str());
-        val = comma+1;
-        comma = strchr(val, ',');
-
-        // grab last value after last comma
-        if (!comma && strlen(val) > 0)
+    }
+    else
+    {
+        while (comma)
         {
-            auto itLast = mNames.emplace(val);
-            vec.emplace_back(itLast.first->c_str());
+            auto it = mNames.emplace(val, comma-val);
+            vec.emplace_back(it.first->c_str());
+            val = comma+1;
+            comma = strchr(val, ',');
+
+            // grab last value after last comma
+            if (!comma && strlen(val) > 0)
+            {
+                auto itLast = mNames.emplace(val);
+                vec.emplace_back(itLast.first->c_str());
+            }
         }
     }
     return vec;

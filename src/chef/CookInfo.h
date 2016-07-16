@@ -55,7 +55,13 @@ public:
              const char * cookedPath,
              const RecipeList & recipes);
     ~CookInfo();
-    
+
+    // Record a dependency, but don't cook it to include inthe parent
+    // asset.
+    void recordDependency(const char * path) const;
+
+    // Cook a dependency with the intention of including the cooked
+    // buffer in the parent asset.
     UniquePtr<CookInfo> cookDependency(const char * path) const;
 
     CookFlags flags() const { return mFlags; }

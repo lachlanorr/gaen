@@ -33,6 +33,14 @@ namespace gaen
 class Gatl;
 struct GlyphCoords;
 
+struct AnimInfo
+{
+    u32 animHash;
+    u32 frameCount:12;
+    u32 firstFrame:20;
+};
+static_assert(sizeof(AnimInfo) == 8, "AnimInfo has unexpected size");
+
 class Gspr
 {
     friend class AssetTypeGspr;
@@ -41,20 +49,26 @@ public:
     static Gspr * instance(void * pBuffer, u64 size);
     static const Gspr * instance(const void * pBuffer, u64 size);
 
-    static u64 required_size();
+    static u64 required_size(const char * atlasPath, u32 animCount, u32 totalFrameCount);
 
-    static Gspr * create();
+    static Gspr * create(u32 frameWidth,
+                         u32 frameHeight,
+                         const char * atlasPath,
+                         u32 animCount,
+                         u32 totalFrameCount);
 
-    u64 size() const;
+    u64 size() const { return mSize; }
 
-    u32 glyphWidth();
-    u32 glyphHeight();
+    u32 frameWidth() const { return mFrameWidth; }
+    u32 frameHeight() const { return mFrameHeight; }
 
-    u32 animCount();
-    u32 frameCount(u32 animHash);
-    const GlyphCoords & getFrame(u32 animHash, u32 frameIdx);
+    u32 animCount() const { return mAnimCount; }
 
-    const char * atlasPath() const;
+    const char * atlasPath() const
+    {
+        // atlasPath is null terminated string immediately after header
+        return reinterpret_cast<const char*>(this+1);
+    }
     
     const Gatl * atlas() const
     {
@@ -62,17 +76,40 @@ public:
         return pAtlas;
     }
 
+    const AnimInfo * getAnim(u32 animHash) const;
+    const GlyphCoords & getFrame(const AnimInfo * pAnim, u32 frameIdx) const;
+
+    AnimInfo * anims();
+    const AnimInfo * anims() const;
+
+    u32 * frames();
+    const u32 * frames() const;
+
+    u32 * framesEnd();
+    const u32 * framesEnd() const;
+
 private:
     static const char * kMagic;
     static const u32 kMagic4cc;
     char mMagic[4];
 
-    u32 mAnimCount;
+    u32 mFrameWidth;
+    u32 mFrameHeight;
     
-    
+    u32 mAnimCount:12;
+    u32 mAnimTocOffset:20;
+
+    u64 mSize;
     const Gatl * pAtlas;
+
+    // What follows header:
+
+    // - null terminated atlasPath (relative to cooked directory, e.g. /foo/bar/baz.atl)
+    // - Array of AnimEntries (starting at this address + nAnimTocOffset
+    // - Frames referenced by AnimEntries
 };
 
+static_assert(sizeof(Gspr) == 32, "Gspr unexpected size");
 } // namespace
 
 
