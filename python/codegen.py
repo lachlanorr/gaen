@@ -160,9 +160,13 @@ class ScriptInfo(object):
         for inc in includes:
             args += ['-i', inc]
         args.append(self.cmpFullPath)
-        for arg in args:
-            print arg,
-        print
+
+        # LORRNOTE: Printing these always isn't useful, but keeping
+        # these lines commented out for future debugging purposes.
+        #for arg in args:
+        #    print arg,
+        #print
+
         p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         sout, serr = p.communicate()
         if p.returncode == 0:
@@ -202,7 +206,7 @@ class ScriptInfo(object):
             write_file(self.cppFullPath + ".codegen", self.cppOutput)
             print "WARNING: %s has been modified and is not being replaced, diff with %s.codegen and manually apply the changes." % (self.cppFullPath, self.cppFullPath)
         elif self._should_write_cpp():
-            print "Writing %s" % self.cppFullPath
+            print self.cppFilename
             write_file(self.cppFullPath, self.cppOutput)
 
         if (self.hSource is not None):
@@ -212,7 +216,7 @@ class ScriptInfo(object):
                 write_file(self.hFullPath + ".codegen", self.hOutput)
                 print "WARNING: %s has been modified and is not being replaced, diff with %s.codegen and manually apply the changes." % (self.hFullPath, self.hFullPath)
             elif self._should_write_h():
-                print "Writing %s" % self.hFullPath
+                print self.hFilename
                 write_file(self.hFullPath, self.hOutput)
             
         
@@ -254,7 +258,7 @@ def write_registration_cpp(script_infos):
     reg_cpp = REGISTRATION_TEMPLATE % (extern_cpp, calls_cpp)
     reg_cpp = reg_cpp.replace('<<license>>', license_text('//', reg_cpp_path))
     if not os.path.exists(reg_cpp_path) or read_file(reg_cpp_path) != reg_cpp:
-        print "Writing %s" % reg_cpp_path
+        print posixpath.split(reg_cpp_path)[-1]
         write_file(reg_cpp_path, reg_cpp)
 
 
@@ -288,7 +292,7 @@ def write_cmake(cmp_files, cpp_files, h_files):
     template = template.replace('<<files>>', '\n'.join(cmp_rel_files + cpp_rel_files + h_rel_files))
     template = template.replace('<<ide_source_props>>', '\n'.join(ide_src_props))
     if not os.path.exists(cmake_path) or read_file(cmake_path) != template:
-        print "Writing %s" % cmake_path
+        print posixpath.split(cmake_path)[-1]
         write_file(cmake_path, template)
         # touch the scripts/CMakeLists.txt file since we generated
         # codegen.cmake and want to poke cmake to reprocess
@@ -299,7 +303,6 @@ def find_source_files(scripts_dir, source_files):
     for root, _, files in os.walk(scripts_dir):
         for f in files:
             if f.endswith('cmp'):
-                print posixpath.join(root, f)
                 source_files.append(posixpath.join(root.replace('\\', '/'), f))
 
 def main():
