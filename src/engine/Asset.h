@@ -87,6 +87,12 @@ public:
         return mpBuffer;
     }
 
+    const void * buffer() const
+    {
+        ASSERT(isLoaded());
+        return mpBuffer;
+    }
+
     template <typename T>
     T * mutableBuffer()
     {

@@ -30,10 +30,19 @@
 #include "core/HashMap.h"
 #include "core/String.h"
 #include "core/Vector.h"
+#include "core/threading.h"
 #include "assets/AssetTypes.h"
 #include "engine/Message.h"
 #include "engine/BlockMemory.h"
 #include "engine/Asset.h"
+
+#define VALIDATE_ASSETS WHEN(HAS(DEV_BUILD))
+
+#if HAS(VALIDATE_ASSETS)
+#define IS_VALID(assetType, assetPtr) do {PANIC_IF(!assetType::is_valid(assetPtr->buffer(), assetPtr->size()), "Invalid asset of type: " #assetType);} while(0)
+#else  // #if HAS(ASSERTS)
+#define IS_VALID(assetType, assetPtr) do {} while(0)
+#endif // #if HAS(ASSERTS)
 
 namespace gaen
 {
@@ -51,8 +60,8 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    static void addref_asset(Asset * pAsset);
-    static void release_asset(Asset * pAsset);
+    static void addref_asset(task_id source, Asset * pAsset);
+    static void release_asset(task_id source, Asset * pAsset);
 private:
     AssetLoader * findLeastBusyAssetLoader();
     void sendAssetReadyHandle(Asset * pAsset,

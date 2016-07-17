@@ -41,13 +41,13 @@ class SpriteMgr
     MessageResult message(const T& msgAcc);
 };
 
-} // namespace gaen
-
 // Compose API
 class Entity;
 namespace system_api
 {
     HandleP sprite_create(AssetHandleP pAsset, Entity & caller);
 }
+
+} // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_SPRITEMGR_H

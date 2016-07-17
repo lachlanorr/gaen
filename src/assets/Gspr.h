@@ -27,6 +27,8 @@
 #ifndef GAEN_ASSETS_GSPR_H
 #define GAEN_ASSETS_GSPR_H
 
+#include "core/base_defines.h"
+
 namespace gaen
 {
 

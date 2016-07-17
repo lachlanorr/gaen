@@ -52,7 +52,7 @@ void asset_handle_free(Handle & handle)
     if (handle.data())
     {
         Asset * pAsset = reinterpret_cast<Asset*>(handle.data());
-        release_asset(handle.owner(), pAsset);
+        AssetMgr::release_asset(handle.owner(), pAsset);
     }
 }
 

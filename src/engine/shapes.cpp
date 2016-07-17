@@ -238,6 +238,8 @@ Model * build_box(const glm::vec3 & size, Color color)
     builder.addQuad(glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymax, zmax));
 
     Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
+    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
+
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }
@@ -320,6 +322,8 @@ Model * build_cone(const glm::vec3 & size, u32 slices, Color color)
     Mesh * pMesh = lathe_points(points, 3, slices);
 
     Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
+    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
+
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }
@@ -340,6 +344,8 @@ Model * build_cylinder(const glm::vec3 & size, u32 slices, Color color)
     Mesh * pMesh = lathe_points(points, 4, slices);
 
     Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
+    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
+
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }
@@ -367,6 +373,8 @@ Model * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color col
     GFREE(points);
 
     Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
+    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
+
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }
@@ -458,6 +466,8 @@ Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
     }
 
     Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
+    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
+
     Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
     return pModel;
 }

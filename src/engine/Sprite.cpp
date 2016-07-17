@@ -26,6 +26,7 @@
 
 #include "engine/stdafx.h"
 
+#include "assets/Gspr.h"
 #include "engine/AssetMgr.h"
 #include "engine/messages/Transform.h"
 
@@ -39,12 +40,13 @@ Sprite::Sprite(task_id owner, Asset * pGsprAsset, const glm::mat4x3 & transform)
   , mpGsprAsset(pGsprAsset)
   , mTransform(transform)
 {
-    AssetMgr::addref_asset(0, pAsset);
+    IS_VALID(Gspr, pGsprAsset);
+    AssetMgr::addref_asset(0, mpGsprAsset);
 }
 
 Sprite::~Sprite()
 {
-    AssetMgr::release_asset(0, pAsset);
+    AssetMgr::release_asset(0, mpGsprAsset);
 }
 
 void Sprite::setTransform(const glm::mat4x3 & transform)
@@ -52,11 +54,11 @@ void Sprite::setTransform(const glm::mat4x3 & transform)
     mTransform = transform;
     
     // Notify owning task that its transform has been updated
-    TransformQW msgw(HASH::transform,
-                     kMessageFlag_None,
-                     kSpriteMgrTaskId,
-                     mOwner,
-                     false);
+    messages::TransformQW msgw(HASH::transform,
+                               kMessageFlag_None,
+                               kSpriteMgrTaskId,
+                               mOwner,
+                               false);
     msgw.setTransform(transform);
 }
 
