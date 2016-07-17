@@ -40,7 +40,7 @@ class AssetTypes
 public:
     AssetTypes();
 
-    void registerAssetType(const AssetType & assetType);
+    void registerAssetType(AssetType * assetType);
 
     void registerProjectAssetTypes();
 
@@ -55,7 +55,7 @@ public:
     }
 
 private:
-    HashMap<kMEM_Engine, u32, AssetType> mExtToAssetTypeMap;
+    HashMap<kMEM_Engine, u32, UniquePtr<AssetType>> mExtToAssetTypeMap;
 };
 
 } // namespace gaen

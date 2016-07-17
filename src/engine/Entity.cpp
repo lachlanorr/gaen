@@ -385,6 +385,30 @@ MessageResult Entity::message(const T & msgAcc)
 
                 if (!pAsset->hadError())
                 {
+                    bool taskMatch = false;
+                    // send to script task if task id matches
+                    if (subTask == mScriptTask.id())
+                    {
+                        mScriptTask.message(msgAcc);
+                        taskMatch = true;
+                    }
+
+                    // send to a component if task id matches
+                    if (!taskMatch)
+                    {
+                        for (u32 i = 0; i < mComponentCount; ++i)
+                        {
+                            if (subTask == mpComponents[i].task().id())
+                            {
+                                mpComponents[i].task().message(msgAcc);
+                                taskMatch = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    ERR_IF(!taskMatch, "Asset sent to entity for non-matching subTask");
+
                     mAssetsLoaded++;
 
                     // Send ourself #init if all assets have been loaded

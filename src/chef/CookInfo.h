@@ -56,9 +56,9 @@ public:
              const RecipeList & recipes);
     ~CookInfo();
 
-    // Record a dependency, but don't cook it to include inthe parent
+    // Record a dependency, but don't cook it to include in the parent
     // asset.
-    void recordDependency(const char * path) const;
+    void recordDependency(char * gamePath, const char * path) const;
 
     // Cook a dependency with the intention of including the cooked
     // buffer in the parent asset.

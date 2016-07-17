@@ -544,7 +544,6 @@ static S asset_ready(const Ast * pAst, int indentLevel)
     {
         code += I + S("{\n");
         code += I + S("    messages::HandleR<T> msgr(msgAcc);\n");
-        code += I + S("    ASSERT(msgr.taskId() == task().id());\n");
         code += I + S("    switch (msgr.nameHash())\n");
         code += I + S("    {\n");
         for (SymRec * pSymRec : pAst->pScope->pSymTab->orderedSymRecs)
@@ -554,11 +553,13 @@ static S asset_ready(const Ast * pAst, int indentLevel)
                 const char * handleName = asset_handle_name(pSymRec->name);
                 code += I + S("    case HASH::") + S(handleName) + S(":\n");
                 code += I + S("        ") + S(handleName) + ("() = msgr.handle();\n");
+                code += I + S("        break;\n");
             }
         }
 
         code += I + S("    default:\n");
         code += I + S("        ERR(\"Invalid asset nameHash: %u\", msgr.nameHash());\n");
+        code += I + S("        break;\n");
 
         code += I + S("    }\n");
         code += I + S("}\n");

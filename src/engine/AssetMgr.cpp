@@ -112,22 +112,28 @@ void AssetMgr::sendAssetReadyHandle(Asset * pAsset,
 {
     ASSERT(mCreatorThreadId == active_thread_id());
 
-    // Every time we send this asset to an Entity, we increase
-    // reference count.
-    pAsset->addRef();
+    // Dependent entities will have an entityTask of 0, and in those
+    // cases we don't need to notify anyone as the parent asset that
+    // loaded the dependency will be sent to the requesting task.
+    if (entitySubTask != 0)
+    {
+        // Every time we send this asset to an Entity, we increase
+        // reference count.
+        pAsset->addRef();
 
-    // Prep a Handle wrapper for the asset
-    Handle * pHandle = GNEW(kMEM_Engine,
-                            Handle,
-                            HASH::asset,
-                            pAsset->pathHash(),
-                            entitySubTask,
-                            pAsset,
-                            asset_handle_free);
+        // Prep a Handle wrapper for the asset
+        Handle * pHandle = GNEW(kMEM_Engine,
+                                Handle,
+                                HASH::asset,
+                                pAsset->pathHash(),
+                                entityTask,
+                                pAsset,
+                                asset_handle_free);
 
-    messages::HandleQW msgw(HASH::asset_ready__, kMessageFlag_None, kAssetMgrTaskId, entityTask, entitySubTask);
-    msgw.setNameHash(nameHash);
-    msgw.setHandle(pHandle);
+        messages::HandleQW msgw(HASH::asset_ready__, kMessageFlag_None, kAssetMgrTaskId, entityTask, entitySubTask);
+        msgw.setNameHash(nameHash);
+        msgw.setHandle(pHandle);
+    }
 }
 
 
@@ -273,7 +279,7 @@ MessageResult AssetMgr::message(const T & msgAcc)
                                                targetTaskId);
                         msgw.setSubTaskId(subTaskId);
                         msgw.setNameHash(nameHash);
-                        msgw.setAsset(pAsset);
+                        msgw.setAsset(pWaitingAsset);
                     }
                 }
                 mAssetsWaitingForDependent.erase(pAsset->path());
@@ -310,8 +316,11 @@ MessageResult AssetMgr::message(const T & msgAcc)
                         mAssets[dep.path] = nullptr;
 
                         AssetLoader * pLdr = findLeastBusyAssetLoader();
-                        pLdr->queueRequest(msgAcc);
                         pLdr->incQueueSize();
+                        CmpString pathStr = mBlockMemory.stringAlloc(dep.path);
+                        MessageQueueWriter msgw(HASH::request_asset__, kMessageFlag_None, kAssetMgrTaskId, kAssetMgrTaskId, to_cell(0), pathStr.blockCount() + 1, &pLdr->requestQueue());
+                        msgw[0].cells[0].u = 0;
+                        pathStr.writeMessage(msgw.accessor(), 1);
                     }
                     else if (it->second != nullptr)
                     {
@@ -322,7 +331,8 @@ MessageResult AssetMgr::message(const T & msgAcc)
                                                           it->second->mpBuffer,
                                                           it->second->mSize);
                     }
-                    else
+
+                    if (it == mAssets.end() || it->second == nullptr)
                     {
                         // Asset is in the process of loading, started by some other entity.
                         // Record the requestor's info so we can send them asset_ready__

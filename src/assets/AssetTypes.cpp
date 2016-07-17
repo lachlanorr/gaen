@@ -35,23 +35,24 @@ AssetTypes::AssetTypes()
 {
     // Register the built in gaen asset types
 
-    registerAssetType(AssetType("gatl", kMEM_Engine));
-    registerAssetType(AssetType("gfrg", kMEM_Engine));
-    registerAssetType(AssetType("gimg", kMEM_Texture));
-    registerAssetType(AssetType("gmat", kMEM_Renderer));
-    registerAssetType(AssetType("gvtx", kMEM_Engine));
+    registerAssetType(GNEW(kMEM_Engine, AssetType, "gatl", kMEM_Engine));
+    registerAssetType(GNEW(kMEM_Engine, AssetType, "gfrg", kMEM_Engine));
+    registerAssetType(GNEW(kMEM_Engine, AssetType, "gimg", kMEM_Texture));
+    registerAssetType(GNEW(kMEM_Engine, AssetType, "gmat", kMEM_Renderer));
+    registerAssetType(GNEW(kMEM_Engine, AssetType, "gvtx", kMEM_Engine));
 
     // Types with special cased dependent loading (e.g. sprites need atlases)
-    registerAssetType(AssetTypeGspr());
+    registerAssetType(GNEW(kMEM_Engine, AssetTypeGspr));
 }
 
-void AssetTypes::registerAssetType(const AssetType & assetType)
+void AssetTypes::registerAssetType(AssetType * pAssetType)
 {
-    u32 ext4cc = ext_to_4cc(assetType.extension());
+    UniquePtr<AssetType> pAssetTypeUP(pAssetType);
+    u32 ext4cc = ext_to_4cc(pAssetTypeUP->extension());
 
     ASSERT(mExtToAssetTypeMap.find(ext4cc) == mExtToAssetTypeMap.end());
 
-    mExtToAssetTypeMap.emplace(ext4cc, assetType);
+    mExtToAssetTypeMap.emplace(ext4cc, std::move(pAssetTypeUP));
 }
 
 
@@ -75,7 +76,7 @@ const AssetType * AssetTypes::assetTypeFromExt(const char * ext) const
     auto it = mExtToAssetTypeMap.find(cc);
     if (it != mExtToAssetTypeMap.end())
     {
-        return &it->second;
+        return it->second.get();
     }
     else
     {

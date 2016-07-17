@@ -49,6 +49,11 @@ public:
     ~AssetLoader();
 
     void queueRequest(const MessageQueueAccessor & msgAcc);
+    MessageQueue & requestQueue()
+    {
+        ASSERT(mCreatorThreadId == active_thread_id());
+        return *mpRequestQueue;
+    }
     MessageQueue & readyQueue()
     {
         ASSERT(mCreatorThreadId == active_thread_id());

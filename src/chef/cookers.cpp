@@ -106,12 +106,13 @@ void cook_spr(const CookInfo & ci)
     Config<kMEM_Chef>::IntVec frameSizeVec = spr.getIntVec(kFrameSize);
     PANIC_IF(frameSizeVec.size() != 2, "frame_size doesn't contain 2 ints in .spr: %s", ci.rawPath());
 
-    const char * atlasPath = spr.get(kAtlas);
-    ci.recordDependency(atlasPath);
+    const char * atlasPathSpr = spr.get(kAtlas);
+    char atlasPathGame[kMaxPath+1];
+    ci.recordDependency(atlasPathGame, atlasPathSpr);
 
     Gspr * pGspr = Gspr::create(frameSizeVec[0],
                                 frameSizeVec[1],
-                                atlasPath,
+                                atlasPathGame,
                                 animCount,
                                 totalFrameCount);
     ASSERT(pGspr);
@@ -171,6 +172,7 @@ void cook_atl(const CookInfo & ci)
     // Grab some info out of the source image, which will be needed
     // when considering coordinates.
     ImageInfo imageInfo = read_image_info(pCiImage->rawPath());
+    ImageInfo imageInfoSized(imageInfo.origin, pImage->width(), pImage->height());
 
     // Pull out the fixed width/height if present
     bool hasFixedSize = false;
@@ -229,7 +231,7 @@ void cook_atl(const CookInfo & ci)
                 height = cv[3];
             }
 
-            GlyphCoords coords = glyph_coords(cv[0], cv[1], width, height, imageInfo);
+            GlyphCoords coords = glyph_coords(cv[0], cv[1], width, height, imageInfoSized);
 
             PANIC_IF(coordsSet.find(coords) != coordsSet.end(), "Coords multiply defined within atl file: %s", ci.rawPath());
 
@@ -253,11 +255,11 @@ void cook_atl(const CookInfo & ci)
         i32 currX = 0;
         i32 currY = 0;
 
-        for (i32 currY = 0; currY < imageInfo.height; ++currY)
+        for (i32 currY = 0; currY < imageInfo.height; currY+=fixedHeight)
         {
-            for (i32 currX = 0; currX < imageInfo.width; ++currX)
+            for (i32 currX = 0; currX < imageInfo.width; currX+=fixedWidth)
             {
-                GlyphCoords coords = glyph_coords(currX, currY, fixedWidth, fixedHeight, imageInfo);
+                GlyphCoords coords = glyph_coords(currX, currY, fixedWidth, fixedHeight, imageInfoSized);
                 coordsList.push_back(coords);
             }
         }

@@ -60,9 +60,20 @@ CookInfo::~CookInfo()
     }
 }
 
-void CookInfo::recordDependency(const char * path) const
+void CookInfo::recordDependency(char * gamePath, const char * path) const
 {
     mDependencies.emplace(path);
+
+    if (gamePath != nullptr)
+    {
+        char depRawPath[kMaxPath+1];
+
+        if (!mpChef->convertRelativeDependencyPath(depRawPath, mRawPath, path))
+        {
+            PANIC("Unable to convert dependency relative path to raw path: %s", path);
+        }
+        mpChef->getGamePath(gamePath, depRawPath);
+    }
 }
 
 UniquePtr<CookInfo> CookInfo::cookDependency(const char * path) const
