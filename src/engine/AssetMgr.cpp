@@ -52,11 +52,24 @@ void asset_handle_free(Handle & handle)
     if (handle.data())
     {
         Asset * pAsset = reinterpret_cast<Asset*>(handle.data());
-        messages::AssetQW msgw(HASH::release_asset__, kMessageFlag_None, handle.owner(), kAssetMgrTaskId, handle.owner());
-        msgw.setSubTaskId(0);
-        msgw.setNameHash(0);
-        msgw.setAsset(pAsset);
+        release_asset(handle.owner(), pAsset);
     }
+}
+
+void AssetMgr::addref_asset(task_id source, Asset * pAsset)
+{
+    messages::AssetQW msgw(HASH::addref_asset__, kMessageFlag_None, source, kAssetMgrTaskId, source);
+    msgw.setSubTaskId(0);
+    msgw.setNameHash(0);
+    msgw.setAsset(pAsset);
+}
+
+void AssetMgr::release_asset(task_id source, Asset * pAsset)
+{
+    messages::AssetQW msgw(HASH::release_asset__, kMessageFlag_None, source, kAssetMgrTaskId, source);
+    msgw.setSubTaskId(0);
+    msgw.setNameHash(0);
+    msgw.setAsset(pAsset);
 }
 
 AssetMgr::AssetMgr(u32 assetLoaderCount)
@@ -358,6 +371,19 @@ MessageResult AssetMgr::message(const T & msgAcc)
             }
         }
 
+
+        return MessageResult::Consumed;
+    }
+    case HASH::addref_asset__:
+    {
+        messages::AssetR<T> msgr(msgAcc);
+        Asset * pAsset = msgr.asset();
+        ASSERT(pAsset && pAsset->refCount() > 0);
+        if (pAsset->release())
+        {
+            mAssets.erase(pAsset->path());
+            GDELETE(pAsset);
+        }
 
         return MessageResult::Consumed;
     }

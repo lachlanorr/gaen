@@ -68,6 +68,19 @@ ExternalProject_Add(freetype
 INCLUDE_DIRECTORIES (${FREETYPE_PATH}/include/freetype2)
 SET (FREETYPE_LIB "${FREETYPE_PATH}/lib/freetype.lib")
 SET (FREETYPE_LIBD "${FREETYPE_PATH}/lib/freetyped.lib")
+
+# Bullet Physics
+#SET (BULLET_VER "2.83.7")
+#SET (BULLET_NAME_VER "bullet3-${BULLET_VER}")
+#SET (BULLET_PATH "${CMAKE_BINARY_DIR}/external/${BULLET_NAME_VER}")
+#ExternalProject_Add(bullet
+#  URL "https://github.com/bulletphysics/bullet3/archive/${BULLET_VER}.tar.gz"
+#  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/bullet
+#  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${BULLET_PATH}
+#)
+#INCLUDE_DIRECTORIES (${BULLET_PATH}/include/freetype2)
+#SET (BULLET_LIB "${BULLET_PATH}/lib/freetype.lib")
+#SET (BULLET_LIBD "${BULLET_PATH}/lib/freetyped.lib")
 #-------------------------------------------------------------------------------
 # External dependencies (END)
 #-------------------------------------------------------------------------------

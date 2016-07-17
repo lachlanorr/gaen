@@ -50,6 +50,9 @@ public:
 
     template <typename T>
     MessageResult message(const T& msgAcc);
+
+    static void addref_asset(Asset * pAsset);
+    static void release_asset(Asset * pAsset);
 private:
     AssetLoader * findLeastBusyAssetLoader();
     void sendAssetReadyHandle(Asset * pAsset,

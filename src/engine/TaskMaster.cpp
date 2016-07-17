@@ -172,7 +172,7 @@ MessageQueue * get_message_queue(task_id source,
     {
         thread_id targetThreadId = -1;
         // Check to see of target is a "standard" reserved target
-        if (IsPrimaryTask(target))
+        if (is_primary_task(target))
         {
             targetThreadId = kPrimaryThreadId;
         }
@@ -318,7 +318,7 @@ MessageQueue * TaskMaster::messageQueueForTarget(task_id target)
 
     // Special case the Renderer and InputManager since they
     // are so common.
-    if (IsPrimaryTask(target))
+    if (is_primary_task(target))
     {
         targetThreadId = kPrimaryThreadId;
     }

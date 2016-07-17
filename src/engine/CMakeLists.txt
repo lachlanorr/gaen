@@ -78,6 +78,10 @@ SET (engine_SOURCES
   renderer_structs.h
   shapes.cpp
   shapes.h
+  Sprite.cpp
+  Sprite.h
+  SpriteMgr.cpp
+  SpriteMgr.h
   system_api.cpp
   system_api.h
   Task.cpp
