@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// AssetTypeGspr.h - Custom asset type for Gspr
+// AssetTypes.h - Mapping of asset extension to various asset properties
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,33 +24,36 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ASSETS_ASSET_TYPE_GSPR_H
-#define GAEN_ASSETS_ASSET_TYPE_GSPR_H
+#ifndef GAEN_ENGINE_ASSET_TYPES_H
+#define GAEN_ENGINE_ASSET_TYPES_H
 
-#include "assets/AssetType.h"
+#include "core/mem.h"
+#include "core/HashMap.h"
+
+#include "engine/AssetType.h"
 
 namespace gaen
 {
 
-class AssetTypeGspr : public AssetType
+class AssetTypes
 {
 public:
-    AssetTypeGspr();
+    AssetTypes();
 
-    virtual bool isFullyLoaded(const void * pBuffer,
-                               u64 size) const;
+    void registerAssetType(const char * extension,
+                           MemType memType,
+                           AssetConstructor constructor);
 
-    virtual DependentVecUP dependents(const void * pBuffer,
-                                      u64 size) const;
-    
-    virtual void setDependent(u32 nameHash,
-                              void * pBuffer,
-                              u64 size,
-                              const void * pDependentBuffer,
-                              u64 dependentSize) const;
+    void registerProjectAssetTypes();
 
+    const AssetType * assetTypeFromExt(const char * ext) const;
+
+private:
+    HashMap<kMEM_Engine, u32, UniquePtr<AssetType>> mExtToAssetTypeMap;
 };
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ASSETS_ASSET_TYPE_GSPR_H
+#endif // #ifndef GAEN_ENGINE_ASSET_TYPES_H
+
+

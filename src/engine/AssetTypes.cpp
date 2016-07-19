@@ -24,9 +24,13 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "assets/AssetTypeGspr.h"
+#include "engine/stdafx.h"
 
-#include "assets/AssetTypes.h"
+#include "assets/file_utils.h"
+
+#include "engine/Asset.h"
+#include "engine/AssetGspr.h"
+#include "engine/AssetTypes.h"
 
 namespace gaen
 {
@@ -35,24 +39,24 @@ AssetTypes::AssetTypes()
 {
     // Register the built in gaen asset types
 
-    registerAssetType(GNEW(kMEM_Engine, AssetType, "gatl", kMEM_Engine));
-    registerAssetType(GNEW(kMEM_Engine, AssetType, "gfrg", kMEM_Engine));
-    registerAssetType(GNEW(kMEM_Engine, AssetType, "gimg", kMEM_Texture));
-    registerAssetType(GNEW(kMEM_Engine, AssetType, "gmat", kMEM_Renderer));
-    registerAssetType(GNEW(kMEM_Engine, AssetType, "gvtx", kMEM_Engine));
+    registerAssetType("gatl", kMEM_Engine,   Asset::construct<Asset>);
+    registerAssetType("gfrg", kMEM_Engine,   Asset::construct<Asset>);
+    registerAssetType("gimg", kMEM_Texture,  Asset::construct<Asset>);
+    registerAssetType("gmat", kMEM_Renderer, Asset::construct<Asset>);
+    registerAssetType("gvtx", kMEM_Engine,   Asset::construct<Asset>);
 
-    // Types with special cased dependent loading (e.g. sprites need atlases)
-    registerAssetType(GNEW(kMEM_Engine, AssetTypeGspr));
+    registerAssetType("gspr", kMEM_Engine,   Asset::construct<AssetGspr>);
 }
 
-void AssetTypes::registerAssetType(AssetType * pAssetType)
+void AssetTypes::registerAssetType(const char * extension,
+                                   MemType memType,
+                                   AssetConstructor constructor)
 {
-    UniquePtr<AssetType> pAssetTypeUP(pAssetType);
-    u32 ext4cc = ext_to_4cc(pAssetTypeUP->extension());
+    u32 ext4cc = ext_to_4cc(extension);
 
     ASSERT(mExtToAssetTypeMap.find(ext4cc) == mExtToAssetTypeMap.end());
 
-    mExtToAssetTypeMap.emplace(ext4cc, std::move(pAssetTypeUP));
+    mExtToAssetTypeMap.emplace(ext4cc, GNEW(kMEM_Engine, AssetType, extension, memType, constructor));
 }
 
 

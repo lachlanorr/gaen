@@ -30,9 +30,12 @@
 #include <glm/vec4.hpp>
 
 #include "assets/Color.h"
+#include "core/base_defines.h"
 
 namespace gaen
 {
+
+class Asset;
 
 // Define these in the order of rendering.
 // Higher MaterialLayers get rendered later.
@@ -48,12 +51,16 @@ enum MaterialLayer
 
 typedef u32 material_id;
 
-typedef void(*SetShaderVec4VarCB)(u32 nameHash, const glm::vec4 & val, void * context);
+typedef void(*SetShaderVec4VarCB)(u32 nameHash, const glm::vec4 & val, void * pContext);
+typedef void(*SetTextureCB)(u32 nameHash, u32 gpuId, void * pContext);
+typedef u32(*LoadTextureCB)(u32 nameHash, const Asset * pGimgAsset, void * pContext);
+typedef void(*UnloadTextureCB)(u32 gpuId, const Asset * pGimgAsset, void * pContext);
 
 class Material
 {
 public:
     Material(u32 shaderNameHash);
+    ~Material();
 
     MaterialLayer layer() const { return mLayer; }
     u32 shaderNameHash() { return mShaderNameHash; }
@@ -61,25 +68,49 @@ public:
     material_id id() const { return mId; }
 
     void registerVec4Var(u32 nameHash, const glm::vec4 & value);
+    void registerTexture(u32 nameHash, const Asset * pAsset);
 
     void setShaderVec4Vars(SetShaderVec4VarCB setCB, void * context);
-
+    void setTextures(SetTextureCB setCB, void * context);
+    void loadTextures(LoadTextureCB loadCB, void * context);
+    void unloadTextures(UnloadTextureCB loadCB, void * context);
 private:
-    static const u32 kMaxVec4Vars = 4;
-
-    struct Vec4Var
-    {
-        glm::vec4 value;
-        u32 nameHash;
-    };
-
     MaterialLayer mLayer;
     u32 mShaderNameHash;
 
     material_id mId;
 
+
+    static const u32 kMaxVec4Vars = 4;
+    struct Vec4Var
+    {
+        u32 nameHash;
+        glm::vec4 value;
+        Vec4Var() {}
+        Vec4Var(u32 nameHash, const glm::vec4 & value)
+          : nameHash(nameHash)
+          , value(value)
+        {}
+    };
     u32 mVec4VarCount;
     Vec4Var mVec4Vars[kMaxVec4Vars];
+
+
+    struct TextureInfo
+    {
+        u32 nameHash;
+        u32 rendererId;
+        const Asset * pGimgAsset;
+        TextureInfo() {}
+        TextureInfo(u32 nameHash, u32 rendererId, const Asset * pGimgAsset)
+          : nameHash(nameHash)
+          , rendererId(rendererId)
+          , pGimgAsset(pGimgAsset)
+        {}
+    };
+    static const u32 kMaxTextures = 8;
+    u32 mTextureCount;
+    TextureInfo mTextures[kMaxTextures];
 };
 
 

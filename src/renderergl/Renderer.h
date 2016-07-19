@@ -29,18 +29,18 @@
 
 #include "core/base_defines.h"
 
-#define USE_RENDERER_2D     HAS_X
+#define USE_RENDERER_MESH   HAS_X
 #define USE_RENDERER_PROTO  HAS__
 
-#if HAS(USE_RENDERER_2D)
-#include "renderergl/Renderer2D.h"
-#define RENDERER_TYPE Renderer2D
+#if HAS(USE_RENDERER_MESH)
+#include "renderergl/RendererMesh.h"
+#define RENDERER_TYPE RendererMesh
 namespace gaen
 {
-typedef Renderer2D RendererType;
+typedef RendererMesh RendererType;
 }
 
-#elif HAS(USE_RENDERER_PROTO) // #if HAS(USE_RENDERER_2D)
+#elif HAS(USE_RENDERER_PROTO) // #if HAS(USE_RENDERER_MESH)
 #include "renderergl/RendererProto.h"
 #define RENDERER_TYPE RendererProto
 namespace gaen

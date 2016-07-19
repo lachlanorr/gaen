@@ -29,8 +29,7 @@
 #include "core/mem.h"
 #include "hashes/hashes.h"
 #include "assets/file_utils.h"
-#include "assets/AssetTypes.h"
-#include "engine/AssetLoader.h"
+#include "engine/AssetType.h"
 
 #include "engine/Asset.h"
 
@@ -39,7 +38,7 @@ namespace gaen
 
 Asset::Asset(const char * path,
              const char * fullPath,
-             const AssetTypes & assetTypes)
+             MemType memType)
   : mPath(path)
   , mRefCount(0)
   , mpBuffer(nullptr)
@@ -54,9 +53,7 @@ Asset::Asset(const char * path,
     static std::atomic<u64> sUidCounter(0);
     mUid = ++sUidCounter;
 
-    mpAssetType = assetTypes.assetTypeFromExt(get_ext(mPath.c_str()));
-    
-    load(fullPath, assetTypes);
+    load(fullPath, memType);
 }
 
 Asset::~Asset()
@@ -66,7 +63,7 @@ Asset::~Asset()
 }
 
 void Asset::load(const char * fullPath,
-                 const AssetTypes & assetTypes)
+                 MemType memType)
 {
     PANIC_IF(isLoaded(), "load called on already loaded asset: %s", mPath);
 
@@ -78,7 +75,7 @@ void Asset::load(const char * fullPath,
         if (mSize > 0)
         {
             ASSERT(!mpBuffer);
-            mpBuffer = (u8*)GALLOC(mpAssetType->memType(), mSize);
+            mpBuffer = (u8*)GALLOC(memType, mSize);
             rdr.read(mpBuffer, mSize);
             mHadError = false;
         }

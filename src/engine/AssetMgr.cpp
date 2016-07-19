@@ -56,20 +56,26 @@ void asset_handle_free(Handle & handle)
     }
 }
 
-void AssetMgr::addref_asset(task_id source, Asset * pAsset)
+void AssetMgr::addref_asset(task_id source, const Asset * pAsset)
 {
-    messages::AssetQW msgw(HASH::addref_asset__, kMessageFlag_None, source, kAssetMgrTaskId, source);
-    msgw.setSubTaskId(0);
-    msgw.setNameHash(0);
-    msgw.setAsset(pAsset);
+    if (pAsset)
+    {
+        messages::AssetQW msgw(HASH::addref_asset__, kMessageFlag_None, source, kAssetMgrTaskId, source);
+        msgw.setSubTaskId(0);
+        msgw.setNameHash(0);
+        msgw.setAsset(const_cast<Asset*>(pAsset));
+    }
 }
 
-void AssetMgr::release_asset(task_id source, Asset * pAsset)
+void AssetMgr::release_asset(task_id source, const Asset * pAsset)
 {
-    messages::AssetQW msgw(HASH::release_asset__, kMessageFlag_None, source, kAssetMgrTaskId, source);
-    msgw.setSubTaskId(0);
-    msgw.setNameHash(0);
-    msgw.setAsset(pAsset);
+    if (pAsset)
+    {
+        messages::AssetQW msgw(HASH::release_asset__, kMessageFlag_None, source, kAssetMgrTaskId, source);
+        msgw.setSubTaskId(0);
+        msgw.setNameHash(0);
+        msgw.setAsset(const_cast<Asset*>(pAsset));
+    }
 }
 
 AssetMgr::AssetMgr(u32 assetLoaderCount)
@@ -125,15 +131,15 @@ void AssetMgr::sendAssetReadyHandle(Asset * pAsset,
 {
     ASSERT(mCreatorThreadId == active_thread_id());
 
+    // Every time an asset is ready to send (even if it's a dependent
+    // asset and isn't actually sent), we increase reference count.
+    pAsset->addRef();
+
     // Dependent entities will have an entityTask of 0, and in those
     // cases we don't need to notify anyone as the parent asset that
     // loaded the dependency will be sent to the requesting task.
     if (entitySubTask != 0)
     {
-        // Every time we send this asset to an Entity, we increase
-        // reference count.
-        pAsset->addRef();
-
         // Prep a Handle wrapper for the asset
         Handle * pHandle = GNEW(kMEM_Engine,
                                 Handle,
@@ -148,7 +154,6 @@ void AssetMgr::sendAssetReadyHandle(Asset * pAsset,
         msgw.setHandle(pHandle);
     }
 }
-
 
 template <typename T>
 MessageResult AssetMgr::message(const T & msgAcc)
@@ -253,11 +258,8 @@ MessageResult AssetMgr::message(const T & msgAcc)
                     {
                         ASSERT(pWaitingAsset->mpBuffer && pWaitingAsset->mSize > 0 && pAsset->mpBuffer && pAsset->mSize > 0);
                         // set the dependent
-                        pWaitingAsset->mpAssetType->setDependent(dependentNameHash,
-                                                                 pWaitingAsset->mpBuffer,
-                                                                 pWaitingAsset->mSize,
-                                                                 pAsset->mpBuffer,
-                                                                 pAsset->mSize);
+                        pWaitingAsset->setDependent(dependentNameHash,
+                                                    pAsset);
                     }
                     else if (pAsset->hadError())
                     {
@@ -309,7 +311,7 @@ MessageResult AssetMgr::message(const T & msgAcc)
             //    AssetsWaitingForDependent list for each asset is is
             //    waiting on.
             ASSERT(pAsset->mpBuffer && pAsset->mSize > 0);
-            DependentVecUP deps = pAsset->mpAssetType->dependents(pAsset->mpBuffer, pAsset->mSize);
+            DependentVecUP deps = pAsset->dependents();
 
             if (deps.get() != nullptr)
             {
@@ -338,11 +340,8 @@ MessageResult AssetMgr::message(const T & msgAcc)
                     else if (it->second != nullptr)
                     {
                         // Asset is already loaded, set the dependent
-                        pAsset->mpAssetType->setDependent(dep.nameHash,
-                                                          pAsset->mpBuffer,
-                                                          pAsset->mSize,
-                                                          it->second->mpBuffer,
-                                                          it->second->mSize);
+                        pAsset->setDependent(dep.nameHash,
+                                             it->second);
                     }
 
                     if (it == mAssets.end() || it->second == nullptr)
@@ -378,13 +377,8 @@ MessageResult AssetMgr::message(const T & msgAcc)
     {
         messages::AssetR<T> msgr(msgAcc);
         Asset * pAsset = msgr.asset();
-        ASSERT(pAsset && pAsset->refCount() > 0);
-        if (pAsset->release())
-        {
-            mAssets.erase(pAsset->path());
-            GDELETE(pAsset);
-        }
 
+        pAsset->addRef();
         return MessageResult::Consumed;
     }
     case HASH::release_asset__:
@@ -392,12 +386,9 @@ MessageResult AssetMgr::message(const T & msgAcc)
         messages::AssetR<T> msgr(msgAcc);
         Asset * pAsset = msgr.asset();
         ASSERT(pAsset && pAsset->refCount() > 0);
-        if (pAsset->release())
-        {
-            mAssets.erase(pAsset->path());
-            GDELETE(pAsset);
-        }
 
+        if (pAsset->release())
+            GDELETE(pAsset);
         return MessageResult::Consumed;
     }
     default:

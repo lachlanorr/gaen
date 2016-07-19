@@ -25,11 +25,6 @@
 #-------------------------------------------------------------------------------
 
 SET (assets_SOURCES
-  AssetType.h
-  AssetTypeGspr.cpp
-  AssetTypeGspr.h
-  AssetTypes.cpp
-  AssetTypes.h
   Color.h
   Config.cpp
   Config.h

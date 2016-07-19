@@ -29,6 +29,8 @@
 #include "assets/file_utils.h"
 #include "engine/MessageQueue.h"
 #include "engine/Asset.h"
+#include "engine/AssetType.h"
+#include "engine/AssetTypes.h"
 
 #include "engine/messages/Asset.h"
 
@@ -117,7 +119,8 @@ MessageResult AssetLoader::message(const MessageQueueAccessor& msgAcc)
         strcpy(fullPath, mAssetsRootPath.c_str());
         strcat(fullPath, pathCmpString.c_str());
 
-        Asset * pAsset = GNEW(kMEM_Engine, Asset, pathCmpString.c_str(), fullPath, mAssetTypes);
+        const AssetType * pAT = mAssetTypes.assetTypeFromExt(get_ext(pathCmpString.c_str()));
+        Asset * pAsset = pAT->construct(pathCmpString.c_str(), fullPath);
 
         messages::AssetQW msgw(HASH::asset_ready__, kMessageFlag_None, kAssetMgrTaskId, kAssetMgrTaskId, msg.source, mpReadyQueue);
         msgw.setSubTaskId(subTaskId);

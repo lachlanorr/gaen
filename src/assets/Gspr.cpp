@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "assets/AssetTypes.h"
+#include "assets/file_utils.h"
 #include "assets/Gatl.h"
 #include "assets/Gspr.h"
 
@@ -32,7 +32,7 @@ namespace gaen
 {
 
 const char * Gspr::kMagic = "gspr";
-const u32 Gspr::kMagic4cc = AssetTypes::ext_to_4cc(Gspr::kMagic);
+const u32 Gspr::kMagic4cc = ext_to_4cc(Gspr::kMagic);
 
 static u32 anim_toc_offset(size_t atlasPathLen)
 {
@@ -150,7 +150,7 @@ Gspr * Gspr::create(u32 frameWidth,
 
     pGspr->mSize = size;
 
-    pGspr->pAtlas = nullptr;
+    pGspr->mpAtlas = nullptr;
 
     // zero out memory for good measure
     memset(reinterpret_cast<char*>(pGspr) + pGspr->mAnimTocOffset,
@@ -174,7 +174,7 @@ const AnimInfo * Gspr::getAnim(u32 animHash) const
 
 const GlyphCoords & Gspr::getFrame(const AnimInfo * pAnim, u32 frameIdx) const
 {
-    ASSERT(pAtlas);
+    ASSERT(mpAtlas);
 
     ASSERT(pAnim);
     ASSERT(pAnim > anims() && pAnim < anims() + mAnimCount);
@@ -184,8 +184,8 @@ const GlyphCoords & Gspr::getFrame(const AnimInfo * pAnim, u32 frameIdx) const
 
     u32 frame = frames()[pAnim->firstFrame];
 
-    ASSERT(frame < pAtlas->glyphCount());
-    return pAtlas->coords(frame);
+    ASSERT(frame < mpAtlas->glyphCount());
+    return mpAtlas->coords(frame);
 }
 
 AnimInfo * Gspr::anims()

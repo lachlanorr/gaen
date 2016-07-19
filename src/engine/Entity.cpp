@@ -590,9 +590,17 @@ void Entity::finalizeAssetInit()
 
     // LORRTEMP
     LOG_INFO("Entity change state: taskid: %u, name: %s, newstate: %d", mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
-                
+
+    {
+    StackMessageBlockWriter<0> msg(HASH::init_fields__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+    // init all fields and properties in each component
+    mScriptTask.message(msg.accessor());
+    }
+
+    {
     StackMessageBlockWriter<0> msg(HASH::init, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
     mTask.message(msg.accessor());
+    }
 }
 
 Task& Entity::insertComponent(u32 nameHash, u32 index)
@@ -633,9 +641,11 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
 
     mComponentCount++;
 
+    // init__ will be sent to component in codegen'd .cpp for component/entity
+
     // Send int_data message
-    StackMessageBlockWriter<0> initDataMsgw(HASH::init__, kMessageFlag_None, mScriptTask.id(), pComp->task().id(), to_cell(pComp->task().id()));
-    pComp->task().message(initDataMsgw.accessor());
+    //StackMessageBlockWriter<0> initDataMsgw(HASH::init__, kMessageFlag_None, mScriptTask.id(), pComp->task().id(), to_cell(pComp->task().id()));
+    //pComp->task().message(initDataMsgw.accessor());
 
     // LORRTEMP
     LOG_INFO("Component inserted: entityId: %u, entityName: %s, taskId: %u, taskName: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()), pComp->task().id(), HASH::reverse_hash(pComp->task().nameHash()));

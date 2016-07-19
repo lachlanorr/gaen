@@ -50,5 +50,12 @@ MessageResult SpriteMgr::message(const T & msgAcc)
     return MessageResult::Consumed;
 }
 
+namespace system_api
+{
+HandleP sprite_create(AssetHandleP pAsset, Entity & caller)
+{
+    return nullptr;
+}
+}
 
 } // namespace gaen

@@ -24,14 +24,15 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "assets/AssetTypes.h"
 #include "assets/Gimg.h"
 #include "assets/Gatl.h"
+
+#include "assets/file_utils.h"
 
 namespace gaen
 {
 const char * Gatl::kMagic = "gatl";
-const u32 Gatl::kMagic4cc = AssetTypes::ext_to_4cc(Gatl::kMagic);
+const u32 Gatl::kMagic4cc = ext_to_4cc(Gatl::kMagic);
 
 bool Gatl::is_valid(const void * pBuffer, u64 size)
 {

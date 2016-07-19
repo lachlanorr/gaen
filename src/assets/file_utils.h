@@ -62,6 +62,14 @@ char * get_ext(char * path);
 void strip_ext(char * path);
 void change_ext(char * path, const char * ext);
 
+// Dealing with 4 character codes can be endian dangerous, but we
+// only do this within a running process, these 4 character codes
+// are never persisted between processes.
+inline u32 ext_to_4cc(const char * ext)
+{
+    return *reinterpret_cast<const u32*>(ext);
+}
+
 const char * get_filename(const char * path);
 void get_filename(char * filename, const char * path);
 void get_filename_root(char * filename, const char * path);

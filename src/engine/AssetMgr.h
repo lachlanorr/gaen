@@ -31,7 +31,7 @@
 #include "core/String.h"
 #include "core/Vector.h"
 #include "core/threading.h"
-#include "assets/AssetTypes.h"
+#include "engine/AssetTypes.h"
 #include "engine/Message.h"
 #include "engine/BlockMemory.h"
 #include "engine/Asset.h"
@@ -60,8 +60,8 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    static void addref_asset(task_id source, Asset * pAsset);
-    static void release_asset(task_id source, Asset * pAsset);
+    static void addref_asset(task_id source, const Asset * pAsset);
+    static void release_asset(task_id source, const Asset * pAsset);
 private:
     AssetLoader * findLeastBusyAssetLoader();
     void sendAssetReadyHandle(Asset * pAsset,

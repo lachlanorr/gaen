@@ -29,13 +29,13 @@
 #include "core/HashMap.h"
 #include "core/String.h"
 
-#include "assets/AssetTypes.h"
+#include "assets/file_utils.h"
 #include "assets/Gimg.h"
 
 namespace gaen
 {
 const char * Gimg::kMagic = "gimg";
-const u32 Gimg::kMagic4cc = AssetTypes::ext_to_4cc(Gimg::kMagic);
+const u32 Gimg::kMagic4cc = ext_to_4cc(Gimg::kMagic);
 
 typedef HashMap<kMEM_Const, PixelFormat, String<kMEM_Const>> PixelFormatToStrMap;
 typedef HashMap<kMEM_Const, String<kMEM_Const>, PixelFormat> PixelFormatFromStrMap;

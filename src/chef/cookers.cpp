@@ -60,8 +60,8 @@ static GlyphCoords glyph_coords(i32 left, i32 top, i32 width, i32 height, const 
     GlyphCoords coords;
     coords.topLeftU = (f32)left / (imageInfo.width - 1);
     coords.topLeftV = (f32)top / (imageInfo.height - 1);
-    coords.bottomRightU = (f32)(left + width) / (imageInfo.width - 1);
-    coords.bottomRightV = (f32)(top - height) / (imageInfo.height - 1);
+    coords.bottomRightU = (f32)(left + width - 1) / (imageInfo.width - 1);
+    coords.bottomRightV = (f32)(top - height + 1) / (imageInfo.height - 1);
 
     return coords;
 }

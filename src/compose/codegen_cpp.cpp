@@ -459,14 +459,20 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
     }
 }
 
-static S init_data(const Ast * pAst, int indentLevel)
+static bool is_asset_prop_or_field(const SymRec * pSymRec)
+{
+    return (pSymRec->pSymDataType->typeDesc.dataType == kDT_asset ||
+            pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle);
+}
+
+static S init_data(const Ast * pAst, int indentLevel, bool assetsOnly)
 {
     ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
 
     S code = S("");
     for (SymRec * pSymRec : pAst->pScope->pSymTab->orderedSymRecs)
     {
-        if (is_prop_or_field(pSymRec))
+        if (is_prop_or_field(pSymRec) && (is_asset_prop_or_field(pSymRec) == assetsOnly))
         {
             if (!is_block_memory_type(pSymRec->pSymDataType))
             {
@@ -587,15 +593,15 @@ static S fin(const Ast * pAst, int indentLevel)
     return code;
 }
 
-static S initialization_message_handlers(const Ast * pAst, const S& postInit, int indentLevel)
+static S initialization_message_handlers(const Ast * pAst, const S& postInit, const S& postInitFields, int indentLevel)
 {
     S code;
 
     // init__
     code += I + S("        case HASH::init__:\n");
     code += I + S("        {\n");
-    code += I + S("            // Initialize properties and fields to default values\n");
-    code += init_data(pAst, indentLevel + 2);
+    code += I + S("            // Initialize asset properties and fields to default values\n");
+    code += init_data(pAst, indentLevel + 2, true);
     code += postInit;
     code += I + S("            return MessageResult::Consumed;\n");
     code += I + S("        } // HASH::init__\n");
@@ -615,6 +621,15 @@ static S initialization_message_handlers(const Ast * pAst, const S& postInit, in
     code += asset_ready(pAst, indentLevel + 3);
     code += I + S("            return MessageResult::Consumed;\n");
     code += I + S("        } // HASH::assets_ready__\n");
+
+    // init_fields__
+    code += I + S("        case HASH::init_fields__:\n");
+    code += I + S("        {\n");
+    code += I + S("            // Initialize non-asset properties and fields to default values\n");
+    code += init_data(pAst, indentLevel + 2, false);
+    code += postInitFields;
+    code += I + S("            return MessageResult::Consumed;\n");
+    code += I + S("        } // HASH::init_fields__\n");
 
     // fin__
     code += I + S("        case HASH::fin__:\n");
@@ -699,7 +714,7 @@ static S message_def(const Ast * pAst, int indentLevel)
     return code;
 }
 
-static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char * taskName, int indentLevel)
+static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char * taskName, bool assetsOnly, int indentLevel)
 {
     S code = S("");
     if (pAst && pAst->pChildren)
@@ -710,85 +725,88 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
             const char * propName = pPropInit->str;
             SymRec * pSymRec = symtab_find_symbol(pPropsSymTab, propName);
 
-            if (pSymRec && pSymRec->type == kSYMT_Field && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
+            if (is_asset_prop_or_field(pSymRec) == assetsOnly)
             {
-                propName = asset_path_name(pPropInit->str);
-                pSymRec = symtab_find_symbol(pPropsSymTab, propName);
-            }
-
-            if (!pSymRec || pSymRec->type != kSYMT_Property)
-            {
-                COMP_ERROR(pAst->pParseData, "Invalid property: '%s'", pPropInit->str);
-            }
-
-            code += I + S("// Init Property: ") + S(pPropInit->str) + ("\n");
-            code += I + S("{\n");
-            const SymDataType * pRhsSdt = ast_data_type(pPropInit->pRhs);
-
-            if (!is_block_memory_type(pRhsSdt))
-            {
-                u32 valCellCount = pRhsSdt->cellCount;
-                u32 blockCount = block_count(valCellCount);
-                static const u32 kScratchSize = 256;
-                char scratch[kScratchSize+1];
-                snprintf(scratch,
-                         kScratchSize,
-                         "    StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::%s));\n",
-                         blockCount,
-                         "set_property",
-                         propName);
-
-                code += I + S(scratch);
-                DataType dt = pRhsSdt->typeDesc.dataType;
-                switch (dt)
+                if (pSymRec && pSymRec->type == kSYMT_Field && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
                 {
-                case kDT_float:
-                    code += I + S("    msgw[0].cells[0].f = ") + codegen_recurse(pPropInit->pRhs, 0);
-                    break;
-                case kDT_int:
-                    code += I + S("    msgw[0].cells[0].i = ") + codegen_recurse(pPropInit->pRhs, 0);
-                    break;
-                case kDT_uint:
-                    code += I + S("    msgw[0].cells[0].u = ") + codegen_recurse(pPropInit->pRhs, 0);
-                    break;
-                case kDT_color:
-                    code += I + S("    msgw[0].cells[0].color = ") + codegen_recurse(pPropInit->pRhs, 0);
-                    break;
-                case kDT_vec2:
-                case kDT_vec3:
-                case kDT_vec4:
-                case kDT_quat:
-                case kDT_mat3:
-                case kDT_mat43:
-                case kDT_mat4:
-                    code += I + S("    *reinterpret_cast<") + S(pRhsSdt->cppTypeStr) + S("*>(&msgw[0].cells[0].u) = ") + codegen_recurse(pPropInit->pRhs, 0);
-                    break;
-                default:
-                    COMP_ERROR(pAst->pParseData, "Unsupported type for codegen component property init, type: %d", pPropInit->pRhs->type);
+                    propName = asset_path_name(pPropInit->str);
+                    pSymRec = symtab_find_symbol(pPropsSymTab, propName);
                 }
-                code += S(";\n");
-            }
-            else // a BlockMemory type
-            {
-                static const u32 kScratchSize = 256;
-                char scratch[kScratchSize+1];
-                snprintf(scratch,
-                         kScratchSize,
-                         "    %s val = %s;\n",
-                         pRhsSdt->cppTypeStr,
-                         codegen_recurse(pPropInit->pRhs, 0).c_str());
-                code += I + S(scratch);
 
-                snprintf(scratch,
-                         kScratchSize,
-                         "    ThreadLocalMessageBlockWriter msgw(HASH::%s, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::%s), val.blockCount());\n",
-                         "set_property",
-                         propName);
-                code += I + S(scratch);
-                code += I + S("    val.writeMessage(msgw.accessor(), 0);\n");
+                if (!pSymRec || pSymRec->type != kSYMT_Property)
+                {
+                    COMP_ERROR(pAst->pParseData, "Invalid property: '%s'", pPropInit->str);
+                }
+
+                code += I + S("// Init Property: ") + S(pPropInit->str) + ("\n");
+                code += I + S("{\n");
+                const SymDataType * pRhsSdt = ast_data_type(pPropInit->pRhs);
+
+                if (!is_block_memory_type(pRhsSdt))
+                {
+                    u32 valCellCount = pRhsSdt->cellCount;
+                    u32 blockCount = block_count(valCellCount);
+                    static const u32 kScratchSize = 256;
+                    char scratch[kScratchSize+1];
+                    snprintf(scratch,
+                             kScratchSize,
+                             "    StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::%s));\n",
+                             blockCount,
+                             "set_property",
+                             propName);
+
+                    code += I + S(scratch);
+                    DataType dt = pRhsSdt->typeDesc.dataType;
+                    switch (dt)
+                    {
+                    case kDT_float:
+                        code += I + S("    msgw[0].cells[0].f = ") + codegen_recurse(pPropInit->pRhs, 0);
+                        break;
+                    case kDT_int:
+                        code += I + S("    msgw[0].cells[0].i = ") + codegen_recurse(pPropInit->pRhs, 0);
+                        break;
+                    case kDT_uint:
+                        code += I + S("    msgw[0].cells[0].u = ") + codegen_recurse(pPropInit->pRhs, 0);
+                        break;
+                    case kDT_color:
+                        code += I + S("    msgw[0].cells[0].color = ") + codegen_recurse(pPropInit->pRhs, 0);
+                        break;
+                    case kDT_vec2:
+                    case kDT_vec3:
+                    case kDT_vec4:
+                    case kDT_quat:
+                    case kDT_mat3:
+                    case kDT_mat43:
+                    case kDT_mat4:
+                        code += I + S("    *reinterpret_cast<") + S(pRhsSdt->cppTypeStr) + S("*>(&msgw[0].cells[0].u) = ") + codegen_recurse(pPropInit->pRhs, 0);
+                        break;
+                    default:
+                        COMP_ERROR(pAst->pParseData, "Unsupported type for codegen component property init, type: %d", pPropInit->pRhs->type);
+                    }
+                    code += S(";\n");
+                }
+                else // a BlockMemory type
+                {
+                    static const u32 kScratchSize = 256;
+                    char scratch[kScratchSize+1];
+                    snprintf(scratch,
+                             kScratchSize,
+                             "    %s val = %s;\n",
+                             pRhsSdt->cppTypeStr,
+                             codegen_recurse(pPropInit->pRhs, 0).c_str());
+                    code += I + S(scratch);
+
+                    snprintf(scratch,
+                             kScratchSize,
+                             "    ThreadLocalMessageBlockWriter msgw(HASH::%s, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::%s), val.blockCount());\n",
+                             "set_property",
+                             propName);
+                    code += I + S(scratch);
+                    code += I + S("    val.writeMessage(msgw.accessor(), 0);\n");
+                }
+                code += I + S("    ") + S(taskName) + S(".message(msgw.accessor());\n");
+                code += I + S("}\n");
             }
-            code += I + S("    ") + S(taskName) + S(".message(msgw.accessor());\n");
-            code += I + S("}\n");
         }
     }
 
@@ -814,7 +832,7 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
         code += I + S("task_id entity_init__") + S(pAst->str) + S("()") + LF;
         code += I + S("{") + LF;
         code += I + S("    Entity * pEnt = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->fullName) + S(", 8);") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEnt->task()", indentLevel + 1);
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEnt->task()", true, indentLevel + 1);
         code += LF;
         code += I + S("    task_id tid = pEnt->task().id();") + LF;
         code += I + S("    pEnt->activate();") + LF;
@@ -924,8 +942,10 @@ static S codegen_recurse(const Ast * pAst,
             // NOTE: This must happen after mBlocks is initialized to hold
             // the data members of the entity.
             S compMembers = S("");
+            S compMembersFields = S("");
             if (pCompMembers)
             {
+                u32 compIdx = 0;
                 for (Ast * pCompMember : pCompMembers->pChildren->nodes)
                 {
                     compMembers += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
@@ -933,14 +953,23 @@ static S codegen_recurse(const Ast * pAst,
                     compMembers += I2 + S("        Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
                     compMembers += I2 + S("        compTask.message(msgAcc); // propagate init__ into component\n");
                     ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
-                    compMembers += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", indentLevel + 4);
-
+                    compMembers += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", true, indentLevel + 4);
                     compMembers += I2 + S("    }\n");
+
+
+                    compMembersFields += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
+                    compMembersFields += I2 + S("    {\n");
+                    snprintf(scratch, kScratchSize, "        Task & compTask = mpComponents[%u].task();\n", compIdx);
+                    compMembersFields += I2 + S(scratch);
+                    compMembersFields += I2 + S("        compTask.message(msgAcc); // propagate init_fields__ into component\n");
+                    compMembersFields += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", false, indentLevel + 4);
+                    compMembersFields += I2 + S("    }\n");
+                    compIdx++;
                 }
             }
 
             // init__, request_assets__, etc.
-            code += initialization_message_handlers(pAst, compMembers, indentLevel);
+            code += initialization_message_handlers(pAst, compMembers, compMembersFields, indentLevel);
 
             // property setters
             code += propCode;
@@ -1049,7 +1078,7 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("        {\n");
 
         // init__, request_assets__, etc.
-        code += initialization_message_handlers(pAst, S(""), indentLevel);
+        code += initialization_message_handlers(pAst, S(""), S(""), indentLevel);
 
         code += set_property_handlers(pAst, indentLevel + 2);
         // property setters

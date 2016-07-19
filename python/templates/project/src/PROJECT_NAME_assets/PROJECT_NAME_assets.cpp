@@ -1,6 +1,6 @@
 #include "<<PROJECT_NAME>>_assets/stdafx.h"
 
-#include "assets/AssetTypes.h"
+#include "engine/AssetTypes.h"
 
 namespace gaen
 {

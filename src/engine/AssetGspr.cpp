@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// AssetTypeGspr.cpp - Custom asset type for Gspr
+// AssetGspr.cpp - Custom asset type for Gspr to handle Gatl dependent
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,33 +24,32 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "hashes/hashes.h"
+#include "engine/stdafx.h"
 
-#include "assets/Gatl.h"
 #include "assets/Gspr.h"
-#include "assets/AssetTypeGspr.h"
+#include "assets/Gatl.h"
+#include "hashes/hashes.h"
+#include "engine/AssetMgr.h"
+#include "engine/AssetGspr.h"
 
 namespace gaen
 {
 
-AssetTypeGspr::AssetTypeGspr()
-  : AssetType("gspr", kMEM_Engine)
+AssetGspr::AssetGspr(const char * path,
+                     const char * fullPath,
+                     MemType memType)
+  : Asset(path, fullPath, memType)
+  , mpGatlAsset(nullptr)
 {}
 
-bool AssetTypeGspr::isFullyLoaded(const void * pBuffer,
-                                  u64 size) const
+bool AssetGspr::isLoaded() const
 {
-    if (!pBuffer || size == 0)
-        return false;
-
-    const Gspr * pGspr = Gspr::instance(pBuffer, size);
-    return pGspr->pAtlas != nullptr;
+    return !mHadError && mpGatlAsset != nullptr;
 }
     
-DependentVecUP AssetTypeGspr::dependents(const void * pBuffer,
-                                         u64 size) const
+DependentVecUP AssetGspr::dependents() const
 {
-    const Gspr * pGspr = Gspr::instance(pBuffer, size);
+    const Gspr * pGspr = Gspr::instance(mpBuffer, mSize);
         
     DependentVecUP deps(GNEW(kMEM_Engine, DependentVec));
     deps->reserve(1);
@@ -58,21 +57,34 @@ DependentVecUP AssetTypeGspr::dependents(const void * pBuffer,
     return deps;
 }
     
-void AssetTypeGspr::setDependent(u32 nameHash,
-                                 void * pBuffer,
-                                 u64 size,
-                                 const void * pDependentBuffer,
-                                 u64 dependentSize) const
+void AssetGspr::setDependent(u32 nameHash,
+                             Asset * pDependent)
 {
-    Gspr * pGspr = Gspr::instance(pBuffer, size);
-    ASSERT(!pGspr->pAtlas);
-        
+    Gspr * pGspr = Gspr::instance(mpBuffer, mSize);
     switch (nameHash)
     {
     case HASH::atlas:
-        pGspr->pAtlas = Gatl::instance(pDependentBuffer, dependentSize);
+    {
+        ASSERT(!pGspr->mpAtlas);
+        ASSERT(pDependent->isLoaded());
+        pGspr->mpAtlas = Gatl::instance(pDependent->buffer(), pDependent->size());
+        mpGatlAsset = pDependent;
+        break;
+    }
     }
 }
 
+void AssetGspr::addRefDependents() const
+{
+    AssetMgr::addref_asset(0, mpGatlAsset);
+}
+
+void AssetGspr::releaseDependents() const
+{
+    AssetMgr::release_asset(0, mpGatlAsset);
+}
+
 } // namespace gaen
+
+
 

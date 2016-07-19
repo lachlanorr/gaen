@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Renderer2D.h - OpenGL 2D renderer
+// RendererMesh.h - OpenGL Mesh renderer
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_RENDERERGL_RENDERER2D_H
-#define GAEN_RENDERERGL_RENDERER2D_H
+#ifndef GAEN_RENDERERGL_RENDERERMESH_H
+#define GAEN_RENDERERGL_RENDERERMESH_H
 
 #include <glm/mat4x4.hpp>
 
@@ -41,7 +41,7 @@
 
 namespace gaen
 {
-class Renderer2D
+class RendererMesh
 {
 public:
     enum MeshReservedIndex
@@ -70,9 +70,23 @@ public:
     void loadMaterialMesh(Model::MaterialMesh & matMesh);
 
 private:
+    static void set_shader_vec4_var(u32 nameHash, const glm::vec4 & val, void * pContext);
+    static u32 texture_unit(u32 nameHash);
+    static void set_texture(u32 nameHash, u32 glId, void * pContext);
+    static u32 load_texture(u32 nameHash, Asset * pGimgAsset, void * pContext);
+
+    static void prepare_mesh_attributes(const Mesh & mesh);
+
+
     void setActiveShader(u32 nameHash);
     shaders::Shader * getShader(u32 nameHash);
 
+    void insertModel(task_id owner,
+                     u32 uid,
+                     Model * pModel,
+                     const glm::mat4x3 & worldTransform,
+                     bool isAssetManaged);
+    
     bool mIsInit = false;
     
     device_context mDeviceContext = 0;
@@ -94,7 +108,7 @@ private:
     glm::mat4 mProjection;
     glm::mat4 mGuiProjection;
 
-    ModelMgr<Renderer2D> * mpModelMgr;
+    ModelMgr<RendererMesh> * mpModelMgr;
 
     List<kMEM_Renderer, DirectionalLight> mDirectionalLights;
     List<kMEM_Renderer, PointLight> mPointLights;
@@ -103,10 +117,24 @@ private:
 
     ShaderRegistry mShaderRegistry;
     HashMap<kMEM_Renderer, u32, shaders::Shader*> mShaders;
+
+    struct TextureInfo
+    {
+        const Asset * pGimgAsset;
+        u32 glId;
+        u32 refCount;
+
+        TextureInfo(const Asset *pGimgAsset, u32 glId, u32 refCount)
+          : pGimgAsset(pGimgAsset)
+          , glId(glId)
+          , refCount(refCount)
+        {}
+    };
+    HashMap<kMEM_Renderer, const Asset*, TextureInfo> mLoadedTextures;
 };
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_RENDERERGL_RENDERER2D_H
+#endif // #ifndef GAEN_RENDERERGL_RENDERERMESH_H
 
 

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Renderer2D.cpp - OpenGL 2D renderer
+// RendererMesh.cpp - OpenGL Mesh renderer
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -29,9 +29,13 @@
 
 #include "core/base_defines.h"
 
+#include "assets/Gimg.h"
+
 #include "engine/MessageQueue.h"
 #include "engine/ModelMgr.h"
 #include "engine/glm_ext.h"
+#include "engine/Asset.h"
+#include "engine/AssetMgr.h"
 
 #include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/InsertLightDirectional.h"
@@ -41,28 +45,28 @@
 #include "renderergl/shaders/Shader.h"
 #include "renderergl/ShaderRegistry.h"
 
-#include "renderergl/Renderer2D.h"
+#include "renderergl/RendererMesh.h"
 
 namespace gaen
 {
 
 
-void Renderer2D::init(device_context deviceContext,
-                      render_context renderContext,
-                      u32 screenWidth,
-                      u32 screenHeight)
+void RendererMesh::init(device_context deviceContext,
+                        render_context renderContext,
+                        u32 screenWidth,
+                        u32 screenHeight)
 {
     mDeviceContext = deviceContext;
     mRenderContext = renderContext;
     mScreenWidth = screenWidth;
     mScreenHeight = screenHeight;
 
-    mpModelMgr = GNEW(kMEM_Engine, ModelMgr<Renderer2D>, *this);
+    mpModelMgr = GNEW(kMEM_Engine, ModelMgr<RendererMesh>, *this);
 
     mIsInit = true;
 }
 
-void Renderer2D::fin()
+void RendererMesh::fin()
 {
     ASSERT(mIsInit);
     mpModelMgr->fin();
@@ -70,7 +74,7 @@ void Renderer2D::fin()
 }
 
 
-void Renderer2D::initViewport()
+void RendererMesh::initViewport()
 {
     ASSERT(mIsInit);
 
@@ -86,6 +90,8 @@ void Renderer2D::initViewport()
     glEnable(GL_CULL_FACE);
     //glEnable(GL_DEPTH_TEST);   // Enables Depth Testing
     //glDepthFunc(GL_LEQUAL);    // The Type Of Depth Testing To Do
+
+    glEnable(GL_TEXTURE_2D);
 
     // Make sure we don't divide by zero
     if (mScreenHeight==0)
@@ -112,13 +118,75 @@ void Renderer2D::initViewport()
 
 }
 
-static void set_shader_vec4_var(u32 nameHash, const glm::vec4 & val, void * context)
+void RendererMesh::set_shader_vec4_var(u32 nameHash, const glm::vec4 & val, void * pContext)
 {
-    shaders::Shader * pShader = (shaders::Shader*)context;
+    shaders::Shader * pShader = (shaders::Shader*)pContext;
     pShader->setUniformVec4(nameHash, val);
 }
 
-static void prepare_mesh_attributes(const Mesh & mesh)
+u32 RendererMesh::texture_unit(u32 nameHash)
+{
+    switch (nameHash)
+    {
+    case HASH::diffuse:
+        return 0;
+    default:
+        PANIC("Unknown texture nameHash: %u", nameHash);
+        return 0;
+    };
+}
+
+void RendererMesh::set_texture(u32 nameHash, u32 glId, void * pContext)
+{
+    glActiveTexture(GL_TEXTURE0 + texture_unit(nameHash));
+    glBindTexture(GL_TEXTURE_2D, glId);
+}
+
+u32 RendererMesh::load_texture(u32 nameHash, Asset * pGimgAsset, void * pContext)
+{
+    RendererMesh * pRenderer = (RendererMesh*)pContext;
+
+    auto itTI = pRenderer->mLoadedTextures.find(pGimgAsset);
+    if (itTI == pRenderer->mLoadedTextures.end())
+    {
+        u32 glId = 0;
+        glActiveTexture(GL_TEXTURE0 + texture_unit(nameHash));
+        glGenTextures(1, &glId);
+        glBindTexture(GL_TEXTURE_2D, glId);
+
+        ASSERT(Gimg::is_valid(pGimgAsset->buffer(), pGimgAsset->size()));
+        const Gimg * pGimg = pGimgAsset->buffer<Gimg>();
+
+        ASSERT(pGimg->pixelFormat() == GL_RGBA);
+
+        glTexImage2D(GL_TEXTURE_2D,
+                     0,
+                     pGimg->pixelFormat(),
+                     pGimg->width(),
+                     pGimg->height(),
+                     0,
+                     pGimg->pixelFormat(),
+                     GL_UNSIGNED_BYTE,
+                     pGimg->scanline(0));
+    
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        AssetMgr::addref_asset(kRendererTaskId, pGimgAsset);
+        pRenderer->mLoadedTextures.emplace(std::piecewise_construct,
+                                           std::forward_as_tuple(pGimgAsset),
+                                           std::forward_as_tuple(pGimgAsset, glId, 1));
+        return glId;
+    }
+    else
+    {
+        AssetMgr::addref_asset(kRendererTaskId, pGimgAsset);
+        itTI->second.refCount++;
+        return itTI->second.glId;
+    }
+}
+
+void RendererMesh::prepare_mesh_attributes(const Mesh & mesh)
 {
     // position
     if (mesh.hasVertPosition())
@@ -149,7 +217,7 @@ static void prepare_mesh_attributes(const Mesh & mesh)
     }
 }
 
-void Renderer2D::render()
+void RendererMesh::render()
 {
     ASSERT(mIsInit);
 
@@ -157,8 +225,8 @@ void Renderer2D::render()
     GL_CLEAR_DEPTH(1.0f);
 
 
-    ModelMgr<Renderer2D>::MeshIterator meshIt = mpModelMgr->begin();
-    ModelMgr<Renderer2D>::MeshIterator meshItEnd = mpModelMgr->end();
+    ModelMgr<RendererMesh>::MeshIterator meshIt = mpModelMgr->begin();
+    ModelMgr<RendererMesh>::MeshIterator meshItEnd = mpModelMgr->end();
 
     while (meshIt != meshItEnd)
     {
@@ -186,6 +254,8 @@ void Renderer2D::render()
         // Add new types here as they become necessary, and the associated
         // callbacks, support in Material class, etc.
         mat.setShaderVec4Vars(set_shader_vec4_var, mpActiveShader);
+
+        mat.setTextures(set_texture, this);
         
 #if HAS(OPENGL3)
         glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
@@ -204,7 +274,7 @@ void Renderer2D::render()
 }
 
 template <typename T>
-MessageResult Renderer2D::message(const T & msgAcc)
+MessageResult RendererMesh::message(const T & msgAcc)
 {
     const Message & msg = msgAcc.message();
 
@@ -260,7 +330,7 @@ MessageResult Renderer2D::message(const T & msgAcc)
     return MessageResult::Consumed;
 }
 
-void Renderer2D::loadMaterialMesh(Model::MaterialMesh & matMesh)
+void RendererMesh::loadMaterialMesh(Model::MaterialMesh & matMesh)
 {
     Mesh & mesh = matMesh.mesh();
 
@@ -298,7 +368,7 @@ void Renderer2D::loadMaterialMesh(Model::MaterialMesh & matMesh)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void Renderer2D::setActiveShader(u32 nameHash)
+void RendererMesh::setActiveShader(u32 nameHash)
 {
     if (!mpActiveShader || mpActiveShader->nameHash() != nameHash)
     {
@@ -307,7 +377,7 @@ void Renderer2D::setActiveShader(u32 nameHash)
     }
 }
 
-shaders::Shader * Renderer2D::getShader(u32 nameHash)
+shaders::Shader * RendererMesh::getShader(u32 nameHash)
 {
     auto it = mShaders.find(nameHash);
     if (it != mShaders.end())
@@ -320,8 +390,8 @@ shaders::Shader * Renderer2D::getShader(u32 nameHash)
 
 
 // Template decls so we can define message func here in the .cpp
-template MessageResult Renderer2D::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
-template MessageResult Renderer2D::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
+template MessageResult RendererMesh::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template MessageResult RendererMesh::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
 
 } // namespace gaen
 

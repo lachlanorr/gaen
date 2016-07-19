@@ -31,10 +31,15 @@ ENDIF ()
 SET (engine_SOURCES
   Asset.cpp
   Asset.h
+  AssetGspr.cpp
+  AssetGspr.h
   AssetLoader.cpp
   AssetLoader.h
   AssetMgr.cpp
   AssetMgr.h
+  AssetType.h
+  AssetTypes.cpp
+  AssetTypes.h
   Block.h
   BlockData.h
   BlockMemory.cpp

@@ -30,8 +30,8 @@ INCLUDE (${shaders_dir}/codegen.cmake)
 SET (renderergl_SOURCES
   gaen_opengl.h
   Renderer.h
-  Renderer2D.h
-  Renderer2D.cpp
+  RendererMesh.h
+  RendererMesh.cpp
   RendererProto.h
   RendererProto.cpp
   Renderer_${platform}.${platform_ext}

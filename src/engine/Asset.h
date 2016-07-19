@@ -30,22 +30,40 @@
 #include "core/base_defines.h"
 #include "core/mem.h"
 #include "core/String.h"
-
-#include "assets/AssetType.h"
+#include "core/Vector.h"
 
 namespace gaen
 {
 
-class AssetTypes;
+struct Dependent
+{
+    Dependent(u32 nameHash, const char * path)
+      : nameHash(nameHash)
+      , path(path)
+    {}
+
+    u32 nameHash;
+
+    // We don't copy the path string into this struct, but just
+    // maintain a pointer.  The reason this works is that this struct
+    // is only a temporary list used by AssetMgr when it's wanting the
+    // dependent paths from an asset, and they will always be defined
+    // within the asset buffer that is building this list.
+    const char * path;
+};
+
+typedef Vector<kMEM_Engine, Dependent> DependentVec;
+typedef UniquePtr<DependentVec> DependentVecUP;
+    
 
 class Asset
 {
     friend class AssetMgr;
 public:
 
-    explicit Asset(const char * path,
-                   const char * fullPath,
-                   const AssetTypes & assetTypes);
+    Asset(const char * path,
+          const char * fullPath,
+          MemType memType);
     ~Asset();
 
     Asset(const Asset&)        = delete;
@@ -60,9 +78,9 @@ public:
                 mPath == rhs.mPath);
     }
     
-    bool isLoaded() const
+    virtual bool isLoaded() const
     {
-        return !mHadError && mpAssetType->isFullyLoaded(mpBuffer, mSize);
+        return !mHadError && mpBuffer != nullptr && mSize > 0;
     }
 
     bool hadError() const
@@ -84,7 +102,7 @@ public:
     const T * buffer() const
     {
         ASSERT(isLoaded());
-        return mpBuffer;
+        return reinterpret_cast<const T*>(mpBuffer);
     }
 
     const void * buffer() const
@@ -98,7 +116,7 @@ public:
     {
         ASSERT(isLoaded());
         PANIC_IF(!isMutable(), "Write access requested to read only Asset: %s", mPath);
-        return mpBuffer;
+        return const_cast<T*>(reinterpret_cast<const T*>(mpBuffer));
     }
 
     bool isMutable() const
@@ -121,19 +139,48 @@ public:
         return mUid;
     }
 
-private:
+    template <class T>
+    static Asset * construct(const char * path,
+                             const char * fullPath,
+                             MemType memType)
+    {
+        return GNEW(kMEM_Engine, T, path, fullPath, memType);
+    }
+   
+protected:
     void addRef()
     {
+        ASSERT(hadError() || isLoaded());
         mRefCount++;
+        addRefDependents();
     }
 
     bool release()
     {
+        ASSERT(hadError() || isLoaded());
         ASSERT(mRefCount > 0);
+        releaseDependents();
         mRefCount--;
 
         return mRefCount == 0;
     }
+
+    virtual DependentVecUP dependents() const
+    {
+        return DependentVecUP();
+    }
+    
+    virtual void setDependent(u32 nameHash,
+                              Asset * pDependent)
+    {
+        PANIC("setDependent called on an Asset type that has no dependents");
+    }
+
+    virtual void addRefDependents() const
+    {}
+
+    virtual void releaseDependents() const
+    {}
 
     u32 refCount()
     {
@@ -141,24 +188,26 @@ private:
     }
 
     void load(const char * fullPath,
-              const AssetTypes & assetTypes);
+              MemType memType);
     void unload();
 
     String<kMEM_Engine> mPath;
     u32 mPathHash;
     u32 mRefCount;
 
-    u8 * mpBuffer;
+    void * mpBuffer;
     u64 mSize;
 
     u64 mUid;
 
-    const AssetType * mpAssetType;
-    
     bool mIsMutable;
     bool mHadError;
 
 }; // class Asset
+
+typedef Asset*(*AssetConstructor)(const char * path,
+                                  const char * fullPath,
+                                  MemType memType);
 
 } // namespace gaen
 

@@ -29,64 +29,38 @@
 
 #include "core/base_defines.h"
 #include "core/mem.h"
-#include "core/Vector.h"
+
+#include "engine/Asset.h"
 
 namespace gaen
 {
 
-struct Dependent
-{
-    Dependent(u32 nameHash, const char * path)
-      : nameHash(nameHash)
-      , path(path)
-    {}
+class AssetTypes;
 
-    u32 nameHash;
-
-    // We don't copy the path string into this struct, but just
-    // maintain a pointer.  The reason this works is that this struct
-    // is only a temporary list used by AssetMgr when it's wanting the
-    // dependent paths from an asset, and they will always be defined
-    // within the asset buffer that is building this list.
-    const char * path;
-};
-
-typedef Vector<kMEM_Engine, Dependent> DependentVec;
-typedef UniquePtr<DependentVec> DependentVecUP;
-    
 class AssetType
 {
 public:
-    AssetType(const char * extension, MemType memType)
+    AssetType(const char * extension,
+              MemType memType,
+              AssetConstructor constructor)
       : mExtension(extension)
       , mMemType(memType)
+      , mConstructor(constructor)
     {}
     
     const char * extension() const { return mExtension; }
     MemType memType() const { return mMemType; }
 
-    virtual bool isFullyLoaded(const void * pBuffer,
-                               u64 size) const
+    Asset * construct(const char * path,
+                      const char * fullPath) const
     {
-        return pBuffer != nullptr && size > 0;
+        return mConstructor(path, fullPath, mMemType);
     }
     
-    virtual DependentVecUP dependents(const void * pBuffer,
-                                      u64 size) const
-    {
-        return DependentVecUP();
-    }
-    
-    virtual void setDependent(u32 nameHash,
-                              void * pBuffer,
-                              u64 size,
-                              const void * pDependentBuffer,
-                              u64 dependentSize) const
-    {}
-
 private:
     const char * mExtension;
     MemType mMemType;
+    AssetConstructor mConstructor;
 };
 
 } // namespace gaen

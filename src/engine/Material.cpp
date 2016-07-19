@@ -28,6 +28,8 @@
 
 #include <atomic>
 
+#include "engine/task.h"
+#include "engine/AssetMgr.h"
 #include "engine/Material.h"
 
 namespace gaen
@@ -43,14 +45,30 @@ Material::Material(u32 shaderNameHash)
 
     mVec4VarCount = 0;
     memset(mVec4Vars, 0, sizeof(mVec4Vars));
+
+    mTextureCount = 0;
+    memset(mTextures, 0, sizeof(mTextures));
+}
+
+Material::~Material()
+{
+    for (u32 i = 0; i < mTextureCount; ++i)
+    {
+        AssetMgr::release_asset(kRendererTaskId, mTextures[i].pGimgAsset);
+    }
+}
+
+void Material::registerTexture(u32 nameHash, const Asset * pGimgAsset)
+{
+    PANIC_IF(mTextureCount >= kMaxTextures, "Too many textures for material");
+    mTextures[mTextureCount++] = Material::TextureInfo(nameHash, 0, pGimgAsset);
+    AssetMgr::addref_asset(kRendererTaskId, pGimgAsset);
 }
 
 void Material::registerVec4Var(u32 nameHash, const glm::vec4 & value)
 {
     PANIC_IF(mVec4VarCount >= kMaxVec4Vars, "Too many Vec4 material vars");
-    mVec4Vars[mVec4VarCount].nameHash = nameHash;
-    mVec4Vars[mVec4VarCount].value = value;
-    mVec4VarCount++;
+    mVec4Vars[mVec4VarCount++] = Material::Vec4Var(nameHash, value);
 }
 
 void Material::setShaderVec4Vars(SetShaderVec4VarCB setCB, void * context)
@@ -61,5 +79,22 @@ void Material::setShaderVec4Vars(SetShaderVec4VarCB setCB, void * context)
     }
 }
 
+void Material::setTextures(SetTextureCB setCB, void * context)
+{
+    for (u32 i = 0; i < mTextureCount; ++i)
+    {
+        ASSERT(mTextures[i].rendererId > 0);
+    }
+}
+
+void Material::loadTextures(LoadTextureCB loadCB, void * context)
+{
+
+}
+
+void Material::unloadTextures(UnloadTextureCB loadCB, void * context)
+{
+
+}
 
 } // namespace gaen

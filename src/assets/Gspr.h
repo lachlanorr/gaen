@@ -45,7 +45,7 @@ static_assert(sizeof(AnimInfo) == 8, "AnimInfo has unexpected size");
 
 class Gspr
 {
-    friend class AssetTypeGspr;
+    friend class AssetGspr;
 public:
     static bool is_valid(const void * pBuffer, u64 size);
     static Gspr * instance(void * pBuffer, u64 size);
@@ -74,8 +74,8 @@ public:
     
     const Gatl * atlas() const
     {
-        ASSERT(pAtlas);
-        return pAtlas;
+        ASSERT(mpAtlas);
+        return mpAtlas;
     }
 
     const AnimInfo * getAnim(u32 animHash) const;
@@ -102,7 +102,7 @@ private:
     u32 mAnimTocOffset:20;
 
     u64 mSize;
-    const Gatl * pAtlas;
+    const Gatl * mpAtlas;
 
     // What follows header:
 
