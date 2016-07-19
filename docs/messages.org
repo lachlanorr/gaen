@@ -11,8 +11,8 @@ Several "special" messages are sent in sequence to Entities and components as th
 ****** Creates component
 ****** Calls Entity::insertComponent
 ****** Sends Component #init__(Immediate)
-******* Component initializes Properties and Fields
-****** EntityScript sends set_property messages to component for each property it is overriding
+******* Component initializes asset Properties and Fields
+****** EntityScript sends set_property messages to component for each asset property it is overriding
 **** EntityBase Sends request_assets__(Immediate) to self
 ***** For each Component in Entity
 ****** Send Component #request_assets__(Immediate)
@@ -41,6 +41,9 @@ Several "special" messages are sent in sequence to Entities and components as th
 Failure to load an asset is considered fatal.
 ****** Increment mAssetsLoaded
 ******* If mAssetsLoaded == mAssetsRequested
+******** Sends init_fields__(Immediate) to EntityScript task to initialize non-asset Properties and Fields
+********* EntityScript sends init_fields__(Immediate) to each sub component to initialize non-asset Properties
+********* EntityScript overrides any component non-asset Properties
 ******** EntityBase sends #init(Queued) to self
 ** EntityBase receives #init(Queued)
 *** For each Component in Entity
