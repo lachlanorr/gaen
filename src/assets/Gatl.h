@@ -27,6 +27,7 @@
 #ifndef GAEN_ASSETS_GATL_H
 #define GAEN_ASSETS_GATL_H
 
+#include "glm/vec3.hpp"
 #include "core/base_defines.h"
 #include "core/mem.h"
 
@@ -35,40 +36,28 @@ namespace gaen
 
 class Gimg;
 
-struct GlyphCoords
-{
-    f32 topLeftU;
-    f32 topLeftV;
-    f32 bottomRightU;
-    f32 bottomRightV;
 
-    static GlyphCoords zero()
-    {
-        GlyphCoords coords;
-        coords.topLeftU = coords.topLeftV = coords.bottomRightU = coords.bottomRightV = 0.0f;
-        return coords;
-    }
+struct GlyphVert
+{
+    glm::vec3 position;
+    f32 u;
+    f32 v;
 };
+static_assert(sizeof(GlyphVert) == 20, "SpriteVert unexpected size");
 
-// support for HashMap
-struct GlyphCoordsHash
+struct GlyphTri
 {
-    u64 operator()(const GlyphCoords & val) const
-    {
-        const u8 * pBuff = reinterpret_cast<const u8*>(&val);
-        return fnv1a_32(pBuff, sizeof(GlyphCoords));
-    }
+    u16 p0;
+    u16 p1;
+    u16 p2;
+
+    GlyphTri(u16 p0, u16 p1, u16 p2)
+      : p0(p0)
+      , p1(p1)
+      , p2(p2)
+    {}
 };
-struct GlyphCoordsEquals
-{
-    u64 operator()(const GlyphCoords & lhs, const GlyphCoords & rhs) const
-    {
-        return (lhs.topLeftU == rhs.topLeftU &&
-                lhs.topLeftV == rhs.topLeftV &&
-                lhs.bottomRightU == rhs.bottomRightU &&
-                lhs.bottomRightV == rhs.bottomRightV);
-    }
-};
+static_assert(sizeof(GlyphTri) == 6, "SpriteTri unexpected size");
 
 struct GlyphAlias
 {
@@ -92,26 +81,62 @@ public:
     u32 glyphCount() const { return mGlyphCount; }
     u32 aliasCount() const { return mAliasCount; }
 
-    GlyphCoords & coords(u32 idx)
+    i32 glyphElemCount() const { return 6; } // 2 triangles
+
+    GlyphTri * glyphElems(u32 idx)
     {
         if (idx >= mGlyphCount)
             idx = mDefaultIndex;
-        return glyphs()[idx];
+        return reinterpret_cast<GlyphTri*>(tris() + 2 * idx); // 2 tris per
     }
-    const GlyphCoords & coords(u32 idx) const
+    const GlyphTri * glyphElems(u32 idx) const
     {
         Gatl * pGatl = const_cast<Gatl*>(this);
-        return pGatl->coords(idx);
+        return pGatl->glyphElems(idx);
+    }
+    const void * glyphElemsOffset(u32 idx)
+    {
+        return glyphElemsOffset(glyphElems(idx));
     }
 
-    GlyphCoords & defaultCoords() { return coords(mDefaultIndex); }
-    const GlyphCoords & defaultCoords() const { return coords(mDefaultIndex); }
+    GlyphTri * defaultGlyphElems() { return glyphElems(mDefaultIndex); }
+    const GlyphTri * defaultGlyphElems() const { return glyphElems(mDefaultIndex); }
+    const void * defaultGlyphElemsOffset() const { return glyphElemsOffset(glyphElems(mDefaultIndex)); }
 
-    GlyphCoords & coordsFromAlias(u32 aliasHash);
-    const GlyphCoords & coordsFromAlias(u32 aliasHash) const
+    GlyphTri * glyphElemsFromAlias(u32 aliasHash);
+    const GlyphTri * glyphElemsFromAlias(u32 aliasHash) const
     {
         Gatl * pGatl = const_cast<Gatl*>(this);
-        return pGatl->coordsFromAlias(aliasHash);
+        return pGatl->glyphElemsFromAlias(aliasHash);
+    }
+    const void * glyphElemsFromAliasOffset(u32 aliasHash) const
+    {
+        return glyphElemsOffset(glyphElemsFromAlias(aliasHash));
+    }
+
+    const void * glyphElemsOffset(const GlyphTri * pTri) const
+    {
+        return reinterpret_cast<const void*>((pTri - tris()) * sizeof(GlyphTri));
+    }
+    
+    GlyphVert & vert(u32 idx)
+    {
+        return verts()[idx];
+    }
+    const GlyphVert & vert(u32 idx) const
+    {
+        Gatl * pGatl = const_cast<Gatl*>(this);
+        return pGatl->vert(idx);
+    }
+
+    GlyphTri & tri(u32 idx)
+    {
+        return tris()[idx];
+    }
+    const GlyphTri & tri(u32 idx) const
+    {
+        Gatl * pGatl = const_cast<Gatl*>(this);
+        return pGatl->tri(idx);
     }
 
 
@@ -126,10 +151,9 @@ public:
         return pGatl->alias(idx);
     }
 
-
     Gimg & image()
     {
-        return *reinterpret_cast<Gimg*>(aliases() + mAliasCount);
+        return *reinterpret_cast<Gimg*>(reinterpret_cast<u8*>(this) + gimg_offset(mGlyphCount, mAliasCount));
     }
     const Gimg & image() const
     {
@@ -137,14 +161,48 @@ public:
         return pGatl->image();
     }
 private:
-    GlyphCoords * glyphs()
+    static u64 verts_size(u32 glyphCount)
     {
-        return reinterpret_cast<GlyphCoords*>(reinterpret_cast<u8*>(this) + sizeof(*this));
+        return align(glyphCount * sizeof(GlyphVert) * 4, 4); // 4 verts per glyph
+    }
+
+    static u64 tris_size(u32 glyphCount)
+    {
+        return align(glyphCount * sizeof(GlyphTri) * 2, 4); // 2 tris (6 indices) per glyph
+    }
+
+    static u64 aliases_size(u32 aliasCount)
+    {
+        return align(aliasCount * sizeof(GlyphAlias), 4);
+    }
+
+    static u64 gimg_offset(u32 glyphCount, u32 aliasCount);
+
+    GlyphVert * verts()
+    {
+        return reinterpret_cast<GlyphVert*>(reinterpret_cast<u8*>(this) +
+                                            sizeof(Gatl));
+    }
+
+    GlyphTri * tris()
+    {
+        return reinterpret_cast<GlyphTri*>(reinterpret_cast<u8*>(this) +
+                                           sizeof(Gatl) +
+                                           verts_size(mGlyphCount));
+    }
+
+    const GlyphTri * tris() const
+    {
+        Gatl * pGatl = const_cast<Gatl*>(this);
+        return pGatl->tris();
     }
 
     GlyphAlias * aliases()
     {
-        return reinterpret_cast<GlyphAlias*>(glyphs() + mGlyphCount);
+        return reinterpret_cast<GlyphAlias*>(reinterpret_cast<u8*>(this) +
+                                             sizeof(Gatl) +
+                                             verts_size(mGlyphCount) +
+                                             tris_size(mGlyphCount));
     }
 
     static const char * kMagic;
@@ -157,6 +215,8 @@ private:
     u32 mDefaultIndex;
 };
 
+// If this isn't a multiple of 16, consider adding more alignment
+// corrections in size functions
 static_assert(sizeof(Gatl) == 16, "Gatl unexpected size");
 
 } // namespace gaen

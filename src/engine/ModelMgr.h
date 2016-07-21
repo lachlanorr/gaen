@@ -228,7 +228,7 @@ public:
             // Load material and mesh into GPU through renderer
             if (matMesh.mesh().rendererReserved(0) == -1)
             {
-                // All should be -1 as they are initialized tegether
+                // All should be -1 as they are initialized together
                 static_assert(Mesh::kRendererReservedCount == 4, "Unexpected kRendererReservedCount, ASSERT below needs to be updated");
                 ASSERT(matMesh.mesh().rendererReserved(1) == -1 &&
                        matMesh.mesh().rendererReserved(2) == -1 &&

@@ -71,8 +71,7 @@ const Gatl * Gatl::instance(const void * pBuffer, u64 size)
 
 u64 Gatl::required_size(u32 glyphCount, u32 aliasCount, const Gimg & image)
 {
-    return sizeof(Gatl) + glyphCount * sizeof(GlyphCoords) + aliasCount * sizeof(GlyphAlias) + image.size();
-    return 0;
+    return gimg_offset(glyphCount, aliasCount) + image.size();
 }
 
 Gatl * Gatl::create(u32 glyphCount, u32 aliasCount, u32 defaultIndex, const Gimg & image)
@@ -92,6 +91,9 @@ Gatl * Gatl::create(u32 glyphCount, u32 aliasCount, u32 defaultIndex, const Gimg
 
     memcpy(&pGatl->image(), &image, image.size());
 
+    // memset verts, tris, aliases
+    memset(pGatl->verts(), 0, gimg_offset(glyphCount, aliasCount) - sizeof(Gatl));
+
     ASSERT(is_valid(pGatl, required_size(glyphCount, aliasCount, image)));
     return pGatl;
 }
@@ -101,7 +103,7 @@ u64 Gatl::size() const
     return required_size(mGlyphCount, mAliasCount, image());
 }
 
-GlyphCoords & Gatl::coordsFromAlias(u32 aliasHash)
+GlyphTri * Gatl::glyphElemsFromAlias(u32 aliasHash)
 {
     GlyphAlias * pAlias = aliases();
     GlyphAlias * pAliasesEnd = aliases() + mAliasCount;
@@ -110,13 +112,23 @@ GlyphCoords & Gatl::coordsFromAlias(u32 aliasHash)
     {
         if (aliasHash == pAlias->hash)
         {
-            return coords(pAlias->index);
+            return glyphElems(pAlias->index);
         }
     }
 
     // we didn't find the hash
     ERR("Failed to find alias hash: %u", aliasHash);
-    return defaultCoords();
+    return defaultGlyphElems();
+}
+
+u64 Gatl::gimg_offset(u32 glyphCount,u32 aliasCount)
+{
+    return align(sizeof(Gimg) +
+                 verts_size(glyphCount) +
+                 tris_size(glyphCount) +
+                 aliases_size(aliasCount),
+                 16);
+    // offset gimg to alignment of 16, just for good measure
 }
 
 } // namespace gaen

@@ -26,6 +26,12 @@
 
 #include "engine/stdafx.h"
 
+#include "assets/Gspr.h"
+
+#include "engine/Mesh.h"
+#include "engine/Model.h"
+#include "engine/Handle.h"
+
 #include "engine/SpriteMgr.h"
 
 namespace gaen
@@ -54,6 +60,42 @@ namespace system_api
 {
 HandleP sprite_create(AssetHandleP pAsset, Entity & caller)
 {
+    /*
+    ASSERT(pAsset->typeHash == HASH::handle);
+    Gspr * pGspr = Gspr::instance(pAsset->data(), pAsset->size());
+
+    Mesh * pMesh = Mesh::create(kVERT_PosUv, 6, kPRIM_Triangle, 2);
+
+    VertPosUv * pVert = *pMesh;
+
+    pVert->position = glm::vec3(-0.5f, -0.5f, 0.0f);
+    pVert->u = 
+
+    // Front
+    builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymin, zmax), glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymax, zmax));
+
+    // Bottom
+    builder.addQuad(glm::vec3(xmin, ymin, zmax), glm::vec3(xmin, ymin, zmin), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymin, zmax));
+
+    // Back
+    builder.addQuad(glm::vec3(xmin, ymin, zmin), glm::vec3(xmin, ymax, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymin, zmin));
+
+    // Top
+    builder.addQuad(glm::vec3(xmax, ymax, zmax), glm::vec3(xmax, ymax, zmin), glm::vec3(xmin, ymax, zmin), glm::vec3(xmin, ymax, zmax));
+
+    // Left
+    builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymax, zmin), glm::vec3(xmin, ymin, zmin), glm::vec3(xmin, ymin, zmax));
+
+    // Right
+    builder.addQuad(glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymax, zmax));
+
+    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
+    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
+
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
+    return pModel;
+    */
+
     return nullptr;
 }
 }

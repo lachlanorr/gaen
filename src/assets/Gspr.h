@@ -33,7 +33,8 @@ namespace gaen
 {
 
 class Gatl;
-struct GlyphCoords;
+struct GlyphVert;
+struct GlyphTri;
 
 struct AnimInfo
 {
@@ -79,7 +80,8 @@ public:
     }
 
     const AnimInfo * getAnim(u32 animHash) const;
-    const GlyphCoords & getFrame(const AnimInfo * pAnim, u32 frameIdx) const;
+    const GlyphTri * getFrameElems(const AnimInfo * pAnim,u32 frameIdx) const;
+    const void * getFrameElemsOffset(const AnimInfo * pAnim,u32 frameIdx) const;
 
     AnimInfo * anims();
     const AnimInfo * anims() const;

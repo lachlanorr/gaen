@@ -46,7 +46,41 @@
 namespace gaen
 {
 
-static GlyphCoords glyph_coords(i32 left, i32 top, i32 width, i32 height, const ImageInfo & imageInfo)
+struct GlyphQuad
+{
+    GlyphVert verts[4];
+};
+
+// support for HashMap
+struct GlyphQuadHash
+{
+    u64 operator()(const GlyphQuad & val) const
+    {
+        const u8 * pBuff = reinterpret_cast<const u8*>(&val);
+        return fnv1a_32(pBuff, sizeof(GlyphQuad));
+    }
+};
+struct GlyphQuadEquals
+{
+    u64 operator()(const GlyphQuad & lhs, const GlyphQuad & rhs) const
+    {
+        return (lhs.verts[0].position == rhs.verts[0].position &&
+                lhs.verts[0].u == rhs.verts[0].u &&
+                lhs.verts[0].v == rhs.verts[0].v &&
+                lhs.verts[1].position == rhs.verts[0].position &&
+                lhs.verts[1].u == rhs.verts[0].u &&
+                lhs.verts[1].v == rhs.verts[0].v &&
+                lhs.verts[2].position == rhs.verts[0].position &&
+                lhs.verts[2].u == rhs.verts[0].u &&
+                lhs.verts[2].v == rhs.verts[0].v &&
+                lhs.verts[3].position == rhs.verts[0].position &&
+                lhs.verts[3].u == rhs.verts[0].u &&
+                lhs.verts[3].v == rhs.verts[0].v);
+    }
+};
+
+
+static GlyphQuad glyph_quad(i32 left, i32 top, i32 width, i32 height, const ImageInfo & imageInfo)
 {
     PANIC_IF(left < 0 || top < 0 || left >= imageInfo.width || top >= imageInfo.height ||  width > imageInfo.width || height > imageInfo.height, "Invalid parameters for GlyphInfo");
 
@@ -57,13 +91,37 @@ static GlyphCoords glyph_coords(i32 left, i32 top, i32 width, i32 height, const 
     }
 
     // convert pixel coords to uv space
-    GlyphCoords coords;
-    coords.topLeftU = (f32)left / (imageInfo.width - 1);
-    coords.topLeftV = (f32)top / (imageInfo.height - 1);
-    coords.bottomRightU = (f32)(left + width - 1) / (imageInfo.width - 1);
-    coords.bottomRightV = (f32)(top - height + 1) / (imageInfo.height - 1);
+    GlyphQuad quad;
+    
+    // Top Left
+    quad.verts[0].position.x = -width / 2.0f;
+    quad.verts[0].position.y = height / 2.0f;
+    quad.verts[0].position.z = 0;
+    quad.verts[0].u = (f32)left / (imageInfo.width - 1);
+    quad.verts[0].v = (f32)top / (imageInfo.height - 1);
 
-    return coords;
+    // Bottom Left
+    quad.verts[1].position.x = -width / 2.0f;
+    quad.verts[1].position.y = -height / 2.0f;
+    quad.verts[1].position.z = 0;
+    quad.verts[1].u = (f32)left / (imageInfo.width - 1);
+    quad.verts[1].v = (f32)(top - height + 1) / (imageInfo.height - 1);
+
+    // Bottom Right
+    quad.verts[2].position.x = width / 2.0f;
+    quad.verts[2].position.y = -height / 2.0f;
+    quad.verts[2].position.z = 0;
+    quad.verts[2].u = (f32)(left + width - 1) / (imageInfo.width - 1);
+    quad.verts[2].v = (f32)(top - height + 1) / (imageInfo.height - 1);
+
+    // Top Right
+    quad.verts[3].position.x = width / 2.0f;
+    quad.verts[3].position.y = height / 2.0f;
+    quad.verts[3].position.z = 0;
+    quad.verts[3].u = (f32)(left + width - 1) / (imageInfo.width - 1);
+    quad.verts[3].v = (f32)top / (imageInfo.height - 1);
+
+    return quad;
 }
 
 void cook_spr(const CookInfo & ci)
@@ -188,8 +246,11 @@ void cook_atl(const CookInfo & ci)
         PANIC_IF(fixedWidth > imageInfo.width || fixedHeight > imageInfo.height, "Invalid %s: %d,%d", kFixedSize, fixedWidth, fixedHeight);
     }
 
-    List<kMEM_Chef, GlyphCoords> coordsList;
-    HashSet<kMEM_Chef, GlyphCoords, GlyphCoordsHash, GlyphCoordsEquals> coordsSet;
+    List<kMEM_Chef, GlyphVert> vertsList;
+    HashSet<kMEM_Chef, GlyphQuad, GlyphQuadHash, GlyphQuadEquals> quadsSet;
+
+    List<kMEM_Chef, GlyphTri> trisList;
+
     List<kMEM_Chef, GlyphAlias> aliasesList;
     HashSet<kMEM_Chef, u32> aliasesSet;
     u32 defaultIndex = 0;
@@ -231,17 +292,30 @@ void cook_atl(const CookInfo & ci)
                 height = cv[3];
             }
 
-            GlyphCoords coords = glyph_coords(cv[0], cv[1], width, height, imageInfoSized);
+            GlyphQuad quad = glyph_quad(cv[0], cv[1], width, height, imageInfoSized);
 
-            PANIC_IF(coordsSet.find(coords) != coordsSet.end(), "Coords multiply defined within atl file: %s", ci.rawPath());
+            PANIC_IF(quadsSet.find(quad) != quadsSet.end(), "Coords multiply defined within atl file: %s", ci.rawPath());
 
-            alias.index = (u32)coordsList.size();
+            alias.index = (u32)quadsSet.size();
             if (alias.hash == gaen_hash("default"))
                 defaultIndex = alias.index;
 
+
+            quadsSet.insert(quad);
+            u16 elemIdx = (u16)vertsList.size();
+            trisList.push_back(GlyphTri(elemIdx,
+                                        elemIdx + 1,
+                                        elemIdx + 2));
+            trisList.push_back(GlyphTri(elemIdx + 2,
+                                        elemIdx + 3,
+                                        elemIdx));
+
+            vertsList.push_back(quad.verts[0]);
+            vertsList.push_back(quad.verts[1]);
+            vertsList.push_back(quad.verts[2]);
+            vertsList.push_back(quad.verts[3]);
+
             aliasesSet.insert(alias.hash);
-            coordsSet.insert(coords);
-            coordsList.push_back(coords);
             aliasesList.push_back(alias);
 
             ++keyIt;
@@ -259,8 +333,21 @@ void cook_atl(const CookInfo & ci)
         {
             for (i32 currX = 0; currX < imageInfo.width; currX+=fixedWidth)
             {
-                GlyphCoords coords = glyph_coords(currX, currY, fixedWidth, fixedHeight, imageInfoSized);
-                coordsList.push_back(coords);
+                GlyphQuad quad = glyph_quad(currX, currY, fixedWidth, fixedHeight, imageInfoSized);
+
+                quadsSet.insert(quad);
+                u16 elemIdx = (u16)vertsList.size();
+                trisList.push_back(GlyphTri(elemIdx,
+                                            elemIdx + 1,
+                                            elemIdx + 2));
+                trisList.push_back(GlyphTri(elemIdx + 2,
+                                            elemIdx + 3,
+                                            elemIdx));
+
+                vertsList.push_back(quad.verts[0]);
+                vertsList.push_back(quad.verts[1]);
+                vertsList.push_back(quad.verts[2]);
+                vertsList.push_back(quad.verts[3]);
             }
         }
     }
@@ -269,13 +356,19 @@ void cook_atl(const CookInfo & ci)
         PANIC("No glyphs specified, and invalid fixed_size: %s", ci.rawPath());
     }
 
-    Gatl * pGatl = Gatl::create((u32)coordsList.size(), (u32)aliasesList.size(), defaultIndex, *pImage);
+    ASSERT(vertsList.size() % 4 == 0);
+    Gatl * pGatl = Gatl::create((u32)vertsList.size() / 4, (u32)aliasesList.size(), defaultIndex, *pImage);
     ASSERT(pGatl);
 
-    // Place coords into Gatl buffer
+    // Place verts into Gatl buffer
     u32 idx = 0;
-    for (const auto & coord : coordsList)
-        pGatl->coords(idx++) = coord;
+    for (const auto & vert : vertsList)
+        pGatl->vert(idx++) = vert;
+
+    // Place tris into Gatl buffer
+    idx = 0;
+    for (const auto & tri : trisList)
+        pGatl->tri(idx++) = tri;
 
     // Place aliases into Gatl buffer
     idx = 0;

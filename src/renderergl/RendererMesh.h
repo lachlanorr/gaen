@@ -41,6 +41,9 @@
 
 namespace gaen
 {
+
+class SpriteAtlas;
+
 class RendererMesh
 {
 public:
@@ -69,11 +72,13 @@ public:
 
     void loadMaterialMesh(Model::MaterialMesh & matMesh);
 
+    void loadSpriteAtlas(const SpriteAtlas & mesh);
+
 private:
     static void set_shader_vec4_var(u32 nameHash, const glm::vec4 & val, void * pContext);
     static u32 texture_unit(u32 nameHash);
     static void set_texture(u32 nameHash, u32 glId, void * pContext);
-    static u32 load_texture(u32 nameHash, Asset * pGimgAsset, void * pContext);
+    static u32 load_texture(u32 nameHash, const Asset * pGimgAsset, void * pContext);
 
     static void prepare_mesh_attributes(const Mesh & mesh);
 

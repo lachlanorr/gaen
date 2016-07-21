@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.h - Precompiled headers
+// SpriteAtlas.cpp - Combination of a gatl alognwith quads to draw the glyphs
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,10 +24,31 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_STDAFX_H
-#define GAEN_CHEF_STDAFX_H
+#include "engine/stdafx.h"
 
-//#include <ft2build.h>
-//#include FT_FREETYPE_H
+#include "engine/Asset.h"
+#include "engine/AssetMgr.h"
 
-#endif // #ifndef GAEN_CHEF_STDAFX_H
+#include "engine/SpriteAtlas.h"
+
+namespace gaen
+{
+
+SpriteAtlas::SpriteAtlas(Asset * pGatlAtlas)
+{
+    ASSERT(pGatlAtlas);
+
+    mpGatlAtlas = pGatlAtlas;
+    AssetMgr::addref_asset(0, mpGatlAtlas);
+
+}
+
+SpriteAtlas::~SpriteAtlas()
+{
+    AssetMgr::release_asset(0, mpGatlAtlas);    
+    GFREE(pVerts);
+    GFREE(pTris);
+}
+
+
+} // namespace gaen

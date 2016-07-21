@@ -142,7 +142,7 @@ void RendererMesh::set_texture(u32 nameHash, u32 glId, void * pContext)
     glBindTexture(GL_TEXTURE_2D, glId);
 }
 
-u32 RendererMesh::load_texture(u32 nameHash, Asset * pGimgAsset, void * pContext)
+u32 RendererMesh::load_texture(u32 nameHash, const Asset * pGimgAsset, void * pContext)
 {
     RendererMesh * pRenderer = (RendererMesh*)pContext;
 
@@ -366,6 +366,9 @@ void RendererMesh::loadMaterialMesh(Model::MaterialMesh & matMesh)
 #endif
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // Load textures
+    matMesh.material().loadTextures(load_texture, this);
 }
 
 void RendererMesh::setActiveShader(u32 nameHash)

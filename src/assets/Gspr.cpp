@@ -172,7 +172,7 @@ const AnimInfo * Gspr::getAnim(u32 animHash) const
     return pAnims;
 }
 
-const GlyphCoords & Gspr::getFrame(const AnimInfo * pAnim, u32 frameIdx) const
+const GlyphTri * Gspr::getFrameElems(const AnimInfo * pAnim, u32 frameIdx) const
 {
     ASSERT(mpAtlas);
 
@@ -185,7 +185,12 @@ const GlyphCoords & Gspr::getFrame(const AnimInfo * pAnim, u32 frameIdx) const
     u32 frame = frames()[pAnim->firstFrame];
 
     ASSERT(frame < mpAtlas->glyphCount());
-    return mpAtlas->coords(frame);
+    return mpAtlas->glyphElems(frame);
+}
+
+const void * Gspr::getFrameElemsOffset(const AnimInfo * pAnim, u32 frameIdx) const
+{
+    return mpAtlas->glyphElemsOffset(getFrameElems(pAnim, frameIdx));
 }
 
 AnimInfo * Gspr::anims()
