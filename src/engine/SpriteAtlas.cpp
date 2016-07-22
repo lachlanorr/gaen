@@ -46,8 +46,6 @@ SpriteAtlas::SpriteAtlas(Asset * pGatlAtlas)
 SpriteAtlas::~SpriteAtlas()
 {
     AssetMgr::release_asset(0, mpGatlAtlas);    
-    GFREE(pVerts);
-    GFREE(pTris);
 }
 
 

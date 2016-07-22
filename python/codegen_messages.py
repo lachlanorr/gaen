@@ -65,7 +65,9 @@ def template_subst(template, replacements):
 def gen_includes(includes):
     inc = []
     for i in includes:
-        inc.append('#include "%s"\n' % i)
+        if not i.startswith('<') and not i.startswith('"'):
+            i = '"' + i + '"'
+        inc.append('#include %s\n' % i)
     return ''.join(inc)
 
 def camel_to_underscores(s):

@@ -28,39 +28,29 @@
 #define GAEN_ENGINE_SPRITEATLAS_H
 
 #include "core/base_defines.h"
+#include "assets/Gatl.h"
 
 namespace gaen
 {
 
 class Asset;
 
-struct SpriteVert
-{
-    glm::vec3 position;
-    f32 u;
-    f32 v;
-};
-static_assert(sizeof(SpriteVert) == 20, "SpriteVert unexpected size");
-
-struct SpriteTri
-{
-    u16 p0;
-    u16 p1;
-    u16 p2;
-};
-static_assert(sizeof(SpriteTri) == 6, "SpriteTri unexpected size");
-
-
 class SpriteAtlas
 {
 public:
     SpriteAtlas(Asset * pGatlAtlas);
     ~SpriteAtlas();
+
+    GlyphVert * verts();
+    u64 vertsSize();
+
+    GlyphTri * tris();
+    u64 trisSize();
+
+    void * triOffset(u32 idx);
     
 private:
     Asset * mpGatlAtlas;
-    SpriteVert * pVerts;
-    SpriteTri * pTris;
 };
 
 } // namespace gaen

@@ -28,10 +28,10 @@
 
 #include "assets/Gspr.h"
 
-#include "engine/Mesh.h"
-#include "engine/Model.h"
 #include "engine/Handle.h"
+#include "engine/Asset.h"
 
+#include "engine/SpriteAtlas.h"
 #include "engine/SpriteMgr.h"
 
 namespace gaen
@@ -58,19 +58,15 @@ MessageResult SpriteMgr::message(const T & msgAcc)
 
 namespace system_api
 {
-HandleP sprite_create(AssetHandleP pAsset, Entity & caller)
+HandleP sprite_create(AssetHandleP pAssetHandle, Entity & caller)
 {
+    ASSERT(pAssetHandle->typeHash() == HASH::asset);
+    const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
+    const Gspr * pGspr = Gspr::instance(pAsset->buffer(), pAsset->size());
+
+    //SpriteAtlas * pSpriteAtlas = GNEW(kMEM_Texture, SpriteAtlas,
+
     /*
-    ASSERT(pAsset->typeHash == HASH::handle);
-    Gspr * pGspr = Gspr::instance(pAsset->data(), pAsset->size());
-
-    Mesh * pMesh = Mesh::create(kVERT_PosUv, 6, kPRIM_Triangle, 2);
-
-    VertPosUv * pVert = *pMesh;
-
-    pVert->position = glm::vec3(-0.5f, -0.5f, 0.0f);
-    pVert->u = 
-
     // Front
     builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymin, zmax), glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymax, zmax));
 

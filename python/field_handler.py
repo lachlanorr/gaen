@@ -42,7 +42,7 @@ class BaseField(object):
         return self.name + ' : ' + repr(self.__dict__)
             
     payload = False
-    includes = ['engine/MessageWriter.h']
+    includes = ['"engine/MessageWriter.h"']
 
 
 # cell fields
@@ -68,7 +68,7 @@ class boolField(cellField):
 class ColorField(cellField):
     raw_type = 'Color'
     union_type = 'color'
-    includes = cellField.includes + ['assets/Color.h']
+    includes = cellField.includes + ['"assets/Color.h"']
 
 class EnumField(cellField):
     union_type = 'i'
@@ -98,36 +98,36 @@ class vec2Field(BaseField):
     cell_count = 2
     type_name = 'glm::vec2'
     union_type = 'vec2'
-    includes = BaseField.includes + ['glm/vec2.hpp']
+    includes = BaseField.includes + ['<glm/vec2.hpp>']
     
 class vec3Field(BaseField):
     cell_count = 3
     type_name = 'glm::vec3'
-    includes = BaseField.includes + ['glm/vec3.hpp']
+    includes = BaseField.includes + ['<glm/vec3.hpp>']
 
 # qcell fields
 class vec4Field(BaseField):
     cell_count = 4
     union_type = 'vec4'
     type_name = 'glm::vec4'
-    includes = BaseField.includes + ['glm/vec4.hpp']
+    includes = BaseField.includes + ['<glm/vec4.hpp>']
 
 class quatField(BaseField):
     cell_count = 4
     union_type = 'quat'
     type_name = 'glm::quat'
-    includes = BaseField.includes + ['glm/gtc/quaternion.hpp']
+    includes = BaseField.includes + ['<glm/gtc/quaternion.hpp>']
 
 
 # multi-block fields
 class TaskField(BaseField):
     cell_count = 8
-    includes = BaseField.includes + ['engine/Task.h']
+    includes = BaseField.includes + ['"engine/Task.h"']
 
 class mat4x3Field(BaseField):
     cell_count = 12
     type_name = 'glm::mat4x3'
-    includes = BaseField.includes + ['glm/mat4x3.hpp']
+    includes = BaseField.includes + ['<glm/mat4x3.hpp>']
 
 
 def fields_string(self):

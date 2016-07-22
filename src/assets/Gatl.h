@@ -27,7 +27,7 @@
 #ifndef GAEN_ASSETS_GATL_H
 #define GAEN_ASSETS_GATL_H
 
-#include "glm/vec3.hpp"
+#include <glm/vec3.hpp>
 #include "core/base_defines.h"
 #include "core/mem.h"
 

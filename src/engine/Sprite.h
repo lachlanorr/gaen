@@ -29,6 +29,8 @@
 
 #include <glm/mat4x3.hpp>
 
+#include "engine/task.h"
+
 namespace gaen
 {
 

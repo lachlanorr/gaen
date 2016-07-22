@@ -45,7 +45,8 @@ class SpriteMgr
 class Entity;
 namespace system_api
 {
-HandleP sprite_create(AssetHandleP pAsset, Entity & caller);
+HandleP sprite_create(AssetHandleP pAssetHandle, Entity & caller);
+void sprite_play_anim(HandleP pSpriteHandle, u32 animHash, f32 duration, Entity & caller);
 }
 
 } // namespace gaen
