@@ -26,8 +26,6 @@
 
 #include "engine/stdafx.h"
 
-#include <atomic>
-
 #include "engine/Model.h"
 
 namespace gaen

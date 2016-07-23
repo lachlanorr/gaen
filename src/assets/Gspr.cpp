@@ -160,6 +160,12 @@ Gspr * Gspr::create(u32 frameWidth,
     return pGspr;
 }
 
+u32 Gspr::defaultAnimHash() const
+{
+    ASSERT(mAnimCount > 0);
+    return anims()[0].animHash;
+}
+
 const AnimInfo * Gspr::getAnim(u32 animHash) const
 {
     const AnimInfo * pAnims = anims();

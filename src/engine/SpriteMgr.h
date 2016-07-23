@@ -27,18 +27,27 @@
 #ifndef GAEN_ENGINE_SPRITEMGR_H
 #define GAEN_ENGINE_SPRITEMGR_H
 
+#include "core/List.h"
+
 #include "engine/Handle.h"
+#include "engine/Sprite.h"
 
 namespace gaen
 {
 
 class SpriteMgr
 {
+public:
     SpriteMgr();
     ~SpriteMgr();
+
+    typedef HashMap<kMEM_Engine, u32, Sprite> SpriteMap;
     
     template <typename T>
     MessageResult message(const T& msgAcc);
+
+private:
+    SpriteMap mSpriteMap;
 };
 
 // Compose API

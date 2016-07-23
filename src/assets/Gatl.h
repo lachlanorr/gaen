@@ -140,6 +140,49 @@ public:
     }
 
 
+    u64 vertsSize() const
+    {
+        return mGlyphCount * sizeof(GlyphVert) * 4; // 4 verts per glyph
+    }
+
+    u64 trisSize() const
+    {
+        return mGlyphCount * sizeof(GlyphTri) * 2; // 2 tris per glyph
+    }
+
+    GlyphVert * verts()
+    {
+        return reinterpret_cast<GlyphVert*>(reinterpret_cast<u8*>(this) +
+                                            sizeof(Gatl));
+    }
+
+    const GlyphVert * verts() const
+    {
+        Gatl * pGatl = const_cast<Gatl*>(this);
+        return pGatl->verts();
+    }
+
+    GlyphTri * tris()
+    {
+        return reinterpret_cast<GlyphTri*>(reinterpret_cast<u8*>(this) +
+                                           sizeof(Gatl) +
+                                           verts_size_aligned(mGlyphCount));
+    }
+
+    const GlyphTri * tris() const
+    {
+        Gatl * pGatl = const_cast<Gatl*>(this);
+        return pGatl->tris();
+    }
+
+    GlyphAlias * aliases()
+    {
+        return reinterpret_cast<GlyphAlias*>(reinterpret_cast<u8*>(this) +
+                                             sizeof(Gatl) +
+                                             verts_size_aligned(mGlyphCount) +
+                                             tris_size_aligned(mGlyphCount));
+    }
+
     GlyphAlias & alias(u32 idx)
     {
         idx %= mAliasCount; // treat glyphs as a circular buffer
@@ -153,7 +196,7 @@ public:
 
     Gimg & image()
     {
-        return *reinterpret_cast<Gimg*>(reinterpret_cast<u8*>(this) + gimg_offset(mGlyphCount, mAliasCount));
+        return *reinterpret_cast<Gimg*>(reinterpret_cast<u8*>(this) + gimg_offset_aligned(mGlyphCount, mAliasCount));
     }
     const Gimg & image() const
     {
@@ -161,49 +204,22 @@ public:
         return pGatl->image();
     }
 private:
-    static u64 verts_size(u32 glyphCount)
+    static u64 verts_size_aligned(u32 glyphCount)
     {
         return align(glyphCount * sizeof(GlyphVert) * 4, 4); // 4 verts per glyph
     }
 
-    static u64 tris_size(u32 glyphCount)
+    static u64 tris_size_aligned(u32 glyphCount)
     {
         return align(glyphCount * sizeof(GlyphTri) * 2, 4); // 2 tris (6 indices) per glyph
     }
 
-    static u64 aliases_size(u32 aliasCount)
+    static u64 aliases_size_aligned(u32 aliasCount)
     {
         return align(aliasCount * sizeof(GlyphAlias), 4);
     }
 
-    static u64 gimg_offset(u32 glyphCount, u32 aliasCount);
-
-    GlyphVert * verts()
-    {
-        return reinterpret_cast<GlyphVert*>(reinterpret_cast<u8*>(this) +
-                                            sizeof(Gatl));
-    }
-
-    GlyphTri * tris()
-    {
-        return reinterpret_cast<GlyphTri*>(reinterpret_cast<u8*>(this) +
-                                           sizeof(Gatl) +
-                                           verts_size(mGlyphCount));
-    }
-
-    const GlyphTri * tris() const
-    {
-        Gatl * pGatl = const_cast<Gatl*>(this);
-        return pGatl->tris();
-    }
-
-    GlyphAlias * aliases()
-    {
-        return reinterpret_cast<GlyphAlias*>(reinterpret_cast<u8*>(this) +
-                                             sizeof(Gatl) +
-                                             verts_size(mGlyphCount) +
-                                             tris_size(mGlyphCount));
-    }
+    static u64 gimg_offset_aligned(u32 glyphCount, u32 aliasCount);
 
     static const char * kMagic;
     static const u32 kMagic4cc;

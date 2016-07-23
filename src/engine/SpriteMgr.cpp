@@ -31,7 +31,6 @@
 #include "engine/Handle.h"
 #include "engine/Asset.h"
 
-#include "engine/SpriteAtlas.h"
 #include "engine/SpriteMgr.h"
 
 namespace gaen
@@ -63,6 +62,8 @@ HandleP sprite_create(AssetHandleP pAssetHandle, Entity & caller)
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
     const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
     const Gspr * pGspr = Gspr::instance(pAsset->buffer(), pAsset->size());
+
+    
 
     //SpriteAtlas * pSpriteAtlas = GNEW(kMEM_Texture, SpriteAtlas,
 

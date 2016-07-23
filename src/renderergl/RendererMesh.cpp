@@ -323,6 +323,29 @@ MessageResult RendererMesh::message(const T & msgAcc)
                                         msgr.color());
         break;
     }
+
+    // sprites
+    case HASH::renderer_insert_sprite:
+    {
+        messages::TransformIdR<T> msgr(msgAcc);
+        ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.id());
+        ASSERT(pModelInst);
+        pModelInst->transform = msgr.transform();
+        break;
+    }
+    case HASH::renderer_animate_sprite:
+    {
+        break;
+    }
+    case HASH::renderer_transform_sprite:
+    {
+        break;
+    }
+    case HASH::renderer_remove_sprite:
+    {
+        break;
+    }
+
     default:
         PANIC("Unknown renderer message: %d", msg.msgId);
     }

@@ -35,20 +35,68 @@ namespace gaen
 {
 
 class Asset;
+class Gspr;
+class Gatl;
+struct GlyphVert;
+struct GlyphTri;
 
+typedef u32 sprite_id;
+
+// Immutable properties of a sprite
 class Sprite
 {
+    friend struct SpriteInstance;
+    friend class SpriteMgr;
 public:
-    Sprite(task_id owner, Asset* pGsprAsset, const glm::mat4x3 & transform);
+    Sprite(task_id owner, Asset* pGsprAsset);
     ~Sprite();
 
-    const glm::mat4x3 & transform() { return mTransform; }
-    void setTransform(const glm::mat4x3 & transform);
+    sprite_id id() const { return mId; }
+
+    const GlyphVert * verts();
+    u64 vertsSize();
+
+    const GlyphTri * tris();
+    u64 trisSize();
+
 private:
+    const void * triOffset(u32 idx);
+
+    sprite_id mId;
+
     task_id mOwner;
     Asset * mpGsprAsset;
-    glm::mat4x3 mTransform;
+
+    // pointers int mpGsprAsset, no need to clean these up
+    const Gspr * mpGspr;
+    const Gatl * mpGatl;
 };
+
+struct AnimInfo;
+// Mutable properties of a sprite
+struct SpriteInstance
+{
+    friend class SpriteMgr;
+public:
+    SpriteInstance(Sprite * pSprite, const glm::mat4x3 & transform);
+
+    const Sprite & sprite() { return *mpSprite; }
+
+    const void * currentFrameElemsOffset() { return mpCurrentFrameElemsOffset; }
+    void setAnim(u32 animHash);
+    void setFrame(u32 frameIdx);
+
+    const AnimInfo & SpriteInstance::currentAnim();
+
+    glm::mat4x3 transform;
+private:
+    Sprite * mpSprite;
+    const AnimInfo * mpAnimInfo;
+    const void * mpCurrentFrameElemsOffset;
+    u32 mAnimHash;
+    u32 mAnimFrame;
+};
+
 
 } // namespace gaen
 

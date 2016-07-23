@@ -26,8 +26,6 @@
 
 #include "engine/stdafx.h"
 
-#include <atomic>
-
 #include "engine/task.h"
 #include "engine/AssetMgr.h"
 #include "engine/Material.h"

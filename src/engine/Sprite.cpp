@@ -27,6 +27,7 @@
 #include "engine/stdafx.h"
 
 #include "assets/Gspr.h"
+#include "assets/Gatl.h"
 #include "engine/AssetMgr.h"
 #include "engine/messages/Transform.h"
 
@@ -35,13 +36,43 @@
 namespace gaen
 {
 
-Sprite::Sprite(task_id owner, Asset * pGsprAsset, const glm::mat4x3 & transform)
+static std::atomic<sprite_id> sNextSpriteId(0);
+
+SpriteInstance::SpriteInstance(Sprite * pSprite, const glm::mat4x3 & transform)
+  : mpSprite(pSprite)
+  , transform(transform)
+{
+    mAnimHash = mpSprite->mpGspr->defaultAnimHash();
+    mAnimFrame = 0;
+}
+
+const AnimInfo & SpriteInstance::currentAnim()
+{
+    ASSERT(mpAnimInfo);
+    return *mpAnimInfo;
+}
+
+void SpriteInstance::setAnim(u32 animHash)
+{
+    mpAnimInfo = mpSprite->mpGspr->getAnim(animHash);
+}
+
+void SpriteInstance::setFrame(u32 frameIdx)
+{
+    mpCurrentFrameElemsOffset = mpSprite->mpGspr->getFrameElemsOffset(mpAnimInfo, frameIdx);
+}
+
+Sprite::Sprite(task_id owner, Asset * pGsprAsset)
   : mOwner(owner)
   , mpGsprAsset(pGsprAsset)
-  , mTransform(transform)
 {
     IS_VALID(Gspr, pGsprAsset);
     AssetMgr::addref_asset(0, mpGsprAsset);
+    mpGspr = Gspr::instance(mpGsprAsset->buffer(), mpGspr->size());
+    mpGatl = mpGspr->atlas();
+    ASSERT(mpGatl);
+
+    mId = sNextSpriteId.fetch_add(1,std::memory_order_relaxed);
 }
 
 Sprite::~Sprite()
@@ -49,17 +80,31 @@ Sprite::~Sprite()
     AssetMgr::release_asset(0, mpGsprAsset);
 }
 
-void Sprite::setTransform(const glm::mat4x3 & transform)
+const GlyphVert * Sprite::verts()
 {
-    mTransform = transform;
-    
-    // Notify owning task that its transform has been updated
-    messages::TransformQW msgw(HASH::transform,
-                               kMessageFlag_None,
-                               kSpriteMgrTaskId,
-                               mOwner,
-                               false);
-    msgw.setTransform(transform);
+    return mpGatl->verts();
 }
+
+u64 Sprite::vertsSize()
+{
+    return mpGatl->vertsSize();
+}
+
+const GlyphTri * Sprite::tris()
+{
+    return mpGatl->tris();
+}
+
+u64 Sprite::trisSize()
+{
+    return mpGatl->trisSize();
+}
+
+const void * Sprite::triOffset(u32 idx)
+{
+    idx = idx % mpGatl->glyphCount();
+    return (void*)(sizeof(GlyphTri) * (&mpGatl->tris()[idx] - mpGatl->tris()));
+}
+
 
 } // namespace gaen

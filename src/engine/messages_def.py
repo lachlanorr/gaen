@@ -39,7 +39,6 @@ class InsertModelInstance(FieldHandler):
     isAssetManaged  = boolField()
     transform  = mat4x3Field()
     
-
 class InsertLightDirectional(FieldHandler):
     uid       = u32Field(payload=True)
     color     = ColorField()
@@ -50,6 +49,13 @@ class UpdateLightDirectional(FieldHandler):
     color     = ColorField()
     direction = vec3Field()
 
+class SpriteInstance(FieldHandler):
+    pSprite         = PointerField(type_name='SpriteInstance *',
+                                   includes=['engine/Sprite.h'])
+class SpriteAnimate(FieldHandler):
+    uid             = u32Field(payload=True)
+    animHash        = u32Field()
+    animFrame       = u32Field()
 
 class MoveCamera(FieldHandler):
     position = vec3Field()

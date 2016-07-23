@@ -71,7 +71,7 @@ const Gatl * Gatl::instance(const void * pBuffer, u64 size)
 
 u64 Gatl::required_size(u32 glyphCount, u32 aliasCount, const Gimg & image)
 {
-    return gimg_offset(glyphCount, aliasCount) + image.size();
+    return gimg_offset_aligned(glyphCount, aliasCount) + image.size();
 }
 
 Gatl * Gatl::create(u32 glyphCount, u32 aliasCount, u32 defaultIndex, const Gimg & image)
@@ -92,7 +92,7 @@ Gatl * Gatl::create(u32 glyphCount, u32 aliasCount, u32 defaultIndex, const Gimg
     memcpy(&pGatl->image(), &image, image.size());
 
     // memset verts, tris, aliases
-    memset(pGatl->verts(), 0, gimg_offset(glyphCount, aliasCount) - sizeof(Gatl));
+    memset(pGatl->verts(), 0, gimg_offset_aligned(glyphCount, aliasCount) - sizeof(Gatl));
 
     ASSERT(is_valid(pGatl, required_size(glyphCount, aliasCount, image)));
     return pGatl;
@@ -121,12 +121,12 @@ GlyphTri * Gatl::glyphElemsFromAlias(u32 aliasHash)
     return defaultGlyphElems();
 }
 
-u64 Gatl::gimg_offset(u32 glyphCount,u32 aliasCount)
+u64 Gatl::gimg_offset_aligned(u32 glyphCount,u32 aliasCount)
 {
     return align(sizeof(Gimg) +
-                 verts_size(glyphCount) +
-                 tris_size(glyphCount) +
-                 aliases_size(aliasCount),
+                 verts_size_aligned(glyphCount) +
+                 tris_size_aligned(glyphCount) +
+                 aliases_size_aligned(aliasCount),
                  16);
     // offset gimg to alignment of 16, just for good measure
 }

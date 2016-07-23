@@ -79,9 +79,11 @@ public:
         return mpAtlas;
     }
 
+    u32 defaultAnimHash() const;
+
     const AnimInfo * getAnim(u32 animHash) const;
-    const GlyphTri * getFrameElems(const AnimInfo * pAnim,u32 frameIdx) const;
-    const void * getFrameElemsOffset(const AnimInfo * pAnim,u32 frameIdx) const;
+    const GlyphTri * getFrameElems(const AnimInfo * pAnim, u32 frameIdx) const;
+    const void * getFrameElemsOffset(const AnimInfo * pAnim, u32 frameIdx) const;
 
     AnimInfo * anims();
     const AnimInfo * anims() const;
