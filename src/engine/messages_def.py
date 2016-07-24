@@ -63,6 +63,10 @@ class SpriteAnim(FieldHandler):
     animHash     = u32Field()
     animFrameIdx = u32Field()
 
+class SpriteVelocity(FieldHandler):
+    uid          = u32Field(payload=True)
+    velocity     = vec2Field()
+
 class MoveCamera(FieldHandler):
     position = vec3Field()
     direction = quatField()

@@ -102,6 +102,7 @@ public:
     static void send_sprite_destroy(task_id source, task_id target, u32 uid);
 
     glm::mat4x3 mTransform;
+    glm::vec2 mVelocity;
 
 private:
     // Delete these to make sure w construct through the asset->addref path

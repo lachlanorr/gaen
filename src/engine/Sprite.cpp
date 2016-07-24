@@ -107,6 +107,7 @@ const Gimg & Sprite::image() const
 SpriteInstance::SpriteInstance(Sprite * pSprite, const glm::mat4x3 & transform)
   : mpSprite(pSprite)
   , mTransform(transform)
+  , mVelocity(0.0f)
   , mIsAnimating(false)
 {
     mDurationPerFrame = 0.0f;
@@ -128,6 +129,14 @@ void SpriteInstance::playAnim(u32 animHash, f32 duration)
     animate(animHash, 0);
     mDurationPerFrame = duration / mpAnimInfo->frameCount;
     mDurationSinceFrameChange = 0.0f;
+
+    // Send the renderer the message immediately so there isn't a
+    // delay in frame switch until next frame times out
+    SpriteInstance::send_sprite_anim(kSpriteMgrTaskId,
+                                     kRendererTaskId,
+                                     mpSprite->uid(),
+                                     mAnimHash,
+                                     mAnimFrameIdx);
 }
 
 bool SpriteInstance::advanceAnim(f32 deltaSecs)
@@ -157,7 +166,6 @@ bool SpriteInstance::animate(u32 animHash, u32 animFrameIdx)
     else if (animFrameIdx != mAnimFrameIdx)
     {
         mAnimFrameIdx = animFrameIdx;
-
         mpCurrentFrameElemsOffset = mpSprite->mpGspr->getFrameElemsOffset(mpAnimInfo, mAnimFrameIdx);
         return true;
     }

@@ -1089,6 +1089,39 @@ Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_vec2_init(Ast * pParams, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_Vec2Init, pParseData);
+    ast_set_rhs(pAst, pParams);
+
+    switch (pParams->pChildren->nodes.size())
+    {
+    case 1:
+    {
+        Ast * pParam = pParams->pChildren->nodes.front();
+        const SymDataType * pSdt = ast_data_type(pParam);
+        if (pSdt->typeDesc.dataType != kDT_float && pSdt->typeDesc.dataType != kDT_vec2)
+            COMP_ERROR(pParseData, "Invalid data type in vec2 initialization");
+        break;
+    }
+    case 2:
+    {
+        for (Ast * pParam : pParams->pChildren->nodes)
+        {
+            const SymDataType * pSdt = ast_data_type(pParam);
+            if (pSdt->typeDesc.dataType != kDT_float)
+                COMP_ERROR(pParseData, "Invalid data type in vec2 initialization");
+        }
+        break;
+    }
+    default:
+        COMP_ERROR(pParseData, "Invalid parameters for vec2 initialization");
+        break;
+    }
+
+    return pAst;
+}
+
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
 {
     Ast * pAst = ast_create(kAST_Vec3Init, pParseData);
@@ -1399,6 +1432,8 @@ Ast * ast_create_type_init(DataType dataType, Ast * pParams, ParseData * pParseD
     {
     case kDT_color:
         return ast_create_color_init(pParams, pParseData);
+    case kDT_vec2:
+        return ast_create_vec2_init(pParams, pParseData);
     case kDT_vec3:
         return ast_create_vec3_init(pParams, pParseData);
     case kDT_vec4:

@@ -191,6 +191,7 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
         case kDT_entity:
             snprintf(scratch, kScratchSize, "%s[%u].cells[%u].%s", blockVarName, blockInfo.blockIndex, blockInfo.cellIndex, cell_field_str(pSdt, pParseData));
             return S(scratch);
+        case kDT_vec2:
         case kDT_vec3:
         case kDT_vec4:
         case kDT_quat:
@@ -435,6 +436,8 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
     case kDT_bool:
     case kDT_char:
         return S("0");
+    case kDT_vec2:
+        return S("glm::vec2(0.0f, 0.0f)");
     case kDT_vec3:
         return S("glm::vec3(0.0f, 0.0f, 0.0f)");
     case kDT_vec4:
@@ -1276,6 +1279,18 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_ColorInit:
     {
         S code = S("Color(");
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegen_recurse(pParam, indentLevel);
+            if (pParam != pAst->pRhs->pChildren->nodes.back())
+                code += S(", ");
+        }
+        code += S(")");
+        return code;
+    }
+    case kAST_Vec2Init:
+    {
+        S code = S("glm::vec2(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);

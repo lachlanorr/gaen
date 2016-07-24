@@ -57,6 +57,7 @@ namespace system_api
 {
 HandleP sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Entity & caller);
 void sprite_play_anim(HandleP pSpriteHandle, u32 animHash, f32 duration, Entity & caller);
+void sprite_set_velocity(HandleP pSpriteHandle, const glm::vec2 & velocity, Entity & caller);
 }
 
 } // namespace gaen

@@ -31,9 +31,11 @@
 #include "engine/Handle.h"
 #include "engine/Asset.h"
 #include "engine/Entity.h"
+#include "engine/glm_ext.h"
 
 #include "engine/messages/SpriteInstance.h"
 #include "engine/messages/SpritePlayAnim.h"
+#include "engine/messages/SpriteVelocity.h"
 
 #include "engine/SpriteMgr.h"
 
@@ -54,6 +56,12 @@ void SpriteMgr::update(f32 deltaSecs)
     for (auto & spritePair : mSpriteMap)
     {
         SpriteInstance * pSpriteInst = spritePair.second.get();
+        if (pSpriteInst->mVelocity != glm::vec2{0.0})
+        {
+            glm::vec3 offset = glm::vec3(pSpriteInst->mVelocity * deltaSecs, 0.0f);
+            pSpriteInst->mTransform = glm::to_mat4x3(glm::translate(glm::mat4(1.0f), offset) * glm::mat4(pSpriteInst->mTransform));
+            SpriteInstance::send_sprite_transform(kSpriteMgrTaskId, kRendererTaskId, pSpriteInst->sprite().uid(), pSpriteInst->mTransform);
+        }
         if (pSpriteInst->mIsAnimating && pSpriteInst->advanceAnim(deltaSecs))
         {
             // update renderer with new frame
@@ -104,6 +112,20 @@ MessageResult SpriteMgr::message(const T & msgAcc)
         }
         return MessageResult::Consumed;
     }
+    case HASH::sprite_set_velocity:
+    {
+        messages::SpriteVelocityR<T> msgr(msgAcc);
+        auto spritePair = mSpriteMap.find(msgr.uid());
+        if (spritePair != mSpriteMap.end())
+        {
+            spritePair->second->mVelocity = msgr.velocity();
+        }
+        else
+        {
+            ERR("sprite_set_velocity for unknown animation, uid: %u", msgr.uid());
+        }
+        return MessageResult::Consumed;
+    }
     default:
         PANIC("Unknown SpriteMgr message: %d", msg.msgId);
     }
@@ -142,6 +164,13 @@ void sprite_play_anim(HandleP pSpriteHandle, u32 animHash, f32 duration, Entity 
     msgw.setAnimHash(animHash);
     msgw.setDuration(duration);
 }
+
+void sprite_set_velocity(HandleP pSpriteHandle, const glm::vec2 & velocity, Entity & caller)
+{
+    messages::SpriteVelocityQW msgw(HASH::sprite_set_velocity, kMessageFlag_None, pSpriteHandle->owner(), kSpriteMgrTaskId, pSpriteHandle->nameOrId());
+    msgw.setVelocity(velocity);
+}
+
 
 } // namespace system_api
 

@@ -280,12 +280,13 @@ void RendererMesh::render()
     {
         setActiveShader(HASH::sprite);
         static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-        glm::mat4 mvp = mGuiProjection * view * glm::mat4x4(0.05); // to_mat4x4(matMeshInst.pModelInstance->transform);
 
-        mpActiveShader->setUniformMat4(HASH::proj, mvp);
-        
+        //glm::mat4 mvp = mGuiProjection; // * view  ;// * glm::mat4x4(0.05); // to_mat4x4(matMeshInst.pModelInstance->transform);
+
         for(const auto & spriteGlPair : mSpriteMap)
         {
+            glm::mat4 mvp = mGuiProjection * to_mat4x4(spriteGlPair.second->mpSpriteInstance->mTransform);
+            mpActiveShader->setUniformMat4(HASH::proj, mvp);
             spriteGlPair.second->render();
         }
     }
@@ -372,6 +373,19 @@ MessageResult RendererMesh::message(const T & msgAcc)
     }
     case HASH::sprite_transform:
     {
+        messages::TransformUidR<T> msgr(msgAcc);
+
+        auto & spritePairIt = mSpriteMap.find(msgr.uid());
+
+        if (spritePairIt != mSpriteMap.end())
+        {
+            spritePairIt->second->mpSpriteInstance->mTransform = msgr.transform();
+        }
+        else
+        {
+            ERR("sprite_transform in renderer for unkonwn sprite, uid: %u", msgr.uid());
+        }
+        break;
         break;
     }
     case HASH::sprite_destory:

@@ -347,6 +347,7 @@ Ast * ast_create_assign_op(AstType astType, Ast * pDottedId, Ast * pRhs, ParseDa
 
 Ast * ast_create_scalar_init(DataType dataType, Ast * pParams, ParseData * pParseData);
 Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_vec2_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData);
