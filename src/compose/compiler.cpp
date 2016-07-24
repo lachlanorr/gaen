@@ -970,6 +970,13 @@ Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData
     return pAst;
 }
 
+Ast * ast_create_transform_init(Ast * pVal, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_TransformInit, pParseData);
+    ast_set_rhs(pAst, pVal);
+    return pAst;
+}
+
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData)
 {
     ASSERT(pParseData);

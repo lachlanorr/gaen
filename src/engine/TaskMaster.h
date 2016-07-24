@@ -43,6 +43,8 @@ namespace gaen
 
 class InputMgr;
 class AssetMgr;
+class SpriteMgr;
+
 class MessageQueue;
 class Entity;
 
@@ -160,6 +162,8 @@ private:
 
     UniquePtr<InputMgr> mpInputMgr;
     UniquePtr<AssetMgr> mpAssetMgr;
+    UniquePtr<SpriteMgr> mpSpriteMgr;
+
     Task mRendererTask;
 
     FrameTime mFrameTime;

@@ -30,12 +30,41 @@
 
 #include "engine/Handle.h"
 #include "engine/Asset.h"
+#include "engine/Entity.h"
+
+#include "engine/messages/SpriteInstance.h"
+#include "engine/messages/SpritePlayAnim.h"
 
 #include "engine/SpriteMgr.h"
 
 namespace gaen
 {
 
+SpriteMgr::~SpriteMgr()
+{
+    // LORRTODO: Cleanup is causing crash on exit... need to redesign how we release assets
+    //for (auto & spritePair : mSpriteMap)
+    //{
+    //    SpriteInstance::send_sprite_destroy(kSpriteMgrTaskId, kRendererTaskId, spritePair.second->sprite().uid());
+    //}
+}
+
+void SpriteMgr::update(f32 deltaSecs)
+{
+    for (auto & spritePair : mSpriteMap)
+    {
+        SpriteInstance * pSpriteInst = spritePair.second.get();
+        if (pSpriteInst->mIsAnimating && pSpriteInst->advanceAnim(deltaSecs))
+        {
+            // update renderer with new frame
+            SpriteInstance::send_sprite_anim(kSpriteMgrTaskId,
+                                             kRendererTaskId,
+                                             pSpriteInst->sprite().uid(),
+                                             pSpriteInst->mAnimHash,
+                                             pSpriteInst->mAnimFrameIdx);
+        }
+    }
+}
 
 template <typename T>
 MessageResult SpriteMgr::message(const T & msgAcc)
@@ -44,9 +73,35 @@ MessageResult SpriteMgr::message(const T & msgAcc)
 
     switch (msg.msgId)
     {
-    case HASH::sprite_create:
+    case HASH::sprite_insert:
     {
-        PANIC("TODO");
+        messages::SpriteInstanceR<T> msgr(msgAcc);
+
+        SpriteInstance * pSpriteInst = msgr.spriteInstance();
+        ASSERT(pSpriteInst);
+        ASSERT(mSpriteMap.find(pSpriteInst->sprite().uid()) == mSpriteMap.end());
+        mSpriteMap.emplace(pSpriteInst->sprite().uid(), pSpriteInst);
+
+        // Send a copy to the renderer
+        Sprite * pSpriteRenderer = GNEW(kMEM_Renderer, Sprite, pSpriteInst->sprite());
+        SpriteInstance * pSpriteInstRenderer = GNEW(kMEM_Renderer, SpriteInstance, pSpriteRenderer, pSpriteInst->mTransform);
+        SpriteInstance::send_sprite_insert(kSpriteMgrTaskId, kRendererTaskId, pSpriteInstRenderer);
+
+        return MessageResult::Consumed;
+    }
+    case HASH::sprite_play_anim:
+    {
+        messages::SpritePlayAnimR<T> msgr(msgAcc);
+
+        auto spritePair = mSpriteMap.find(msgr.uid());
+        if (spritePair != mSpriteMap.end())
+        {
+            spritePair->second->playAnim(msgr.animHash(), msgr.duration());
+        }
+        else
+        {
+            ERR("sprite_play_anim for unknown animation, uid: %u", msgr.uid());
+        }
         return MessageResult::Consumed;
     }
     default:
@@ -55,46 +110,39 @@ MessageResult SpriteMgr::message(const T & msgAcc)
     return MessageResult::Consumed;
 }
 
+// Template decls so we can define message func here in the .cpp
+template MessageResult SpriteMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+
 namespace system_api
 {
-HandleP sprite_create(AssetHandleP pAssetHandle, Entity & caller)
+
+static void handle_sprite_remove(Handle & handle)
+{
+    SpriteInstance::send_sprite_destroy(handle.owner(), kSpriteMgrTaskId, handle.nameOrId());
+    GDELETE(&handle);
+}
+
+HandleP sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Entity & caller)
 {
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
     const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
-    const Gspr * pGspr = Gspr::instance(pAsset->buffer(), pAsset->size());
 
-    
+    Sprite * pSprite = GNEW(kMEM_Engine, Sprite, caller.task().id(), pAsset);
+    SpriteInstance * pSpriteInst = GNEW(kMEM_Engine, SpriteInstance, pSprite, transform);
 
-    //SpriteAtlas * pSpriteAtlas = GNEW(kMEM_Texture, SpriteAtlas,
+    SpriteInstance::send_sprite_insert(caller.task().id(), kSpriteMgrTaskId, pSpriteInst);
 
-    /*
-    // Front
-    builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymin, zmax), glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymax, zmax));
-
-    // Bottom
-    builder.addQuad(glm::vec3(xmin, ymin, zmax), glm::vec3(xmin, ymin, zmin), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymin, zmax));
-
-    // Back
-    builder.addQuad(glm::vec3(xmin, ymin, zmin), glm::vec3(xmin, ymax, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymin, zmin));
-
-    // Top
-    builder.addQuad(glm::vec3(xmax, ymax, zmax), glm::vec3(xmax, ymax, zmin), glm::vec3(xmin, ymax, zmin), glm::vec3(xmin, ymax, zmax));
-
-    // Left
-    builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymax, zmin), glm::vec3(xmin, ymin, zmin), glm::vec3(xmin, ymin, zmax));
-
-    // Right
-    builder.addQuad(glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymax, zmax));
-
-    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
-    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
-
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
-    return pModel;
-    */
-
-    return nullptr;
+    HandleP pHandle = GNEW(kMEM_Engine, Handle, HASH::sprite, pSprite->uid(), caller.task().id(), nullptr, handle_sprite_remove);
+    return pHandle;
 }
+
+void sprite_play_anim(HandleP pSpriteHandle, u32 animHash, f32 duration, Entity & caller)
+{
+    messages::SpritePlayAnimQW msgw(HASH::sprite_play_anim, kMessageFlag_None, pSpriteHandle->owner(), kSpriteMgrTaskId, pSpriteHandle->nameOrId());
+    msgw.setAnimHash(animHash);
+    msgw.setDuration(duration);
 }
+
+} // namespace system_api
 
 } // namespace gaen

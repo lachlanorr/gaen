@@ -29,21 +29,90 @@
 #include "assets/Gspr.h"
 #include "assets/Gatl.h"
 #include "engine/AssetMgr.h"
-#include "engine/messages/Transform.h"
+
+#include "engine/messages/SpriteInstance.h"
+#include "engine/messages/SpriteAnim.h"
+#include "engine/messages/TransformUid.h"
 
 #include "engine/Sprite.h"
 
 namespace gaen
 {
 
-static std::atomic<sprite_id> sNextSpriteId(0);
+static std::atomic<sprite_id> sNextSpriteId(1);
+
+
+Sprite::Sprite(task_id owner, const Asset * pGsprAsset)
+  : mOwner(owner)
+  , mpGsprAsset(pGsprAsset)
+{
+    VALIDATE_ASSET(Gspr, pGsprAsset);
+    AssetMgr::addref_asset(0, mpGsprAsset);
+    mpGspr = Gspr::instance(mpGsprAsset->buffer(), mpGsprAsset->size());
+    mpGatl = mpGspr->atlas();
+    ASSERT(mpGatl);
+
+    mUid = sNextSpriteId.fetch_add(1, std::memory_order_relaxed);
+}
+
+Sprite::Sprite(const Sprite& rhs)
+  : mOwner(rhs.mOwner)
+  , mpGsprAsset(rhs.mpGsprAsset)
+{
+    mpGspr = Gspr::instance(mpGsprAsset->buffer(), mpGsprAsset->size());
+    mpGatl = mpGspr->atlas();
+    mUid = rhs.mUid;
+}
+
+Sprite::~Sprite()
+{
+    // LORRTODO: Cleanup is causing crash on exit... need to redesign how we release assets
+    //AssetMgr::release_asset(0, mpGsprAsset);
+}
+
+const GlyphVert * Sprite::verts() const
+{
+    return mpGatl->verts();
+}
+
+u64 Sprite::vertsSize() const
+{
+    return mpGatl->vertsSize();
+}
+
+const GlyphTri * Sprite::tris() const
+{
+    return mpGatl->tris();
+}
+
+u64 Sprite::trisSize() const
+{
+    return mpGatl->trisSize();
+}
+
+const void * Sprite::triOffset(u32 idx) const
+{
+    idx = idx % mpGatl->glyphCount();
+    return (void*)(sizeof(GlyphTri) * (&mpGatl->tris()[idx] - mpGatl->tris()));
+}
+
+const Gimg & Sprite::image() const
+{
+    return mpGatl->image();
+}
+
+
+// SpriteInstance methods
 
 SpriteInstance::SpriteInstance(Sprite * pSprite, const glm::mat4x3 & transform)
   : mpSprite(pSprite)
-  , transform(transform)
+  , mTransform(transform)
+  , mIsAnimating(false)
 {
-    mAnimHash = mpSprite->mpGspr->defaultAnimHash();
-    mAnimFrame = 0;
+    mDurationPerFrame = 0.0f;
+    mDurationSinceFrameChange = 0.0f;
+    mAnimHash = 0;
+    animate(mpSprite->mpGspr->defaultAnimHash(), 0);
 }
 
 const AnimInfo & SpriteInstance::currentAnim()
@@ -52,59 +121,71 @@ const AnimInfo & SpriteInstance::currentAnim()
     return *mpAnimInfo;
 }
 
-void SpriteInstance::setAnim(u32 animHash)
+void SpriteInstance::playAnim(u32 animHash, f32 duration)
 {
-    mpAnimInfo = mpSprite->mpGspr->getAnim(animHash);
+    ASSERT(duration > 0.0f);
+    mIsAnimating = true;
+    animate(animHash, 0);
+    mDurationPerFrame = duration / mpAnimInfo->frameCount;
+    mDurationSinceFrameChange = 0.0f;
 }
 
-void SpriteInstance::setFrame(u32 frameIdx)
+bool SpriteInstance::advanceAnim(f32 deltaSecs)
 {
-    mpCurrentFrameElemsOffset = mpSprite->mpGspr->getFrameElemsOffset(mpAnimInfo, frameIdx);
+    mDurationSinceFrameChange += deltaSecs;
+
+    if (mDurationSinceFrameChange > mDurationPerFrame)
+    {
+        u32 framesToAdvance = (u32)(mDurationSinceFrameChange / mDurationPerFrame);
+        u32 newFrameIdx = (mAnimFrameIdx + framesToAdvance) % mpAnimInfo->frameCount;
+        mDurationSinceFrameChange = fmod(deltaSecs, mDurationPerFrame);
+        return animate(mAnimHash, newFrameIdx);
+    }
+    return false;
 }
 
-Sprite::Sprite(task_id owner, Asset * pGsprAsset)
-  : mOwner(owner)
-  , mpGsprAsset(pGsprAsset)
+bool SpriteInstance::animate(u32 animHash, u32 animFrameIdx)
 {
-    IS_VALID(Gspr, pGsprAsset);
-    AssetMgr::addref_asset(0, mpGsprAsset);
-    mpGspr = Gspr::instance(mpGsprAsset->buffer(), mpGspr->size());
-    mpGatl = mpGspr->atlas();
-    ASSERT(mpGatl);
+    if (animHash != mAnimHash)
+    {
+        mAnimHash = animHash;
+        mpAnimInfo = mpSprite->mpGspr->getAnim(animHash);
+        mAnimFrameIdx = 0;
+        mpCurrentFrameElemsOffset = mpSprite->mpGspr->getFrameElemsOffset(mpAnimInfo, mAnimFrameIdx);
+        return true;
+    }
+    else if (animFrameIdx != mAnimFrameIdx)
+    {
+        mAnimFrameIdx = animFrameIdx;
 
-    mId = sNextSpriteId.fetch_add(1,std::memory_order_relaxed);
+        mpCurrentFrameElemsOffset = mpSprite->mpGspr->getFrameElemsOffset(mpAnimInfo, mAnimFrameIdx);
+        return true;
+    }
+    return false;
 }
 
-Sprite::~Sprite()
+void SpriteInstance::send_sprite_insert(task_id source, task_id target, SpriteInstance * pSpriteInst)
 {
-    AssetMgr::release_asset(0, mpGsprAsset);
+    messages::SpriteInstanceQW msgw(HASH::sprite_insert, kMessageFlag_None, source, target);
+    msgw.setSpriteInstance(pSpriteInst);
 }
 
-const GlyphVert * Sprite::verts()
+void SpriteInstance::send_sprite_anim(task_id source, task_id target, u32 uid, u32 animHash, u32 animFrameIdx)
 {
-    return mpGatl->verts();
+    messages::SpriteAnimQW msgw(HASH::sprite_anim, kMessageFlag_None, source, target, uid);
+    msgw.setAnimHash(animHash);
+    msgw.setAnimFrameIdx(animFrameIdx);
 }
 
-u64 Sprite::vertsSize()
+void SpriteInstance::send_sprite_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform)
 {
-    return mpGatl->vertsSize();
+    messages::TransformUidQW msgw(HASH::sprite_transform, kMessageFlag_None, source, target, uid);
+    msgw.setTransform(transform);
 }
 
-const GlyphTri * Sprite::tris()
+void SpriteInstance::send_sprite_destroy(task_id source, task_id target, u32 uid)
 {
-    return mpGatl->tris();
+    MessageQueueWriter msgw(HASH::sprite_destroy, kMessageFlag_None, source, target, to_cell(uid), 0);
 }
-
-u64 Sprite::trisSize()
-{
-    return mpGatl->trisSize();
-}
-
-const void * Sprite::triOffset(u32 idx)
-{
-    idx = idx % mpGatl->glyphCount();
-    return (void*)(sizeof(GlyphTri) * (&mpGatl->tris()[idx] - mpGatl->tris()));
-}
-
 
 } // namespace gaen

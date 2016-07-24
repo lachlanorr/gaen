@@ -36,6 +36,7 @@
 #include "engine/messages/TaskStatus.h"
 #include "engine/InputMgr.h"
 #include "engine/AssetMgr.h"
+#include "engine/SpriteMgr.h"
 #include "engine/renderer_api.h"
 
 #include "engine/TaskMaster.h"
@@ -361,6 +362,11 @@ void TaskMaster::runPrimaryGameLoop()
     mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr));
     mpAssetMgr.reset(GNEW(kMEM_Engine, AssetMgr, 4));
 
+    // LORRNOTE: SpriteMgr should be started on all TaskMasters and
+    // the broadcast HASH::sprite_insert messages can be handled by
+    // the appropriate TaskMaster
+    mpSpriteMgr.reset(GNEW(kMEM_Engine, SpriteMgr));
+
     renderer_init_device(mRendererTask);
     renderer_init_viewport(mRendererTask);
 
@@ -409,6 +415,7 @@ void TaskMaster::runPrimaryGameLoop()
 
         
         // LORRTODO - Do physics
+        mpSpriteMgr->update(deltaSecs);
 
 
         // call update on each task owned by this TaskMaster
@@ -604,6 +611,11 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
     {
         ASSERT(mpAssetMgr.get() != nullptr);
         mpAssetMgr->message(msgAcc);
+    }
+    else if (msg.target == kSpriteMgrTaskId)
+    {
+        ASSERT(mpSpriteMgr.get() != nullptr);
+        mpSpriteMgr->message(msgAcc);
     }
     else if (msg.target == kMainThreadTaskId)
     {

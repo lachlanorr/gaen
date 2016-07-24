@@ -40,8 +40,8 @@ private:
     sprite() : Shader(0x81e2581c /* HASH::sprite */) {}
 
     static const u32 kCodeCount = 2;
-    static const u32 kUniformCount = 1;
-    static const u32 kAttributeCount = 2;
+    static const u32 kUniformCount = 2;
+    static const u32 kAttributeCount = 1;
 
     Shader::ShaderCode mCodes[kCodeCount];
     Shader::VariableInfo mUniforms[kUniformCount];

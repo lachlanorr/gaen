@@ -33,28 +33,29 @@ namespace shaders
 {
 
 static const char * kShaderCode_shv =
-    "layout(location = 0) in vec4 vPosition;\n"
-    "layout(location = 1) in vec2 vUV;\n"
+    "layout(location = 0) in vec4 vPosUv;\n"
     "\n"
-    "out vec2 UV;\n"
+    "uniform mat4 proj;\n"
+    "\n"
+    "out vec2 uv;\n"
     "\n"
     "void main()\n"
     "{\n"
-    "    gl_Position = vPosition;\n"
-    "    UV = vUV;\n"
+    "    gl_Position = proj * vec4(vPosUv.xy, 0.0, 1.0);\n"
+    "    uv = vPosUv.zw;\n"
     "};\n"
     ; // kShaderCode_shv (END)
 
 static const char * kShaderCode_shf =
-    "in vec2 UV;\n"
+    "in vec2 uv;\n"
     "\n"
-    "out vec3 color;\n"
+    "out vec4 color;\n"
     "\n"
     "layout(binding=0) uniform sampler2D imageSampler;\n"
     "\n"
     "void main()\n"
     "{\n"
-    "    color = texture(imageSampler, UV).rgb;\n"
+    "    color = texture(imageSampler, uv).rgba;\n"
     "};\n"
     ; // kShaderCode_shf (END)
 
@@ -78,17 +79,17 @@ Shader * sprite::construct()
     pShader->mUniforms[0].location = 0;
     pShader->mUniforms[0].type = GL_SAMPLER_2D;
 
+    pShader->mUniforms[1].nameHash = 0xe33e21b6; /* HASH::proj */
+    pShader->mUniforms[1].index = 1;
+    pShader->mUniforms[1].location = 1;
+    pShader->mUniforms[1].type = GL_FLOAT_MAT4;
+
 
     // Attributes
-    pShader->mAttributes[0].nameHash = 0xe61b84be; /* HASH::vPosition */
+    pShader->mAttributes[0].nameHash = 0x33f0380a; /* HASH::vPosUv */
     pShader->mAttributes[0].index = 0;
     pShader->mAttributes[0].location = 0;
     pShader->mAttributes[0].type = GL_FLOAT_VEC4;
-
-    pShader->mAttributes[1].nameHash = 0x5e092066; /* HASH::vUV */
-    pShader->mAttributes[1].index = 1;
-    pShader->mAttributes[1].location = 1;
-    pShader->mAttributes[1].type = GL_FLOAT_VEC2;
 
 
     // Set base Shader members to our arrays and counts

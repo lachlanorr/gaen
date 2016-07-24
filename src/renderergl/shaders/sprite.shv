@@ -1,10 +1,11 @@
-layout(location = 0) in vec4 vPosition;
-layout(location = 1) in vec2 vUV;
+layout(location = 0) in vec4 vPosUv;
 
-out vec2 UV;
+uniform mat4 proj;
+
+out vec2 uv;
 
 void main()
 {
-    gl_Position = vPosition;
-    UV = vUV;
+    gl_Position = proj * vec4(vPosUv.xy, 0.0, 1.0);
+    uv = vPosUv.zw;
 };

@@ -37,6 +37,7 @@ namespace gaen
 class Asset;
 class Gspr;
 class Gatl;
+class Gimg;
 struct GlyphVert;
 struct GlyphTri;
 
@@ -45,27 +46,35 @@ typedef u32 sprite_id;
 // Immutable properties of a sprite
 class Sprite
 {
-    friend struct SpriteInstance;
+    friend class SpriteInstance;
     friend class SpriteMgr;
 public:
-    Sprite(task_id owner, Asset* pGsprAsset);
+    Sprite(task_id owner, const Asset* pGsprAsset);
+    Sprite(const Sprite& rhs);
     ~Sprite();
 
-    sprite_id id() const { return mId; }
+    sprite_id uid() const { return mUid; }
 
-    const GlyphVert * verts();
-    u64 vertsSize();
+    const GlyphVert * verts() const;
+    u64 vertsSize() const;
 
-    const GlyphTri * tris();
-    u64 trisSize();
+    const GlyphTri * tris() const;
+    u64 trisSize() const;
+
+    const Gimg & image() const;
 
 private:
-    const void * triOffset(u32 idx);
+    // Delete these to make sure w construct through the asset->addref path
+    Sprite(Sprite&&)                  = delete;
+    Sprite & operator=(const Sprite&) = delete;
+    Sprite & operator=(Sprite&&)      = delete;
+    
+    const void * triOffset(u32 idx) const;
 
-    sprite_id mId;
+    sprite_id mUid;
 
     task_id mOwner;
-    Asset * mpGsprAsset;
+    const Asset * mpGsprAsset;
 
     // pointers int mpGsprAsset, no need to clean these up
     const Gspr * mpGspr;
@@ -74,7 +83,7 @@ private:
 
 struct AnimInfo;
 // Mutable properties of a sprite
-struct SpriteInstance
+class SpriteInstance
 {
     friend class SpriteMgr;
 public:
@@ -83,20 +92,40 @@ public:
     const Sprite & sprite() { return *mpSprite; }
 
     const void * currentFrameElemsOffset() { return mpCurrentFrameElemsOffset; }
-    void setAnim(u32 animHash);
-    void setFrame(u32 frameIdx);
+    bool animate(u32 animHash, u32 animFrameIdx);
 
     const AnimInfo & SpriteInstance::currentAnim();
 
-    glm::mat4x3 transform;
+    static void send_sprite_insert(task_id source, task_id target, SpriteInstance * pSpriteInst);
+    static void send_sprite_anim(task_id source, task_id target, u32 uid, u32 animHash, u32 animFrameIdx);
+    static void send_sprite_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform);
+    static void send_sprite_destroy(task_id source, task_id target, u32 uid);
+
+    glm::mat4x3 mTransform;
+
 private:
-    Sprite * mpSprite;
+    // Delete these to make sure w construct through the asset->addref path
+    SpriteInstance(const SpriteInstance&)             = delete;
+    SpriteInstance(SpriteInstance&&)                  = delete;
+    SpriteInstance & operator=(const SpriteInstance&) = delete;
+    SpriteInstance & operator=(SpriteInstance&&)      = delete;
+    
+    void playAnim(u32 animHash, f32 duration);
+    bool advanceAnim(f32 deltaSecs);
+
+    UniquePtr<Sprite> mpSprite;
+    
     const AnimInfo * mpAnimInfo;
     const void * mpCurrentFrameElemsOffset;
     u32 mAnimHash;
-    u32 mAnimFrame;
+    u32 mAnimFrameIdx;
+    f32 mDurationPerFrame;
+    f32 mDurationSinceFrameChange;
+
+    bool mIsAnimating;
 };
 
+typedef UniquePtr<SpriteInstance> SpriteInstanceUP;
 
 } // namespace gaen
 

@@ -28,8 +28,8 @@ class Transform(FieldHandler):
     transform = mat4x3Field()
 
 # Transform and entity
-class TransformId(FieldHandler):
-    id        = u32Field(payload=True)
+class TransformUid(FieldHandler):
+    uid       = u32Field(payload=True)
     transform = mat4x3Field()
 
 class InsertModelInstance(FieldHandler):
@@ -50,12 +50,18 @@ class UpdateLightDirectional(FieldHandler):
     direction = vec3Field()
 
 class SpriteInstance(FieldHandler):
-    pSprite         = PointerField(type_name='SpriteInstance *',
-                                   includes=['engine/Sprite.h'])
-class SpriteAnimate(FieldHandler):
-    uid             = u32Field(payload=True)
-    animHash        = u32Field()
-    animFrame       = u32Field()
+    pSpriteInstance = PointerField(type_name='SpriteInstance *',
+                      includes=['engine/Sprite.h'])
+
+class SpritePlayAnim(FieldHandler):
+    uid       = u32Field(payload=True)
+    animHash  = u32Field()
+    duration  = f32Field()
+
+class SpriteAnim(FieldHandler):
+    uid          = u32Field(payload=True)
+    animHash     = u32Field()
+    animFrameIdx = u32Field()
 
 class MoveCamera(FieldHandler):
     position = vec3Field()

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// SpriteMgr.h - Management of Sprite lifetimes, animations and collisions
+// SpriteGL.h - OpenGL wrapper for sprites
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,41 +24,48 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_SPRITEMGR_H
-#define GAEN_ENGINE_SPRITEMGR_H
+#ifndef GAEN_RENDERERGL_SPRITEGL_H
+#define GAEN_RENDERERGL_SPRITEGL_H
 
-#include "core/List.h"
-
-#include "engine/Handle.h"
+#include "core/mem.h"
 #include "engine/Sprite.h"
 
 namespace gaen
 {
 
-class SpriteMgr
+class RendererMesh;
+
+class SpriteGL
 {
 public:
-    typedef HashMap<kMEM_Engine, u32, SpriteInstanceUP> SpriteMap;
+    SpriteGL(SpriteInstance * pSpriteInstance, RendererMesh * pRenderer)
+      : mpSpriteInstance(pSpriteInstance)
+      , mpRenderer(pRenderer)
+      , vertArrayId(0)
+      , vertBufferId(0)
+      , primBufferId(0)
+      , textureId(0)
+      , textureUnit(0)
+    {}
 
-    ~SpriteMgr();
+    void loadGpu();
+    void render();
 
-    void update(f32 deltaSecs);
+    void prepareMeshAttributes();
+    
+    u32 vertArrayId;
+    u32 vertBufferId;
+    u32 primBufferId;
 
-    template <typename T>
-    MessageResult message(const T& msgAcc);
+    u32 textureId;
+    u32 textureUnit;
 
-private:
-    SpriteMap mSpriteMap;
+    UniquePtr<SpriteInstance> mpSpriteInstance;
+    RendererMesh * mpRenderer;
 };
 
-// Compose API
-class Entity;
-namespace system_api
-{
-HandleP sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Entity & caller);
-void sprite_play_anim(HandleP pSpriteHandle, u32 animHash, f32 duration, Entity & caller);
-}
+typedef UniquePtr<SpriteGL> SpriteGLUP;
 
-} // namespace gaen
+} // namespcae gaen
 
-#endif // #ifndef GAEN_ENGINE_SPRITEMGR_H
+#endif // #ifndef GAEN_RENDERERGL_SPRITEGL_H

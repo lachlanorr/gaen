@@ -35,7 +35,7 @@
 
 #include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/InsertLightDirectional.h"
-#include "engine/messages/TransformId.h"
+#include "engine/messages/TransformUid.h"
 #include "engine/messages/MoveCamera.h"
 
 #include "engine/voxel27.h"
@@ -520,8 +520,8 @@ MessageResult RendererProto::message(const T & msgAcc)
     }
     case HASH::renderer_transform_model_instance:
     {
-        messages::TransformIdR<T> msgr(msgAcc);
-        ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.id());
+        messages::TransformUidR<T> msgr(msgAcc);
+        ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.uid());
         ASSERT(pModelInst);
         pModelInst->transform = msgr.transform();
         break;

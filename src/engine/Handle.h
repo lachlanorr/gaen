@@ -40,9 +40,9 @@ typedef void(*HandleReleaseFunc)(Handle & handle);
 class Handle
 {
 public:
-    Handle(u32 typeHash, u32 nameHash, task_id owner, void * pData, HandleReleaseFunc pReleaseFunc)
+    Handle(u32 typeHash, u32 nameOrId, task_id owner, void * pData, HandleReleaseFunc pReleaseFunc)
       : mTypeHash(typeHash)
-      , mNameHash(nameHash)
+      , mNameOrId(nameOrId)
       , mOwner(owner)
       , mpData(pData)
       , mpReleaseFunc(pReleaseFunc)
@@ -51,7 +51,7 @@ public:
 
     task_id owner() const { return mOwner; }
     u32 typeHash() const { return mTypeHash; }
-    u32 nameHash() const { return mNameHash; }
+    u32 nameOrId() const { return mNameOrId; }
 
     void * data() { return mpData; }
     const void * data() const { return mpData; }
@@ -73,7 +73,7 @@ public:
 private:
     task_id mOwner;
     u32 mTypeHash;
-    u32 mNameHash;
+    u32 mNameOrId;
     void * mpData;
     HandleReleaseFunc mpReleaseFunc;
 };

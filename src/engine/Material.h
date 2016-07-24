@@ -36,6 +36,7 @@ namespace gaen
 {
 
 class Asset;
+class Gimg;
 
 // Define these in the order of rendering.
 // Higher MaterialLayers get rendered later.
@@ -53,8 +54,8 @@ typedef u32 material_id;
 
 typedef void(*SetShaderVec4VarCB)(u32 nameHash, const glm::vec4 & val, void * pContext);
 typedef void(*SetTextureCB)(u32 nameHash, u32 gpuId, void * pContext);
-typedef u32(*LoadTextureCB)(u32 nameHash, const Asset * pGimgAsset, void * pContext);
-typedef void(*UnloadTextureCB)(u32 gpuId, const Asset * pGimgAsset, void * pContext);
+typedef u32(*LoadTextureCB)(u32 nameHash, const Gimg * pGimg, void * pContext);
+typedef void(*UnloadTextureCB)(u32 gpuId, const Gimg * pGimg, void * pContext);
 
 class Material
 {

@@ -27,9 +27,10 @@
 #ifndef GAEN_ASSETS_GATL_H
 #define GAEN_ASSETS_GATL_H
 
-#include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
 #include "core/base_defines.h"
 #include "core/mem.h"
+#include "core/logging.h"
 
 namespace gaen
 {
@@ -39,11 +40,11 @@ class Gimg;
 
 struct GlyphVert
 {
-    glm::vec3 position;
+    glm::vec2 position;
     f32 u;
     f32 v;
 };
-static_assert(sizeof(GlyphVert) == 20, "SpriteVert unexpected size");
+static_assert(sizeof(GlyphVert) == 16, "SpriteVert unexpected size");
 
 struct GlyphTri
 {

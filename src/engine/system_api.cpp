@@ -33,7 +33,7 @@
 #include "engine/InputMgr.h"
 #include "engine/MessageWriter.h"
 #include "engine/messages/InsertModelInstance.h"
-#include "engine/messages/TransformId.h"
+#include "engine/messages/TransformUid.h"
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/UpdateLightDirectional.h"
 #include "engine/messages/MoveCamera.h"
@@ -165,7 +165,7 @@ void renderer_insert_model_instance(u32 uid,
 
 void renderer_transform_model_instance(u32  uid, const glm::mat4x3 & transform, Entity & caller)
 {
-    messages::TransformIdQW msgQW(HASH::renderer_transform_model_instance,
+    messages::TransformUidQW msgQW(HASH::renderer_transform_model_instance,
                                   kMessageFlag_None,
                                   caller.task().id(),
                                   kRendererTaskId,

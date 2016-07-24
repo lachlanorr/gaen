@@ -209,6 +209,7 @@ prop_init_list
 
 prop_init
     : IDENTIFIER '=' expr  { $$ = ast_create_prop_init($1, $3, pParseData); }
+    | TRANSFORM '=' expr   { $$ = ast_create_transform_init($3, pParseData); }
     ;
 
 block

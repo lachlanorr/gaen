@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "core/logging.h"
+
 #include "assets/file_utils.h"
 #include "assets/Gatl.h"
 #include "assets/Gspr.h"
@@ -183,12 +185,11 @@ const GlyphTri * Gspr::getFrameElems(const AnimInfo * pAnim, u32 frameIdx) const
     ASSERT(mpAtlas);
 
     ASSERT(pAnim);
-    ASSERT(pAnim > anims() && pAnim < anims() + mAnimCount);
+    ASSERT(pAnim >= anims() && pAnim < anims() + mAnimCount);
 
     // roll frameIdx around if it's greater than max
-    frameIdx = frameIdx % pAnim->frameCount;
-
-    u32 frame = frames()[pAnim->firstFrame];
+    frameIdx = pAnim->firstFrame + (frameIdx % pAnim->frameCount);
+    u32 frame = frames()[frameIdx];
 
     ASSERT(frame < mpAtlas->glyphCount());
     return mpAtlas->glyphElems(frame);

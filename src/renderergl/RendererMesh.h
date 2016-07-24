@@ -37,12 +37,13 @@
 #include "engine/renderer_structs.h"
 
 #include "renderergl/gaen_opengl.h"
+#include "renderergl/SpriteGL.h"
 #include "renderergl/ShaderRegistry.h"
 
 namespace gaen
 {
 
-class SpriteAtlas;
+class SpriteGL;
 
 class RendererMesh
 {
@@ -71,14 +72,14 @@ public:
     MessageResult message(const T& msgAcc);
 
     void loadMaterialMesh(Model::MaterialMesh & matMesh);
-
-    void loadSpriteAtlas(const SpriteAtlas & mesh);
+    u32 loadTexture(u32 textureUnit, const Gimg * gimg);
 
 private:
     static void set_shader_vec4_var(u32 nameHash, const glm::vec4 & val, void * pContext);
     static u32 texture_unit(u32 nameHash);
     static void set_texture(u32 nameHash, u32 glId, void * pContext);
-    static u32 load_texture(u32 nameHash, const Asset * pGimgAsset, void * pContext);
+
+    static u32 load_texture(u32 nameHash,const Gimg * pGimg, void * pContext);
 
     static void prepare_mesh_attributes(const Mesh & mesh);
 
@@ -91,6 +92,8 @@ private:
                      Model * pModel,
                      const glm::mat4x3 & worldTransform,
                      bool isAssetManaged);
+    
+    void insertSprite(SpriteInstance * pSpriteInst);
     
     bool mIsInit = false;
     
@@ -115,6 +118,9 @@ private:
 
     ModelMgr<RendererMesh> * mpModelMgr;
 
+    typedef HashMap<kMEM_Renderer, u32, SpriteGLUP> SpriteMap;
+    SpriteMap mSpriteMap;
+
     List<kMEM_Renderer, DirectionalLight> mDirectionalLights;
     List<kMEM_Renderer, PointLight> mPointLights;
 
@@ -125,17 +131,17 @@ private:
 
     struct TextureInfo
     {
-        const Asset * pGimgAsset;
+        const Gimg * pGimg;
         u32 glId;
         u32 refCount;
 
-        TextureInfo(const Asset *pGimgAsset, u32 glId, u32 refCount)
-          : pGimgAsset(pGimgAsset)
+        TextureInfo(const Gimg *pGimg, u32 glId, u32 refCount)
+          : pGimg(pGimg)
           , glId(glId)
           , refCount(refCount)
         {}
     };
-    HashMap<kMEM_Renderer, const Asset*, TextureInfo> mLoadedTextures;
+    HashMap<kMEM_Renderer, const Gimg*, TextureInfo> mLoadedTextures;
 };
 
 } // namespace gaen

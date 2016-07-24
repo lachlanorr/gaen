@@ -96,28 +96,24 @@ static GlyphQuad glyph_quad(i32 left, i32 top, i32 width, i32 height, const Imag
     // Top Left
     quad.verts[0].position.x = -width / 2.0f;
     quad.verts[0].position.y = height / 2.0f;
-    quad.verts[0].position.z = 0;
     quad.verts[0].u = (f32)left / (imageInfo.width - 1);
     quad.verts[0].v = (f32)top / (imageInfo.height - 1);
 
     // Bottom Left
     quad.verts[1].position.x = -width / 2.0f;
     quad.verts[1].position.y = -height / 2.0f;
-    quad.verts[1].position.z = 0;
     quad.verts[1].u = (f32)left / (imageInfo.width - 1);
     quad.verts[1].v = (f32)(top - height + 1) / (imageInfo.height - 1);
 
     // Bottom Right
     quad.verts[2].position.x = width / 2.0f;
     quad.verts[2].position.y = -height / 2.0f;
-    quad.verts[2].position.z = 0;
     quad.verts[2].u = (f32)(left + width - 1) / (imageInfo.width - 1);
     quad.verts[2].v = (f32)(top - height + 1) / (imageInfo.height - 1);
 
     // Top Right
     quad.verts[3].position.x = width / 2.0f;
     quad.verts[3].position.y = height / 2.0f;
-    quad.verts[3].position.z = 0;
     quad.verts[3].u = (f32)(left + width - 1) / (imageInfo.width - 1);
     quad.verts[3].v = (f32)top / (imageInfo.height - 1);
 

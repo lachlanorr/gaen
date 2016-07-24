@@ -39,7 +39,9 @@
 
 #include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/InsertLightDirectional.h"
-#include "engine/messages/TransformId.h"
+#include "engine/messages/TransformUid.h"
+#include "engine/messages/SpriteInstance.h"
+#include "engine/messages/SpriteAnim.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/shaders/Shader.h"
@@ -93,7 +95,9 @@ void RendererMesh::initViewport()
 
     glEnable(GL_TEXTURE_2D);
 
-    // Make sure we don't divide by zero
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    // Make sure we don't divide by zero
+
     if (mScreenHeight==0)
     {
         mScreenHeight=1;
@@ -142,48 +146,48 @@ void RendererMesh::set_texture(u32 nameHash, u32 glId, void * pContext)
     glBindTexture(GL_TEXTURE_2D, glId);
 }
 
-u32 RendererMesh::load_texture(u32 nameHash, const Asset * pGimgAsset, void * pContext)
-{
-    RendererMesh * pRenderer = (RendererMesh*)pContext;
 
-    auto itTI = pRenderer->mLoadedTextures.find(pGimgAsset);
-    if (itTI == pRenderer->mLoadedTextures.end())
+u32 RendererMesh::loadTexture(u32 textureUnit, const Gimg * pGimg)
+{
+    auto itTI = mLoadedTextures.find(pGimg);
+    if (itTI == mLoadedTextures.end())
     {
         u32 glId = 0;
-        glActiveTexture(GL_TEXTURE0 + texture_unit(nameHash));
+        glActiveTexture(GL_TEXTURE0 + textureUnit);
         glGenTextures(1, &glId);
         glBindTexture(GL_TEXTURE_2D, glId);
 
-        ASSERT(Gimg::is_valid(pGimgAsset->buffer(), pGimgAsset->size()));
-        const Gimg * pGimg = pGimgAsset->buffer<Gimg>();
-
-        ASSERT(pGimg->pixelFormat() == GL_RGBA);
+        ASSERT(pGimg->pixelFormat() == GL_RGBA8);
 
         glTexImage2D(GL_TEXTURE_2D,
                      0,
-                     pGimg->pixelFormat(),
+                     GL_RGBA,
                      pGimg->width(),
                      pGimg->height(),
                      0,
-                     pGimg->pixelFormat(),
+                     GL_RGBA,
                      GL_UNSIGNED_BYTE,
                      pGimg->scanline(0));
     
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-        AssetMgr::addref_asset(kRendererTaskId, pGimgAsset);
-        pRenderer->mLoadedTextures.emplace(std::piecewise_construct,
-                                           std::forward_as_tuple(pGimgAsset),
-                                           std::forward_as_tuple(pGimgAsset, glId, 1));
+        mLoadedTextures.emplace(std::piecewise_construct,
+                                std::forward_as_tuple(pGimg),
+                                std::forward_as_tuple(pGimg, glId, 1));
         return glId;
     }
     else
     {
-        AssetMgr::addref_asset(kRendererTaskId, pGimgAsset);
         itTI->second.refCount++;
         return itTI->second.glId;
     }
+}
+
+u32 RendererMesh::load_texture(u32 nameHash, const Gimg * pGimg, void * pContext)
+{
+    RendererMesh * pRenderer = (RendererMesh*)pContext;
+    return pRenderer->loadTexture(texture_unit(nameHash), pGimg);
 }
 
 void RendererMesh::prepare_mesh_attributes(const Mesh & mesh)
@@ -271,6 +275,20 @@ void RendererMesh::render()
 
         ++meshIt;
     }
+
+    if (mSpriteMap.size() > 0)
+    {
+        setActiveShader(HASH::sprite);
+        static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+        glm::mat4 mvp = mGuiProjection * view * glm::mat4x4(0.05); // to_mat4x4(matMeshInst.pModelInstance->transform);
+
+        mpActiveShader->setUniformMat4(HASH::proj, mvp);
+        
+        for(const auto & spriteGlPair : mSpriteMap)
+        {
+            spriteGlPair.second->render();
+        }
+    }
 }
 
 template <typename T>
@@ -292,8 +310,8 @@ MessageResult RendererMesh::message(const T & msgAcc)
     }
     case HASH::renderer_transform_model_instance:
     {
-        messages::TransformIdR<T> msgr(msgAcc);
-        ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.id());
+        messages::TransformUidR<T> msgr(msgAcc);
+        ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.uid());
         ASSERT(pModelInst);
         pModelInst->transform = msgr.transform();
         break;
@@ -325,23 +343,38 @@ MessageResult RendererMesh::message(const T & msgAcc)
     }
 
     // sprites
-    case HASH::renderer_insert_sprite:
+    case HASH::sprite_insert:
     {
-        messages::TransformIdR<T> msgr(msgAcc);
-        ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.id());
-        ASSERT(pModelInst);
-        pModelInst->transform = msgr.transform();
+        messages::SpriteInstanceR<T> msgR(msgAcc);
+
+        SpriteInstance * pSpriteInst = msgR.spriteInstance();
+
+        insertSprite(pSpriteInst);
+
+        return MessageResult::Consumed;
+
         break;
     }
-    case HASH::renderer_animate_sprite:
+    case HASH::sprite_anim:
+    {
+        messages::SpriteAnimR<T> msgr(msgAcc);
+        auto & spritePairIt = mSpriteMap.find(msgr.uid());
+
+        if (spritePairIt != mSpriteMap.end())
+        {
+            spritePairIt->second->mpSpriteInstance->animate(msgr.animHash(), msgr.animFrameIdx());
+        }
+        else
+        {
+            ERR("sprite_anim in renderer for unkonwn sprite, uid: %u", msgr.uid());
+        }
+        break;
+    }
+    case HASH::sprite_transform:
     {
         break;
     }
-    case HASH::renderer_transform_sprite:
-    {
-        break;
-    }
-    case HASH::renderer_remove_sprite:
+    case HASH::sprite_destory:
     {
         break;
     }
@@ -414,6 +447,17 @@ shaders::Shader * RendererMesh::getShader(u32 nameHash)
     return pShader;
 }
 
+void RendererMesh::insertSprite(SpriteInstance * pSpriteInst)
+{
+    ASSERT(pSpriteInst);
+    ASSERT(mSpriteMap.find(pSpriteInst->sprite().uid()) == mSpriteMap.end());
+
+    SpriteGLUP spriteGL(GNEW(kMEM_Renderer, SpriteGL, pSpriteInst, this));
+
+    spriteGL->loadGpu();
+    
+    mSpriteMap.emplace(pSpriteInst->sprite().uid(), std::move(spriteGL));
+}
 
 // Template decls so we can define message func here in the .cpp
 template MessageResult RendererMesh::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);

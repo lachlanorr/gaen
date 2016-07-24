@@ -90,6 +90,7 @@ typedef enum
     kAST_ComponentMember,
     kAST_PropInitList,
     kAST_PropInit,
+    kAST_TransformInit,
     kAST_TypeId,
 
     kAST_Block,
@@ -334,6 +335,7 @@ Ast * ast_create_function_arg(const char * name, SymRec * pDataTypeSymRec, Parse
 Ast * ast_create_component_members(Ast * pAst, ParseData * pParseData);
 Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseData * pParseData);
 Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData);
+Ast * ast_create_transform_init(Ast * pVal, ParseData * pParseData);
 
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData);
 

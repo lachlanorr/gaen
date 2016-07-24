@@ -38,6 +38,8 @@ SET (renderergl_SOURCES
   renderer_api.cpp
   ShaderRegistry.cpp
   ShaderRegistry.h
+  SpriteGL.cpp
+  SpriteGL.h
   ${shaders_codegen_SOURCES}
   )
 

@@ -39,9 +39,9 @@
 #define VALIDATE_ASSETS WHEN(HAS(DEV_BUILD))
 
 #if HAS(VALIDATE_ASSETS)
-#define IS_VALID(assetType, assetPtr) do {PANIC_IF(!assetType::is_valid(assetPtr->buffer(), assetPtr->size()), "Invalid asset of type: " #assetType);} while(0)
+#define VALIDATE_ASSET(assetType, assetPtr) do {PANIC_IF(!assetType::is_valid(assetPtr->buffer(), assetPtr->size()), "Invalid asset of type: " #assetType);} while(0)
 #else  // #if HAS(ASSERTS)
-#define IS_VALID(assetType, assetPtr) do {} while(0)
+#define VALIDATE_ASSET(assetType, assetPtr) do {} while(0)
 #endif // #if HAS(ASSERTS)
 
 namespace gaen
