@@ -1185,7 +1185,7 @@ YY_RULE_SETUP
 case 31:
 YY_RULE_SETUP
 #line 106 "compose.l"
-{ parsedata_push_stmt_scope(pParseData); return ELSE;   }
+{ /*parsedata_push_stmt_scope(pParseData);*/ return ELSE;   }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP

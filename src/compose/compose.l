@@ -103,7 +103,7 @@ ParseData * pParseData = yyextra;
 "self"     { return SELF; }
 
 "if"       { parsedata_push_stmt_scope(pParseData); return IF;     }
-"else"     { parsedata_push_stmt_scope(pParseData); return ELSE;   }
+"else"     { /*parsedata_push_stmt_scope(pParseData);*/ return ELSE;   }
 "while"    { parsedata_push_stmt_scope(pParseData); return WHILE;  }
 "do"       { parsedata_push_stmt_scope(pParseData); return DO;     }
 "for"      { parsedata_push_stmt_scope(pParseData); return FOR;    }
