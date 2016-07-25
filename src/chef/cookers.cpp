@@ -87,35 +87,35 @@ static GlyphQuad glyph_quad(i32 left, i32 top, i32 width, i32 height, const Imag
     // convert to bottom left coords if source image is top left (which is almost always true)
     if (imageInfo.origin == kORIG_TopLeft)
     {
-        top = imageInfo.height - top - 1;
+        top = imageInfo.height - top;
     }
 
     // convert pixel coords to uv space
     GlyphQuad quad;
-    
+
     // Top Left
     quad.verts[0].position.x = -width / 2.0f;
     quad.verts[0].position.y = height / 2.0f;
-    quad.verts[0].u = (f32)left / (imageInfo.width - 1);
-    quad.verts[0].v = (f32)top / (imageInfo.height - 1);
+    quad.verts[0].u = (f32)left / (imageInfo.width);
+    quad.verts[0].v = (f32)top / (imageInfo.height);
 
     // Bottom Left
     quad.verts[1].position.x = -width / 2.0f;
     quad.verts[1].position.y = -height / 2.0f;
-    quad.verts[1].u = (f32)left / (imageInfo.width - 1);
-    quad.verts[1].v = (f32)(top - height + 1) / (imageInfo.height - 1);
+    quad.verts[1].u = (f32)left / (imageInfo.width);
+    quad.verts[1].v = (f32)(top - height) / (imageInfo.height);
 
     // Bottom Right
     quad.verts[2].position.x = width / 2.0f;
     quad.verts[2].position.y = -height / 2.0f;
-    quad.verts[2].u = (f32)(left + width - 1) / (imageInfo.width - 1);
-    quad.verts[2].v = (f32)(top - height + 1) / (imageInfo.height - 1);
+    quad.verts[2].u = (f32)(left + width) / (imageInfo.width);
+    quad.verts[2].v = (f32)(top - height) / (imageInfo.height);
 
     // Top Right
     quad.verts[3].position.x = width / 2.0f;
     quad.verts[3].position.y = height / 2.0f;
-    quad.verts[3].u = (f32)(left + width - 1) / (imageInfo.width - 1);
-    quad.verts[3].v = (f32)top / (imageInfo.height - 1);
+    quad.verts[3].u = (f32)(left + width) / (imageInfo.width);
+    quad.verts[3].v = (f32)top / (imageInfo.height);
 
     return quad;
 }
