@@ -707,6 +707,7 @@ static Ast * ast_create_block_def(const char * name,
                                   const SymDataType * pReturnType,
                                   Ast * pBlock,
                                   Ast * pParent,
+                                  bool shouldPopStack,
                                   ParseData * pParseData)
 {
     ASSERT(pBlock);
@@ -725,7 +726,8 @@ static Ast * ast_create_block_def(const char * name,
                                   pAst,
                                   pParseData);
 
-    parsedata_pop_scope(pParseData);
+    if (shouldPopStack)
+        parsedata_pop_scope(pParseData);
 
     parsedata_add_local_symbol(pParseData, pAst->pSymRec);
 
@@ -800,6 +802,7 @@ Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType
                                       pReturnType,
                                       pBlock,
                                       pParseData->pRootAst,
+                                      true,
                                       pParseData);
 
     return pAst;
@@ -813,6 +816,7 @@ Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseD
                                       nullptr,
                                       pBlock,
                                       pParseData->pRootAst,
+                                      false,
                                       pParseData);
     pAst->pBlockInfos = block_pack_props_and_fields(pAst);
     return pAst;
@@ -826,6 +830,7 @@ Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pPar
                                       nullptr,
                                       pBlock,
                                       pParseData->pRootAst,
+                                      false,
                                       pParseData);
     pAst->pBlockInfos = block_pack_props_and_fields(pAst);
     return pAst;
@@ -839,6 +844,7 @@ Ast * ast_create_message_def(const char * name, SymTab * pSymTab, Ast * pBlock, 
                                       nullptr,
                                       pBlock,
                                       NULL,
+                                      true,
                                       pParseData);
     if (0 != strcmp(name, "update"))
     {
@@ -1490,7 +1496,7 @@ Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData
     }
     else
     {
-        COMP_ERROR(pParseData, "Support for structs not yet implemented: %s", pDottedId->str);
+        COMP_ERROR(pParseData, "'%s' is not an entity", pDottedId->str);
         return pAst;
     }
 
@@ -1695,17 +1701,8 @@ Ast * ast_create_while(Ast * pCondition, Ast * pBody, ParseData * pParseData)
     Ast * pAst = ast_create(kAST_While, pParseData);
 
     ast_set_lhs(pAst, pCondition);
+    ast_add_child(pAst, pBody);
 
-    if (pBody->type == kAST_Block)
-    {
-        ast_add_children(pAst, pBody->pChildren);
-        pAst->pScope = pBody->pScope;
-    }
-    else
-    {
-        ast_add_child(pAst, pBody);
-    }
-    
     return pAst;
 }
 
@@ -1714,16 +1711,7 @@ Ast * ast_create_dowhile(Ast * pCondition, Ast * pBody, ParseData * pParseData)
     Ast * pAst = ast_create(kAST_DoWhile, pParseData);
 
     ast_set_lhs(pAst, pCondition);
-
-    if (pBody->type == kAST_Block)
-    {
-        ast_add_children(pAst, pBody->pChildren);
-        pAst->pScope = pBody->pScope;
-    }
-    else
-    {
-        ast_add_child(pAst, pBody);
-    }
+    ast_add_child(pAst, pBody);
 
     return pAst;
 }
@@ -1736,17 +1724,14 @@ Ast * ast_create_for(Ast * pInit, Ast * pCondition, Ast * pUpdate, Ast * pBody, 
     ast_set_mid(pAst, pCondition);
     ast_set_rhs(pAst, pUpdate);
 
-    if (pBody->type == kAST_Block)
-    {
-        ast_add_children(pAst, pBody->pChildren);
-        pAst->pScope = pBody->pScope;
-    }
-    else
-    {
-        ast_add_child(pAst, pBody);
-        pAst->pScope = parsedata_pop_scope(pParseData); // wasn't popped with '}'
-    }
-    
+    ast_add_child(pAst, pBody);
+
+    pAst->pScope = pBody->pScope;
+
+    // pop scope created with lexer finding 'for' so we can have a
+    // scope for 'for' parameter declarations.
+    parsedata_pop_scope(pParseData);
+
     return pAst;
 }
 
@@ -2508,6 +2493,9 @@ ParseData * parse(const char * source,
 
     // Pop the scope for the file being parsed
     parsedata_pop_scope(pParseData);
+
+    // If scopeStack isn't sized 1, there was a push/pop bug somewhere
+    ASSERT(pParseData->scopeStack.size() == 1);
 
     return pParseData;
 }   

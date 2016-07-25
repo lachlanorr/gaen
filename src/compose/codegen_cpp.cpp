@@ -900,7 +900,7 @@ static S codegen_recurse(const Ast * pAst,
     {
     case kAST_FunctionDef:
     {
-        ERR("No codegen for kAST_FunctionDef");
+        PANIC("No codegen for kAST_FunctionDef");
         return S("");
     }
     case kAST_EntityDef:
@@ -1421,15 +1421,28 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_While:
     {
-        return S("");
+        S code = I + S("while (") + codegen_recurse(pAst->pLhs, 0) + S(")\n");
+        ASSERT(pAst->pChildren && pAst->pChildren->nodes.size() == 1);
+        code += codegen_recurse(pAst->pChildren->nodes.front(), indentLevel + 1);
+        return code;
     }
     case kAST_DoWhile:
     {
-        return S("");
+        S code = I + S("do\n");
+        ASSERT(pAst->pChildren && pAst->pChildren->nodes.size() == 1);
+        code += codegen_recurse(pAst->pChildren->nodes.front(), indentLevel + 1);
+        code += I + S("while (") + codegen_recurse(pAst->pLhs, 0) + S(");\n");
+        return code;
     }
     case kAST_For:
     {
-        return S("");
+        S code = I + S("for (");
+        code += codegen_recurse(pAst->pLhs, 0) + S("; ");
+        code += codegen_recurse(pAst->pMid, 0) + S("; ");
+        code += codegen_recurse(pAst->pRhs, 0) + S(")\n");
+        ASSERT(pAst->pChildren && pAst->pChildren->nodes.size() == 1);
+        code += codegen_recurse(pAst->pChildren->nodes.front(), indentLevel + 1);
+        return code;
     }
     
     case kAST_Add:

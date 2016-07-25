@@ -1250,12 +1250,12 @@ YY_RULE_SETUP
 case 44:
 YY_RULE_SETUP
 #line 122 "compose.l"
-{ parsedata_push_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
+{ yylval->dataType = kDT_entity; return ENTITY; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
 #line 123 "compose.l"
-{ parsedata_push_scope(pParseData); return COMPONENT; }
+{ return COMPONENT; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
