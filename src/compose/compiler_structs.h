@@ -230,7 +230,6 @@ struct ParseData
     size_t scriptsRootPathLen;
     MessageHandler messageHandler;
 
-    bool skipNextScope;
     bool hasErrors;
 
     u32 apiIncludesCount;

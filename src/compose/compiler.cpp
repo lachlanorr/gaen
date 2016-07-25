@@ -725,6 +725,8 @@ static Ast * ast_create_block_def(const char * name,
                                   pAst,
                                   pParseData);
 
+    parsedata_pop_scope(pParseData);
+
     parsedata_add_local_symbol(pParseData, pAst->pSymRec);
 
     if (pParent)
@@ -1685,13 +1687,6 @@ Ast * ast_create_if(Ast * pCondition, Ast * pIfBody, Ast * pElseBody, ParseData 
     ast_set_mid(pAst, pIfBody);
     ast_set_rhs(pAst, pElseBody);
     
-    // We pushed scopes in the lexer
-    if (pElseBody && pElseBody->type != kAST_Block)
-        parsedata_pop_scope(pParseData);
-
-    if (pIfBody && pIfBody->type != kAST_Block)
-        parsedata_pop_scope(pParseData);
-    
     return pAst;
 }
 
@@ -1709,7 +1704,6 @@ Ast * ast_create_while(Ast * pCondition, Ast * pBody, ParseData * pParseData)
     else
     {
         ast_add_child(pAst, pBody);
-        pAst->pScope = parsedata_pop_scope(pParseData); // wasn't popped with '}'
     }
     
     return pAst;
@@ -1721,14 +1715,6 @@ Ast * ast_create_dowhile(Ast * pCondition, Ast * pBody, ParseData * pParseData)
 
     ast_set_lhs(pAst, pCondition);
 
-    // The "while" keyword pushes a stack in the lexer.
-    // In the case of a "do while", we don't want this
-    // stack, so merge its contents with the parent stack
-    // and discard it.
-    Scope * pWhileScope = parsedata_pop_scope(pParseData);
-    pParseData->skipNextScope = false;
-    ASSERT(pWhileScope->pAstList->nodes.size() == 0); // while scope should never contain children
-
     if (pBody->type == kAST_Block)
     {
         ast_add_children(pAst, pBody->pChildren);
@@ -1737,12 +1723,8 @@ Ast * ast_create_dowhile(Ast * pCondition, Ast * pBody, ParseData * pParseData)
     else
     {
         ast_add_child(pAst, pBody);
-        pAst->pScope = parsedata_pop_scope(pParseData); // wasn't popped with '}'
     }
 
-    // And now merge the scope created with the "while" keyword
-    symtab_transfer(pAst->pScope->pSymTab, pWhileScope->pSymTab, pParseData);
-    
     return pAst;
 }
 
@@ -2038,7 +2020,6 @@ ParseData * parsedata_create(const char * fullPath,
 {
     ParseData * pParseData = COMP_NEW(ParseData);
 
-    pParseData->skipNextScope = false;
     pParseData->hasErrors = false;
     pParseData->pScanner = nullptr;
 
@@ -2187,7 +2168,7 @@ SymTab* parsedata_add_param(ParseData * pParseData, SymTab* pSymTab, SymRec * pS
     ASSERT(pParseData);
     if (pSymTab == nullptr)
     {
-        Scope * pScope = parsedata_push_stmt_scope(pParseData);
+        Scope * pScope = parsedata_push_scope(pParseData);
         pSymTab = pScope->pSymTab;
     }
     if (pSymRec)
@@ -2305,41 +2286,15 @@ Scope* parsedata_push_scope(ParseData * pParseData)
 {
     ASSERT(pParseData->scopeStack.size() >= 1);
 
-    Scope * pScope = nullptr;
-    if (!pParseData->skipNextScope)
-    {
-        pScope = scope_create(pParseData);
+    Scope * pScope = scope_create(pParseData);
 
-        // make pParseData a child of the top of the stack
-        pScope->pSymTab->pParent = pParseData->scopeStack.back()->pSymTab;
-        pScope->pSymTab->pParent->children.push_back(pScope->pSymTab);
+    // make pParseData a child of the top of the stack
+    pScope->pSymTab->pParent = pParseData->scopeStack.back()->pSymTab;
+    pScope->pSymTab->pParent->children.push_back(pScope->pSymTab);
 
-        pParseData->scopeStack.push_back(pScope);
-    }
-    else
-    {
-        pScope = parsedata_current_scope(pParseData);
-    }
+    pParseData->scopeStack.push_back(pScope);
 
-    pParseData->skipNextScope = false;
     return pScope;
-}
-
-Scope* parsedata_push_stmt_scope(ParseData * pParseData)
-{
-    ASSERT(!pParseData->skipNextScope);
-    Scope * pScope = parsedata_push_scope(pParseData);
-    pParseData->skipNextScope = true;
-    return pScope;
-}
-
-Scope* parsedata_push_top_level_stmt_scope(ParseData * pParseData)
-{
-    if (pParseData->scopeStack.size() == 1)
-    {
-        return parsedata_push_stmt_scope(pParseData);
-    }
-    return nullptr;
 }
 
 Scope * parsedata_pop_scope(ParseData * pParseData)
@@ -2356,14 +2311,7 @@ Scope * parsedata_pop_scope(ParseData * pParseData)
         COMP_ERROR(pParseData, "No more scopes to pop");
     }
 
-    pParseData->skipNextScope = false;
-
     return pScope;
-}
-
-void parsedata_handle_do_scope(ParseData * pParseData)
-{
-    pParseData->skipNextScope = false;
 }
 
 const char * parsedata_add_string(ParseData * pParseData, const char * str)
@@ -2538,6 +2486,9 @@ ParseData * parse(const char * source,
         source = newSource;
     }
 
+    // Push a scope for the file being parsed
+    parsedata_push_scope(pParseData);
+
     ret = yylex_init_extra(pParseData, &pParseData->pScanner);
     if (ret != 0)
     {
@@ -2554,6 +2505,9 @@ ParseData * parse(const char * source,
     {
         return nullptr;
     }
+
+    // Pop the scope for the file being parsed
+    parsedata_pop_scope(pParseData);
 
     return pParseData;
 }   

@@ -1398,12 +1398,23 @@ static S codegen_recurse(const Ast * pAst,
 
     case kAST_If:
     {
-        S code = I + S("if (") + codegen_recurse(pAst->pLhs, 0) + S(")\n");
+        S code;
+        if (!pAst->pParent || pAst->pParent->type != kAST_If)
+            code += I;
+        code += S("if (") + codegen_recurse(pAst->pLhs, 0) + S(")\n");
         code += codegen_recurse(pAst->pMid, indentLevel + 1);
         if (pAst->pRhs)
         {
-            code += I + S("else\n");
-            code += codegen_recurse(pAst->pRhs, indentLevel + 1);
+            if (pAst->pRhs->type == kAST_If)
+            {
+                code += I + S("else ");
+                code += codegen_recurse(pAst->pRhs, indentLevel);
+            }
+            else
+            {
+                code += I + S("else\n");
+                code += codegen_recurse(pAst->pRhs, indentLevel + 1);
+            }
         }
 
         return code;

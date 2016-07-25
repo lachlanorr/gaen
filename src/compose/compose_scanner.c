@@ -1180,32 +1180,32 @@ YY_RULE_SETUP
 case 30:
 YY_RULE_SETUP
 #line 105 "compose.l"
-{ parsedata_push_stmt_scope(pParseData); return IF;     }
+{ return IF;     }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
 #line 106 "compose.l"
-{ /*parsedata_push_stmt_scope(pParseData);*/ return ELSE;   }
+{ return ELSE;   }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
 #line 107 "compose.l"
-{ parsedata_push_stmt_scope(pParseData); return WHILE;  }
+{ return WHILE;  }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
 #line 108 "compose.l"
-{ parsedata_push_stmt_scope(pParseData); return DO;     }
+{ return DO;     }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
 #line 109 "compose.l"
-{ parsedata_push_stmt_scope(pParseData); return FOR;    }
+{ parsedata_push_scope(pParseData); return FOR;    }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
 #line 110 "compose.l"
-{ parsedata_push_stmt_scope(pParseData); return SWITCH; }
+{ return SWITCH; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
@@ -1250,12 +1250,12 @@ YY_RULE_SETUP
 case 44:
 YY_RULE_SETUP
 #line 122 "compose.l"
-{ parsedata_push_top_level_stmt_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
+{ parsedata_push_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
 #line 123 "compose.l"
-{ parsedata_push_top_level_stmt_scope(pParseData); return COMPONENT; }
+{ parsedata_push_scope(pParseData); return COMPONENT; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP

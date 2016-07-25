@@ -424,10 +424,7 @@ const SymDataType* parsedata_find_type_from_dotted_id(ParseData * pParseData, co
 
 Scope* parsedata_current_scope(ParseData * pParseData);
 Scope* parsedata_push_scope(ParseData * pParseData);
-Scope* parsedata_push_stmt_scope(ParseData * pParseData);
-Scope* parsedata_push_top_level_stmt_scope(ParseData * pParseData);
 Scope* parsedata_pop_scope(ParseData * pParseData);
-void parsedata_handle_do_scope(ParseData * pParseData);
 
 const char * parsedata_add_string(ParseData * pParseData, const char * str);
 

@@ -111,7 +111,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 
 %type <pSymDataType> type type_ent type_handle_asset
 
-%type <pAst> def stmt do_stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
+%type <pAst> def stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> using_list using_stmt dotted_id dotted_id_proc dotted_id_part
 %type <pAst> message_block message_list message_prop target_expr
 %type <pAst> prop_init_list prop_init component_block component_member_list component_member
@@ -227,7 +227,7 @@ stmt
     | IF '(' expr ')' stmt ELSE stmt { $$ = ast_create_if($3, $5, $7,   pParseData); }
 
     | WHILE '(' expr ')' stmt         { $$ = ast_create_while($3, $5, pParseData); }
-    | DO do_stmt WHILE '(' expr ')' ';'  { $$ = ast_create_dowhile($5, $2, pParseData); }
+    | DO stmt WHILE '(' expr ')' ';'  { $$ = ast_create_dowhile($5, $2, pParseData); }
 
     | FOR '(' expr_or_empty ';' cond_expr_or_empty ';' expr_or_empty ')' stmt { $$ = ast_create_for($3, $5, $7, $9, pParseData); }
 
@@ -240,9 +240,6 @@ stmt
     
     | expr ';'  { $$ = ast_create_simple_stmt($1, pParseData); }
     ;
-
-do_stmt
-    : stmt { parsedata_handle_do_scope(pParseData); $$ = $1; }
 
 target_expr
     : /* empty */  { $$ = NULL; }

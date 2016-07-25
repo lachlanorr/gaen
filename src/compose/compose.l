@@ -102,12 +102,12 @@ ParseData * pParseData = yyextra;
 
 "self"     { return SELF; }
 
-"if"       { parsedata_push_stmt_scope(pParseData); return IF;     }
-"else"     { /*parsedata_push_stmt_scope(pParseData);*/ return ELSE;   }
-"while"    { parsedata_push_stmt_scope(pParseData); return WHILE;  }
-"do"       { parsedata_push_stmt_scope(pParseData); return DO;     }
-"for"      { parsedata_push_stmt_scope(pParseData); return FOR;    }
-"switch"   { parsedata_push_stmt_scope(pParseData); return SWITCH; }
+"if"       { return IF;     }
+"else"     { return ELSE;   }
+"while"    { return WHILE;  }
+"do"       { return DO;     }
+"for"      { parsedata_push_scope(pParseData); return FOR;    }
+"switch"   { return SWITCH; }
 "case"     { return CASE;    }
 "default"  { return DEFAULT; }
 
@@ -119,8 +119,8 @@ ParseData * pParseData = yyextra;
 "using"      { return USING; }
 "as"         { return AS; }
 "components" { return COMPONENTS; }
-"entity"     { parsedata_push_top_level_stmt_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
-"component"  { parsedata_push_top_level_stmt_scope(pParseData); return COMPONENT; }
+"entity"     { parsedata_push_scope(pParseData); yylval->dataType = kDT_entity; return ENTITY; }
+"component"  { parsedata_push_scope(pParseData); return COMPONENT; }
 
 "transform"  { return TRANSFORM; }
 
