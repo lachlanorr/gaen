@@ -1907,6 +1907,7 @@ const SymDataType * ast_data_type(const Ast * pAst)
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "mat43", 0, 0);
         break;
     case kAST_Negate:
+    case kAST_Complement:
         return ast_data_type(pAst->pRhs);
     case kAST_SystemCall:
     case kAST_FunctionArg:

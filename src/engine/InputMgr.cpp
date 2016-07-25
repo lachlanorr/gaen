@@ -65,13 +65,15 @@ void InputMgr::processKeyInput(const KeyInput & keyInput)
             auto stateIt = mStateListenerMap.find(state);
             if (stateIt != mStateListenerMap.end())
             {
-                for (TaskMessage tm : stateIt->second)
+                for (TaskStateMessage tm : stateIt->second)
                 {
-                    MessageQueueWriter msgw(tm.message,
+                    u32 message = keyInput.keyEvent ? tm.downMessage : tm.upMessage;
+                    u32 value = keyInput.keyEvent ? tm.downValue : tm.upValue;
+                    MessageQueueWriter msgw(message,
                                             kMessageFlag_None,
                                             kInputMgrTaskId,
                                             tm.taskId,
-                                            to_cell((u32)keyInput.keyEvent),
+                                            to_cell(value),
                                             0);
                 }
             }
@@ -118,14 +120,14 @@ void InputMgr::registerKeyToState(KeyCode keyCode, u32 stateHash)
         vec.push_back(stateHash);
 }
 
-void InputMgr::registerStateListener(u32 stateHash, TaskMessage taskMessage)
+void InputMgr::registerStateListener(u32 stateHash, const TaskStateMessage & taskMessage)
 {
     auto & vec = mStateListenerMap[stateHash];
     if (std::find(vec.begin(), vec.end(), taskMessage) == vec.end())
         vec.push_back(taskMessage);
 }
 
-void InputMgr::registerMouseListener(TaskMessage moveMessage, TaskMessage wheelMessage)
+void InputMgr::registerMouseListener(const TaskMessage & moveMessage, const TaskMessage & wheelMessage)
 {
     if (moveMessage.message != 0)
     {
@@ -150,7 +152,7 @@ MessageResult InputMgr::message(const T& msgAcc)
     case HASH::watch_input_state:
     {
         messages::WatchInputStateR<T> msgr(msgAcc);
-        registerStateListener(msgr.state(), TaskMessage(msg.source, msgr.message()));
+        registerStateListener(msgr.state(), TaskStateMessage(msg.source, msgr.downMessage(), msgr.downValue(), msgr.upMessage(), msgr.upValue()));
         break;
     }
     case HASH::watch_mouse:

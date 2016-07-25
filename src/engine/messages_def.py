@@ -73,8 +73,11 @@ class MoveCamera(FieldHandler):
 
 class WatchInputState(FieldHandler):
     state = u32Field(payload=True)
-    message = u32Field()
     deviceId = u32Field()
+    downMessage = u32Field()
+    downValue = i32Field()
+    upMessage = u32Field()
+    upValue = i32Field()
 
 class WatchMouse(FieldHandler):
     moveMessage = u32Field(payload=True)

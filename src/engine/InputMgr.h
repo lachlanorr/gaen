@@ -64,19 +64,48 @@ private:
         }
     };
 
+    struct TaskStateMessage
+    {
+        u32 taskId:28;
+        u32 deviceId:4;
+        u32 downMessage;
+        i32 downValue;
+        u32 upMessage;
+        i32 upValue;
+
+        TaskStateMessage(u32 taskId, u32 downMessage, i32 downValue, u32 upMessage, i32 upValue)
+          : taskId(taskId)
+          , deviceId(0) // LORRTODO: For now we don't use deviceId. Should probably be playerId instead. Needs more thought.
+          , downMessage(downMessage)
+          , downValue(downValue)
+          , upMessage(upMessage)
+          , upValue(upValue)
+        {}
+
+        bool operator==(const TaskStateMessage & rhs) const
+        {
+            return (taskId == rhs.taskId &&
+                    deviceId == rhs.deviceId &&
+                    downMessage == rhs.downMessage &&
+                    downValue == rhs.downValue &&
+                    upMessage == rhs.upMessage &&
+                    upValue == rhs.upValue);
+        }
+    };
+
     void processKeyInput(const KeyInput & keyInput);
     void processMouseMoveInput(const MouseInput::Movement & moveInput);
     void processMouseWheelInput(i32 delta);
 
     void registerKeyToState(KeyCode keyCode, u32 stateHash);
-    void registerStateListener(u32 stateHash, TaskMessage taskMessage);
+    void registerStateListener(u32 stateHash, const TaskStateMessage & taskMessage);
 
-    void registerMouseListener(TaskMessage moveMessage, TaskMessage wheelMessage);
+    void registerMouseListener(const TaskMessage & moveMessage, const TaskMessage & wheelMessage);
 
     // LORRTODO - Add support for removing listeners for both keys and mouse
 
     HashMap<kMEM_Engine, KeyCode, Vector<kMEM_Engine, u32>, std::hash<int>> mKeyToStateMap;
-    HashMap<kMEM_Engine, u32, Vector<kMEM_Engine, TaskMessage>> mStateListenerMap;
+    HashMap<kMEM_Engine, u32, Vector<kMEM_Engine, TaskStateMessage>> mStateListenerMap;
 
     Vector<kMEM_Engine, TaskMessage> mMouseMoveListeners;
     Vector<kMEM_Engine, TaskMessage> mMouseWheelListeners;

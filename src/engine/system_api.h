@@ -58,7 +58,7 @@ void print_asset_info(AssetHandleP asset, Entity & caller);
 f32 radians(f32 degrees, Entity & caller);
 f32 degrees(f32 radians, Entity & caller);
 
-void watch_input_state(u32 state, u32 deviceId, u32 message, Entity & caller);
+void watch_input_state(u32 state, u32 deviceId, u32 downMessage, i32 downValue, u32 upMessage, i32 upValue, Entity & caller);
 void watch_mouse(u32 moveMessage, u32 wheelMessage, Entity & caller);
 
 glm::mat4x3 mat43_rotation(const glm::vec3 & angles, Entity & caller);

@@ -83,7 +83,7 @@ f32 degrees(f32 radians, Entity & caller)
 }
 
 
-void watch_input_state(u32 state, u32 deviceId, u32 message, Entity & caller)
+void watch_input_state(u32 state, u32 deviceId, u32 downMessage, i32 downValue, u32 upMessage, i32 upValue, Entity & caller)
 {
     messages::WatchInputStateQW msgQW(HASH::watch_input_state,
                                       kMessageFlag_None,
@@ -91,7 +91,10 @@ void watch_input_state(u32 state, u32 deviceId, u32 message, Entity & caller)
                                       kInputMgrTaskId,
                                       state);
     msgQW.setDeviceId(deviceId);
-    msgQW.setMessage(message);
+    msgQW.setDownMessage(downMessage);
+    msgQW.setDownValue(downValue);
+    msgQW.setUpMessage(upMessage);
+    msgQW.setUpValue(upValue);
 }
 
 void watch_mouse(u32 moveMessage, u32 wheelMessage, Entity & caller)
