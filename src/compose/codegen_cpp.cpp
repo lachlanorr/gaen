@@ -284,7 +284,7 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
         {
             if (!pSymRec->pStructSymRec)
             {
-                code = S("/*") + S(pSymRec->name) + S("*/") + property_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc", false, pSymRec->pAst->pParseData);
+                code = S("/*") + S(pSymRec->name) + S("*/") + property_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc", true, pSymRec->pAst->pParseData);
             }
             else
             {
