@@ -328,6 +328,8 @@ SymRec * symrec_create(SymType symType,
         pSymRec->pSymTabInternal = nullptr;
     }
 
+    pSymRec->pStructSymRec = nullptr;
+
     pSymRec->order = 0;
     pSymRec->flags = 0;
 
@@ -440,6 +442,7 @@ SymTab* symtab_add_symbol_with_fields(SymTab* pSymTab, SymRec * pSymRec, ParseDa
                                                   qualifiedName,
                                                   nullptr,
                                                   pParseData);
+            pFieldSymRec->pStructSymRec = pSymRec;
 
             pFieldSymRec->flags |= (kSRFL_Member | pField->flags);
 
@@ -1757,26 +1760,27 @@ Ast * ast_create_identifier(const char * name, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_property_set(Ast *pTarget, const char * propertyStr, Ast *pRhs, ParseData *pParseData)
+Ast * ast_create_property_set(Ast *pTarget, Ast * pProp, Ast *pRhs, ParseData *pParseData)
 {
     // "@tid#prop = 5;" is really just sugar for "@tid#set_property(#prop, 5);"
     // So, we mimic this set_property form and pass along through normal
     // asg_create_message_send processing.
 
     Ast * pParams = ast_create(kAST_FunctionParams, pParseData);
-    Ast * pMsgType = ast_create_hash(propertyStr, pParseData);
+    Ast * pMessage = ast_create_hash("set_property", pParseData);
+    Ast * pMsgType = ast_create_hash(pProp->str, pParseData);
 
     ast_add_child(pParams, pMsgType);
     ast_add_child(pParams, pRhs);
 
-    return ast_create_message_send(pTarget, "set_property", pParams, pParseData);
+    return ast_create_message_send(pTarget, pMessage, pParams, pParseData);
 }
 
-Ast * ast_create_message_send(Ast *pTarget, const char * messageStr, Ast *pParams, ParseData *pParseData)
+Ast * ast_create_message_send(Ast *pTarget, Ast * pMessage, Ast *pParams, ParseData *pParseData)
 {
     Ast * pAst = ast_create(kAST_MessageSend, pParseData);
-    pAst->str = messageStr;
     ast_set_lhs(pAst, pTarget);
+    ast_set_mid(pAst, pMessage);
     ast_set_rhs(pAst, pParams);
 
     pAst->pBlockInfos = block_pack_message_params(pAst);

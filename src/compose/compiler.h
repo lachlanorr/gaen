@@ -373,8 +373,8 @@ Ast * ast_create_for(Ast * pInit, Ast * pCondition, Ast * pUpdate, Ast * pBody, 
 Ast * ast_create_block(Ast* pBlock, ParseData * pParseData);
 
 Ast * ast_create_identifier(const char * name, ParseData * pParseData);
-Ast * ast_create_property_set(Ast *pTarget, const char * propertyStr, Ast *pRhs, ParseData *pParseData);
-Ast * ast_create_message_send(Ast *pTarget, const char * messageStr, Ast *pParams, ParseData *pParseData);
+Ast * ast_create_property_set(Ast *pTarget, Ast * pProp, Ast *pRhs, ParseData *pParseData);
+Ast * ast_create_message_send(Ast *pTarget, Ast * pMessage, Ast *pParams, ParseData *pParseData);
 Ast * ast_create_return(Ast *pExpr, ParseData *pParseData);
 
 Ast * ast_append(AstType astType, Ast * pAst, Ast * pAstNew, ParseData * pParseData);

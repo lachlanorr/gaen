@@ -104,6 +104,7 @@ struct SymRec
     Ast * pAst;
     SymTab * pSymTab;
     SymTab * pSymTabInternal;
+    SymRec * pStructSymRec;
     u32 order;
     u32 flags;
 };

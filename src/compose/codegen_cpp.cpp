@@ -47,7 +47,7 @@ namespace gaen
 
 static S indent(u32 level);
 static const char * cell_field_str(const SymDataType * pSdt, ParseData * pParseData);
-static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blockInfo, const char * blockVarName, ParseData * pParseData);
+static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blockInfo, const char * blockVarName, bool isConst, ParseData * pParseData);
 static S binary_op(const Ast * pAst, const char * op);
 static S unary_op(const Ast * pAst, const char* op);
 static S unary_op_post(const Ast * pAst, const char* op);
@@ -163,7 +163,7 @@ void encode_string(char * enc, size_t encSize, const char * str)
     *d = '\0';
 }
 
-static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blockInfo, const char * blockVarName, ParseData * pParseData)
+static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blockInfo, const char * blockVarName, bool isConst, ParseData * pParseData)
 {
     static const u32 kScratchSize = 255;
     char scratch[kScratchSize+1];
@@ -191,7 +191,6 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
         case kDT_entity:
             snprintf(scratch, kScratchSize, "%s[%u].cells[%u].%s", blockVarName, blockInfo.blockIndex, blockInfo.cellIndex, cell_field_str(pSdt, pParseData));
             return S(scratch);
-        case kDT_vec2:
         case kDT_vec3:
         case kDT_vec4:
         case kDT_quat:
@@ -199,13 +198,20 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
         case kDT_mat43:
         case kDT_mat4:
             ASSERT(blockInfo.cellIndex == 0);
-            snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].qCell)", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex);
+            if (!isConst)
+                snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].qCell)", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex);
+            else
+                snprintf(scratch, kScratchSize, "*reinterpret_cast<const %s*>(&%s[%u].qCell)", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex);
             return S(scratch);
+        case kDT_vec2:
         case kDT_string:
         case kDT_asset:
         case kDT_handle:
         case kDT_asset_handle:
-            snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].cells[%u])", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex, blockInfo.cellIndex);
+            if (!isConst)
+                snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].cells[%u])", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex, blockInfo.cellIndex);
+            else
+                snprintf(scratch, kScratchSize, "*reinterpret_cast<const %s*>(&%s[%u].cells[%u])", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex, blockInfo.cellIndex);
             return S(scratch);
         default:
             COMP_ERROR(pParseData, "Invalid dataType: %d", pSdt->typeDesc.dataType);
@@ -276,7 +282,20 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
         const BlockInfo * pBlockInfo = pSymRec->pAst->pBlockInfos->find(pSymRec->pAst);
         if (!pBlockInfo->isBlockMemoryType)
         {
-            code = S("/*") + S(pSymRec->name) + S("*/") + property_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc", pSymRec->pAst->pParseData);
+            if (!pSymRec->pStructSymRec)
+            {
+                code = S("/*") + S(pSymRec->name) + S("*/") + property_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc", false, pSymRec->pAst->pParseData);
+            }
+            else
+            {
+                // we're dealing with a field within a struct (like v.x in a vec3, for example)
+                const char * fieldName = strrchr(pSymRec->pAst->str, '.');
+                ASSERT(fieldName != nullptr);
+                const BlockInfo * pStructBlockInfo = pSymRec->pAst->pBlockInfos->find(pSymRec->pStructSymRec->pAst);
+                code = S("/*") + S(pSymRec->name) + S("*/(");
+                code += property_block_accessor(ast_data_type(pSymRec->pStructSymRec->pAst), *pStructBlockInfo, "msgAcc", true, pSymRec->pAst->pParseData);
+                code += S(")") + S(fieldName);
+            }
         }
         else
         {
@@ -1218,7 +1237,7 @@ static S codegen_recurse(const Ast * pAst,
 
         S code = I + typeStr + S("& ") + propName + S("()\n");
         code += I + S("{\n");
-        code += I + S("    return ") + property_block_accessor(ast_data_type(pAst), *pBlockInfo, "mpBlocks", pAst->pParseData) + S(";\n");
+        code += I + S("    return ") + property_block_accessor(ast_data_type(pAst), *pBlockInfo, "mpBlocks", false, pAst->pParseData) + S(";\n");
         code += I + S("}\n");
 
         if (isRefCounted)
@@ -1743,8 +1762,8 @@ static S codegen_recurse(const Ast * pAst,
         code += I1 + S("// Prepare the queue writer\n");
         snprintf(scratch,
                  kScratchSize,
-                 "MessageQueueWriter msgw(HASH::%s, kMessageFlag_None, self().task().id(), %s, to_cell(%s), blockCount);\n",
-                 pAst->str,
+                 "MessageQueueWriter msgw(%s, kMessageFlag_None, self().task().id(), %s, to_cell(%s), blockCount);\n",
+                 codegen_recurse(pAst->pMid, 0).c_str(),
                  target.c_str(),
                  payload.c_str());
 
