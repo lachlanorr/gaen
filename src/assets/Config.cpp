@@ -50,6 +50,25 @@ static inline bool is_comment_start(char c)
     return (c == ';');
 }
 
+
+bool is_int(const char * val)
+{
+    ASSERT(val);
+    char * endptr = nullptr;
+    i32 i = strtol(val, &endptr, 0);
+    const char * end = strchr(val, '\0');
+
+    // if whole string was converted, it's an int
+    return endptr == end;
+}
+
+i32 to_int(const char * val)
+{
+    ASSERT(val);
+    return static_cast<i32>(strtol(val, nullptr, 0));
+}
+
+
 template <MemType memType>
 bool Config<memType>::read(std::istream & input)
 {
@@ -310,7 +329,7 @@ template <MemType memType>
 i32 Config<memType>::getInt(const char * section, const char * key) const
 {
     const char * val = get(section, key);
-    return static_cast<i32>(strtol(val, nullptr, 0));
+    return to_int(val);
 }
 
 template <MemType memType>
@@ -375,7 +394,7 @@ typename Config<memType>::IntVec Config<memType>::getIntVec(const char * section
     StringVec strVec = getVec(section, key);
     IntVec vec;
     for (auto str : strVec)
-        vec.push_back(static_cast<i32>(strtol(str, nullptr, 0)));
+        vec.push_back(to_int(str));
     return vec;
 }
 

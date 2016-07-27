@@ -37,12 +37,14 @@ CookInfo::CookInfo(Chef * pChef,
          CookFlags flags,
          const char * rawPath,
          const char * cookedPath,
+         const char * gamePath,
          const RecipeList & recipes)
   : mpChef(pChef)
   , mFlags(flags)
 {
     strcpy(mRawPath, rawPath);
     strcpy(mCookedPath, cookedPath);
+    strcpy(mGamePath, gamePath);
 
     mpChef->overlayRecipes(mRecipe, recipes);
 

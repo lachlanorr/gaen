@@ -53,6 +53,7 @@ public:
              CookFlags flags,
              const char * rawPath,
              const char * cookedPath,
+             const char * gamePath,
              const RecipeList & recipes);
     ~CookInfo();
 
@@ -67,6 +68,7 @@ public:
     CookFlags flags() const { return mFlags; }
     const char * rawPath() const { return mRawPath; }
     const char * cookedPath() const { return mCookedPath; }
+    const char * gamePath() const { return mGamePath; }
 
     const void * cookedBuffer() const { return mpCookedBuffer; }
     u64 cookedBufferSize() const { return mCookedBufferSize; }
@@ -86,6 +88,7 @@ private:
     CookFlags mFlags;
     char mRawPath[kMaxPath+1];
     char mCookedPath[kMaxPath+1];
+    char mGamePath[kMaxPath+1];
 
     mutable void * mpCookedBuffer;
     mutable u64 mCookedBufferSize;

@@ -78,8 +78,11 @@ UniquePtr<CookInfo> Chef::cook(const char * path, CookFlags flags)
     // check if file exists
     PANIC_IF(!file_exists(rawPath), "Raw file does not exist: %s", rawPath);
 
+    char gamePath[kMaxPath+1];
+    getGamePath(gamePath, rawPath, pCooker);
+
     RecipeList recipes = findRecipes(rawPath);
-    UniquePtr<CookInfo> pCi(GNEW(kMEM_Chef, CookInfo, this, flags, rawPath, cookedPath, recipes));
+    UniquePtr<CookInfo> pCi(GNEW(kMEM_Chef, CookInfo, this, flags, rawPath, cookedPath, gamePath, recipes));
 
     // verify we should cook
     if (!shouldCook(*pCi, recipes, mForce))

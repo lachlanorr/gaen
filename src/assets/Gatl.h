@@ -104,6 +104,7 @@ public:
     const GlyphTri * defaultGlyphElems() const { return glyphElems(mDefaultIndex); }
     const void * defaultGlyphElemsOffset() const { return glyphElemsOffset(glyphElems(mDefaultIndex)); }
 
+    u32 glyphIndexFromAlias(u32 aliasHash) const;
     GlyphTri * glyphElemsFromAlias(u32 aliasHash);
     const GlyphTri * glyphElemsFromAlias(u32 aliasHash) const
     {
@@ -182,6 +183,12 @@ public:
                                              sizeof(Gatl) +
                                              verts_size_aligned(mGlyphCount) +
                                              tris_size_aligned(mGlyphCount));
+    }
+
+    const GlyphAlias * aliases() const
+    {
+        Gatl * pGatl = const_cast<Gatl*>(this);
+        return pGatl->aliases();
     }
 
     GlyphAlias & alias(u32 idx)

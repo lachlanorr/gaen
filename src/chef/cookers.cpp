@@ -161,12 +161,15 @@ void cook_spr(const CookInfo & ci)
     PANIC_IF(frameSizeVec.size() != 2, "frame_size doesn't contain 2 ints in .spr: %s", ci.rawPath());
 
     const char * atlasPathSpr = spr.get(kAtlas);
-    char atlasPathGame[kMaxPath+1];
-    ci.recordDependency(atlasPathGame, atlasPathSpr);
+
+    // Cook our dependent atlas so we can use it to lookup frames
+    UniquePtr<CookInfo> pCiAtl = ci.cookDependency(atlasPathSpr);
+    PANIC_IF(!pCiAtl.get() || !pCiAtl->isCooked(), "Failed to cook dependent file: %s", atlasPathSpr);
+    const Gatl * pGatl = Gatl::instance(pCiAtl->cookedBuffer(), pCiAtl->cookedBufferSize());
 
     Gspr * pGspr = Gspr::create(frameSizeVec[0],
                                 frameSizeVec[1],
-                                atlasPathGame,
+                                pCiAtl->gamePath(),
                                 animCount,
                                 totalFrameCount);
     ASSERT(pGspr);
@@ -182,16 +185,33 @@ void cook_spr(const CookInfo & ci)
     {
         if (!spr.isGlobalSection(*secIt) && spr.hasKey(*secIt, kFrames))
         {
-            Config<kMEM_Chef>::IntVec frameVec = spr.getIntVec(*secIt, kFrames);
+            Config<kMEM_Chef>::StringVec frameVec = spr.getVec(*secIt, kFrames);
             PANIC_IF(frameVec.size() == 0, "No frames specified in .spr animation: %s, %s", ci.rawPath(), *secIt);
 
             pAnimInfo->animHash = gaen_hash(*secIt);
             pAnimInfo->frameCount = (u32)frameVec.size();
             pAnimInfo->firstFrame = currFrame;
 
-            for (i32 i : frameVec)
+            for (const char * fr : frameVec)
             {
-                *pFrames++ = i;
+                // Determine if it looks like a number or a name
+                if (is_int(fr))
+                {
+                    // Verify frame is valid within atlas
+                    i32 frameIdx = to_int(fr);
+                    PANIC_IF(frameIdx < 0 || frameIdx >= (i32)pGatl->glyphCount(), "Invalid frame %d for .atl %s", frameIdx, atlasPathSpr);
+                    *pFrames = (u32)frameIdx;
+                }
+                else
+                {
+                    // Lookup the index for this alias so we don't
+                    // have to do that at runtime
+                    u32 aliasHash = gaen_hash(fr);
+                    u32 frameIdx = pGatl->glyphIndexFromAlias(aliasHash);
+                    *pFrames = frameIdx;
+                }
+
+                pFrames++;
             }
 
             currFrame += pAnimInfo->frameCount;

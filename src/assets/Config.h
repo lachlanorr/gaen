@@ -40,6 +40,9 @@ namespace gaen
 
 static const char * kGlobalSection = "GLOBAL";
 
+bool is_int(const char * val);
+i32 to_int(const char * val);
+
 template <MemType memType>
 class Config
 {

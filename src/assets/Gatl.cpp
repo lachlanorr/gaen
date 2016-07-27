@@ -103,22 +103,28 @@ u64 Gatl::size() const
     return required_size(mGlyphCount, mAliasCount, image());
 }
 
-GlyphTri * Gatl::glyphElemsFromAlias(u32 aliasHash)
+u32 Gatl::glyphIndexFromAlias(u32 aliasHash) const
 {
-    GlyphAlias * pAlias = aliases();
-    GlyphAlias * pAliasesEnd = aliases() + mAliasCount;
+    const GlyphAlias * pAlias = aliases();
+    const GlyphAlias * pAliasesEnd = aliases() + mAliasCount;
 
-    while (pAlias++ < pAliasesEnd)
+    while (pAlias < pAliasesEnd)
     {
         if (aliasHash == pAlias->hash)
         {
-            return glyphElems(pAlias->index);
+            return pAlias->index;
         }
+        pAlias++;
     }
 
     // we didn't find the hash
     ERR("Failed to find alias hash: %u", aliasHash);
-    return defaultGlyphElems();
+    return mDefaultIndex;
+}
+
+GlyphTri * Gatl::glyphElemsFromAlias(u32 aliasHash)
+{
+    return glyphElems(glyphIndexFromAlias(aliasHash));
 }
 
 u64 Gatl::gimg_offset_aligned(u32 glyphCount,u32 aliasCount)
