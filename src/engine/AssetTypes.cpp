@@ -28,8 +28,12 @@
 
 #include "assets/file_utils.h"
 
+#include "assets/Gatl.h"
+#include "assets/Gimg.h"
+#include "assets/Gspr.h"
+
 #include "engine/Asset.h"
-#include "engine/AssetGspr.h"
+#include "engine/AssetWithDep.h"
 #include "engine/AssetTypes.h"
 
 namespace gaen
@@ -45,7 +49,7 @@ AssetTypes::AssetTypes()
     registerAssetType("gmat", kMEM_Renderer, Asset::construct<Asset>);
     registerAssetType("gvtx", kMEM_Engine,   Asset::construct<Asset>);
 
-    registerAssetType("gspr", kMEM_Engine,   Asset::construct<AssetGspr>);
+    registerAssetType("gspr", kMEM_Engine,   Asset::construct<AssetWithDep<Gspr,Gatl>>);
 }
 
 void AssetTypes::registerAssetType(const char * extension,

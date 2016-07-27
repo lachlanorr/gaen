@@ -31,8 +31,6 @@ ENDIF ()
 SET (engine_SOURCES
   Asset.cpp
   Asset.h
-  AssetGspr.cpp
-  AssetGspr.h
   AssetLoader.cpp
   AssetLoader.h
   AssetMgr.cpp
@@ -40,6 +38,7 @@ SET (engine_SOURCES
   AssetType.h
   AssetTypes.cpp
   AssetTypes.h
+  AssetWithDep.h
   Block.h
   BlockData.h
   BlockMemory.cpp

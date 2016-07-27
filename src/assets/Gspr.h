@@ -46,7 +46,8 @@ static_assert(sizeof(AnimInfo) == 8, "AnimInfo has unexpected size");
 
 class Gspr
 {
-    friend class AssetGspr;
+    template <typename T, typename BT>
+    friend class AssetWithDep;
 public:
     static bool is_valid(const void * pBuffer, u64 size);
     static Gspr * instance(void * pBuffer, u64 size);
@@ -98,6 +99,20 @@ private:
     static const char * kMagic;
     static const u32 kMagic4cc;
     char mMagic[4];
+
+    // support for templated AssetWithDep class
+    const char * dep0Path() const
+    {
+        return atlasPath();
+    }
+    const Gatl * dep0() const
+    {
+        return mpAtlas;
+    }
+    void setDep0(const Gatl * pAtlas)
+    {
+        mpAtlas = pAtlas;
+    }
 
     u32 mFrameWidth;
     u32 mFrameHeight;
