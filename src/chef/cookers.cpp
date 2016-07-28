@@ -238,15 +238,14 @@ void cook_atl(const CookInfo & ci)
 
     PANIC_IF(!atl.hasKey(kImage), "Missing image in .atl");
 
-    // Cook our dependent image
-    UniquePtr<CookInfo> pCiImage = ci.cookDependency(atl.get(kImage));
-    PANIC_IF(!pCiImage.get() || !pCiImage->isCooked(), "Failed to cook dependent file: %s", atl.get(kImage));
-    const Gimg * pImage = Gimg::instance(pCiImage->cookedBuffer(), pCiImage->cookedBufferSize());
+    char imageRawPath[kMaxPath+1];
+    char imageGamePath[kMaxPath+1];
+    ci.recordDependency(imageRawPath, imageGamePath, atl.get(kImage));
 
     // Grab some info out of the source image, which will be needed
     // when considering coordinates.
-    ImageInfo imageInfo = read_image_info(pCiImage->rawPath());
-    ImageInfo imageInfoSized(imageInfo.origin, pImage->width(), pImage->height());
+    ImageInfo imageInfo = read_image_info(imageRawPath);
+    PANIC_IF(imageInfo.height != imageInfo.width || !is_power_of_two(imageInfo.height), "Image not square or not power of 2 sized: %s", imageRawPath);
 
     // Pull out the fixed width/height if present
     bool hasFixedSize = false;
@@ -269,7 +268,7 @@ void cook_atl(const CookInfo & ci)
 
     List<kMEM_Chef, GlyphAlias> aliasesList;
     HashSet<kMEM_Chef, u32> aliasesSet;
-    u32 defaultIndex = 0;
+    u16 defaultIndex = 0;
 
     if (atl.hasSection(kGlyphs))
     {
@@ -308,7 +307,7 @@ void cook_atl(const CookInfo & ci)
                 height = cv[3];
             }
 
-            GlyphQuad quad = glyph_quad(cv[0], cv[1], width, height, imageInfoSized);
+            GlyphQuad quad = glyph_quad(cv[0], cv[1], width, height, imageInfo);
 
             PANIC_IF(quadsSet.find(quad) != quadsSet.end(), "Coords multiply defined within atl file: %s", ci.rawPath());
 
@@ -349,7 +348,7 @@ void cook_atl(const CookInfo & ci)
         {
             for (i32 currX = 0; currX < imageInfo.width; currX+=fixedWidth)
             {
-                GlyphQuad quad = glyph_quad(currX, currY, fixedWidth, fixedHeight, imageInfoSized);
+                GlyphQuad quad = glyph_quad(currX, currY, fixedWidth, fixedHeight, imageInfo);
 
                 quadsSet.insert(quad);
                 u16 elemIdx = (u16)vertsList.size();
@@ -373,7 +372,7 @@ void cook_atl(const CookInfo & ci)
     }
 
     ASSERT(vertsList.size() % 4 == 0);
-    Gatl * pGatl = Gatl::create((u32)vertsList.size() / 4, (u32)aliasesList.size(), defaultIndex, *pImage);
+    Gatl * pGatl = Gatl::create(imageGamePath, (u16)vertsList.size() / 4, (u16)aliasesList.size(), defaultIndex);
     ASSERT(pGatl);
 
     // Place verts into Gatl buffer

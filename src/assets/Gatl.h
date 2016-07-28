@@ -60,42 +60,59 @@ struct GlyphTri
 };
 static_assert(sizeof(GlyphTri) == 6, "SpriteTri unexpected size");
 
+#pragma pack(push, 1)
 struct GlyphAlias
 {
     u32 hash;
-    u32 index;
+    u16 index;
 };
+#pragma pack(pop)
+static_assert(sizeof(GlyphAlias) == 6, "GlyphAlias unexpected size");
 
 class Gatl
 {
+    template <typename T, typename BT>
+    friend class AssetWithDep;
 public:
     static bool is_valid(const void * pBuffer, u64 size);
     static Gatl * instance(void * pBuffer, u64 size);
     static const Gatl * instance(const void * pBuffer, u64 size);
 
-    static u64 required_size(u32 glyphCount, u32 aliasCount, const Gimg & image);
+    static u64 required_size(const char * imagePath, u16 glyphCount, u16 aliasCount);
 
-    static Gatl * create(u32 glyphCount, u32 aliasCount, u32 defaultIndex, const Gimg & image);
+    static Gatl * create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 defaultIndex);
 
-    u64 size() const;
+    u64 size() const { return mSize; }
 
-    u32 glyphCount() const { return mGlyphCount; }
-    u32 aliasCount() const { return mAliasCount; }
+    u16 glyphCount() const { return mGlyphCount; }
+    u16 aliasCount() const { return mAliasCount; }
 
     i32 glyphElemCount() const { return 6; } // 2 triangles
 
-    GlyphTri * glyphElems(u32 idx)
+    const char * imagePath() const
+    {
+        // imagePath is null terminated string immediately after header
+        return reinterpret_cast<const char*>(this+1);
+    }
+    
+    const Gimg * image() const
+    {
+        ASSERT(mpImage);
+        return mpImage;
+    }
+
+    GlyphTri * glyphElems(u16 idx)
     {
         if (idx >= mGlyphCount)
             idx = mDefaultIndex;
         return reinterpret_cast<GlyphTri*>(tris() + 2 * idx); // 2 tris per
     }
-    const GlyphTri * glyphElems(u32 idx) const
+    const GlyphTri * glyphElems(u16 idx) const
     {
         Gatl * pGatl = const_cast<Gatl*>(this);
         return pGatl->glyphElems(idx);
     }
-    const void * glyphElemsOffset(u32 idx)
+    const void * glyphElemsOffset(u16 idx)
     {
         return glyphElemsOffset(glyphElems(idx));
     }
@@ -104,7 +121,7 @@ public:
     const GlyphTri * defaultGlyphElems() const { return glyphElems(mDefaultIndex); }
     const void * defaultGlyphElemsOffset() const { return glyphElemsOffset(glyphElems(mDefaultIndex)); }
 
-    u32 glyphIndexFromAlias(u32 aliasHash) const;
+    u16 glyphIndexFromAlias(u32 aliasHash) const;
     GlyphTri * glyphElemsFromAlias(u32 aliasHash);
     const GlyphTri * glyphElemsFromAlias(u32 aliasHash) const
     {
@@ -121,21 +138,21 @@ public:
         return reinterpret_cast<const void*>((pTri - tris()) * sizeof(GlyphTri));
     }
     
-    GlyphVert & vert(u32 idx)
+    GlyphVert & vert(u16 idx)
     {
         return verts()[idx];
     }
-    const GlyphVert & vert(u32 idx) const
+    const GlyphVert & vert(u16 idx) const
     {
         Gatl * pGatl = const_cast<Gatl*>(this);
         return pGatl->vert(idx);
     }
 
-    GlyphTri & tri(u32 idx)
+    GlyphTri & tri(u16 idx)
     {
         return tris()[idx];
     }
-    const GlyphTri & tri(u32 idx) const
+    const GlyphTri & tri(u16 idx) const
     {
         Gatl * pGatl = const_cast<Gatl*>(this);
         return pGatl->tri(idx);
@@ -155,7 +172,7 @@ public:
     GlyphVert * verts()
     {
         return reinterpret_cast<GlyphVert*>(reinterpret_cast<u8*>(this) +
-                                            sizeof(Gatl));
+                                            mVertsOffset);
     }
 
     const GlyphVert * verts() const
@@ -166,8 +183,7 @@ public:
 
     GlyphTri * tris()
     {
-        return reinterpret_cast<GlyphTri*>(reinterpret_cast<u8*>(this) +
-                                           sizeof(Gatl) +
+        return reinterpret_cast<GlyphTri*>(reinterpret_cast<u8*>(verts()) +
                                            verts_size_aligned(mGlyphCount));
     }
 
@@ -179,9 +195,7 @@ public:
 
     GlyphAlias * aliases()
     {
-        return reinterpret_cast<GlyphAlias*>(reinterpret_cast<u8*>(this) +
-                                             sizeof(Gatl) +
-                                             verts_size_aligned(mGlyphCount) +
+        return reinterpret_cast<GlyphAlias*>(reinterpret_cast<u8*>(tris()) +
                                              tris_size_aligned(mGlyphCount));
     }
 
@@ -191,57 +205,66 @@ public:
         return pGatl->aliases();
     }
 
-    GlyphAlias & alias(u32 idx)
+    GlyphAlias & alias(u16 idx)
     {
         idx %= mAliasCount; // treat glyphs as a circular buffer
         return aliases()[idx];
     }
-    const GlyphAlias & alias(u32 idx) const
+    const GlyphAlias & alias(u16 idx) const
     {
         Gatl * pGatl = const_cast<Gatl*>(this);
         return pGatl->alias(idx);
     }
 
-    Gimg & image()
-    {
-        return *reinterpret_cast<Gimg*>(reinterpret_cast<u8*>(this) + gimg_offset_aligned(mGlyphCount, mAliasCount));
-    }
-    const Gimg & image() const
-    {
-        Gatl * pGatl = const_cast<Gatl*>(this);
-        return pGatl->image();
-    }
 private:
-    static u64 verts_size_aligned(u32 glyphCount)
+    static u64 verts_size_aligned(u16 glyphCount)
     {
         return align(glyphCount * sizeof(GlyphVert) * 4, 4); // 4 verts per glyph
     }
 
-    static u64 tris_size_aligned(u32 glyphCount)
+    static u64 tris_size_aligned(u16 glyphCount)
     {
         return align(glyphCount * sizeof(GlyphTri) * 2, 4); // 2 tris (6 indices) per glyph
     }
 
-    static u64 aliases_size_aligned(u32 aliasCount)
+    static u64 aliases_size_aligned(u16 aliasCount)
     {
         return align(aliasCount * sizeof(GlyphAlias), 4);
     }
 
-    static u64 gimg_offset_aligned(u32 glyphCount, u32 aliasCount);
+    static u64 gimg_offset_aligned(u16 glyphCount, u16 aliasCount);
+
+    // support for templated AssetWithDep class
+    const char * dep0Path() const
+    {
+        return imagePath();
+    }
+    const Gimg * dep0() const
+    {
+        return mpImage;
+    }
+    void setDep0(const Gimg * pImage)
+    {
+        mpImage = pImage;
+    }
 
     static const char * kMagic;
     static const u32 kMagic4cc;
     char mMagic[4];
 
-    u32 mGlyphCount;
-    u32 mAliasCount;
+    u16 mGlyphCount;
+    u16 mAliasCount;
 
-    u32 mDefaultIndex;
+    u16 mDefaultIndex;
+    u16 mVertsOffset;
+
+    u64 mSize;
+    const Gimg * mpImage;
 };
 
 // If this isn't a multiple of 16, consider adding more alignment
 // corrections in size functions
-static_assert(sizeof(Gatl) == 16, "Gatl unexpected size");
+static_assert(sizeof(Gatl) == 32, "Gatl unexpected size");
 
 } // namespace gaen
 

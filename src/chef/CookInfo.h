@@ -59,7 +59,7 @@ public:
 
     // Record a dependency, but don't cook it to include in the parent
     // asset.
-    void recordDependency(char * gamePath, const char * path) const;
+    void recordDependency(char * depRawPath, char * gamePath, const char * path) const;
 
     // Cook a dependency with the intention of including the cooked
     // buffer in the parent asset.

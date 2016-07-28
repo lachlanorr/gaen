@@ -62,7 +62,7 @@ bool Gspr::is_valid(const void * pBuffer, u64 size)
         pAssetData->mAnimTocOffset == 0)
         return false;
 
-    size_t atlasPathLen = strlen(pAssetData->atlasPath());
+    size_t atlasPathLen = strnlen(pAssetData->atlasPath(), kMaxPath);
     if (pAssetData->mAnimTocOffset != reinterpret_cast<const char*>(pAssetData) + anim_toc_offset(atlasPathLen) - reinterpret_cast<const char*>(pAssetData))
         return false;
 
@@ -116,7 +116,7 @@ const Gspr * Gspr::instance(const void * pBuffer, u64 size)
 
 u64 Gspr::required_size(const char * atlasPath, u32 animCount, u32 totalFrameCount)
 {
-    return (anim_toc_offset(strlen(atlasPath)) +
+    return (anim_toc_offset(strnlen(atlasPath, kMaxPath)) +
             animCount * sizeof(AnimInfo) +
             totalFrameCount * sizeof(u32));
 
@@ -132,6 +132,9 @@ Gspr * Gspr::create(u32 frameWidth,
     u64 size = Gspr::required_size(atlasPath, animCount, totalFrameCount);
     Gspr * pGspr = (Gspr*)GALLOC(kMEM_Texture, size);
 
+    // zero out memory for good measure
+    memset(pGspr, 0, size);
+
     ASSERT(strlen(kMagic) == 4);
     strncpy(pGspr->mMagic, kMagic, 4);
 
@@ -142,7 +145,7 @@ Gspr * Gspr::create(u32 frameWidth,
     pGspr->mFrameHeight = frameHeight;
 
     ASSERT(atlasPath);
-    u64 atlasPathLen = strlen(atlasPath);
+    u64 atlasPathLen = strnlen(atlasPath, kMaxPath);
 
     strncpy(reinterpret_cast<char*>(pGspr+1), atlasPath, atlasPathLen);
     reinterpret_cast<char*>(pGspr+1)[atlasPathLen] = '\0'; // null terminate
@@ -153,11 +156,6 @@ Gspr * Gspr::create(u32 frameWidth,
     pGspr->mSize = size;
 
     pGspr->mpAtlas = nullptr;
-
-    // zero out memory for good measure
-    memset(reinterpret_cast<char*>(pGspr) + pGspr->mAnimTocOffset,
-           0,
-           animCount * sizeof(AnimInfo) + totalFrameCount * sizeof(u32));
 
     return pGspr;
 }

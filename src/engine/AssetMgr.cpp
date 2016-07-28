@@ -388,7 +388,10 @@ MessageResult AssetMgr::message(const T & msgAcc)
         ASSERT(pAsset && pAsset->refCount() > 0);
 
         if (pAsset->release())
+        {
+            LOG_INFO("ASSET DESTROYED: %s", pAsset->path().c_str());
             GDELETE(pAsset);
+        }
         return MessageResult::Consumed;
     }
     default:

@@ -122,6 +122,8 @@ MessageResult AssetLoader::message(const MessageQueueAccessor& msgAcc)
         const AssetType * pAT = mAssetTypes.assetTypeFromExt(get_ext(pathCmpString.c_str()));
         Asset * pAsset = pAT->construct(pathCmpString.c_str(), fullPath);
 
+        LOG_INFO("ASSET READ: %s", pathCmpString.c_str());
+
         messages::AssetQW msgw(HASH::asset_ready__, kMessageFlag_None, kAssetMgrTaskId, kAssetMgrTaskId, msg.source, mpReadyQueue);
         msgw.setSubTaskId(subTaskId);
         msgw.setNameHash(nameHash);

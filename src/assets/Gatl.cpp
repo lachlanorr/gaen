@@ -34,6 +34,11 @@ namespace gaen
 const char * Gatl::kMagic = "gatl";
 const u32 Gatl::kMagic4cc = ext_to_4cc(Gatl::kMagic);
 
+static u16 verts_offset(size_t imagePathLen)
+{
+    return (u16)align(sizeof(Gatl) + imagePathLen + 1, 8);
+}
+
 bool Gatl::is_valid(const void * pBuffer, u64 size)
 {
     if (size < sizeof(Gatl))
@@ -47,7 +52,11 @@ bool Gatl::is_valid(const void * pBuffer, u64 size)
     if (pAssetData->mDefaultIndex >= pAssetData->glyphCount())
         return false;
 
-    if (pAssetData->size() != size)
+    size_t imagePathLen = strnlen(pAssetData->imagePath(), MAX_PATH);
+    if (pAssetData->mVertsOffset != reinterpret_cast<const char*>(pAssetData) + verts_offset(imagePathLen) - reinterpret_cast<const char*>(pAssetData))
+        return false;
+
+    if (required_size(pAssetData->imagePath(), pAssetData->mGlyphCount, pAssetData->mAliasCount) != size)
         return false;
 
     return true;
@@ -69,15 +78,23 @@ const Gatl * Gatl::instance(const void * pBuffer, u64 size)
     return instance(const_cast<void*>(pBuffer), size);
 }
 
-u64 Gatl::required_size(u32 glyphCount, u32 aliasCount, const Gimg & image)
+u64 Gatl::required_size(const char * imagePath, u16 glyphCount, u16 aliasCount)
 {
-    return gimg_offset_aligned(glyphCount, aliasCount) + image.size();
+    ASSERT(imagePath);
+    return (verts_offset(strnlen(imagePath, kMaxPath)) +
+            verts_size_aligned(glyphCount) +
+            tris_size_aligned(glyphCount) +
+            aliases_size_aligned(aliasCount));
 }
 
-Gatl * Gatl::create(u32 glyphCount, u32 aliasCount, u32 defaultIndex, const Gimg & image)
+Gatl * Gatl::create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 defaultIndex)
 {
-    u64 size = Gatl::required_size(glyphCount, aliasCount, image);
+    ASSERT(imagePath);
+    u64 size = Gatl::required_size(imagePath, glyphCount, aliasCount);
     Gatl * pGatl = (Gatl*)GALLOC(kMEM_Texture, size);
+
+    // zero out memory for good measure
+    memset(pGatl, 0, size);
 
     ASSERT(strlen(kMagic) == 4);
     strncpy(pGatl->mMagic, kMagic, 4);
@@ -88,22 +105,18 @@ Gatl * Gatl::create(u32 glyphCount, u32 aliasCount, u32 defaultIndex, const Gimg
     pGatl->mGlyphCount = glyphCount;
     pGatl->mAliasCount = aliasCount;
     pGatl->mDefaultIndex = defaultIndex;
+    pGatl->mVertsOffset = verts_offset(strnlen(imagePath, kMaxPath));
 
-    memcpy(&pGatl->image(), &image, image.size());
+    pGatl->mSize = size;
+    pGatl->mpImage = nullptr;
 
-    // memset verts, tris, aliases
-    memset(pGatl->verts(), 0, gimg_offset_aligned(glyphCount, aliasCount) - sizeof(Gatl));
-
-    ASSERT(is_valid(pGatl, required_size(glyphCount, aliasCount, image)));
+    strcpy(reinterpret_cast<char*>(pGatl+1), imagePath);
+    
+    ASSERT(is_valid(pGatl, required_size(imagePath, glyphCount, aliasCount)));
     return pGatl;
 }
 
-u64 Gatl::size() const
-{
-    return required_size(mGlyphCount, mAliasCount, image());
-}
-
-u32 Gatl::glyphIndexFromAlias(u32 aliasHash) const
+u16 Gatl::glyphIndexFromAlias(u32 aliasHash) const
 {
     const GlyphAlias * pAlias = aliases();
     const GlyphAlias * pAliasesEnd = aliases() + mAliasCount;
@@ -125,16 +138,6 @@ u32 Gatl::glyphIndexFromAlias(u32 aliasHash) const
 GlyphTri * Gatl::glyphElemsFromAlias(u32 aliasHash)
 {
     return glyphElems(glyphIndexFromAlias(aliasHash));
-}
-
-u64 Gatl::gimg_offset_aligned(u32 glyphCount,u32 aliasCount)
-{
-    return align(sizeof(Gimg) +
-                 verts_size_aligned(glyphCount) +
-                 tris_size_aligned(glyphCount) +
-                 aliases_size_aligned(aliasCount),
-                 16);
-    // offset gimg to alignment of 16, just for good measure
 }
 
 } // namespace gaen

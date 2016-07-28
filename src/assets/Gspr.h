@@ -96,10 +96,6 @@ public:
     const u32 * framesEnd() const;
 
 private:
-    static const char * kMagic;
-    static const u32 kMagic4cc;
-    char mMagic[4];
-
     // support for templated AssetWithDep class
     const char * dep0Path() const
     {
@@ -113,6 +109,10 @@ private:
     {
         mpAtlas = pAtlas;
     }
+
+    static const char * kMagic;
+    static const u32 kMagic4cc;
+    char mMagic[4];
 
     u32 mFrameWidth;
     u32 mFrameHeight;

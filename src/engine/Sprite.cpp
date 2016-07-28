@@ -98,7 +98,7 @@ const void * Sprite::triOffset(u32 idx) const
 
 const Gimg & Sprite::image() const
 {
-    return mpGatl->image();
+    return *mpGatl->image();
 }
 
 
