@@ -797,17 +797,30 @@ Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData *
     return pAst;
 }
 
-Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType, Ast * pBlock, ParseData * pParseData)
+Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData)
 {
-    Ast * pAst = ast_create_block_def(name,
+    Ast * pFuncArgs = ast_create_with_str(kAST_FunctionDecl, name, pParseData);
+
+    for (SymRec * pSymRec : pSymTab->orderedSymRecs)
+    {
+        SymRec * pTypeSymRec = parsedata_find_type_symbol(pParseData, pSymRec->pSymDataType->name, pSymRec->pSymDataType->typeDesc.isConst ? 1 : 0, pSymRec->pSymDataType->typeDesc.isReference ? 1 : 0);
+        ast_add_child(pFuncArgs, ast_create_function_arg(pSymRec->name, pTypeSymRec, pParseData));
+    }
+
+    size_t mangledLen = mangle_function_len(name, pFuncArgs->pChildren);
+    char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
+    mangle_function(mangledName, kMaxCmpId, name, pFuncArgs->pChildren);
+
+    Ast * pAst = ast_create_block_def(mangledName,
                                       kAST_FunctionDef,
                                       kSYMT_Function,
                                       pReturnType,
                                       pBlock,
-                                      pParseData->pRootAst,
+                                      NULL,
                                       true,
                                       pParseData);
 
+    pAst->pLhs = pFuncArgs;
     return pAst;
 }
 
@@ -2226,6 +2239,12 @@ Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec)
 Ast* parsedata_add_root_symbol(ParseData * pParseData, SymRec * pSymRec)
 {
     return parsedata_add_symbol(pParseData, pSymRec, pParseData->pRootScope);
+}
+
+Ast * parsedata_add_root_ast(ParseData * pParseData, Ast * pAst)
+{
+    ast_add_child(pParseData->pRootAst, pAst);
+    return pAst;
 }
 
 const SymDataType * parsedata_find_basic_type(ParseData * pParseData, DataType dataType, int isConst, int isReference)

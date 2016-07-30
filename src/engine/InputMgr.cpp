@@ -46,10 +46,11 @@ InputMgr::InputMgr()
     registerKeyToState(kKEY_A, HASH::move_left);
     registerKeyToState(kKEY_S, HASH::move_down);
     registerKeyToState(kKEY_D, HASH::move_right);
-//    registerKeyToState(kKEY_W, HASH::forward);
-//    registerKeyToState(kKEY_A, HASH::left);
-//    registerKeyToState(kKEY_S, HASH::back);
-//    registerKeyToState(kKEY_D, HASH::right);
+
+    registerKeyToState(kKEY_O,         HASH::shoot_up);
+    registerKeyToState(kKEY_K,         HASH::shoot_left);
+    registerKeyToState(kKEY_L,         HASH::shoot_down);
+    registerKeyToState(kKEY_Semicolon, HASH::shoot_right);
 
     registerKeyToState(kKEY_Mouse2, HASH::mouse_look);
 

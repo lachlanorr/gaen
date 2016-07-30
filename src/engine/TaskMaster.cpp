@@ -730,6 +730,7 @@ void TaskMaster::removeTask(task_id taskId)
         if (mOwnedTaskMap.size() > 1)
         {
             // replace item with the last one in vector
+            task_id backTaskId = mOwnedTasks.back().id();
             mOwnedTasks[idx] = mOwnedTasks.back();
 
             // remove last task in vector (now it is in position of the task we are removing)
@@ -739,7 +740,7 @@ void TaskMaster::removeTask(task_id taskId)
             mOwnedTaskMap.erase(itOTM);
 
             // adjust mOwnedTaskMap so it can find what was the last task that has moved indexes
-            mOwnedTaskMap[mOwnedTasks[idx].id()] = idx;
+            mOwnedTaskMap[backTaskId] = idx;
         }
         else
         {

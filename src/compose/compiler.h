@@ -94,6 +94,7 @@ typedef enum
     kAST_TypeId,
 
     kAST_Block,
+    kAST_FunctionDecl,
     kAST_FunctionArg,
     kAST_FunctionParams,
     kAST_FunctionCall,
@@ -307,7 +308,7 @@ SymRec* symtab_find_symbol(SymTab* pSymTab, const char * name);
 SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name);
 const SymDataType* symtab_find_type_recursive(SymTab* pSymTab, DataType dataType, int isConst, int isReference);
 SymRec* symtab_find_type(SymTab* pSymTab, const char * name);
-SymTab* symtab_transfer(SymTab* pDest, SymTab* pSrc);
+SymTab* symtab_transfer(SymTab* pDest, SymTab* pSrc, ParseData* pParseData);
 
 AstList * astlist_create();
 AstList * astlist_append(AstList * pAstList, Ast * pAst);
@@ -322,7 +323,7 @@ Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData);
 
 void ast_create_using_list(Ast * pUsingList, ParseData * pParseData);
 Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData * pParseData);
-Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
 
@@ -409,6 +410,8 @@ SymTab* parsedata_add_param(ParseData * pParseData, SymTab* pSymTab, SymRec * pS
 // A new symbol table should already have been added to the stack.
 Ast* parsedata_add_local_symbol(ParseData * pParseData, SymRec * pSymRec);
 Ast* parsedata_add_root_symbol(ParseData * pParseData, SymRec * pSymRec);
+
+Ast * parsedata_add_root_ast(ParseData * pParseData, Ast * pAst);
 
 const SymDataType * parsedata_find_basic_type(ParseData * pParseData, DataType dataType, int isConst, int isReference);
 const SymDataType * parsedata_find_basic_type_desc(ParseData * pParseData, const TypeDesc * pTypeDesc);

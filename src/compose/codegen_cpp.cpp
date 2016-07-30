@@ -907,6 +907,36 @@ static S codegen_helper_funcs(const Ast * pAst)
     return entityInits;
 }
 
+static bool is_top_level_function(const Ast * pFuncAst)
+{
+    return pFuncAst->pParent && pFuncAst->pParent->type == kAST_Root;
+}
+
+static S function_prototype(const Ast * pFuncAst)
+{
+    S code = S(pFuncAst->pSymRec->pSymDataType->cppTypeStr) + S(" ") + S(pFuncAst->pSymRec->fullName) + S("(");
+
+    for (auto it = pFuncAst->pLhs->pScope->pSymTab->orderedSymRecs.begin();
+         it != pFuncAst->pLhs->pScope->pSymTab->orderedSymRecs.end();
+         ++it)
+    {
+        SymRec* pParamSymRec = *it;
+        code += S(pParamSymRec->pSymDataType->cppTypeStr) + S(" ") + S(pParamSymRec->name);
+        if (pParamSymRec != pFuncAst->pLhs->pScope->pSymTab->orderedSymRecs.back())
+            code += S(", ");
+    }
+
+    if (is_top_level_function(pFuncAst))
+    {
+        // Add in a callback function param to 'self()' so the function body can call system apis
+        code += S(", std::function <Entity &()> self");
+    }
+
+    code += S(")");
+
+    return code;
+}
+
 static S codegen_recurse(const Ast * pAst,
                          int indentLevel)
 {
@@ -919,8 +949,37 @@ static S codegen_recurse(const Ast * pAst,
     {
     case kAST_FunctionDef:
     {
-        PANIC("No codegen for kAST_FunctionDef");
-        return S("");
+        S code;
+        
+        if (is_top_level_function(pAst))
+        {
+            code += "namespace compose_funcs\n";
+            code += "{\n";
+        }
+
+        code += I + function_prototype(pAst);
+        code += LF;
+        
+        code += I + S("{\n");
+
+        if (pAst->pChildren && pAst->pChildren->nodes.size() > 0)
+        {
+            for (const Ast * pChild : pAst->pChildren->nodes)
+            {
+                code += codegen_recurse(pChild, indentLevel + 1);
+            }
+        }
+
+        code += I + S("}\n");
+
+        if (is_top_level_function(pAst))
+        {
+            code += "} // namespace compose_funcs\n";
+        }
+
+        code += LF;
+
+        return code;
     }
     case kAST_EntityDef:
     {
@@ -946,6 +1005,12 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("\n");
         }
 
+        // Functions declared within us
+        for (Ast * pFnc : pAst->pChildren->nodes)
+        {
+            if (pFnc->type == kAST_FunctionDef)
+                code += codegen_recurse(pFnc, indentLevel + 1);
+        }
 
         // Message handlers
         S msgCode = S("");
@@ -1098,7 +1163,14 @@ static S codegen_recurse(const Ast * pAst,
             code += codegen_recurse(pUpdateDef, indentLevel + 1);
             code += I + S("\n");
         }
-        
+
+        // Functions declared within us
+        for (Ast * pFnc : pAst->pChildren->nodes)
+        {
+            if (pFnc->type == kAST_FunctionDef)
+                code += codegen_recurse(pFnc, indentLevel + 1);
+        }
+
         // Message handlers
         code += I + S("    template <typename T>\n");
         code += I + S("    MessageResult message(const T & msgAcc)\n");
@@ -1374,7 +1446,32 @@ static S codegen_recurse(const Ast * pAst,
 //    }
     case kAST_FunctionCall:
     {
-        return S("");
+        S code = S("");
+
+        if (is_top_level_function(pAst->pSymRec->pAst))
+        {
+            code += S("compose_funcs::");
+        }
+
+        code += S(pAst->pSymRec->fullName) + S("(");
+        u32 paramIdx = 0;
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegen_recurse(pParam, indentLevel+1);
+            if (paramIdx < pAst->pRhs->pChildren->nodes.size() - 1)
+                code += S(", ");
+            paramIdx++;
+        }
+        
+        // If it's a top level function call, add in a lambda so it can get our entity
+        if (is_top_level_function(pAst->pSymRec->pAst))
+        {
+            code += S(", [this]() -> Entity& { return self(); }");
+        }
+
+        code += S(")");
+
+        return code;
     }
     case kAST_SystemCall:
     {
@@ -1839,6 +1936,15 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("}\n");
         return code;
     }
+    case kAST_Return:
+    {
+        S code;
+
+        code += I + S("return ");
+        code += codegen_recurse(pAst->pRhs, 0);
+        code += S(";\n");
+        return code;
+    }
 
     default:
         COMP_ERROR(pAst->pParseData, "codegen_recurse invalid AstType: %d", pAst->type);
@@ -1855,37 +1961,26 @@ static S codegen_header(const Ast * pRootAst)
     {
         if (pFuncAst->type == kAST_FunctionDef)
         {
-            code += S(pFuncAst->pSymRec->pSymDataType->cppTypeStr) + S(" ") + S(pFuncAst->pSymRec->name) + S("(");
-
-            for (auto it = pFuncAst->pScope->pSymTab->orderedSymRecs.begin();
-                 it != pFuncAst->pScope->pSymTab->orderedSymRecs.end();
-                 ++it)
-            {
-                SymRec* pParamSymRec = *it;
-                code += S(pParamSymRec->pSymDataType->cppTypeStr) + S(" ") + S(pParamSymRec->name);
-                if (pParamSymRec != pFuncAst->pScope->pSymTab->orderedSymRecs.back())
-                    code += S(", ");
-            }
-            code += S(");\n");
+            code += function_prototype(pFuncAst);
+            code += S(";\n");
         }
     }
 
     if (code != S(""))
     {
+        S headerDecls = S();
+        headerDecls += S("#include \"core/base_defines.h\"\n");
+        headerDecls += LF;
+        headerDecls += S("namespace gaen\n{\n");
 
-    S headerDecls = S();
-    headerDecls += S("#include \"core/base_defines.h\"\n");
-    headerDecls += LF;
-    headerDecls += S("namespace gaen\n{\n");
+        headerDecls += S("namespace compose_funcs\n{\n\n");
 
-    headerDecls += S("namespace funcs\n{\n\n");
+        headerDecls += code;
 
-    headerDecls += code;
-
-    headerDecls += LF;
-    headerDecls += S("} // namespace func\n");
-    headerDecls += S("} // namespace gaen\n");
-    return headerDecls;
+        headerDecls += LF;
+        headerDecls += S("} // namespace func\n");
+        headerDecls += S("} // namespace gaen\n");
+        return headerDecls;
     }
 
     return S("");
