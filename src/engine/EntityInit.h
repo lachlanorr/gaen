@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Component.h - Core functionality all components must have
+// EntityInit.h - Initialization delegation for compose entities
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,55 +24,48 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_COMPONENT_H
-#define GAEN_ENGINE_COMPONENT_H
-
-#include <glm/mat4x3.hpp>
-
-#include "engine/Message.h"
-#include "engine/Task.h"
+#ifndef GAEN_ENGINE_ENTITY_INIT_H
+#define GAEN_ENGINE_ENTITY_INIT_H
 
 namespace gaen
 {
 
-enum class PropertyGroup
+struct Task;
+
+typedef void (*EntityInitCallback)(Task &, void *);
+
+class EntityInit
 {
-    Current,
-    Initial
-};
-
-struct ComponentDesc;
-
-class Entity;
-
-// Base component, basically a way for all components
-// to have a pointer to their ComponentDesc.
-class Component
-{
-    friend class Entity;
 public:
-    Component(Entity * pEntity)
-      : mpEntity(pEntity) {}
+    EntityInit()
+      : mpCreator(nullptr)
+      , mInitCB(nullptr)
+      , mInitDataCB(nullptr)
+    {}
 
-    Task & scriptTask() { return mScriptTask; }
+    EntityInit(void * pThat, EntityInitCallback initCB, EntityInitCallback initDataCB)
+      : mpCreator(pThat)
+      , mInitCB(initCB)
+      , mInitDataCB(initDataCB)
+    {}
 
-protected:
-    const Entity & self() const { return *mpEntity; }
-    Entity & self() { return *mpEntity; }
+    void init(Task & scriptTask)
+    {
+        if (mpCreator && mInitCB)
+            mInitCB(scriptTask, mpCreator);
+    }
 
-    const glm::mat4x3 & transform() const;
-    
-    Task mScriptTask;
-    Entity * mpEntity;
-    PAD_IF_32BIT_A
-    Block *mpBlocks;
-    PAD_IF_32BIT_B
-    u32 mBlockCount;
-    u8 PADDING__[12];
+    void initData(Task & scriptTask)
+    {
+        if (mpCreator && mInitDataCB)
+            mInitDataCB(scriptTask, mpCreator);
+    }
+private:
+    void * mpCreator;
+    EntityInitCallback mInitCB;
+    EntityInitCallback mInitDataCB;
 };
-
-static_assert(sizeof(Component) == 64, "Component unexpected size");
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_COMPONENT_H
+#endif // #ifndef GAEN_ENGINE_ENTITY_INIT_H

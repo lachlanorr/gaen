@@ -306,7 +306,7 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
 
                 snprintf(scratch,
                          kScratchSize,
-                         "self().blockMemory().stringReadMessage(msgAcc, %u, %u)",
+                         "pThis->self().blockMemory().stringReadMessage(msgAcc, %u, %u)",
                          pSymRec->pAst->pBlockInfos->blockCount,
                          pBlockInfo->blockMemoryIndex);
                 code = S(scratch);
@@ -320,7 +320,7 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
     }
     else if (is_prop_or_field(pSymRec))
     {
-        code = S(pSymRec->name) + S("()");
+        code = S("pThis->") + S(pSymRec->name) + S("()");
     }
     else
     {
@@ -428,8 +428,8 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                     code += I2 + S("u32 requiredBlockCount = pBlockData->blockCount;\n");
                     code += I2 + S("if (_msg.blockCount >= requiredBlockCount)\n");
                     code += I2 + S("{\n");
-                    code += I2 + S("    Address addr = self().blockMemory().allocCopy(pBlockData);\n");
-                    code += I2 + S("    set_") + S(pSymRec->name) + S("(self().blockMemory().string(addr));\n");
+                    code += I2 + S("    Address addr = pThis->self().blockMemory().allocCopy(pBlockData);\n");
+                    code += I2 + S("    set_") + S(pSymRec->name) + S("(pThis->self().blockMemory().string(addr));\n");
                     code += I2 + S("    return MessageResult::Consumed;\n");
                     code += I2 + S("}\n");
                     code += I2 + S("break;\n");
@@ -474,7 +474,7 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
         return S("nullptr");
     case kDT_string:
     case kDT_asset:
-        return S("self().blockMemory().stringAlloc(\"\")");
+        return S("pThis->self().blockMemory().stringAlloc(\"\")");
     default:
         COMP_ERROR(pParseData, "Unknown initial value for datatype: %d", pSdt->typeDesc.dataType);
         return S("");
@@ -608,14 +608,14 @@ static S fin(const Ast * pAst, int indentLevel)
                 pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
             {
                 code += I + S("release_");
-                code += symref(nullptr, pSymRec, pAst->pParseData) + S(";") + LF;
+                code += S(pSymRec->name) + S("();") + LF;
             }
         }
     }
     return code;
 }
 
-static S initialization_message_handlers(const Ast * pAst, const S& postInit, const S& postInitFields, int indentLevel)
+static S initialization_message_handlers(const Ast * pAst, const S& postInit, const S& postInitData, int indentLevel)
 {
     S code;
 
@@ -644,14 +644,14 @@ static S initialization_message_handlers(const Ast * pAst, const S& postInit, co
     code += I + S("            return MessageResult::Consumed;\n");
     code += I + S("        } // HASH::assets_ready__\n");
 
-    // init_fields__
-    code += I + S("        case HASH::init_fields__:\n");
+    // init_data__
+    code += I + S("        case HASH::init_data__:\n");
     code += I + S("        {\n");
     code += I + S("            // Initialize non-asset properties and fields to default values\n");
     code += init_data(pAst, indentLevel + 2, false);
-    code += postInitFields;
+    code += postInitData;
     code += I + S("            return MessageResult::Consumed;\n");
-    code += I + S("        } // HASH::init_fields__\n");
+    code += I + S("        } // HASH::init_data__\n");
 
     // fin__
     code += I + S("        case HASH::fin__:\n");
@@ -736,7 +736,7 @@ static S message_def(const Ast * pAst, int indentLevel)
     return code;
 }
 
-static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char * taskName, bool assetsOnly, int indentLevel)
+static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char * taskName, const char * scriptTaskName, bool assetsOnly, int indentLevel)
 {
     S code = S("");
     if (pAst && pAst->pChildren)
@@ -745,7 +745,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
         {
             if (pPropInit->type == kAST_TransformInit)
             {
-                code += I + S("pEnt->setTransform(") + codegen_recurse(pPropInit->pRhs, 0) + S(");\n");
+                code += I + S("pThis->setTransform(") + codegen_recurse(pPropInit->pRhs, 0) + S(");\n");
             }
             else
             {
@@ -779,9 +779,11 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                         char scratch[kScratchSize+1];
                         snprintf(scratch,
                                  kScratchSize,
-                                 "    StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::%s));\n",
+                                 "    StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, %s.id(), %s.id(), to_cell(HASH::%s));\n",
                                  blockCount,
                                  "set_property",
+                                 scriptTaskName,
+                                 scriptTaskName,
                                  propName);
 
                         code += I + S(scratch);
@@ -827,8 +829,10 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
 
                         snprintf(scratch,
                                  kScratchSize,
-                                 "    ThreadLocalMessageBlockWriter msgw(HASH::%s, kMessageFlag_None, mScriptTask.id(), mScriptTask.id(), to_cell(HASH::%s), val.blockCount());\n",
+                                 "    ThreadLocalMessageBlockWriter msgw(HASH::%s, kMessageFlag_None, %s.id(), %s.id(), to_cell(HASH::%s), val.blockCount());\n",
                                  "set_property",
+                                 scriptTaskName,
+                                 scriptTaskName,
                                  propName);
                         code += I + S(scratch);
                         code += I + S("    val.writeMessage(msgw.accessor(), 0);\n");
@@ -841,6 +845,42 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
     }
 
     return code;
+}
+
+static S entity_init_func(const char * str)
+{
+    return S("entity_init__") + S(str);
+}
+
+static S entity_init_init__cb_func(const char * str)
+{
+    return S("entity_init__") + S(str) + S("__init__cb");
+}
+
+static S entity_init_init_data__cb_func(const char * str)
+{
+    return S("entity_init__") + S(str) + S("__init_data__cb");
+}
+
+const Ast * defining_parent(const Ast * pAst)
+{
+    ASSERT(pAst->pScope && pAst->pScope->pSymTab);
+    const SymTab * pST = pAst->pScope->pSymTab;
+
+    while (pST != nullptr)
+    {
+        if (pST->pAst &&
+            (pST->pAst->type == kAST_ComponentDef ||
+             pST->pAst->type == kAST_EntityDef))
+        {
+            return pST->pAst;
+        }
+        else
+        {
+            pST = pST->pParent;
+        }
+    }
+    return nullptr;
 }
 
 static S codegen_helper_funcs_recurse(const Ast * pAst)
@@ -859,16 +899,35 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
         ASSERT(pAst->pSymRec && pAst->pSymRec->fullName && pAst->pSymRec->pSymTabInternal);
         ASSERT(pAst->pRhs);
 
-        code += I + S("task_id entity_init__") + S(pAst->str) + S("()") + LF;
+        const Ast * pDefiningParent = defining_parent(pAst);
+        ASSERT(pDefiningParent);
+
+        code += I + S("static void ") + entity_init_init__cb_func(pAst->str) + S("(Task & scriptTask, void * pCreator)") + LF;
         code += I + S("{") + LF;
-        code += I + S("    Entity * pEnt = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->fullName) + S(", 8);") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEnt->task()", true, indentLevel + 1);
+        code += I1 + S("// Acquire a 'this' pointer so we can operate as if we were a class member") + LF;
+        code += I1 + S(pDefiningParent->pSymRec->fullName) + S(" * pThis = reinterpret_cast<") + S(pDefiningParent->pSymRec->fullName) + S("*>(pCreator);") + LF;
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "scriptTask", "pThis->scriptTask()", true, indentLevel + 1);
+        code += I + S("}") + LF;
         code += LF;
-        code += I + S("    task_id tid = pEnt->task().id();") + LF;
-        code += I + S("    pEnt->activate();") + LF;
+
+        code += I + S("static void ") + entity_init_init_data__cb_func(pAst->str) + S("(Task & scriptTask, void * pCreator)") + LF;
+        code += I + S("{") + LF;
+        code += I1 + S("// Acquire a 'this' pointer so we can operate as if we were a class member") + LF;
+        code += I1 + S(pDefiningParent->pSymRec->fullName) + S(" * pThis = reinterpret_cast<") + S(pDefiningParent->pSymRec->fullName) + S("*>(pCreator);") + LF;
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "scriptTask", "pThis->scriptTask()", false, indentLevel + 1);
+        code += I + S("}") + LF;
+        code += LF;
+
+        code += I + S("task_id ") + entity_init_func(pAst->str) + S("()") + LF;
+        code += I + S("{") + LF;
+        code += I + S("    Entity * pEntity = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->fullName) + S(", 8, ");
+        code += S("EntityInit(this, ") + entity_init_init__cb_func(pAst->str) + S(", ") + entity_init_init_data__cb_func(pAst->str) + S("));") + LF;
+        code += I + S("    task_id tid = pEntity->task().id();") + LF;
+        code += I + S("    pEntity->activate();") + LF;
         code += I + S("    return tid;") + LF;
         code += I + S("}") + LF;
         code += LF;
+
         break;
     }
     default:
@@ -961,6 +1020,7 @@ static S codegen_recurse(const Ast * pAst,
         code += LF;
         
         code += I + S("{\n");
+        code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
 
         if (pAst->pChildren && pAst->pChildren->nodes.size() > 0)
         {
@@ -992,9 +1052,9 @@ static S codegen_recurse(const Ast * pAst,
         code += codegen_helper_funcs(pAst);
 
         code += I + S("public:\n");
-        code += I + S("    static Entity * construct(u32 childCount)\n");
+        code += I + S("    static Entity * construct(u32 childCount, EntityInit & entityInit)\n");
         code += I + S("    {\n");
-        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount);\n");
+        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount, entityInit);\n");
         code += I + S("    }\n");
         code += I + S("\n");
 
@@ -1023,6 +1083,7 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    template <typename T>\n");
         code += I + S("    MessageResult message(const T & msgAcc)\n");
         code += I + S("    {\n");
+        code += I + S("        auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
 
         const Ast * pCompMembers = find_component_members(pAst);
 
@@ -1048,16 +1109,16 @@ static S codegen_recurse(const Ast * pAst,
                     compMembers += I2 + S("        Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
                     compMembers += I2 + S("        compTask.message(msgAcc); // propagate init__ into component\n");
                     ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
-                    compMembers += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", true, indentLevel + 4);
+                    compMembers += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", "mScriptTask", true, indentLevel + 4);
                     compMembers += I2 + S("    }\n");
 
 
                     compMembersFields += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
                     compMembersFields += I2 + S("    {\n");
-                    snprintf(scratch, kScratchSize, "        Task & compTask = mpComponents[%u].task();\n", compIdx);
+                    snprintf(scratch, kScratchSize, "        Task & compTask = mpComponents[%u].scriptTask();\n", compIdx);
                     compMembersFields += I2 + S(scratch);
-                    compMembersFields += I2 + S("        compTask.message(msgAcc); // propagate init_fields__ into component\n");
-                    compMembersFields += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", false, indentLevel + 4);
+                    compMembersFields += I2 + S("        compTask.message(msgAcc); // propagate init_data__ into component\n");
+                    compMembersFields += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", "mScriptTask", false, indentLevel + 4);
                     compMembersFields += I2 + S("    }\n");
                     compIdx++;
                 }
@@ -1081,8 +1142,8 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("private:\n");
 
         // Constructor
-        code += I + S("    ") + entName + S("(u32 childCount)\n");
-        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
+        code += I + S("    ") + entName + S("(u32 childCount, EntityInit & entityInit)\n");
+        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36, entityInit) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
         code += I + S("    {\n");
 
         // Initialize mBlockSize
@@ -1175,6 +1236,7 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    template <typename T>\n");
         code += I + S("    MessageResult message(const T & msgAcc)\n");
         code += I + S("    {\n");
+        code += I + S("        auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
         code += I + S("        const Message & _msg = msgAcc.message();\n");
         code += I + S("        switch(_msg.msgId)\n");
         code += I + S("        {\n");
@@ -1273,6 +1335,7 @@ static S codegen_recurse(const Ast * pAst,
         {
             code += I + S("void update(float deltaSecs)\n");
             code += I + S("{\n");
+            code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
             for (Ast * pChild : pAst->pChildren->nodes)
             {
                 code += codegen_recurse(pChild, indentLevel + 1);
@@ -1317,17 +1380,19 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("bool ") + assignedVar + S(" = false;\n");
             code += I + S("void release_") + propName + S("()\n");
             code += I + S("{\n");
+            code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
             code += I + S("    if (") + assignedVar + S(")\n");
             code += I + S("    {\n");
-            code += I + S("        self().blockMemory().release(") + propName + S("());\n");
+            code += I + S("        pThis->self().blockMemory().release(") + propName + S("());\n");
             code += I + S("    }\n");
             code += I + S("    ") + assignedVar + S(" = false;\n");
             code += I + S("}\n");
             code += I + S("void set_") + propName + S("(const ") + typeStr + S("& rhs)\n");
             code += I + S("{\n");
+            code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
             code += I + S("    release_") + propName + S("();\n");
             code += I + S("    ") + propName + S("() = rhs;\n");
-            code += I + S("    self().blockMemory().addRef(") + propName + S("());\n");
+            code += I + S("    pThis->self().blockMemory().addRef(") + propName + S("());\n");
             code += I + S("    ") + assignedVar + S(" = true;\n");
             code += I + S("}\n");
         }
@@ -1336,6 +1401,7 @@ static S codegen_recurse(const Ast * pAst,
         {
             code += I + S("void release_") + propName + S("()\n");
             code += I + S("{\n");
+            code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
             code += I + S("    if (" + propName + "() != nullptr)\n");
             code += I + S("    {\n");
             code += I + S("        ") + propName + S("()->release();\n");
@@ -1440,10 +1506,6 @@ static S codegen_recurse(const Ast * pAst,
         return code;
     }
 
-//    case kAST_FunctionParams:
-//    {
-//        return S("");
-//    }
     case kAST_FunctionCall:
     {
         S code = S("");
@@ -1716,7 +1778,7 @@ static S codegen_recurse(const Ast * pAst,
 
     case kAST_EntityInit:
     {
-        S code = I + S("entity_init__") + S(pAst->str) + S("()");
+        S code = I + entity_init_func(pAst->str) + S("()");
         return code;
     }
     case kAST_StructInit:
@@ -1749,7 +1811,7 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_StringLiteral:
     {
         encode_string(scratch, kScratchSize, pAst->str);
-        return S("self().blockMemory().stringAlloc(") + S(scratch) + S(")");
+        return S("pThis->self().blockMemory().stringAlloc(") + S(scratch) + S(")");
     }
     case kAST_StringInit:
     {
@@ -1765,7 +1827,7 @@ static S codegen_recurse(const Ast * pAst,
             if (pChild == pAst->pChildren->nodes.front())
             {
                 encode_string(scratch, kScratchSize, pChild->str);
-                code += S("self().blockMemory().stringFormat(") + S(scratch);
+                code += S("pThis->self().blockMemory().stringFormat(") + S(scratch);
             }
             else
             {

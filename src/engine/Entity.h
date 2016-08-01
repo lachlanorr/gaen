@@ -35,6 +35,8 @@
 #include "engine/Task.h"
 #include "engine/Component.h"
 #include "engine/MessageQueue.h"
+#include "engine/EntityInit.h"
+
 namespace gaen
 {
 
@@ -45,14 +47,18 @@ class CmpString;
 class Entity
 {
 public:
-    Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax);
+    Entity(u32 nameHash,
+           u32 childrenMax,
+           u32 componentsMax,
+           u32 blocksMax,
+           EntityInit & entityInit);
     ~Entity();
 
     const Task & task() const { return mTask; }
     Task & task() { return mTask; }
 
     const Task & scriptTask() const { return mScriptTask; }
-    Task & scripTask() { return mScriptTask; }
+    Task & scriptTask() { return mScriptTask; }
 
     void activate();
     static Entity * activate_start_entity(u32 entityHash);
@@ -158,6 +164,8 @@ protected:
     // Asset pointers
     u32 mAssetsRequested;
     u32 mAssetsLoaded;
+
+    EntityInit mEntityInit;
 };
 
 } // namespace gaen

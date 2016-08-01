@@ -50,6 +50,7 @@ SET (engine_SOURCES
   Component.h
   Entity.cpp
   Entity.h
+  EntityInit.h
   FrameTime.h
   glm_ext.h
   Handle.cpp

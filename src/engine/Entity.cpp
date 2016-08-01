@@ -47,9 +47,14 @@
 namespace gaen
 {
 
-Entity::Entity(u32 nameHash, u32 childrenMax, u32 componentsMax, u32 blocksMax)
+Entity::Entity(u32 nameHash,
+               u32 childrenMax,
+               u32 componentsMax,
+               u32 blocksMax,
+               EntityInit & entityInit)
   : mpParent(nullptr)
   , mpBlockMemory(nullptr)
+  , mEntityInit(entityInit)
 {
     mTransform = glm::mat4x3(1.0f);
     mIsTransformDirty = false;
@@ -118,7 +123,7 @@ void Entity::activate()
     // Entity will progress through initialization stages on its
     // own, eventually reaching the "activated" state. Then it will
     // be updated each frame by the TaskMasters.
-    MessageQueueWriter msgInitData(HASH::init__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0), 0);
+    MessageQueueWriter msgInit(HASH::init__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0), 0);
 }
 
 void Entity::finSelf()
@@ -132,7 +137,7 @@ void Entity::finSelf()
 
 Entity * Entity::activate_start_entity(u32 entityHash)
 {
-    Entity * pEntity = get_registry().constructEntity(entityHash, 32);
+    Entity * pEntity = get_registry().constructEntity(entityHash, 32, EntityInit());
 
     if (pEntity)
     {
@@ -154,7 +159,7 @@ void Entity::update(f32 deltaSecs)
 
     // send update our components
     for (u32 i = 0; i < mComponentCount; ++i)
-        mpComponents[i].task().update(deltaSecs);
+        mpComponents[i].scriptTask().update(deltaSecs);
 
     // send update to our child entities
     for (u32 i = 0; i < mChildCount; ++i)
@@ -170,7 +175,7 @@ void Entity::update(f32 deltaSecs)
         // send update our components
         for (u32 i = 0; i < mComponentCount; ++i)
         {
-            Task & t = mpComponents[i].task();
+            Task & t = mpComponents[i].scriptTask();
             StackMessageBlockWriter<0> msgw(HASH::update_transform,
                 kMessageFlag_ForcePropagate,
                 mTask.id(),
@@ -219,7 +224,7 @@ MessageResult Entity::message(const T & msgAcc)
         // Now, send fin to our components
         for (u32 i = 0; i < mComponentCount; ++i)
         {
-            mpComponents[i].task().message(msgAcc);
+            mpComponents[i].scriptTask().message(msgAcc);
         }
 
         // Call our sub-classed message routine
@@ -237,7 +242,7 @@ MessageResult Entity::message(const T & msgAcc)
         // Now, send fin__ to our components
         for (u32 i = 0; i < mComponentCount; ++i)
         {
-            mpComponents[i].task().message(finMsgW.accessor());
+            mpComponents[i].scriptTask().message(finMsgW.accessor());
         }
 
         // Call our sub-classed message routine
@@ -306,7 +311,7 @@ MessageResult Entity::message(const T & msgAcc)
         // Send the message to all components
         for (u32 i = 0; i < mComponentCount; ++i)
         {
-            res = mpComponents[i].task().message(msgAcc);
+            res = mpComponents[i].scriptTask().message(msgAcc);
             if (res == MessageResult::Consumed && !msgAcc.message().ForcePropagate())
                 return MessageResult::Consumed;
         }
@@ -332,6 +337,9 @@ MessageResult Entity::message(const T & msgAcc)
                 // Send to our sub-classed message routine
                 mScriptTask.message(msgAcc);
 
+                // Call the scripted init callback to set any overridden values
+                mEntityInit.init(mScriptTask);
+
                 mInitStatus = kIS_Init;
                 // LORRTEMP
                 LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
@@ -349,7 +357,7 @@ MessageResult Entity::message(const T & msgAcc)
                 // Send to our components
                 for (u32 i = 0; i < mComponentCount; ++i)
                 {
-                    mpComponents[i].task().message(msgAcc);
+                    mpComponents[i].scriptTask().message(msgAcc);
                 }
 
                 // Send to our sub-classed message routine
@@ -398,9 +406,9 @@ MessageResult Entity::message(const T & msgAcc)
                     {
                         for (u32 i = 0; i < mComponentCount; ++i)
                         {
-                            if (subTask == mpComponents[i].task().id())
+                            if (subTask == mpComponents[i].scriptTask().id())
                             {
-                                mpComponents[i].task().message(msgAcc);
+                                mpComponents[i].scriptTask().message(msgAcc);
                                 taskMatch = true;
                                 break;
                             }
@@ -431,7 +439,7 @@ MessageResult Entity::message(const T & msgAcc)
                 // Send to our components
                 for (u32 i = 0; i < mComponentCount; ++i)
                 {
-                    mpComponents[i].task().message(msgAcc);
+                    mpComponents[i].scriptTask().message(msgAcc);
                 }
 
                 // Send to our sub-classed message routine
@@ -592,10 +600,14 @@ void Entity::finalizeAssetInit()
     LOG_INFO("Entity change state: taskid: %u, name: %s, newstate: %d", mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
 
     {
-    StackMessageBlockWriter<0> msg(HASH::init_fields__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+    StackMessageBlockWriter<0> msg(HASH::init_data__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
     // init all fields and properties in each component
     mScriptTask.message(msg.accessor());
+
     }
+
+    // Call the scripted init_data callback to set any overridden values
+    mEntityInit.initData(mScriptTask);
 
     {
     StackMessageBlockWriter<0> msg(HASH::init, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
@@ -641,19 +653,15 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
 
     mComponentCount++;
 
-    // init__ will be sent to component in codegen'd .cpp for component/entity
-
-    // Send int_data message
-    //StackMessageBlockWriter<0> initDataMsgw(HASH::init__, kMessageFlag_None, mScriptTask.id(), pComp->task().id(), to_cell(pComp->task().id()));
-    //pComp->task().message(initDataMsgw.accessor());
+    // HASH::init__ will be sent to component in codegen'd .cpp for component/entity
 
     // LORRTEMP
-    LOG_INFO("Component inserted: entityId: %u, entityName: %s, taskId: %u, taskName: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()), pComp->task().id(), HASH::reverse_hash(pComp->task().nameHash()));
+    LOG_INFO("Component inserted: entityId: %u, entityName: %s, taskId: %u, taskName: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()), pComp->scriptTask().id(), HASH::reverse_hash(pComp->scriptTask().nameHash()));
 
     // Activate our component's task so it can perform updates
-    pComp->task().setStatus(TaskStatus::Running);
+    pComp->scriptTask().setStatus(TaskStatus::Running);
 
-    return pComp->task();
+    return pComp->scriptTask();
 }
 
 
