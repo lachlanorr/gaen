@@ -661,6 +661,15 @@ static S initialization_message_handlers(const Ast * pAst, const S& postInit, co
     code += I + S("            return MessageResult::Consumed;\n");
     code += I + S("        } // HASH::fin__\n");
 
+    // transform
+    code += I + S("        // LORRNOTE: Handle transform here as well (already handled in Entity) for convenience\n");
+    code += I + S("        case HASH::transform:\n");
+    code += I + S("        {\n");
+    code += I + S("            messages::TransformR<T> msgr(msgAcc);\n");
+    code += I + S("            pThis->self().applyTransform(msgr.isLocal(), msgr.transform());\n");
+    code += I + S("            return MessageResult::Consumed;\n");
+    code += I + S("        } // HASH::transform\n");
+
     return code;
 }
 
@@ -738,6 +747,9 @@ static S message_def(const Ast * pAst, int indentLevel)
 
 static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char * taskName, const char * scriptTaskName, bool assetsOnly, int indentLevel)
 {
+    static const u32 kScratchSize = 256;
+    char scratch[kScratchSize+1];
+
     S code = S("");
     if (pAst && pAst->pChildren)
     {
@@ -745,7 +757,20 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
         {
             if (pPropInit->type == kAST_TransformInit)
             {
-                code += I + S("pThis->setTransform(") + codegen_recurse(pPropInit->pRhs, 0) + S(");\n");
+                if (!assetsOnly)
+                {
+                    code += I + S("// Init transform:\n");
+                    code += I + S("{\n");
+                    snprintf(scratch,
+                             kScratchSize,
+                             "    messages::TransformBW msgw(HASH::transform, kMessageFlag_None, %s.id(), %s.id(), false);\n",
+                             scriptTaskName,
+                             taskName);
+                    code += I + S(scratch);
+                    code += I + S("    msgw.setTransform(pThis->self().transform());") + LF;
+                    code += I + S("    ") + S(taskName) + S(".message(msgw.accessor());") + LF;
+                    code += I + S("}\n");
+                }
             }
             else
             {
@@ -775,15 +800,13 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                     {
                         u32 valCellCount = pRhsSdt->cellCount;
                         u32 blockCount = block_count(valCellCount);
-                        static const u32 kScratchSize = 256;
-                        char scratch[kScratchSize+1];
                         snprintf(scratch,
                                  kScratchSize,
                                  "    StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, %s.id(), %s.id(), to_cell(HASH::%s));\n",
                                  blockCount,
                                  "set_property",
                                  scriptTaskName,
-                                 scriptTaskName,
+                                 taskName,
                                  propName);
 
                         code += I + S(scratch);
@@ -832,7 +855,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                                  "    ThreadLocalMessageBlockWriter msgw(HASH::%s, kMessageFlag_None, %s.id(), %s.id(), to_cell(HASH::%s), val.blockCount());\n",
                                  "set_property",
                                  scriptTaskName,
-                                 scriptTaskName,
+                                 taskName,
                                  propName);
                         code += I + S(scratch);
                         code += I + S("    val.writeMessage(msgw.accessor(), 0);\n");
@@ -902,26 +925,26 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
         const Ast * pDefiningParent = defining_parent(pAst);
         ASSERT(pDefiningParent);
 
-        code += I + S("static void ") + entity_init_init__cb_func(pAst->str) + S("(Task & scriptTask, void * pCreator)") + LF;
+        code += I + S("static void ") + entity_init_init__cb_func(pAst->str) + S("(Entity * pEntity, void * pCreator)") + LF;
         code += I + S("{") + LF;
         code += I1 + S("// Acquire a 'this' pointer so we can operate as if we were a class member") + LF;
         code += I1 + S(pDefiningParent->pSymRec->fullName) + S(" * pThis = reinterpret_cast<") + S(pDefiningParent->pSymRec->fullName) + S("*>(pCreator);") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "scriptTask", "pThis->scriptTask()", true, indentLevel + 1);
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEntity->scriptTask()", "pThis->scriptTask()", true, indentLevel + 1);
         code += I + S("}") + LF;
         code += LF;
 
-        code += I + S("static void ") + entity_init_init_data__cb_func(pAst->str) + S("(Task & scriptTask, void * pCreator)") + LF;
+        code += I + S("static void ") + entity_init_init_data__cb_func(pAst->str) + S("(Entity * pEntity, void * pCreator)") + LF;
         code += I + S("{") + LF;
         code += I1 + S("// Acquire a 'this' pointer so we can operate as if we were a class member") + LF;
         code += I1 + S(pDefiningParent->pSymRec->fullName) + S(" * pThis = reinterpret_cast<") + S(pDefiningParent->pSymRec->fullName) + S("*>(pCreator);") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "scriptTask", "pThis->scriptTask()", false, indentLevel + 1);
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEntity->scriptTask()", "pThis->scriptTask()", false, indentLevel + 1);
         code += I + S("}") + LF;
         code += LF;
 
         code += I + S("task_id ") + entity_init_func(pAst->str) + S("()") + LF;
         code += I + S("{") + LF;
-        code += I + S("    Entity * pEntity = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->fullName) + S(", 8, ");
-        code += S("EntityInit(this, ") + entity_init_init__cb_func(pAst->str) + S(", ") + entity_init_init_data__cb_func(pAst->str) + S("));") + LF;
+        code += I + S("    Entity * pEntity = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->fullName) + S(", 8);") + LF;
+        code += I + S("    pEntity->setEntityInit(pEntity, this, ") + entity_init_init__cb_func(pAst->str) + S(", ") + entity_init_init_data__cb_func(pAst->str) + S(");") + LF;
         code += I + S("    task_id tid = pEntity->task().id();") + LF;
         code += I + S("    pEntity->activate();") + LF;
         code += I + S("    return tid;") + LF;
@@ -1052,9 +1075,9 @@ static S codegen_recurse(const Ast * pAst,
         code += codegen_helper_funcs(pAst);
 
         code += I + S("public:\n");
-        code += I + S("    static Entity * construct(u32 childCount, EntityInit & entityInit)\n");
+        code += I + S("    static Entity * construct(u32 childCount)\n");
         code += I + S("    {\n");
-        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount, entityInit);\n");
+        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount);\n");
         code += I + S("    }\n");
         code += I + S("\n");
 
@@ -1142,8 +1165,8 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("private:\n");
 
         // Constructor
-        code += I + S("    ") + entName + S("(u32 childCount, EntityInit & entityInit)\n");
-        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36, entityInit) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
+        code += I + S("    ") + entName + S("(u32 childCount)\n");
+        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
         code += I + S("    {\n");
 
         // Initialize mBlockSize
@@ -1788,12 +1811,12 @@ static S codegen_recurse(const Ast * pAst,
 
     case kAST_Self:
     {
-        return S("self().task().id()");
+        return S("pThis->self().task().id()");
     }
 
     case kAST_Transform:
     {
-        return S("transform()");
+        return S("pThis->self().transform()");
     }
 
     case kAST_IntLiteral:
@@ -2101,6 +2124,7 @@ CodeCpp codegen_cpp(ParseData * pParseData)
     codeCpp.code += S("#include \"engine/Entity.h\"\n");
     codeCpp.code += S("\n");
     codeCpp.code += S("#include \"engine/messages/Handle.h\"\n");
+    codeCpp.code += S("#include \"engine/messages/Transform.h\"\n");
 
     codeCpp.code += S("\n");
     codeCpp.code += S("// system_api declarations\n");

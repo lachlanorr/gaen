@@ -50,8 +50,7 @@ public:
     Entity(u32 nameHash,
            u32 childrenMax,
            u32 componentsMax,
-           u32 blocksMax,
-           EntityInit & entityInit);
+           u32 blocksMax);
     ~Entity();
 
     const Task & task() const { return mTask; }
@@ -59,6 +58,8 @@ public:
 
     const Task & scriptTask() const { return mScriptTask; }
     Task & scriptTask() { return mScriptTask; }
+
+    void setEntityInit(Entity * pEntity, void * pCreator, EntityInitCallback initCB, EntityInitCallback initDataCB);
 
     void activate();
     static Entity * activate_start_entity(u32 entityHash);

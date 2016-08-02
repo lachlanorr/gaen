@@ -50,11 +50,9 @@ namespace gaen
 Entity::Entity(u32 nameHash,
                u32 childrenMax,
                u32 componentsMax,
-               u32 blocksMax,
-               EntityInit & entityInit)
+               u32 blocksMax)
   : mpParent(nullptr)
   , mpBlockMemory(nullptr)
-  , mEntityInit(entityInit)
 {
     mTransform = glm::mat4x3(1.0f);
     mIsTransformDirty = false;
@@ -105,6 +103,11 @@ Entity::~Entity()
     GFREE(mpComponents);
 }
 
+void Entity::setEntityInit(Entity * pEntity, void * pCreator, EntityInitCallback initCB, EntityInitCallback initDataCB)
+{
+    mEntityInit = EntityInit(pEntity, pCreator, initCB, initDataCB);
+}
+
 void Entity::activate()
 {
     ASSERT(mInitStatus == kIS_Uninitialized);
@@ -137,7 +140,7 @@ void Entity::finSelf()
 
 Entity * Entity::activate_start_entity(u32 entityHash)
 {
-    Entity * pEntity = get_registry().constructEntity(entityHash, 32, EntityInit());
+    Entity * pEntity = get_registry().constructEntity(entityHash, 32);
 
     if (pEntity)
     {
@@ -338,7 +341,7 @@ MessageResult Entity::message(const T & msgAcc)
                 mScriptTask.message(msgAcc);
 
                 // Call the scripted init callback to set any overridden values
-                mEntityInit.init(mScriptTask);
+                mEntityInit.init();
 
                 mInitStatus = kIS_Init;
                 // LORRTEMP
@@ -484,6 +487,9 @@ void Entity::setTransform(const glm::mat4x3 & mat)
 {
     mIsTransformDirty = true;
     mTransform = mat;
+
+    LOG_INFO("transform: %f, %f, %f", mat[3][0], mat[3][1], mat[3][2]);
+
 }
 
 void Entity::applyTransform(bool isLocal, const glm::mat4x3 & mat)
@@ -607,7 +613,7 @@ void Entity::finalizeAssetInit()
     }
 
     // Call the scripted init_data callback to set any overridden values
-    mEntityInit.initData(mScriptTask);
+    mEntityInit.initData();
 
     {
     StackMessageBlockWriter<0> msg(HASH::init, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));

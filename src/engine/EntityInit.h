@@ -30,37 +30,40 @@
 namespace gaen
 {
 
-struct Task;
+class Entity;
 
-typedef void (*EntityInitCallback)(Task &, void *);
+typedef void (*EntityInitCallback)(Entity*, void *);
 
 class EntityInit
 {
 public:
     EntityInit()
-      : mpCreator(nullptr)
+      : mpEntity(nullptr)
+      , mpCreator(nullptr)
       , mInitCB(nullptr)
       , mInitDataCB(nullptr)
     {}
 
-    EntityInit(void * pThat, EntityInitCallback initCB, EntityInitCallback initDataCB)
-      : mpCreator(pThat)
+    EntityInit(Entity * pEntity, void * pCreator, EntityInitCallback initCB, EntityInitCallback initDataCB)
+      : mpEntity(pEntity)
+      , mpCreator(pCreator)
       , mInitCB(initCB)
       , mInitDataCB(initDataCB)
     {}
 
-    void init(Task & scriptTask)
+    void init()
     {
-        if (mpCreator && mInitCB)
-            mInitCB(scriptTask, mpCreator);
+        if (mpEntity && mpCreator && mInitCB)
+            mInitCB(mpEntity, mpCreator);
     }
 
-    void initData(Task & scriptTask)
+    void initData()
     {
-        if (mpCreator && mInitDataCB)
-            mInitDataCB(scriptTask, mpCreator);
+        if (mpEntity && mpCreator && mInitDataCB)
+            mInitDataCB(mpEntity, mpCreator);
     }
 private:
+    Entity * mpEntity;
     void * mpCreator;
     EntityInitCallback mInitCB;
     EntityInitCallback mInitDataCB;

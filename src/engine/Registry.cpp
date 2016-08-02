@@ -79,7 +79,7 @@ bool Registry::registerEntityConstructor(u32 nameHash, EntityConstructor constru
     return true;
 }
     
-Entity * Registry::constructEntity(u32 nameHash, u32 childCount, EntityInit & entityInit)
+Entity * Registry::constructEntity(u32 nameHash, u32 childCount)
 {
     auto it = mEntityConstructors.find(nameHash);
 
@@ -89,7 +89,7 @@ Entity * Registry::constructEntity(u32 nameHash, u32 childCount, EntityInit & en
         return nullptr;
     }
     
-    Entity * pEntity = it->second(childCount, entityInit);
+    Entity * pEntity = it->second(childCount);
 
     return pEntity;
 }

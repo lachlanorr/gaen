@@ -60,8 +60,6 @@ protected:
     const Entity & self() const { return *mpEntity; }
     Entity & self() { return *mpEntity; }
 
-    const glm::mat4x3 & transform() const;
-    
     Task mScriptTask;
     Entity * mpEntity;
     PAD_IF_32BIT_A

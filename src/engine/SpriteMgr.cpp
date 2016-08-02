@@ -36,6 +36,7 @@
 #include "engine/messages/SpriteInstance.h"
 #include "engine/messages/SpritePlayAnim.h"
 #include "engine/messages/SpriteVelocity.h"
+#include "engine/messages/Transform.h"
 
 #include "engine/SpriteMgr.h"
 
@@ -61,6 +62,10 @@ void SpriteMgr::update(f32 deltaSecs)
             glm::vec3 offset = glm::vec3(pSpriteInst->mVelocity * deltaSecs, 0.0f);
             pSpriteInst->mTransform = glm::to_mat4x3(glm::translate(glm::mat4(1.0f), offset) * glm::mat4(pSpriteInst->mTransform));
             SpriteInstance::send_sprite_transform(kSpriteMgrTaskId, kRendererTaskId, pSpriteInst->sprite().uid(), pSpriteInst->mTransform);
+            {
+                messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, pSpriteInst->sprite().mOwner, false);
+                msgw.setTransform(pSpriteInst->mTransform);
+            }
         }
         if (pSpriteInst->mIsAnimating && pSpriteInst->advanceAnim(deltaSecs))
         {
