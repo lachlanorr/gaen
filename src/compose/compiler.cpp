@@ -890,6 +890,7 @@ static Ast * ast_create_top_level_def(const char * name, AstType astType, SymTyp
     ASSERT(pParseData);
 
     Ast * pAst = ast_create(astType, pParseData);
+    AstList * pAstList = nullptr;
 
     // Assets are handles, but also strings for that path.
     // Only the path can be set explicitly in code, the Handle
@@ -900,11 +901,26 @@ static Ast * ast_create_top_level_def(const char * name, AstType astType, SymTyp
     {
         const SymDataType * pPathType = parsedata_find_type(pParseData, "asset", 0, 0);
 
+        const char * assetPathName = asset_path_name(name);
+
         pAst->pSymRec = symrec_create(symType,
                                       pPathType,
-                                      asset_path_name(name),
+                                      assetPathName,
                                       pInitVal,
                                       pParseData);
+        pAst->pSymRec->flags |= kSRFL_AssetRelated;
+
+        Ast * pAssetHandleAst = ast_create_top_level_def(name, kAST_FieldDef, kSYMT_Field, pDataType, nullptr, false, pParseData);
+        pAssetHandleAst->pSymRec->flags |= kSRFL_AssetRelated;
+
+        const SymDataType * pBoolType = parsedata_find_type(pParseData, "bool", 0, 0);
+        Ast * pRefcountedAssigned = ast_create_top_level_def(refcounted_assigned_name(assetPathName), kAST_FieldDef, kSYMT_Field, pBoolType, nullptr, false, pParseData);
+        pRefcountedAssigned->pSymRec->flags |= kSRFL_AssetRelated;
+
+        pAstList = astlist_create();
+        astlist_append(pAstList, pAssetHandleAst);
+        astlist_append(pAstList, pRefcountedAssigned);
+        astlist_append(pAstList, pAst);
     }
     else
     {
@@ -913,6 +929,17 @@ static Ast * ast_create_top_level_def(const char * name, AstType astType, SymTyp
                                       name,
                                       pInitVal,
                                       pParseData);
+
+        // Add a bool to track ref counting assignment state
+        if (is_block_memory_type(ast_data_type(pAst)))
+        {
+            const SymDataType * pBoolType = parsedata_find_type(pParseData, "bool", 0, 0);
+            Ast * pRefcountedAssigned = ast_create_top_level_def(refcounted_assigned_name(name), kAST_FieldDef, kSYMT_Field, pBoolType, nullptr, false, pParseData);
+
+            pAstList = astlist_create();
+            astlist_append(pAstList, pRefcountedAssigned);
+            astlist_append(pAstList, pAst);
+        }
     }
 
     pAst->pSymRec->flags |= kSRFL_NeedsCppParens;
@@ -923,14 +950,10 @@ static Ast * ast_create_top_level_def(const char * name, AstType astType, SymTyp
 
     // Assets produce 2 Ast's, one for the path and one for the handle.
     // We build a kAST_MetaAstMulti to express this.
-    if (specialCaseAssets && pDataType->typeDesc.dataType == kDT_asset_handle)
+    if (pAstList != nullptr)
     {
         Ast * pMetaAstMulti = ast_create(kAST_MetaAstMulti, pParseData);
-        pMetaAstMulti->pChildren = astlist_create();
-        Ast * pAssetHandleAst = ast_create_top_level_def(name, kAST_FieldDef, kSYMT_Field, pDataType, nullptr, false, pParseData);
-
-        astlist_append(pMetaAstMulti->pChildren, pAssetHandleAst);
-        astlist_append(pMetaAstMulti->pChildren, pAst);
+        pMetaAstMulti->pChildren = pAstList;
 
         pAst = pMetaAstMulti;
     }

@@ -31,10 +31,13 @@ namespace gaen
 {
 
 static const char * kAssetPathSuffix = "__path";
+static const char * kRefCountedAssignedSuffix = "__isAssigned";
 
 char * strcat_alloc(const char * lhs, const char * rhs);
 char * asset_path_name(const char * assetHandleName);
 char * asset_handle_name(const char * assetPathName);
+
+char * refcounted_assigned_name(const char * propFieldName);
 
 const char * path_join(const char * rootDir,
                        const char * filename,

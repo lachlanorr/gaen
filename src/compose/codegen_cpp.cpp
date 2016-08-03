@@ -483,8 +483,7 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
 
 static bool is_asset_prop_or_field(const SymRec * pSymRec)
 {
-    return (pSymRec->pSymDataType->typeDesc.dataType == kDT_asset ||
-            pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle);
+    return (pSymRec->flags & kSRFL_AssetRelated) == kSRFL_AssetRelated;
 }
 
 static S init_data(const Ast * pAst, int indentLevel, bool assetsOnly)
@@ -607,8 +606,7 @@ static S fin(const Ast * pAst, int indentLevel)
             if (is_block_memory_type(pSymRec->pSymDataType) ||
                 pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
             {
-                code += I + S("release_");
-                code += S(pSymRec->name) + S("();") + LF;
+                code += I + S(pSymRec->name) + S("__release();") + LF;
             }
         }
     }
@@ -1208,6 +1206,7 @@ static S codegen_recurse(const Ast * pAst,
         }
 
         code += I + S("}; // class ") + entName + S("\n");
+        code += I + S("static_assert(sizeof(Entity) == sizeof(") + entName + S("), \"Entity subclass has data members!\");\n");
 
         code += I + S("\n} // namespace ent\n");
         code += S("\n");
@@ -1333,6 +1332,7 @@ static S codegen_recurse(const Ast * pAst,
         code += S("\n");
         
         code += I + S("}; // class ") + compName + S("\n");
+        code += I + S("static_assert(sizeof(Component) == sizeof(") + compName + S("), \"Component subclass has data members!\");\n");
 
         code += I + S("\n} // namespace comp\n");
         code += S("\n");
@@ -1390,7 +1390,8 @@ static S codegen_recurse(const Ast * pAst,
 
         S propName = S(pAst->pSymRec->name);
         S typeStr = S(ast_data_type(pAst)->cppTypeStr);
-        S assignedVar = S("mIs_") + propName + S("_Assigned");
+        S assignedFunc = propName + S("__isAssigned()");
+        S releaseFunc = propName + S("__release()");
         int isRefCounted = is_block_memory_type(ast_data_type(pAst));
 
         S code = I + typeStr + S("& ") + propName + S("()\n");
@@ -1400,29 +1401,29 @@ static S codegen_recurse(const Ast * pAst,
 
         if (isRefCounted)
         {
-            code += I + S("bool ") + assignedVar + S(" = false;\n");
-            code += I + S("void release_") + propName + S("()\n");
+            //code += I + S("bool ") + assignedVar + S(" = false;\n");
+            code += I + S("void ") + releaseFunc + LF;
             code += I + S("{\n");
             code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
-            code += I + S("    if (") + assignedVar + S(")\n");
+            code += I + S("    if (") + assignedFunc + S(")\n");
             code += I + S("    {\n");
             code += I + S("        pThis->self().blockMemory().release(") + propName + S("());\n");
             code += I + S("    }\n");
-            code += I + S("    ") + assignedVar + S(" = false;\n");
+            code += I + S("    ") + assignedFunc + S(" = false;\n");
             code += I + S("}\n");
             code += I + S("void set_") + propName + S("(const ") + typeStr + S("& rhs)\n");
             code += I + S("{\n");
             code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
-            code += I + S("    release_") + propName + S("();\n");
+            code += I + S("    ") + releaseFunc + S(";\n");
             code += I + S("    ") + propName + S("() = rhs;\n");
             code += I + S("    pThis->self().blockMemory().addRef(") + propName + S("());\n");
-            code += I + S("    ") + assignedVar + S(" = true;\n");
+            code += I + S("    ") + assignedFunc + S(" = true;\n");
             code += I + S("}\n");
         }
         else if (ast_data_type(pAst)->typeDesc.dataType == kDT_asset || 
                  ast_data_type(pAst)->typeDesc.dataType == kDT_asset_handle)
         {
-            code += I + S("void release_") + propName + S("()\n");
+            code += I + S("void ") + releaseFunc + LF;
             code += I + S("{\n");
             code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
             code += I + S("    if (" + propName + "() != nullptr)\n");

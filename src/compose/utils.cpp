@@ -69,6 +69,12 @@ char * asset_handle_name(const char * assetPathName)
     return handleName;
 }
 
+char * refcounted_assigned_name(const char * propFieldName)
+{
+    ASSERT(propFieldName);
+    return strcat_alloc(propFieldName, kRefCountedAssignedSuffix);
+}
+
 const char * path_join(const char * rootDir,
                        const char * filename,
                        ParseData *pParseData)
