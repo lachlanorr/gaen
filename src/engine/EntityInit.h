@@ -41,14 +41,19 @@ public:
       : mpEntity(nullptr)
       , mpCreator(nullptr)
       , mInitCB(nullptr)
-      , mInitDataCB(nullptr)
+      , mInitPropertiesCB(nullptr)
     {}
 
-    EntityInit(Entity * pEntity, void * pCreator, EntityInitCallback initCB, EntityInitCallback initDataCB)
+    EntityInit(Entity * pEntity,
+               void * pCreator,
+               EntityInitCallback initCB,
+               EntityInitCallback initPropertiesCB,
+               EntityInitCallback initFieldsCB)
       : mpEntity(pEntity)
       , mpCreator(pCreator)
       , mInitCB(initCB)
-      , mInitDataCB(initDataCB)
+      , mInitPropertiesCB(initPropertiesCB)
+      , mInitFieldsCB(initFieldsCB)
     {}
 
     void init()
@@ -57,16 +62,23 @@ public:
             mInitCB(mpEntity, mpCreator);
     }
 
-    void initData()
+    void initProperties()
     {
-        if (mpEntity && mpCreator && mInitDataCB)
-            mInitDataCB(mpEntity, mpCreator);
+        if (mpEntity && mpCreator && mInitPropertiesCB)
+            mInitPropertiesCB(mpEntity, mpCreator);
+    }
+
+    void initFields()
+    {
+        if (mpEntity && mpCreator && mInitFieldsCB)
+            mInitFieldsCB(mpEntity, mpCreator);
     }
 private:
     Entity * mpEntity;
     void * mpCreator;
     EntityInitCallback mInitCB;
-    EntityInitCallback mInitDataCB;
+    EntityInitCallback mInitPropertiesCB;
+    EntityInitCallback mInitFieldsCB;
 };
 
 } // namespace gaen

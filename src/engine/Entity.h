@@ -64,7 +64,7 @@ public:
     const Entity & self() const { return *this; }
     Entity & self() { return *this; }
 
-    void setEntityInit(Entity * pEntity, void * pCreator, EntityInitCallback initCB, EntityInitCallback initDataCB);
+    void setEntityInit(Entity * pEntity, void * pCreator, EntityInitCallback initCB, EntityInitCallback initPropertiesCB, EntityInitCallback initFieldsCB);
 
     void activate();
     static Entity * activate_start_entity(u32 entityHash);

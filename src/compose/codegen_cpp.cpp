@@ -45,6 +45,13 @@ namespace gaen
 #define I2 indent(indentLevel+2)
 #define I3 indent(indentLevel+3)
 
+enum InitDataType
+{
+    kIDT_Assets,
+    kIDT_Properties,
+    kIDT_Fields
+};
+
 static S indent(u32 level);
 static const char * cell_field_str(const SymDataType * pSdt, ParseData * pParseData);
 static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blockInfo, const char * blockVarName, bool isConst, ParseData * pParseData);
@@ -486,14 +493,18 @@ static bool is_asset_prop_or_field(const SymRec * pSymRec)
     return (pSymRec->flags & kSRFL_AssetRelated) == kSRFL_AssetRelated;
 }
 
-static S init_data(const Ast * pAst, int indentLevel, bool assetsOnly)
+static S init_data(const Ast * pAst, int indentLevel, InitDataType initDataType)
 {
     ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
 
     S code = S("");
     for (SymRec * pSymRec : pAst->pScope->pSymTab->orderedSymRecs)
     {
-        if (is_prop_or_field(pSymRec) && (is_asset_prop_or_field(pSymRec) == assetsOnly))
+        bool isAsset = is_asset_prop_or_field(pSymRec);
+        if (is_prop_or_field(pSymRec) &&
+            ((isAsset && initDataType == kIDT_Assets) ||
+             (!isAsset && is_prop(pSymRec) && initDataType == kIDT_Properties) ||
+             (!isAsset && is_field(pSymRec) && initDataType == kIDT_Fields)))
         {
             if (!is_block_memory_type(pSymRec->pSymDataType))
             {
@@ -613,7 +624,7 @@ static S fin(const Ast * pAst, int indentLevel)
     return code;
 }
 
-static S initialization_message_handlers(const Ast * pAst, const S& postInit, const S& postInitData, int indentLevel)
+static S initialization_message_handlers(const Ast * pAst, const S& postInit, const S& postInitProperties, const S& postInitFields, int indentLevel)
 {
     S code;
 
@@ -621,7 +632,7 @@ static S initialization_message_handlers(const Ast * pAst, const S& postInit, co
     code += I + S("        case HASH::init__:\n");
     code += I + S("        {\n");
     code += I + S("            // Initialize asset properties and fields to default values\n");
-    code += init_data(pAst, indentLevel + 2, true);
+    code += init_data(pAst, indentLevel + 2, kIDT_Assets);
     code += postInit;
     code += I + S("            return MessageResult::Consumed;\n");
     code += I + S("        } // HASH::init__\n");
@@ -642,14 +653,23 @@ static S initialization_message_handlers(const Ast * pAst, const S& postInit, co
     code += I + S("            return MessageResult::Consumed;\n");
     code += I + S("        } // HASH::assets_ready__\n");
 
-    // init_data__
-    code += I + S("        case HASH::init_data__:\n");
+    // init_properties__
+    code += I + S("        case HASH::init_properties__:\n");
     code += I + S("        {\n");
-    code += I + S("            // Initialize non-asset properties and fields to default values\n");
-    code += init_data(pAst, indentLevel + 2, false);
-    code += postInitData;
+    code += I + S("            // Initialize non-asset properties to default values\n");
+    code += init_data(pAst, indentLevel + 2, kIDT_Properties);
+    code += postInitProperties;
     code += I + S("            return MessageResult::Consumed;\n");
-    code += I + S("        } // HASH::init_data__\n");
+    code += I + S("        } // HASH::init_properties__\n");
+
+    // init_fields__
+    code += I + S("        case HASH::init_fields__:\n");
+    code += I + S("        {\n");
+    code += I + S("            // Initialize non-asset fields to default values\n");
+    code += init_data(pAst, indentLevel + 2, kIDT_Fields);
+    code += postInitFields;
+    code += I + S("            return MessageResult::Consumed;\n");
+    code += I + S("        } // HASH::init_fields__\n");
 
     // fin__
     code += I + S("        case HASH::fin__:\n");
@@ -743,7 +763,7 @@ static S message_def(const Ast * pAst, int indentLevel)
     return code;
 }
 
-static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char * taskName, const char * scriptTaskName, bool assetsOnly, int indentLevel)
+static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char * taskName, const char * scriptTaskName, InitDataType initDataType, int indentLevel)
 {
     static const u32 kScratchSize = 256;
     char scratch[kScratchSize+1];
@@ -755,7 +775,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
         {
             if (pPropInit->type == kAST_TransformInit)
             {
-                if (!assetsOnly)
+                if (initDataType == kIDT_Properties)
                 {
                     code += I + S("// Init transform:\n");
                     code += I + S("{\n");
@@ -777,7 +797,10 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
 
                 SymRec * pSymRec = symtab_find_symbol(pPropsSymTab, propName);
 
-                if (is_asset_prop_or_field(pSymRec) == assetsOnly)
+                bool isAsset = is_asset_prop_or_field(pSymRec);
+                if ((isAsset && initDataType == kIDT_Assets) ||
+                    (!isAsset && is_prop(pSymRec) && initDataType == kIDT_Properties) ||
+                    (!isAsset && is_field(pSymRec) && initDataType == kIDT_Fields))
                 {
                     if (pSymRec && pSymRec->type == kSYMT_Field && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
                     {
@@ -878,9 +901,14 @@ static S entity_init_init__cb_func(const char * str)
     return S("entity_init__") + S(str) + S("__init__cb");
 }
 
-static S entity_init_init_data__cb_func(const char * str)
+static S entity_init_init_properties__cb_func(const char * str)
 {
-    return S("entity_init__") + S(str) + S("__init_data__cb");
+    return S("entity_init__") + S(str) + S("__init_properties__cb");
+}
+
+static S entity_init_init_fields__cb_func(const char * str)
+{
+    return S("entity_init__") + S(str) + S("__init_fields__cb");
 }
 
 const Ast * defining_parent(const Ast * pAst)
@@ -927,22 +955,34 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
         code += I + S("{") + LF;
         code += I1 + S("// Acquire a 'this' pointer so we can operate as if we were a class member") + LF;
         code += I1 + S(pDefiningParent->pSymRec->fullName) + S(" * pThis = reinterpret_cast<") + S(pDefiningParent->pSymRec->fullName) + S("*>(pCreator);") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEntity->scriptTask()", "pThis->scriptTask()", true, indentLevel + 1);
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEntity->scriptTask()", "pThis->scriptTask()", kIDT_Assets, indentLevel + 1);
         code += I + S("}") + LF;
         code += LF;
 
-        code += I + S("static void ") + entity_init_init_data__cb_func(pAst->str) + S("(Entity * pEntity, void * pCreator)") + LF;
+        code += I + S("static void ") + entity_init_init_properties__cb_func(pAst->str) + S("(Entity * pEntity, void * pCreator)") + LF;
         code += I + S("{") + LF;
         code += I1 + S("// Acquire a 'this' pointer so we can operate as if we were a class member") + LF;
         code += I1 + S(pDefiningParent->pSymRec->fullName) + S(" * pThis = reinterpret_cast<") + S(pDefiningParent->pSymRec->fullName) + S("*>(pCreator);") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEntity->scriptTask()", "pThis->scriptTask()", false, indentLevel + 1);
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEntity->scriptTask()", "pThis->scriptTask()", kIDT_Properties, indentLevel + 1);
+        code += I + S("}") + LF;
+        code += LF;
+
+        code += I + S("static void ") + entity_init_init_fields__cb_func(pAst->str) + S("(Entity * pEntity, void * pCreator)") + LF;
+        code += I + S("{") + LF;
+        code += I1 + S("// Acquire a 'this' pointer so we can operate as if we were a class member") + LF;
+        code += I1 + S(pDefiningParent->pSymRec->fullName) + S(" * pThis = reinterpret_cast<") + S(pDefiningParent->pSymRec->fullName) + S("*>(pCreator);") + LF;
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEntity->scriptTask()", "pThis->scriptTask()", kIDT_Fields, indentLevel + 1);
         code += I + S("}") + LF;
         code += LF;
 
         code += I + S("task_id ") + entity_init_func(pAst->str) + S("()") + LF;
         code += I + S("{") + LF;
         code += I + S("    Entity * pEntity = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->fullName) + S(", 8);") + LF;
-        code += I + S("    pEntity->setEntityInit(pEntity, this, ") + entity_init_init__cb_func(pAst->str) + S(", ") + entity_init_init_data__cb_func(pAst->str) + S(");") + LF;
+        code += I + S("    pEntity->setEntityInit(pEntity, this, ");
+        code += entity_init_init__cb_func(pAst->str) + S(", ");
+        code += entity_init_init_properties__cb_func(pAst->str) + S(", ");
+        code += entity_init_init_fields__cb_func(pAst->str) + S(");") + LF;
+
         code += I + S("    task_id tid = pEntity->task().id();") + LF;
         code += I + S("    pEntity->activate();") + LF;
         code += I + S("    return tid;") + LF;
@@ -1112,54 +1152,60 @@ static S codegen_recurse(const Ast * pAst,
 
         const Ast * pCompMembers = find_component_members(pAst);
 
-        // Only insert message related code if there are message handlers to add
-        if (msgCode.size() > 0 || propCode.size() > 0 || (pCompMembers && pCompMembers->pChildren->nodes.size() > 0))
+        code += I + S("        const Message & _msg = msgAcc.message();\n");
+        code += I + S("        switch(_msg.msgId)\n");
+        code += I + S("        {\n");
+
+        // Add initial component members
+        // NOTE: This must happen after mBlocks is initialized to hold
+        // the data members of the entity.
+        S compMembers = S("");
+        S compMembersProperties = S("");
+        S compMembersFields = S("");
+        if (pCompMembers)
         {
-            code += I + S("        const Message & _msg = msgAcc.message();\n");
-            code += I + S("        switch(_msg.msgId)\n");
-            code += I + S("        {\n");
-
-            // Add initial component members
-            // NOTE: This must happen after mBlocks is initialized to hold
-            // the data members of the entity.
-            S compMembers = S("");
-            S compMembersFields = S("");
-            if (pCompMembers)
+            u32 compIdx = 0;
+            for (Ast * pCompMember : pCompMembers->pChildren->nodes)
             {
-                u32 compIdx = 0;
-                for (Ast * pCompMember : pCompMembers->pChildren->nodes)
-                {
-                    compMembers += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
-                    compMembers += I2 + S("    {\n");
-                    compMembers += I2 + S("        Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
-                    compMembers += I2 + S("        compTask.message(msgAcc); // propagate init__ into component\n");
-                    ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
-                    compMembers += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", "mScriptTask", true, indentLevel + 4);
-                    compMembers += I2 + S("    }\n");
+                compMembers += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
+                compMembers += I2 + S("    {\n");
+                compMembers += I2 + S("        Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
+                compMembers += I2 + S("        compTask.message(msgAcc); // propagate init__ into component\n");
+                ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
+                compMembers += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", "mScriptTask", kIDT_Assets, indentLevel + 4);
+                compMembers += I2 + S("    }\n");
 
+                compMembersProperties += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
+                compMembersProperties += I2 + S("    {\n");
+                snprintf(scratch, kScratchSize, "        Task & compTask = mpComponents[%u].scriptTask();\n", compIdx);
+                compMembersProperties += I2 + S(scratch);
+                compMembersProperties += I2 + S("        compTask.message(msgAcc); // propagate init_properties__ into component\n");
+                compMembersProperties += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", "mScriptTask", kIDT_Properties, indentLevel + 4);
+                compMembersProperties += I2 + S("    }\n");
 
-                    compMembersFields += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
-                    compMembersFields += I2 + S("    {\n");
-                    snprintf(scratch, kScratchSize, "        Task & compTask = mpComponents[%u].scriptTask();\n", compIdx);
-                    compMembersFields += I2 + S(scratch);
-                    compMembersFields += I2 + S("        compTask.message(msgAcc); // propagate init_data__ into component\n");
-                    compMembersFields += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", "mScriptTask", false, indentLevel + 4);
-                    compMembersFields += I2 + S("    }\n");
-                    compIdx++;
-                }
+                compMembersFields += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
+                compMembersFields += I2 + S("    {\n");
+                snprintf(scratch, kScratchSize, "        Task & compTask = mpComponents[%u].scriptTask();\n", compIdx);
+                compMembersFields += I2 + S(scratch);
+                compMembersFields += I2 + S("        compTask.message(msgAcc); // propagate init_fields__ into component\n");
+                compMembersFields += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", "mScriptTask", kIDT_Fields, indentLevel + 4);
+                compMembersFields += I2 + S("    }\n");
+
+                compIdx++;
             }
-
-            // init__, request_assets__, etc.
-            code += initialization_message_handlers(pAst, compMembers, compMembersFields, indentLevel);
-
-            // property setters
-            code += propCode;
-
-            // explicit message handlers
-            code += msgCode;
-
-            code += I + S("        }\n");
         }
+
+        // init__, request_assets__, etc.
+        code += initialization_message_handlers(pAst, compMembers, compMembersProperties, compMembersFields, indentLevel);
+
+        // property setters
+        code += propCode;
+
+        // explicit message handlers
+        code += msgCode;
+
+        code += I + S("        }\n");
+
         code += I + S("        return MessageResult::Propagate;\n");
         code += I + S("    }\n");
         code += I + S("\n");
@@ -1268,7 +1314,7 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("        {\n");
 
         // init__, request_assets__, etc.
-        code += initialization_message_handlers(pAst, S(""), S(""), indentLevel);
+        code += initialization_message_handlers(pAst, S(""), S(""), S(""), indentLevel);
 
         code += set_property_handlers(pAst, indentLevel + 2);
         // property setters

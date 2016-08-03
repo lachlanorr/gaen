@@ -103,9 +103,9 @@ Entity::~Entity()
     GFREE(mpComponents);
 }
 
-void Entity::setEntityInit(Entity * pEntity, void * pCreator, EntityInitCallback initCB, EntityInitCallback initDataCB)
+void Entity::setEntityInit(Entity * pEntity, void * pCreator, EntityInitCallback initCB, EntityInitCallback initPropertiesCB, EntityInitCallback initFieldsCB)
 {
-    mEntityInit = EntityInit(pEntity, pCreator, initCB, initDataCB);
+    mEntityInit = EntityInit(pEntity, pCreator, initCB, initPropertiesCB, initFieldsCB);
 }
 
 void Entity::activate()
@@ -606,14 +606,20 @@ void Entity::finalizeAssetInit()
     LOG_INFO("Entity change state: taskid: %u, name: %s, newstate: %d", mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
 
     {
-    StackMessageBlockWriter<0> msg(HASH::init_data__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
-    // init all fields and properties in each component
+    StackMessageBlockWriter<0> msg(HASH::init_properties__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+    // init all non-asset properties in each component
     mScriptTask.message(msg.accessor());
-
     }
+    // Call the scripted init_properties callback to set any overridden values
+    mEntityInit.initProperties();
 
-    // Call the scripted init_data callback to set any overridden values
-    mEntityInit.initData();
+    {
+    StackMessageBlockWriter<0> msg(HASH::init_fields__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+    // init all non-asset fields in each component
+    mScriptTask.message(msg.accessor());
+    }
+    // Call the scripted init_fields callback to set any overridden values
+    mEntityInit.initFields();
 
     {
     StackMessageBlockWriter<0> msg(HASH::init, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));

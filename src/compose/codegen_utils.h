@@ -52,6 +52,11 @@ inline bool is_prop(SymRec * pSymRec)
     return (pSymRec && pSymRec->type == kSYMT_Property && !(pSymRec->flags & kSRFL_Member));
 }
 
+inline bool is_field(SymRec * pSymRec)
+{
+    return (pSymRec && pSymRec->type == kSYMT_Field && !(pSymRec->flags & kSRFL_Member));
+}
+
 BlockInfos * block_pack_props_and_fields(Ast *pAst);
 BlockInfos * block_pack_message_params(Ast * pAst);
 BlockInfos * block_pack_message_def_params(SymTab * pSymTab, ParseData * pParseData);
