@@ -1009,7 +1009,7 @@ static S function_prototype(const Ast * pFuncAst)
     if (is_top_level_function(pFuncAst))
     {
         // Add in a callback function param to 'self()' so the function body can call system apis
-        code += S(", std::function <Entity &()> self");
+        code += S(", Entity * pThis");
     }
 
     code += S(")");
@@ -1041,7 +1041,11 @@ static S codegen_recurse(const Ast * pAst,
         code += LF;
         
         code += I + S("{\n");
-        code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
+
+        if (!is_top_level_function(pAst))
+        {
+            code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
+        }
 
         if (pAst->pChildren && pAst->pChildren->nodes.size() > 0)
         {
@@ -1277,7 +1281,7 @@ static S codegen_recurse(const Ast * pAst,
 
         code += I + S("        }\n");
         code += I + S("        return MessageResult::Propagate;\n");
-        code += I + S("}\n");
+        code += I + S("    }\n");
         code += I + S("\n");
 
         code += I + S("private:\n");
@@ -1549,10 +1553,12 @@ static S codegen_recurse(const Ast * pAst,
             paramIdx++;
         }
         
-        // If it's a top level function call, add in a lambda so it can get our entity
+        // If it's a top level function call, add in our Entity
+        // pointer to serve as the pThis pointer so the function can
+        // make system_api calls.
         if (is_top_level_function(pAst->pSymRec->pAst))
         {
-            code += S(", [this]() -> Entity& { return self(); }");
+            code += S(", &pThis->self()");
         }
 
         code += S(")");
@@ -1569,7 +1575,7 @@ static S codegen_recurse(const Ast * pAst,
             code += codegen_recurse(pParam, indentLevel+1) + S(", ");
         }
         // Always add our entity as last parameter
-        code += S("self())");
+        code += S("pThis->self())");
 
         return code;
     }
@@ -2056,15 +2062,18 @@ static S codegen_header(const Ast * pRootAst)
     {
         S headerDecls = S();
         headerDecls += S("#include \"core/base_defines.h\"\n");
+        headerDecls += S("#include \"engine/CmpString.h\"\n");
         headerDecls += LF;
         headerDecls += S("namespace gaen\n{\n");
+        headerDecls += LF;
+        headerDecls += S("class Entity;\n");
 
         headerDecls += S("namespace compose_funcs\n{\n\n");
 
         headerDecls += code;
 
         headerDecls += LF;
-        headerDecls += S("} // namespace func\n");
+        headerDecls += S("} // namespace compose_funcs\n");
         headerDecls += S("} // namespace gaen\n");
         return headerDecls;
     }

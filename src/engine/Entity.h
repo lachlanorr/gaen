@@ -59,6 +59,11 @@ public:
     const Task & scriptTask() const { return mScriptTask; }
     Task & scriptTask() { return mScriptTask; }
 
+    // Make "self()" consistent in Component and Entity to simplify
+    // the c++ codegen
+    const Entity & self() const { return *this; }
+    Entity & self() { return *this; }
+
     void setEntityInit(Entity * pEntity, void * pCreator, EntityInitCallback initCB, EntityInitCallback initDataCB);
 
     void activate();
@@ -94,11 +99,6 @@ protected:
 
     // Max entities that can be created before they're inserted into the engine
     static const u32 kMaxEntityStage = 16;
-
-    // Make "self()" consistent in Component and Entity to simplify
-    // the c++ codegen
-    const Entity & self() const { return *this; }
-    Entity & self() { return *this; }
 
     void finSelf();
 
