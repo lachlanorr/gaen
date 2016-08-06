@@ -29,6 +29,8 @@
 #include "core/mem.h"
 #include "core/thread_local.h"
 
+#include "core/logging.h"
+
 #include "engine/BlockMemory.h"
 
 namespace gaen
@@ -102,6 +104,12 @@ u8 Chunk::alloc(u8 blockCount)
                 mBlocks[startIdx+i].isAllocated = 1;
             }
             mHeader.freeCount -= blockCount;
+            mHeader.needsCollection = true;
+            if (mHeader.chunkIdx > 0)
+            {
+                int i = 0;
+            }
+            //LOG_INFO("-->ALLOC(%2u): blocks: %4u, freeCount: %4u", mHeader.chunkIdx, blockCount, mHeader.freeCount);
             return startIdx;
         }
     }
@@ -122,6 +130,7 @@ void Chunk::free(u8 blockIdx)
         mBlocks[blockIdx+i].init();
     }
     mHeader.freeCount += blockCount;
+    //LOG_INFO("<--FREE (%2u): blocks: %4u, freeCount: %4u", mHeader.chunkIdx, blockCount, mHeader.freeCount);
 }
 
 Chunk * Chunk::from_block_data(BlockData * pBd)
@@ -153,6 +162,12 @@ void Chunk::release(u8 blockIdx)
     bd.refCount--;
     if (bd.refCount == 0)
         mHeader.needsCollection = true;
+}
+
+u32 Chunk::refCount(u8 blockIdx)
+{
+    BlockData & bd = blockData(blockIdx);
+    return bd.refCount; 
 }
 
 void Chunk::collect()
@@ -317,12 +332,13 @@ Address BlockMemory::alloc(u8 blockCount)
             u8 blockIdx = pChunk->alloc(blockCount);
             if (blockIdx != Address::kInvalidIdx)
             {
+                //LOG_INFO("ALLOCATE: chunkIdx %u, blockIdx %u, blockCount: %u", chunkIdx, blockIdx, blockCount);
                 return Address(chunkIdx, blockIdx);
             }
         }
     }
 
-    // no available space in allocated block chuncks,
+    // no available space in allocated block chunks,
     // see if we can allocate a new one
     if (firstEmptyChunk != Address::kInvalidIdx)
     {
@@ -335,6 +351,7 @@ Address BlockMemory::alloc(u8 blockCount)
 
         u8 blockIdx = mChunks[firstEmptyChunk]->alloc(blockCount);
         ASSERT(blockIdx != Address::kInvalidIdx);
+        //LOG_INFO("ALLOCATE: chunkIdx %u, blockIdx %u, blockCount: %u", firstEmptyChunk, blockIdx, blockCount);
         return Address(firstEmptyChunk, blockIdx);
     }
     else
@@ -350,6 +367,7 @@ void BlockMemory::free(Address addr)
     ASSERT(addr.chunkIdx < kChunkCount && addr.blockIdx < kBlocksPerChunk);
     Chunk * pChunk = mChunks[addr.chunkIdx];
     ASSERT(pChunk);
+    LOG_INFO("free: chunkIdx: %u, blockIdx: %u, refCount: %u", addr.chunkIdx, addr.blockIdx, mChunks[addr.chunkIdx]->refCount(addr.blockIdx));
     pChunk->free(addr.blockIdx);
 }
 
@@ -357,6 +375,7 @@ void BlockMemory::addRef(Address addr)
 {
     ASSERT(mChunks[addr.chunkIdx]);
     mChunks[addr.chunkIdx]->addRef(addr.blockIdx);
+    //LOG_INFO("addRef:  chunkIdx: %u, blockIdx: %u, refCount: %u", addr.chunkIdx, addr.blockIdx, mChunks[addr.chunkIdx]->refCount(addr.blockIdx));
 }
 
 void BlockMemory::release(Address addr)
@@ -364,6 +383,13 @@ void BlockMemory::release(Address addr)
     ASSERT(mChunks[addr.chunkIdx]);
     mChunks[addr.chunkIdx]->release(addr.blockIdx);
     mNeedsCollection |= mChunks[addr.chunkIdx]->needsCollection();
+    //LOG_INFO("release: chunkIdx: %u, blockIdx: %u, refCount: %u", addr.chunkIdx, addr.blockIdx, mChunks[addr.chunkIdx]->refCount(addr.blockIdx));
+}
+
+u32 BlockMemory::refCount(Address addr)
+{
+    ASSERT(mChunks[addr.chunkIdx]);
+    return mChunks[addr.chunkIdx]->refCount(addr.blockIdx);
 }
 
 void BlockMemory::addRef(const CmpString & str)

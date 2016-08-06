@@ -122,6 +122,9 @@ void AssetMgr::process()
             pLdr->decQueueSize();
         }
     }
+
+    // cleanup block memory
+    mBlockMemory.collect();
 }
 
 void AssetMgr::sendAssetReadyHandle(Asset * pAsset,

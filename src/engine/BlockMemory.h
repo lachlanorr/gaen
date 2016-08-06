@@ -70,6 +70,9 @@ public:
     void addRef(u8 blockIdx);
     void release(u8 blockIdx);
 
+	// For debugging purposes
+	u32 refCount(u8 blockIdx);
+
     bool needsCollection() { return mHeader.needsCollection; }
     void collect();
 
@@ -151,6 +154,7 @@ public:
 
     void addRef(Address addr);
     void release(Address addr);
+	u32 refCount(Address addr);
     void addRef(const CmpString & str);
     void release(const CmpString & str);
 
