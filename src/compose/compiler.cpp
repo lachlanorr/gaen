@@ -803,8 +803,11 @@ Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType
 
     for (SymRec * pSymRec : pSymTab->orderedSymRecs)
     {
-        SymRec * pTypeSymRec = parsedata_find_type_symbol(pParseData, pSymRec->pSymDataType->name, pSymRec->pSymDataType->typeDesc.isConst ? 1 : 0, pSymRec->pSymDataType->typeDesc.isReference ? 1 : 0);
-        ast_add_child(pFuncArgs, ast_create_function_arg(pSymRec->name, pTypeSymRec, pParseData));
+        if (!(pSymRec->flags & kSRFL_Member))
+        {
+            SymRec * pTypeSymRec = parsedata_find_type_symbol(pParseData, pSymRec->pSymDataType->name, pSymRec->pSymDataType->typeDesc.isConst ? 1 : 0, pSymRec->pSymDataType->typeDesc.isReference ? 1 : 0);
+            ast_add_child(pFuncArgs, ast_create_function_arg(pSymRec->name, pTypeSymRec, pParseData));
+        }
     }
 
     size_t mangledLen = mangle_function_len(name, pFuncArgs->pChildren);

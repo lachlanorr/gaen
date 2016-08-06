@@ -64,7 +64,7 @@ public:
     const Entity & self() const { return *this; }
     Entity & self() { return *this; }
 
-    void setEntityInit(Entity * pEntity, void * pCreator, EntityInitCallback initCB, EntityInitCallback initPropertiesCB, EntityInitCallback initFieldsCB);
+    void setEntityInit(EntityInit * pEntityInit) { mpEntityInit = pEntityInit; }
 
     void activate();
     static Entity * activate_start_entity(u32 entityHash);
@@ -166,7 +166,7 @@ protected:
     u32 mAssetsRequested;
     u32 mAssetsLoaded;
 
-    EntityInit mEntityInit;
+    EntityInit * mpEntityInit;
 };
 
 } // namespace gaen

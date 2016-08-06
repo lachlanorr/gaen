@@ -177,7 +177,7 @@ public:
     void setStatus(TaskStatus newStatus)
     {
         // LORRTEMP
-        LOG_INFO("Task::setStatus - task: %s, oldStatus: %d, newStatus: %d", HASH::reverse_hash(mNameHash), mStatus, newStatus);
+        //LOG_INFO("Task::setStatus - task: %s, oldStatus: %d, newStatus: %d", HASH::reverse_hash(mNameHash), mStatus, newStatus);
         mStatus = static_cast<u8>(newStatus);
     }
 

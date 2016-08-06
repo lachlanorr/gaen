@@ -32,53 +32,14 @@ namespace gaen
 
 class Entity;
 
-typedef void (*EntityInitCallback)(Entity*, void *);
-
 class EntityInit
 {
 public:
-    EntityInit()
-      : mpEntity(nullptr)
-      , mpCreator(nullptr)
-      , mInitCB(nullptr)
-      , mInitPropertiesCB(nullptr)
-    {}
+    virtual ~EntityInit() {};
 
-    EntityInit(Entity * pEntity,
-               void * pCreator,
-               EntityInitCallback initCB,
-               EntityInitCallback initPropertiesCB,
-               EntityInitCallback initFieldsCB)
-      : mpEntity(pEntity)
-      , mpCreator(pCreator)
-      , mInitCB(initCB)
-      , mInitPropertiesCB(initPropertiesCB)
-      , mInitFieldsCB(initFieldsCB)
-    {}
-
-    void init()
-    {
-        if (mpEntity && mpCreator && mInitCB)
-            mInitCB(mpEntity, mpCreator);
-    }
-
-    void initProperties()
-    {
-        if (mpEntity && mpCreator && mInitPropertiesCB)
-            mInitPropertiesCB(mpEntity, mpCreator);
-    }
-
-    void initFields()
-    {
-        if (mpEntity && mpCreator && mInitFieldsCB)
-            mInitFieldsCB(mpEntity, mpCreator);
-    }
-private:
-    Entity * mpEntity;
-    void * mpCreator;
-    EntityInitCallback mInitCB;
-    EntityInitCallback mInitPropertiesCB;
-    EntityInitCallback mInitFieldsCB;
+    virtual void init() = 0;
+    virtual void initProperties() = 0;
+    virtual void initFields() = 0;
 };
 
 } // namespace gaen

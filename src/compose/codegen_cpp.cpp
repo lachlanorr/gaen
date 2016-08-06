@@ -325,9 +325,20 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
             }
         }
     }
-    else if (is_prop_or_field(pSymRec))
+    else if (pSymRec->type == kSYMT_Property || pSymRec->type == kSYMT_Field)
     {
-        code = S("pThis->") + S(pSymRec->name) + S("()");
+        if (pSymRec->flags & kSRFL_Member)
+        {
+            const char * dot = strchr(pSymRec->name, '.');
+            if (dot)
+                code = S("pThis->") + S(pSymRec->name, dot - pSymRec->name) + S("()") + S(dot);
+            else
+                code = S("pThis->") + S(pSymRec->name) + S("()");
+        }
+        else
+        {
+            code = S("pThis->") + S(pSymRec->name) + S("()");
+        }
     }
     else
     {
@@ -891,24 +902,14 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
     return code;
 }
 
+static S entity_init_class(const char * str)
+{
+    return S("EntityInit__") + S(str);
+}
+
 static S entity_init_func(const char * str)
 {
     return S("entity_init__") + S(str);
-}
-
-static S entity_init_init__cb_func(const char * str)
-{
-    return S("entity_init__") + S(str) + S("__init__cb");
-}
-
-static S entity_init_init_properties__cb_func(const char * str)
-{
-    return S("entity_init__") + S(str) + S("__init_properties__cb");
-}
-
-static S entity_init_init_fields__cb_func(const char * str)
-{
-    return S("entity_init__") + S(str) + S("__init_fields__cb");
 }
 
 const Ast * defining_parent(const Ast * pAst)
@@ -932,6 +933,103 @@ const Ast * defining_parent(const Ast * pAst)
     return nullptr;
 }
 
+const SymTab * find_closure_symbols(const Ast * pAst)
+{
+    if (pAst)
+    {
+        const SymTab * pSymTab = pAst->pScope->pSymTab;
+        while (pSymTab != nullptr)
+        {
+            if (pSymTab->pAst && pSymTab->pAst->type == kAST_FunctionDef)
+            {
+                ASSERT(pSymTab->pAst->pLhs->type == kAST_FunctionDecl);
+                return pSymTab->pAst->pLhs->pScope->pSymTab;
+            }
+            pSymTab = pSymTab->pParent;
+        }
+    }
+    return nullptr;
+}
+
+static S closure_params(const SymTab * pClosure)
+{
+    S code;
+
+    if (pClosure)
+    {
+        for (const SymRec * pSymRec : pClosure->orderedSymRecs)
+        {
+            if (!(pSymRec->flags & kSRFL_Member))
+            {
+                if (pSymRec != pClosure->orderedSymRecs.front())
+                    code += S(", ");
+                code += S("const ");
+                code += S(pSymRec->pSymDataType->cppTypeStr);
+                code += S(" & ");
+                code += S(pSymRec->name);
+            }
+        }
+    }
+
+    return code;
+}
+
+static S closure_args(const SymTab * pClosure)
+{
+    S code;
+
+    if (pClosure)
+    {
+        for (const SymRec * pSymRec : pClosure->orderedSymRecs)
+        {
+            if (!(pSymRec->flags & kSRFL_Member))
+            {
+                if (pSymRec != pClosure->orderedSymRecs.front())
+                    code += S(", ");
+                code += S(pSymRec->name);
+            }
+        }
+    }
+
+    return code;
+}
+
+static S closure_member_init(const SymTab * pClosure, u32 indentLevel)
+{
+    S code;
+
+    if (pClosure)
+    {
+        for (const SymRec * pSymRec : pClosure->orderedSymRecs)
+        {
+            if (!(pSymRec->flags & kSRFL_Member))
+            {
+                code += I + S("  , ") + S(pSymRec->name) + S("(") + S(pSymRec->name) + S(")") + LF;
+            }
+        }
+    }
+
+    return code;
+}
+
+static S closure_member_decl(const SymTab * pClosure, u32 indentLevel)
+{
+    S code;
+
+    if (pClosure)
+    {
+        for (const SymRec * pSymRec : pClosure->orderedSymRecs)
+        {
+            if (!(pSymRec->flags & kSRFL_Member))
+            {
+                code += I + S(pSymRec->pSymDataType->cppTypeStr) + S(" ") + S(pSymRec->name) + S(";") + LF;
+            }
+        }
+    }
+
+    return code;
+}
+
 static S codegen_helper_funcs_recurse(const Ast * pAst)
 {
     S code = S("");
@@ -951,38 +1049,55 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
         const Ast * pDefiningParent = defining_parent(pAst);
         ASSERT(pDefiningParent);
 
-        code += I + S("static void ") + entity_init_init__cb_func(pAst->str) + S("(Entity * pEntity, void * pCreator)") + LF;
+        const SymTab * pClosure = find_closure_symbols(pAst);
+        S closureParams = closure_params(pClosure);
+
+        // EntityInit class
+        code += I + S("class ") + entity_init_class(pAst->str) + S(" : public EntityInit") + LF;
         code += I + S("{") + LF;
-        code += I1 + S("// Acquire a 'this' pointer so we can operate as if we were a class member") + LF;
-        code += I1 + S(pDefiningParent->pSymRec->fullName) + S(" * pThis = reinterpret_cast<") + S(pDefiningParent->pSymRec->fullName) + S("*>(pCreator);") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEntity->scriptTask()", "pThis->scriptTask()", kIDT_Assets, indentLevel + 1);
-        code += I + S("}") + LF;
+
+        code += I + S("public:") + LF;
+        code += I1 + entity_init_class(pAst->str) + S("(") + S(pDefiningParent->pSymRec->fullName) + S(" * pThis, Entity * pEntity");
+        if (closureParams.size() > 0)
+        {
+            code += S(", ") + closureParams;
+        }
+        code += S(")") + LF;
+        code += I1 + S("  : pThis(pThis)") + LF;
+        code += I1 + S("  , mpEntity(pEntity)") + LF;
+        code += closure_member_init(pClosure, indentLevel+1);
+        code += I1 + S("{}") + LF;
+
+        code += I1 + S("virtual void init()") + LF;
+        code += I1 + S("{") + LF;
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "mpEntity->scriptTask()", "pThis->scriptTask()", kIDT_Assets, indentLevel + 2);
+        code += I1 + S("}") + LF;
+
+        code += I1 + S("virtual void initProperties()") + LF;
+        code += I1 + S("{") + LF;
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "mpEntity->scriptTask()", "pThis->scriptTask()", kIDT_Properties, indentLevel + 2);
+        code += I1 + S("}") + LF;
+
+        code += I1 + S("virtual void initFields()") + LF;
+        code += I1 + S("{") + LF;
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "mpEntity->scriptTask()", "pThis->scriptTask()", kIDT_Fields, indentLevel + 2);
+        code += I1 + S("}") + LF;
+
+        code += I + S("private:") + LF;
+        code += I1 + S(pDefiningParent->pSymRec->fullName) + S(" * pThis;") + LF;
+        code += I1 + S("Entity * mpEntity;") + LF;
+        code += closure_member_decl(pClosure, indentLevel+1);
+        code += I + S("}; // class ") + S(entity_init_class(pAst->str)) + LF;
         code += LF;
 
-        code += I + S("static void ") + entity_init_init_properties__cb_func(pAst->str) + S("(Entity * pEntity, void * pCreator)") + LF;
-        code += I + S("{") + LF;
-        code += I1 + S("// Acquire a 'this' pointer so we can operate as if we were a class member") + LF;
-        code += I1 + S(pDefiningParent->pSymRec->fullName) + S(" * pThis = reinterpret_cast<") + S(pDefiningParent->pSymRec->fullName) + S("*>(pCreator);") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEntity->scriptTask()", "pThis->scriptTask()", kIDT_Properties, indentLevel + 1);
-        code += I + S("}") + LF;
-        code += LF;
-
-        code += I + S("static void ") + entity_init_init_fields__cb_func(pAst->str) + S("(Entity * pEntity, void * pCreator)") + LF;
-        code += I + S("{") + LF;
-        code += I1 + S("// Acquire a 'this' pointer so we can operate as if we were a class member") + LF;
-        code += I1 + S(pDefiningParent->pSymRec->fullName) + S(" * pThis = reinterpret_cast<") + S(pDefiningParent->pSymRec->fullName) + S("*>(pCreator);") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "pEntity->scriptTask()", "pThis->scriptTask()", kIDT_Fields, indentLevel + 1);
-        code += I + S("}") + LF;
-        code += LF;
-
-        code += I + S("task_id ") + entity_init_func(pAst->str) + S("()") + LF;
+        code += I + S("task_id ") + entity_init_func(pAst->str) + S("(") + closureParams + S(")") + LF;
         code += I + S("{") + LF;
         code += I + S("    Entity * pEntity = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->fullName) + S(", 8);") + LF;
-        code += I + S("    pEntity->setEntityInit(pEntity, this, ");
-        code += entity_init_init__cb_func(pAst->str) + S(", ");
-        code += entity_init_init_properties__cb_func(pAst->str) + S(", ");
-        code += entity_init_init_fields__cb_func(pAst->str) + S(");") + LF;
-
+        code += I + S("    ") + entity_init_class(pAst->str) + S(" * pEntityInit = GNEW(kMEM_Engine, ") + entity_init_class(pAst->str) + S(", this, pEntity");
+        if (pClosure)
+            code += S(", ") + closure_args(pClosure);
+        code += S(");") + LF;
+        code += I + S("    pEntity->setEntityInit(pEntityInit);") + LF;
         code += I + S("    task_id tid = pEntity->task().id();") + LF;
         code += I + S("    pEntity->activate();") + LF;
         code += I + S("    return tid;") + LF;
@@ -1021,7 +1136,7 @@ static S codegen_helper_funcs(const Ast * pAst)
 
     if (entityInits.size() > 0)
     {
-        entityInits = S("private:\n    // Helper functions\n") + entityInits + LF;
+        entityInits = S("private:\n    // Helper functions and classes\n\n") + entityInits + LF;
     }
 
     return entityInits;
@@ -1036,14 +1151,23 @@ static S function_prototype(const Ast * pFuncAst)
 {
     S code = S(pFuncAst->pSymRec->pSymDataType->cppTypeStr) + S(" ") + S(pFuncAst->pSymRec->fullName) + S("(");
 
+    bool isFirst = true;
+
     for (auto it = pFuncAst->pLhs->pScope->pSymTab->orderedSymRecs.begin();
          it != pFuncAst->pLhs->pScope->pSymTab->orderedSymRecs.end();
          ++it)
     {
         SymRec* pParamSymRec = *it;
-        code += S(pParamSymRec->pSymDataType->cppTypeStr) + S(" ") + S(pParamSymRec->name);
-        if (pParamSymRec != pFuncAst->pLhs->pScope->pSymTab->orderedSymRecs.back())
-            code += S(", ");
+
+        if (!(pParamSymRec->flags & kSRFL_Member))
+        {
+            if (isFirst)
+                isFirst = false;
+            else
+                code += S(", ");
+
+            code += S(pParamSymRec->pSymDataType->cppTypeStr) + S(" ") + S(pParamSymRec->name);
+        }
     }
 
     if (is_top_level_function(pFuncAst))
@@ -1854,7 +1978,11 @@ static S codegen_recurse(const Ast * pAst,
 
     case kAST_EntityInit:
     {
-        S code = I + entity_init_func(pAst->str) + S("()");
+        S code = I + entity_init_func(pAst->str);
+        code += S("(");
+        const SymTab * pClosure = find_closure_symbols(pAst);
+        code += closure_args(pClosure);
+        code += S(")");
         return code;
     }
     case kAST_StructInit:

@@ -27,6 +27,8 @@
 #ifndef GAEN_ENGINE_INPUT_MGR_H
 #define GAEN_ENGINE_INPUT_MGR_H
 
+#include <glm/vec4.hpp>
+
 #include "core/HashMap.h"
 #include "core/Vector.h"
 
@@ -39,10 +41,14 @@ namespace gaen
 class InputMgr
 {
 public:
-    InputMgr();
+    InputMgr(bool isPrimary);
 
     template <typename T>
     MessageResult message(const T& msgAcc);
+
+    // Callable from entities since there is an InputMgr on each task master
+    static void set_keyboard_config(u32 configHash);
+    static bool query_keyboard(u32 stateHash);
 
 private:
     struct TaskMessage
@@ -93,6 +99,13 @@ private:
         }
     };
 
+    void setKeyboardConfig(u32 configHash);
+    bool queryKeyboard(u32 stateHash);
+
+    void setKeyFlag(const KeyInput & keyInput);
+    bool queryKeyCode(KeyCode keyCode);
+    bool queryKeyboard(const glm::uvec4 & keys);
+
     void processKeyInput(const KeyInput & keyInput);
     void processMouseMoveInput(const MouseInput::Movement & moveInput);
     void processMouseWheelInput(i32 delta);
@@ -102,8 +115,14 @@ private:
 
     void registerMouseListener(const TaskMessage & moveMessage, const TaskMessage & wheelMessage);
 
-    // LORRTODO - Add support for removing listeners for both keys and mouse
+    bool mIsPrimary;
 
+    glm::uvec4 mPressedKeys;
+
+    u32 mActiveKeyboardConfig;
+    HashMap<kMEM_Engine, u32, HashMap<kMEM_Engine, u32, glm::uvec4>> mKeyConfigs;
+
+    // LORRTODO - Add support for removing listeners for both keys and mouse
     HashMap<kMEM_Engine, KeyCode, Vector<kMEM_Engine, u32>, std::hash<int>> mKeyToStateMap;
     HashMap<kMEM_Engine, u32, Vector<kMEM_Engine, TaskStateMessage>> mStateListenerMap;
 

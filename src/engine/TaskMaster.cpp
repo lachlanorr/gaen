@@ -217,6 +217,43 @@ void broadcast_message(u32 msgId,
     }
 }
 
+void broadcast_targeted_message(u32 msgId,
+                                u32 flags,
+                                task_id source,
+                                task_id target,
+                                cell payload,
+                                u32 blockCount,
+                                const Block * pBlocks)
+{
+    ASSERT(sIsInit);
+    ASSERT(active_thread_id() == kMainThreadId || active_thread_id() < num_threads());
+
+    for (thread_id tid = 0; tid < num_threads(); ++tid)
+    {
+        TaskMaster & targetTaskMaster = TaskMaster::task_master_for_thread(tid);
+
+        MessageQueue * pMsgQueue = nullptr;
+        if (active_thread_id() == kMainThreadId)
+            pMsgQueue = &targetTaskMaster.mainMessageQueue();
+        else
+            pMsgQueue = &targetTaskMaster.taskMasterMessageQueue();
+
+        MessageQueueWriter msgw(msgId,
+                                flags,
+                                source,
+                                target,
+                                payload,
+                                blockCount,
+                                pMsgQueue);
+
+        MessageQueueAccessor & msgAcc = msgw.accessor();
+        for (u32 i = 0; i < blockCount; ++i)
+        {
+            msgAcc[i] = pBlocks[i];
+        }
+    }
+}
+
 void broadcast_message(const MessageBlockAccessor & msgAcc)
 {
     broadcast_message(msgAcc.message().msgId,
@@ -359,7 +396,7 @@ void TaskMaster::runPrimaryGameLoop()
     ASSERT(mIsPrimary && mRendererTask.id() != 0);
     ASSERT(!mIsRunning);
 
-    mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr));
+    mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr, isPrimary()));
     mpAssetMgr.reset(GNEW(kMEM_Engine, AssetMgr, 4));
 
     // LORRNOTE: SpriteMgr should be started on all TaskMasters and
@@ -444,6 +481,8 @@ void TaskMaster::runAuxiliaryGameLoop()
     ASSERT(mIsInit);
     ASSERT(!mIsPrimary && mRendererTask.id() == 0);
     ASSERT(!mIsRunning);
+
+    mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr, isPrimary()));
 
     mIsRunning = true;
     mFrameTime.init();

@@ -156,13 +156,15 @@ enum KeyCode
     kKEY_Mouse2           = 122,
     kKEY_Mouse3           = 123,
     kKEY_Mouse4           = 124,
-    kKEY_Mouse5           = 125
+    kKEY_Mouse5           = 125,
+
+    kKEY_NOKEY            = 126 // Indicative of no key pressed, used when specifying no key in a 4 key combo
 };
 
-enum KeyEvent
+enum KeyState
 {
-    kKEVT_Up   = 0,
-    kKEVT_Down = 1
+    kKST_Up   = 0,
+    kKST_Down = 1
 };
 
 struct KeyInput
@@ -189,6 +191,9 @@ inline cell to_cell(KeyInput val)
     return c;
 }
 
+// Convert string to KeyCode, useful when parsing config files
+KeyCode lookup_key_code(const char * str);
+
 // KeyInput is 4 bytes to simplify passing it around as a message payload.
 // We have 16 unused bits, maybe find something interesting for them
 // in the future.
@@ -198,7 +203,7 @@ inline cell to_cell(KeyInput val)
 
 void process_key_input(const void * pKeyInfo);
 KeyInput convert_key_input(const void * pKeyInfo);
-
+void kill_focus();
 
 
 // Mouse stuff

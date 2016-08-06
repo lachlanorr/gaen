@@ -89,8 +89,10 @@ Entity::Entity(u32 nameHash,
 
     mIsFinSelfSent = false;
 
+    mpEntityInit = nullptr;
+
     // LORRTEMP
-    LOG_INFO("Entity created: id: %u, name: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()));
+    //LOG_INFO("Entity created: id: %u, name: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()));
 }
 
 Entity::~Entity()
@@ -101,11 +103,6 @@ Entity::~Entity()
     GFREE(mpChildren);
     GFREE(mpBlocks);
     GFREE(mpComponents);
-}
-
-void Entity::setEntityInit(Entity * pEntity, void * pCreator, EntityInitCallback initCB, EntityInitCallback initPropertiesCB, EntityInitCallback initFieldsCB)
-{
-    mEntityInit = EntityInit(pEntity, pCreator, initCB, initPropertiesCB, initFieldsCB);
 }
 
 void Entity::activate()
@@ -341,11 +338,12 @@ MessageResult Entity::message(const T & msgAcc)
                 mScriptTask.message(msgAcc);
 
                 // Call the scripted init callback to set any overridden values
-                mEntityInit.init();
+                if (mpEntityInit)
+                    mpEntityInit->init();
 
                 mInitStatus = kIS_Init;
                 // LORRTEMP
-                LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
+                //LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
         
                 // Send ourself #request_assets__
                 StackMessageBlockWriter<0> msg(HASH::request_assets__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
@@ -372,7 +370,7 @@ MessageResult Entity::message(const T & msgAcc)
                 {
                     mInitStatus = kIS_RequestAssets;
                     // LORRTEMP
-                    LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
+                    //LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
                 }
 
                 // HandleMgr will send us asset_ready__ messages as assets
@@ -450,7 +448,7 @@ MessageResult Entity::message(const T & msgAcc)
 
                 mInitStatus = kIS_Activated;
                 // LORRTEMP
-                LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
+                //LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
 
                 // Set us running
                 // LORRTODO: Add mSetRunningOnInit flag and respect it.a
@@ -487,9 +485,6 @@ void Entity::setTransform(const glm::mat4x3 & mat)
 {
     mIsTransformDirty = true;
     mTransform = mat;
-
-    LOG_INFO("transform: %f, %f, %f", mat[3][0], mat[3][1], mat[3][2]);
-
 }
 
 void Entity::applyTransform(bool isLocal, const glm::mat4x3 & mat)
@@ -603,7 +598,7 @@ void Entity::finalizeAssetInit()
     mInitStatus = kIS_AssetsReady;
 
     // LORRTEMP
-    LOG_INFO("Entity change state: taskid: %u, name: %s, newstate: %d", mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
+    //LOG_INFO("Entity change state: taskid: %u, name: %s, newstate: %d", mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
 
     {
     StackMessageBlockWriter<0> msg(HASH::init_properties__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
@@ -611,7 +606,8 @@ void Entity::finalizeAssetInit()
     mScriptTask.message(msg.accessor());
     }
     // Call the scripted init_properties callback to set any overridden values
-    mEntityInit.initProperties();
+    if (mpEntityInit)
+        mpEntityInit->initProperties();
 
     {
     StackMessageBlockWriter<0> msg(HASH::init_fields__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
@@ -619,7 +615,14 @@ void Entity::finalizeAssetInit()
     mScriptTask.message(msg.accessor());
     }
     // Call the scripted init_fields callback to set any overridden values
-    mEntityInit.initFields();
+    if (mpEntityInit)
+    {
+        mpEntityInit->initFields();
+
+        // We can now delete the mpEntityInit since we no longer need it
+        GDELETE(mpEntityInit);
+        mpEntityInit = nullptr;
+    }
 
     {
     StackMessageBlockWriter<0> msg(HASH::init, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));

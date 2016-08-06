@@ -82,6 +82,15 @@ f32 degrees(f32 radians, Entity & caller)
     return glm::degrees(radians);
 }
 
+void set_keyboard_config(u32 configHash, Entity & caller)
+{
+    InputMgr::set_keyboard_config(configHash);
+}
+
+bool query_keyboard(u32 stateHash, Entity & caller)
+{
+    return InputMgr::query_keyboard(stateHash);
+}
 
 void watch_input_state(u32 state, u32 deviceId, u32 downMessage, i32 downValue, u32 upMessage, i32 upValue, Entity & caller)
 {

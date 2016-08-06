@@ -77,12 +77,14 @@ union dcell
     void * p;
     cell cells[2];
     glm::vec2 vec2;
+    glm::uvec2 uvec2;
 };
 static_assert(sizeof(dcell) == 8, "dcell must be 8 bytes");
 
 union tcell
 {
     glm::vec3 vec3;
+    glm::uvec3 uvec3;
 };
 static_assert(sizeof(tcell) == 12, "tcell must be 12 bytes");
 
@@ -90,6 +92,7 @@ union qcell
 {
     glm::vec4 vec4;
     glm::quat quat;
+    glm::uvec4 uvec4;
     cell cells[4];
     dcell dCells[2];
 };

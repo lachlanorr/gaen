@@ -28,6 +28,8 @@
 
 #include "core/logging.h"
 
+#include "assets/Config.h"
+
 #include "engine/MessageWriter.h"
 #include "engine/messages/WatchInputState.h"
 #include "engine/messages/WatchMouse.h"
@@ -38,44 +40,138 @@
 namespace gaen
 {
 
-InputMgr::InputMgr()
+static const char * kKeyboardConf = "keyboard.conf";
+
+InputMgr::InputMgr(bool isPrimary)
+  : mIsPrimary(isPrimary)
 {
-    // LORRTODO - Drive settings from config file
-    // These are temp settings for debugging purposes
-    registerKeyToState(kKEY_W, HASH::move_up);
-    registerKeyToState(kKEY_A, HASH::move_left);
-    registerKeyToState(kKEY_S, HASH::move_down);
-    registerKeyToState(kKEY_D, HASH::move_right);
+    mPressedKeys = glm::uvec4(0);
 
-    registerKeyToState(kKEY_O,         HASH::shoot_up);
-    registerKeyToState(kKEY_K,         HASH::shoot_left);
-    registerKeyToState(kKEY_L,         HASH::shoot_down);
-    registerKeyToState(kKEY_Semicolon, HASH::shoot_right);
+    Config<kMEM_Engine> keyConf;
 
+    mActiveKeyboardConfig = 0;
+    if (keyConf.read(kKeyboardConf))
+    {
+        for (auto secIt = keyConf.sectionsBegin();
+             secIt != keyConf.sectionsEnd();
+             ++secIt)
+        {
+            u32 secHash = HASH::hash_func(*secIt);
+
+            if (mActiveKeyboardConfig == 0)
+                mActiveKeyboardConfig = secHash;
+
+            for (auto keyIt = keyConf.keysBegin(*secIt);
+                 keyIt != keyConf.keysEnd(*secIt);
+                 ++keyIt)
+            {
+                u32 keyHash = HASH::hash_func(*keyIt);
+
+                glm::uvec4 keys;
+                auto keyVec = keyConf.getVec(*secIt, *keyIt);
+                u32 keyCount = glm::min(4, (i32)keyVec.size());
+                for (u32 i = 0; i < keyCount; ++i)
+                {
+                    keys[i] = lookup_key_code(keyVec[i]);
+                }
+                for (u32 i = keyCount; i < 4; ++i)
+                {
+                    keys[i] = kKEY_NOKEY;
+                }
+                mKeyConfigs[secHash][keyHash] = keys;
+            }
+        }
+    }
+
+    // LORRTODO - Drive mouse settings from config file
     registerKeyToState(kKEY_Mouse2, HASH::mouse_look);
+}
 
+void InputMgr::set_keyboard_config(u32 configHash)
+{
+    TaskMaster::task_master_for_active_thread().inputMgr().setKeyboardConfig(configHash);
+}
+
+bool InputMgr::query_keyboard(u32 stateHash)
+{
+    return TaskMaster::task_master_for_active_thread().inputMgr().queryKeyboard(stateHash);
+}
+
+void InputMgr::setKeyboardConfig(u32 configHash)
+{
+    if (mKeyConfigs.find(configHash) != mKeyConfigs.end())
+        mActiveKeyboardConfig = configHash;
+}
+
+bool InputMgr::queryKeyboard(u32 stateHash)
+{
+    auto it = mKeyConfigs[mActiveKeyboardConfig].find(stateHash);
+    if (it != mKeyConfigs[mActiveKeyboardConfig].end())
+        return queryKeyboard(it->second);
+    return false;
+}
+
+void InputMgr::setKeyFlag(const KeyInput & keyInput)
+{
+    ASSERT(keyInput.keyCode < kKEY_NOKEY);
+    u32 idx = keyInput.keyCode / 32;
+    u32 bit = keyInput.keyCode % 32;
+    u32 mask = 1 << bit;
+
+    if (keyInput.keyEvent == kKST_Down)
+        mPressedKeys[idx] |= mask;
+    else
+        mPressedKeys[idx] &= ~mask;
+}
+
+bool InputMgr::queryKeyCode(KeyCode keyCode)
+{
+    if (keyCode == kKEY_NOKEY)
+        return true;
+    else if (keyCode > kKEY_NOKEY)
+        return false;
+
+    u32 idx = keyCode / 32;
+    u32 bit = keyCode % 32;
+    u32 mask = 1 << bit;
+
+    return (mPressedKeys[idx] & mask) != 0;
+}
+
+bool InputMgr::queryKeyboard(const glm::uvec4 & keys)
+{
+    return (queryKeyCode((KeyCode)keys[0]) &&
+            queryKeyCode((KeyCode)keys[1]) &&
+            queryKeyCode((KeyCode)keys[2]) &&
+            queryKeyCode((KeyCode)keys[3]));
 }
 
 void InputMgr::processKeyInput(const KeyInput & keyInput)
 {
-    auto keyIt = mKeyToStateMap.find((KeyCode)keyInput.keyCode);
-    if (keyIt != mKeyToStateMap.end())
+    setKeyFlag(keyInput);
+
+    // Handle any keyboard listeners
+    if (mIsPrimary)
     {
-        for (u32 state : keyIt->second)
+        auto keyIt = mKeyToStateMap.find((KeyCode)keyInput.keyCode);
+        if (keyIt != mKeyToStateMap.end())
         {
-            auto stateIt = mStateListenerMap.find(state);
-            if (stateIt != mStateListenerMap.end())
+            for (u32 state : keyIt->second)
             {
-                for (TaskStateMessage tm : stateIt->second)
+                auto stateIt = mStateListenerMap.find(state);
+                if (stateIt != mStateListenerMap.end())
                 {
-                    u32 message = keyInput.keyEvent ? tm.downMessage : tm.upMessage;
-                    u32 value = keyInput.keyEvent ? tm.downValue : tm.upValue;
-                    MessageQueueWriter msgw(message,
-                                            kMessageFlag_None,
-                                            kInputMgrTaskId,
-                                            tm.taskId,
-                                            to_cell(value),
-                                            0);
+                    for (TaskStateMessage tm : stateIt->second)
+                    {
+                        u32 message = keyInput.keyEvent ? tm.downMessage : tm.upMessage;
+                        u32 value = keyInput.keyEvent ? tm.downValue : tm.upValue;
+                        MessageQueueWriter msgw(message,
+                                                kMessageFlag_None,
+                                                kInputMgrTaskId,
+                                                tm.taskId,
+                                                to_cell(value),
+                                                0);
+                    }
                 }
             }
         }
@@ -149,6 +245,10 @@ MessageResult InputMgr::message(const T& msgAcc)
     {
     case HASH::keyboard_input:
         processKeyInput(KeyInput(msg.payload));
+        break;
+    case HASH::kill_focus:
+        LOG_INFO("Killing focus");
+        mPressedKeys = glm::uvec4(0);
         break;
     case HASH::watch_input_state:
     {

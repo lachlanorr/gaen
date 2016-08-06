@@ -663,5 +663,6 @@ typename Config<memType>::ProcessResult Config<memType>::processLine(char * line
 // Template definitions for linker.
 // Add more kMEM_* mem types here as required.
 template class Config<kMEM_Chef>;
+template class Config<kMEM_Engine>;
 
 } // namespace gaen

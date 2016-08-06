@@ -78,6 +78,17 @@ void broadcast_message(u32 msgId,
                        const Block * pBlocks = nullptr);
 void broadcast_message(const MessageBlockAccessor & msgAcc);
 
+// Broadcast a message to a target in each TaskMaster.
+// Useful for propagating input messages to the InputMgr on each
+// TaskMaster.
+void broadcast_targeted_message(u32 msgId,
+                                u32 flags,
+                                task_id source,
+                                task_id target,
+                                cell payload,
+                                u32 blockCount,
+                                const Block * pBlocks);
+
 class TaskMaster
 {
 public:
@@ -132,6 +143,8 @@ public:
         ASSERT(mIsPrimary);
         mRendererTask = rendererTask;
     }
+
+    InputMgr & inputMgr() { return *mpInputMgr; }
 
     thread_id threadId() { return mThreadId; }
     bool isPrimary() { return mIsPrimary; }

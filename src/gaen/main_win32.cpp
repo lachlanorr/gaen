@@ -91,6 +91,10 @@ LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
         PostQuitMessage(0);
         return 0;
 
+    case WM_KILLFOCUS:
+        kill_focus();
+        return 0;
+
     case WM_INPUT:
     {
         const u32 kMaxInputBufferSize = 256;
