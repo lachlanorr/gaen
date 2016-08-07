@@ -116,6 +116,15 @@ SpriteInstance::SpriteInstance(Sprite * pSprite, const glm::mat4x3 & transform)
     animate(mpSprite->mpGspr->defaultAnimHash(), 0);
 }
 
+void SpriteInstance::desroySprite()
+{
+    if (mpSprite)
+    {
+        GDELETE(mpSprite);
+        mpSprite = nullptr;
+    }
+}
+
 const AnimInfo & SpriteInstance::currentAnim()
 {
     ASSERT(mpAnimInfo);

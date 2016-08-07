@@ -260,6 +260,7 @@ MessageResult Entity::message(const T & msgAcc)
 
         // And finally, delete ourselves
         GDELETE(this);
+        return MessageResult::Consumed;
     }
 
     // Always pass set_property through to our mScriptTask
@@ -455,6 +456,13 @@ MessageResult Entity::message(const T & msgAcc)
                 //if (mSetRunningOnInit)
                 {
                     messages::TaskStatusQW msgW(HASH::set_task_status, kMessageFlag_Editor, mTask.id(), mTask.id(), TaskStatus::Running);
+
+                    // set script task and each component to running state as well so they can be updated
+                    mScriptTask.setStatus(TaskStatus::Running);
+                    for (u32 i = 0; i < mComponentCount; ++i)
+                    {
+                        mpComponents[i].scriptTask().setStatus(TaskStatus::Running);
+                    }
                 }
 
                 return MessageResult::Consumed;

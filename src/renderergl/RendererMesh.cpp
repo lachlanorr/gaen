@@ -386,10 +386,21 @@ MessageResult RendererMesh::message(const T & msgAcc)
             ERR("sprite_transform in renderer for unkonwn sprite, uid: %u", msgr.uid());
         }
         break;
-        break;
     }
-    case HASH::sprite_destory:
+    case HASH::sprite_destroy:
     {
+        u32 uid = msg.payload.u;
+        auto & spritePairIt = mSpriteMap.find(uid);
+
+        if (spritePairIt != mSpriteMap.end())
+        {
+            mSpriteMap.erase(spritePairIt);
+            SpriteInstance::send_sprite_destroy(kRendererTaskId, kSpriteMgrTaskId, uid);
+        }
+        else
+        {
+            ERR("sprite_destroy in renderer for unkonwn sprite, uid: %u", uid);
+        }
         break;
     }
 

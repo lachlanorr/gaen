@@ -625,6 +625,9 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
                 mOwnedTasks[ownedIt->second].message(finw.accessor());
             }
 
+            if (mpSpriteMgr)
+                mpSpriteMgr->message(msgAcc);
+
             removeTask(taskIdToRemove);
 
             return MessageResult::Consumed;
@@ -781,7 +784,10 @@ void TaskMaster::removeTask(task_id taskId)
             mOwnedTaskMap.erase(itOTM);
 
             // adjust mOwnedTaskMap so it can find what was the last task that has moved indexes
-            mOwnedTaskMap[backTaskId] = idx;
+            if (idx < mOwnedTasks.size()) // if idx == mOwnedTasks.size(), it was the last task so no need to reorder
+            {
+                mOwnedTaskMap[backTaskId] = idx;
+            }
         }
         else
         {

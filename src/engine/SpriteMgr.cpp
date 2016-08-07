@@ -94,6 +94,7 @@ MessageResult SpriteMgr::message(const T & msgAcc)
         ASSERT(pSpriteInst);
         ASSERT(mSpriteMap.find(pSpriteInst->sprite().uid()) == mSpriteMap.end());
         mSpriteMap.emplace(pSpriteInst->sprite().uid(), pSpriteInst);
+        mSpriteOwners[pSpriteInst->sprite().owner()].push_back(pSpriteInst->sprite().uid());
 
         // Send a copy to the renderer
         Sprite * pSpriteRenderer = GNEW(kMEM_Renderer, Sprite, pSpriteInst->sprite());
@@ -128,6 +129,38 @@ MessageResult SpriteMgr::message(const T & msgAcc)
         else
         {
             ERR("sprite_set_velocity for unknown animation, uid: %u", msgr.uid());
+        }
+        return MessageResult::Consumed;
+    }
+	case HASH::remove_task:
+	{
+        task_id taskIdToRemove = msg.payload.u;
+        auto itL = mSpriteOwners.find(taskIdToRemove);
+        // It's ok if we don't find it, it just means this task had no sprites
+        if (itL != mSpriteOwners.end())
+        {
+            for (u32 uid : itL->second)
+            {
+                // send sprite_destroy to renderer who in turn will send it back to us once
+                SpriteInstance::send_sprite_destroy(kSpriteMgrTaskId, kRendererTaskId, uid);
+            }
+            mSpriteOwners.erase(itL);
+        }
+        return MessageResult::Consumed;
+	}
+    case HASH::sprite_destroy:
+    {
+        u32 uid = msg.payload.u;
+
+        auto spritePair = mSpriteMap.find(uid);
+        if (spritePair != mSpriteMap.end())
+        {
+            spritePair->second->desroySprite();
+            mSpriteMap.erase(spritePair);
+        }
+        else
+        {
+            ERR("sprite_destroy for unknown animation, uid: %u", uid);
         }
         return MessageResult::Consumed;
     }

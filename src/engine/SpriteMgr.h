@@ -39,6 +39,7 @@ class SpriteMgr
 {
 public:
     typedef HashMap<kMEM_Engine, u32, SpriteInstanceUP> SpriteMap;
+    typedef HashMap<kMEM_Engine, task_id, List<kMEM_Engine, u32>> SpriteOwners;
 
     ~SpriteMgr();
 
@@ -49,6 +50,7 @@ public:
 
 private:
     SpriteMap mSpriteMap;
+    SpriteOwners mSpriteOwners;
 };
 
 // Compose API

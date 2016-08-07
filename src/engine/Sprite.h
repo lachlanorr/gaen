@@ -54,6 +54,7 @@ public:
     ~Sprite();
 
     sprite_id uid() const { return mUid; }
+    task_id owner() const { return mOwner; }
 
     const GlyphVert * verts() const;
     u64 vertsSize() const;
@@ -91,6 +92,8 @@ public:
 
     const Sprite & sprite() { return *mpSprite; }
 
+    void desroySprite();
+
     const void * currentFrameElemsOffset() { return mpCurrentFrameElemsOffset; }
     bool animate(u32 animHash, u32 animFrameIdx);
 
@@ -105,7 +108,7 @@ public:
     glm::vec2 mVelocity;
 
 private:
-    // Delete these to make sure w construct through the asset->addref path
+    // Delete these to make sure we construct through the asset->addref path
     SpriteInstance(const SpriteInstance&)             = delete;
     SpriteInstance(SpriteInstance&&)                  = delete;
     SpriteInstance & operator=(const SpriteInstance&) = delete;
@@ -114,7 +117,7 @@ private:
     void playAnim(u32 animHash, f32 duration);
     bool advanceAnim(f32 deltaSecs);
 
-    UniquePtr<Sprite> mpSprite;
+    Sprite * mpSprite;
     
     const AnimInfo * mpAnimInfo;
     const void * mpCurrentFrameElemsOffset;
