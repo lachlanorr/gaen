@@ -518,7 +518,10 @@ SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
             const char * unqualifiedName = namespace_match(name, using_);
             if (unqualifiedName) // if name starts with "using as" namespace, or the literal pParseData namespace
             {
-                SymRec * pSymRec = symtab_find_symbol(using_.pParseData->pRootScope->pSymTab, unqualifiedName);
+                // Top level symbols are in the first child of the RootScope
+                ASSERT(using_.pParseData->pRootScope->pSymTab->children.size() == 1);
+                SymTab * pTopLevelSymTab = using_.pParseData->pRootScope->pSymTab->children.front();
+                SymRec * pSymRec = symtab_find_symbol(pTopLevelSymTab, unqualifiedName);
                 if (pSymRec)
                     return pSymRec;
             }
@@ -548,7 +551,10 @@ SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
                 if (pUsing)
                 {
                     const char * unqualifiedName = namespace_match(name, *pUsing);
-                    SymRec * pSymRec = symtab_find_symbol(pUsing->pParseData->pRootScope->pSymTab, unqualifiedName);
+                    // Top level symbols are in the first child of the RootScope
+                    ASSERT(pUsing->pParseData->pRootScope->pSymTab->children.size() == 1);
+                    SymTab * pTopLevelSymTab = pUsing->pParseData->pRootScope->pSymTab->children.front();
+                    SymRec * pSymRec = symtab_find_symbol(pTopLevelSymTab, unqualifiedName);
                     if (pSymRec)
                         return pSymRec;
                 }
