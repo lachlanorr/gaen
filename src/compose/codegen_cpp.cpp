@@ -30,6 +30,7 @@
 #include "core/List.h"
 #include "engine/Block.h"
 #include "engine/BlockMemory.h"
+#include "hashes/hashes.h"
 #include "compose/codegen_cpp.h"
 #include "compose/compiler_structs.h"
 #include "compose/utils.h"
@@ -354,6 +355,19 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
     return code;
 }
 
+static S hash_literal(const char * str)
+{
+    ASSERT(str);
+
+    static const u32 kScratchSize = 255;
+    char scratch[kScratchSize+1];
+    u32 hashVal = HASH::hash_func(str);
+    snprintf(scratch, kScratchSize, "0x%08x /* #%s %u */", hashVal, str, hashVal);
+    scratch[kScratchSize] = '\0';
+
+    return S(scratch);
+}
+
 static S set_property_handlers(const Ast * pAst, int indentLevel)
 {
     ASSERT(pAst->type == kAST_EntityDef || pAst->type == kAST_ComponentDef);
@@ -370,12 +384,11 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
         }
     }
 
-
     S code = S("");
 
     if (hasProperty)
     {
-        code += I + S("case HASH::") + S("set_property:\n");
+        code += I + S("case HASH::set_property:\n");
         code += I1 + S("switch (_msg.payload.u)\n");
         code += I1 + S("{\n");
         for (const auto & kv : pAst->pScope->pSymTab->dict)
@@ -389,7 +402,7 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                 u32 cellCount = pSymRec->pSymDataType->cellCount;
                 u32 blockCount = block_count(cellCount);
 
-                code += I1 + S("case HASH::") + S(pSymRec->name) + S(":\n");
+                code += I1 + S("case ") + hash_literal(pSymRec->name) + S(":\n");
                 code += I1 + S("{\n");
                 if (!is_block_memory_type(pSymRec->pSymDataType))
                 {
@@ -566,7 +579,7 @@ static S init_assets(const Ast * pAst, int indentLevel)
             pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
         {
             const char * handleName = asset_handle_name(pSymRec->name);
-            code += I + S("self().requestAsset(mScriptTask.id(), HASH::") + S(handleName) + S(", ") + S(pSymRec->name) + S("());\n");
+            code += I + S("self().requestAsset(mScriptTask.id(), ") + hash_literal(handleName) + S(", ") + S(pSymRec->name) + S("());\n");
         }
     }
     return code;
@@ -600,7 +613,7 @@ static S asset_ready(const Ast * pAst, int indentLevel)
             if (is_prop_or_field(pSymRec) && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset)
             {
                 const char * handleName = asset_handle_name(pSymRec->name);
-                code += I + S("    case HASH::") + S(handleName) + S(":\n");
+                code += I + S("    case ") + hash_literal(handleName) + S(":\n");
                 code += I + S("        ") + S(handleName) + ("() = msgr.handle();\n");
                 code += I + S("        break;\n");
             }
@@ -713,7 +726,7 @@ static S message_def(const Ast * pAst, int indentLevel)
         pAst->pSymRec &&
         0 != strcmp(pAst->pSymRec->name, "update"))
     {
-        code += I + S("case HASH::") + S(pAst->str) + S(":\n");
+        code += I + S("case ") + hash_literal(pAst->str) + S(":\n");
         code += I + S("{\n");
 
         bool isInit = 0 == strcmp(pAst->str, "init");
@@ -768,7 +781,7 @@ static S message_def(const Ast * pAst, int indentLevel)
         }
 
         code += I + S("    return MessageResult::Consumed;\n");
-        code += I + S("} // HASH::") + S(pAst->str) + S("\n");
+        code += I + S("} // #") + S(pAst->str) + S("\n");
     }
 
     return code;
@@ -834,12 +847,11 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                         u32 blockCount = block_count(valCellCount);
                         snprintf(scratch,
                                  kScratchSize,
-                                 "    StackMessageBlockWriter<%u> msgw(HASH::%s, kMessageFlag_None, %s.id(), %s.id(), to_cell(HASH::%s));\n",
+                                 "    StackMessageBlockWriter<%u> msgw(HASH::set_property, kMessageFlag_None, %s.id(), %s.id(), to_cell(%s));\n",
                                  blockCount,
-                                 "set_property",
                                  scriptTaskName,
                                  taskName,
-                                 propName);
+                                 hash_literal(propName).c_str());
 
                         code += I + S(scratch);
                         DataType dt = pRhsSdt->typeDesc.dataType;
@@ -884,11 +896,10 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
 
                         snprintf(scratch,
                                  kScratchSize,
-                                 "    ThreadLocalMessageBlockWriter msgw(HASH::%s, kMessageFlag_None, %s.id(), %s.id(), to_cell(HASH::%s), val.blockCount());\n",
-                                 "set_property",
+                                 "    ThreadLocalMessageBlockWriter msgw(HASH::set_property, kMessageFlag_None, %s.id(), %s.id(), to_cell(%s), val.blockCount());\n",
                                  scriptTaskName,
                                  taskName,
-                                 propName);
+                                 hash_literal(propName).c_str());
                         code += I + S(scratch);
                         code += I + S("    val.writeMessage(msgw.accessor(), 0);\n");
                     }
@@ -1092,7 +1103,7 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
 
         code += I + S("task_id ") + entity_init_func(pAst->str) + S("(") + closureParams + S(")") + LF;
         code += I + S("{") + LF;
-        code += I + S("    Entity * pEntity = get_registry().constructEntity(HASH::") + S(pAst->pSymRec->fullName) + S(", 8);") + LF;
+        code += I + S("    Entity * pEntity = get_registry().constructEntity(") + hash_literal(pAst->pSymRec->fullName) + S(", 8);") + LF;
         code += I + S("    ") + entity_init_class(pAst->str) + S(" * pEntityInit = GNEW(kMEM_Engine, ") + entity_init_class(pAst->str) + S(", this, pEntity");
         if (pClosure)
             code += S(", ") + closure_args(pClosure);
@@ -1293,7 +1304,7 @@ static S codegen_recurse(const Ast * pAst,
             {
                 compMembers += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
                 compMembers += I2 + S("    {\n");
-                compMembers += I2 + S("        Task & compTask = insertComponent(HASH::") + S(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
+                compMembers += I2 + S("        Task & compTask = insertComponent(") + hash_literal(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
                 compMembers += I2 + S("        compTask.message(msgAcc); // propagate init__ into component\n");
                 ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
                 compMembers += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", "mScriptTask", kIDT_Assets, indentLevel + 4);
@@ -1338,7 +1349,7 @@ static S codegen_recurse(const Ast * pAst,
 
         // Constructor
         code += I + S("    ") + entName + S("(u32 childCount)\n");
-        code += I + S("      : Entity(HASH::") + entName + S(", childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
+        code += I + S("      : Entity(") + hash_literal(entName.c_str()) + S(", childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
         code += I + S("    {\n");
 
         // Initialize mBlockSize
@@ -1355,7 +1366,7 @@ static S codegen_recurse(const Ast * pAst,
                 createTaskMethod = S("create_updatable");
             else
                 createTaskMethod = S("create");
-            code += I2 + S("mScriptTask = Task::") + createTaskMethod + S("(this, HASH::") + entName + S(");\n");
+            code += I2 + S("mScriptTask = Task::") + createTaskMethod + S("(this, ") + hash_literal(entName.c_str()) + S(");\n");
         }
 
         code += I + S("    }\n");
@@ -1389,8 +1400,8 @@ static S codegen_recurse(const Ast * pAst,
         S reg_func_name = S("register_entity__") + entName;
         code += I + S("void ") + reg_func_name + S("(Registry & registry)\n");
         code += I + "{\n";
-        code += (I + S("    if (!registry.registerEntityConstructor(HASH::") +
-                 entName + S(", ent::") + entName + S("::construct))\n"));
+        code += (I + S("    if (!registry.registerEntityConstructor(") + 
+                 hash_literal(entName.c_str()) + S(", ent::") + entName + S("::construct))\n"));
         code += (I + S("        PANIC(\"Unable to register entity: ") +
                  entName + S("\");\n"));
         code += I + "}\n";
@@ -1463,11 +1474,11 @@ static S codegen_recurse(const Ast * pAst,
         // Create task
         if (pUpdateDef)
         {
-            code += I + S("        mScriptTask = Task::create_updatable(this, HASH::") + compName + S(");\n");
+            code += I + S("        mScriptTask = Task::create_updatable(this, ") + hash_literal(compName.c_str()) + S(");\n");
         }
         else
         {
-            code += I + S("        mScriptTask = Task::create(this, HASH::") + compName + S(");\n");
+            code += I + S("        mScriptTask = Task::create(this, ") + hash_literal(compName.c_str()) + S(");\n");
         }
         {
             scratch[kScratchSize] = '\0'; // sanity null terminator
@@ -1515,8 +1526,8 @@ static S codegen_recurse(const Ast * pAst,
         S reg_func_name = S("register_component__") + compName;
         code += I + S("void ") + reg_func_name + S("(Registry & registry)\n");
         code += I + "{\n";
-        code += (I + S("    if (!registry.registerComponentConstructor(HASH::") +
-                 compName + S(", comp::") + compName + S("::construct))\n"));
+        code += (I + S("    if (!registry.registerComponentConstructor(") +
+                 hash_literal(compName.c_str()) + S(", comp::") + compName + S("::construct))\n"));
         code += (I + S("        PANIC(\"Unable to register component: ") +
                  compName + S("\");\n"));
         code += I + "}\n";
@@ -1956,7 +1967,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_Hash:
     {
-        return S("HASH::") + S(pAst->str);
+        return hash_literal(pAst->str);
     }
 
     case kAST_PreInc:
