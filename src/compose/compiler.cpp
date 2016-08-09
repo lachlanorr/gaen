@@ -833,6 +833,31 @@ Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType
     return pAst;
 }
 
+Ast * ast_create_input_def(const char * name, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData)
+{
+    Ast * pFuncArgs = ast_create_with_str(kAST_FunctionDecl, name, pParseData);
+
+    for (SymRec * pSymRec : pSymTab->orderedSymRecs)
+    {
+        if (!(pSymRec->flags & kSRFL_Member))
+        {
+            SymRec * pTypeSymRec = parsedata_find_type_symbol(pParseData, pSymRec->pSymDataType->name, pSymRec->pSymDataType->typeDesc.isConst ? 1 : 0, pSymRec->pSymDataType->typeDesc.isReference ? 1 : 0);
+            ast_add_child(pFuncArgs, ast_create_function_arg(pSymRec->name, pTypeSymRec, pParseData));
+        }
+    }
+
+    Ast * pAst = ast_create_block_def(name,
+                                      kAST_InputDef,
+                                      kSYMT_Input,
+                                      nullptr,
+                                      pBlock,
+                                      NULL,
+                                      true,
+                                      pParseData);
+    pAst->pLhs = pFuncArgs;
+    return pAst;
+}
+
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData)
 {
     Ast * pAst = ast_create_block_def(name,

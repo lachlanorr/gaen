@@ -1192,6 +1192,76 @@ static S function_prototype(const Ast * pFuncAst)
     return code;
 }
 
+static S update_def(const Ast * pUpdateDef, const Ast * pInputs, u32 indentLevel)
+{
+    S code;
+
+    if (pUpdateDef || pInputs)
+    {
+        code += I + S("void update(float deltaSecs)\n");
+        code += I + S("{\n");
+        code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
+
+        if (pInputs)
+        {
+            code += I1 + S("processInputs();") + LF;
+            if (pUpdateDef)
+                code += LF;
+        }
+
+        if (pUpdateDef)
+        {
+            code += I1 + S("// Update statements") + LF;
+            for (Ast * pChild : pUpdateDef->pChildren->nodes)
+            {
+                code += codegen_recurse(pChild, indentLevel + 1);
+            }
+        }
+        code += I + S("} // update\n");
+    }
+
+    return code;
+}
+
+static S inputs_block(const Ast * pInputs, u32 indentLevel)
+{
+    S code;
+
+    for (const Ast * pInput : pInputs->pChildren->nodes)
+    {
+        ASSERT(pInput->type == kAST_InputDef);
+        code += I + S("void input__") + S(pInput->str) + S("(");
+
+        // params to function
+        bool isFirst = true;
+        for (auto it = pInput->pLhs->pScope->pSymTab->orderedSymRecs.begin();
+             it != pInput->pLhs->pScope->pSymTab->orderedSymRecs.end();
+             ++it)
+        {
+            SymRec* pParamSymRec = *it;
+
+            if (!(pParamSymRec->flags & kSRFL_Member))
+            {
+                if (isFirst)
+                    isFirst = false;
+                else
+                    code += S(", ");
+
+                code += S(pParamSymRec->pSymDataType->cppTypeStr) + S(" ") + S(pParamSymRec->name);
+            }
+        }
+        code += S(")") + LF;
+        code += I + S("{") + LF;
+        code += I + S("}") + LF;
+    }
+
+    code += I + S("void processInputs()") + LF;
+    code += I + S("{") + LF;
+
+    code += I + S("}") + LF;
+    return code;
+}
+
 static S codegen_recurse(const Ast * pAst,
                          int indentLevel)
 {
@@ -1244,6 +1314,7 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_EntityDef:
     {
         const Ast * pUpdateDef = find_update_message_def(pAst);
+        const Ast * pInputs = find_inputs(pAst);
         S entName = S(pAst->pSymRec->fullName);
 
         S code("namespace ent\n{\n\n");
@@ -1258,11 +1329,18 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    }\n");
         code += I + S("\n");
 
-        // Update method, if we have one
-        if (pUpdateDef)
+        // Input helper functions
+        if (pInputs)
         {
-            code += codegen_recurse(pUpdateDef, indentLevel + 1);
-            code += I + S("\n");
+            code += inputs_block(pInputs, indentLevel + 1);
+            code += LF;
+        }
+
+        // Update method, if we have one
+        if (pUpdateDef || pInputs)
+        {
+            code += update_def(pUpdateDef, pInputs, indentLevel + 1);
+            code += LF;
         }
 
         // Functions declared within us
@@ -1362,7 +1440,7 @@ static S codegen_recurse(const Ast * pAst,
         // Prep task member
         {
             S createTaskMethod;
-            if (pUpdateDef)
+            if (pUpdateDef || pInputs)
                 createTaskMethod = S("create_updatable");
             else
                 createTaskMethod = S("create");
@@ -1411,6 +1489,7 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_ComponentDef:
     {
         const Ast * pUpdateDef = find_update_message_def(pAst);
+        const Ast * pInputs = find_inputs(pAst);
         S compName = S(pAst->pSymRec->fullName);
 
         S code("namespace comp\n{\n\n");
@@ -1425,10 +1504,17 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    }\n");
         code += I + S("\n");
 
-        // Update method, if we have one
-        if (pUpdateDef)
+        // Input helper functions
+        if (pInputs)
         {
-            code += codegen_recurse(pUpdateDef, indentLevel + 1);
+            code += inputs_block(pInputs, indentLevel + 1);
+            code += LF;
+        }
+
+        // Update method, if we have one
+        if (pUpdateDef || pInputs)
+        {
+            code += update_def(pUpdateDef, pInputs, indentLevel + 1);
             code += I + S("\n");
         }
 
@@ -1472,7 +1558,7 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("      : Component(pEntity)\n");
         code += I + S("    {\n");
         // Create task
-        if (pUpdateDef)
+        if (pUpdateDef || pInputs)
         {
             code += I + S("        mScriptTask = Task::create_updatable(this, ") + hash_literal(compName.c_str()) + S(");\n");
         }
@@ -1532,31 +1618,6 @@ static S codegen_recurse(const Ast * pAst,
                  compName + S("\");\n"));
         code += I + "}\n";
 
-        return code;
-    }
-    case kAST_MessageDef:
-    {
-        S msgName = S(pAst->pSymRec->name);
-        S code;
-        
-        if (is_update_message_def(pAst))
-        {
-            code += I + S("void update(float deltaSecs)\n");
-            code += I + S("{\n");
-            code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
-            for (Ast * pChild : pAst->pChildren->nodes)
-            {
-                code += codegen_recurse(pChild, indentLevel + 1);
-            }
-            code += I + S("} // update\n");
-        }
-        else
-        {
-            // We should never get here, as non-update related message defs are
-            // generated elsewhere without recursing.
-            COMP_ERROR(pAst->pParseData, "Attempt to codegen non update message def in kAST_MessageDef case, which shouldn't be possible");
-            return code;
-        }
         return code;
     }
     case kAST_PropertyDef:

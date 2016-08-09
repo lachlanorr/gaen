@@ -57,6 +57,8 @@ Entity::Entity(u32 nameHash,
     mTransform = glm::mat4x3(1.0f);
     mIsTransformDirty = false;
 
+    mPlayer = 0;
+
     mChildrenMax = childrenMax;
     mChildCount = 0;
     if (mChildrenMax > 0)

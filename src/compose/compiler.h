@@ -88,6 +88,8 @@ typedef enum
     kAST_ComponentBlock,
     kAST_ComponentMemberList,
     kAST_ComponentMember,
+    kAST_Inputs,
+    kAST_InputDef,
     kAST_PropInitList,
     kAST_PropInit,
     kAST_TransformInit,
@@ -101,7 +103,12 @@ typedef enum
     kAST_SystemCall,
     kAST_SymbolRef,
     kAST_SymbolDecl,
-    
+
+    kAST_InputDecl,
+    kAST_InputDeclDelta,
+    kAST_InputDeclDeltaFloat,
+    kAST_InputDeclDeltaVec2,
+
     kAST_SimpleStmt,
 
     kAST_Self,
@@ -196,6 +203,7 @@ typedef enum
     kSYMT_Type,
     kSYMT_Message,
     kSYMT_Property,
+    kSYMT_Input,
     kSYMT_Field,
     kSYMT_Param,
     kSYMT_MessageParam,
@@ -324,6 +332,7 @@ Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData);
 void ast_create_using_list(Ast * pUsingList, ParseData * pParseData);
 Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData * pParseData);
 Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_input_def(const char * name, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
 

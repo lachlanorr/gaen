@@ -192,8 +192,8 @@ void kill_focus()
 
 static const f32 kMouseUpdateInterval = 1.0f / 60.0f;
 static f32 sLastUpdateTime = 0.0f;
-static short sMouseDeltaX;
-static short sMouseDeltaY;
+static i32 sMouseDeltaX;
+static i32 sMouseDeltaY;
 
 void send_mouse_input()
 {

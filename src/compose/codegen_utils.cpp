@@ -68,6 +68,18 @@ const Ast * find_update_message_def(const Ast * pAst)
     return nullptr;
 }
 
+const Ast * find_inputs(const Ast * pAst)
+{
+    for (Ast * pChild : pAst->pChildren->nodes)
+    {
+        if (pChild->type == kAST_Inputs)
+        {
+            return pChild;
+        }
+    }
+    return nullptr;
+}
+
 const Ast * find_component_members(const Ast * pAst)
 {
     Ast * pCompMembers = nullptr;

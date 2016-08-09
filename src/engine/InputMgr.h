@@ -47,8 +47,10 @@ public:
     MessageResult message(const T& msgAcc);
 
     // Callable from entities since there is an InputMgr on each task master
-    static void set_keyboard_config(u32 configHash);
-    static bool query_keyboard(u32 stateHash);
+    static void set_config(u32 configHash);
+    static int query_state(u32 player, u32 stateHash);
+    static int query_state(u32 player, u32 stateHash, f32 * pVal);
+    static int query_state(u32 player, u32 stateHash, glm::vec2 & pVal);
 
 private:
     struct TaskMessage
@@ -99,12 +101,46 @@ private:
         }
     };
 
-    void setKeyboardConfig(u32 configHash);
-    bool queryKeyboard(u32 stateHash);
+
+    struct CtrlState
+    {
+
+    };
+
+    struct MouseState
+    {
+
+    };
+
+    struct InputConfig
+    {
+        HashMap<kMEM_Engine, u32, glm::uvec4> keyboard;
+        HashMap<kMEM_Engine, u32, glm::uvec4> mouseButtons;
+        u32 mouseMove;
+
+        HashMap<kMEM_Engine, u32, glm::uvec4> ctrlButtons;
+        u32 ctrlLTrigger;
+        u32 ctrlRTrigger;
+        u32 ctrlLStick;
+        u32 ctrlRStick;
+
+        InputConfig()
+          : mouseMove(0)
+          , ctrlLTrigger(0)
+          , ctrlRTrigger(0)
+          , ctrlLStick(0)
+          , ctrlRStick(0)
+        {}
+    };
+
+    void setConfig(u32 configHash);
+    int queryState(u32 player, u32 stateHash);
+    int queryState(u32 player, u32 stateHash, f32 * pVal);
+    int queryState(u32 player, u32 stateHash, glm::vec2 * pVal);
 
     void setKeyFlag(const KeyInput & keyInput);
     bool queryKeyCode(KeyCode keyCode);
-    bool queryKeyboard(const glm::uvec4 & keys);
+    int queryState(const glm::uvec4 & keys);
 
     void processKeyInput(const KeyInput & keyInput);
     void processMouseMoveInput(const MouseInput::Movement & moveInput);
@@ -119,8 +155,13 @@ private:
 
     glm::uvec4 mPressedKeys;
 
-    u32 mActiveKeyboardConfig;
-    HashMap<kMEM_Engine, u32, HashMap<kMEM_Engine, u32, glm::uvec4>> mKeyConfigs;
+    MouseState mMouseState;
+
+    static const kMaxCtrls = 8;
+    CtrlState mCtrlState[kMaxCtrls];
+
+    u32 mActiveConfig;
+    HashMap<kMEM_Engine, u32, InputConfig> mConfigs;
 
     // LORRTODO - Add support for removing listeners for both keys and mouse
     HashMap<kMEM_Engine, KeyCode, Vector<kMEM_Engine, u32>, std::hash<int>> mKeyToStateMap;

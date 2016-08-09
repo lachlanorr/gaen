@@ -35,6 +35,13 @@
 namespace gaen
 {
 
+enum InputDevice
+{
+    kIDV_Keyboard,
+    kIDV_Mouse,
+    kIDV_Controller
+};
+
 enum KeyCode
 {
     kKEY_0                = 0,
@@ -208,7 +215,7 @@ void kill_focus();
 
 // Mouse stuff
 
-enum MouseButtons
+enum MouseEvent
 {
     kMBTN_1Down = 0x0001,
     kMBTN_1Up   = 0x0002,

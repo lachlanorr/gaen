@@ -38,6 +38,7 @@ namespace gaen
 bool is_update_message_def(const Ast * pAst);
 
 const Ast * find_update_message_def(const Ast * pAst);
+const Ast * find_inputs(const Ast * pAst);
 const Ast * find_component_members(const Ast * pAst);
 
 u32 calc_cell_count(const Ast * pAst);

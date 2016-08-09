@@ -121,6 +121,7 @@ ParseData * pParseData = yyextra;
 "components" { return COMPONENTS; }
 "entity"     { yylval->dataType = kDT_entity; return ENTITY; }
 "component"  { return COMPONENT; }
+"inputs"     { return INPUTS; }
 
 "transform"  { return TRANSFORM; }
 

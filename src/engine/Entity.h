@@ -78,6 +78,8 @@ public:
     void setTransform(const glm::mat4x3 & mat);
     void applyTransform(bool isLocal, const glm::mat4x3 & mat);
 
+    u32 player() const { return mPlayer; }
+
     Entity * parent() { return mpParent; }
     void setParent(Entity * pEntity);
     const glm::mat4x3 & parentTransform() const;
@@ -143,6 +145,8 @@ protected:
     bool mIsTransformDirty;
     glm::mat4x3 mTransform;
     glm::mat4x3 mParentTransform;
+
+    u32 mPlayer;
 
     Component * mpComponents;
     u32 mComponentsMax;

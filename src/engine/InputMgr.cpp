@@ -87,28 +87,54 @@ InputMgr::InputMgr(bool isPrimary)
     registerKeyToState(kKEY_Mouse2, HASH::mouse_look);
 }
 
-void InputMgr::set_keyboard_config(u32 configHash)
+void InputMgr::set_config(u32 configHash)
 {
-    TaskMaster::task_master_for_active_thread().inputMgr().setKeyboardConfig(configHash);
+    TaskMaster::task_master_for_active_thread().inputMgr().setConfig(configHash);
 }
 
-bool InputMgr::query_keyboard(u32 stateHash)
+u32 InputMgr::query_state(u32 player, u32 stateHash)
 {
-    return TaskMaster::task_master_for_active_thread().inputMgr().queryKeyboard(stateHash);
+    return TaskMaster::task_master_for_active_thread().inputMgr().queryState(player, stateHash);
 }
 
-void InputMgr::setKeyboardConfig(u32 configHash)
+u32 InputMgr::query_state(u32 player, u32 stateHash,f32 * pVal)
+{
+    return TaskMaster::task_master_for_active_thread().inputMgr().queryState(player, stateHash, pVal);
+}
+
+u32 InputMgr::query_state(u32 player, u32 stateHash, glm::vec2 & pVal)
+{
+    return TaskMaster::task_master_for_active_thread().inputMgr().queryState(player, stateHash, pVal);
+}
+
+void InputMgr::setConfig(u32 configHash)
 {
     if (mKeyConfigs.find(configHash) != mKeyConfigs.end())
         mActiveKeyboardConfig = configHash;
 }
 
-bool InputMgr::queryKeyboard(u32 stateHash)
+u32 InputMgr::queryState(u32 player, u32 stateHash)
 {
     auto it = mKeyConfigs[mActiveKeyboardConfig].find(stateHash);
     if (it != mKeyConfigs[mActiveKeyboardConfig].end())
-        return queryKeyboard(it->second);
-    return false;
+        return queryState(it->second);
+    return 0;
+}
+
+u32 InputMgr::queryState(u32 player, u32 stateHash, f32 * pVal)
+{
+    auto it = mKeyConfigs[mActiveKeyboardConfig].find(stateHash);
+    if (it != mKeyConfigs[mActiveKeyboardConfig].end())
+        return queryState(it->second);
+    return 0;
+}
+
+u32 InputMgr::queryState(u32 player, u32 stateHash, glm::vec2 * pVal)
+{
+    auto it = mKeyConfigs[mActiveKeyboardConfig].find(stateHash);
+    if (it != mKeyConfigs[mActiveKeyboardConfig].end())
+        return queryState(it->second);
+    return 0;
 }
 
 void InputMgr::setKeyFlag(const KeyInput & keyInput)
@@ -138,12 +164,42 @@ bool InputMgr::queryKeyCode(KeyCode keyCode)
     return (mPressedKeys[idx] & mask) != 0;
 }
 
-bool InputMgr::queryKeyboard(const glm::uvec4 & keys)
+u32 InputMgr::queryState(const glm::uvec4 & keys)
 {
-    return (queryKeyCode((KeyCode)keys[0]) &&
-            queryKeyCode((KeyCode)keys[1]) &&
-            queryKeyCode((KeyCode)keys[2]) &&
-            queryKeyCode((KeyCode)keys[3]));
+    u32 ret = 0;
+    if (queryKeyCode((KeyCode)keys[0]))
+    {
+        ret += (KeyCode)keys[0] != kKEY_NOKEY ? 1 : 0;
+        if (queryKeyCode((KeyCode)keys[1]))
+        {
+            ret += (KeyCode)keys[1] != kKEY_NOKEY ? 1 : 0;
+            if (queryKeyCode((KeyCode)keys[2]))
+            {
+                ret += (KeyCode)keys[1] != kKEY_NOKEY ? 1 : 0;
+                if (queryKeyCode((KeyCode)keys[3]))
+                {
+                    ret += (KeyCode)keys[3] != kKEY_NOKEY ? 1 : 0;
+                    return ret;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+            else
+            {
+                return 0;
+            }
+        }
+        else
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 void InputMgr::processKeyInput(const KeyInput & keyInput)
