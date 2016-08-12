@@ -49,18 +49,11 @@ BlockInfo::BlockInfo(Ast * pAst)
 namespace gaen
 {
 
-bool is_update_message_def(const Ast * pAst)
+const Ast * find_update(const Ast * pSearchAst)
 {
-    return (pAst->type == kAST_MessageDef &&
-            pAst->pSymRec &&
-            0 == strcmp(pAst->pSymRec->name, "update"));
-}
-
-const Ast * find_update_message_def(const Ast * pAst)
-{
-    for (Ast * pChild : pAst->pChildren->nodes)
+    for (Ast * pChild : pSearchAst->pChildren->nodes)
     {
-        if (is_update_message_def(pChild))
+        if (pChild->type == kAST_UpdateDef)
         {
             return pChild;
         }
@@ -68,22 +61,27 @@ const Ast * find_update_message_def(const Ast * pAst)
     return nullptr;
 }
 
-const Ast * find_inputs(const Ast * pAst)
+const Ast * find_input(const Ast * pSearchAst, u32 idx)
 {
-    for (Ast * pChild : pAst->pChildren->nodes)
+    u32 i = 0;
+
+    for (Ast * pChild : pSearchAst->pChildren->nodes)
     {
-        if (pChild->type == kAST_Inputs)
+        if (pChild->type == kAST_Input)
         {
-            return pChild;
+            if (i >= idx)
+                return pChild;
+            else
+                ++i;
         }
     }
     return nullptr;
 }
 
-const Ast * find_component_members(const Ast * pAst)
+const Ast * find_component_members(const Ast * pSearchAst)
 {
     Ast * pCompMembers = nullptr;
-    for (Ast * pChild : pAst->pChildren->nodes)
+    for (Ast * pChild : pSearchAst->pChildren->nodes)
     {
         if (pChild->type == kAST_ComponentMemberList)
         {
@@ -94,7 +92,7 @@ const Ast * find_component_members(const Ast * pAst)
                 // Based on grammar, we currently allow multiple
                 // components sections in an entity.  We check for
                 // this error here for simplicity.
-                COMP_ERROR(pAst->pParseData, "More than one components section defined in entity");
+                COMP_ERROR(pSearchAst->pParseData, "More than one components section defined in entity");
                 return nullptr;
             }
         }

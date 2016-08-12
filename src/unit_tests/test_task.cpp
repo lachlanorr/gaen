@@ -36,9 +36,9 @@ class Entity1
 {
     friend struct gaen::Task;
 public:
-    void update(gaen::f32 deltaSecs)
+    void update(gaen::f32 delta)
     {
-        printf("Entity1::update, deltaSecs = %f\n", deltaSecs);
+        printf("Entity1::update, delta = %f\n", delta);
     }
 
     template <typename T>
@@ -58,9 +58,9 @@ class Entity2
 {
     friend struct gaen::Task;
 public:
-    void update(gaen::f32 deltaSecs)
+    void update(gaen::f32 delta)
     {
-        printf("Entity2::update, deltaSecs = %f\n", deltaSecs);
+        printf("Entity2::update, delta = %f\n", delta);
     }
 
     template <typename T>

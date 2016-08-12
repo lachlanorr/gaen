@@ -121,9 +121,14 @@ ParseData * pParseData = yyextra;
 "components" { return COMPONENTS; }
 "entity"     { yylval->dataType = kDT_entity; return ENTITY; }
 "component"  { return COMPONENT; }
-"inputs"     { return INPUTS; }
+
+"update"     { parsedata_push_update_scope(pParseData); return UPDATE; }
+"input"      { parsedata_push_input_scope(pParseData); return INPUT_; }
+"any"        { return ANY; }
+"none"       { return NONE; }
 
 "transform"  { return TRANSFORM; }
+
 
 "true"   { return TRUE_; }
 "false"  { return FALSE_; }

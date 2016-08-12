@@ -148,15 +148,15 @@ void SpriteInstance::playAnim(u32 animHash, f32 duration)
                                      mAnimFrameIdx);
 }
 
-bool SpriteInstance::advanceAnim(f32 deltaSecs)
+bool SpriteInstance::advanceAnim(f32 delta)
 {
-    mDurationSinceFrameChange += deltaSecs;
+    mDurationSinceFrameChange += delta;
 
     if (mDurationSinceFrameChange > mDurationPerFrame)
     {
         u32 framesToAdvance = (u32)(mDurationSinceFrameChange / mDurationPerFrame);
         u32 newFrameIdx = (mAnimFrameIdx + framesToAdvance) % mpAnimInfo->frameCount;
-        mDurationSinceFrameChange = fmod(deltaSecs, mDurationPerFrame);
+        mDurationSinceFrameChange = fmod(delta, mDurationPerFrame);
         return animate(mAnimHash, newFrameIdx);
     }
     return false;

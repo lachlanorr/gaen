@@ -833,29 +833,57 @@ Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType
     return pAst;
 }
 
-Ast * ast_create_input_def(const char * name, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData)
+Ast * ast_create_input_def(const char * name, Ast * pBlock, ParseData * pParseData)
 {
-    Ast * pFuncArgs = ast_create_with_str(kAST_FunctionDecl, name, pParseData);
-
-    for (SymRec * pSymRec : pSymTab->orderedSymRecs)
-    {
-        if (!(pSymRec->flags & kSRFL_Member))
-        {
-            SymRec * pTypeSymRec = parsedata_find_type_symbol(pParseData, pSymRec->pSymDataType->name, pSymRec->pSymDataType->typeDesc.isConst ? 1 : 0, pSymRec->pSymDataType->typeDesc.isReference ? 1 : 0);
-            ast_add_child(pFuncArgs, ast_create_function_arg(pSymRec->name, pTypeSymRec, pParseData));
-        }
-    }
-
     Ast * pAst = ast_create_block_def(name,
                                       kAST_InputDef,
                                       kSYMT_Input,
                                       nullptr,
                                       pBlock,
                                       NULL,
+                                      false,
+                                      pParseData);
+
+    return pAst;
+}
+
+Ast * ast_create_input_special_def(const char * name, Ast * pBlock, ParseData * pParseData)
+{
+    Ast * pAst = ast_create_block_def(name,
+                                      kAST_InputDef,
+                                      kSYMT_InputSpecial,
+                                      nullptr,
+                                      pBlock,
+                                      NULL,
+                                      false,
+                                      pParseData);
+
+    return pAst;
+}
+
+Ast * ast_create_update_def(Ast * pBlock, ParseData * pParseData)
+{
+    Ast * pAst = ast_create_block_def("update",
+                                      kAST_UpdateDef,
+                                      kSYMT_Update,
+                                      nullptr,
+                                      pBlock,
+                                      NULL,
                                       true,
                                       pParseData);
-    pAst->pLhs = pFuncArgs;
+
     return pAst;
+}
+
+Ast * ast_create_input_mode(const char * name, Ast * pInputList, ParseData * pParseData)
+{
+    // pop input scope
+    parsedata_pop_scope(pParseData);
+    // pop block scope
+    parsedata_pop_scope(pParseData);
+
+    pInputList->str = name;
+    return pInputList;
 }
 
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData)
@@ -896,14 +924,8 @@ Ast * ast_create_message_def(const char * name, SymTab * pSymTab, Ast * pBlock, 
                                       NULL,
                                       true,
                                       pParseData);
-    if (0 != strcmp(name, "update"))
-    {
-        // Update messages are special cased to run as a direct
-        // function call on the task.  Other messages are handled in
-        // the message routine, and need block info computed to
-        // reference their "parameters".
-        pAst->pBlockInfos = block_pack_message_def_params(pSymTab, pParseData);
-    }
+
+    pAst->pBlockInfos = block_pack_message_def_params(pSymTab, pParseData);
     return pAst;
 }
 
@@ -1065,6 +1087,22 @@ Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData)
     Ast * pAst = ast_create(kAST_SimpleStmt, pParseData);
     pAst->pLhs = pExpr;
 
+    return pAst;
+}
+
+Ast * ast_create_input_assign(Ast * pExpr, ParseData * pParseData)
+{
+    // Pop the scope we created when the lexer encountered 'input'
+    parsedata_pop_scope(pParseData);
+
+    const SymDataType * pSymDt = ast_data_type(pExpr);
+
+    if (pSymDt->typeDesc.dataType != kDT_uint)
+    {
+        COMP_ERROR(pParseData, "'input' assignment only valid with uint expression");
+    }
+    Ast * pAst = ast_create(kAST_InputAssign, pParseData);
+    ast_set_rhs(pAst, pExpr);
     return pAst;
 }
 
@@ -2363,6 +2401,32 @@ Scope* parsedata_push_scope(ParseData * pParseData)
     return pScope;
 }
 
+Scope* parsedata_push_update_scope(ParseData * pParseData)
+{
+    Scope * pScope = parsedata_push_scope(pParseData);
+
+    SymRec * pFloatSymRec = parsedata_find_type_symbol(pParseData, "float", 0, 0);
+    SymRec * pDeltaSymRec = symrec_create(kSYMT_Param, pFloatSymRec->pSymDataType, "delta", nullptr, pParseData);
+    symtab_add_symbol(pScope->pSymTab, pDeltaSymRec, pParseData);
+
+    return pScope;
+}
+
+Scope* parsedata_push_input_scope(ParseData * pParseData)
+{
+    Scope * pScope = parsedata_push_scope(pParseData);
+
+    SymRec * pFloatSymRec = parsedata_find_type_symbol(pParseData, "float", 0, 0);
+    SymRec * pDeltaSymRec = symrec_create(kSYMT_Param, pFloatSymRec->pSymDataType, "delta", nullptr, pParseData);
+    symtab_add_symbol(pScope->pSymTab, pDeltaSymRec, pParseData);
+
+    SymRec * pVec4SymRec = parsedata_find_type_symbol(pParseData, "vec4", 0, 0);
+    SymRec * pMeasureSymRec = symrec_create(kSYMT_Param, pVec4SymRec->pSymDataType, "measure", nullptr, pParseData);
+    symtab_add_symbol_with_fields(pScope->pSymTab, pMeasureSymRec, pParseData);
+
+    return pScope;
+}
+
 Scope * parsedata_pop_scope(ParseData * pParseData)
 {
     ASSERT(pParseData->scopeStack.size() >= 1);
@@ -2418,7 +2482,7 @@ void parsedata_formatted_message(ParseData * pParseData,
 
     pParseData->messageHandler(messageType,
                                tMessage,
-                               pParseData->filename,
+                               pParseData->fullPath,
                                pParseData->line,
                                pParseData->column);
 }

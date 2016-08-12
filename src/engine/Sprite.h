@@ -115,7 +115,7 @@ private:
     SpriteInstance & operator=(SpriteInstance&&)      = delete;
     
     void playAnim(u32 animHash, f32 duration);
-    bool advanceAnim(f32 deltaSecs);
+    bool advanceAnim(f32 delta);
 
     Sprite * mpSprite;
     

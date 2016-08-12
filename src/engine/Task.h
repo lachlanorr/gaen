@@ -84,7 +84,7 @@ task_id next_task_id();
 //
 // Usage:
 //   pObj must implement methods:
-//     void update(f32 deltaSecs);
+//     void update(f32 delta);
 //     // Queue Message
 //     MessageResult message(const MessageQueueAccessor& msgAcc);
 //     // Block Message
@@ -207,7 +207,7 @@ public:
         return (*pMessageBlockStub)(mpThat, msgAcc);
     }
 
-    void update(f32 deltaSecs)
+    void update(f32 delta)
     {
         // Since we're storing the offset of the message stub from the
         // update stub we do a little pointer arithmetic to get the
@@ -220,7 +220,7 @@ public:
             std::intptr_t iptrUpdateStub = iptrMessageQueueStub + mUpdateStubOffset;
         
             UpdateStub pUpdateStub = reinterpret_cast<UpdateStub>(iptrUpdateStub);
-            (*pUpdateStub)(mpThat, deltaSecs);
+            (*pUpdateStub)(mpThat, delta);
         }
     }
 
@@ -250,10 +250,10 @@ private:
     PAD_IF_32BIT_B
 
     template <class T>
-    static void update_stub(void* pThat, f32 deltaSecs)
+    static void update_stub(void* pThat, f32 delta)
     {
         T* p = static_cast<T*>(pThat);
-        p->update(deltaSecs);
+        p->update(delta);
     }
 
     template <class T>

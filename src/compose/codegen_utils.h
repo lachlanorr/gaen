@@ -33,13 +33,9 @@
 namespace gaen
 {
 
-// If pAst contains a message def called "Update", return it
-// otherwise return null
-bool is_update_message_def(const Ast * pAst);
-
-const Ast * find_update_message_def(const Ast * pAst);
-const Ast * find_inputs(const Ast * pAst);
-const Ast * find_component_members(const Ast * pAst);
+const Ast * find_update(const Ast * pSearchAst);
+const Ast * find_input(const Ast * pSearchAst, u32 idx);
+const Ast * find_component_members(const Ast * pSearchAst);
 
 u32 calc_cell_count(const Ast * pAst);
 

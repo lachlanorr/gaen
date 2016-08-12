@@ -207,12 +207,13 @@ void send_mouse_input()
             movement.xDelta = sMouseDeltaX;
             movement.yDelta = sMouseDeltaY;
 
-            MessageQueueWriter msgw(HASH::mouse_move,
-                                    kMessageFlag_None,
-                                    kMainThreadTaskId,
-                                    kInputMgrTaskId,
-                                    to_cell(movement),
-                                    0);
+            broadcast_targeted_message(HASH::mouse_move,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(movement),
+                                       0,
+                                       nullptr);
 
             sMouseDeltaX = 0;
             sMouseDeltaY = 0;
@@ -236,125 +237,136 @@ void process_mouse_input(const void * pMouseInfo)
         KeyInput keyInput;
         keyInput.deviceId = 0;
 
-        if (mouseInput.buttons.buttonFlags & kMBTN_1Down)
+        if (mouseInput.buttons.buttonFlags & kMEVT_1Down)
         {
             keyInput.keyCode = kKEY_Mouse1;
             keyInput.keyEvent = kKST_Down;
-            MessageQueueWriter msgw(HASH::keyboard_input,
-                kMessageFlag_None,
-                kMainThreadTaskId,
-                kInputMgrTaskId,
-                to_cell(keyInput),
-                0);
+            broadcast_targeted_message(HASH::keyboard_input,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(keyInput),
+                                       0,
+                                       nullptr);
         }
-        else if (mouseInput.buttons.buttonFlags & kMBTN_1Up)
+        else if (mouseInput.buttons.buttonFlags & kMEVT_1Up)
         {
             keyInput.keyCode = kKEY_Mouse1;
             keyInput.keyEvent = kKST_Up;
-            MessageQueueWriter msgw(HASH::keyboard_input,
-                kMessageFlag_None,
-                kMainThreadTaskId,
-                kInputMgrTaskId,
-                to_cell(keyInput),
-                0);
+            broadcast_targeted_message(HASH::keyboard_input,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(keyInput),
+                                       0,
+                                       nullptr);
         }
-        if (mouseInput.buttons.buttonFlags & kMBTN_2Down)
+        if (mouseInput.buttons.buttonFlags & kMEVT_2Down)
         {
             keyInput.keyCode = kKEY_Mouse2;
             keyInput.keyEvent = kKST_Down;
-            MessageQueueWriter msgw(HASH::keyboard_input,
-                kMessageFlag_None,
-                kMainThreadTaskId,
-                kInputMgrTaskId,
-                to_cell(keyInput),
-                0);
+            broadcast_targeted_message(HASH::keyboard_input,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(keyInput),
+                                       0,
+                                       nullptr);
         }
-        else if (mouseInput.buttons.buttonFlags & kMBTN_2Up)
+        else if (mouseInput.buttons.buttonFlags & kMEVT_2Up)
         {
             keyInput.keyCode = kKEY_Mouse2;
             keyInput.keyEvent = kKST_Up;
-            MessageQueueWriter msgw(HASH::keyboard_input,
-                kMessageFlag_None,
-                kMainThreadTaskId,
-                kInputMgrTaskId,
-                to_cell(keyInput),
-                0);
+            broadcast_targeted_message(HASH::keyboard_input,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(keyInput),
+                                       0,
+                                       nullptr);
         }
-        if (mouseInput.buttons.buttonFlags & kMBTN_3Down)
+        if (mouseInput.buttons.buttonFlags & kMEVT_3Down)
         {
             keyInput.keyCode = kKEY_Mouse3;
             keyInput.keyEvent = kKST_Down;
-            MessageQueueWriter msgw(HASH::keyboard_input,
-                kMessageFlag_None,
-                kMainThreadTaskId,
-                kInputMgrTaskId,
-                to_cell(keyInput),
-                0);
+            broadcast_targeted_message(HASH::keyboard_input,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(keyInput),
+                                       0,
+                                       nullptr);
         }
-        else if (mouseInput.buttons.buttonFlags & kMBTN_3Up)
+        else if (mouseInput.buttons.buttonFlags & kMEVT_3Up)
         {
             keyInput.keyCode = kKEY_Mouse3;
             keyInput.keyEvent = kKST_Up;
-            MessageQueueWriter msgw(HASH::keyboard_input,
-                kMessageFlag_None,
-                kMainThreadTaskId,
-                kInputMgrTaskId,
-                to_cell(keyInput),
-                0);
+            broadcast_targeted_message(HASH::keyboard_input,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(keyInput),
+                                       0,
+                                       nullptr);
         }
-        if (mouseInput.buttons.buttonFlags & kMBTN_4Down)
+        if (mouseInput.buttons.buttonFlags & kMEVT_4Down)
         {
             keyInput.keyCode = kKEY_Mouse4;
             keyInput.keyEvent = kKST_Down;
-            MessageQueueWriter msgw(HASH::keyboard_input,
-                kMessageFlag_None,
-                kMainThreadTaskId,
-                kInputMgrTaskId,
-                to_cell(keyInput),
-                0);
+            broadcast_targeted_message(HASH::keyboard_input,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(keyInput),
+                                       0,
+                                       nullptr);
         }
-        else if (mouseInput.buttons.buttonFlags & kMBTN_4Up)
+        else if (mouseInput.buttons.buttonFlags & kMEVT_4Up)
         {
             keyInput.keyCode = kKEY_Mouse4;
             keyInput.keyEvent = kKST_Up;
-            MessageQueueWriter msgw(HASH::keyboard_input,
-                kMessageFlag_None,
-                kMainThreadTaskId,
-                kInputMgrTaskId,
-                to_cell(keyInput),
-                0);
+            broadcast_targeted_message(HASH::keyboard_input,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(keyInput),
+                                       0,
+                                       nullptr);
         }
-        if (mouseInput.buttons.buttonFlags & kMBTN_5Down)
+        if (mouseInput.buttons.buttonFlags & kMEVT_5Down)
         {
             keyInput.keyCode = kKEY_Mouse5;
             keyInput.keyEvent = kKST_Down;
-            MessageQueueWriter msgw(HASH::keyboard_input,
-                kMessageFlag_None,
-                kMainThreadTaskId,
-                kInputMgrTaskId,
-                to_cell(keyInput),
-                0);
+            broadcast_targeted_message(HASH::keyboard_input,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(keyInput),
+                                       0,
+                                       nullptr);
         }
-        else if (mouseInput.buttons.buttonFlags & kMBTN_5Up)
+        else if (mouseInput.buttons.buttonFlags & kMEVT_5Up)
         {
             keyInput.keyCode = kKEY_Mouse5;
             keyInput.keyEvent = kKST_Up;
-            MessageQueueWriter msgw(HASH::keyboard_input,
-                kMessageFlag_None,
-                kMainThreadTaskId,
-                kInputMgrTaskId,
-                to_cell(keyInput),
-                0);
+            broadcast_targeted_message(HASH::keyboard_input,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(keyInput),
+                                       0,
+                                       nullptr);
         }
 
-        if (mouseInput.buttons.buttonFlags & kMBTN_Wheel)
+        if (mouseInput.buttons.buttonFlags & kMEVT_Wheel)
         {
-            MessageQueueWriter msgw(HASH::mouse_wheel,
-                                    kMessageFlag_None,
-                                    kMainThreadTaskId,
-                                    kInputMgrTaskId,
-                                    to_cell(mouseInput.buttons.wheelMovement),
-                                    0);
+            broadcast_targeted_message(HASH::mouse_wheel,
+                                       kMessageFlag_None,
+                                       kMainThreadTaskId,
+                                       kInputMgrTaskId,
+                                       to_cell(mouseInput.buttons.wheelMovement),
+                                       0,
+                                       nullptr);
         }
     }
 }

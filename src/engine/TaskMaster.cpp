@@ -425,7 +425,7 @@ void TaskMaster::runPrimaryGameLoop()
         renderer_render(mRendererTask);
 
         // Get delta since the last time we ran
-        f32 deltaSecs = mFrameTime.calcDelta();
+        f32 delta = mFrameTime.calcDelta();
 
 #if HAS(LOG_FPS)
         if (mFrameTime.frameCount() % 100 == 0)
@@ -452,7 +452,7 @@ void TaskMaster::runPrimaryGameLoop()
 
         
         // LORRTODO - Do physics
-        mpSpriteMgr->update(deltaSecs);
+        mpSpriteMgr->update(delta);
 
 
         // call update on each task owned by this TaskMaster
@@ -460,7 +460,7 @@ void TaskMaster::runPrimaryGameLoop()
         {
             // LORRTODO: remove dead tasks from the list
 
-            task.update(deltaSecs);
+            task.update(delta);
         }
 
         // Give AssetMgr an opportunity to process messages
@@ -490,7 +490,7 @@ void TaskMaster::runAuxiliaryGameLoop()
     while(mIsRunning)
     {
         // Get delta since the last time we ran
-        f32 deltaSecs = mFrameTime.calcDelta();
+        f32 delta = mFrameTime.calcDelta();
 
 #if HAS(LOG_FPS)
         if (mFrameTime.frameCount() % 100 == 0)
@@ -519,7 +519,7 @@ void TaskMaster::runAuxiliaryGameLoop()
         // call update on each task owned by this TaskMaster
         for(Task & task : mOwnedTasks)
         {
-            task.update(deltaSecs);
+            task.update(delta);
         }
 
         // If we're not full of work, sleep a bit

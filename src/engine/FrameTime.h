@@ -55,13 +55,13 @@ public:
         mFrameCount = 0;
     }
 
-    void addFrame(f32 deltaSecs)
+    void addFrame(f32 delta)
     {
         u32 index = mFrameCount % count;
 
         mSum -= mDeltas[index];
-        mDeltas[index] = deltaSecs;
-        mSum += deltaSecs;
+        mDeltas[index] = delta;
+        mSum += delta;
 
         mFrameCount++;
     }
@@ -110,17 +110,17 @@ public:
         ASSERT(mIsInit);
         
         f32 startFrameTime = now();
-        f32 deltaSecs = startFrameTime - mLastFrameTime;
+        f32 delta = startFrameTime - mLastFrameTime;
         mLastFrameTime = startFrameTime;
 
-        mFrameStats10.addFrame(deltaSecs);
-        mFrameStats100.addFrame(deltaSecs);
-        mFrameStats1000.addFrame(deltaSecs);
-        mFrameStats10000.addFrame(deltaSecs);
+        mFrameStats10.addFrame(delta);
+        mFrameStats100.addFrame(delta);
+        mFrameStats1000.addFrame(delta);
+        mFrameStats10000.addFrame(delta);
 
         mFrameCount++;
 
-        return deltaSecs;
+        return delta;
     }
 
     f32 deltaMeanLast10()

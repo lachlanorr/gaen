@@ -88,7 +88,9 @@ typedef enum
     kAST_ComponentBlock,
     kAST_ComponentMemberList,
     kAST_ComponentMember,
-    kAST_Inputs,
+    kAST_UpdateDef,
+    kAST_Input,
+    kAST_InputAssign,
     kAST_InputDef,
     kAST_PropInitList,
     kAST_PropInit,
@@ -103,11 +105,6 @@ typedef enum
     kAST_SystemCall,
     kAST_SymbolRef,
     kAST_SymbolDecl,
-
-    kAST_InputDecl,
-    kAST_InputDeclDelta,
-    kAST_InputDeclDeltaFloat,
-    kAST_InputDeclDeltaVec2,
 
     kAST_SimpleStmt,
 
@@ -203,7 +200,9 @@ typedef enum
     kSYMT_Type,
     kSYMT_Message,
     kSYMT_Property,
+    kSYMT_Update,
     kSYMT_Input,
+    kSYMT_InputSpecial,
     kSYMT_Field,
     kSYMT_Param,
     kSYMT_MessageParam,
@@ -329,10 +328,14 @@ Ast * ast_create_with_str(AstType astType, const char * str, ParseData * pParseD
 Ast * ast_create_with_numi(AstType astType, int numi, ParseData * pParseData);
 Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData);
 
+Ast * ast_create_input_mode(const char * name, Ast * pInputList, ParseData * pParseData);
+
 void ast_create_using_list(Ast * pUsingList, ParseData * pParseData);
 Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData * pParseData);
 Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData);
-Ast * ast_create_input_def(const char * name, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_update_def(Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_input_def(const char * name, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_input_special_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
 
@@ -348,6 +351,7 @@ Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData
 Ast * ast_create_transform_init(Ast * pVal, ParseData * pParseData);
 
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData);
+Ast * ast_create_input_assign(Ast * pExpr, ParseData * pParseData);
 
 Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData);
 Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * pParseData);
@@ -437,6 +441,9 @@ const SymDataType* parsedata_find_type_from_dotted_id(ParseData * pParseData, co
 Scope* parsedata_current_scope(ParseData * pParseData);
 Scope* parsedata_push_scope(ParseData * pParseData);
 Scope* parsedata_pop_scope(ParseData * pParseData);
+
+Scope* parsedata_push_update_scope(ParseData * pParseData);
+Scope* parsedata_push_input_scope(ParseData * pParseData);
 
 const char * parsedata_add_string(ParseData * pParseData, const char * str);
 

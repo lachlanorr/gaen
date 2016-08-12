@@ -190,6 +190,32 @@ struct KeyInput
     }
 };
 
+enum ControllerButton
+{
+    kCTRL_DpadUp     = 0,
+    kCTRL_DpadDown   = 1,
+    kCTRL_DpadLeft   = 2,
+    kCTRL_DpadRight  = 3,
+
+    kCTRL_BtnA       = 4,
+    kCTRL_BtnB       = 5,
+    kCTRL_BtnX       = 6,
+    kCTRL_BtnY       = 7,
+
+    kCTRL_R1         = 8,
+    kCTRL_R2         = 9,
+    kCTRL_R3         = 10,
+
+    kCTRL_L1         = 11,
+    kCTRL_L2         = 12,
+    kCTRL_L3         = 13,
+
+    kCTRL_Opt0       = 14,
+    kCTRL_Opt1       = 15,
+    kCTRL_Opt2       = 16,
+    kCTRL_Opt3       = 17
+};
+
 inline cell to_cell(KeyInput val)
 {
     static_assert(sizeof(KeyInput) == 4, "KeyInput must be 4 bytes to be compatible with cell type");
@@ -217,22 +243,22 @@ void kill_focus();
 
 enum MouseEvent
 {
-    kMBTN_1Down = 0x0001,
-    kMBTN_1Up   = 0x0002,
+    kMEVT_1Down = 0x0001,
+    kMEVT_1Up   = 0x0002,
 
-    kMBTN_2Down = 0x0004,
-    kMBTN_2Up   = 0x0008,
+    kMEVT_2Down = 0x0004,
+    kMEVT_2Up   = 0x0008,
 
-    kMBTN_3Down = 0x0010,
-    kMBTN_3Up   = 0x0020,
+    kMEVT_3Down = 0x0010,
+    kMEVT_3Up   = 0x0020,
 
-    kMBTN_4Down = 0x0040,
-    kMBTN_4Up   = 0x0080,
+    kMEVT_4Down = 0x0040,
+    kMEVT_4Up   = 0x0080,
 
-    kMBTN_5Down = 0x0100,
-    kMBTN_5Up   = 0x0200,
+    kMEVT_5Down = 0x0100,
+    kMEVT_5Up   = 0x0200,
 
-    kMBTN_Wheel = 0x0400
+    kMEVT_Wheel = 0x0400
 };
 
 struct MouseInput

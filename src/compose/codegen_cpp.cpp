@@ -362,7 +362,7 @@ static S hash_literal(const char * str)
     static const u32 kScratchSize = 255;
     char scratch[kScratchSize+1];
     u32 hashVal = HASH::hash_func(str);
-    snprintf(scratch, kScratchSize, "0x%08x /* #%s %u */", hashVal, str, hashVal);
+    snprintf(scratch, kScratchSize, "0x%08x/*#%s,%u*/", hashVal, str, hashVal);
     scratch[kScratchSize] = '\0';
 
     return S(scratch);
@@ -723,8 +723,7 @@ static S message_def(const Ast * pAst, int indentLevel)
     char scratch[kScratchSize+1];
 
     if (pAst->type == kAST_MessageDef &&
-        pAst->pSymRec &&
-        0 != strcmp(pAst->pSymRec->name, "update"))
+        pAst->pSymRec)
     {
         code += I + S("case ") + hash_literal(pAst->str) + S(":\n");
         code += I + S("{\n");
@@ -1105,7 +1104,8 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
         code += I + S("{") + LF;
         code += I + S("    Entity * pEntity = get_registry().constructEntity(") + hash_literal(pAst->pSymRec->fullName) + S(", 8);") + LF;
         code += I + S("    ") + entity_init_class(pAst->str) + S(" * pEntityInit = GNEW(kMEM_Engine, ") + entity_init_class(pAst->str) + S(", this, pEntity");
-        if (pClosure)
+        S closureArgs = closure_args(pClosure);
+        if (closureArgs.size() > 0)
             code += S(", ") + closure_args(pClosure);
         code += S(");") + LF;
         code += I + S("    pEntity->setEntityInit(pEntityInit);") + LF;
@@ -1192,19 +1192,19 @@ static S function_prototype(const Ast * pFuncAst)
     return code;
 }
 
-static S update_def(const Ast * pUpdateDef, const Ast * pInputs, u32 indentLevel)
+static S update_def(const Ast * pUpdateDef, const Ast * pInput, u32 indentLevel)
 {
     S code;
 
-    if (pUpdateDef || pInputs)
+    if (pUpdateDef || pInput)
     {
-        code += I + S("void update(float deltaSecs)\n");
+        code += I + S("void update(float delta)\n");
         code += I + S("{\n");
         code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
 
-        if (pInputs)
+        if (pInput)
         {
-            code += I1 + S("processInputs();") + LF;
+            code += I1 + S("processInput(delta);") + LF;
             if (pUpdateDef)
                 code += LF;
         }
@@ -1223,41 +1223,137 @@ static S update_def(const Ast * pUpdateDef, const Ast * pInputs, u32 indentLevel
     return code;
 }
 
-static S inputs_block(const Ast * pInputs, u32 indentLevel)
+static S input_handler_name(const char * mode, const char * handler)
+{
+    return S("input__") + S(mode) + S("__") + S(handler);
+}
+
+static S input_handler_special_name(const char * mode, const char * handler)
+{
+    return S("input__") + S(mode) + S("__special__") + S(handler);
+}
+
+static S input_block(const Ast * pRoot, u32 indentLevel)
 {
     S code;
 
-    for (const Ast * pInput : pInputs->pChildren->nodes)
+    S procCode;
+    procCode += I1 + S("u32 maxInputMatch = 0;") + LF;
+    procCode += I1 + S("u32 inputMatch = 0;") + LF;
+    procCode += I1 + S("glm::vec4 measure = glm::vec4(0);") + LF;
+    procCode += I1 + S("void (DefiningType::*pHandler)(f32, const glm::vec4&) = nullptr;") + LF;
+    procCode += LF;
+
+    const Ast * pInput;
+    u32 idx = 0;
+    u32 compiledCount = 0;
+    while (pInput = find_input(pRoot, idx++))
     {
-        ASSERT(pInput->type == kAST_InputDef);
-        code += I + S("void input__") + S(pInput->str) + S("(");
-
-        // params to function
-        bool isFirst = true;
-        for (auto it = pInput->pLhs->pScope->pSymTab->orderedSymRecs.begin();
-             it != pInput->pLhs->pScope->pSymTab->orderedSymRecs.end();
-             ++it)
+        if (pInput->pChildren->nodes.size() > 0)
         {
-            SymRec* pParamSymRec = *it;
+            procCode += I1;
+            if (compiledCount++ > 0)
+                procCode += ("else ");
+            procCode += S("if (mode == ") + hash_literal(pInput->str) + S(")") + LF;
+            procCode += I1 + S("{") + LF;
 
-            if (!(pParamSymRec->flags & kSRFL_Member))
+            const Ast * pAnyDef = nullptr;
+            const Ast * pNoneDef = nullptr;
+
+            procCode += I2 + S("maxInputMatch = 0;") + LF;
+            procCode += I2 + S("inputMatch = 0;") + LF;
+            procCode += I2 + S("measure = glm::vec4(0);") + LF;
+            procCode += I2 + S("pHandler = nullptr;") + LF;
+            procCode += LF;
+
+            u32 paramIdx = 0;
+            for (const Ast * pInputDef : pInput->pChildren->nodes)
             {
-                if (isFirst)
-                    isFirst = false;
-                else
-                    code += S(", ");
+                ASSERT(pInputDef->type == kAST_InputDef);
 
-                code += S(pParamSymRec->pSymDataType->cppTypeStr) + S(" ") + S(pParamSymRec->name);
+                code += I + S("void ");
+                if (pInputDef->pSymRec->type == kSYMT_Input)
+                {
+                    code += input_handler_name(pInput->str, pInputDef->str);
+                }
+                else
+                {
+                    ASSERT(pInputDef->pSymRec->type == kSYMT_InputSpecial);
+                    if (0 == strcmp(pInputDef->str, "any"))
+                    {
+                        if (pAnyDef != nullptr)
+                            COMP_ERROR(pRoot->pParseData, "More than one 'any' handler in input definition");
+                        pAnyDef = pInputDef;
+                    }
+                    else if (0 == strcmp(pInputDef->str, "none"))
+                    {
+                        if (pNoneDef != nullptr)
+                            COMP_ERROR(pRoot->pParseData, "More than one 'none' handler in input definition");
+                        pNoneDef = pInputDef;
+                    }
+                    code += input_handler_special_name(pInput->str, pInputDef->str);
+                }
+                code += S("(f32 delta, const glm::vec4 & measure)") + LF;
+                code += I + S("{") + LF;
+                code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
+                for (const Ast * pChild : pInputDef->pChildren->nodes)
+                {
+                    code += codegen_recurse(pChild, indentLevel + 1);
+                }
+                code += I + S("}") + LF;
+
+                // processing code
+                if (pInputDef->pSymRec->type == kSYMT_Input)
+                {
+                    procCode += I2 + S("// #") + S(pInputDef->str) + LF;
+                    procCode += I2 + S("inputMatch = inputMgr.queryState(self().player(), ") + hash_literal(pInputDef->str) + S(", &measure);") + LF;
+                    procCode += I2 + S("if (inputMatch > maxInputMatch)") + LF;
+                    procCode += I2 + S("{") + LF;
+                    procCode += I2 + S("    // Highest priority input match we've found so far, switch to it") + LF;
+                    procCode += I2 + S("    pHandler = &DefiningType::") + input_handler_name(pInput->str, pInputDef->str) + S(";") + LF;
+                    procCode += I2 + S("    maxInputMatch = inputMatch;") + LF;
+                    procCode += I2 + S("}") + LF;
+                    procCode += I2 + S("else if (inputMatch == maxInputMatch)") + LF;
+                    procCode += I2 + S("{") + LF;
+                    procCode += I2 + S("    // We've already found one of this priority, so effectively no input match") + LF;
+                    procCode += I2 + S("    pHandler = nullptr;") + LF;
+                    procCode += I2 + S("}") + LF;
+                    procCode += I2 + S("// #") + S(pInputDef->str) + S(" (END)") + LF;
+
+                    if (pInputDef != pInput->pChildren->nodes.back())
+                        procCode += LF;
+                }
             }
+            procCode += LF;
+            procCode += I1 + S("    // If we found a match with uniquely high priority (i.e. no duplicate priorities) call handler.") + LF;
+            procCode += I1 + S("    if (pHandler != nullptr)") + LF;
+            procCode += I1 + S("    {") + LF;
+            procCode += I1 + S("        (this->*pHandler)(delta, measure);") + LF;
+            if (pAnyDef != nullptr)
+            {
+                procCode += I1 + S("        // At least one input match, and an 'any' handler was specified so call it") + LF;
+                procCode += I1 + S("        ") + input_handler_special_name(pInput->str, pAnyDef->str) + S("(delta, measure);") + LF;
+            }
+            procCode += I1 + S("    }") + LF;
+            if (pNoneDef != nullptr)
+            {
+                procCode += I1 + S("    else") + LF;
+                procCode += I1 + S("    {") + LF;
+                procCode += I1 + S("        // No input matches, and a 'none' handler was specified so call it") + LF;
+                procCode += I1 + S("        ") + input_handler_special_name(pInput->str, pNoneDef->str) + S("(delta, measure);") + LF;
+                procCode += I1 + S("    }") + LF;
+            }
+            procCode += I1 + S("} // #") + S(pInput->str) + LF;
         }
-        code += S(")") + LF;
-        code += I + S("{") + LF;
-        code += I + S("}") + LF;
     }
 
-    code += I + S("void processInputs()") + LF;
+    code += I + S("void processInput(f32 delta)") + LF;
     code += I + S("{") + LF;
-
+    code += I + S("    InputMgr & inputMgr = TaskMaster::task_master_for_active_thread().inputMgr();") + LF;
+    code += LF;
+    code += I + S("    u32 mode = inputMgr.mode();") + LF;
+    code += LF;
+    code += procCode;
     code += I + S("}") + LF;
     return code;
 }
@@ -1313,13 +1409,13 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_EntityDef:
     {
-        const Ast * pUpdateDef = find_update_message_def(pAst);
-        const Ast * pInputs = find_inputs(pAst);
+        const Ast * pUpdateDef = find_update(pAst);
+        const Ast * pInput = find_input(pAst, 0);
         S entName = S(pAst->pSymRec->fullName);
 
         S code("namespace ent\n{\n\n");
         code += I + S("class ") + entName + S(" : public Entity\n{\n");
-
+        code += I1 + S("typedef ") + entName + S(" DefiningType;") + LF;
         code += codegen_helper_funcs(pAst);
 
         code += I + S("public:\n");
@@ -1329,17 +1425,10 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    }\n");
         code += I + S("\n");
 
-        // Input helper functions
-        if (pInputs)
-        {
-            code += inputs_block(pInputs, indentLevel + 1);
-            code += LF;
-        }
-
         // Update method, if we have one
-        if (pUpdateDef || pInputs)
+        if (pUpdateDef || pInput)
         {
-            code += update_def(pUpdateDef, pInputs, indentLevel + 1);
+            code += update_def(pUpdateDef, pInput, indentLevel + 1);
             code += LF;
         }
 
@@ -1440,7 +1529,7 @@ static S codegen_recurse(const Ast * pAst,
         // Prep task member
         {
             S createTaskMethod;
-            if (pUpdateDef || pInputs)
+            if (pUpdateDef || pInput)
                 createTaskMethod = S("create_updatable");
             else
                 createTaskMethod = S("create");
@@ -1458,6 +1547,13 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    ") + entName + S(" & operator=(") + entName + S("&&)       = delete;\n");
 
         code += S("\n");
+
+        // Input helper functions
+        if (pInput)
+        {
+            code += input_block(pAst, indentLevel + 1);
+            code += LF;
+        }
 
         // Property and fields accessors into mpBlocks
         for (Ast * pMsg : pAst->pChildren->nodes)
@@ -1488,13 +1584,14 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_ComponentDef:
     {
-        const Ast * pUpdateDef = find_update_message_def(pAst);
-        const Ast * pInputs = find_inputs(pAst);
+        const Ast * pUpdateDef = find_update(pAst);
+        const Ast * pInput = find_input(pAst, 0);
         S compName = S(pAst->pSymRec->fullName);
 
         S code("namespace comp\n{\n\n");
         code += I + S("class ") + compName + S(" : public Component\n{\n");
-        
+        code += I1 + S("typedef ") + compName + S(" DefiningType;") + LF;
+
         code += codegen_helper_funcs(pAst);
 
         code += I + S("public:\n");
@@ -1504,17 +1601,10 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    }\n");
         code += I + S("\n");
 
-        // Input helper functions
-        if (pInputs)
-        {
-            code += inputs_block(pInputs, indentLevel + 1);
-            code += LF;
-        }
-
         // Update method, if we have one
-        if (pUpdateDef || pInputs)
+        if (pUpdateDef || pInput)
         {
-            code += update_def(pUpdateDef, pInputs, indentLevel + 1);
+            code += update_def(pUpdateDef, pInput, indentLevel + 1);
             code += I + S("\n");
         }
 
@@ -1558,7 +1648,7 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("      : Component(pEntity)\n");
         code += I + S("    {\n");
         // Create task
-        if (pUpdateDef || pInputs)
+        if (pUpdateDef || pInput)
         {
             code += I + S("        mScriptTask = Task::create_updatable(this, ") + hash_literal(compName.c_str()) + S(");\n");
         }
@@ -1588,6 +1678,13 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    ") + compName + S("(") + compName + S("&&)                   = delete;\n");
         code += I + S("    ") + compName + S(" & operator=(const ") + compName + S("&)  = delete;\n");
         code += I + S("    ") + compName + S(" & operator=(") + compName + S("&&)       = delete;\n");
+
+        // Input helper functions
+        if (pInput)
+        {
+            code += input_block(pAst, indentLevel + 1);
+            code += LF;
+        }
 
         code += S("\n");
 
@@ -2283,6 +2380,12 @@ static S codegen_recurse(const Ast * pAst,
         code += S(";\n");
         return code;
     }
+    case kAST_InputAssign:
+    {
+        S code;
+        code += I + S("TaskMaster::task_master_for_active_thread().inputMgr().setMode(") + codegen_recurse(pAst->pRhs, 0) + S(");") + LF;
+        return code;
+    }
 
     default:
         COMP_ERROR(pAst->pParseData, "codegen_recurse invalid AstType: %d", pAst->type);
@@ -2373,6 +2476,8 @@ CodeCpp codegen_cpp(ParseData * pParseData)
     codeCpp.code += S("#include \"engine/Block.h\"\n");
     codeCpp.code += S("#include \"engine/BlockMemory.h\"\n");
     codeCpp.code += S("#include \"engine/MessageWriter.h\"\n");
+    codeCpp.code += S("#include \"engine/TaskMaster.h\"\n");
+    codeCpp.code += S("#include \"engine/InputMgr.h\"\n");
     codeCpp.code += S("#include \"engine/Task.h\"\n");
     codeCpp.code += S("#include \"engine/Handle.h\"\n");
     codeCpp.code += S("#include \"engine/Registry.h\"\n");

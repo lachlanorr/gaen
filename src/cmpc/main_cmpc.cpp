@@ -52,7 +52,7 @@ void messageHandler(MessageType messageType,
         fprintf(stderr, "%s(%d:%d): WARNING - %s\n", filename, line, column, message);
         break;
     case kMSGT_Error:
-        fprintf(stderr, "%s(%d:%d): ERROR - %s\n", filename, line, column, message);
+        fprintf(stderr, "%s(%d): ERROR - %s\n", filename, line, message);
         exit(1);
         break;
     }

@@ -82,7 +82,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 QUAT MAT3 MAT43 MAT4 HANDLE_ ASSET ENTITY STRING
 %type <dataType> basic_type
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS INPUTS USING AS CONST_ SELF
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS UPDATE INPUT_ ANY NONE USING AS CONST_ SELF
 %right ELSE THEN
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN TRANSFORM
@@ -114,7 +114,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %type <pAst> def stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> using_list using_stmt dotted_id dotted_id_proc dotted_id_part
 %type <pAst> message_block message_list message_prop target_expr message_expr function_def
-%type <pAst> prop_init_list prop_init component_block component_member_list component_member inputs_block input_def_list input_def
+%type <pAst> prop_init_list prop_init component_block component_member_list component_member input_block input_def_list input_def
 
 %type <pSymTab> param_list
 
@@ -176,7 +176,8 @@ message_prop
     | type_ent_handle_asset IDENTIFIER '=' expr ';' { $$ = ast_create_field_def($2, $1, $4, pParseData); }
     | type_ent_handle_asset IDENTIFIER ';'          { $$ = ast_create_field_def($2, $1, NULL, pParseData); }
     | COMPONENTS component_block                    { $$ = ast_create_component_members($2, pParseData); }
-	| INPUTS inputs_block                           { $$ = $2; parsedata_pop_scope(pParseData); }
+	| UPDATE block                                  { $$ = ast_create_update_def($2, pParseData); }
+	| INPUT_ HASH input_block                       { $$ = ast_create_input_mode($2, $3, pParseData); }
     | function_def                                  { $$ = $1; }
     ;
 
@@ -216,18 +217,20 @@ prop_init
     | TRANSFORM '=' expr   { $$ = ast_create_transform_init($3, pParseData); }
     ;
 
-inputs_block
-    : '{' '}'                 { $$ = ast_create_with_child_list(kAST_Inputs, pParseData); }
+input_block
+    : '{' '}'                 { $$ = ast_create_with_child_list(kAST_Input, pParseData); }
     | '{' input_def_list '}'  { $$ = $2; }
     ;
 
 input_def_list
-    : input_def                 { $$ = ast_append(kAST_Inputs, NULL, $1, pParseData); }
-    | input_def_list input_def  { $$ = ast_append(kAST_Inputs, $1, $2, pParseData); }
+    : input_def                 { $$ = ast_append(kAST_Input, NULL, $1, pParseData); }
+    | input_def_list input_def  { $$ = ast_append(kAST_Input, $1, $2, pParseData); }
     ;
 
 input_def
-    : HASH '(' param_list ')' block { $$ = ast_create_input_def($1, $3, $5, pParseData); }
+    : HASH block { $$ = ast_create_input_def($1, $2, pParseData); }
+    | ANY block  { $$ = ast_create_input_special_def("any", $2, pParseData); }
+    | NONE block { $$ = ast_create_input_special_def("none", $2, pParseData); }
     ;
 
 block
@@ -260,6 +263,8 @@ stmt
     | block     { $$ = $1; }
     
     | expr ';'  { $$ = ast_create_simple_stmt($1, pParseData); }
+
+    | INPUT_ '=' expr ';' { $$ = ast_create_input_assign($3, pParseData); }
     ;
 
 target_expr

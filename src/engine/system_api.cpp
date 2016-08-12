@@ -37,8 +37,6 @@
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/UpdateLightDirectional.h"
 #include "engine/messages/MoveCamera.h"
-#include "engine/messages/WatchInputState.h"
-#include "engine/messages/WatchMouse.h"
 
 #include "engine/system_api.h"
 
@@ -80,40 +78,6 @@ f32 radians(f32 degrees, Entity & caller)
 f32 degrees(f32 radians, Entity & caller)
 {
     return glm::degrees(radians);
-}
-
-void set_keyboard_config(u32 configHash, Entity & caller)
-{
-    InputMgr::set_keyboard_config(configHash);
-}
-
-bool query_keyboard(u32 stateHash, Entity & caller)
-{
-    return InputMgr::query_keyboard(stateHash);
-}
-
-void watch_input_state(u32 state, u32 deviceId, u32 downMessage, i32 downValue, u32 upMessage, i32 upValue, Entity & caller)
-{
-    messages::WatchInputStateQW msgQW(HASH::watch_input_state,
-                                      kMessageFlag_None,
-                                      caller.task().id(),
-                                      kInputMgrTaskId,
-                                      state);
-    msgQW.setDeviceId(deviceId);
-    msgQW.setDownMessage(downMessage);
-    msgQW.setDownValue(downValue);
-    msgQW.setUpMessage(upMessage);
-    msgQW.setUpValue(upValue);
-}
-
-void watch_mouse(u32 moveMessage, u32 wheelMessage, Entity & caller)
-{
-    messages::WatchMouseQW msgQW(HASH::watch_mouse,
-                                 kMessageFlag_None,
-                                 caller.task().id(),
-                                 kInputMgrTaskId,
-                                 moveMessage);
-    msgQW.setWheelMessage(wheelMessage);
 }
 
 glm::mat4x3 mat43_rotation(const glm::vec3 & angles, Entity & caller)

@@ -30,9 +30,8 @@
 
 #include "assets/Config.h"
 
+#include "engine/TaskMaster.h"
 #include "engine/MessageWriter.h"
-#include "engine/messages/WatchInputState.h"
-#include "engine/messages/WatchMouse.h"
 #include "engine/messages/MouseMove.h"
 
 #include "engine/InputMgr.h"
@@ -40,16 +39,16 @@
 namespace gaen
 {
 
-static const char * kKeyboardConf = "keyboard.conf";
+static const char * kKeyboardConf = "input.conf";
 
 InputMgr::InputMgr(bool isPrimary)
   : mIsPrimary(isPrimary)
 {
-    mPressedKeys = glm::uvec4(0);
-
     Config<kMEM_Engine> keyConf;
 
-    mActiveKeyboardConfig = 0;
+    zeroState();
+
+    mpActiveMode = 0;
     if (keyConf.read(kKeyboardConf))
     {
         for (auto secIt = keyConf.sectionsBegin();
@@ -58,8 +57,7 @@ InputMgr::InputMgr(bool isPrimary)
         {
             u32 secHash = HASH::hash_func(*secIt);
 
-            if (mActiveKeyboardConfig == 0)
-                mActiveKeyboardConfig = secHash;
+            mModes[secHash].nameHash = secHash;
 
             for (auto keyIt = keyConf.keysBegin(*secIt);
                  keyIt != keyConf.keysEnd(*secIt);
@@ -67,87 +65,64 @@ InputMgr::InputMgr(bool isPrimary)
             {
                 u32 keyHash = HASH::hash_func(*keyIt);
 
-                glm::uvec4 keys;
-                auto keyVec = keyConf.getVec(*secIt, *keyIt);
-                u32 keyCount = glm::min(4, (i32)keyVec.size());
-                for (u32 i = 0; i < keyCount; ++i)
+                if (keyHash == HASH::none || keyHash == HASH::any)
                 {
-                    keys[i] = lookup_key_code(keyVec[i]);
+                    LOG_ERROR("'none' or 'any' input names are reserved");
                 }
-                for (u32 i = keyCount; i < 4; ++i)
+                else
                 {
-                    keys[i] = kKEY_NOKEY;
+                    glm::uvec4 keys;
+                    auto keyVec = keyConf.getVec(*secIt, *keyIt);
+                    u32 keyCount = glm::min(4, (i32)keyVec.size());
+                    for (u32 i = 0; i < keyCount; ++i)
+                    {
+                        keys[i] = lookup_key_code(keyVec[i]);
+                    }
+                    for (u32 i = keyCount; i < 4; ++i)
+                    {
+                        keys[i] = kKEY_NOKEY;
+                    }
+                    mModes[secHash].keyboard[keyHash] = keys;
                 }
-                mKeyConfigs[secHash][keyHash] = keys;
             }
+
+            if (mpActiveMode == nullptr)
+                mpActiveMode = &mModes[secHash];
         }
     }
-
-    // LORRTODO - Drive mouse settings from config file
-    registerKeyToState(kKEY_Mouse2, HASH::mouse_look);
 }
 
-void InputMgr::set_config(u32 configHash)
+void InputMgr::zeroState()
 {
-    TaskMaster::task_master_for_active_thread().inputMgr().setConfig(configHash);
+    mPressedKeys = glm::uvec4(0);
+    mMouseState.zeroState();
+
+    for (auto & cs : mCtrlState)
+    {
+        cs.zeroState();
+    }
 }
 
-u32 InputMgr::query_state(u32 player, u32 stateHash)
+void InputMgr::setMode(u32 modeHash)
 {
-    return TaskMaster::task_master_for_active_thread().inputMgr().queryState(player, stateHash);
+    auto it = mModes.find(modeHash);
+
+    if (it != mModes.end() && &it->second != mpActiveMode)
+    {
+        mMouseState.zeroState();
+        mpActiveMode = &it->second;
+    }
 }
 
-u32 InputMgr::query_state(u32 player, u32 stateHash,f32 * pVal)
+u32 InputMgr::queryState(u32 player, u32 stateHash, glm::vec4 * pMeasure)
 {
-    return TaskMaster::task_master_for_active_thread().inputMgr().queryState(player, stateHash, pVal);
-}
-
-u32 InputMgr::query_state(u32 player, u32 stateHash, glm::vec2 & pVal)
-{
-    return TaskMaster::task_master_for_active_thread().inputMgr().queryState(player, stateHash, pVal);
-}
-
-void InputMgr::setConfig(u32 configHash)
-{
-    if (mKeyConfigs.find(configHash) != mKeyConfigs.end())
-        mActiveKeyboardConfig = configHash;
-}
-
-u32 InputMgr::queryState(u32 player, u32 stateHash)
-{
-    auto it = mKeyConfigs[mActiveKeyboardConfig].find(stateHash);
-    if (it != mKeyConfigs[mActiveKeyboardConfig].end())
-        return queryState(it->second);
+    if (mpActiveMode)
+    {
+        auto it = mpActiveMode->keyboard.find(stateHash);
+        if (it != mpActiveMode->keyboard.end())
+            return queryState(it->second);
+    }
     return 0;
-}
-
-u32 InputMgr::queryState(u32 player, u32 stateHash, f32 * pVal)
-{
-    auto it = mKeyConfigs[mActiveKeyboardConfig].find(stateHash);
-    if (it != mKeyConfigs[mActiveKeyboardConfig].end())
-        return queryState(it->second);
-    return 0;
-}
-
-u32 InputMgr::queryState(u32 player, u32 stateHash, glm::vec2 * pVal)
-{
-    auto it = mKeyConfigs[mActiveKeyboardConfig].find(stateHash);
-    if (it != mKeyConfigs[mActiveKeyboardConfig].end())
-        return queryState(it->second);
-    return 0;
-}
-
-void InputMgr::setKeyFlag(const KeyInput & keyInput)
-{
-    ASSERT(keyInput.keyCode < kKEY_NOKEY);
-    u32 idx = keyInput.keyCode / 32;
-    u32 bit = keyInput.keyCode % 32;
-    u32 mask = 1 << bit;
-
-    if (keyInput.keyEvent == kKST_Down)
-        mPressedKeys[idx] |= mask;
-    else
-        mPressedKeys[idx] &= ~mask;
 }
 
 bool InputMgr::queryKeyCode(KeyCode keyCode)
@@ -204,92 +179,26 @@ u32 InputMgr::queryState(const glm::uvec4 & keys)
 
 void InputMgr::processKeyInput(const KeyInput & keyInput)
 {
-    setKeyFlag(keyInput);
+    ASSERT(keyInput.keyCode < kKEY_NOKEY);
+    u32 idx = keyInput.keyCode / 32;
+    u32 bit = keyInput.keyCode % 32;
+    u32 mask = 1 << bit;
 
-    // Handle any keyboard listeners
-    if (mIsPrimary)
-    {
-        auto keyIt = mKeyToStateMap.find((KeyCode)keyInput.keyCode);
-        if (keyIt != mKeyToStateMap.end())
-        {
-            for (u32 state : keyIt->second)
-            {
-                auto stateIt = mStateListenerMap.find(state);
-                if (stateIt != mStateListenerMap.end())
-                {
-                    for (TaskStateMessage tm : stateIt->second)
-                    {
-                        u32 message = keyInput.keyEvent ? tm.downMessage : tm.upMessage;
-                        u32 value = keyInput.keyEvent ? tm.downValue : tm.upValue;
-                        MessageQueueWriter msgw(message,
-                                                kMessageFlag_None,
-                                                kInputMgrTaskId,
-                                                tm.taskId,
-                                                to_cell(value),
-                                                0);
-                    }
-                }
-            }
-        }
-    }
+    if (keyInput.keyEvent == kKST_Down)
+        mPressedKeys[idx] |= mask;
+    else
+        mPressedKeys[idx] &= ~mask;
 }
 
 void InputMgr::processMouseMoveInput(const MouseInput::Movement & moveInput)
 {
-    if (moveInput.xDelta != 0 && moveInput.yDelta != 0)
-    {
-        for (TaskMessage tm : mMouseMoveListeners)
-        {
-            messages::MouseMoveQW msgQW(HASH::mouse_move,
-                                        kMessageFlag_None,
-                                        kInputMgrTaskId,
-                                        tm.taskId,
-                                        moveInput.xDelta);
-            msgQW.setYDelta(moveInput.yDelta);
-        }
-    }
+    mMouseState.xPos += moveInput.xDelta;
+    mMouseState.yPos += moveInput.yDelta;
 }
 
 void InputMgr::processMouseWheelInput(i32 delta)
 {
-    if (delta != 0)
-    {
-        for (TaskMessage tm : mMouseWheelListeners)
-        {
-            MessageQueueWriter msgw(tm.message,
-                                    kMessageFlag_None,
-                                    kInputMgrTaskId,
-                                    tm.taskId,
-                                    to_cell(delta),
-                                    0);
-        }
-    }
-}
-
-void InputMgr::registerKeyToState(KeyCode keyCode, u32 stateHash)
-{
-    auto & vec = mKeyToStateMap[keyCode];
-    if (std::find(vec.begin(), vec.end(), stateHash) == vec.end())
-        vec.push_back(stateHash);
-}
-
-void InputMgr::registerStateListener(u32 stateHash, const TaskStateMessage & taskMessage)
-{
-    auto & vec = mStateListenerMap[stateHash];
-    if (std::find(vec.begin(), vec.end(), taskMessage) == vec.end())
-        vec.push_back(taskMessage);
-}
-
-void InputMgr::registerMouseListener(const TaskMessage & moveMessage, const TaskMessage & wheelMessage)
-{
-    if (moveMessage.message != 0)
-    {
-        mMouseMoveListeners.push_back(moveMessage);
-    }
-    if (wheelMessage.message != 0)
-    {
-        mMouseWheelListeners.push_back(wheelMessage);
-    }
+    mMouseState.wheel = delta;
 }
 
 template <typename T>
@@ -306,17 +215,6 @@ MessageResult InputMgr::message(const T& msgAcc)
         LOG_INFO("Killing focus");
         mPressedKeys = glm::uvec4(0);
         break;
-    case HASH::watch_input_state:
-    {
-        messages::WatchInputStateR<T> msgr(msgAcc);
-        registerStateListener(msgr.state(), TaskStateMessage(msg.source, msgr.downMessage(), msgr.downValue(), msgr.upMessage(), msgr.upValue()));
-        break;
-    }
-    case HASH::watch_mouse:
-    {
-        messages::WatchMouseR<T> msgr(msgAcc);
-        registerMouseListener(TaskMessage(msg.source, msgr.moveMessage()), TaskMessage(msg.source, msgr.wheelMessage()));
-    }
     case HASH::mouse_move:
         processMouseMoveInput(MouseInput::Movement(msg.payload));
         break;

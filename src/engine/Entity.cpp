@@ -153,19 +153,19 @@ Entity * Entity::activate_start_entity(u32 entityHash)
     return pEntity;
 }
 
-void Entity::update(f32 deltaSecs)
+void Entity::update(f32 delta)
 {
     ASSERT(mInitStatus == kIS_Activated);
 
-    mScriptTask.update(deltaSecs);
+    mScriptTask.update(delta);
 
     // send update our components
     for (u32 i = 0; i < mComponentCount; ++i)
-        mpComponents[i].scriptTask().update(deltaSecs);
+        mpComponents[i].scriptTask().update(delta);
 
     // send update to our child entities
     for (u32 i = 0; i < mChildCount; ++i)
-        mpChildren[i]->update(deltaSecs);
+        mpChildren[i]->update(delta);
 
     // Now, if there has been any change to the transform,
     // notify components and child entities.
@@ -681,7 +681,7 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
     // HASH::init__ will be sent to component in codegen'd .cpp for component/entity
 
     // LORRTEMP
-    LOG_INFO("Component inserted: entityId: %u, entityName: %s, taskId: %u, taskName: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()), pComp->scriptTask().id(), HASH::reverse_hash(pComp->scriptTask().nameHash()));
+    //LOG_INFO("Component inserted: entityId: %u, entityName: %s, taskId: %u, taskName: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()), pComp->scriptTask().id(), HASH::reverse_hash(pComp->scriptTask().nameHash()));
 
     // Activate our component's task so it can perform updates
     pComp->scriptTask().setStatus(TaskStatus::Running);

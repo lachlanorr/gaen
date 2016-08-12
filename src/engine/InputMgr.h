@@ -46,74 +46,41 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    // Callable from entities since there is an InputMgr on each task master
-    static void set_config(u32 configHash);
-    static int query_state(u32 player, u32 stateHash);
-    static int query_state(u32 player, u32 stateHash, f32 * pVal);
-    static int query_state(u32 player, u32 stateHash, glm::vec2 & pVal);
+    u32 mode() { return mpActiveMode ? mpActiveMode->nameHash : 0; }
+    void setMode(u32 modeHash);
+
+    u32 queryState(u32 player, u32 stateHash, glm::vec4 * pMeasure);
 
 private:
-    struct TaskMessage
-    {
-        u32 taskId:28;
-        u32 deviceId:4;
-        u32 message;
-        
-        TaskMessage(u32 taskId, u32 message)
-          : taskId(taskId)
-          , deviceId(0) // LORRTODO: For now we don't use deviceId. Should probably be playerId instead. Needs more thought.
-          , message(message)
-        {}
-
-        bool operator==(const TaskMessage & rhs) const
-        {
-            static_assert(sizeof(*this) == 8, "Tricky comparison requires 8 byte size");
-            return *(const u64*)this == *(const u64*)&rhs;
-        }
-    };
-
-    struct TaskStateMessage
-    {
-        u32 taskId:28;
-        u32 deviceId:4;
-        u32 downMessage;
-        i32 downValue;
-        u32 upMessage;
-        i32 upValue;
-
-        TaskStateMessage(u32 taskId, u32 downMessage, i32 downValue, u32 upMessage, i32 upValue)
-          : taskId(taskId)
-          , deviceId(0) // LORRTODO: For now we don't use deviceId. Should probably be playerId instead. Needs more thought.
-          , downMessage(downMessage)
-          , downValue(downValue)
-          , upMessage(upMessage)
-          , upValue(upValue)
-        {}
-
-        bool operator==(const TaskStateMessage & rhs) const
-        {
-            return (taskId == rhs.taskId &&
-                    deviceId == rhs.deviceId &&
-                    downMessage == rhs.downMessage &&
-                    downValue == rhs.downValue &&
-                    upMessage == rhs.upMessage &&
-                    upValue == rhs.upValue);
-        }
-    };
-
-
     struct CtrlState
     {
+        // LORRTODO: Define controller
+        u32 placeholder__;
 
+        void zeroState()
+        {
+            placeholder__ = 0;
+        }
     };
 
     struct MouseState
     {
+        i32 xPos;
+        i32 yPos;
+        i32 wheel;
 
+        void zeroState()
+        {
+            xPos = 0;
+            yPos = 0;
+            wheel = 0;
+        }
     };
 
-    struct InputConfig
+    struct InputMode
     {
+        u32 nameHash;
+
         HashMap<kMEM_Engine, u32, glm::uvec4> keyboard;
         HashMap<kMEM_Engine, u32, glm::uvec4> mouseButtons;
         u32 mouseMove;
@@ -124,8 +91,9 @@ private:
         u32 ctrlLStick;
         u32 ctrlRStick;
 
-        InputConfig()
-          : mouseMove(0)
+        InputMode()
+          : nameHash(0)
+          , mouseMove(0)
           , ctrlLTrigger(0)
           , ctrlRTrigger(0)
           , ctrlLStick(0)
@@ -133,23 +101,14 @@ private:
         {}
     };
 
-    void setConfig(u32 configHash);
-    int queryState(u32 player, u32 stateHash);
-    int queryState(u32 player, u32 stateHash, f32 * pVal);
-    int queryState(u32 player, u32 stateHash, glm::vec2 * pVal);
-
-    void setKeyFlag(const KeyInput & keyInput);
     bool queryKeyCode(KeyCode keyCode);
-    int queryState(const glm::uvec4 & keys);
+    u32 queryState(const glm::uvec4 & keys);
 
     void processKeyInput(const KeyInput & keyInput);
     void processMouseMoveInput(const MouseInput::Movement & moveInput);
     void processMouseWheelInput(i32 delta);
 
-    void registerKeyToState(KeyCode keyCode, u32 stateHash);
-    void registerStateListener(u32 stateHash, const TaskStateMessage & taskMessage);
-
-    void registerMouseListener(const TaskMessage & moveMessage, const TaskMessage & wheelMessage);
+    void zeroState();
 
     bool mIsPrimary;
 
@@ -157,18 +116,11 @@ private:
 
     MouseState mMouseState;
 
-    static const kMaxCtrls = 8;
-    CtrlState mCtrlState[kMaxCtrls];
+    static const u32 kMaxPlayers = 4;
+    CtrlState mCtrlState[kMaxPlayers];
 
-    u32 mActiveConfig;
-    HashMap<kMEM_Engine, u32, InputConfig> mConfigs;
-
-    // LORRTODO - Add support for removing listeners for both keys and mouse
-    HashMap<kMEM_Engine, KeyCode, Vector<kMEM_Engine, u32>, std::hash<int>> mKeyToStateMap;
-    HashMap<kMEM_Engine, u32, Vector<kMEM_Engine, TaskStateMessage>> mStateListenerMap;
-
-    Vector<kMEM_Engine, TaskMessage> mMouseMoveListeners;
-    Vector<kMEM_Engine, TaskMessage> mMouseWheelListeners;
+    InputMode * mpActiveMode;
+    HashMap<kMEM_Engine, u32, InputMode> mModes;
 };
 
 } // namespace gaen

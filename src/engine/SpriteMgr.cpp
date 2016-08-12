@@ -52,14 +52,14 @@ SpriteMgr::~SpriteMgr()
     //}
 }
 
-void SpriteMgr::update(f32 deltaSecs)
+void SpriteMgr::update(f32 delta)
 {
     for (auto & spritePair : mSpriteMap)
     {
         SpriteInstance * pSpriteInst = spritePair.second.get();
         if (pSpriteInst->mVelocity != glm::vec2{0.0})
         {
-            glm::vec3 offset = glm::vec3(pSpriteInst->mVelocity * deltaSecs, 0.0f);
+            glm::vec3 offset = glm::vec3(pSpriteInst->mVelocity * delta, 0.0f);
             pSpriteInst->mTransform = glm::to_mat4x3(glm::translate(glm::mat4(1.0f), offset) * glm::mat4(pSpriteInst->mTransform));
             SpriteInstance::send_sprite_transform(kSpriteMgrTaskId, kRendererTaskId, pSpriteInst->sprite().uid(), pSpriteInst->mTransform);
             {
@@ -67,7 +67,7 @@ void SpriteMgr::update(f32 deltaSecs)
                 msgw.setTransform(pSpriteInst->mTransform);
             }
         }
-        if (pSpriteInst->mIsAnimating && pSpriteInst->advanceAnim(deltaSecs))
+        if (pSpriteInst->mIsAnimating && pSpriteInst->advanceAnim(delta))
         {
             // update renderer with new frame
             SpriteInstance::send_sprite_anim(kSpriteMgrTaskId,

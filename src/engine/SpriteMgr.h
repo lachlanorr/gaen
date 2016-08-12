@@ -43,7 +43,7 @@ public:
 
     ~SpriteMgr();
 
-    void update(f32 deltaSecs);
+    void update(f32 delta);
 
     template <typename T>
     MessageResult message(const T& msgAcc);

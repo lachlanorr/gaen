@@ -69,7 +69,7 @@ public:
     void activate();
     static Entity * activate_start_entity(u32 entityHash);
 
-    void update(f32 deltaSecs);
+    void update(f32 delta);
 
     template <typename T>
     MessageResult message(const T& msgAcc);
