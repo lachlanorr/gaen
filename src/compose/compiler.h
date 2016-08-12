@@ -201,6 +201,7 @@ typedef enum
     kSYMT_Message,
     kSYMT_Property,
     kSYMT_Update,
+    kSYMT_InputMode,
     kSYMT_Input,
     kSYMT_InputSpecial,
     kSYMT_Field,

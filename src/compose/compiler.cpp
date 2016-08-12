@@ -877,11 +877,18 @@ Ast * ast_create_update_def(Ast * pBlock, ParseData * pParseData)
 
 Ast * ast_create_input_mode(const char * name, Ast * pInputList, ParseData * pParseData)
 {
-    // pop input scope
-    parsedata_pop_scope(pParseData);
     // pop block scope
     parsedata_pop_scope(pParseData);
+    // pop input scope
+    parsedata_pop_scope(pParseData);
 
+    pInputList->pSymRec = symrec_create(kSYMT_InputMode,
+                                        nullptr,
+                                        name,
+                                        pInputList,
+                                        pParseData);
+
+    symtab_add_symbol_with_fields(parsedata_current_scope(pParseData)->pSymTab, pInputList->pSymRec, pParseData);
     pInputList->str = name;
     return pInputList;
 }
