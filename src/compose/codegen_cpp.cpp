@@ -1546,13 +1546,12 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    ") + entName + S(" & operator=(const ") + entName + S("&)  = delete;\n");
         code += I + S("    ") + entName + S(" & operator=(") + entName + S("&&)       = delete;\n");
 
-        code += S("\n");
+        code += LF;
 
         // Input helper functions
         if (pInput)
         {
             code += input_block(pAst, indentLevel + 1);
-            code += LF;
         }
 
         // Property and fields accessors into mpBlocks
@@ -1679,11 +1678,12 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    ") + compName + S(" & operator=(const ") + compName + S("&)  = delete;\n");
         code += I + S("    ") + compName + S(" & operator=(") + compName + S("&&)       = delete;\n");
 
+        code += LF;
+
         // Input helper functions
         if (pInput)
         {
             code += input_block(pAst, indentLevel + 1);
-            code += LF;
         }
 
         code += S("\n");
