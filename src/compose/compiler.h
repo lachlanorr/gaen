@@ -84,6 +84,9 @@ typedef enum
     kAST_ComponentDef,
     kAST_MessageDef,
     kAST_PropertyDef,
+    kAST_PropertyDefaultAssign,
+    kAST_PropertyPre,
+    kAST_PropertyPost,
     kAST_FieldDef,
     kAST_ComponentBlock,
     kAST_ComponentMemberList,
@@ -200,6 +203,9 @@ typedef enum
     kSYMT_Type,
     kSYMT_Message,
     kSYMT_Property,
+    kSYMT_PropertyDefault,
+    kSYMT_PropertyPre,
+    kSYMT_PropertyPost,
     kSYMT_Update,
     kSYMT_InputMode,
     kSYMT_Input,
@@ -341,8 +347,14 @@ Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseD
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
 
 Ast * ast_create_message_def(const char * name, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData);
-Ast * ast_create_property_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData);
 Ast * ast_create_field_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData);
+
+Ast * ast_create_property_def(Ast * pPropDecl, Ast * pInitVal, ParseData * pParseData);
+Ast * ast_create_property_complex_def(Ast * pPropDecl, Ast * pDefList, ParseData * pParseData);
+Ast * ast_create_property_decl(const char * name, const SymDataType * pDataType, ParseData * pParseData);
+Ast * ast_create_property_default_assign(Ast * pRhs, ParseData * pParseData);
+Ast * ast_create_property_pre(Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_property_post(Ast * pBlock, ParseData * pParseData);
 
 Ast * ast_create_function_arg(const char * name, SymRec * pDataTypeSymRec, ParseData * pParseData);
 
@@ -445,6 +457,7 @@ Scope* parsedata_pop_scope(ParseData * pParseData);
 
 Scope* parsedata_push_update_scope(ParseData * pParseData);
 Scope* parsedata_push_input_scope(ParseData * pParseData);
+Scope* parsedata_push_prop_prepost_scope(ParseData * pParseData);
 
 const char * parsedata_add_string(ParseData * pParseData, const char * str);
 

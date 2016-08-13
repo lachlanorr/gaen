@@ -82,7 +82,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 QUAT MAT3 MAT43 MAT4 HANDLE_ ASSET ENTITY STRING
 %type <dataType> basic_type
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS UPDATE INPUT_ ANY NONE USING AS CONST_ SELF
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS UPDATE INPUT_ ANY NONE USING AS CONST_ SELF PRE POST VALUE
 %right ELSE THEN
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN TRANSFORM
@@ -114,7 +114,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %type <pAst> def stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> using_list using_stmt dotted_id dotted_id_proc dotted_id_part
 %type <pAst> message_block message_list message_prop target_expr message_expr function_def
-%type <pAst> prop_init_list prop_init component_block component_member_list component_member input_block input_def_list input_def
+%type <pAst> prop_init_list prop_init component_block component_member_list component_member property_decl property_block property_def_list property_def input_block input_def_list input_def
 
 %type <pSymTab> param_list
 
@@ -171,8 +171,9 @@ message_list
  
 message_prop
     : HASH '(' param_list ')' block                 { $$ = ast_create_message_def($1, $3, $5, pParseData); }
-    | type_ent_handle_asset HASH '=' expr ';'       { $$ = ast_create_property_def($2, $1, $4, pParseData); }
-    | type_ent_handle_asset HASH ';'                { $$ = ast_create_property_def($2, $1, NULL, pParseData); }
+    | property_decl property_block                  { $$ = ast_create_property_complex_def($1, $2, pParseData); }
+    | property_decl '=' expr ';'                    { $$ = ast_create_property_def($1, $3, pParseData); }
+    | property_decl ';'                             { $$ = ast_create_property_def($1, NULL, pParseData); }
     | type_ent_handle_asset IDENTIFIER '=' expr ';' { $$ = ast_create_field_def($2, $1, $4, pParseData); }
     | type_ent_handle_asset IDENTIFIER ';'          { $$ = ast_create_field_def($2, $1, NULL, pParseData); }
     | COMPONENTS component_block                    { $$ = ast_create_component_members($2, pParseData); }
@@ -215,6 +216,25 @@ prop_init_list
 prop_init
     : IDENTIFIER '=' expr  { $$ = ast_create_prop_init($1, $3, pParseData); }
     | TRANSFORM '=' expr   { $$ = ast_create_transform_init($3, pParseData); }
+    ;
+
+property_decl
+    : type_ent_handle_asset HASH    { $$ = ast_create_property_decl($2, $1, pParseData); }
+
+property_block
+    : '{' '}'                    { $$ = ast_create_with_child_list(kAST_PropertyDef, pParseData); }
+    | '{' property_def_list '}'  { $$ = $2; }
+    ;
+
+property_def_list
+    : property_def                    { $$ = ast_append(kAST_PropertyDef, NULL, $1, pParseData); }
+    | property_def_list property_def  { $$ = ast_append(kAST_PropertyDef, $1, $2, pParseData); }
+    ;
+
+property_def
+    : DEFAULT '=' expr ';'  { $$ = ast_create_property_default_assign($3, pParseData); }
+    | PRE block             { $$ = ast_create_property_pre($2, pParseData); }
+    | POST block            { $$ = ast_create_property_post($2, pParseData); }
     ;
 
 input_block

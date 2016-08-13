@@ -1024,14 +1024,112 @@ static Ast * ast_create_top_level_def(const char * name, AstType astType, SymTyp
     return pAst;
 }
 
-Ast * ast_create_property_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData)
-{
-    return ast_create_top_level_def(name, kAST_PropertyDef, kSYMT_Property, pDataType, pInitVal, true, pParseData);
-}
-
 Ast * ast_create_field_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData)
 {
     return ast_create_top_level_def(name, kAST_FieldDef, kSYMT_Field, pDataType, pInitVal, true, pParseData);
+}
+
+Ast * ast_create_property_def(Ast * pPropDecl, Ast * pInitVal, ParseData * pParseData)
+{
+    // pop scope created by property decl, which is only necessary in
+    // complex property defs, but gets created for all property defs
+    parsedata_pop_scope(pParseData);
+
+    if (pPropDecl->pSymRec)
+        pPropDecl->pSymRec->pAst = pInitVal;
+
+    return pPropDecl;
+}
+
+Ast * ast_create_property_complex_def(Ast * pPropDecl, Ast * pDefList, ParseData * pParseData)
+{
+    Ast * pDefault = nullptr;
+    Ast * pPre = nullptr;
+    Ast * pPost = nullptr;
+
+    for (Ast * pChild : pDefList->pChildren->nodes)
+    {
+        if (pChild->type == kAST_PropertyDefaultAssign)
+        {
+            if (pDefault)
+                COMP_ERROR(pParseData, "Multiple default property definitions");
+            pDefault = pChild->pRhs;
+        }
+        else if (pChild->type == kAST_PropertyPre)
+        {
+            if (pPre)
+                COMP_ERROR(pParseData, "Multiple 'pre' property definitions");
+            pPre = pChild;
+        }
+        else if (pChild->type == kAST_PropertyPost)
+        {
+            if (pPost)
+                COMP_ERROR(pParseData, "Multiple 'pre' property definitions");
+            pPost = pChild;
+        }
+    }
+
+    Ast * pPropDef = ast_create_property_def(pPropDecl, pDefault, pParseData);
+    if (pPre)
+        ast_set_lhs(pPropDef, pPre);
+    if (pPost)
+        ast_set_mid(pPropDef, pPost);
+
+    // pop scope created by block
+    parsedata_pop_scope(pParseData);
+
+    return pPropDef;
+}
+
+Ast * ast_create_property_decl(const char * name, const SymDataType * pDataType, ParseData * pParseData)
+{
+    Ast * pAst = ast_create_top_level_def(name, kAST_PropertyDef, kSYMT_Property, pDataType, nullptr, true, pParseData);
+
+    // Push a scope in case this is a complex property def, which at this point we don't know. We'll pop it ast_create_property_def.
+    parsedata_push_scope(pParseData);
+    return pAst;
+}
+
+Ast * ast_create_property_default_assign(Ast * pRhs, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_PropertyDefaultAssign, pParseData);
+    ast_set_rhs(pAst, pRhs);
+
+    // register symbol to prevent multiple default assignments
+    pAst->pSymRec = symrec_create(kSYMT_PropertyDefault,
+                                  nullptr,
+                                  "default",
+                                  pAst,
+                                  pParseData);
+
+    symtab_add_symbol(parsedata_current_scope(pParseData)->pSymTab, pAst->pSymRec, pParseData);
+    return pAst;
+}
+
+Ast * ast_create_property_pre(Ast * pBlock, ParseData * pParseData)
+{
+    Ast * pAst = ast_create_block_def("pre",
+                                      kAST_PropertyPre,
+                                      kSYMT_PropertyPre,
+                                      nullptr,
+                                      pBlock,
+                                      nullptr,
+                                      true,
+                                      pParseData);
+    return pAst;
+}
+
+Ast * ast_create_property_post(Ast * pBlock, ParseData * pParseData)
+{
+    Ast * pAst = ast_create_block_def("post",
+                                      kAST_PropertyPost,
+                                      kSYMT_PropertyPost,
+                                      nullptr,
+                                      pBlock,
+                                      nullptr,
+                                      true,
+                                      pParseData);
+    return pAst;
 }
 
 Ast * ast_create_function_arg(const char * name, SymRec * pDataTypeSymRec, ParseData * pParseData)
@@ -2429,7 +2527,20 @@ Scope* parsedata_push_input_scope(ParseData * pParseData)
 
     SymRec * pVec4SymRec = parsedata_find_type_symbol(pParseData, "vec4", 0, 0);
     SymRec * pMeasureSymRec = symrec_create(kSYMT_Param, pVec4SymRec->pSymDataType, "measure", nullptr, pParseData);
-    symtab_add_symbol_with_fields(pScope->pSymTab, pMeasureSymRec, pParseData);
+    symtab_add_symbol(pScope->pSymTab, pMeasureSymRec, pParseData);
+
+    return pScope;
+}
+
+Scope* parsedata_push_prop_prepost_scope(ParseData * pParseData)
+{
+    // get the datatype of the property we're in the process of defining
+    const SymRec * pPropType = parsedata_current_scope(pParseData)->pSymTab->pParent->pParent->orderedSymRecs.front();
+
+    Scope * pScope = parsedata_push_scope(pParseData);
+
+    SymRec * pValueSymRec = symrec_create(kSYMT_Param, pPropType->pSymDataType, "value", nullptr, pParseData);
+    symtab_add_symbol_with_fields(pScope->pSymTab, pValueSymRec, pParseData);
 
     return pScope;
 }

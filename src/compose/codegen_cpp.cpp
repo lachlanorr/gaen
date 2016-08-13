@@ -391,11 +391,12 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
         code += I + S("case HASH::set_property:\n");
         code += I1 + S("switch (_msg.payload.u)\n");
         code += I1 + S("{\n");
-        for (const auto & kv : pAst->pScope->pSymTab->dict)
+        for (const Ast * pPropAst : pAst->pChildren->nodes)
         {
-            SymRec * pSymRec = kv.second;
+            SymRec * pSymRec = pPropAst->pSymRec;
             if (is_prop(pSymRec))
             {
+                ASSERT(pPropAst->type == kAST_PropertyDef);
                 static const u32 kScratchSize = 128;
                 char scratch[kScratchSize+1];
 
@@ -415,13 +416,15 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                     if (cellCount % kCellsPerBlock != 0)
                         fullBlocksToCopy--;
 
+                    code += I3 + S("// set tempVal to what was sent in the message") + LF;
+                    code += I3 + S(pSymRec->pSymDataType->cppTypeStr) + S(" tempVal;") + LF;
+
                     // copy full blocks
                     for (u32 i = 0; i < fullBlocksToCopy; ++i)
                     {
                         snprintf(scratch,
                                  kScratchSize,
-                                 "reinterpret_cast<Block*>(&%s())[%d] = msgAcc[%d];\n",
-                                 pSymRec->name,
+                                 "reinterpret_cast<Block*>(&tempVal)[%d] = msgAcc[%d];\n",
                                  i,
                                  i);
                         code += I3 + S(scratch);
@@ -435,8 +438,7 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                         {
                             snprintf(scratch,
                                      kScratchSize,
-                                     "reinterpret_cast<Block*>(&%s())[%d].cells[%d] = msgAcc[%d].cells[%d];\n",
-                                     pSymRec->name,
+                                     "reinterpret_cast<Block*>(&tempVal)[%d].cells[%d] = msgAcc[%d].cells[%d];\n",
                                      lastBlockIdx,
                                      i,
                                      lastBlockIdx,
@@ -444,6 +446,19 @@ static S set_property_handlers(const Ast * pAst, int indentLevel)
                             code += I3 + S(scratch);
                         }
                     }
+                    if (pPropAst->pLhs)
+                    {
+                        code += I3 + S("// call 'pre' before property is changed") + LF;
+                        code += I3 + S(pSymRec->name) + S("__pre(tempVal);") + LF;
+                    }
+                    code += I3 + S("// copy tempVal into actual property") + LF;
+                    code += I3 + S(pSymRec->name) + S("() = tempVal;") + LF;
+                    if (pPropAst->pMid)
+                    {
+                        code += I3 + S("// call 'post' now that property is changed") + LF;
+                        code += I3 + S(pSymRec->name) + S("__post(") + S(pSymRec->name) + S("());") + LF;
+                    }
+
                     code += I3 + S("return MessageResult::Consumed;\n");
                     code += I2 + S("}\n");
                     code += I2 + S("break;\n");
@@ -1742,9 +1757,29 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("    return ") + property_block_accessor(ast_data_type(pAst), *pBlockInfo, "mpBlocks", false, pAst->pParseData) + S(";\n");
         code += I + S("}\n");
 
+        if (pAst->pLhs)
+        {
+            ASSERT(pAst->pLhs->type == kAST_PropertyPre);
+            code += I + S("void ") + propName + S("__pre(") + typeStr + S(" & value)") + LF;
+            code += I + S("{") + LF;
+            code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
+            for (const Ast * pChild : pAst->pLhs->pChildren->nodes)
+                code += codegen_recurse(pChild, indentLevel+1);
+            code += I + S("}") + LF;
+        }
+        if (pAst->pMid)
+        {
+            ASSERT(pAst->pMid->type == kAST_PropertyPost);
+            code += I + S("void ") + propName + S("__post(") + typeStr + S(" & value)") + LF;
+            code += I + S("{") + LF;
+            code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
+            for (const Ast * pChild : pAst->pMid->pChildren->nodes)
+                code += codegen_recurse(pChild, indentLevel+1);
+            code += I + S("}") + LF;
+        }
+
         if (isRefCounted)
         {
-            //code += I + S("bool ") + assignedVar + S(" = false;\n");
             code += I + S("void ") + releaseFunc + LF;
             code += I + S("{\n");
             code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;

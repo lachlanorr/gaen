@@ -127,6 +127,9 @@ ParseData * pParseData = yyextra;
 "any"        { return ANY; }
 "none"       { return NONE; }
 
+"pre"        { parsedata_push_prop_prepost_scope(pParseData); return PRE; }
+"post"       { parsedata_push_prop_prepost_scope(pParseData); return POST; }
+
 "transform"  { return TRANSFORM; }
 
 
