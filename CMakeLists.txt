@@ -72,16 +72,24 @@ INCLUDE (ExternalProject)
 # Bullet Physics
 SET (BULLET_VER "2.83.7")
 SET (BULLET_NAME_VER "bullet3-${BULLET_VER}")
-SET (BULLET_PATH "${CMAKE_BINARY_DIR}/external/${BULLET_NAME_VER}")
+SET (BULLET_PATH "${CMAKE_CURRENT_BINARY_DIR}/bullet/src")
 ExternalProject_Add(bullet
   URL "${ext_dir}/${BULLET_NAME_VER}.tar.gz"
   URL_MD5 39fd0138fcb59047c12861f3b65c063e
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/bullet
-  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${BULLET_PATH}
 )
-#INCLUDE_DIRECTORIES (${BULLET_PATH}/include/freetype2)
-#SET (BULLET_LIB "${BULLET_PATH}/lib/freetype.lib")
-#SET (BULLET_LIBD "${BULLET_PATH}/lib/freetyped.lib")
+INCLUDE_DIRECTORIES (${BULLET_PATH}/bullet/src)
+SET (BULLET_LIBS
+     optimized ${BULLET_PATH}/bullet-build/lib/Release/Bullet3Common.lib
+     optimized ${BULLET_PATH}/bullet-build/lib/Release/BulletDynamics.lib
+     optimized ${BULLET_PATH}/bullet-build/lib/Release/BulletCollision.lib
+     optimized ${BULLET_PATH}/bullet-build/lib/Release/LinearMath.lib
+
+     debug ${BULLET_PATH}/bullet-build/lib/Debug/Bullet3Common_Debug.lib
+     debug ${BULLET_PATH}/bullet-build/lib/Debug/BulletDynamics_Debug.lib
+     debug ${BULLET_PATH}/bullet-build/lib/Debug/BulletCollision_Debug.lib
+     debug ${BULLET_PATH}/bullet-build/lib/Debug/LinearMath_Debug.lib
+     )
 #-------------------------------------------------------------------------------
 # External dependencies (END)
 #-------------------------------------------------------------------------------

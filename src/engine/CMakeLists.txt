@@ -86,6 +86,8 @@ SET (engine_SOURCES
   Sprite.h
   SpriteMgr.cpp
   SpriteMgr.h
+  SpritePhysics.cpp
+  SpritePhysics.h
   system_api.cpp
   system_api.h
   Task.cpp

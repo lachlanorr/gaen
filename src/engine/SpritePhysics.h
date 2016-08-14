@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.h - Precompiled headers
+// SpritePhysics.h - Sprite physics integration to bullet
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,38 +24,34 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_STDAFX_H
-#define GAEN_ENGINE_STDAFX_H
+#ifndef GAEN_ENGINE_SPRITE_PHYSICS_H
+#define GAEN_ENGINE_SPRITE_PHYSICS_H
 
-#include <cfloat>
-#include <csignal>
-#include <cstdarg>
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include "core/mem.h"
 
-#include <algorithm>
-#include <atomic>
-#include <list>
-#include <limits>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <new>
-#include <string>
-#include <thread>
-#include <type_traits>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <vector>
 
-#include <glm/glm.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+class btBroadphaseInterface;
+class btDefaultCollisionConfiguration;
+class btCollisionDispatcher;
+class btSequentialImpulseConstraintSolver;
+class btDiscreteDynamicsWorld;
 
-#include <btBulletDynamicsCommon.h>
+namespace gaen
+{
 
-#endif // #ifndef GAEN_ENGINE_STDAFX_H
+class SpritePhysics
+{
+public:
+    SpritePhysics();
+    
+private:
+    UniquePtr<btBroadphaseInterface> mpBroadphase;
+    UniquePtr<btDefaultCollisionConfiguration> mpCollisionConfiguration;
+    UniquePtr<btCollisionDispatcher> mpDispatcher;
+    UniquePtr<btSequentialImpulseConstraintSolver> mpSolver;
+    UniquePtr<btDiscreteDynamicsWorld> mpDynamicsWorld;
+};
+
+} // namespace gaen
+
+#endif // #ifndef GAEN_ENGINE_SPRITE_PHYSICS_H

@@ -73,6 +73,10 @@ ELSE(IOS)
 
   IDE_SOURCE_PROPERTIES( "/" "${gaen_SOURCES}")
 
+  ADD_DEPENDENCIES(${CMAKE_PROJECT_NAME}
+    bullet
+    )
+
   TARGET_LINK_LIBRARIES (${CMAKE_PROJECT_NAME}
     core
     hashes
@@ -83,6 +87,7 @@ ELSE(IOS)
     ${PROJECT_ASSETS_LIB}
     ${PROJECT_LINK_LIBS}
     ${PLATFORM_LINK_LIBS}
+    ${BULLET_LIBS}
     )
 
   # Set debugging params for ALL_BUILD

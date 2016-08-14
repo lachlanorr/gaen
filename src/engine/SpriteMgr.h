@@ -31,6 +31,7 @@
 
 #include "engine/Handle.h"
 #include "engine/Sprite.h"
+#include "engine/SpritePhysics.h"
 
 namespace gaen
 {
@@ -51,6 +52,8 @@ public:
 private:
     SpriteMap mSpriteMap;
     SpriteOwners mSpriteOwners;
+
+    SpritePhysics mPhysics;
 };
 
 // Compose API

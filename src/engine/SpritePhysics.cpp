@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.h - Precompiled headers
+// SpritePhysics.cpp - Sprite physics integration to bullet
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,38 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_STDAFX_H
-#define GAEN_ENGINE_STDAFX_H
+#include "engine/stdafx.h"
 
-#include <cfloat>
-#include <csignal>
-#include <cstdarg>
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include "engine/SpritePhysics.h"
 
-#include <algorithm>
-#include <atomic>
-#include <list>
-#include <limits>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <new>
-#include <string>
-#include <thread>
-#include <type_traits>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <vector>
 
-#include <glm/glm.hpp>
-#include <glm/gtx/quaternion.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+namespace gaen
+{
 
-#include <btBulletDynamicsCommon.h>
+SpritePhysics::SpritePhysics()
+{
+    mpBroadphase.reset(GNEW(kMEM_Physics, btDbvtBroadphase));
+    mpCollisionConfiguration.reset(GNEW(kMEM_Physics, btDefaultCollisionConfiguration));
+    mpDispatcher.reset(GNEW(kMEM_Physics, btCollisionDispatcher, mpCollisionConfiguration.get()));
+    mpSolver.reset(GNEW(kMEM_Physics, btSequentialImpulseConstraintSolver));
+    mpDynamicsWorld.reset(GNEW(kMEM_Physics,
+                               btDiscreteDynamicsWorld,
+                               mpDispatcher.get(),
+                               mpBroadphase.get(),
+                               mpSolver.get(),
+                               mpCollisionConfiguration.get()));
+}
 
-#endif // #ifndef GAEN_ENGINE_STDAFX_H
+
+} // namespace gaen
