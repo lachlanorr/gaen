@@ -188,8 +188,8 @@ function_def
 
 param_list
     : /* empty */                                      { $$ = parsedata_add_param(pParseData, NULL, NULL); }
-    | type_ent_handle_asset IDENTIFIER                 { $$ = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, $1, $2, NULL, pParseData)); }
-    | param_list ',' type_ent_handle_asset IDENTIFIER  { $$ = parsedata_add_param(pParseData, $1, symrec_create(kSYMT_Param, $3, $4, NULL, pParseData)); }
+    | type_ent_handle_asset IDENTIFIER                 { $$ = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, $1, $2, NULL, NULL, pParseData)); }
+    | param_list ',' type_ent_handle_asset IDENTIFIER  { $$ = parsedata_add_param(pParseData, $1, symrec_create(kSYMT_Param, $3, $4, NULL, NULL, pParseData)); }
     ;
 
 component_block
@@ -304,8 +304,8 @@ message_expr
 expr
     : '(' expr ')'   { $$ = $2; }
 
-    | type_ent IDENTIFIER          { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL, pParseData)); }
-    | type_ent IDENTIFIER '=' expr { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, $4, pParseData)); }
+    | type_ent IDENTIFIER          { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL, NULL, pParseData)); }
+    | type_ent IDENTIFIER '=' expr { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL, $4, pParseData)); }
     
     | STRING_LITERAL { $$ = ast_create_string_literal($1, pParseData); }
 

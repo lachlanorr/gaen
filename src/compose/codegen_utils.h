@@ -33,25 +33,45 @@
 namespace gaen
 {
 
+enum ScriptDataCategory
+{
+    kSDC_None,
+    kSDC_Asset,
+    kSDC_Independent,
+    kSDC_Dependent
+};
+
 const Ast * find_update(const Ast * pSearchAst);
 const Ast * find_input(const Ast * pSearchAst, u32 idx);
 const Ast * find_component_members(const Ast * pSearchAst);
 
 u32 calc_cell_count(const Ast * pAst);
 
-inline bool is_prop_or_field(SymRec * pSymRec)
+inline bool is_prop_or_field(const SymRec * pSymRec)
 {
     return (pSymRec && (pSymRec->type == kSYMT_Property || pSymRec->type == kSYMT_Field) && !(pSymRec->flags & kSRFL_Member));
 }
 
-inline bool is_prop(SymRec * pSymRec)
+ScriptDataCategory data_category(const Ast * pAst);
+
+inline bool is_prop(const SymRec * pSymRec)
 {
     return (pSymRec && pSymRec->type == kSYMT_Property && !(pSymRec->flags & kSRFL_Member));
 }
 
-inline bool is_field(SymRec * pSymRec)
+inline bool is_prop(const Ast * pAst)
+{
+    return (pAst && pAst->pSymRec && is_prop(pAst->pSymRec));
+}
+
+inline bool is_field(const SymRec * pSymRec)
 {
     return (pSymRec && pSymRec->type == kSYMT_Field && !(pSymRec->flags & kSRFL_Member));
+}
+
+inline bool is_asset_prop_or_field(const SymRec * pSymRec)
+{
+    return (pSymRec->flags & kSRFL_AssetRelated) == kSRFL_AssetRelated;
 }
 
 BlockInfos * block_pack_props_and_fields(Ast *pAst);

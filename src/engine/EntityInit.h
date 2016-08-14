@@ -38,8 +38,8 @@ public:
     virtual ~EntityInit() {};
 
     virtual void init() = 0;
-    virtual void initProperties() = 0;
-    virtual void initFields() = 0;
+    virtual void initIndependentData() = 0;
+    virtual void initDependentData() = 0;
 };
 
 } // namespace gaen

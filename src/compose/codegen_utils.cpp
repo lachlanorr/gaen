@@ -108,6 +108,60 @@ u32 calc_cell_count(const Ast * pAst)
     return pSdt->cellCount;
 }
 
+const Ast * find_property_dependency(const Ast * pAst)
+{
+    if (pAst == nullptr)
+        return nullptr;
+
+    if (is_prop(pAst) || pAst->type == kAST_Transform)
+        return pAst;
+    
+    const Ast * pCheck;
+    pCheck = find_property_dependency(pAst->pLhs);
+    if (pCheck)
+        return pCheck;
+
+    pCheck = find_property_dependency(pAst->pMid);
+    if (pCheck)
+        return pCheck;
+
+    pCheck = find_property_dependency(pAst->pRhs);
+    if (pCheck)
+        return pCheck;
+
+    if (pAst->pChildren)
+    {
+        for (const Ast *pChild : pAst->pChildren->nodes)
+        {
+            pCheck = find_property_dependency(pChild);
+            if (pCheck)
+                return pCheck;
+        }
+    }    
+    return nullptr;
+}
+
+ScriptDataCategory data_category(const Ast * pAst)
+{
+    const SymRec * pSymRec = pAst->pSymRec;
+
+    if (pSymRec)
+    {
+        if (is_asset_prop_or_field(pSymRec))
+            return kSDC_Asset;
+        else if (is_prop(pSymRec)) 
+            return kSDC_Independent;
+        else if (is_field(pSymRec))
+        {
+            if (find_property_dependency(pAst))
+                return kSDC_Dependent;
+            return kSDC_Independent;
+        }
+    }
+
+    return kSDC_None;
+}
+
 u32 props_and_fields_count(const Ast * pAst)
 {
     u32 count = 0;

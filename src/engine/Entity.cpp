@@ -611,23 +611,23 @@ void Entity::finalizeAssetInit()
     //LOG_INFO("Entity change state: taskid: %u, name: %s, newstate: %d", mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
 
     {
-    StackMessageBlockWriter<0> msg(HASH::init_properties__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+    StackMessageBlockWriter<0> msg(HASH::init_independent_data__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
     // init all non-asset properties in each component
     mScriptTask.message(msg.accessor());
     }
     // Call the scripted init_properties callback to set any overridden values
     if (mpEntityInit)
-        mpEntityInit->initProperties();
+        mpEntityInit->initIndependentData();
 
     {
-    StackMessageBlockWriter<0> msg(HASH::init_fields__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+    StackMessageBlockWriter<0> msg(HASH::init_dependent_data__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
     // init all non-asset fields in each component
     mScriptTask.message(msg.accessor());
     }
     // Call the scripted init_fields callback to set any overridden values
     if (mpEntityInit)
     {
-        mpEntityInit->initFields();
+        mpEntityInit->initDependentData();
 
         // We can now delete the mpEntityInit since we no longer need it
         GDELETE(mpEntityInit);

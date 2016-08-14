@@ -300,6 +300,7 @@ SymRec * symrec_create(SymType symType,
                        const SymDataType * pSdt,
                        const char * name,
                        Ast * pAst,
+                       Ast * pInitVal,
                        ParseData * pParseData)
 {
     SymRec * pSymRec = COMP_NEW(SymRec);
@@ -308,6 +309,7 @@ SymRec * symrec_create(SymType symType,
     pSymRec->pSymDataType = pSdt;
     pSymRec->name = name;
     pSymRec->pAst = pAst;
+    pSymRec->pInitVal = pInitVal;
 
     pSymRec->pSymTab = nullptr;
 
@@ -440,6 +442,7 @@ SymTab* symtab_add_symbol_with_fields(SymTab* pSymTab, SymRec * pSymRec, ParseDa
             SymRec * pFieldSymRec = symrec_create(pSymRec->type,
                                                   pField->pSymDataType,
                                                   qualifiedName,
+                                                  nullptr,
                                                   nullptr,
                                                   pParseData);
             pFieldSymRec->pStructSymRec = pSymRec;
@@ -733,6 +736,7 @@ static Ast * ast_create_block_def(const char * name,
                                   pReturnType,
                                   name,
                                   pAst,
+                                  nullptr,
                                   pParseData);
 
     if (shouldPopStack)
@@ -768,6 +772,7 @@ static Ast * ast_register_system_api(const char * name,
                                   pReturnTypeSymRec->pSymDataType,
                                   name,
                                   pAst,
+                                  nullptr,
                                   pParseData);
 
     parsedata_add_local_symbol(pParseData, pAst->pSymRec);
@@ -886,6 +891,7 @@ Ast * ast_create_input_mode(const char * name, Ast * pInputList, ParseData * pPa
                                         nullptr,
                                         name,
                                         pInputList,
+                                        nullptr,
                                         pParseData);
 
     symtab_add_symbol_with_fields(parsedata_current_scope(pParseData)->pSymTab, pInputList->pSymRec, pParseData);
@@ -969,6 +975,7 @@ static Ast * ast_create_top_level_def(const char * name, AstType astType, SymTyp
         pAst->pSymRec = symrec_create(symType,
                                       pPathType,
                                       assetPathName,
+                                      pAst,
                                       pInitVal,
                                       pParseData);
         pAst->pSymRec->flags |= kSRFL_AssetRelated;
@@ -990,6 +997,7 @@ static Ast * ast_create_top_level_def(const char * name, AstType astType, SymTyp
         pAst->pSymRec = symrec_create(symType,
                                       pDataType,
                                       name,
+                                      pAst,
                                       pInitVal,
                                       pParseData);
 
@@ -1100,6 +1108,7 @@ Ast * ast_create_property_default_assign(Ast * pRhs, ParseData * pParseData)
                                   nullptr,
                                   "default",
                                   pAst,
+                                  nullptr,
                                   pParseData);
 
     symtab_add_symbol(parsedata_current_scope(pParseData)->pSymTab, pAst->pSymRec, pParseData);
@@ -2511,7 +2520,7 @@ Scope* parsedata_push_update_scope(ParseData * pParseData)
     Scope * pScope = parsedata_push_scope(pParseData);
 
     SymRec * pFloatSymRec = parsedata_find_type_symbol(pParseData, "float", 0, 0);
-    SymRec * pDeltaSymRec = symrec_create(kSYMT_Param, pFloatSymRec->pSymDataType, "delta", nullptr, pParseData);
+    SymRec * pDeltaSymRec = symrec_create(kSYMT_Param, pFloatSymRec->pSymDataType, "delta", nullptr, nullptr, pParseData);
     symtab_add_symbol(pScope->pSymTab, pDeltaSymRec, pParseData);
 
     return pScope;
@@ -2522,11 +2531,11 @@ Scope* parsedata_push_input_scope(ParseData * pParseData)
     Scope * pScope = parsedata_push_scope(pParseData);
 
     SymRec * pFloatSymRec = parsedata_find_type_symbol(pParseData, "float", 0, 0);
-    SymRec * pDeltaSymRec = symrec_create(kSYMT_Param, pFloatSymRec->pSymDataType, "delta", nullptr, pParseData);
+    SymRec * pDeltaSymRec = symrec_create(kSYMT_Param, pFloatSymRec->pSymDataType, "delta", nullptr, nullptr, pParseData);
     symtab_add_symbol(pScope->pSymTab, pDeltaSymRec, pParseData);
 
     SymRec * pVec4SymRec = parsedata_find_type_symbol(pParseData, "vec4", 0, 0);
-    SymRec * pMeasureSymRec = symrec_create(kSYMT_Param, pVec4SymRec->pSymDataType, "measure", nullptr, pParseData);
+    SymRec * pMeasureSymRec = symrec_create(kSYMT_Param, pVec4SymRec->pSymDataType, "measure", nullptr, nullptr, pParseData);
     symtab_add_symbol(pScope->pSymTab, pMeasureSymRec, pParseData);
 
     return pScope;
@@ -2539,7 +2548,7 @@ Scope* parsedata_push_prop_prepost_scope(ParseData * pParseData)
 
     Scope * pScope = parsedata_push_scope(pParseData);
 
-    SymRec * pValueSymRec = symrec_create(kSYMT_Param, pPropType->pSymDataType, "value", nullptr, pParseData);
+    SymRec * pValueSymRec = symrec_create(kSYMT_Param, pPropType->pSymDataType, "value", nullptr, nullptr, pParseData);
     symtab_add_symbol_with_fields(pScope->pSymTab, pValueSymRec, pParseData);
 
     return pScope;
@@ -2802,22 +2811,22 @@ namespace gaen
         // normal
         rt.pNormal = symdatatype_create(dt, name, cppName, cellCount, 0, 0, pParseData);
         parsedata_register_basic_type(pParseData, rt.pNormal);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pNormal, rt.pNormal->mangledType, nullptr, pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pNormal, rt.pNormal->mangledType, nullptr, nullptr, pParseData));
 
         // const
         rt.pConst = symdatatype_create(dt, name, cppName, cellCount, 1, 0, pParseData);
         parsedata_register_basic_type(pParseData, rt.pConst);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConst, rt.pConst->mangledType, nullptr, pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConst, rt.pConst->mangledType, nullptr, nullptr, pParseData));
 
         // reference
         rt.pReference = symdatatype_create(dt, name, cppName, cellCount, 0, 1, pParseData);
         parsedata_register_basic_type(pParseData, rt.pReference);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pReference, rt.pReference->mangledType, nullptr, pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pReference, rt.pReference->mangledType, nullptr, nullptr, pParseData));
 
         // const reference
         rt.pConstReference = symdatatype_create(dt, name, cppName, cellCount, 1, 1, pParseData);
         parsedata_register_basic_type(pParseData, rt.pConstReference);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConstReference, rt.pConstReference->mangledType, nullptr, pParseData));
+        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConstReference, rt.pConstReference->mangledType, nullptr, nullptr, pParseData));
 
         return rt;
     }

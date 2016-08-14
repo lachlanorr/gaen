@@ -229,7 +229,7 @@ def reg_api(parsed_api):
     sarr.append('        size_t mangledLen = mangle_function_len("%s", pSystemApiDef->pChildren);\n' % parsed_api[0])
     sarr.append('        char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);\n')
     sarr.append('        mangle_function(mangledName, kMaxCmpId, "%s", pSystemApiDef->pChildren);\n' % parsed_api[0])
-    sarr.append('        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "%s", 0, 0)->pSymDataType, mangledName, pSystemApiDef, pParseData));\n' % parsed_api[1][1])
+    sarr.append('        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "%s", 0, 0)->pSymDataType, mangledName, pSystemApiDef, nullptr, pParseData));\n' % parsed_api[1][1])
 
     sarr.append('    }\n')
     return ''.join(sarr)

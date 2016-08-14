@@ -313,6 +313,7 @@ SymRec * symrec_create(SymType symType,
                        const SymDataType * pSdt,
                        const char * name,
                        Ast * pAst,
+                       Ast * pInitVal,
                        ParseData * pParseData);
 
 SymTab* symtab_create(ParseData * pParseData);

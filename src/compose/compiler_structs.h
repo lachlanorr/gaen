@@ -103,6 +103,7 @@ struct SymRec
     const char * name;
     const char * fullName;
     Ast * pAst;
+    Ast * pInitVal;
     SymTab * pSymTab;
     SymTab * pSymTabInternal;
     SymRec * pStructSymRec;
