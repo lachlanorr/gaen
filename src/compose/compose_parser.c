@@ -2061,13 +2061,13 @@ yyreduce:
 
   case 32:
 #line 191 "compose.y" /* yacc.c:1646  */
-    { (yyval.pSymTab) = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, (yyvsp[-1].pSymDataType), (yyvsp[0].str), NULL, pParseData)); }
+    { (yyval.pSymTab) = parsedata_add_param(pParseData, NULL, symrec_create(kSYMT_Param, (yyvsp[-1].pSymDataType), (yyvsp[0].str), NULL, NULL, pParseData)); }
 #line 2066 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 33:
 #line 192 "compose.y" /* yacc.c:1646  */
-    { (yyval.pSymTab) = parsedata_add_param(pParseData, (yyvsp[-3].pSymTab), symrec_create(kSYMT_Param, (yyvsp[-1].pSymDataType), (yyvsp[0].str), NULL, pParseData)); }
+    { (yyval.pSymTab) = parsedata_add_param(pParseData, (yyvsp[-3].pSymTab), symrec_create(kSYMT_Param, (yyvsp[-1].pSymDataType), (yyvsp[0].str), NULL, NULL, pParseData)); }
 #line 2072 "compose_parser.c" /* yacc.c:1646  */
     break;
 
@@ -2385,13 +2385,13 @@ yyreduce:
 
   case 86:
 #line 307 "compose.y" /* yacc.c:1646  */
-    { (yyval.pAst) = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, (yyvsp[-1].pSymDataType), (yyvsp[0].str), NULL, pParseData)); }
+    { (yyval.pAst) = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, (yyvsp[-1].pSymDataType), (yyvsp[0].str), NULL, NULL, pParseData)); }
 #line 2390 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 87:
 #line 308 "compose.y" /* yacc.c:1646  */
-    { (yyval.pAst) = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, (yyvsp[-3].pSymDataType), (yyvsp[-2].str), (yyvsp[0].pAst), pParseData)); }
+    { (yyval.pAst) = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, (yyvsp[-3].pSymDataType), (yyvsp[-2].str), NULL, (yyvsp[0].pAst), pParseData)); }
 #line 2396 "compose_parser.c" /* yacc.c:1646  */
     break;
 

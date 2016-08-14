@@ -239,26 +239,26 @@ static S unary_op_post(const Ast * pAst, const char* op)
 
 static S assign(const Ast * pAst, const char * op)
 {
-    if (!pAst->pSymRec)
+    if (!pAst->pSymRecRef)
     {
         COMP_ERROR(pAst->pParseData, "Unknown symbol: %s", pAst->str);
         return S("");
     }
 
 
-    if (!is_block_memory_type(pAst->pSymRec->pSymDataType))
+    if (!is_block_memory_type(pAst->pSymRecRef->pSymDataType))
     {
-        return symref(pAst, pAst->pSymRec, pAst->pParseData) + S(" ") + S(op) + S(" ") + codegen_recurse(pAst->pRhs, 0);
+        return symref(pAst, pAst->pSymRecRef, pAst->pParseData) + S(" ") + S(op) + S(" ") + codegen_recurse(pAst->pRhs, 0);
     }
     else
     {
         if (strcmp(op, "=") != 0)
         {
-            COMP_ERROR(pAst->pParseData, "Invalid assignment op %s for dataType %d", op, pAst->pSymRec->pSymDataType->typeDesc.dataType);
+            COMP_ERROR(pAst->pParseData, "Invalid assignment op %s for dataType %d", op, pAst->pSymRecRef->pSymDataType->typeDesc.dataType);
             return S("");
         }
         // call set function for ref counted types so addref/release can be done properly
-        return S("set_") + S(pAst->pSymRec->name) + S("(") + codegen_recurse(pAst->pRhs, 0) + S(")");
+        return S("set_") + S(pAst->pSymRecRef->name) + S("(") + codegen_recurse(pAst->pRhs, 0) + S(")");
     }
 }
 
@@ -537,9 +537,9 @@ static S init_data(const Ast * pAst, int indentLevel, ScriptDataCategory dataCat
                 code += S(" = ");
 
                 // Does the script initialize this with a value?
-                if (pSymRec->pAst)
+                if (pSymRec->pInitVal)
                 {
-                    code += codegen_recurse(pSymRec->pAst, 0);
+                    code += codegen_recurse(pSymRec->pInitVal, 0);
                 }
                 else
                 {
@@ -553,9 +553,9 @@ static S init_data(const Ast * pAst, int indentLevel, ScriptDataCategory dataCat
                 code += I + S("    set_") + pSymRec->name + S("(");
 
                 // Does the script initialize this with a value?
-                if (pSymRec->pAst)
+                if (pSymRec->pInitVal)
                 {
-                    code += codegen_recurse(pSymRec->pAst, 0);
+                    code += codegen_recurse(pSymRec->pInitVal, 0);
                 }
                 else
                 {
@@ -821,7 +821,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
 
                 SymRec * pSymRec = symtab_find_symbol(pPropsSymTab, propName);
 
-                ScriptDataCategory cat = data_category(pPropInit);
+                ScriptDataCategory cat = data_category(pSymRec->pAst);
                 if (cat == dataCategory)
                 {
                     if (pSymRec && pSymRec->type == kSYMT_Field && pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
@@ -1052,7 +1052,7 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
     {
     case kAST_EntityInit:
     {
-        ASSERT(pAst->pSymRec && pAst->pSymRec->fullName && pAst->pSymRec->pSymTabInternal);
+        ASSERT(pAst->pSymRecRef && pAst->pSymRecRef->fullName && pAst->pSymRecRef->pSymTabInternal);
         ASSERT(pAst->pRhs);
 
         const Ast * pDefiningParent = defining_parent(pAst);
@@ -1079,17 +1079,17 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
 
         code += I1 + S("virtual void init()") + LF;
         code += I1 + S("{") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "mpEntity->scriptTask()", "pThis->scriptTask()", kSDC_Asset, indentLevel + 2);
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRecRef->pSymTabInternal, "mpEntity->scriptTask()", "pThis->scriptTask()", kSDC_Asset, indentLevel + 2);
         code += I1 + S("}") + LF;
 
         code += I1 + S("virtual void initIndependentData()") + LF;
         code += I1 + S("{") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "mpEntity->scriptTask()", "pThis->scriptTask()", kSDC_Independent, indentLevel + 2);
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRecRef->pSymTabInternal, "mpEntity->scriptTask()", "pThis->scriptTask()", kSDC_Independent, indentLevel + 2);
         code += I1 + S("}") + LF;
 
         code += I1 + S("virtual void initDependentData()") + LF;
         code += I1 + S("{") + LF;
-        code += codegen_init_properties(pAst->pRhs, pAst->pSymRec->pSymTabInternal, "mpEntity->scriptTask()", "pThis->scriptTask()", kSDC_Dependent, indentLevel + 2);
+        code += codegen_init_properties(pAst->pRhs, pAst->pSymRecRef->pSymTabInternal, "mpEntity->scriptTask()", "pThis->scriptTask()", kSDC_Dependent, indentLevel + 2);
         code += I1 + S("}") + LF;
 
         code += I + S("private:") + LF;
@@ -1101,7 +1101,7 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
 
         code += I + S("task_id ") + entity_init_func(pAst->str) + S("(") + closureParams + S(")") + LF;
         code += I + S("{") + LF;
-        code += I + S("    Entity * pEntity = get_registry().constructEntity(") + hash_literal(pAst->pSymRec->fullName) + S(", 8);") + LF;
+        code += I + S("    Entity * pEntity = get_registry().constructEntity(") + hash_literal(pAst->pSymRecRef->fullName) + S(", 8);") + LF;
         code += I + S("    ") + entity_init_class(pAst->str) + S(" * pEntityInit = GNEW(kMEM_Engine, ") + entity_init_class(pAst->str) + S(", this, pEntity");
         S closureArgs = closure_args(pClosure);
         if (closureArgs.size() > 0)
@@ -1470,10 +1470,10 @@ static S codegen_recurse(const Ast * pAst,
             {
                 compMembers += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
                 compMembers += I2 + S("    {\n");
-                compMembers += I2 + S("        Task & compTask = insertComponent(") + hash_literal(pCompMember->pSymRec->fullName) + S(", mComponentCount);\n");
+                compMembers += I2 + S("        Task & compTask = insertComponent(") + hash_literal(pCompMember->pSymRecRef->fullName) + S(", mComponentCount);\n");
                 compMembers += I2 + S("        compTask.message(msgAcc); // propagate init__ into component\n");
-                ASSERT(pCompMember->pSymRec && pCompMember->pSymRec->pSymTabInternal);
-                compMembers += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", "mScriptTask", kSDC_Asset, indentLevel + 4);
+                ASSERT(pCompMember->pSymRecRef && pCompMember->pSymRecRef->pSymTabInternal);
+                compMembers += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRecRef->pSymTabInternal, "compTask", "mScriptTask", kSDC_Asset, indentLevel + 4);
                 compMembers += I2 + S("    }\n");
 
                 compMembersProperties += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
@@ -1481,7 +1481,7 @@ static S codegen_recurse(const Ast * pAst,
                 snprintf(scratch, kScratchSize, "        Task & compTask = mpComponents[%u].scriptTask();\n", compIdx);
                 compMembersProperties += I2 + S(scratch);
                 compMembersProperties += I2 + S("        compTask.message(msgAcc); // propagate init_independent_data__ into component\n");
-                compMembersProperties += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", "mScriptTask", kSDC_Independent, indentLevel + 4);
+                compMembersProperties += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRecRef->pSymTabInternal, "compTask", "mScriptTask", kSDC_Independent, indentLevel + 4);
                 compMembersProperties += I2 + S("    }\n");
 
                 compMembersFields += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
@@ -1489,7 +1489,7 @@ static S codegen_recurse(const Ast * pAst,
                 snprintf(scratch, kScratchSize, "        Task & compTask = mpComponents[%u].scriptTask();\n", compIdx);
                 compMembersFields += I2 + S(scratch);
                 compMembersFields += I2 + S("        compTask.message(msgAcc); // propagate init_dependent_data__ into component\n");
-                compMembersFields += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRec->pSymTabInternal, "compTask", "mScriptTask", kSDC_Dependent, indentLevel + 4);
+                compMembersFields += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRecRef->pSymTabInternal, "compTask", "mScriptTask", kSDC_Dependent, indentLevel + 4);
                 compMembersFields += I2 + S("    }\n");
 
                 compIdx++;
@@ -1896,12 +1896,12 @@ static S codegen_recurse(const Ast * pAst,
     {
         S code = S("");
 
-        if (is_top_level_function(pAst->pSymRec->pAst))
+        if (is_top_level_function(pAst->pSymRecRef->pAst))
         {
             code += S("compose_funcs::");
         }
 
-        code += S(pAst->pSymRec->fullName) + S("(");
+        code += S(pAst->pSymRecRef->fullName) + S("(");
         u32 paramIdx = 0;
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
@@ -1914,7 +1914,7 @@ static S codegen_recurse(const Ast * pAst,
         // If it's a top level function call, add in our Entity
         // pointer to serve as the pThis pointer so the function can
         // make system_api calls.
-        if (is_top_level_function(pAst->pSymRec->pAst))
+        if (is_top_level_function(pAst->pSymRecRef->pAst))
         {
             code += S(", &pThis->self()");
         }
@@ -1939,20 +1939,20 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_SymbolRef:
     {
-        if (!pAst->pSymRec)
+        if (!pAst->pSymRecRef)
         {
             COMP_ERROR(pAst->pParseData, "Unknown symbol: %s", pAst->str);
             return S("");
         }
-        return symref(pAst, pAst->pSymRec, pAst->pParseData);
+        return symref(pAst, pAst->pSymRecRef, pAst->pParseData);
     }
     case kAST_SymbolDecl:
     {
         S code = I + S(ast_data_type(pAst)->cppTypeStr) + S(" ") + S(pAst->pSymRec->name);
-        if (pAst->pSymRec->pAst)
+        if (pAst->pSymRec->pInitVal)
         {
             // set assignment
-            code += S(" = ") + codegen_recurse(pAst->pSymRec->pAst, indentLevel);
+            code += S(" = ") + codegen_recurse(pAst->pSymRec->pInitVal, indentLevel);
         }
         return code;
     }

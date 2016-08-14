@@ -641,6 +641,7 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
     pAst->pParent = nullptr;
     pAst->pScope = parsedata_current_scope(pParseData);
     pAst->pSymRec = nullptr;
+    pAst->pSymRecRef = nullptr;
     pAst->pSymDataType = nullptr;
 
     pAst->pLhs = nullptr;
@@ -1044,7 +1045,7 @@ Ast * ast_create_property_def(Ast * pPropDecl, Ast * pInitVal, ParseData * pPars
     parsedata_pop_scope(pParseData);
 
     if (pPropDecl->pSymRec)
-        pPropDecl->pSymRec->pAst = pInitVal;
+        pPropDecl->pSymRec->pInitVal = pInitVal;
 
     return pPropDecl;
 }
@@ -1146,7 +1147,7 @@ Ast * ast_create_function_arg(const char * name, SymRec * pDataTypeSymRec, Parse
     ASSERT(pParseData);
     Ast * pAst = ast_create(kAST_FunctionArg, pParseData);
     pAst->str = name;
-    pAst->pSymRec = pDataTypeSymRec;
+    pAst->pSymRecRef = pDataTypeSymRec;
     return pAst;
 }
 
@@ -1174,7 +1175,7 @@ Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseDat
 
     Ast * pAst = ast_create(kAST_ComponentMember, pParseData);
     pAst->str = pDottedId->str;
-    pAst->pSymRec = pCompSymRec;
+    pAst->pSymRecRef = pCompSymRec;
     ast_set_rhs(pAst, pPropInitList);
     return pAst;
 }
@@ -1266,7 +1267,7 @@ Ast * ast_create_assign_op(AstType astType, Ast * pDottedId, Ast * pRhs, ParseDa
             return pAst;
         }
 
-        pAst->pSymRec = pSymRec;
+        pAst->pSymRecRef = pSymRec;
     }
 
     ast_set_lhs(pAst, pDottedId);
@@ -1701,7 +1702,7 @@ Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData
     {
        pAst = ast_create(kAST_EntityInit, pParseData);
        pAst->str = pDottedId->str;
-       pAst->pSymRec = pSymRec;
+       pAst->pSymRecRef = pSymRec;
        ast_set_rhs(pAst, pParams);
 
        // Build a unique hash for this entity init.
@@ -1835,7 +1836,7 @@ Ast * ast_create_function_call(Ast * pDottedId, Ast * pParams, ParseData * pPars
         }
         else
         {
-            pAst->pSymRec = pSymRec;
+            pAst->pSymRecRef = pSymRec;
             ast_set_rhs(pAst, pParams);
         }
     }
@@ -1868,7 +1869,7 @@ Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData
         }
         else
         {
-            pAst->pSymRec = pSymRec;
+            pAst->pSymRecRef = pSymRec;
             ast_set_rhs(pAst, pParams);
             pAst->str = unmangle_function(pSymRec->name);
         }
@@ -1905,7 +1906,7 @@ Ast * ast_create_symbol_ref(Ast * pDottedId, ParseData * pParseData)
         return pAst;
     }   
 
-    pAst->pSymRec = pSymRec;
+    pAst->pSymRecRef = pSymRec;
     
     return pAst;
 }
@@ -2086,11 +2087,13 @@ void ast_set_rhs(Ast * pParent, Ast * pRhs)
 const SymDataType * ast_data_type(const Ast * pAst)
 {
     // LORRTODO: This should be simplified now that we have
-    // SymDataType, most o fthese should be set at parse time on the
-    // ast instead of having to go through this case statement.
+    // SymDataType, most of these should be set at parse time on the
+    // Ast instead of having to go through this case statement.
 
     if (pAst->pSymRec)
         return pAst->pSymRec->pSymDataType;
+    else if (pAst->pSymRecRef)
+        return pAst->pSymRecRef->pSymDataType;
 
     SymRec * pSymRec = nullptr;
 
@@ -2137,7 +2140,7 @@ const SymDataType * ast_data_type(const Ast * pAst)
         return ast_data_type(pAst->pRhs);
     case kAST_SystemCall:
     case kAST_FunctionArg:
-        return pAst->pSymRec->pSymDataType;
+        return pAst->pSymRecRef->pSymDataType;
     }
 
     if (!pSymRec)
@@ -2434,7 +2437,9 @@ Ast * parsedata_add_symbol(ParseData * pParseData, SymRec * pSymRec, Scope * pSc
 
     Ast * pAst = ast_create(kAST_SymbolDecl, pParseData);
     pAst->pSymRec = pSymRec;
-    ast_set_rhs(pAst, pSymRec->pAst);
+    if (!pSymRec->pAst)
+        pSymRec->pAst = pAst;
+    ast_set_rhs(pAst, pSymRec->pInitVal);
 
     symtab_add_symbol_with_fields(pScope->pSymTab, pSymRec, pParseData);
     return pAst;

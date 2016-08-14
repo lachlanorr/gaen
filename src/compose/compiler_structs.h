@@ -181,6 +181,7 @@ struct Ast
     Ast* pParent;
     Scope* pScope;
     SymRec* pSymRec;
+    SymRec* pSymRecRef;
     const SymDataType * pSymDataType;
 
     Ast* pLhs;
