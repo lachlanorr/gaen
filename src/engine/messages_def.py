@@ -67,6 +67,10 @@ class SpriteVelocity(FieldHandler):
     uid          = u32Field(payload=True)
     velocity     = vec2Field()
 
+class SpriteBody(FieldHandler):
+    uid          = u32Field(payload=True)
+    mass         = f32Field()
+
 class MoveCamera(FieldHandler):
     position = vec3Field()
     direction = quatField()

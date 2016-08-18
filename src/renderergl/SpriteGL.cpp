@@ -41,33 +41,21 @@ void SpriteGL::loadGpu()
     textureId = mpRenderer->loadTexture(textureUnit, &mpSpriteInstance->sprite().image());
 
     // Load sprite's verts and tris
-#if HAS(OPENGL3)
-    glGenVertexArrays(1, &vertArrayId);
-
-    glBindVertexArray(vertArrayId);
-#endif
-    u64 vertsSize = mpSpriteInstance->sprite().vertsSize();
-    const GlyphVert * pVerts = mpSpriteInstance->sprite().verts();
-
-    glGenBuffers(1, &vertBufferId);
-    glBindBuffer(GL_ARRAY_BUFFER, vertBufferId);
-    glBufferData(GL_ARRAY_BUFFER, mpSpriteInstance->sprite().vertsSize(), mpSpriteInstance->sprite().verts(), GL_STATIC_DRAW);
-
+    mpRenderer->loadGlyphVerts(&vertArrayId,
+                               &vertBufferId,
+                               mpSpriteInstance->sprite().verts(),
+                               mpSpriteInstance->sprite().vertsSize());
 #if HAS(OPENGL3)
     prepareMeshAttributes();
 #endif
-    u64 trisSize = mpSpriteInstance->sprite().trisSize();
-    const GlyphTri * pTris = mpSpriteInstance->sprite().tris();
 
-    glGenBuffers(1, &primBufferId);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primBufferId);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mpSpriteInstance->sprite().trisSize(), mpSpriteInstance->sprite().tris(), GL_STATIC_DRAW);
 
-#if HAS(OPENGL3)
-    glBindVertexArray(0);
-#endif
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    mpRenderer->loadGlyphTris(&primBufferId,
+                              mpSpriteInstance->sprite().tris(),
+                              mpSpriteInstance->sprite().trisSize());
+
+
+    mpRenderer->unbindBuffers();
 }
 
 void SpriteGL::render()
@@ -83,6 +71,8 @@ void SpriteGL::render()
 #endif
     const void * pOffset = mpSpriteInstance->currentFrameElemsOffset();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, mpSpriteInstance->currentFrameElemsOffset());
+
+    mpRenderer->unbindBuffers();
 }
 
 void SpriteGL::prepareMeshAttributes()

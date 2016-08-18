@@ -27,7 +27,13 @@
 #ifndef GAEN_ENGINE_SPRITE_PHYSICS_H
 #define GAEN_ENGINE_SPRITE_PHYSICS_H
 
+#include <LinearMath/btMotionState.h>
+#include <BulletCollision/CollisionShapes/btCollisionShape.h>
+#include <BulletDynamics/Dynamics/btRigidBody.h>
+
 #include "core/mem.h"
+#include "engine/glm_ext.h"
+#include "engine/Sprite.h"
 
 
 class btBroadphaseInterface;
@@ -39,17 +45,47 @@ class btDiscreteDynamicsWorld;
 namespace gaen
 {
 
+class SpriteBody : public btMotionState
+{
+    friend class SpritePhysics;
+public:
+    SpriteBody(SpriteInstance & spriteInstance)
+      : mSpriteInstance(spriteInstance)
+    {
+        mSpriteInstance.mHasBody = true;
+    }
+
+    void getWorldTransform(btTransform& worldTrans) const;
+    void setWorldTransform(const btTransform& worldTrans);
+
+private:
+    UniquePtr<btRigidBody> mpRigidBody;
+    SpriteInstance & mSpriteInstance;
+};
+
+typedef UniquePtr<SpriteBody> SpriteBodyUP;
+typedef UniquePtr<btCollisionShape> btCollisionShapeUP;
+
 class SpritePhysics
 {
 public:
     SpritePhysics();
-    
+
+    void update(f32 delta);
+
+    void insert(SpriteInstance & spriteInst, f32 mass);
+    void remove(u32 uid);
+
+    void setVelocity(u32 uid, const glm::vec2 & velocity);
 private:
     UniquePtr<btBroadphaseInterface> mpBroadphase;
     UniquePtr<btDefaultCollisionConfiguration> mpCollisionConfiguration;
     UniquePtr<btCollisionDispatcher> mpDispatcher;
     UniquePtr<btSequentialImpulseConstraintSolver> mpSolver;
     UniquePtr<btDiscreteDynamicsWorld> mpDynamicsWorld;
+
+    HashMap<kMEM_Physics, u32, SpriteBodyUP> mBodies;
+    HashMap<kMEM_Physics, glm::vec3, btCollisionShapeUP> mCollisionShapes;
 };
 
 } // namespace gaen

@@ -57,5 +57,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <btBulletDynamicsCommon.h>
+#include <BulletCollision/CollisionShapes/btBox2dShape.h>
 
 #endif // #ifndef GAEN_ENGINE_STDAFX_H

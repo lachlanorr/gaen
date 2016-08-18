@@ -72,14 +72,24 @@ public:
     MessageResult message(const T& msgAcc);
 
     void loadMaterialMesh(Model::MaterialMesh & matMesh);
-    u32 loadTexture(u32 textureUnit, const Gimg * gimg);
+
+    u32 loadTexture(u32 textureUnit, const Gimg * pGimg);
+    void unloadTexture(const Gimg * pGimg);
+
+    void loadGlyphVerts(u32 * pVertArrayId, u32 * pVertBufferId, const GlyphVert * pVerts, u64 vertsSize);
+    void unloadGlyphVerts(const GlyphVert * pVerts);
+
+    void loadGlyphTris(u32 * pPrimBufferId, const GlyphTri * pTris, u64 trisSize);
+    void unloadGlyphTris(const GlyphTri * pTris);
+
+    void unbindBuffers();
 
 private:
     static void set_shader_vec4_var(u32 nameHash, const glm::vec4 & val, void * pContext);
     static u32 texture_unit(u32 nameHash);
     static void set_texture(u32 nameHash, u32 glId, void * pContext);
 
-    static u32 load_texture(u32 nameHash,const Gimg * pGimg, void * pContext);
+    static u32 load_texture(u32 nameHash, const Gimg * pGimg, void * pContext);
 
     static void prepare_mesh_attributes(const Mesh & mesh);
 
@@ -129,19 +139,35 @@ private:
     ShaderRegistry mShaderRegistry;
     HashMap<kMEM_Renderer, u32, shaders::Shader*> mShaders;
 
-    struct TextureInfo
+    template <class T>
+    struct LoadInfo
     {
-        const Gimg * pGimg;
-        u32 glId;
+        const T * pGimg;
+        u32 glId0;
+        u32 glId1;
         u32 refCount;
 
-        TextureInfo(const Gimg *pGimg, u32 glId, u32 refCount)
+        LoadInfo(const T *pGimg, u32 glId0, u32 refCount)
           : pGimg(pGimg)
-          , glId(glId)
+          , glId0(glId0)
+          , glId1(0)
+          , refCount(refCount)
+        {}
+
+        LoadInfo(const T *pGimg, u32 glId0, u32 glId1, u32 refCount)
+          : pGimg(pGimg)
+          , glId0(glId0)
+          , glId1(glId1)
           , refCount(refCount)
         {}
     };
-    HashMap<kMEM_Renderer, const Gimg*, TextureInfo> mLoadedTextures;
+
+    template <class T>
+    using LoadMap = HashMap<kMEM_Renderer, const T*, LoadInfo<T>>;
+
+    LoadMap<Gimg> mLoadedTextures;
+    LoadMap<GlyphVert> mLoadedGlyphVerts;
+    LoadMap<GlyphTri> mLoadedGlyphTris;
 };
 
 } // namespace gaen

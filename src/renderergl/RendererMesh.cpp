@@ -146,11 +146,10 @@ void RendererMesh::set_texture(u32 nameHash, u32 glId, void * pContext)
     glBindTexture(GL_TEXTURE_2D, glId);
 }
 
-
 u32 RendererMesh::loadTexture(u32 textureUnit, const Gimg * pGimg)
 {
-    auto itTI = mLoadedTextures.find(pGimg);
-    if (itTI == mLoadedTextures.end())
+    auto it = mLoadedTextures.find(pGimg);
+    if (it == mLoadedTextures.end())
     {
         u32 glId = 0;
         glActiveTexture(GL_TEXTURE0 + textureUnit);
@@ -179,9 +178,124 @@ u32 RendererMesh::loadTexture(u32 textureUnit, const Gimg * pGimg)
     }
     else
     {
-        itTI->second.refCount++;
-        return itTI->second.glId;
+        it->second.refCount++;
+        return it->second.glId0;
     }
+}
+
+void RendererMesh::unloadTexture(const Gimg * pGimg)
+{
+    auto it = mLoadedTextures.find(pGimg);
+    if (it != mLoadedTextures.end())
+    {
+        ASSERT(it->second.refCount > 0);
+        it->second.refCount--;
+        if (it->second.refCount == 0)
+        {
+            LOG_ERROR("TODO: Add code to unloadTexture");
+            mLoadedTextures.erase(it);
+        }
+    }
+    else
+    {
+        LOG_ERROR("unloadTexture on unkown Gimg");
+    }
+}
+
+void RendererMesh::loadGlyphVerts(u32 * pVertArrayId, u32 * pVertBufferId, const GlyphVert * pVerts, u64 vertsSize)
+{
+    auto it = mLoadedGlyphVerts.find(pVerts);
+    if (it == mLoadedGlyphVerts.end())
+    {
+#if HAS(OPENGL3)
+        glGenVertexArrays(1, pVertArrayId);
+
+        glBindVertexArray(*pVertArrayId);
+#else
+        *pVertArrayId = 0;
+#endif
+
+        glGenBuffers(1, pVertBufferId);
+        glBindBuffer(GL_ARRAY_BUFFER, *pVertBufferId);
+        glBufferData(GL_ARRAY_BUFFER, vertsSize, pVerts, GL_STATIC_DRAW);
+
+        mLoadedGlyphVerts.emplace(std::piecewise_construct,
+                                  std::forward_as_tuple(pVerts),
+                                  std::forward_as_tuple(pVerts, *pVertArrayId, *pVertBufferId, 1));
+    }
+    else
+    {
+        it->second.refCount++;
+        *pVertArrayId = it->second.glId0;
+        *pVertBufferId = it->second.glId1;
+    }
+}
+
+void RendererMesh::unloadGlyphVerts(const GlyphVert * pVerts)
+{
+    auto it = mLoadedGlyphVerts.find(pVerts);
+    if (it != mLoadedGlyphVerts.end())
+    {
+        ASSERT(it->second.refCount > 0);
+        it->second.refCount--;
+        if (it->second.refCount == 0)
+        {
+            LOG_ERROR("TODO: Add code to unloadGlyphVerts");
+            mLoadedGlyphVerts.erase(it);
+        }
+    }
+    else
+    {
+        LOG_ERROR("unloadGlyphVerts on unkown Gimg");
+    }
+}
+
+void RendererMesh::loadGlyphTris(u32 * pPrimBufferId, const GlyphTri * pTris, u64 trisSize)
+{
+    auto it = mLoadedGlyphTris.find(pTris);
+    if (it == mLoadedGlyphTris.end())
+    {
+        glGenBuffers(1, pPrimBufferId);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *pPrimBufferId);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, trisSize, pTris, GL_STATIC_DRAW);
+
+        mLoadedGlyphTris.emplace(std::piecewise_construct,
+                                 std::forward_as_tuple(pTris),
+                                 std::forward_as_tuple(pTris, *pPrimBufferId, 1));
+    }
+    else
+    {
+        it->second.refCount++;
+        *pPrimBufferId = it->second.glId0;
+    }
+}
+
+void RendererMesh::unloadGlyphTris(const GlyphTri * pTris)
+{
+    auto it = mLoadedGlyphTris.find(pTris);
+    if (it != mLoadedGlyphTris.end())
+    {
+        ASSERT(it->second.refCount > 0);
+        it->second.refCount--;
+        if (it->second.refCount == 0)
+        {
+            LOG_ERROR("TODO: Add code to unloadGlyphTris");
+            mLoadedGlyphTris.erase(it);
+        }
+    }
+    else
+    {
+        LOG_ERROR("unloadGlyphTris on unkown Gimg");
+    }
+}
+
+void RendererMesh::unbindBuffers()
+{
+#if HAS(OPENGL3)
+    glBindVertexArray(0);
+#endif
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 u32 RendererMesh::load_texture(u32 nameHash, const Gimg * pGimg, void * pContext)
@@ -394,6 +508,10 @@ MessageResult RendererMesh::message(const T & msgAcc)
 
         if (spritePairIt != mSpriteMap.end())
         {
+            unloadTexture(&spritePairIt->second->mpSpriteInstance->sprite().image());
+            unloadGlyphVerts(spritePairIt->second->mpSpriteInstance->sprite().verts());
+            unloadGlyphTris(spritePairIt->second->mpSpriteInstance->sprite().tris());
+
             mSpriteMap.erase(spritePairIt);
             SpriteInstance::send_sprite_destroy(kRendererTaskId, kSpriteMgrTaskId, uid);
         }

@@ -36,7 +36,7 @@
 #include "engine/messages/SpriteInstance.h"
 #include "engine/messages/SpritePlayAnim.h"
 #include "engine/messages/SpriteVelocity.h"
-#include "engine/messages/Transform.h"
+#include "engine/messages/SpriteBody.h"
 
 #include "engine/SpriteMgr.h"
 
@@ -54,9 +54,12 @@ SpriteMgr::~SpriteMgr()
 
 void SpriteMgr::update(f32 delta)
 {
+    mPhysics.update(delta);
+
     for (auto & spritePair : mSpriteMap)
     {
         SpriteInstance * pSpriteInst = spritePair.second.get();
+        /*
         if (pSpriteInst->mVelocity != glm::vec2{0.0})
         {
             glm::vec3 offset = glm::vec3(pSpriteInst->mVelocity * delta, 0.0f);
@@ -67,6 +70,7 @@ void SpriteMgr::update(f32 delta)
                 msgw.setTransform(pSpriteInst->mTransform);
             }
         }
+        */
         if (pSpriteInst->mIsAnimating && pSpriteInst->advanceAnim(delta))
         {
             // update renderer with new frame
@@ -124,11 +128,32 @@ MessageResult SpriteMgr::message(const T & msgAcc)
         auto spritePair = mSpriteMap.find(msgr.uid());
         if (spritePair != mSpriteMap.end())
         {
-            spritePair->second->mVelocity = msgr.velocity();
+            if (spritePair->second->mHasBody)
+            {
+                mPhysics.setVelocity(msgr.uid(), msgr.velocity());
+            }
+            else
+            {
+                ERR("sprite_set_velocity for non rigid body sprite, uid: %u", msgr.uid());
+            }
         }
         else
         {
-            ERR("sprite_set_velocity for unknown animation, uid: %u", msgr.uid());
+            ERR("sprite_set_velocity for unknown sprite, uid: %u", msgr.uid());
+        }
+        return MessageResult::Consumed;
+    }
+    case HASH::sprite_init_body:
+    {
+        messages::SpriteBodyR<T> msgr(msgAcc);
+        auto spritePair = mSpriteMap.find(msgr.uid());
+        if (spritePair != mSpriteMap.end())
+        {
+            mPhysics.insert(*spritePair->second, msgr.mass());
+        }
+        else
+        {
+            ERR("sprite_init_body for unknown sprite, uid: %u", msgr.uid());
         }
         return MessageResult::Consumed;
     }
@@ -141,8 +166,22 @@ MessageResult SpriteMgr::message(const T & msgAcc)
         {
             for (u32 uid : itL->second)
             {
-                // send sprite_destroy to renderer who in turn will send it back to us once
-                SpriteInstance::send_sprite_destroy(kSpriteMgrTaskId, kRendererTaskId, uid);
+                auto spritePair = mSpriteMap.find(uid);
+                if (spritePair != mSpriteMap.end())
+                {
+                    // remove from physics simulation if necessary
+                    if (spritePair->second->mHasBody)
+                    {
+                        mPhysics.remove(uid);
+                    }
+                    
+                    // send sprite_destroy to renderer who in turn will send it back to us once
+                    SpriteInstance::send_sprite_destroy(kSpriteMgrTaskId, kRendererTaskId, uid);
+                }
+                else
+                {
+                    ERR("remove_task for task_id: %u has non-existent sprite uid: %u", taskIdToRemove, uid);
+                }
             }
             mSpriteOwners.erase(itL);
         }
@@ -176,13 +215,7 @@ template MessageResult SpriteMgr::message<MessageQueueAccessor>(const MessageQue
 namespace system_api
 {
 
-static void handle_sprite_remove(Handle & handle)
-{
-    SpriteInstance::send_sprite_destroy(handle.owner(), kSpriteMgrTaskId, handle.nameOrId());
-    GDELETE(&handle);
-}
-
-HandleP sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Entity & caller)
+u32 sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Entity & caller)
 {
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
     const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
@@ -192,23 +225,27 @@ HandleP sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, 
 
     SpriteInstance::send_sprite_insert(caller.task().id(), kSpriteMgrTaskId, pSpriteInst);
 
-    HandleP pHandle = GNEW(kMEM_Engine, Handle, HASH::sprite, pSprite->uid(), caller.task().id(), nullptr, handle_sprite_remove);
-    return pHandle;
+    return pSprite->uid();
 }
 
-void sprite_play_anim(HandleP pSpriteHandle, u32 animHash, f32 duration, Entity & caller)
+void sprite_play_anim(u32 spriteUid, u32 animHash, f32 duration, Entity & caller)
 {
-    messages::SpritePlayAnimQW msgw(HASH::sprite_play_anim, kMessageFlag_None, pSpriteHandle->owner(), kSpriteMgrTaskId, pSpriteHandle->nameOrId());
+    messages::SpritePlayAnimQW msgw(HASH::sprite_play_anim, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setAnimHash(animHash);
     msgw.setDuration(duration);
 }
 
-void sprite_set_velocity(HandleP pSpriteHandle, const glm::vec2 & velocity, Entity & caller)
+void sprite_set_velocity(u32 spriteUid, const glm::vec2 & velocity, Entity & caller)
 {
-    messages::SpriteVelocityQW msgw(HASH::sprite_set_velocity, kMessageFlag_None, pSpriteHandle->owner(), kSpriteMgrTaskId, pSpriteHandle->nameOrId());
+    messages::SpriteVelocityQW msgw(HASH::sprite_set_velocity, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setVelocity(velocity);
 }
 
+void sprite_init_body(u32 spriteUid, f32 mass, Entity & caller)
+{
+    messages::SpriteBodyQW msgw(HASH::sprite_init_body, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
+    msgw.setMass(mass);
+}
 
 } // namespace system_api
 

@@ -58,8 +58,11 @@ void print_asset_info(AssetHandleP asset, Entity & caller);
 f32 radians(f32 degrees, Entity & caller);
 f32 degrees(f32 radians, Entity & caller);
 
-glm::mat4x3 mat43_rotation(const glm::vec3 & angles, Entity & caller);
-glm::mat3 mat3_rotation(const glm::vec3 & angles, Entity & caller);
+
+glm::mat4x3 transform(const glm::vec3 & pos, glm::vec3 & angles, Entity & caller);
+glm::mat4x3 position(const glm::vec3 & pos, Entity & caller);
+glm::mat4x3 rotation(const glm::vec3 & angles, Entity & caller);
+glm::mat3 rotation_mat3(const glm::vec3 & angles, Entity & caller);
 
 glm::quat quat_from_axis_angle(const glm::vec3 & dir, f32 angle, Entity & caller);
 glm::quat quat_normalize(const glm::quat & quat, Entity & caller);

@@ -80,12 +80,22 @@ f32 degrees(f32 radians, Entity & caller)
     return glm::degrees(radians);
 }
 
-glm::mat4x3 mat43_rotation(const glm::vec3 & angles, Entity & caller)
+glm::mat4x3 transform(const glm::vec3 & pos, glm::vec3 & angles, Entity & caller)
+{
+    return glm::mat43_transform(pos, angles);
+}
+
+glm::mat4x3 position(const glm::vec3 & pos, Entity & caller)
+{
+    return glm::mat43_position(pos);
+}
+
+glm::mat4x3 rotation(const glm::vec3 & angles, Entity & caller)
 {
     return glm::mat43_rotation(angles);
 }
 
-glm::mat3 mat3_rotation(const glm::vec3 & angles, Entity & caller)
+glm::mat3 rotation_mat3(const glm::vec3 & angles, Entity & caller)
 {
     return glm::mat3_rotation(angles);
 }

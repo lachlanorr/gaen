@@ -62,6 +62,8 @@ public:
     const GlyphTri * tris() const;
     u64 trisSize() const;
 
+    glm::vec3 halfExtents() const;
+
     const Gimg & image() const;
 
 private:
@@ -83,10 +85,13 @@ private:
 };
 
 struct AnimInfo;
+class SpriteBody;
 // Mutable properties of a sprite
 class SpriteInstance
 {
     friend class SpriteMgr;
+    friend class SpriteBody;
+    friend class SpritePhysics;
 public:
     SpriteInstance(Sprite * pSprite, const glm::mat4x3 & transform);
 
@@ -105,8 +110,6 @@ public:
     static void send_sprite_destroy(task_id source, task_id target, u32 uid);
 
     glm::mat4x3 mTransform;
-    glm::vec2 mVelocity;
-
 private:
     // Delete these to make sure we construct through the asset->addref path
     SpriteInstance(const SpriteInstance&)             = delete;
@@ -118,9 +121,11 @@ private:
     bool advanceAnim(f32 delta);
 
     Sprite * mpSprite;
+    bool mHasBody;
     
     const AnimInfo * mpAnimInfo;
     const void * mpCurrentFrameElemsOffset;
+
     u32 mAnimHash;
     u32 mAnimFrameIdx;
     f32 mDurationPerFrame;

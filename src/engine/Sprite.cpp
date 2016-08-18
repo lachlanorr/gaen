@@ -96,6 +96,38 @@ const void * Sprite::triOffset(u32 idx) const
     return (void*)(sizeof(GlyphTri) * (&mpGatl->tris()[idx] - mpGatl->tris()));
 }
 
+glm::vec3 Sprite::halfExtents() const
+{
+    const AnimInfo * pAnimInfo = mpGspr->getAnim(mpGspr->defaultAnimHash());
+    uintptr_t frameElemsOffset = (uintptr_t)mpGspr->getFrameElemsOffset(pAnimInfo, 0);
+    u16 triIdx = (u16)(frameElemsOffset / sizeof(GlyphTri));
+    const GlyphTri & tri = mpGatl->tri(triIdx);
+    glm::vec3 rmin(std::numeric_limits<f32>::max(), std::numeric_limits<f32>::max(), 0.0f);
+    glm::vec3 rmax(std::numeric_limits<f32>::lowest(), std::numeric_limits<f32>::lowest(), 0.0f);
+
+    const GlyphVert & vert0 = mpGatl->vert(tri.p0);
+    rmin.x = glm::min(rmin.x, vert0.position.x);
+    rmin.y = glm::min(rmin.y, vert0.position.y);
+    rmax.x = glm::max(rmax.x, vert0.position.x);
+    rmax.y = glm::max(rmax.y, vert0.position.y);
+
+    const GlyphVert & vert1 = mpGatl->vert(tri.p1);
+    rmin.x = glm::min(rmin.x, vert1.position.x);
+    rmin.y = glm::min(rmin.y, vert1.position.y);
+    rmax.x = glm::max(rmax.x, vert1.position.x);
+    rmax.y = glm::max(rmax.y, vert1.position.y);
+
+    const GlyphVert & vert2 = mpGatl->vert(tri.p2);
+    rmin.x = glm::min(rmin.x, vert2.position.x);
+    rmin.y = glm::min(rmin.y, vert2.position.y);
+    rmax.x = glm::max(rmax.x, vert2.position.x);
+    rmax.y = glm::max(rmax.y, vert2.position.y);
+
+    glm::vec3 ext = rmax - rmin;
+
+    return ext / 2.0f;
+}
+
 const Gimg & Sprite::image() const
 {
     return *mpGatl->image();
@@ -106,8 +138,8 @@ const Gimg & Sprite::image() const
 
 SpriteInstance::SpriteInstance(Sprite * pSprite, const glm::mat4x3 & transform)
   : mpSprite(pSprite)
+  , mHasBody(false)
   , mTransform(transform)
-  , mVelocity(0.0f)
   , mIsAnimating(false)
 {
     mDurationPerFrame = 0.0f;

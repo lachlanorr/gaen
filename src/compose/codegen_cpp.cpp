@@ -649,7 +649,7 @@ static S fin(const Ast * pAst, int indentLevel)
     return code;
 }
 
-static S initialization_message_handlers(const Ast * pAst, const S& postInit, const S& postInitProperties, const S& postInitFields, int indentLevel)
+static S initialization_message_handlers(const Ast * pAst, const S& postInit, const S& postInitIndependent, const S& postInitDependent, int indentLevel)
 {
     S code;
 
@@ -683,7 +683,7 @@ static S initialization_message_handlers(const Ast * pAst, const S& postInit, co
     code += I + S("        {\n");
     code += I + S("            // Initialize non-asset properties to default values\n");
     code += init_data(pAst, indentLevel + 2, kSDC_Independent);
-    code += postInitProperties;
+    code += postInitIndependent;
     code += I + S("            return MessageResult::Consumed;\n");
     code += I + S("        } // HASH::init_independent_data__\n");
 
@@ -692,7 +692,7 @@ static S initialization_message_handlers(const Ast * pAst, const S& postInit, co
     code += I + S("        {\n");
     code += I + S("            // Initialize non-asset fields to default values\n");
     code += init_data(pAst, indentLevel + 2, kSDC_Dependent);
-    code += postInitFields;
+    code += postInitDependent;
     code += I + S("            return MessageResult::Consumed;\n");
     code += I + S("        } // HASH::init_dependent_data__\n");
 
@@ -809,7 +809,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                              scriptTaskName,
                              taskName);
                     code += I + S(scratch);
-                    code += I + S("    msgw.setTransform(pThis->self().transform());") + LF;
+                    code += I + S("    msgw.setTransform(") + codegen_recurse(pPropInit->pRhs, 0) + S(");") + LF;
                     code += I + S("    ") + S(taskName) + S(".message(msgw.accessor());") + LF;
                     code += I + S("}\n");
                 }
@@ -1461,8 +1461,8 @@ static S codegen_recurse(const Ast * pAst,
         // NOTE: This must happen after mBlocks is initialized to hold
         // the data members of the entity.
         S compMembers = S("");
-        S compMembersProperties = S("");
-        S compMembersFields = S("");
+        S compMembersIndependent = S("");
+        S compMembersDependent = S("");
         if (pCompMembers)
         {
             u32 compIdx = 0;
@@ -1476,28 +1476,30 @@ static S codegen_recurse(const Ast * pAst,
                 compMembers += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRecRef->pSymTabInternal, "compTask", "mScriptTask", kSDC_Asset, indentLevel + 4);
                 compMembers += I2 + S("    }\n");
 
-                compMembersProperties += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
-                compMembersProperties += I2 + S("    {\n");
+                compMembersDependent += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
+                compMembersDependent += I2 + S("    {\n");
                 snprintf(scratch, kScratchSize, "        Task & compTask = mpComponents[%u].scriptTask();\n", compIdx);
-                compMembersProperties += I2 + S(scratch);
-                compMembersProperties += I2 + S("        compTask.message(msgAcc); // propagate init_independent_data__ into component\n");
-                compMembersProperties += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRecRef->pSymTabInternal, "compTask", "mScriptTask", kSDC_Independent, indentLevel + 4);
-                compMembersProperties += I2 + S("    }\n");
-
-                compMembersFields += I2 + S("    // Component: ") + S(pCompMember->str) + ("\n");
-                compMembersFields += I2 + S("    {\n");
-                snprintf(scratch, kScratchSize, "        Task & compTask = mpComponents[%u].scriptTask();\n", compIdx);
-                compMembersFields += I2 + S(scratch);
-                compMembersFields += I2 + S("        compTask.message(msgAcc); // propagate init_dependent_data__ into component\n");
-                compMembersFields += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRecRef->pSymTabInternal, "compTask", "mScriptTask", kSDC_Dependent, indentLevel + 4);
-                compMembersFields += I2 + S("    }\n");
+                compMembersDependent += I2 + S(scratch);
+                compMembersDependent += I2 + S("        {") + LF;
+                compMembersDependent += I2 + S("            // Send init_independent_data__ into component") + LF;
+                compMembersDependent += I2 + S("            {") + LF;
+                compMembersDependent += I2 + S("                StackMessageBlockWriter<0> msgw(HASH::init_independent_data__, kMessageFlag_None, mScriptTask.id(), compTask.id(), to_cell(0));") + LF;
+                compMembersDependent += I2 + S("                compTask.message(msgw.accessor());\n");
+                compMembersDependent += I2 + S("            }") + LF;
+                compMembersDependent += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRecRef->pSymTabInternal, "compTask", "mScriptTask", kSDC_Independent, indentLevel + 5);
+                compMembersDependent += I2 + S("        }") + LF;
+                compMembersDependent += LF;
+                compMembersDependent += I2 + S("        // Send init_dependent_data__ into component") + LF;
+                compMembersDependent += I2 + S("        compTask.message(msgAcc); // propagate init_dependent_data__ into component\n");
+                compMembersDependent += codegen_init_properties(pCompMember->pRhs, pCompMember->pSymRecRef->pSymTabInternal, "compTask", "mScriptTask", kSDC_Dependent, indentLevel + 4);
+                compMembersDependent += I2 + S("    }\n");
 
                 compIdx++;
             }
         }
 
         // init__, request_assets__, etc.
-        code += initialization_message_handlers(pAst, compMembers, compMembersProperties, compMembersFields, indentLevel);
+        code += initialization_message_handlers(pAst, compMembers, compMembersIndependent, compMembersDependent, indentLevel);
 
         // property setters
         code += propCode;

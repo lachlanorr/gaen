@@ -1044,8 +1044,23 @@ Ast * ast_create_property_def(Ast * pPropDecl, Ast * pInitVal, ParseData * pPars
     // complex property defs, but gets created for all property defs
     parsedata_pop_scope(pParseData);
 
-    if (pPropDecl->pSymRec)
-        pPropDecl->pSymRec->pInitVal = pInitVal;
+    if (pPropDecl->type == kAST_MetaAstMulti)
+    {
+        // it's an asset, make sure pInitVal goes on the right place
+        for (const Ast * pChild : pPropDecl->pChildren->nodes)
+        {
+            if (pChild->pSymRec && pChild->pSymRec->type == kSYMT_Property && strstr(pChild->pSymRec->name, kAssetPathSuffix))
+            {
+                pChild->pSymRec->pInitVal = pInitVal;
+                break;
+            }
+        }
+    }
+    else
+    {
+        if (pPropDecl->pSymRec)
+            pPropDecl->pSymRec->pInitVal = pInitVal;
+    }
 
     return pPropDecl;
 }

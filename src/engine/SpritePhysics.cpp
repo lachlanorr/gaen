@@ -26,11 +26,50 @@
 
 #include "engine/stdafx.h"
 
+#include "engine/messages/Transform.h"
 #include "engine/SpritePhysics.h"
 
 
 namespace gaen
 {
+
+void SpriteBody::getWorldTransform(btTransform& worldTrans) const
+{
+    const glm::mat4x3 & t = mSpriteInstance.mTransform;
+    worldTrans.setBasis(btMatrix3x3(t[0][0], t[0][1], t[0][2],
+                                    t[1][0], t[1][1], t[1][2],
+                                    t[2][0], t[2][1], t[2][2]));
+    worldTrans.setOrigin(btVector3(t[3][0], t[3][1], t[3][2]));
+}
+
+void SpriteBody::setWorldTransform(const btTransform& worldTrans)
+{
+    glm::mat4x3 & t = mSpriteInstance.mTransform;
+
+    t[0][0] = worldTrans.getBasis()[0][0];
+    t[0][1] = worldTrans.getBasis()[0][1];
+    t[0][2] = worldTrans.getBasis()[0][2];
+
+    t[1][0] = worldTrans.getBasis()[1][0];
+    t[1][1] = worldTrans.getBasis()[1][1];
+    t[1][2] = worldTrans.getBasis()[1][2];
+
+    t[2][0] = worldTrans.getBasis()[2][0];
+    t[2][1] = worldTrans.getBasis()[2][1];
+    t[2][2] = worldTrans.getBasis()[2][2];
+
+    t[3][0] = worldTrans.getOrigin()[0];
+    t[3][1] = worldTrans.getOrigin()[1];
+    t[3][2] = worldTrans.getOrigin()[2];
+
+    SpriteInstance::send_sprite_transform(kSpriteMgrTaskId, kRendererTaskId, mSpriteInstance.sprite().uid(), mSpriteInstance.mTransform);
+    {
+        messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, mSpriteInstance.sprite().owner(), false);
+        msgw.setTransform(mSpriteInstance.mTransform);
+    }
+}
+
+
 
 SpritePhysics::SpritePhysics()
 {
@@ -46,5 +85,74 @@ SpritePhysics::SpritePhysics()
                                mpCollisionConfiguration.get()));
 }
 
+void SpritePhysics::update(f32 delta)
+{
+    mpDynamicsWorld->stepSimulation(delta);
+}
+
+void SpritePhysics::insert(SpriteInstance & spriteInst, f32 mass)
+{
+    if (mBodies.find(spriteInst.sprite().uid()) == mBodies.end())
+    {
+        ASSERT(spriteInst.mHasBody == false);
+        SpriteBody * pBody = GNEW(kMEM_Physics, SpriteBody, spriteInst);
+        mBodies.emplace(spriteInst.sprite().uid(), pBody);
+
+        glm::vec3 halfExtents = spriteInst.sprite().halfExtents();
+        auto colShapeIt = mCollisionShapes.find(halfExtents);
+
+        btCollisionShape * pCollisionShape = nullptr;
+        if (colShapeIt != mCollisionShapes.end())
+            pCollisionShape = colShapeIt->second.get();
+        else
+        {
+            btVector3 btExtents(halfExtents.x, halfExtents.y, halfExtents.z);
+            auto empRes = mCollisionShapes.emplace(std::piecewise_construct,
+                                                   std::forward_as_tuple(halfExtents),
+                                                   std::forward_as_tuple(GNEW(kMEM_Physics, btBox2dShape, btExtents)));
+            pCollisionShape = empRes.first->second.get();
+        }
+
+        btRigidBody::btRigidBodyConstructionInfo constrInfo(mass, pBody, pCollisionShape);
+        pBody->mpRigidBody.reset(GNEW(kMEM_Physics, btRigidBody, constrInfo));
+        pBody->mpRigidBody->setLinearFactor(btVector3(1, 1, 0));
+        pBody->mpRigidBody->setAngularFactor(btVector3(0, 0, 0));
+
+        pBody->mpRigidBody->setLinearVelocity(btVector3(10, 0, 0));
+        mpDynamicsWorld->addRigidBody(pBody->mpRigidBody.get());
+    }
+    else
+    {
+        LOG_ERROR("SpriteBody for %u already created", spriteInst.sprite().uid());
+    }
+}
+
+void SpritePhysics::remove(u32 uid)
+{
+    auto it = mBodies.find(uid);
+    if (it != mBodies.end())
+    {
+        mpDynamicsWorld->removeRigidBody(it->second->mpRigidBody.get());
+        mBodies.erase(it);
+    }
+    else
+    {
+        LOG_ERROR("Cannot find SpriteBody %u to remove", uid);
+    }
+}
+
+void SpritePhysics::setVelocity(u32 uid, const glm::vec2 & velocity)
+{
+    auto it = mBodies.find(uid);
+    if (it != mBodies.end())
+    {
+        LOG_INFO("setVelocity uid: %u, x: %f, y: %f", uid, velocity.x, velocity.y);
+        it->second->mpRigidBody->setLinearVelocity(btVector3(velocity.x, velocity.y, 0));
+    }
+    else
+    {
+        LOG_ERROR("Cannot find SpriteBody %u to setVelocity", uid);
+    }
+}
 
 } // namespace gaen
