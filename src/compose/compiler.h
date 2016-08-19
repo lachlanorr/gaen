@@ -167,6 +167,9 @@ typedef enum
     kAST_Vec2Init,
     kAST_Vec3Init,
     kAST_Vec4Init,
+    kAST_Uvec2Init,
+    kAST_Uvec3Init,
+    kAST_Uvec4Init,
     kAST_QuatInit,
     kAST_Mat43Init,
     kAST_StringInit,
@@ -239,25 +242,28 @@ typedef enum
     kDT_double    = 13,
     kDT_color     = 14,
     kDT_vec2      = 15,
+    kDT_uvec2     = 16,
 
-    kDT_vec3      = 16,
-    kDT_vec4      = 17,
-    kDT_quat      = 18,
-    kDT_mat3      = 19,
-    kDT_mat43     = 20,
-    kDT_mat4      = 21,
+    kDT_vec3      = 17,
+    kDT_vec4      = 18,
+    kDT_uvec3     = 19,
+    kDT_uvec4     = 20,
+    kDT_quat      = 21,
+    kDT_mat3      = 22,
+    kDT_mat43     = 23,
+    kDT_mat4      = 24,
 
-    kDT_handle       = 22,
-    kDT_asset_handle = 23,
+    kDT_handle       = 25,
+    kDT_asset_handle = 26,
 
-    kDT_entity    = 24,
+    kDT_entity    = 27,
 
     // Dynamic data structures
-    kDT_string    = 25,
-    kDT_asset     = 26,
+    kDT_string    = 28,
+    kDT_asset     = 29,
 
     // User defined struct
-    kDT_struct    = 27,
+    kDT_struct    = 30,
 
     kDT_COUNT
 
@@ -378,6 +384,9 @@ Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec2_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_uvec2_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_uvec3_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_uvec4_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_mat43_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData);

@@ -500,6 +500,12 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
         return S("glm::vec3(0.0f, 0.0f, 0.0f)");
     case kDT_vec4:
         return S("glm::vec4(0.0, 0.0f, 0.0f, 1.0f)");
+    case kDT_uvec2:
+        return S("glm::uvec2(0.0f, 0.0f)");
+    case kDT_uvec3:
+        return S("glm::uvec3(0.0f, 0.0f, 0.0f)");
+    case kDT_uvec4:
+        return S("glm::uvec4(0.0, 0.0f, 0.0f, 1.0f)");
     case kDT_quat:
         return S("glm::quat(0.0, 0.0f, 0.0f, 1.0f)");
     case kDT_mat3:
@@ -870,6 +876,9 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                         case kDT_vec2:
                         case kDT_vec3:
                         case kDT_vec4:
+                        case kDT_uvec2:
+                        case kDT_uvec3:
+                        case kDT_uvec4:
                         case kDT_quat:
                         case kDT_mat3:
                         case kDT_mat43:
@@ -1860,6 +1869,42 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_Vec4Init:
     {
         S code = S("glm::vec4(");
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegen_recurse(pParam, indentLevel);
+            if (pParam != pAst->pRhs->pChildren->nodes.back())
+                code += S(", ");
+        }
+        code += S(")");
+        return code;
+    }
+    case kAST_Uvec2Init:
+    {
+        S code = S("glm::uvec2(");
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegen_recurse(pParam, indentLevel);
+            if (pParam != pAst->pRhs->pChildren->nodes.back())
+                code += S(", ");
+        }
+        code += S(")");
+        return code;
+    }
+    case kAST_Uvec3Init:
+    {
+        S code = S("glm::uvec3(");
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegen_recurse(pParam, indentLevel);
+            if (pParam != pAst->pRhs->pChildren->nodes.back())
+                code += S(", ");
+        }
+        code += S(")");
+        return code;
+    }
+    case kAST_Uvec4Init:
+    {
+        S code = S("glm::uvec4(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);

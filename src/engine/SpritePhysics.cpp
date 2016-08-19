@@ -90,7 +90,11 @@ void SpritePhysics::update(f32 delta)
     mpDynamicsWorld->stepSimulation(delta);
 }
 
-void SpritePhysics::insert(SpriteInstance & spriteInst, f32 mass)
+void SpritePhysics::insert(SpriteInstance & spriteInst,
+                           f32 mass,
+                           u32 group,
+                           const glm::uvec4 & mask03,
+                           const glm::uvec4 & mask47)
 {
     if (mBodies.find(spriteInst.sprite().uid()) == mBodies.end())
     {
@@ -119,7 +123,15 @@ void SpritePhysics::insert(SpriteInstance & spriteInst, f32 mass)
         pBody->mpRigidBody->setAngularFactor(btVector3(0, 0, 0));
 
         pBody->mpRigidBody->setLinearVelocity(btVector3(10, 0, 0));
-        mpDynamicsWorld->addRigidBody(pBody->mpRigidBody.get());
+
+        if (group == 0)
+            mpDynamicsWorld->addRigidBody(pBody->mpRigidBody.get());
+        else
+        {
+            u16 groupMask = maskFromHash(group);
+            u16 mask = buildMask(mask03, mask47);
+            mpDynamicsWorld->addRigidBody(pBody->mpRigidBody.get(), maskFromHash(group), buildMask(mask03, mask47));
+        }
     }
     else
     {
@@ -146,12 +158,39 @@ void SpritePhysics::setVelocity(u32 uid, const glm::vec2 & velocity)
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
     {
-        LOG_INFO("setVelocity uid: %u, x: %f, y: %f", uid, velocity.x, velocity.y);
         it->second->mpRigidBody->setLinearVelocity(btVector3(velocity.x, velocity.y, 0));
     }
     else
     {
         LOG_ERROR("Cannot find SpriteBody %u to setVelocity", uid);
+    }
+}
+
+u16 SpritePhysics::buildMask(const glm::uvec4 & mask03, const glm::uvec4 & mask47)
+{
+    u16 mask = 0;
+    for (u32 i = 0; i < 4; ++i)
+    {
+        if (mask03[i])
+            mask |= maskFromHash(mask03[i]);
+        if (mask47[i])
+            mask |= maskFromHash(mask47[i]);
+    }
+    return mask;
+}
+
+u16 SpritePhysics::maskFromHash(u32 hash)
+{
+    ASSERT(hash != 0);
+    auto it = mMaskBits.find(hash);
+    if (it != mMaskBits.end())
+        return it->second;
+    else
+    {
+        PANIC_IF(mMaskBits.size() >= 16, "Too many mask bits defined, Bullet only allows for 16");
+        u16 mask = (u16)(1 << mMaskBits.size());
+        mMaskBits[hash] = mask;
+        return mask;
     }
 }
 

@@ -112,6 +112,12 @@ class vec4Field(BaseField):
     type_name = 'glm::vec4'
     includes = BaseField.includes + ['<glm/vec4.hpp>']
 
+class uvec4Field(BaseField):
+    cell_count = 4
+    union_type = 'uvec4'
+    type_name = 'glm::uvec4'
+    includes = BaseField.includes + ['<glm/vec4.hpp>']
+
 class quatField(BaseField):
     cell_count = 4
     union_type = 'quat'

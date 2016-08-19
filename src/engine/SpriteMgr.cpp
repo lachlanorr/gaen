@@ -149,7 +149,7 @@ MessageResult SpriteMgr::message(const T & msgAcc)
         auto spritePair = mSpriteMap.find(msgr.uid());
         if (spritePair != mSpriteMap.end())
         {
-            mPhysics.insert(*spritePair->second, msgr.mass());
+            mPhysics.insert(*spritePair->second, msgr.mass(), msgr.group(), msgr.mask03(), msgr.mask47());
         }
         else
         {
@@ -241,10 +241,13 @@ void sprite_set_velocity(u32 spriteUid, const glm::vec2 & velocity, Entity & cal
     msgw.setVelocity(velocity);
 }
 
-void sprite_init_body(u32 spriteUid, f32 mass, Entity & caller)
+void sprite_init_body(u32 spriteUid, f32 mass, u32 group, glm::uvec4 mask03, glm::uvec4 mask47, Entity & caller)
 {
     messages::SpriteBodyQW msgw(HASH::sprite_init_body, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setMass(mass);
+    msgw.setGroup(group);
+    msgw.setMask03(mask03);
+    msgw.setMask47(mask47);
 }
 
 } // namespace system_api

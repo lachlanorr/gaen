@@ -73,11 +73,18 @@ public:
 
     void update(f32 delta);
 
-    void insert(SpriteInstance & spriteInst, f32 mass);
+    void insert(SpriteInstance & spriteInst,
+                f32 mass,
+                u32 group,
+                const glm::uvec4 & mask03,
+                const glm::uvec4 & mask47);
     void remove(u32 uid);
 
     void setVelocity(u32 uid, const glm::vec2 & velocity);
 private:
+    u16 buildMask(const glm::uvec4 & mask03, const glm::uvec4 & mask47);
+    u16 maskFromHash(u32 hash);
+
     UniquePtr<btBroadphaseInterface> mpBroadphase;
     UniquePtr<btDefaultCollisionConfiguration> mpCollisionConfiguration;
     UniquePtr<btCollisionDispatcher> mpDispatcher;
@@ -86,6 +93,7 @@ private:
 
     HashMap<kMEM_Physics, u32, SpriteBodyUP> mBodies;
     HashMap<kMEM_Physics, glm::vec3, btCollisionShapeUP> mCollisionShapes;
+    HashMap<kMEM_Physics, u32, u16> mMaskBits;
 };
 
 } // namespace gaen

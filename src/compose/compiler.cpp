@@ -47,7 +47,7 @@ extern "C" {
 
 using namespace gaen;
 
-static_assert(kDT_COUNT == 28, "Make sure DataType enum ids look right... seems they have changed");
+static_assert(kDT_COUNT == 31, "Make sure DataType enum ids look right... seems they have changed");
 
 static const char * kScriptsPath = "/src/scripts/cmp/";
 
@@ -1429,6 +1429,97 @@ Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_uvec2_init(Ast * pParams, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_Uvec2Init, pParseData);
+    ast_set_rhs(pAst, pParams);
+
+    switch (pParams->pChildren->nodes.size())
+    {
+    case 1:
+    {
+        Ast * pParam = pParams->pChildren->nodes.front();
+        const SymDataType * pSdt = ast_data_type(pParam);
+        if (pSdt->typeDesc.dataType != kDT_uint && pSdt->typeDesc.dataType != kDT_uvec2)
+            COMP_ERROR(pParseData, "Invalid data type in uvec2 initialization");
+        break;
+    }
+    case 2:
+    {
+        for (Ast * pParam : pParams->pChildren->nodes)
+        {
+            const SymDataType * pSdt = ast_data_type(pParam);
+            if (pSdt->typeDesc.dataType != kDT_uint)
+                COMP_ERROR(pParseData, "Invalid data type in uvec2 initialization");
+        }
+        break;
+    }
+    default:
+        COMP_ERROR(pParseData, "Invalid parameters for uvec2 initialization");
+        break;
+    }
+
+    return pAst;
+}
+
+Ast * ast_create_uvec3_init(Ast * pParams, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_Uvec3Init, pParseData);
+    ast_set_rhs(pAst, pParams);
+
+    switch (pParams->pChildren->nodes.size())
+    {
+    case 1:
+    {
+        Ast * pParam = pParams->pChildren->nodes.front();
+        const SymDataType * pSdt = ast_data_type(pParam);
+        if (pSdt->typeDesc.dataType != kDT_uint && pSdt->typeDesc.dataType != kDT_vec3)
+            COMP_ERROR(pParseData, "Invalid data type in uvec3 initialization");
+        break;
+    }
+    case 3:
+    {
+        for (Ast * pParam : pParams->pChildren->nodes)
+        {
+            const SymDataType * pSdt = ast_data_type(pParam);
+            if (pSdt->typeDesc.dataType != kDT_uint)
+                COMP_ERROR(pParseData, "Invalid data type in uvec3 initialization");
+        }
+        break;
+    }
+    default:
+        COMP_ERROR(pParseData, "Invalid parameters for uvec3 initialization");
+        break;
+    }
+
+    return pAst;
+}
+
+Ast * ast_create_uvec4_init(Ast * pParams, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_Uvec4Init, pParseData);
+    ast_set_rhs(pAst, pParams);
+
+    switch (pParams->pChildren->nodes.size())
+    {
+    case 4:
+    {
+        for (Ast * pParam : pParams->pChildren->nodes)
+        {
+            const SymDataType * pSdt = ast_data_type(pParam);
+            if (pSdt->typeDesc.dataType != kDT_uint)
+                COMP_ERROR(pParseData, "Invalid data type in uvec4 initialization");
+        }
+        break;
+    }
+    default:
+        COMP_ERROR(pParseData, "Invalid parameters for uvec4 initialization");
+        break;
+    }
+
+    return pAst;
+}
+
 Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData)
 {
     Ast * pAst = ast_create(kAST_QuatInit, pParseData);
@@ -1517,6 +1608,9 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
         case kDT_vec2:
         case kDT_vec3:
         case kDT_vec4:
+        case kDT_uvec2:
+        case kDT_uvec3:
+        case kDT_uvec4:
         case kDT_quat:
         case kDT_mat3:
         case kDT_mat43:
@@ -1687,6 +1781,12 @@ Ast * ast_create_type_init(DataType dataType, Ast * pParams, ParseData * pParseD
         return ast_create_vec3_init(pParams, pParseData);
     case kDT_vec4:
         return ast_create_vec4_init(pParams, pParseData);
+    case kDT_uvec2:
+        return ast_create_uvec2_init(pParams, pParseData);
+    case kDT_uvec3:
+        return ast_create_uvec3_init(pParams, pParseData);
+    case kDT_uvec4:
+        return ast_create_uvec4_init(pParams, pParseData);
     case kDT_quat:
         return ast_create_quat_init(pParams, pParseData);
     case kDT_mat43:
@@ -2142,6 +2242,15 @@ const SymDataType * ast_data_type(const Ast * pAst)
         break;
     case kAST_Vec4Init:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "vec4", 0, 0);
+        break;
+    case kAST_Uvec2Init:
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "uvec2", 0, 0);
+        break;
+    case kAST_Uvec3Init:
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "uvec3", 0, 0);
+        break;
+    case kAST_Uvec4Init:
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "uvec4", 0, 0);
         break;
     case kAST_QuatInit:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "quat", 0, 0);
@@ -2856,7 +2965,7 @@ namespace gaen
         register_basic_type(kDT_void,  "void", "void", 0, pParseData);
         register_basic_type(kDT_bool,  "bool", "bool", 1, pParseData);
         register_basic_type(kDT_int,   "int",  "i32",  1, pParseData);
-        register_basic_type(kDT_uint,  "uint", "u32", 1, pParseData);
+        RelatedTypes uintRt = register_basic_type(kDT_uint,  "uint", "u32", 1, pParseData);
         register_basic_type(kDT_color, "color", "Color", 1, pParseData);
 
         // Save float related types since we need them to register fields of each
@@ -2879,6 +2988,21 @@ namespace gaen
         symdatatype_add_field_related(&rt, floatRt.pNormal, "y", kSRFL_None);
         symdatatype_add_field_related(&rt, floatRt.pNormal, "z", kSRFL_None);
         symdatatype_add_field_related(&rt, floatRt.pNormal, "w", kSRFL_None);
+
+        rt = register_basic_type(kDT_uvec2, "uvec2", "glm::uvec2", 2, pParseData);
+        symdatatype_add_field_related(&rt, uintRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&rt, uintRt.pNormal, "y", kSRFL_None);
+
+        rt = register_basic_type(kDT_uvec3, "uvec3", "glm::uvec3", 3, pParseData);
+        symdatatype_add_field_related(&rt, uintRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&rt, uintRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&rt, uintRt.pNormal, "z", kSRFL_None);
+
+        rt = register_basic_type(kDT_uvec4, "uvec4", "glm::uvec4", 4, pParseData);
+        symdatatype_add_field_related(&rt, uintRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&rt, uintRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&rt, uintRt.pNormal, "z", kSRFL_None);
+        symdatatype_add_field_related(&rt, uintRt.pNormal, "w", kSRFL_None);
 
         rt = register_basic_type(kDT_quat, "quat", "glm::quat", 4, pParseData);
         symdatatype_add_field_related(&rt, floatRt.pNormal, "x", kSRFL_None);
