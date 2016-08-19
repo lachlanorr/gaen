@@ -111,6 +111,10 @@ ADD_LIBRARY (engine
   ${engine_SOURCES}
   )
 
+ADD_DEPENDENCIES(engine
+  bullet
+  )
+
 # Run each time we build.
 ADD_CUSTOM_TARGET (
   CODEGEN_MESSAGES ALL
