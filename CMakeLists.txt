@@ -77,6 +77,7 @@ ExternalProject_Add(bullet
   URL "${ext_dir}/${BULLET_NAME_VER}.tar.gz"
   URL_MD5 39fd0138fcb59047c12861f3b65c063e
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/bullet
+  INSTALL_COMMAND ""
 )
 INCLUDE_DIRECTORIES (${BULLET_PATH}/bullet/src)
 SET (BULLET_LIBS
