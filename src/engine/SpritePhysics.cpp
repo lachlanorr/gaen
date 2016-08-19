@@ -187,7 +187,7 @@ u16 SpritePhysics::maskFromHash(u32 hash)
         return it->second;
     else
     {
-        PANIC_IF(mMaskBits.size() >= 16, "Too many mask bits defined, Bullet only allows for 16");
+        PANIC_IF(mMaskBits.size() >= 12, "Too many mask bits defined, Bullet only allows for 12(ish)");
         u16 mask = (u16)(1 << mMaskBits.size());
         mMaskBits[hash] = mask;
         return mask;
