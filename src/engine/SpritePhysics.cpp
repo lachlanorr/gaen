@@ -27,13 +27,14 @@
 #include "engine/stdafx.h"
 
 #include "engine/messages/Transform.h"
+#include "engine/messages/Collision.h"
 #include "engine/SpritePhysics.h"
 
 
 namespace gaen
 {
 
-void SpriteBody::getWorldTransform(btTransform& worldTrans) const
+void SpriteMotionState::getWorldTransform(btTransform& worldTrans) const
 {
     const glm::mat4x3 & t = mSpriteInstance.mTransform;
     worldTrans.setBasis(btMatrix3x3(t[0][0], t[0][1], t[0][2],
@@ -42,7 +43,7 @@ void SpriteBody::getWorldTransform(btTransform& worldTrans) const
     worldTrans.setOrigin(btVector3(t[3][0], t[3][1], t[3][2]));
 }
 
-void SpriteBody::setWorldTransform(const btTransform& worldTrans)
+void SpriteMotionState::setWorldTransform(const btTransform& worldTrans)
 {
     glm::mat4x3 & t = mSpriteInstance.mTransform;
 
@@ -73,21 +74,69 @@ void SpriteBody::setWorldTransform(const btTransform& worldTrans)
 
 SpritePhysics::SpritePhysics()
 {
-    mpBroadphase.reset(GNEW(kMEM_Physics, btDbvtBroadphase));
-    mpCollisionConfiguration.reset(GNEW(kMEM_Physics, btDefaultCollisionConfiguration));
-    mpDispatcher.reset(GNEW(kMEM_Physics, btCollisionDispatcher, mpCollisionConfiguration.get()));
-    mpSolver.reset(GNEW(kMEM_Physics, btSequentialImpulseConstraintSolver));
-    mpDynamicsWorld.reset(GNEW(kMEM_Physics,
-                               btDiscreteDynamicsWorld,
-                               mpDispatcher.get(),
-                               mpBroadphase.get(),
-                               mpSolver.get(),
-                               mpCollisionConfiguration.get()));
+    mpBroadphase = GNEW(kMEM_Physics, btDbvtBroadphase);
+    mpCollisionConfiguration = GNEW(kMEM_Physics, btDefaultCollisionConfiguration);
+
+    mpDispatcher = GNEW(kMEM_Physics, btCollisionDispatcher, mpCollisionConfiguration);
+    mpDispatcher->setNearCallback(near_callback);
+
+    mpSolver = GNEW(kMEM_Physics, btSequentialImpulseConstraintSolver);
+    mpDynamicsWorld = GNEW(kMEM_Physics,
+                           btDiscreteDynamicsWorld,
+                           mpDispatcher,
+                           mpBroadphase,
+                           mpSolver,
+                           mpCollisionConfiguration);
+}
+
+SpritePhysics::~SpritePhysics()
+{
+    GDELETE(mpDynamicsWorld);
+    GDELETE(mpSolver);
+    GDELETE(mpDispatcher);
+    GDELETE(mpCollisionConfiguration);
+    GDELETE(mpBroadphase);
 }
 
 void SpritePhysics::update(f32 delta)
 {
     mpDynamicsWorld->stepSimulation(delta);
+
+    // Check for collisions
+    int numManifolds = mpDynamicsWorld->getDispatcher()->getNumManifolds();
+    for (int i = 0; i < numManifolds; ++i)
+    {
+        btPersistentManifold* contactManifold = mpDynamicsWorld->getDispatcher()->getManifoldByIndexInternal(i);
+        const SpriteBody* obA = static_cast<const SpriteBody*>(contactManifold->getBody0());
+        const SpriteBody* obB = static_cast<const SpriteBody*>(contactManifold->getBody1());
+
+        int numContacts = contactManifold->getNumContacts();
+        for (int j=0;j<numContacts;j++)
+        {
+            btManifoldPoint& pt = contactManifold->getContactPoint(j);
+            if (pt.getDistance() < 0.f)
+            {
+                const btVector3& ptA = pt.getPositionWorldOnA();
+                const btVector3& ptB = pt.getPositionWorldOnB();
+                const btVector3& normalOnB = pt.m_normalWorldOnB;
+
+                // Send collision messages to both entities
+                {
+                    messages::CollisionQW msgw(HASH::collision, kMessageFlag_None, kSpriteMgrTaskId, obA->mpMotionState->mSpriteInstance.sprite().owner(), obB->mGroupHash);
+                    msgw.setSubject(obB->mpMotionState->mSpriteInstance.sprite().owner());
+                    msgw.setLocation(glm::vec3(ptA.x(), ptA.y(), ptA.z()));
+                }
+                {
+                    messages::CollisionQW msgw(HASH::collision, kMessageFlag_None, kSpriteMgrTaskId, obB->mpMotionState->mSpriteInstance.sprite().owner(), obA->mGroupHash);
+                    msgw.setSubject(obA->mpMotionState->mSpriteInstance.sprite().owner());
+                    msgw.setLocation(glm::vec3(ptB.x(), ptB.y(), ptB.z()));
+                }
+
+
+            }
+        }
+    }
+
 }
 
 void SpritePhysics::insert(SpriteInstance & spriteInst,
@@ -99,8 +148,6 @@ void SpritePhysics::insert(SpriteInstance & spriteInst,
     if (mBodies.find(spriteInst.sprite().uid()) == mBodies.end())
     {
         ASSERT(spriteInst.mHasBody == false);
-        SpriteBody * pBody = GNEW(kMEM_Physics, SpriteBody, spriteInst);
-        mBodies.emplace(spriteInst.sprite().uid(), pBody);
 
         glm::vec3 halfExtents = spriteInst.sprite().halfExtents();
         auto colShapeIt = mCollisionShapes.find(halfExtents);
@@ -117,21 +164,26 @@ void SpritePhysics::insert(SpriteInstance & spriteInst,
             pCollisionShape = empRes.first->second.get();
         }
 
-        btRigidBody::btRigidBodyConstructionInfo constrInfo(mass, pBody, pCollisionShape);
-        pBody->mpRigidBody.reset(GNEW(kMEM_Physics, btRigidBody, constrInfo));
-        pBody->mpRigidBody->setLinearFactor(btVector3(1, 1, 0));
-        pBody->mpRigidBody->setAngularFactor(btVector3(0, 0, 0));
+        SpriteMotionState * pMotionState = GNEW(kMEM_Physics, SpriteMotionState, spriteInst);
+        btRigidBody::btRigidBodyConstructionInfo constrInfo(mass, pMotionState, pCollisionShape);
 
-        pBody->mpRigidBody->setLinearVelocity(btVector3(10, 0, 0));
+        SpriteBody * pBody = GNEW(kMEM_Physics, SpriteBody, pMotionState, group, constrInfo);
+        mBodies.emplace(spriteInst.sprite().uid(), pBody);
+
+        pBody->setLinearFactor(btVector3(1, 1, 0));
+        pBody->setAngularFactor(btVector3(0, 0, 0));
 
         if (group == 0)
-            mpDynamicsWorld->addRigidBody(pBody->mpRigidBody.get());
+        {
+            mpDynamicsWorld->addRigidBody(pBody);
+        }
         else
         {
             u16 groupMask = maskFromHash(group);
             u16 mask = buildMask(mask03, mask47);
-            mpDynamicsWorld->addRigidBody(pBody->mpRigidBody.get(), maskFromHash(group), buildMask(mask03, mask47));
+            mpDynamicsWorld->addRigidBody(pBody, maskFromHash(group), buildMask(mask03, mask47));
         }
+        pBody->setGravity(btVector3(0,0,0));
     }
     else
     {
@@ -144,7 +196,7 @@ void SpritePhysics::remove(u32 uid)
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
     {
-        mpDynamicsWorld->removeRigidBody(it->second->mpRigidBody.get());
+        mpDynamicsWorld->removeRigidBody(it->second.get());
         mBodies.erase(it);
     }
     else
@@ -158,7 +210,8 @@ void SpritePhysics::setVelocity(u32 uid, const glm::vec2 & velocity)
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
     {
-        it->second->mpRigidBody->setLinearVelocity(btVector3(velocity.x, velocity.y, 0));
+        it->second->activate();
+        it->second->setLinearVelocity(btVector3(velocity.x, velocity.y, 0));
     }
     else
     {
@@ -193,5 +246,16 @@ u16 SpritePhysics::maskFromHash(u32 hash)
         return mask;
     }
 }
+
+void SpritePhysics::near_callback(btBroadphasePair & collisionPair,
+                                  btCollisionDispatcher & dispatcher,
+                                  const btDispatcherInfo & dispatchInfo)
+{
+    SpriteBody * pBody0 = static_cast<SpriteBody*>(collisionPair.m_pProxy0->m_clientObject);
+    SpriteBody * pBody1 = static_cast<SpriteBody*>(collisionPair.m_pProxy1->m_clientObject);
+
+    dispatcher.defaultNearCallback(collisionPair, dispatcher, dispatchInfo);
+}
+
 
 } // namespace gaen

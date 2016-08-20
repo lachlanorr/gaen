@@ -266,7 +266,7 @@ void broadcast_message(const MessageBlockAccessor & msgAcc)
 
 void TaskMaster::init(thread_id tid)
 {
-    ASSERT(!mIsInit);
+    ASSERT(mStatus == kTMS_Uninitialized);
     mThreadId = tid;
     mIsPrimary = tid == kPrimaryThreadId;
 
@@ -293,12 +293,12 @@ void TaskMaster::init(thread_id tid)
 
     register_all_entities_and_components(mRegistry);
 
-    mIsInit = true;
+    mStatus = kTMS_Initialized;
 }
 
 void TaskMaster::fin(const MessageQueueAccessor& msgAcc)
 {
-    ASSERT(mIsInit);
+    ASSERT(mStatus == kTMS_Initialized);
     ASSERT(msgAcc.message().msgId == HASH::fin);
 
     for (Task & task : mOwnedTasks)
@@ -310,7 +310,10 @@ void TaskMaster::fin(const MessageQueueAccessor& msgAcc)
     mOwnedTaskMap.clear();
     mOwnedTasks.clear();
 
-    mIsRunning = false;
+    mStatus = kTMS_Finalizing;
+    ASSERT(mShutdownCount == 0);
+    mShutdownCount = 0;
+    broadcast_message(HASH::shutdown__, kMessageFlag_None, threadId());
 }
 
 
@@ -321,6 +324,8 @@ void TaskMaster::cleanup()
     // This cleanup will get called when loop actually exits and we can
     // really clean up everything.
 
+    ASSERT(mStatus == kTMS_Finalizing);
+
     if (mRendererTask.id() != 0)
         renderer_fin(mRendererTask);
 
@@ -329,8 +334,7 @@ void TaskMaster::cleanup()
     {
         GDELETE(pMessageQueue);
     }
-
-    mIsInit = false;
+    mStatus = kTMS_Shutdown;
 }
 
 
@@ -392,7 +396,7 @@ MessageQueue * TaskMaster::messageQueueForTarget(task_id target)
 
 void TaskMaster::runPrimaryGameLoop()
 {
-    ASSERT(mIsInit);
+    ASSERT(mStatus == kTMS_Initialized);
     ASSERT(mIsPrimary && mRendererTask.id() != 0);
     ASSERT(!mIsRunning);
 
@@ -450,21 +454,23 @@ void TaskMaster::runPrimaryGameLoop()
             processMessages(*pMessageQueue);
         }
 
-        
-        // LORRTODO - Do physics
-        mpSpriteMgr->update(delta);
-
-
-        // call update on each task owned by this TaskMaster
-        for (Task & task : mOwnedTasks)
+        if (mStatus == kTMS_Initialized)
         {
-            // LORRTODO: remove dead tasks from the list
+            // LORRTODO - Do physics
+            mpSpriteMgr->update(delta);
 
-            task.update(delta);
+
+            // call update on each task owned by this TaskMaster
+            for (Task & task : mOwnedTasks)
+            {
+                // LORRTODO: remove dead tasks from the list
+
+                task.update(delta);
+            }
+
+            // Give AssetMgr an opportunity to process messages
+            mpAssetMgr->process();
         }
-
-        // Give AssetMgr an opportunity to process messages
-        mpAssetMgr->process();
 
         renderer_end_frame(mRendererTask);
 
@@ -478,7 +484,7 @@ void TaskMaster::runPrimaryGameLoop()
 
 void TaskMaster::runAuxiliaryGameLoop()
 {
-    ASSERT(mIsInit);
+    ASSERT(mStatus == kTMS_Initialized);
     ASSERT(!mIsPrimary && mRendererTask.id() == 0);
     ASSERT(!mIsRunning);
 
@@ -533,7 +539,7 @@ void TaskMaster::runAuxiliaryGameLoop()
 
 void TaskMaster::registerMutableDependency(task_id taskId, u32 path)
 {
-    ASSERT(mIsInit);
+    ASSERT(mStatus == kTMS_Initialized);
 /*
     // Get the task, and make sure it exists since it should at this point
     auto taskIt = mTasks.find(taskId);
@@ -576,7 +582,7 @@ void TaskMaster::registerMutableDependency(task_id taskId, u32 path)
 
 void TaskMaster::deregisterMutableDependency(task_id taskId, u32 path)
 {
-    ASSERT(mIsInit);
+    ASSERT(mStatus == kTMS_Initialized);
 }
 
 void TaskMaster::processMessages(MessageQueue & msgQueue)
@@ -595,151 +601,175 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
 {
     const Message & msg = msgAcc.message();
 
-    // Handle messages sent to us, the TaskMaster
-    if (msg.target < num_threads())
+    if (mStatus == kTMS_Initialized)
     {
-        ASSERT_MSG(msg.target == active_thread_id(), "TaskMaster message sent to wrong TaskMaster");
-        switch(msg.msgId)
+        // Handle messages sent to us, the TaskMaster
+        if (msg.target < num_threads())
         {
-        case HASH::fin:
-        {
-            ASSERT(mIsRunning);
-            fin(msgAcc);
-            return MessageResult::Consumed;
-        }
-        case HASH::insert_task:
-        {
-            messages::InsertTaskR<MessageQueueAccessor> msgr(msgAcc);
-            insertTask(msgr.owner(), msgr.task());
-            return MessageResult::Consumed;
-        }
-        case HASH::remove_task:
-        {
-            task_id taskIdToRemove = msg.payload.u;
-
-            auto ownedIt = mOwnedTaskMap.find(taskIdToRemove);
-            if (ownedIt != mOwnedTaskMap.end())
+            ASSERT_MSG(msg.target == active_thread_id(), "TaskMaster message sent to wrong TaskMaster");
+            switch(msg.msgId)
             {
-                // Send an immediate fin__ to the task so it can delete itself
-                StackMessageBlockWriter<0> finw(HASH::fin__, kMessageFlag_Editor, active_thread_id(), taskIdToRemove, to_cell(0));
-                mOwnedTasks[ownedIt->second].message(finw.accessor());
-            }
-
-            if (mpSpriteMgr)
-                mpSpriteMgr->message(msgAcc);
-
-            removeTask(taskIdToRemove);
-
-            return MessageResult::Consumed;
-        }
-        default:
-        {
-            ERR("Unhandled message type, msgId: %d", msg.msgId);
-            return MessageResult::Propagate;
-        }
-        }
-    }
-    else if (msg.target == kRendererTaskId)
-    {
-        ASSERT(mRendererTask.id() != 0);
-        return mRendererTask.message(msgAcc);
-    }
-    else if (msg.target == kInputMgrTaskId)
-    {
-        ASSERT(mpInputMgr.get() != nullptr);
-        mpInputMgr->message(msgAcc);
-    }
-    else if (msg.target == kAssetMgrTaskId)
-    {
-        ASSERT(mpAssetMgr.get() != nullptr);
-        mpAssetMgr->message(msgAcc);
-    }
-    else if (msg.target == kSpriteMgrTaskId)
-    {
-        ASSERT(mpSpriteMgr.get() != nullptr);
-        mpSpriteMgr->message(msgAcc);
-    }
-    else if (msg.target == kMainThreadTaskId)
-    {
-        PANIC("Not Implemented");
-    }
-    else
-    {
-        // Message is for a specific task
-        // Verify we own this task
-        auto it = mOwnedTaskMap.find(msg.target);
-
-        if (it != mOwnedTaskMap.end())
-        {
-            size_t taskIdx = it->second;
-            ASSERT(taskIdx < mOwnedTasks.size());
-
-            // If it is an activate_task message, hand it specially here
-            if (msg.msgId == HASH::set_task_status)
+            case HASH::fin:
             {
-                messages::TaskStatusQR msgRdr(msgAcc);
-
-                // Make sure task status is a valid 2 bit value (only has 2 bits in definition of Task struct)
-                PANIC_IF((u32)msgRdr.status() >= 4,"Invalid task status %u", msg.payload.u);
-                TaskStatus stat = msgRdr.status();
-                mOwnedTasks[taskIdx].setStatus(stat);
+                ASSERT(mIsRunning);
+                fin(msgAcc);
                 return MessageResult::Consumed;
             }
+            case HASH::insert_task:
+            {
+                messages::InsertTaskR<MessageQueueAccessor> msgr(msgAcc);
+                insertTask(msgr.owner(), msgr.task());
+                return MessageResult::Consumed;
+            }
+            case HASH::remove_task:
+            {
+                task_id taskIdToRemove = msg.payload.u;
 
-            // send message to task
-            MessageResult mr = mOwnedTasks[taskIdx].message(msgAcc);
-#if HAS(TRACK_HASHES)
-            EXPECT_MSG(mr == MessageResult::Consumed,
-                       "Task did not consume a message intended for it, task name: %s, message: %s",
-                       HASH::reverse_hash(mOwnedTasks[taskIdx].nameHash()),
-                       HASH::reverse_hash(msg.msgId));
-#else
-            EXPECT_MSG(mr == MessageResult::Consumed,
-                       "Task did not consume a message intended for it, task nameHash: 0x%08x, message: 0x%08x",
-                       mOwnedTasks[taskIdx].nameHash(),
-                       msg.msgId);
-#endif
-            return MessageResult::Consumed;
+                auto ownedIt = mOwnedTaskMap.find(taskIdToRemove);
+                if (ownedIt != mOwnedTaskMap.end())
+                {
+                    // Send an immediate fin__ to the task so it can delete itself
+                    StackMessageBlockWriter<0> finw(HASH::fin__, kMessageFlag_Editor, active_thread_id(), taskIdToRemove, to_cell(0));
+                    mOwnedTasks[ownedIt->second].message(finw.accessor());
+                }
+
+                if (mpSpriteMgr)
+                    mpSpriteMgr->message(msgAcc);
+
+                removeTask(taskIdToRemove);
+
+                return MessageResult::Consumed;
+            }
+            default:
+            {
+                ERR("Unhandled message type, msgId: %d", msg.msgId);
+                return MessageResult::Propagate;
+            }
+            }
+        }
+        else if (msg.target == kRendererTaskId)
+        {
+            ASSERT(mRendererTask.id() != 0);
+            return mRendererTask.message(msgAcc);
+        }
+        else if (msg.target == kInputMgrTaskId)
+        {
+            ASSERT(mpInputMgr.get() != nullptr);
+            mpInputMgr->message(msgAcc);
+        }
+        else if (msg.target == kAssetMgrTaskId)
+        {
+            ASSERT(mpAssetMgr.get() != nullptr);
+            mpAssetMgr->message(msgAcc);
+        }
+        else if (msg.target == kSpriteMgrTaskId)
+        {
+            ASSERT(mpSpriteMgr.get() != nullptr);
+            mpSpriteMgr->message(msgAcc);
+        }
+        else if (msg.target == kMainThreadTaskId)
+        {
+            PANIC("Not Implemented");
         }
         else
         {
-            // We don't own this task, attempt to forward the message
-            MessageQueue * pMsgQ = messageQueueForTarget(msg.target);
+            // Message is for a specific task
+            // Verify we own this task
+            auto it = mOwnedTaskMap.find(msg.target);
 
-            if (!pMsgQ)
+            if (it != mOwnedTaskMap.end())
             {
-                // Message directed to task we're not tracking, throw it away
-#if HAS(TRACK_HASHES)
-                LOG_INFO("Message to non-existent target, source: %u, target: %u, message: %s",
-                         msg.source,
-                         msg.target,
-                         HASH::reverse_hash(msg.msgId));
-#else
-                LOG_INFO("Message to non-existent target, source: %u, target: %u, message: %u",
-                         msg.source,
-                         msg.target,
-                         msg.msgId);
-#endif
+                size_t taskIdx = it->second;
+                ASSERT(taskIdx < mOwnedTasks.size());
 
+                // If it is an activate_task message, hand it specially here
+                if (msg.msgId == HASH::set_task_status)
+                {
+                    messages::TaskStatusQR msgRdr(msgAcc);
+
+                    // Make sure task status is a valid 2 bit value (only has 2 bits in definition of Task struct)
+                    PANIC_IF((u32)msgRdr.status() >= 4,"Invalid task status %u", msg.payload.u);
+                    TaskStatus stat = msgRdr.status();
+                    mOwnedTasks[taskIdx].setStatus(stat);
+                    return MessageResult::Consumed;
+                }
+
+                // send message to task
+                MessageResult mr = mOwnedTasks[taskIdx].message(msgAcc);
+#if HAS(TRACK_HASHES)
+                EXPECT_MSG(mr == MessageResult::Consumed,
+                           "Task did not consume a message intended for it, task name: %s, message: %s",
+                           HASH::reverse_hash(mOwnedTasks[taskIdx].nameHash()),
+                           HASH::reverse_hash(msg.msgId));
+#else
+                EXPECT_MSG(mr == MessageResult::Consumed,
+                           "Task did not consume a message intended for it, task nameHash: 0x%08x, message: 0x%08x",
+                           mOwnedTasks[taskIdx].nameHash(),
+                           msg.msgId);
+#endif
                 return MessageResult::Consumed;
             }
+            else
+            {
+                // We don't own this task, attempt to forward the message
+                MessageQueue * pMsgQ = messageQueueForTarget(msg.target);
 
-            MessageQueueAccessor msgAccNew;
-            pMsgQ->pushBegin(&msgAccNew,
-                             msg.msgId,
-                             msg.flags,
+                if (!pMsgQ)
+                {
+                    // Message directed to task we're not tracking, throw it away
+#if HAS(TRACK_HASHES)
+                    LOG_INFO("Message to non-existent target, source: %u, target: %u, message: %s",
                              msg.source,
                              msg.target,
-                             msg.payload,
-                             msg.blockCount);
+                             HASH::reverse_hash(msg.msgId));
+#else
+                    LOG_INFO("Message to non-existent target, source: %u, target: %u, message: %u",
+                             msg.source,
+                             msg.target,
+                             msg.msgId);
+#endif
 
-            for (u32 i = 0; i < msg.blockCount; ++i)
-            {
-                msgAccNew[i] = msgAcc[i];
+                    return MessageResult::Consumed;
+                }
+
+                MessageQueueAccessor msgAccNew;
+                pMsgQ->pushBegin(&msgAccNew,
+                                 msg.msgId,
+                                 msg.flags,
+                                 msg.source,
+                                 msg.target,
+                                 msg.payload,
+                                 msg.blockCount);
+
+                for (u32 i = 0; i < msg.blockCount; ++i)
+                {
+                    msgAccNew[i] = msgAcc[i];
+                }
+
+                pMsgQ->pushCommit(msgAcc);
             }
-
-            pMsgQ->pushCommit(msgAcc);
         }
+    }
+    else if (mStatus == kTMS_Finalizing)
+    {
+        if (msg.msgId == HASH::shutdown__)
+        {
+            u32 numThreads = num_threads();
+            ASSERT(mShutdownCount < numThreads);
+            mShutdownCount++;
+            if (mShutdownCount == numThreads)
+            {
+                mIsRunning = false;
+            }
+        }
+        else
+        {
+            LOG_INFO("None HASH::shutdown__ message received during finalization, msgid: %u", msg.msgId);
+        }
+    }
+    else
+    {
+        PANIC("Message received in invalid state, msgid: %u, status: %u", msg.msgId, mStatus);
     }
     
     return MessageResult::Consumed;

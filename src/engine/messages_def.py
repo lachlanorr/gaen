@@ -74,6 +74,11 @@ class SpriteBody(FieldHandler):
     mask03       = uvec4Field()
     mask47       = uvec4Field()
 
+class Collision(FieldHandler):
+    group        = u32Field(payload=True)
+    subject      = u32Field()
+    location     = vec3Field()
+
 class MoveCamera(FieldHandler):
     position = vec3Field()
     direction = quatField()

@@ -91,6 +91,7 @@ class SpriteInstance
 {
     friend class SpriteMgr;
     friend class SpriteBody;
+    friend class SpriteMotionState;
     friend class SpritePhysics;
 public:
     SpriteInstance(Sprite * pSprite, const glm::mat4x3 & transform);

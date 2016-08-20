@@ -41,15 +41,17 @@ class btDefaultCollisionConfiguration;
 class btCollisionDispatcher;
 class btSequentialImpulseConstraintSolver;
 class btDiscreteDynamicsWorld;
+struct btDispatcherInfo;
 
 namespace gaen
 {
 
-class SpriteBody : public btMotionState
+class SpriteMotionState : public btMotionState
 {
     friend class SpritePhysics;
+    friend class SpriteBody;
 public:
-    SpriteBody(SpriteInstance & spriteInstance)
+    SpriteMotionState(SpriteInstance & spriteInstance)
       : mSpriteInstance(spriteInstance)
     {
         mSpriteInstance.mHasBody = true;
@@ -62,6 +64,24 @@ private:
     UniquePtr<btRigidBody> mpRigidBody;
     SpriteInstance & mSpriteInstance;
 };
+typedef UniquePtr<SpriteMotionState> SpriteMotionStateUP;
+
+class SpriteBody : public btRigidBody
+{
+    friend class SpritePhysics;
+public:
+    SpriteBody(SpriteMotionState * pMotionState, u32 groupHash, const btRigidBodyConstructionInfo& constructionInfo)
+      : btRigidBody(constructionInfo)
+      , mpMotionState(pMotionState)
+      , mGroupHash(groupHash)
+    {
+        mpMotionState->mSpriteInstance.mHasBody = true;
+    }
+
+private:
+    SpriteMotionStateUP mpMotionState;
+    u32 mGroupHash;
+};
 
 typedef UniquePtr<SpriteBody> SpriteBodyUP;
 typedef UniquePtr<btCollisionShape> btCollisionShapeUP;
@@ -70,6 +90,7 @@ class SpritePhysics
 {
 public:
     SpritePhysics();
+    ~SpritePhysics();
 
     void update(f32 delta);
 
@@ -85,11 +106,15 @@ private:
     u16 buildMask(const glm::uvec4 & mask03, const glm::uvec4 & mask47);
     u16 maskFromHash(u32 hash);
 
-    UniquePtr<btBroadphaseInterface> mpBroadphase;
-    UniquePtr<btDefaultCollisionConfiguration> mpCollisionConfiguration;
-    UniquePtr<btCollisionDispatcher> mpDispatcher;
-    UniquePtr<btSequentialImpulseConstraintSolver> mpSolver;
-    UniquePtr<btDiscreteDynamicsWorld> mpDynamicsWorld;
+    static void near_callback(btBroadphasePair & collisionPair,
+                              btCollisionDispatcher & dispatcher,
+                              const btDispatcherInfo & dispatchInfo);
+
+    btBroadphaseInterface * mpBroadphase;
+    btDefaultCollisionConfiguration * mpCollisionConfiguration;
+    btCollisionDispatcher * mpDispatcher;
+    btSequentialImpulseConstraintSolver * mpSolver;
+    btDiscreteDynamicsWorld * mpDynamicsWorld;
 
     HashMap<kMEM_Physics, u32, SpriteBodyUP> mBodies;
     HashMap<kMEM_Physics, glm::vec3, btCollisionShapeUP> mCollisionShapes;

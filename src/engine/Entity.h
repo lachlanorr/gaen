@@ -141,6 +141,7 @@ protected:
     Task mScriptTask;
 
     bool mIsFinSelfSent;
+    bool mIsDead;
 
     bool mIsTransformDirty;
     glm::mat4x3 mTransform;

@@ -106,7 +106,7 @@ public:
     // Get message queue for messages from main thread
     MessageQueue & mainMessageQueue()
     {
-        ASSERT(mIsInit);
+        ASSERT(mStatus >= kTMS_Initialized);
         ASSERT(active_thread_id() == kMainThreadId);
         return *mpMainMessageQueue;
     }
@@ -114,7 +114,7 @@ public:
     // Get message queue for messages from another task master
     MessageQueue & taskMasterMessageQueue()
     {
-        ASSERT(mIsInit);
+        ASSERT(mStatus >= kTMS_Initialized);
         ASSERT(active_thread_id() < num_threads());
         return *mTaskMasterMessageQueues[active_thread_id()];
     }
@@ -139,7 +139,7 @@ public:
 
     void setRenderer(const Task & rendererTask)
     {
-        ASSERT(mIsInit);
+        ASSERT(mStatus == kTMS_Initialized);
         ASSERT(mIsPrimary);
         mRendererTask = rendererTask;
     }
@@ -150,6 +150,14 @@ public:
     bool isPrimary() { return mIsPrimary; }
 
 private:
+    enum TaskMasterStatus
+    {
+        kTMS_Uninitialized = 0,
+        kTMS_Initialized   = 1,
+        kTMS_Finalizing    = 2,
+        kTMS_Shutdown      = 3
+    };
+
     // Process any messages on the queue
     void processMessages(MessageQueue & msgQueue);
 
@@ -197,8 +205,10 @@ private:
 
     thread_id mThreadId = kInvalidThreadId;
     bool mIsPrimary = false; // primary task master has GPU, handles rendering/physics
-    bool mIsInit = false;
     bool mIsRunning = false;
+
+    TaskMasterStatus mStatus = kTMS_Uninitialized;
+    u32 mShutdownCount = 0; // used when shutting down to count how many peer TaskMasters have finalized
 
     // Storage for initial entity
     Entity * mpStartEntity = nullptr;
