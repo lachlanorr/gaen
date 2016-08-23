@@ -2712,13 +2712,13 @@ yyreduce:
 
   case 137:
 #line 375 "compose.y" /* yacc.c:1646  */
-    { (yyval.pAst) = ast_create_int_literal(1, pParseData); }
+    { (yyval.pAst) = ast_create_bool_literal(1, pParseData); }
 #line 2717 "compose_parser.c" /* yacc.c:1646  */
     break;
 
   case 138:
 #line 376 "compose.y" /* yacc.c:1646  */
-    { (yyval.pAst) = ast_create_int_literal(0, pParseData); }
+    { (yyval.pAst) = ast_create_bool_literal(0, pParseData); }
 #line 2723 "compose_parser.c" /* yacc.c:1646  */
     break;
 

@@ -1851,6 +1851,13 @@ Ast * ast_create_int_literal(int numi, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_bool_literal(int numi, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_BoolLiteral, pParseData);
+    pAst->numi = numi != 0 ? 1 : 0;
+    return pAst;
+}
+
 Ast * ast_create_float_literal(float numf, ParseData * pParseData)
 {
     Ast * pAst = ast_create(kAST_FloatLiteral, pParseData);
@@ -2226,6 +2233,9 @@ const SymDataType * ast_data_type(const Ast * pAst)
         break;
     case kAST_IntLiteral:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "int", 0, 0);
+        break;
+    case kAST_BoolLiteral:
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "bool", 0, 0);
         break;
     case kAST_StringLiteral:
     case kAST_StringInit:

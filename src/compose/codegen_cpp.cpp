@@ -2307,6 +2307,13 @@ static S codegen_recurse(const Ast * pAst,
         snprintf(scratch, kScratchSize, "%d", pAst->numi);
         return S(scratch);
     }
+    case kAST_BoolLiteral:
+    {
+        if (pAst->numi != 0)
+            return S("true");
+        else
+            return S("false");
+    }
     case kAST_FloatLiteral:
     {
         scratch[kScratchSize] = '\0'; // sanity null terminator

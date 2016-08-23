@@ -228,22 +228,13 @@ u32 sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Enti
     return pSprite->uid();
 }
 
-void sprite_play_anim(u32 spriteUid, u32 animHash, f32 duration, u32 doneMessage, Entity & caller)
+void sprite_play_anim(u32 spriteUid, u32 animHash, f32 duration, bool loop, u32 doneMessage, Entity & caller)
 {
     messages::SpritePlayAnimQW msgw(HASH::sprite_play_anim, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setAnimHash(animHash);
     msgw.setDuration(duration);
-    msgw.setLoop(false);
+    msgw.setLoop(loop);
     msgw.setDoneMessage(doneMessage);
-}
-
-void sprite_loop_anim(u32 spriteUid, u32 animHash, f32 duration, Entity & caller)
-{
-    messages::SpritePlayAnimQW msgw(HASH::sprite_play_anim, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
-    msgw.setAnimHash(animHash);
-    msgw.setDuration(duration);
-    msgw.setLoop(true);
-    msgw.setDoneMessage(0);
 }
 
 void sprite_set_velocity(u32 spriteUid, const glm::vec2 & velocity, Entity & caller)

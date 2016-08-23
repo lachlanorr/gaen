@@ -372,8 +372,8 @@ cond_expr
 literal
     : INT_LITERAL   { $$ = ast_create_int_literal($1, pParseData); }
     | FLOAT_LITERAL { $$ = ast_create_float_literal($1, pParseData); }
-    | TRUE_         { $$ = ast_create_int_literal(1, pParseData); }
-    | FALSE_        { $$ = ast_create_int_literal(0, pParseData); }
+    | TRUE_         { $$ = ast_create_bool_literal(1, pParseData); }
+    | FALSE_        { $$ = ast_create_bool_literal(0, pParseData); }
     ;
 
 expr_or_empty

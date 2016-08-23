@@ -61,8 +61,7 @@ class Entity;
 namespace system_api
 {
 u32 sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Entity & caller);
-void sprite_play_anim(u32 spriteUid, u32 animHash, f32 duration, u32 doneMessage, Entity & caller);
-void sprite_loop_anim(u32 spriteUid, u32 animHash, f32 duration, Entity & caller);
+void sprite_play_anim(u32 spriteUid, u32 animHash, f32 duration, bool loop, u32 doneMessage, Entity & caller);
 void sprite_set_velocity(u32 spriteUid, const glm::vec2 & velocity, Entity & caller);
 
 void sprite_init_body(u32 spriteUid, f32 mass, u32 group, glm::uvec4 mask03, glm::uvec4 mask47, Entity & caller);

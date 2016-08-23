@@ -179,6 +179,7 @@ typedef enum
     kAST_StructInit,
     
     kAST_IntLiteral,
+    kAST_BoolLiteral,
     kAST_FloatLiteral,
     kAST_StringLiteral,
 
@@ -395,6 +396,7 @@ Ast * ast_create_type_init(DataType dataType, Ast * pParams, ParseData * pParseD
 Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData * pParseData);
 
 Ast * ast_create_int_literal(int numi, ParseData * pParseData);
+Ast * ast_create_bool_literal(int numi, ParseData * pParseData);
 Ast * ast_create_float_literal(float numf, ParseData * pParseData);
 Ast * ast_create_string_literal(const char * str, ParseData * pParseData);
 
