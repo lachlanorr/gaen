@@ -2218,6 +2218,7 @@ const SymDataType * ast_data_type(const Ast * pAst)
     switch (pAst->type)
     {
     case kAST_Hash:
+    case kAST_Self:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "uint", 0, 0);
         break;
     case kAST_FloatLiteral:
@@ -2259,6 +2260,26 @@ const SymDataType * ast_data_type(const Ast * pAst)
     case kAST_Transform:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "mat43", 0, 0);
         break;
+    case kAST_Eq:
+    case kAST_NEq:
+    case kAST_LT:
+    case kAST_LTE:
+    case kAST_GT:
+    case kAST_GTE:
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "bool", 0, 0);
+    case kAST_Add:
+    case kAST_Sub:
+    case kAST_Mul:
+    case kAST_Div:
+    case kAST_Mod:
+    case kAST_LShift:
+    case kAST_RShift:
+    case kAST_And:
+    case kAST_Or:
+    case kAST_BitAnd:
+    case kAST_BitOr:
+    case kAST_BitXor:
+        return ast_data_type(pAst->pLhs);
     case kAST_Negate:
     case kAST_Complement:
         return ast_data_type(pAst->pRhs);

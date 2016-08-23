@@ -141,6 +141,8 @@ SpriteInstance::SpriteInstance(Sprite * pSprite, const glm::mat4x3 & transform)
   , mHasBody(false)
   , mTransform(transform)
   , mIsAnimating(false)
+  , mIsLooping(false)
+  , mDoneMessage(0)
 {
     mDurationPerFrame = 0.0f;
     mDurationSinceFrameChange = 0.0f;
@@ -163,10 +165,12 @@ const AnimInfo & SpriteInstance::currentAnim()
     return *mpAnimInfo;
 }
 
-void SpriteInstance::playAnim(u32 animHash, f32 duration)
+void SpriteInstance::playAnim(u32 animHash, f32 duration, bool loop, u32 doneMessage)
 {
     ASSERT(duration > 0.0f);
     mIsAnimating = true;
+    mIsLooping = loop;
+    mDoneMessage = doneMessage;
     animate(animHash, 0);
     mDurationPerFrame = duration / mpAnimInfo->frameCount;
     mDurationSinceFrameChange = 0.0f;
@@ -189,6 +193,19 @@ bool SpriteInstance::advanceAnim(f32 delta)
         u32 framesToAdvance = (u32)(mDurationSinceFrameChange / mDurationPerFrame);
         u32 newFrameIdx = (mAnimFrameIdx + framesToAdvance) % mpAnimInfo->frameCount;
         mDurationSinceFrameChange = fmod(delta, mDurationPerFrame);
+
+        if (mAnimFrameIdx + framesToAdvance >= mpAnimInfo->frameCount)
+        {
+            if (!mIsLooping)
+            {
+                mIsAnimating = false;
+            }
+            if (mDoneMessage != 0)
+            {
+                MessageQueueWriter msgw(mDoneMessage, kMessageFlag_None, kSpriteMgrTaskId, mpSprite->owner(), to_cell(0), 0);
+            }
+        }
+
         return animate(mAnimHash, newFrameIdx);
     }
     return false;

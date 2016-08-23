@@ -262,11 +262,58 @@ static S assign(const Ast * pAst, const char * op)
     }
 }
 
-static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
+static S message_param_symref(SymRec * pSymRec)
 {
     static const u32 kScratchSize = 256;
     char scratch[kScratchSize+1];
 
+    S code;
+    ASSERT(pSymRec->type == kSYMT_MessageParam);
+
+    const BlockInfo * pBlockInfo = pSymRec->pAst->pBlockInfos->find(pSymRec->pAst);
+    if (!pBlockInfo->isBlockMemoryType)
+    {
+        if (!pSymRec->pStructSymRec)
+        {
+            code = S("/*") + S(pSymRec->name) + S("*/") + property_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc", true, pSymRec->pAst->pParseData);
+        }
+        else
+        {
+            // we're dealing with a field within a struct (like v.x in a vec3, for example)
+            const char * fieldName = strrchr(pSymRec->pAst->str, '.');
+            ASSERT(fieldName != nullptr);
+            const BlockInfo * pStructBlockInfo = pSymRec->pAst->pBlockInfos->find(pSymRec->pStructSymRec->pAst);
+            code = S("/*") + S(pSymRec->name) + S("*/(");
+            code += property_block_accessor(ast_data_type(pSymRec->pStructSymRec->pAst), *pStructBlockInfo, "msgAcc", true, pSymRec->pAst->pParseData);
+            code += S(")") + S(fieldName);
+        }
+    }
+    else
+    {
+        switch (pBlockInfo->pSymDataType->typeDesc.dataType)
+        {
+        case kDT_string:
+            ASSERT(pBlockInfo->blockMemoryIndex != -1);
+
+            snprintf(scratch,
+                     kScratchSize,
+                     "pThis->self().blockMemory().stringReadMessage(msgAcc, %u, %u)",
+                     pSymRec->pAst->pBlockInfos->blockCount,
+                     pBlockInfo->blockMemoryIndex);
+            code = S(scratch);
+            break;
+        default:
+            PANIC("Unsupported DataType: %u", pBlockInfo->pSymDataType->typeDesc.dataType);
+            code = S("");
+            break;
+        }
+    }
+
+    return code;
+}
+
+static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
+{
     if (!pSymRec)
     {
         // We shouldn't get here, as this error should have been
@@ -280,44 +327,8 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
 
     if (pSymRec->type == kSYMT_MessageParam)
     {
-        const BlockInfo * pBlockInfo = pSymRec->pAst->pBlockInfos->find(pSymRec->pAst);
-        if (!pBlockInfo->isBlockMemoryType)
-        {
-            if (!pSymRec->pStructSymRec)
-            {
-                code = S("/*") + S(pSymRec->name) + S("*/") + property_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc", true, pSymRec->pAst->pParseData);
-            }
-            else
-            {
-                // we're dealing with a field within a struct (like v.x in a vec3, for example)
-                const char * fieldName = strrchr(pSymRec->pAst->str, '.');
-                ASSERT(fieldName != nullptr);
-                const BlockInfo * pStructBlockInfo = pSymRec->pAst->pBlockInfos->find(pSymRec->pStructSymRec->pAst);
-                code = S("/*") + S(pSymRec->name) + S("*/(");
-                code += property_block_accessor(ast_data_type(pSymRec->pStructSymRec->pAst), *pStructBlockInfo, "msgAcc", true, pSymRec->pAst->pParseData);
-                code += S(")") + S(fieldName);
-            }
-        }
-        else
-        {
-            switch (pBlockInfo->pSymDataType->typeDesc.dataType)
-            {
-            case kDT_string:
-                ASSERT(pBlockInfo->blockMemoryIndex != -1);
-
-                snprintf(scratch,
-                         kScratchSize,
-                         "pThis->self().blockMemory().stringReadMessage(msgAcc, %u, %u)",
-                         pSymRec->pAst->pBlockInfos->blockCount,
-                         pBlockInfo->blockMemoryIndex);
-                code = S(scratch);
-                break;
-            default:
-                PANIC("Unsupported DataType: %u", pBlockInfo->pSymDataType->typeDesc.dataType);
-                code = S("");
-                break;
-            }
-        }
+        // Just refer by name since MessageParams are extracted into local variables in message handler block
+        code += S(pSymRec->name);
     }
     else if (pSymRec->type == kSYMT_Property || pSymRec->type == kSYMT_Field)
     {
@@ -780,7 +791,21 @@ static S message_def(const Ast * pAst, int indentLevel)
             code += LF;
         }
 
-        code += I1 + S("// Params look compatible, message body follows\n");
+        if (pAst->pBlockInfos->items.size() > 0)
+        {
+            code += I1 + S("// Params look compatible, extract into local variables") + LF;
+            for (const BlockInfo & bi : pAst->pBlockInfos->items)
+            {
+                if (!(bi.pAst->pSymRec->flags & kSRFL_Member))
+                {
+                    code += I1 + S(bi.pSymDataType->cppTypeStr) + " " + S(bi.pAst->str) + S(" = ") + message_param_symref(bi.pAst->pSymRec) + S(";") + LF;
+                }
+            }
+            code += LF;
+        }
+        
+
+        code += I1 + S("// Message body follows\n");
         for (Ast * pChild : pAst->pChildren->nodes)
         {
             code += codegen_recurse(pChild, indentLevel + 1);
@@ -951,20 +976,61 @@ const Ast * defining_parent(const Ast * pAst)
     return nullptr;
 }
 
+const void find_refs_recurse(SymTab * pSymTab, const Ast * pAst)
+{
+    if (pAst)
+    {
+        if (pAst->type == kAST_SymbolRef)
+        {
+            if (pAst->pSymRecRef->type == kSYMT_Local ||
+                pAst->pSymRecRef->type == kSYMT_Param ||
+                pAst->pSymRecRef->type == kSYMT_MessageParam)
+            {
+                if (!symtab_find_symbol(pSymTab, pAst->pSymRecRef->name))
+                {
+                    SymRec * pSymRec = symrec_create(pAst->pSymRecRef->type,
+                                                     pAst->pSymRecRef->pSymDataType,
+                                                     pAst->pSymRecRef->name,
+                                                     pAst->pSymRecRef->pAst,
+                                                     pAst->pSymRecRef->pInitVal,
+                                                     pAst->pParseData);
+
+                    symtab_add_symbol(pSymTab, pSymRec, pSymTab->pParseData);
+                }
+            }
+        }
+        find_refs_recurse(pSymTab, pAst->pLhs);
+        find_refs_recurse(pSymTab, pAst->pMid);
+        find_refs_recurse(pSymTab, pAst->pRhs);
+        if (pAst->pChildren)
+        {
+            for (const Ast * pChild : pAst->pChildren->nodes)
+            {
+                find_refs_recurse(pSymTab, pChild);
+            }
+        }
+    }
+}
+
 const SymTab * find_closure_symbols(const Ast * pAst)
 {
     if (pAst)
     {
-        const SymTab * pSymTab = pAst->pScope->pSymTab;
-        while (pSymTab != nullptr)
+        ASSERT(pAst->type == kAST_EntityInit);
+        SymTab * pSymTab = symtab_create(pAst->pParseData);
+
+        // find an references in PropInitList and insert them into our SymTab
+        ASSERT(pAst->pRhs && pAst->pRhs->type == kAST_PropInitList);
+        if (pAst->pRhs && pAst->pRhs->type == kAST_PropInitList)
         {
-            if (pSymTab->pAst && pSymTab->pAst->type == kAST_FunctionDef)
+            for (const Ast * pChild : pAst->pRhs->pChildren->nodes)
             {
-                ASSERT(pSymTab->pAst->pLhs->type == kAST_FunctionDecl);
-                return pSymTab->pAst->pLhs->pScope->pSymTab;
+                find_refs_recurse(pSymTab, pChild->pRhs);
             }
-            pSymTab = pSymTab->pParent;
         }
+
+        if (pSymTab->dict.size() > 0)
+            return pSymTab;
     }
     return nullptr;
 }

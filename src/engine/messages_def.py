@@ -54,9 +54,11 @@ class SpriteInstance(FieldHandler):
                       includes=['engine/Sprite.h'])
 
 class SpritePlayAnim(FieldHandler):
-    uid       = u32Field(payload=True)
-    animHash  = u32Field()
-    duration  = f32Field()
+    uid         = u32Field(payload=True)
+    animHash    = u32Field()
+    duration    = f32Field()
+    loop        = boolField()
+    doneMessage = u32Field()
 
 class SpriteAnim(FieldHandler):
     uid          = u32Field(payload=True)

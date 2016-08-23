@@ -356,6 +356,7 @@ expr
     | '$' '.' IDENTIFIER '(' fun_params ')'  { $$ = ast_create_system_api_call($3, $5, pParseData); }
 
     | TRANSFORM  { $$ = ast_create(kAST_Transform, pParseData); }
+    | SELF       { $$ = ast_create(kAST_Self, pParseData); }
     ;
 
 cond_expr

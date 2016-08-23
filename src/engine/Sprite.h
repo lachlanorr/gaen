@@ -118,7 +118,7 @@ private:
     SpriteInstance & operator=(const SpriteInstance&) = delete;
     SpriteInstance & operator=(SpriteInstance&&)      = delete;
     
-    void playAnim(u32 animHash, f32 duration);
+    void playAnim(u32 animHash, f32 duration, bool loop, u32 doneMessage);
     bool advanceAnim(f32 delta);
 
     Sprite * mpSprite;
@@ -133,6 +133,8 @@ private:
     f32 mDurationSinceFrameChange;
 
     bool mIsAnimating;
+    bool mIsLooping;
+    u32 mDoneMessage;
 };
 
 typedef UniquePtr<SpriteInstance> SpriteInstanceUP;
