@@ -75,25 +75,16 @@ ParseData * pParseData = yyextra;
 <COMMENT><<EOF>>           { yyerror(yylloc, pParseData, "Unterminated comment"); return 0; }
 "//".*{CRLF}
 
-"char"   { yylval->dataType = kDT_char;   return CHAR_;   }
-"byte"   { yylval->dataType = kDT_byte;   return BYTE_;   }
-"short"  { yylval->dataType = kDT_short;  return SHORT_;  }
-"ushort" { yylval->dataType = kDT_ushort; return USHORT_; }
 "int"    { yylval->dataType = kDT_int;    return INT_;    }
-"uint"   { yylval->dataType = kDT_uint;   return UINT_;   }
-"long"   { yylval->dataType = kDT_long;   return LONG_;   }
-"ulong"  { yylval->dataType = kDT_ulong;  return ULONG_;  }
-"half"   { yylval->dataType = kDT_half;   return HALF_;   }
 "float"  { yylval->dataType = kDT_float;  return FLOAT_;  }
-"double" { yylval->dataType = kDT_double; return DOUBLE_; }
 "bool"   { yylval->dataType = kDT_bool;   return BOOL_;   }
 "color"  { yylval->dataType = kDT_color;  return COLOR;   }
 "vec2"   { yylval->dataType = kDT_vec2;   return VEC2;    }
 "vec3"   { yylval->dataType = kDT_vec3;   return VEC3;    }
 "vec4"   { yylval->dataType = kDT_vec4;   return VEC4;    }
-"uvec2"  { yylval->dataType = kDT_uvec2;  return UVEC2;   }
-"uvec3"  { yylval->dataType = kDT_uvec3;  return UVEC3;   }
-"uvec4"  { yylval->dataType = kDT_uvec4;  return UVEC4;   }
+"ivec2"  { yylval->dataType = kDT_ivec2;  return IVEC2;   }
+"ivec3"  { yylval->dataType = kDT_ivec3;  return IVEC3;   }
+"ivec4"  { yylval->dataType = kDT_ivec4;  return IVEC4;   }
 "quat"   { yylval->dataType = kDT_quat;   return QUAT;    }
 "mat3"   { yylval->dataType = kDT_mat3;   return MAT3;    }
 "mat43"  { yylval->dataType = kDT_mat43;  return MAT43;   }

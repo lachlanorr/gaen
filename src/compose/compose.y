@@ -79,7 +79,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <numf> FLOAT_LITERAL
 
 /* This type list must match the DataType enum in compiler.h */
-%token <dataType> VOID_ BOOL_ CHAR_ BYTE_ SHORT_ USHORT_ INT_ UINT_ LONG_ ULONG_ HALF_ FLOAT_ DOUBLE_ COLOR VEC2 VEC3 VEC4 UVEC2 UVEC3 UVEC4 QUAT MAT3 MAT43 MAT4 HANDLE_ ASSET ENTITY STRING
+%token <dataType> VOID_ BOOL_ INT_ FLOAT_ COLOR VEC2 VEC3 VEC4 IVEC2 IVEC3 IVEC4 QUAT MAT3 MAT43 MAT4 HANDLE_ ASSET ENTITY STRING
 %type <dataType> basic_type
 
 %token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS UPDATE INPUT_ ANY NONE USING AS CONST_ SELF PRE POST VALUE
@@ -350,7 +350,7 @@ expr
     | literal   { $$ = $1; }
 
     | basic_type '{' fun_params '}'      { $$ = ast_create_type_init($1, $3, pParseData); }
-    | dotted_id  '{' prop_init_list '}'  { $$ = ast_create_entity_or_struct_init($1, $3, pParseData); }
+    | dotted_id  '{' prop_init_list '}'  { $$ = ast_create_entity_init($1, $3, pParseData); }
     | dotted_id  '(' fun_params ')'      { $$ = ast_create_function_call($1, $3, pParseData); }
 
     | '$' '.' IDENTIFIER '(' fun_params ')'  { $$ = ast_create_system_api_call($3, $5, pParseData); }
@@ -402,24 +402,15 @@ type
 basic_type
     : VOID_
     | BOOL_
-    | CHAR_
-    | BYTE_
-    | SHORT_
-    | USHORT_
     | INT_
-    | UINT_
-    | LONG_
-    | ULONG_
-    | HALF_
     | FLOAT_
-    | DOUBLE_
     | COLOR
     | VEC2
     | VEC3
     | VEC4
-    | UVEC2
-    | UVEC3
-    | UVEC4
+    | IVEC2
+    | IVEC3
+    | IVEC4
     | QUAT
     | MAT3
     | MAT43

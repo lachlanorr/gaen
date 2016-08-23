@@ -7,7 +7,7 @@ consumed when build_messages.py is run.
 
 # A single, 32 byte task
 class InsertTask(FieldHandler):
-    owner = u32Field(payload=True,
+    owner = i32Field(payload=True,
                      type_name='thread_id',
                      includes=['core/threading.h'])
     task  = TaskField()
@@ -19,8 +19,8 @@ class TaskStatus(FieldHandler):
 
 # Instantiate and insert a component
 class InsertComponent(FieldHandler):
-    nameHash = u32Field(payload=True)
-    index = u32Field()
+    nameHash = i32Field(payload=True)
+    index = i32Field()
 
 # Transform and entity
 class Transform(FieldHandler):
@@ -29,23 +29,23 @@ class Transform(FieldHandler):
 
 # Transform and entity
 class TransformUid(FieldHandler):
-    uid       = u32Field(payload=True)
+    uid       = i32Field(payload=True)
     transform = mat4x3Field()
 
 class InsertModelInstance(FieldHandler):
-    uid             = u32Field(payload=True)
+    uid             = i32Field(payload=True)
     pModel          = PointerField(type_name='Model *',
                                    includes=['engine/Model.h'])
     isAssetManaged  = boolField()
     transform  = mat4x3Field()
     
 class InsertLightDirectional(FieldHandler):
-    uid       = u32Field(payload=True)
+    uid       = i32Field(payload=True)
     color     = ColorField()
     direction = vec3Field()
 
 class UpdateLightDirectional(FieldHandler):
-    uid       = u32Field(payload=True)
+    uid       = i32Field(payload=True)
     color     = ColorField()
     direction = vec3Field()
 
@@ -54,31 +54,31 @@ class SpriteInstance(FieldHandler):
                       includes=['engine/Sprite.h'])
 
 class SpritePlayAnim(FieldHandler):
-    uid         = u32Field(payload=True)
-    animHash    = u32Field()
+    uid         = i32Field(payload=True)
+    animHash    = i32Field()
     duration    = f32Field()
     loop        = boolField()
-    doneMessage = u32Field()
+    doneMessage = i32Field()
 
 class SpriteAnim(FieldHandler):
-    uid          = u32Field(payload=True)
-    animHash     = u32Field()
-    animFrameIdx = u32Field()
+    uid          = i32Field(payload=True)
+    animHash     = i32Field()
+    animFrameIdx = i32Field()
 
 class SpriteVelocity(FieldHandler):
-    uid          = u32Field(payload=True)
+    uid          = i32Field(payload=True)
     velocity     = vec2Field()
 
 class SpriteBody(FieldHandler):
-    uid          = u32Field(payload=True)
+    uid          = i32Field(payload=True)
     mass         = f32Field()
-    group        = u32Field()
-    mask03       = uvec4Field()
-    mask47       = uvec4Field()
+    group        = i32Field()
+    mask03       = ivec4Field()
+    mask47       = ivec4Field()
 
 class Collision(FieldHandler):
-    group        = u32Field(payload=True)
-    subject      = u32Field()
+    group        = i32Field(payload=True)
+    subject      = i32Field()
     location     = vec3Field()
 
 class MoveCamera(FieldHandler):
@@ -86,18 +86,18 @@ class MoveCamera(FieldHandler):
     direction = quatField()
 
 class MouseMove(FieldHandler):
-    xDelta = u32Field(payload=True)
-    yDelta = u32Field()
+    xDelta = i32Field(payload=True)
+    yDelta = i32Field()
 
 class Handle(FieldHandler):
-    taskId = u32Field(payload=True)
-    nameHash = u32Field()
+    taskId = i32Field(payload=True)
+    nameHash = i32Field()
     pHandle = PointerField(type_name='Handle *',
                            includes=['engine/Handle.h'])
 
 class Asset(FieldHandler):
-    taskId = u32Field(payload=True)
-    subTaskId = u32Field()
-    nameHash = u32Field()
+    taskId = i32Field(payload=True)
+    subTaskId = i32Field()
+    nameHash = i32Field()
     pAsset = PointerField(type_name='Asset *',
                           includes=['engine/Asset.h'])

@@ -83,13 +83,9 @@ static const char * cell_field_str(const SymDataType * pSdt, ParseData * pParseD
 {
     switch (pSdt->typeDesc.dataType)
     {
-    case kDT_char:
-        return "c";
     case kDT_int:
-        return "i";
-    case kDT_uint:
     case kDT_entity:
-        return "u";
+        return "i";
     case kDT_float:
         return "f";
     case kDT_bool:
@@ -184,10 +180,8 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
         switch (pSdt->typeDesc.dataType)
         {
         case kDT_int:
-        case kDT_uint:
         case kDT_float:
         case kDT_bool:
-        case kDT_char:
         case kDT_color:
         case kDT_entity:
             snprintf(scratch, kScratchSize, "%s[%u].cells[%u].%s", blockVarName, blockInfo.blockIndex, blockInfo.cellIndex, cell_field_str(pSdt, pParseData));
@@ -498,25 +492,23 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
     switch (pSdt->typeDesc.dataType)
     {
     case kDT_int:
-    case kDT_uint:
         return S("0");
     case kDT_float:
         return S("0.0f");
     case kDT_bool:
-    case kDT_char:
-        return S("0");
+        return S("false");
     case kDT_vec2:
         return S("glm::vec2(0.0f, 0.0f)");
     case kDT_vec3:
         return S("glm::vec3(0.0f, 0.0f, 0.0f)");
     case kDT_vec4:
         return S("glm::vec4(0.0, 0.0f, 0.0f, 1.0f)");
-    case kDT_uvec2:
-        return S("glm::uvec2(0.0f, 0.0f)");
-    case kDT_uvec3:
-        return S("glm::uvec3(0.0f, 0.0f, 0.0f)");
-    case kDT_uvec4:
-        return S("glm::uvec4(0.0, 0.0f, 0.0f, 1.0f)");
+    case kDT_ivec2:
+        return S("glm::ivec2(0.0f, 0.0f)");
+    case kDT_ivec3:
+        return S("glm::ivec3(0.0f, 0.0f, 0.0f)");
+    case kDT_ivec4:
+        return S("glm::ivec4(0.0, 0.0f, 0.0f, 1.0f)");
     case kDT_quat:
         return S("glm::quat(0.0, 0.0f, 0.0f, 1.0f)");
     case kDT_mat3:
@@ -892,18 +884,15 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                         case kDT_int:
                             code += I + S("    msgw[0].cells[0].i = ") + codegen_recurse(pPropInit->pRhs, 0);
                             break;
-                        case kDT_uint:
-                            code += I + S("    msgw[0].cells[0].u = ") + codegen_recurse(pPropInit->pRhs, 0);
-                            break;
                         case kDT_color:
                             code += I + S("    msgw[0].cells[0].color = ") + codegen_recurse(pPropInit->pRhs, 0);
                             break;
                         case kDT_vec2:
                         case kDT_vec3:
                         case kDT_vec4:
-                        case kDT_uvec2:
-                        case kDT_uvec3:
-                        case kDT_uvec4:
+                        case kDT_ivec2:
+                        case kDT_ivec3:
+                        case kDT_ivec4:
                         case kDT_quat:
                         case kDT_mat3:
                         case kDT_mat43:
@@ -1944,9 +1933,9 @@ static S codegen_recurse(const Ast * pAst,
         code += S(")");
         return code;
     }
-    case kAST_Uvec2Init:
+    case kAST_Ivec2Init:
     {
-        S code = S("glm::uvec2(");
+        S code = S("glm::ivec2(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -1956,9 +1945,9 @@ static S codegen_recurse(const Ast * pAst,
         code += S(")");
         return code;
     }
-    case kAST_Uvec3Init:
+    case kAST_Ivec3Init:
     {
-        S code = S("glm::uvec3(");
+        S code = S("glm::ivec3(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -1968,9 +1957,9 @@ static S codegen_recurse(const Ast * pAst,
         code += S(")");
         return code;
     }
-    case kAST_Uvec4Init:
+    case kAST_Ivec4Init:
     {
-        S code = S("glm::uvec4(");
+        S code = S("glm::ivec4(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);

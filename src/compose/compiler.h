@@ -167,9 +167,9 @@ typedef enum
     kAST_Vec2Init,
     kAST_Vec3Init,
     kAST_Vec4Init,
-    kAST_Uvec2Init,
-    kAST_Uvec3Init,
-    kAST_Uvec4Init,
+    kAST_Ivec2Init,
+    kAST_Ivec3Init,
+    kAST_Ivec4Init,
     kAST_QuatInit,
     kAST_Mat43Init,
     kAST_StringInit,
@@ -228,43 +228,31 @@ typedef enum
 
     kDT_void      = 1,
     kDT_bool      = 2,
-    kDT_char      = 3,
-    kDT_byte      = 4,
-    kDT_short     = 5,
+    kDT_int       = 3,
+    kDT_float     = 4,
+    kDT_color     = 5,
 
-    kDT_ushort    = 6,
-    kDT_int       = 7,
-    kDT_uint      = 8,
-    kDT_long      = 9,
-    kDT_ulong     = 10,
+    kDT_vec2      = 6,
+    kDT_vec3      = 7,
+    kDT_vec4      = 8,
 
-    kDT_half      = 11,
-    kDT_float     = 12,
-    kDT_double    = 13,
-    kDT_color     = 14,
-    kDT_vec2      = 15,
-    kDT_uvec2     = 16,
+    kDT_ivec2     = 9,
+    kDT_ivec3     = 10,
+    kDT_ivec4     = 11,
 
-    kDT_vec3      = 17,
-    kDT_vec4      = 18,
-    kDT_uvec3     = 19,
-    kDT_uvec4     = 20,
-    kDT_quat      = 21,
-    kDT_mat3      = 22,
-    kDT_mat43     = 23,
-    kDT_mat4      = 24,
+    kDT_quat      = 12,
+    kDT_mat3      = 13,
+    kDT_mat43     = 14,
+    kDT_mat4      = 15,
 
-    kDT_handle       = 25,
-    kDT_asset_handle = 26,
+    kDT_handle       = 16,
+    kDT_asset_handle = 17,
 
-    kDT_entity    = 27,
+    kDT_entity    = 18,
 
     // Dynamic data structures
-    kDT_string    = 28,
-    kDT_asset     = 29,
-
-    // User defined struct
-    kDT_struct    = 30,
+    kDT_string    = 19,
+    kDT_asset     = 20,
 
     kDT_COUNT
 
@@ -385,15 +373,15 @@ Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec2_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData);
-Ast * ast_create_uvec2_init(Ast * pParams, ParseData * pParseData);
-Ast * ast_create_uvec3_init(Ast * pParams, ParseData * pParseData);
-Ast * ast_create_uvec4_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_ivec2_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_ivec3_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_ivec4_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_mat43_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData);
 
 Ast * ast_create_type_init(DataType dataType, Ast * pParams, ParseData * pParseData);
-Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData * pParseData);
+Ast * ast_create_entity_init(Ast * pDottedId, Ast * pParams, ParseData * pParseData);
 
 Ast * ast_create_int_literal(int numi, ParseData * pParseData);
 Ast * ast_create_bool_literal(int numi, ParseData * pParseData);

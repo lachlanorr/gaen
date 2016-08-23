@@ -81,11 +81,11 @@ private:
     {
         u32 nameHash;
 
-        HashMap<kMEM_Engine, u32, glm::uvec4> keyboard;
-        HashMap<kMEM_Engine, u32, glm::uvec4> mouseButtons;
+        HashMap<kMEM_Engine, u32, glm::ivec4> keyboard;
+        HashMap<kMEM_Engine, u32, glm::ivec4> mouseButtons;
         u32 mouseMove;
 
-        HashMap<kMEM_Engine, u32, glm::uvec4> ctrlButtons;
+        HashMap<kMEM_Engine, u32, glm::ivec4> ctrlButtons;
         u32 ctrlLTrigger;
         u32 ctrlRTrigger;
         u32 ctrlLStick;
@@ -102,7 +102,7 @@ private:
     };
 
     bool queryKeyCode(KeyCode keyCode);
-    u32 queryState(const glm::uvec4 & keys);
+    u32 queryState(const glm::ivec4 & keys);
 
     void processKeyInput(const KeyInput & keyInput);
     void processMouseMoveInput(const MouseInput::Movement & moveInput);
@@ -112,7 +112,7 @@ private:
 
     bool mIsPrimary;
 
-    glm::uvec4 mPressedKeys;
+    glm::ivec4 mPressedKeys;
 
     MouseState mMouseState;
 

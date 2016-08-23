@@ -142,8 +142,8 @@ void SpritePhysics::update(f32 delta)
 void SpritePhysics::insert(SpriteInstance & spriteInst,
                            f32 mass,
                            u32 group,
-                           const glm::uvec4 & mask03,
-                           const glm::uvec4 & mask47)
+                           const glm::ivec4 & mask03,
+                           const glm::ivec4 & mask47)
 {
     if (mBodies.find(spriteInst.sprite().uid()) == mBodies.end())
     {
@@ -219,7 +219,7 @@ void SpritePhysics::setVelocity(u32 uid, const glm::vec2 & velocity)
     }
 }
 
-u16 SpritePhysics::buildMask(const glm::uvec4 & mask03, const glm::uvec4 & mask47)
+u16 SpritePhysics::buildMask(const glm::ivec4 & mask03, const glm::ivec4 & mask47)
 {
     u16 mask = 0;
     for (u32 i = 0; i < 4; ++i)

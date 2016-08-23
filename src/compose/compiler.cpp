@@ -47,7 +47,7 @@ extern "C" {
 
 using namespace gaen;
 
-static_assert(kDT_COUNT == 31, "Make sure DataType enum ids look right... seems they have changed");
+static_assert(kDT_COUNT == 21, "Make sure DataType enum ids look right... seems they have changed");
 
 static const char * kScriptsPath = "/src/scripts/cmp/";
 
@@ -1227,9 +1227,9 @@ Ast * ast_create_input_assign(Ast * pExpr, ParseData * pParseData)
 
     const SymDataType * pSymDt = ast_data_type(pExpr);
 
-    if (pSymDt->typeDesc.dataType != kDT_uint)
+    if (pSymDt->typeDesc.dataType != kDT_int)
     {
-        COMP_ERROR(pParseData, "'input' assignment only valid with uint expression");
+        COMP_ERROR(pParseData, "'input' assignment only valid with int expression");
     }
     Ast * pAst = ast_create(kAST_InputAssign, pParseData);
     ast_set_rhs(pAst, pExpr);
@@ -1326,7 +1326,7 @@ Ast * ast_create_color_init(Ast * pParams, ParseData * pParseData)
         for (Ast * pParam : pParams->pChildren->nodes)
         {
             const SymDataType * pSdt = ast_data_type(pParam);
-            if (pSdt->typeDesc.dataType != kDT_int && pSdt->typeDesc.dataType != kDT_uint)
+            if (pSdt->typeDesc.dataType != kDT_int)
                 COMP_ERROR(pParseData, "Invalid data type in color initialization");
         }
         break;
@@ -1429,9 +1429,9 @@ Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_uvec2_init(Ast * pParams, ParseData * pParseData)
+Ast * ast_create_ivec2_init(Ast * pParams, ParseData * pParseData)
 {
-    Ast * pAst = ast_create(kAST_Uvec2Init, pParseData);
+    Ast * pAst = ast_create(kAST_Ivec2Init, pParseData);
     ast_set_rhs(pAst, pParams);
 
     switch (pParams->pChildren->nodes.size())
@@ -1440,8 +1440,8 @@ Ast * ast_create_uvec2_init(Ast * pParams, ParseData * pParseData)
     {
         Ast * pParam = pParams->pChildren->nodes.front();
         const SymDataType * pSdt = ast_data_type(pParam);
-        if (pSdt->typeDesc.dataType != kDT_uint && pSdt->typeDesc.dataType != kDT_uvec2)
-            COMP_ERROR(pParseData, "Invalid data type in uvec2 initialization");
+        if (pSdt->typeDesc.dataType != kDT_int && pSdt->typeDesc.dataType != kDT_ivec2)
+            COMP_ERROR(pParseData, "Invalid data type in ivec2 initialization");
         break;
     }
     case 2:
@@ -1449,22 +1449,22 @@ Ast * ast_create_uvec2_init(Ast * pParams, ParseData * pParseData)
         for (Ast * pParam : pParams->pChildren->nodes)
         {
             const SymDataType * pSdt = ast_data_type(pParam);
-            if (pSdt->typeDesc.dataType != kDT_uint)
-                COMP_ERROR(pParseData, "Invalid data type in uvec2 initialization");
+            if (pSdt->typeDesc.dataType != kDT_int)
+                COMP_ERROR(pParseData, "Invalid data type in ivec2 initialization");
         }
         break;
     }
     default:
-        COMP_ERROR(pParseData, "Invalid parameters for uvec2 initialization");
+        COMP_ERROR(pParseData, "Invalid parameters for ivec2 initialization");
         break;
     }
 
     return pAst;
 }
 
-Ast * ast_create_uvec3_init(Ast * pParams, ParseData * pParseData)
+Ast * ast_create_ivec3_init(Ast * pParams, ParseData * pParseData)
 {
-    Ast * pAst = ast_create(kAST_Uvec3Init, pParseData);
+    Ast * pAst = ast_create(kAST_Ivec3Init, pParseData);
     ast_set_rhs(pAst, pParams);
 
     switch (pParams->pChildren->nodes.size())
@@ -1473,8 +1473,8 @@ Ast * ast_create_uvec3_init(Ast * pParams, ParseData * pParseData)
     {
         Ast * pParam = pParams->pChildren->nodes.front();
         const SymDataType * pSdt = ast_data_type(pParam);
-        if (pSdt->typeDesc.dataType != kDT_uint && pSdt->typeDesc.dataType != kDT_vec3)
-            COMP_ERROR(pParseData, "Invalid data type in uvec3 initialization");
+        if (pSdt->typeDesc.dataType != kDT_int && pSdt->typeDesc.dataType != kDT_ivec3)
+            COMP_ERROR(pParseData, "Invalid data type in ivec3 initialization");
         break;
     }
     case 3:
@@ -1482,22 +1482,22 @@ Ast * ast_create_uvec3_init(Ast * pParams, ParseData * pParseData)
         for (Ast * pParam : pParams->pChildren->nodes)
         {
             const SymDataType * pSdt = ast_data_type(pParam);
-            if (pSdt->typeDesc.dataType != kDT_uint)
-                COMP_ERROR(pParseData, "Invalid data type in uvec3 initialization");
+            if (pSdt->typeDesc.dataType != kDT_int)
+                COMP_ERROR(pParseData, "Invalid data type in ivec3 initialization");
         }
         break;
     }
     default:
-        COMP_ERROR(pParseData, "Invalid parameters for uvec3 initialization");
+        COMP_ERROR(pParseData, "Invalid parameters for ivec3 initialization");
         break;
     }
 
     return pAst;
 }
 
-Ast * ast_create_uvec4_init(Ast * pParams, ParseData * pParseData)
+Ast * ast_create_ivec4_init(Ast * pParams, ParseData * pParseData)
 {
-    Ast * pAst = ast_create(kAST_Uvec4Init, pParseData);
+    Ast * pAst = ast_create(kAST_Ivec4Init, pParseData);
     ast_set_rhs(pAst, pParams);
 
     switch (pParams->pChildren->nodes.size())
@@ -1507,13 +1507,13 @@ Ast * ast_create_uvec4_init(Ast * pParams, ParseData * pParseData)
         for (Ast * pParam : pParams->pChildren->nodes)
         {
             const SymDataType * pSdt = ast_data_type(pParam);
-            if (pSdt->typeDesc.dataType != kDT_uint)
-                COMP_ERROR(pParseData, "Invalid data type in uvec4 initialization");
+            if (pSdt->typeDesc.dataType != kDT_int)
+                COMP_ERROR(pParseData, "Invalid data type in ivec4 initialization");
         }
         break;
     }
     default:
-        COMP_ERROR(pParseData, "Invalid parameters for uvec4 initialization");
+        COMP_ERROR(pParseData, "Invalid parameters for ivec4 initialization");
         break;
     }
 
@@ -1593,24 +1593,15 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
         switch (pSdt->typeDesc.dataType)
         {
         case kDT_bool:
-        case kDT_char:
-        case kDT_byte:
-        case kDT_short:
-        case kDT_ushort:
         case kDT_int:
-        case kDT_uint:
-        case kDT_long:
-        case kDT_ulong:
-        case kDT_half:
         case kDT_float:
-        case kDT_double:
         case kDT_color:
         case kDT_vec2:
         case kDT_vec3:
         case kDT_vec4:
-        case kDT_uvec2:
-        case kDT_uvec3:
-        case kDT_uvec4:
+        case kDT_ivec2:
+        case kDT_ivec3:
+        case kDT_ivec4:
         case kDT_quat:
         case kDT_mat3:
         case kDT_mat43:
@@ -1718,14 +1709,6 @@ Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData)
                 }
                 break;
 
-            case 'c':
-                if (ast_data_type(*paramIt)->typeDesc.dataType != kDT_char)
-                {
-                    COMP_ERROR(pParseData, "char parameter expected in position %u for %s", i, format);
-                    return nullptr;
-                }
-                break;
-
             case 'f':
             case 'F':
             case 'e':
@@ -1781,12 +1764,12 @@ Ast * ast_create_type_init(DataType dataType, Ast * pParams, ParseData * pParseD
         return ast_create_vec3_init(pParams, pParseData);
     case kDT_vec4:
         return ast_create_vec4_init(pParams, pParseData);
-    case kDT_uvec2:
-        return ast_create_uvec2_init(pParams, pParseData);
-    case kDT_uvec3:
-        return ast_create_uvec3_init(pParams, pParseData);
-    case kDT_uvec4:
-        return ast_create_uvec4_init(pParams, pParseData);
+    case kDT_ivec2:
+        return ast_create_ivec2_init(pParams, pParseData);
+    case kDT_ivec3:
+        return ast_create_ivec3_init(pParams, pParseData);
+    case kDT_ivec4:
+        return ast_create_ivec4_init(pParams, pParseData);
     case kDT_quat:
         return ast_create_quat_init(pParams, pParseData);
     case kDT_mat43:
@@ -1798,7 +1781,7 @@ Ast * ast_create_type_init(DataType dataType, Ast * pParams, ParseData * pParseD
     }
 }
 
-Ast * ast_create_entity_or_struct_init(Ast * pDottedId, Ast * pParams, ParseData * pParseData)
+Ast * ast_create_entity_init(Ast * pDottedId, Ast * pParams, ParseData * pParseData)
 {
     // pop scope that got created by the lexer when encountering the '{'
     parsedata_pop_scope(pParseData);
@@ -2226,13 +2209,11 @@ const SymDataType * ast_data_type(const Ast * pAst)
     {
     case kAST_Hash:
     case kAST_Self:
-        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "uint", 0, 0);
+    case kAST_IntLiteral:
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "int", 0, 0);
         break;
     case kAST_FloatLiteral:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "float", 0, 0);
-        break;
-    case kAST_IntLiteral:
-        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "int", 0, 0);
         break;
     case kAST_BoolLiteral:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "bool", 0, 0);
@@ -2254,14 +2235,14 @@ const SymDataType * ast_data_type(const Ast * pAst)
     case kAST_Vec4Init:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "vec4", 0, 0);
         break;
-    case kAST_Uvec2Init:
-        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "uvec2", 0, 0);
+    case kAST_Ivec2Init:
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "ivec2", 0, 0);
         break;
-    case kAST_Uvec3Init:
-        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "uvec3", 0, 0);
+    case kAST_Ivec3Init:
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "ivec3", 0, 0);
         break;
-    case kAST_Uvec4Init:
-        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "uvec4", 0, 0);
+    case kAST_Ivec4Init:
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "ivec4", 0, 0);
         break;
     case kAST_QuatInit:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "quat", 0, 0);
@@ -2345,16 +2326,7 @@ int is_block_memory_type(const SymDataType * pSdt)
 
 int is_integral_type(const SymDataType * pSdt)
 {
-    switch (pSdt->typeDesc.dataType)
-    {
-    case kDT_int:
-    case kDT_uint:
-    case kDT_short:
-    case kDT_ushort:
-        return 1;
-    default:
-        return 0;
-    }
+    return pSdt->typeDesc.dataType == kDT_int ? 1 : 0;
 }
 
 
@@ -2995,8 +2967,7 @@ namespace gaen
     {
         register_basic_type(kDT_void,  "void", "void", 0, pParseData);
         register_basic_type(kDT_bool,  "bool", "bool", 1, pParseData);
-        register_basic_type(kDT_int,   "int",  "i32",  1, pParseData);
-        RelatedTypes uintRt = register_basic_type(kDT_uint,  "uint", "u32", 1, pParseData);
+        RelatedTypes intRt = register_basic_type(kDT_int,   "int",  "i32",  1, pParseData);
         register_basic_type(kDT_color, "color", "Color", 1, pParseData);
 
         // Save float related types since we need them to register fields of each
@@ -3020,20 +2991,20 @@ namespace gaen
         symdatatype_add_field_related(&rt, floatRt.pNormal, "z", kSRFL_None);
         symdatatype_add_field_related(&rt, floatRt.pNormal, "w", kSRFL_None);
 
-        rt = register_basic_type(kDT_uvec2, "uvec2", "glm::uvec2", 2, pParseData);
-        symdatatype_add_field_related(&rt, uintRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&rt, uintRt.pNormal, "y", kSRFL_None);
+        rt = register_basic_type(kDT_ivec2, "ivec2", "glm::ivec2", 2, pParseData);
+        symdatatype_add_field_related(&rt, intRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&rt, intRt.pNormal, "y", kSRFL_None);
 
-        rt = register_basic_type(kDT_uvec3, "uvec3", "glm::uvec3", 3, pParseData);
-        symdatatype_add_field_related(&rt, uintRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&rt, uintRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&rt, uintRt.pNormal, "z", kSRFL_None);
+        rt = register_basic_type(kDT_ivec3, "ivec3", "glm::ivec3", 3, pParseData);
+        symdatatype_add_field_related(&rt, intRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&rt, intRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&rt, intRt.pNormal, "z", kSRFL_None);
 
-        rt = register_basic_type(kDT_uvec4, "uvec4", "glm::uvec4", 4, pParseData);
-        symdatatype_add_field_related(&rt, uintRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&rt, uintRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&rt, uintRt.pNormal, "z", kSRFL_None);
-        symdatatype_add_field_related(&rt, uintRt.pNormal, "w", kSRFL_None);
+        rt = register_basic_type(kDT_ivec4, "ivec4", "glm::ivec4", 4, pParseData);
+        symdatatype_add_field_related(&rt, intRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&rt, intRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&rt, intRt.pNormal, "z", kSRFL_None);
+        symdatatype_add_field_related(&rt, intRt.pNormal, "w", kSRFL_None);
 
         rt = register_basic_type(kDT_quat, "quat", "glm::quat", 4, pParseData);
         symdatatype_add_field_related(&rt, floatRt.pNormal, "x", kSRFL_None);

@@ -55,7 +55,7 @@ void print(CmpString str, Entity & caller)
     LOG_INFO(str.c_str());
 }
 
-CmpString hashstr(u32 hash, Entity & caller)
+CmpString hashstr(i32 hash, Entity & caller)
 {
     return caller.blockMemory().stringAlloc(HASH::reverse_hash(hash));
 }
@@ -65,7 +65,7 @@ void print_asset_info(AssetHandleP asset, Entity & caller)
     LOG_INFO("print_asset_info");
 }
 
-//void activate_entity(u32 id, Entity & caller)
+//void activate_entity(i32 id, Entity & caller)
 //{
 //    caller.activateEntity(id);
 //}
@@ -112,9 +112,9 @@ glm::quat quat_normalize(const glm::quat & quat, Entity & caller)
     return q;
 }
 
-u32 renderer_gen_uid(Entity & caller)
+i32 renderer_gen_uid(Entity & caller)
 {
-    static std::atomic<u32> sNextUid(1);
+    static std::atomic<i32> sNextUid(1);
     return sNextUid.fetch_add(1, std::memory_order_relaxed);
 }
 
@@ -129,7 +129,7 @@ void renderer_move_camera(const glm::vec3 & position, const glm::quat & directio
     msgQW.setDirection(direction);
 }
 
-void renderer_insert_model_instance(u32 uid,
+void renderer_insert_model_instance(i32 uid,
                                     HandleP modelHandle,
                                     Entity & caller)
 {
@@ -149,7 +149,7 @@ void renderer_insert_model_instance(u32 uid,
     modelHandle->clearData();
 }
 
-void renderer_transform_model_instance(u32  uid, const glm::mat4x3 & transform, Entity & caller)
+void renderer_transform_model_instance(i32 uid, const glm::mat4x3 & transform, Entity & caller)
 {
     messages::TransformUidQW msgQW(HASH::renderer_transform_model_instance,
                                   kMessageFlag_None,
@@ -159,7 +159,7 @@ void renderer_transform_model_instance(u32  uid, const glm::mat4x3 & transform, 
     msgQW.setTransform(transform);
 }
 
-void renderer_remove_model_instance(u32  uid, Entity & caller)
+void renderer_remove_model_instance(i32 uid, Entity & caller)
 {
     MessageQueueWriter msgQW(HASH::renderer_remove_model_instance,
                              kMessageFlag_None,
@@ -169,7 +169,7 @@ void renderer_remove_model_instance(u32  uid, Entity & caller)
                              0);
 }
 
-void renderer_insert_light_directional(u32 uid,
+void renderer_insert_light_directional(i32 uid,
                                        const glm::vec3 & direction,
                                        Color color,
                                        Entity & caller)
@@ -183,7 +183,7 @@ void renderer_insert_light_directional(u32 uid,
     msgQW.setColor(color);
 }
 
-void renderer_update_light_directional(u32 uid,
+void renderer_update_light_directional(i32 uid,
                                        const glm::vec3 & direction,
                                        Color color,
                                        Entity & caller)
@@ -197,7 +197,7 @@ void renderer_update_light_directional(u32 uid,
     msgQW.setColor(color);
 }
 
-void renderer_remove_light_directional(u32  uid, Entity & caller)
+void renderer_remove_light_directional(i32 uid, Entity & caller)
 {
     MessageQueueWriter msgQW(HASH::renderer_remove_light_directional,
                              kMessageFlag_None,

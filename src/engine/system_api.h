@@ -49,7 +49,7 @@ namespace system_api
 {
 
 void print(CmpString str, Entity & caller);
-CmpString hashstr(u32 hash, Entity & caller);
+CmpString hashstr(i32 hash, Entity & caller);
 
 void print_asset_info(AssetHandleP asset, Entity & caller);
 
@@ -67,28 +67,28 @@ glm::mat3 rotation_mat3(const glm::vec3 & angles, Entity & caller);
 glm::quat quat_from_axis_angle(const glm::vec3 & dir, f32 angle, Entity & caller);
 glm::quat quat_normalize(const glm::quat & quat, Entity & caller);
 
-u32 renderer_gen_uid(Entity & caller);
+i32 renderer_gen_uid(Entity & caller);
 
 void renderer_move_camera(const glm::vec3 & position, const glm::quat & direction, Entity & caller);
 void renderer_move_fps_camera(const glm::vec3 & position, f32 pitch, f32 yaw, Entity & caller);
 
-void renderer_insert_model_instance(u32 uid,
+void renderer_insert_model_instance(i32 uid,
                                     HandleP modelHandle,
                                     Entity & caller);
-void renderer_transform_model_instance(u32 uid, const glm::mat4x3 & transform, Entity & caller);
-void renderer_remove_model_instance(u32 uid, Entity & caller);
+void renderer_transform_model_instance(i32 uid, const glm::mat4x3 & transform, Entity & caller);
+void renderer_remove_model_instance(i32 uid, Entity & caller);
 
-void renderer_insert_light_directional(u32 uid,
+void renderer_insert_light_directional(i32 uid,
                                        const glm::vec3 & direction,
                                        Color color,
                                        Entity & caller);
 
-void renderer_update_light_directional(u32 uid,
+void renderer_update_light_directional(i32 uid,
                                        const glm::vec3 & direction,
                                        Color color,
                                        Entity & caller);
 
-void renderer_remove_light_directional(u32 uid, Entity & caller);
+void renderer_remove_light_directional(i32 uid, Entity & caller);
 
 }
 

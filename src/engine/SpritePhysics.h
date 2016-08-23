@@ -97,13 +97,13 @@ public:
     void insert(SpriteInstance & spriteInst,
                 f32 mass,
                 u32 group,
-                const glm::uvec4 & mask03,
-                const glm::uvec4 & mask47);
+                const glm::ivec4 & mask03,
+                const glm::ivec4 & mask47);
     void remove(u32 uid);
 
     void setVelocity(u32 uid, const glm::vec2 & velocity);
 private:
-    u16 buildMask(const glm::uvec4 & mask03, const glm::uvec4 & mask47);
+    u16 buildMask(const glm::ivec4 & mask03, const glm::ivec4 & mask47);
     u16 maskFromHash(u32 hash);
 
     static void near_callback(btBroadphasePair & collisionPair,

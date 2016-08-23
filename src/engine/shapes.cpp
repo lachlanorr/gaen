@@ -481,29 +481,34 @@ namespace system_api
         return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_box, caller.task().id(), pModel, handle_delete<Model>);
     }
 
-    HandleP create_shape_cone(const glm::vec3 & size, u32 slices, Color color, Entity & caller)
+    HandleP create_shape_cone(const glm::vec3 & size, i32 slices, Color color, Entity & caller)
     {
+        slices = slices > 0 ? slices : 0;
         Model * pModel = build_cone(size, slices, color);
         ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
         return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_cone, caller.task().id(), pModel, handle_delete<Model>);
     }
 
-    HandleP create_shape_cylinder(const glm::vec3 & size, u32 slices, Color color, Entity & caller)
+    HandleP create_shape_cylinder(const glm::vec3 & size, i32 slices, Color color, Entity & caller)
     {
+        slices = slices > 0 ? slices : 0;
         Model * pModel = build_cylinder(size, slices, color);
         ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
         return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_cylinder, caller.task().id(), pModel, handle_delete<Model>);
     }
 
-    HandleP create_shape_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color, Entity & caller)
+    HandleP create_shape_sphere(const glm::vec3 & size, i32 slices, i32 sections, Color color, Entity & caller)
     {
+        slices = slices > 0 ? slices : 0;
+        sections = sections > 0 ? sections : 0;
         Model * pModel = build_sphere(size, slices, sections, color);
         ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
         return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_sphere, caller.task().id(), pModel, handle_delete<Model>);
     }
 
-    HandleP create_shape_quad_sphere(const glm::vec3 & size, u32 sections, Color color, Entity & caller)
+    HandleP create_shape_quad_sphere(const glm::vec3 & size, i32 sections, Color color, Entity & caller)
     {
+        sections = sections > 0 ? sections : 0;
         Model * pModel = build_quad_sphere(size, sections, color);
         ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
         return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_quad_sphere, caller.task().id(), pModel, handle_delete<Model>);

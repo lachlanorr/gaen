@@ -215,7 +215,7 @@ template MessageResult SpriteMgr::message<MessageQueueAccessor>(const MessageQue
 namespace system_api
 {
 
-u32 sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Entity & caller)
+i32 sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Entity & caller)
 {
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
     const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
@@ -228,7 +228,7 @@ u32 sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Enti
     return pSprite->uid();
 }
 
-void sprite_play_anim(u32 spriteUid, u32 animHash, f32 duration, bool loop, u32 doneMessage, Entity & caller)
+void sprite_play_anim(i32 spriteUid, i32 animHash, f32 duration, bool loop, i32 doneMessage, Entity & caller)
 {
     messages::SpritePlayAnimQW msgw(HASH::sprite_play_anim, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setAnimHash(animHash);
@@ -237,13 +237,13 @@ void sprite_play_anim(u32 spriteUid, u32 animHash, f32 duration, bool loop, u32 
     msgw.setDoneMessage(doneMessage);
 }
 
-void sprite_set_velocity(u32 spriteUid, const glm::vec2 & velocity, Entity & caller)
+void sprite_set_velocity(i32 spriteUid, const glm::vec2 & velocity, Entity & caller)
 {
     messages::SpriteVelocityQW msgw(HASH::sprite_set_velocity, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setVelocity(velocity);
 }
 
-void sprite_init_body(u32 spriteUid, f32 mass, u32 group, glm::uvec4 mask03, glm::uvec4 mask47, Entity & caller)
+void sprite_init_body(i32 spriteUid, f32 mass, i32 group, glm::ivec4 mask03, glm::ivec4 mask47, Entity & caller)
 {
     messages::SpriteBodyQW msgw(HASH::sprite_init_body, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setMass(mass);

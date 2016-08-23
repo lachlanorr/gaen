@@ -71,7 +71,7 @@ InputMgr::InputMgr(bool isPrimary)
                 }
                 else
                 {
-                    glm::uvec4 keys;
+                    glm::ivec4 keys;
                     auto keyVec = keyConf.getVec(*secIt, *keyIt);
                     u32 keyCount = glm::min(4, (i32)keyVec.size());
                     for (u32 i = 0; i < keyCount; ++i)
@@ -94,7 +94,7 @@ InputMgr::InputMgr(bool isPrimary)
 
 void InputMgr::zeroState()
 {
-    mPressedKeys = glm::uvec4(0);
+    mPressedKeys = glm::ivec4(0);
     mMouseState.zeroState();
 
     for (auto & cs : mCtrlState)
@@ -139,7 +139,7 @@ bool InputMgr::queryKeyCode(KeyCode keyCode)
     return (mPressedKeys[idx] & mask) != 0;
 }
 
-u32 InputMgr::queryState(const glm::uvec4 & keys)
+u32 InputMgr::queryState(const glm::ivec4 & keys)
 {
     u32 ret = 0;
     if (queryKeyCode((KeyCode)keys[0]))
@@ -213,7 +213,7 @@ MessageResult InputMgr::message(const T& msgAcc)
         break;
     case HASH::kill_focus:
         LOG_INFO("Killing focus");
-        mPressedKeys = glm::uvec4(0);
+        mPressedKeys = glm::ivec4(0);
         break;
     case HASH::mouse_move:
         processMouseMoveInput(MouseInput::Movement(msg.payload));
