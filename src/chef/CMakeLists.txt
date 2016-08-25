@@ -47,18 +47,17 @@ ADD_EXECUTABLE (chef
   ${chef_SOURCES}
   )
 
-# LORRNOTE: taking out freetype until we start using it in chef
-#ADD_DEPENDENCIES(chef
-#  freetype
-#  )
+ADD_DEPENDENCIES(chef
+  freetype
+  )
 
 TARGET_LINK_LIBRARIES (chef
   core
   assets
   ${PROJECT_ASSETS_LIB}
   ${PROJECT_COOKERS_LIB}
-#  optimized ${FREETYPE_LIB}
-#  debug     ${FREETYPE_LIBD}
+  optimized ${FREETYPE_LIB}
+  debug     ${FREETYPE_LIBD}
   ${PLATFORM_LINK_LIBS}
   )
 

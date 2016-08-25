@@ -58,16 +58,18 @@ ENDIF ()
 INCLUDE (ExternalProject)
 
 # FreeType
-#SET (FREETYPE_VER "freetype-2.6.3")
-#SET (FREETYPE_PATH "${CMAKE_BINARY_DIR}/external/${FREETYPE_VER}")
-#ExternalProject_Add(freetype
-#  URL "http://download.savannah.gnu.org/releases/freetype/${FREETYPE_VER}.tar.gz"
-#  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/freetype
-#  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${FREETYPE_PATH}
-#)
-#INCLUDE_DIRECTORIES (${FREETYPE_PATH}/include/freetype2)
-#SET (FREETYPE_LIB "${FREETYPE_PATH}/lib/freetype.lib")
-#SET (FREETYPE_LIBD "${FREETYPE_PATH}/lib/freetyped.lib")
+SET (FREETYPE_VER "2.6.5")
+SET (FREETYPE_NAME_VER "freetype-${FREETYPE_VER}")
+SET (FREETYPE_PATH "${CMAKE_CURRENT_BINARY_DIR}/freetype")
+ExternalProject_Add(freetype
+  URL "${ext_dir}/${FREETYPE_NAME_VER}.tar.gz"
+  URL_MD5 c255ed60339ec54d310a7bc3c9988e68
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/freetype
+  CMAKE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=${FREETYPE_PATH}
+)
+INCLUDE_DIRECTORIES (${FREETYPE_PATH}/include/freetype2)
+SET (FREETYPE_LIB "${FREETYPE_PATH}/lib/freetype.lib")
+SET (FREETYPE_LIBD "${FREETYPE_PATH}/lib/freetyped.lib")
 
 # Bullet Physics
 SET (BULLET_VER "2.83.7")
