@@ -27,20 +27,20 @@
 // Send a message to self entity at a certain interval
 component Timer
 {
-    float #timer_interval = 0.0;          // interval in seconds to send the timer message
-    uint #timer_message = 0;              // message to send with each timer message, useful if multiple timers are used in the same component
+    float #interval = 1.0;          // interval in seconds to send the timer message
+    int #message = #timer;         // message to send with each timer message, useful if multiple timers are used in the same component
 
-    float last_notification = 0.0;
+    float lastNotification = 0.0;
 
-    #update(float deltaSecs)
+    update
     {
-        if (timer_interval > 0.0)
+        if (interval > 0.0)
         {
-            last_notification += deltaSecs;
-            if (last_notification >= timer_interval)
+            lastNotification += delta;
+            if (lastNotification >= interval)
             {
-                @#timer(timer_message);
-                last_notification = 0.0;
+                @:message();
+                lastNotification = 0.0;
             }
         }
     }
@@ -76,22 +76,39 @@ component WasdCamera
 
     #init()
     {
-        $.watch_input_state(#mouse_look, uint{0}, #mouse_look);
+    /*
+        $.watch_input_state(#mouse_look, 0, #mouse_look, 1, #mouse_look, 0);
         $.watch_mouse(#mouse_move, #mouse_wheel);
 
-        $.watch_input_state(#forward, uint{0}, #forward);
-        $.watch_input_state(#back, uint{0}, #back);
-        $.watch_input_state(#left, uint{0}, #left);
-        $.watch_input_state(#right, uint{0}, #right);
+        $.watch_input_state(#forward, 0, #forward_backward,  1, #forward_backward, 0);
+        $.watch_input_state(#back,    0, #forward_backward, -1, #forward_backward, 0);
+        $.watch_input_state(#left,    0, #left_right,        1, #left_right,       0);
+        $.watch_input_state(#right,   0, #left_right,       -1, #left_right,       0);
+    */
     }
 
-    #update(float deltaSecs)
+    #mouse_look(int status)
+    {
+        mouseLooking = status != 0;
+    }
+
+    #forward_backward(int value)
+    {
+	    forwardBackward = 1.0 * value;
+    }
+
+    #left_right(int value)
+    {
+	    leftRight = 1.0 * value;
+    }
+
+    update
     {
         bool hasMoved = false;
         
         if (mouseWheelDelta != 0)
         {
-            pos += dirForward * (mouseWheelDelta * deltaSecs * 0.01);
+            pos += dirForward * (mouseWheelDelta * delta * 0.01);
             mouseWheelDelta = 0;
             hasMoved = true;
         }
@@ -139,23 +156,18 @@ component WasdCamera
 
         if (forwardBackward != 0.0)
         {
-            pos += dirForward * (moveDelta * forwardBackward * deltaSecs);
+            pos += dirForward * (moveDelta * forwardBackward * delta);
             hasMoved = true;
         }
         if (leftRight != 0.0)
         {
-            pos += dirRight * (moveDelta * leftRight * deltaSecs);
+            pos += dirRight * (moveDelta * leftRight * delta);
             hasMoved = true;
         }
         if (hasMoved)
         {
             $.renderer_move_camera(pos, orientation);
         }
-    }
-
-    #mouse_look(bool status)
-    {
-        mouseLooking = status;
     }
 
     #mouse_move(int xDelta, int yDelta)
@@ -176,134 +188,51 @@ component WasdCamera
     {
         mouseWheelDelta += delta;
     }
-
-    #forward(bool status)
-    {
-        if (status)
-        {
-            forwardBackward = 1.0;
-        }
-        else
-        {
-            forwardBackward = 0.0;
-        }
-    }
-
-    #back(bool status)
-    {
-        if (status)
-        {
-            forwardBackward = -1.0;
-        }
-        else
-        {
-            forwardBackward = 0.0;
-        }
-    }
-
-    #left(bool status)
-    {
-        if (status)
-        {
-            leftRight = 1.0;
-        }
-        else
-        {
-            leftRight = 0.0;
-        }
-    }
-
-    #right(bool status)
-    {
-        if (status)
-        {
-            leftRight = -1.0;
-        }
-        else
-        {
-            leftRight = 0.0;
-        }
-    }
 }
 
 // Rotate a model when wasd keys are pressed
 component WasdRot
 {
-    float yawing = 0.0;
-    float yaw = 0.0;
+    vec2 rot = vec2{0.0};
+    vec2 newRot = vec2{0.0};
+    vec2 orient = vec2{0.0};
 
-    float pitching = 0.0;
-    float pitch = 0.0;
-
-    #init()
+    input #demo
     {
-        //$.watch_input_state(#mouse_look, uint{0}, #mouse_look);
-        //$.watch_mouse(#mouse_move, #mouse_wheel);
+        #move_e  { newRot = vec2{ 0.0,  1.0}; }
+        #move_ne { newRot = vec2{-1.0,  1.0}; }
+        #move_n  { newRot = vec2{-1.0,  0.0}; }
+        #move_nw { newRot = vec2{-1.0, -1.0}; }
+        #move_w  { newRot = vec2{ 0.0, -1.0}; }
+        #move_sw { newRot = vec2{ 1.0, -1.0}; }
+        #move_s  { newRot = vec2{ 1.0,  0.0}; }
+        #move_se { newRot = vec2{ 1.0,  1.0}; }
 
-        $.watch_input_state(#forward, uint{0}, #forward);
-        $.watch_input_state(#back, uint{0}, #back);
-        $.watch_input_state(#left, uint{0}, #left);
-        $.watch_input_state(#right, uint{0}, #right);
+        none
+        {
+            rot = vec2{0.0};
+        }
+
+        any
+        {
+            if (newRot != rot)
+            {
+                rot = newRot;
+            }
+        }
     }
 
-    #update(float deltaSecs)
+    
+    update
     {
-        if (pitching != 0.0 || yawing != 0.0)
+        if (rot != vec2{0.0})
         {
-            pitch += pitching * deltaSecs * 100.0;
-            yaw += yawing * deltaSecs * 100.0;
-            mat43 trans = $.mat43_rotation(vec3{$.radians(pitch), $.radians(yaw), 0.0});
+            orient += rot * 1.5 * delta;
+            mat43 trans = $.rotation(vec3{orient.x, orient.y, 0.0});
             @#transform(false, trans);
         }
     }
 
-    #forward(bool status)
-    {
-        if (status)
-        {
-            pitching = 1.0;
-        }
-        else
-        {
-            pitching = 0.0;
-        }
-    }
-
-    #back(bool status)
-    {
-        if (status)
-        {
-            pitching = -1.0;
-        }
-        else
-        {
-            pitching = 0.0;
-        }
-    }
-
-    #left(bool status)
-    {
-        if (status)
-        {
-            yawing = 1.0;
-        }
-        else
-        {
-            yawing = 0.0;
-        }
-    }
-
-    #right(bool status)
-    {
-        if (status)
-        {
-            yawing = -1.0;
-        }
-        else
-        {
-            yawing = 0.0;
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
