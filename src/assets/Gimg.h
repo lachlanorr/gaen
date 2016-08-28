@@ -52,7 +52,7 @@ const char * pixel_format_to_str(PixelFormat pixelType);
 const PixelFormat pixel_format_from_str(const char * str);
 
 #pragma pack(push, 1)
-class Gimg
+class Gimg : public AssetHeader4CC<FOURCC("gimg")>
 {
 public:
     static bool is_valid(const void * pBuffer, u64 size);
@@ -83,17 +83,12 @@ private:
     Gimg(const Gimg&) = delete;
     Gimg & operator=(const Gimg&) = delete;
 
-    static const char * kMagic;
-    static const u32 kMagic4cc;
-
-    AssetHeader mAssetHeader;
-
     PixelFormat mPixelFormat;
     
     u32 mWidth;
     u32 mHeight;
 
-    char PADDING__[12];
+    char PADDING__[4];
 };
 #pragma pack(pop)
 

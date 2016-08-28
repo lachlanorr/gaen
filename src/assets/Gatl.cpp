@@ -31,9 +31,6 @@
 
 namespace gaen
 {
-const char * Gatl::kMagic = "gatl";
-const u32 Gatl::kMagic4cc = ext_to_4cc(Gatl::kMagic);
-
 static u16 verts_offset(size_t imagePathLen)
 {
     return (u16)align(sizeof(Gatl) + imagePathLen + 1, 8);
@@ -46,7 +43,9 @@ bool Gatl::is_valid(const void * pBuffer, u64 size)
 
     const Gatl * pAssetData = reinterpret_cast<const Gatl*>(pBuffer);
 
-    if (0 != strncmp(kMagic, pAssetData->mAssetHeader.mMagic, 4))
+    if (pAssetData->magic4cc() != kMagic4CC)
+        return false;
+    if (pAssetData->size() != size)
         return false;
 
     if (pAssetData->mDefaultIndex >= pAssetData->glyphCount())
@@ -91,14 +90,7 @@ Gatl * Gatl::create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 
 {
     ASSERT(imagePath);
     u64 size = Gatl::required_size(imagePath, glyphCount, aliasCount);
-    Gatl * pGatl = (Gatl*)GALLOC(kMEM_Texture, size);
-
-    // zero out memory for good measure
-    memset(pGatl, 0, size);
-
-    ASSERT(strlen(kMagic) == 4);
-    strncpy(pGatl->mAssetHeader.mMagic, kMagic, 4);
-    pGatl->mAssetHeader.mVersion = 0;
+    Gatl * pGatl = alloc_asset<Gatl>(kMEM_Texture, size);
 
     if (defaultIndex >= glyphCount)
         PANIC("Failed to create Gatl, defaultIndex too large: %u", defaultIndex);
@@ -108,7 +100,6 @@ Gatl * Gatl::create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 
     pGatl->mDefaultIndex = defaultIndex;
     pGatl->mVertsOffset = verts_offset(strnlen(imagePath, kMaxPath));
 
-    pGatl->mSize = size;
     pGatl->mpImage = nullptr;
 
     strcpy(reinterpret_cast<char*>(pGatl+1), imagePath);

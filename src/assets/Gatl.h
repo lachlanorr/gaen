@@ -70,7 +70,7 @@ struct GlyphAlias
 };
 static_assert(sizeof(GlyphAlias) == 6, "GlyphAlias unexpected size");
 
-class Gatl
+class Gatl : public AssetHeader4CC<FOURCC("gatl")>
 {
     template <typename T, typename BT>
     friend class AssetWithDep;
@@ -249,18 +249,12 @@ private:
         mpImage = pImage;
     }
 
-    static const char * kMagic;
-    static const u32 kMagic4cc;
-
-    AssetHeader mAssetHeader;
-
     u16 mGlyphCount;
     u16 mAliasCount;
 
     u16 mDefaultIndex;
     u16 mVertsOffset;
 
-    u64 mSize;
     const Gimg * mpImage;
 };
 #pragma pack(pop)

@@ -29,6 +29,13 @@ IF (CMAKE_CONFIGURATION_TYPES)
     CACHE STRING "Reset the configurations to what we need" FORCE)
 ENDIF()
 
+INCLUDE (TestBigEndian)
+TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+IF (IS_BIG_ENDIAN)
+  ADD_DEFINITIONS("-DIS_BIG_ENDIAN=1")
+ELSE()
+  ADD_DEFINITIONS("-DIS_LITTLE_ENDIAN=1")
+ENDIF()
 
 # Include a compiler specific .cmake file.  This weirdness is required
 # to distinguish Clang from GCC, as well as to account for build

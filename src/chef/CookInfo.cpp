@@ -87,7 +87,7 @@ bool CookInfo::isCooked(const char * ext) const
     return false;
 }
 
-void CookInfo::setCookedBuffer(const char * ext, void * pBuffer, u64 size) const
+void CookInfo::setCookedBuffer(const char * ext, AssetHeader * pBuffer, u64 size) const
 {
     ASSERT(ext);
     for (CookResult & cr : mResults)

@@ -34,9 +34,6 @@
 
 namespace gaen
 {
-const char * Gimg::kMagic = "gimg";
-const u32 Gimg::kMagic4cc = ext_to_4cc(Gimg::kMagic);
-
 typedef HashMap<kMEM_Const, PixelFormat, String<kMEM_Const>> PixelFormatToStrMap;
 typedef HashMap<kMEM_Const, String<kMEM_Const>, PixelFormat> PixelFormatFromStrMap;
 
@@ -82,9 +79,8 @@ bool Gimg::is_valid(const void * pBuffer, u64 size)
 
     const Gimg * pAssetData = reinterpret_cast<const Gimg*>(pBuffer);
 
-    if (0 != strncmp(kMagic, pAssetData->mAssetHeader.mMagic, 4))
+    if (pAssetData->magic4cc() != kMagic4CC)
         return false;
-
     if (pAssetData->size() != size)
         return false;
 
@@ -160,14 +156,7 @@ Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
     width = height = next_power_of_two(glm::max(width, height));
 
     u64 size = Gimg::required_size(pixelFormat, width, height);
-    Gimg * pGimg = (Gimg*)GALLOC(kMEM_Texture, size);
-
-    // zero out memory for good measure
-    memset(pGimg, 0, size);
-
-    ASSERT(strlen(kMagic) == 4);
-    strncpy(pGimg->mAssetHeader.mMagic, kMagic, 4);
-    pGimg->mAssetHeader.mVersion = 0;
+    Gimg * pGimg = alloc_asset<Gimg>(kMEM_Texture, size);
 
     pGimg->mPixelFormat = pixelFormat;
     pGimg->mWidth = width;

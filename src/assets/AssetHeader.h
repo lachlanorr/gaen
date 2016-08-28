@@ -27,7 +27,7 @@
 #ifndef GAEN_ASSETS_ASSETHEADER_H
 #define GAEN_ASSETS_ASSETHEADER_H
 
-#include "core/base_defines.h"
+#include "core/mem.h"
 
 namespace gaen
 {
@@ -35,45 +35,72 @@ namespace gaen
 class AssetHeader
 {
 public:
-    AssetHeader()
+    AssetHeader(u32 magic4cc, u64 size)
     {
-        memset(this, 0, sizeof(AssetHeader));
+        mMagic4cc = magic4cc;
+        mChefVersion = 0;
+        mCookerVersion = 0;
+        mSize = size;
     }
 
-    AssetHeader(const char * magic, u32 version)
-    {
-        u32 magicLen = (u32)strlen(magic);
-        ASSERT(magic && magicLen > 0 && magicLen <= 4);
-        strncpy(mMagic, magic, 4);
-        // fill any zeros if magic shorter than 4 characters
-        for (u32 i = magicLen; i < 4; ++i)
-            mMagic[i] = '\0';
+    u32 magic4cc() const { return mMagic4cc; }
 
-        mVersion = version;
-    }
-    u32 version() { return mVersion; }
-    template<class StrT>
-    StrT getMagic()
-    {
-        char magicNT[5];
-        strncpy(magicNT, mMagic, 4);
-        magicNT[4] = '\0';
-        return StrT(magicNT);
-    }
-    bool validateBuffer(const void * pBuffer, u64 size)
-    {
-        ASSERT(pBuffer && size > 0);
+    u32 chefVersion() const { return mChefVersion; }
+    void setChefVersion(u32 version) { mChefVersion = version; }
 
-        if (!pBuffer)
-            return false;
-        if (size < sizeof(AssetHeader))
-            return false;
+    u32 cookerVersion() const { return mCookerVersion; }
+    void setCookerVersion(u32 version) { mCookerVersion = version; }
 
-        return 0 == memcmp(pBuffer, this, sizeof(AssetHeader));
+    u64 size() const { return mSize; }
+    void setSize(u64 size) { mSize = size; }
+
+    bool operator==(const AssetHeader & rhs) const
+    {
+        return (mMagic4cc == rhs.mMagic4cc &&
+                mChefVersion == rhs.mChefVersion &&
+                mCookerVersion == rhs.mCookerVersion &&
+                mSize == rhs.mSize);
     }
 
-    char mMagic[4]; // typically the cooked extension
-    u32 mVersion;   // cooker version that cooked the file
+    bool operator!=(const AssetHeader & rhs) const
+    {
+        return !operator==(rhs);
+    }
+
+protected:
+    u32 mMagic4cc;  // typically the cooked extension
+    u16 mChefVersion;     // chef version that cooked the file
+    u16 mCookerVersion;   // cooker version that cooked the file
+    u64 mSize;      // total asset size, including header
+
+private:
+    AssetHeader(const AssetHeader&)              = delete;
+    AssetHeader(AssetHeader&&)                   = delete;
+    AssetHeader & operator=(const AssetHeader&)  = delete;
+    AssetHeader & operator=(AssetHeader&&)       = delete;
+};
+static_assert(sizeof(AssetHeader) == 16, "AssetHeader unexpected size");
+
+template <u32 FCC>
+class AssetHeader4CC : public AssetHeader
+{
+public:
+    static const u32 kMagic4CC = FCC;
+
+    template <class T>
+    static T * alloc_asset(MemType memType, u64 size)
+    {
+        AssetHeader4CC * pAH = new (GALLOC(memType, size)) AssetHeader4CC(size);
+        memset(pAH+1, 0, size - sizeof(AssetHeader4CC));
+        return static_cast<T*>(pAH);
+    }
+
+private:
+    explicit AssetHeader4CC(u64 size) : AssetHeader(FCC, size) {}
+    AssetHeader4CC(const AssetHeader4CC&)              = delete;
+    AssetHeader4CC(AssetHeader4CC&&)                   = delete;
+    AssetHeader4CC & operator=(const AssetHeader4CC&)  = delete;
+    AssetHeader4CC & operator=(AssetHeader4CC&&)       = delete;
 };
 
 } // namespace gaen

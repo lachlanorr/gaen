@@ -33,6 +33,7 @@
 #include "core/String.h"
 
 #include "assets/Config.h"
+#include "assets/AssetHeader.h"
 #include "assets/file_utils.h"
 
 namespace gaen
@@ -47,6 +48,7 @@ enum CookFlags
 
 typedef Config<kMEM_Chef> Recipe;
 typedef List<kMEM_Chef, ChefString> RecipeList;
+
 class Chef;
 
 struct CookResult
@@ -60,7 +62,7 @@ struct CookResult
     ChefString cookedExt;
     ChefString cookedPath;
     ChefString gamePath;
-    mutable UniquePtr<void> pCookedBuffer;
+    mutable UniquePtr<AssetHeader> pCookedBuffer;
     mutable u64 cookedBufferSize = 0;
 
     bool isCooked() const
@@ -68,7 +70,7 @@ struct CookResult
         return pCookedBuffer.get() && cookedBufferSize > 0;
     }
 
-    void setCookedBuffer(void * pBuffer, u64 size) const
+    void setCookedBuffer(AssetHeader * pBuffer, u64 size) const
     {
         pCookedBuffer.reset(pBuffer);
         cookedBufferSize = size;
@@ -109,20 +111,23 @@ public:
              const Cooker * pCooker,
              CookFlags flags,
              const ChefString & rawPath,
-             const Recipe & recipe)
+             const RecipeList & recipes,
+             const Recipe & fullRecipe)
       : mpChef(pChef)
       , mpCooker(pCooker)
       , mFlags(flags)
       , mRawPath(rawPath)
-      , mRecipe(recipe)
-    {}
+      , mRecipes(recipes)
+      , mFullRecipe(fullRecipe)
+     {}
 
     Chef & chef() { return *mpChef; }
     const Cooker & cooker() const { return *mpCooker; }
     CookFlags flags() const { return mFlags; }
 
     const ChefString & rawPath() const { return mRawPath; }
-    const Recipe & recipe() const { return mRecipe; }
+    const RecipeList & recipes() const { return mRecipes; }
+    const Recipe & fullRecipe() const { return mFullRecipe; }
 
     const CookResultList & results() const { return mResults; }
     const DependencySet & dependencies() const { return mDependencies; }
@@ -139,14 +144,16 @@ public:
     UniquePtr<CookInfo> cookDependency(const ChefString & relativePath) const;
 
     bool isCooked(const char * ext) const;
-    void setCookedBuffer(const char * ext, void * pBuffer, u64 size) const;
+    void setCookedBuffer(const char * ext, AssetHeader * pBuffer, u64 size) const;
 private:
     Chef * mpChef;
     const Cooker * mpCooker;
     CookFlags mFlags;
 
     ChefString mRawPath;
-    Recipe mRecipe;
+
+    RecipeList mRecipes;
+    Recipe mFullRecipe; // overlaid recipes
 
     mutable CookResultList mResults;
     mutable DependencySet mDependencies;

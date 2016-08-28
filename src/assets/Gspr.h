@@ -45,7 +45,7 @@ struct AnimInfo
 };
 static_assert(sizeof(AnimInfo) == 8, "AnimInfo has unexpected size");
 
-class Gspr
+class Gspr : public AssetHeader4CC<FOURCC("gspr")>
 {
     template <typename T, typename BT>
     friend class AssetWithDep;
@@ -111,18 +111,12 @@ private:
         mpAtlas = pAtlas;
     }
 
-    static const char * kMagic;
-    static const u32 kMagic4cc;
-
-    AssetHeader mAssetHeader;
-
     u32 mFrameWidth;
     u32 mFrameHeight;
     
     u32 mAnimCount:12;
     u32 mAnimTocOffset:20;
 
-    u64 mSize;
     const Gatl * mpAtlas;
 
     char PADDING_[12];

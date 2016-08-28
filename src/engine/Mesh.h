@@ -41,19 +41,19 @@ typedef u16 index;
 
 enum VertType
 {
-    kVERT_Pos          = GAEN_4CC('V','T','X','A'),
-    kVERT_PosNorm      = GAEN_4CC('V','T','X','B'),
-    kVERT_PosNormUv    = GAEN_4CC('V','T','X','C'),
-    kVERT_PosNormUvTan = GAEN_4CC('V','T','X','D'),
+    kVERT_Pos          = FOURCC("VTXA"),
+    kVERT_PosNorm      = FOURCC("VTXB"),
+    kVERT_PosNormUv    = FOURCC("VTXC"),
+    kVERT_PosNormUvTan = FOURCC("VTXD"),
 
     kVERT_END
 };
 
 enum PrimType
 {
-    kPRIM_Point    = GAEN_4CC('P','R','M','A'),
-    kPRIM_Line     = GAEN_4CC('P','R','M','B'),
-    kPRIM_Triangle = GAEN_4CC('P','R','M','C'),
+    kPRIM_Point    = FOURCC("PRMA"),
+    kPRIM_Line     = FOURCC("PRMB"),
+    kPRIM_Triangle = FOURCC("PRMC"),
 
     kPRIM_END
 };

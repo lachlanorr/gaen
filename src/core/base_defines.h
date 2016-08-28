@@ -240,7 +240,20 @@ typedef std::uint64_t   u64;
 typedef float           f32;
 typedef double          f64;
 
-#define GAEN_4CC(a, b, c, d) ((d) << 24 | (c) << 16 | (b) << 8 | (a))
+#if IS_LITTLE_ENDIAN
+#define FOURCC(s) ((s[3]) << 24 | (s[2]) << 16 | (s[1]) << 8 | (s[0]))
+#else // little endian
+#define FOURCC(s) ((s[0]) << 24 | (s[1]) << 16 | (s[2]) << 8 | (s[3]))
+#endif
+
+// Use this function at runtime with strings.
+template <class T>
+inline u32 fourcc(const T & s)
+{
+    PANIC_IF(s.size() != 4, "fourcc called with string length not equal to 4");
+    return FOURCC(s);
+}
+
 #define BYTESWAP32(val) ((((val) >> 24) & 0xff) | (((val) >> 8)  & 0xff00) | (((u32)(val) << 8)  & 0xff0000) | (((u32)(val) << 24) & 0xff000000))
 
 // Align a value to specified alignment.  Useful to ensure memory

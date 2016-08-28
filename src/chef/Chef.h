@@ -64,11 +64,12 @@ private:
     ChefString getRelativeDependencyRawPath(const ChefString & sourceRawPath, const ChefString & dependencyPath);
 	ChefString getDependencyFilePath(const ChefString & rawPath);
 
-    UniquePtr<CookInfo> cook(const ChefString & path, CookFlags flags);
-    UniquePtr<CookInfo> cookDependency(const ChefString & path);
-    bool shouldCook(const CookInfo & ci, const RecipeList & recipes, bool force);
+    UniquePtr<CookInfo> prepCookInfo(const ChefString & rawPath, CookFlags flags);
+    UniquePtr<CookInfo> cook(const ChefString & rawPath, CookFlags flags);
+    UniquePtr<CookInfo> cookDependency(const ChefString & rawPath);
+    bool shouldCook(const CookInfo & ci, bool force);
     RecipeList findRecipes(const ChefString & rawPath);
-    void overlayRecipes(Config<kMEM_Chef> & recipe, const RecipeList & recipes);
+    Recipe overlayRecipes(const RecipeList & recipes);
 
     void writeDependencyFile(const CookInfo & ci);
     List<kMEM_Chef, ChefString> readDependencyFile(const ChefString & rawPath);

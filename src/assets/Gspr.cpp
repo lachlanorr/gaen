@@ -32,10 +32,6 @@
 
 namespace gaen
 {
-
-const char * Gspr::kMagic = "gspr";
-const u32 Gspr::kMagic4cc = ext_to_4cc(Gspr::kMagic);
-
 static u32 anim_toc_offset(size_t atlasPathLen)
 {
     return (u32)align(sizeof(Gspr) + atlasPathLen + 1, 8);
@@ -48,7 +44,9 @@ bool Gspr::is_valid(const void * pBuffer, u64 size)
 
     const Gspr * pAssetData = reinterpret_cast<const Gspr*>(pBuffer);
 
-    if (0 != strncmp(kMagic, pAssetData->mAssetHeader.mMagic, 4))
+    if (pAssetData->magic4cc() != kMagic4CC)
+        return false;
+    if (pAssetData->size() != size)
         return false;
 
     if (size != pAssetData->mSize)
@@ -130,14 +128,7 @@ Gspr * Gspr::create(u32 frameWidth,
                     u32 totalFrameCount)
 {
     u64 size = Gspr::required_size(atlasPath, animCount, totalFrameCount);
-    Gspr * pGspr = (Gspr*)GALLOC(kMEM_Texture, size);
-
-    // zero out memory for good measure
-    memset(pGspr, 0, size);
-
-    ASSERT(strlen(kMagic) == 4);
-    strncpy(pGspr->mAssetHeader.mMagic, kMagic, 4);
-    pGspr->mAssetHeader.mVersion = 0;
+    Gspr * pGspr = alloc_asset<Gspr>(kMEM_Texture, size);
 
     PANIC_IF(frameWidth == 0 || frameHeight == 0, "Invalid frameWidth or frameHeight");
     PANIC_IF(animCount == 0 || totalFrameCount == 0, "Invalid animCount or totalFrameCount");
@@ -153,8 +144,6 @@ Gspr * Gspr::create(u32 frameWidth,
 
     pGspr->mAnimCount = animCount;
     pGspr->mAnimTocOffset = anim_toc_offset(atlasPathLen);
-
-    pGspr->mSize = size;
 
     pGspr->mpAtlas = nullptr;
 

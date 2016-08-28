@@ -74,7 +74,7 @@ void Image::cook(CookInfo * pCookInfo) const
     pTga->convertToGimg(&pGimgTga);
     Scoped_GFREE<Gimg> pGimg_sp(pGimgTga);
 
-    PixelFormat pixFmt = pixel_format_from_str(pCookInfo->recipe().getWithDefault("pixel_format", "RGBA8"));
+    PixelFormat pixFmt = pixel_format_from_str(pCookInfo->fullRecipe().getWithDefault("pixel_format", "RGBA8"));
 
     // Convert the pixel format if necessary
     Gimg * pGimg;
