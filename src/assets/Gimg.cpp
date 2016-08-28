@@ -82,7 +82,7 @@ bool Gimg::is_valid(const void * pBuffer, u64 size)
 
     const Gimg * pAssetData = reinterpret_cast<const Gimg*>(pBuffer);
 
-    if (0 != strncmp(kMagic, pAssetData->mMagic, 4))
+    if (0 != strncmp(kMagic, pAssetData->mAssetHeader.mMagic, 4))
         return false;
 
     if (pAssetData->size() != size)
@@ -162,8 +162,12 @@ Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
     u64 size = Gimg::required_size(pixelFormat, width, height);
     Gimg * pGimg = (Gimg*)GALLOC(kMEM_Texture, size);
 
+    // zero out memory for good measure
+    memset(pGimg, 0, size);
+
     ASSERT(strlen(kMagic) == 4);
-    strncpy(pGimg->mMagic, kMagic, 4);
+    strncpy(pGimg->mAssetHeader.mMagic, kMagic, 4);
+    pGimg->mAssetHeader.mVersion = 0;
 
     pGimg->mPixelFormat = pixelFormat;
     pGimg->mWidth = width;

@@ -33,18 +33,14 @@ namespace gaen
 {
 namespace cookers
 {
+
 static const char * kExtTga = "tga";
 static const char * kExtGimg = "gimg";
 
 class Image : public Cooker
 {
 public:
-    Image()
-    {
-        mRawExts.push_back(kExtTga);
-        mCookedExts.push_back(kExtGimg);
-    }
-    
+    Image();
     virtual void cook(CookInfo * pCookInfo) const;
 };
 

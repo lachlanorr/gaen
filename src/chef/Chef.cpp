@@ -30,6 +30,7 @@
 #include "core/thread_local.h"
 
 #include "assets/file_utils.h"
+#include "assets/AssetHeader.h"
 
 #include "chef/CookerRegistry.h"
 #include "chef/Chef.h"
@@ -173,7 +174,8 @@ UniquePtr<CookInfo> Chef::cook(const ChefString & rawPath, CookFlags flags)
 
     for (const ChefString & cookedExt : pCooker->cookedExts())
     {
-        pCi->addCookResult(getCookedPath(rawPath, cookedExt),
+        pCi->addCookResult(cookedExt,
+                           getCookedPath(rawPath, cookedExt),
                            getGamePath(rawPath, cookedExt));
     }
     
@@ -186,6 +188,18 @@ UniquePtr<CookInfo> Chef::cook(const ChefString & rawPath, CookFlags flags)
     make_dirs(cookedDir.c_str());
 
     pCooker->cook(pCi.get());
+
+    // Set versions in each cooked AssetHeader
+    for (const CookResult & res : pCi->results())
+    {
+        if (res.isCooked())
+        {
+            AssetHeader ah(res.cookedExt.c_str(), 0);
+            PANIC_IF(!ah.validateBuffer(res.pCookedBuffer.get(), res.cookedBufferSize), "Cooked buffer doesn't contain expected AssetHeader: %s", res.cookedPath.c_str());
+            AssetHeader * pAh = static_cast<AssetHeader *>(res.pCookedBuffer.get());
+            pAh->mVersion = pCooker->version();
+        }
+    }
 
     return pCi;
 }
@@ -266,7 +280,25 @@ bool Chef::shouldCook(const CookInfo & ci, const RecipeList & recipes, bool forc
     for (const CookResult & res : ci.results())
     {
         if (!file_exists(res.cookedPath.c_str()))
+        {
             return true;
+        }
+        else
+        {
+            // shouldCook if cooked version exists but is cooked with an older version of the cooker
+            FileReader fr(res.cookedPath.c_str());
+            AssetHeader ah;
+            fr.read(&ah, sizeof(AssetHeader));
+            if (ah.version() < ci.cooker().version())
+            {
+                return true;
+            }
+            else if (ah.version() > ci.cooker().version())
+            {
+                ERR("Cooked asset with newer version than chef.exe; are you sure you have latest code?: %s", res.cookedPath.c_str());
+                return false;
+            }
+        }
         if (pOldestCookedPath == nullptr)
             pOldestCookedPath = &res.cookedPath;
         else if (is_file_newer(pOldestCookedPath->c_str(), res.cookedPath.c_str()))

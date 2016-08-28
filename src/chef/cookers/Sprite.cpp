@@ -40,6 +40,13 @@ namespace gaen
 namespace cookers
 {
 
+Sprite::Sprite()
+{
+    mVersion = 1;
+    mRawExts.push_back(kExtSpr);
+    mCookedExts.push_back(kExtGspr);
+}
+
 void Sprite::cook(CookInfo * pCookInfo) const
 {
     Config<kMEM_Chef> spr;

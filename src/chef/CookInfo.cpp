@@ -35,9 +35,11 @@
 namespace gaen
 {
 
-void CookInfo::addCookResult(const ChefString & cookedPath, const ChefString & gamePath)
+void CookInfo::addCookResult(const ChefString & cookedExt,
+                             const ChefString & cookedPath,
+                             const ChefString & gamePath)
 {
-    mResults.emplace_back(cookedPath, gamePath);
+    mResults.emplace_back(cookedExt, cookedPath, gamePath);
 }
 
 const DependencyInfo & CookInfo::recordDependency(const ChefString & relativePath) const

@@ -33,18 +33,14 @@ namespace gaen
 {
 namespace cookers
 {
+
 static const char * kExtSpr = "spr";
 static const char * kExtGspr = "gspr";
 
 class Sprite : public Cooker
 {
 public:
-    Sprite()
-    {
-        mRawExts.push_back(kExtSpr);
-        mCookedExts.push_back(kExtGspr);
-    }
-    
+    Sprite();
     virtual void cook(CookInfo * pCookInfo) const;
 };
 

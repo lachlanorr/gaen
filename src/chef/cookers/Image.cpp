@@ -40,6 +40,13 @@ namespace gaen
 namespace cookers
 {
 
+Image::Image()
+{
+    mVersion = 1;
+    mRawExts.push_back(kExtTga);
+    mCookedExts.push_back(kExtGimg);
+}
+
 void Image::cook(CookInfo * pCookInfo) const
 {
     FileReader rdr(pCookInfo->rawPath().c_str());

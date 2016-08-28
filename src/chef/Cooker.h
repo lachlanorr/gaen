@@ -41,6 +41,8 @@ class Cooker
 public:
     virtual ~Cooker() {}
 
+    u32 version() const { return mVersion; }
+
     typedef List<kMEM_Chef, ChefString> ExtList;
     const ExtList & rawExts() const { ASSERT(mCookedExts.size() > 0); return mRawExts; }
     const ExtList & cookedExts() const { ASSERT(mCookedExts.size() > 0); return mCookedExts; }
@@ -48,6 +50,9 @@ public:
     virtual void cook(CookInfo * pCookInfo) const = 0;
 
 protected:
+    // Increase version in subclasses to force a recook of those asset types.
+    u32 mVersion = 0;
+
     ExtList mRawExts;
     ExtList mCookedExts;
 };

@@ -48,7 +48,7 @@ bool Gspr::is_valid(const void * pBuffer, u64 size)
 
     const Gspr * pAssetData = reinterpret_cast<const Gspr*>(pBuffer);
 
-    if (0 != strncmp(kMagic, pAssetData->mMagic, 4))
+    if (0 != strncmp(kMagic, pAssetData->mAssetHeader.mMagic, 4))
         return false;
 
     if (size != pAssetData->mSize)
@@ -136,7 +136,8 @@ Gspr * Gspr::create(u32 frameWidth,
     memset(pGspr, 0, size);
 
     ASSERT(strlen(kMagic) == 4);
-    strncpy(pGspr->mMagic, kMagic, 4);
+    strncpy(pGspr->mAssetHeader.mMagic, kMagic, 4);
+    pGspr->mAssetHeader.mVersion = 0;
 
     PANIC_IF(frameWidth == 0 || frameHeight == 0, "Invalid frameWidth or frameHeight");
     PANIC_IF(animCount == 0 || totalFrameCount == 0, "Invalid animCount or totalFrameCount");

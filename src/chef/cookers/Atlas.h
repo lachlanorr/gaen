@@ -33,19 +33,14 @@ namespace gaen
 {
 namespace cookers
 {
+
 static const char * kExtAtl = "atl";
 static const char * kExtGatl = "gatl";
-
 
 class Atlas : public Cooker
 {
 public:
-    Atlas()
-    {
-        mRawExts.push_back(kExtAtl);
-        mCookedExts.push_back(kExtGatl);
-    }
-    
+    Atlas();
     virtual void cook(CookInfo * pCookInfo) const;
 };
 

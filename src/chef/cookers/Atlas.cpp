@@ -40,6 +40,13 @@ namespace gaen
 namespace cookers
 {
 
+Atlas::Atlas()
+{
+    mVersion = 1;
+    mRawExts.push_back(kExtAtl);
+    mCookedExts.push_back(kExtGatl);
+}
+
 struct GlyphQuad
 {
     GlyphVert verts[4];

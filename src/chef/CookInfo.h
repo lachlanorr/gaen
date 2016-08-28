@@ -51,11 +51,13 @@ class Chef;
 
 struct CookResult
 {
-    CookResult(const ChefString & cookedPath, const ChefString & gamePath)
-      : cookedPath(cookedPath)
+    CookResult(const ChefString & cookedExt, const ChefString & cookedPath, const ChefString & gamePath)
+      : cookedExt(cookedExt)
+      , cookedPath(cookedPath)
       , gamePath(gamePath)
     {}
 
+    ChefString cookedExt;
     ChefString cookedPath;
     ChefString gamePath;
     mutable UniquePtr<void> pCookedBuffer;
@@ -115,7 +117,19 @@ public:
       , mRecipe(recipe)
     {}
 
-    void addCookResult(const ChefString & cookedPath, const ChefString & gamePath);
+    Chef & chef() { return *mpChef; }
+    const Cooker & cooker() const { return *mpCooker; }
+    CookFlags flags() const { return mFlags; }
+
+    const ChefString & rawPath() const { return mRawPath; }
+    const Recipe & recipe() const { return mRecipe; }
+
+    const CookResultList & results() const { return mResults; }
+    const DependencySet & dependencies() const { return mDependencies; }
+
+    void addCookResult(const ChefString & cookedExt,
+                       const ChefString & cookedPath,
+                       const ChefString & gamePath);
 
     // Record a dependency, but don't cook it to include in the parent
     // asset.
@@ -123,14 +137,6 @@ public:
 
     // Cook and record a dependency
     UniquePtr<CookInfo> cookDependency(const ChefString & relativePath) const;
-
-    CookFlags flags() const { return mFlags; }
-    const ChefString & rawPath() const { return mRawPath; }
-
-    const CookResultList & results() const { return mResults; }
-
-    const Recipe & recipe() const { return mRecipe; }
-    const DependencySet & dependencies() const { return mDependencies; }
 
     bool isCooked(const char * ext) const;
     void setCookedBuffer(const char * ext, void * pBuffer, u64 size) const;

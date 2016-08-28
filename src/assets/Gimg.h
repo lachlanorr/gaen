@@ -30,6 +30,7 @@
 #include "core/base_defines.h"
 #include "core/mem.h"
 
+#include "assets/AssetHeader.h"
 #include "assets/Color.h"
 
 namespace gaen
@@ -50,6 +51,7 @@ enum PixelFormat
 const char * pixel_format_to_str(PixelFormat pixelType);
 const PixelFormat pixel_format_from_str(const char * str);
 
+#pragma pack(push, 1)
 class Gimg
 {
 public:
@@ -83,15 +85,19 @@ private:
 
     static const char * kMagic;
     static const u32 kMagic4cc;
-    char mMagic[4];
+
+    AssetHeader mAssetHeader;
 
     PixelFormat mPixelFormat;
     
     u32 mWidth;
     u32 mHeight;
-};
 
-static_assert(sizeof(Gimg) == 16, "Gimg expected to be 8 bytes");
+    char PADDING__[12];
+};
+#pragma pack(pop)
+
+static_assert(sizeof(Gimg) == 32, "Gimg unexpected size");
 
 } // namespace gaen
 

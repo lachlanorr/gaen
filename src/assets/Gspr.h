@@ -27,7 +27,7 @@
 #ifndef GAEN_ASSETS_GSPR_H
 #define GAEN_ASSETS_GSPR_H
 
-#include "core/base_defines.h"
+#include "assets/AssetHeader.h"
 
 namespace gaen
 {
@@ -36,6 +36,7 @@ class Gatl;
 struct GlyphVert;
 struct GlyphTri;
 
+#pragma pack(push, 1)
 struct AnimInfo
 {
     u32 animHash;
@@ -112,7 +113,8 @@ private:
 
     static const char * kMagic;
     static const u32 kMagic4cc;
-    char mMagic[4];
+
+    AssetHeader mAssetHeader;
 
     u32 mFrameWidth;
     u32 mFrameHeight;
@@ -123,14 +125,17 @@ private:
     u64 mSize;
     const Gatl * mpAtlas;
 
+    char PADDING_[12];
+
     // What follows header:
 
     // - null terminated atlasPath (relative to cooked directory, e.g. /foo/bar/baz.atl)
     // - Array of AnimEntries (starting at this address + nAnimTocOffset
     // - Frames referenced by AnimEntries
 };
+#pragma pack(pop)
 
-static_assert(sizeof(Gspr) == 32, "Gspr unexpected size");
+static_assert(sizeof(Gspr) == 48, "Gspr unexpected size");
 } // namespace
 
 

@@ -32,12 +32,15 @@
 #include "core/mem.h"
 #include "core/logging.h"
 
+#include "assets/AssetHeader.h"
+
 namespace gaen
 {
 
 class Gimg;
 
 
+#pragma pack(push, 1)
 struct GlyphVert
 {
     glm::vec2 position;
@@ -60,13 +63,11 @@ struct GlyphTri
 };
 static_assert(sizeof(GlyphTri) == 6, "SpriteTri unexpected size");
 
-#pragma pack(push, 1)
 struct GlyphAlias
 {
     u32 hash;
     u16 index;
 };
-#pragma pack(pop)
 static_assert(sizeof(GlyphAlias) == 6, "GlyphAlias unexpected size");
 
 class Gatl
@@ -250,7 +251,8 @@ private:
 
     static const char * kMagic;
     static const u32 kMagic4cc;
-    char mMagic[4];
+
+    AssetHeader mAssetHeader;
 
     u16 mGlyphCount;
     u16 mAliasCount;
@@ -261,6 +263,7 @@ private:
     u64 mSize;
     const Gimg * mpImage;
 };
+#pragma pack(pop)
 
 // If this isn't a multiple of 16, consider adding more alignment
 // corrections in size functions

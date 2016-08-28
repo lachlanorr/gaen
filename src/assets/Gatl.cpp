@@ -46,7 +46,7 @@ bool Gatl::is_valid(const void * pBuffer, u64 size)
 
     const Gatl * pAssetData = reinterpret_cast<const Gatl*>(pBuffer);
 
-    if (0 != strncmp(kMagic, pAssetData->mMagic, 4))
+    if (0 != strncmp(kMagic, pAssetData->mAssetHeader.mMagic, 4))
         return false;
 
     if (pAssetData->mDefaultIndex >= pAssetData->glyphCount())
@@ -97,7 +97,8 @@ Gatl * Gatl::create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 
     memset(pGatl, 0, size);
 
     ASSERT(strlen(kMagic) == 4);
-    strncpy(pGatl->mMagic, kMagic, 4);
+    strncpy(pGatl->mAssetHeader.mMagic, kMagic, 4);
+    pGatl->mAssetHeader.mVersion = 0;
 
     if (defaultIndex >= glyphCount)
         PANIC("Failed to create Gatl, defaultIndex too large: %u", defaultIndex);

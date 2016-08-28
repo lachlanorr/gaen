@@ -25,6 +25,7 @@
 #-------------------------------------------------------------------------------
 
 SET (assets_SOURCES
+  AssetHeader.h
   Color.h
   Config.cpp
   Config.h
