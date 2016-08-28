@@ -1012,9 +1012,12 @@ const SymTab * find_closure_symbols(const Ast * pAst)
         ASSERT(pAst->pRhs && pAst->pRhs->type == kAST_PropInitList);
         if (pAst->pRhs && pAst->pRhs->type == kAST_PropInitList)
         {
-            for (const Ast * pChild : pAst->pRhs->pChildren->nodes)
+            if (pAst->pRhs && pAst->pRhs->pChildren)
             {
-                find_refs_recurse(pSymTab, pChild->pRhs);
+                for (const Ast * pChild : pAst->pRhs->pChildren->nodes)
+                {
+                    find_refs_recurse(pSymTab, pChild->pRhs);
+                }
             }
         }
 

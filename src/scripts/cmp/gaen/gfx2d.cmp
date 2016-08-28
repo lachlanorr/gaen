@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// lights.cmp - Light components
+// gfx2d.cmp - 2d graphics related components
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,15 +24,42 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-component Directional
+component Sprite
 {
-    int lightUid = $.renderer_gen_uid();
-
-    vec3 #dir = vec3{0.1, 0.1, 0.2};
-    color #col = color{255, 255, 255, 255};
+    asset #sprAsset = "/dummy.gspr";
+    int sprite = $.sprite_create(sprAsset, transform);
 
     #init()
     {
-        $.renderer_insert_light_directional(lightUid, dir, col);
+        $.sprite_play_anim(sprite, #front_walk, 0.5, true, 0);
+    }
+}
+
+component SpriteBody
+{
+    int #sprite = 0;
+    float #mass = 0.0;
+
+    // Collision group
+    int #group = 0;
+
+    // Collision masks
+    int #mask0 = 0;
+    int #mask1 = 0;
+    int #mask2 = 0;
+    int #mask3 = 0;
+    int #mask4 = 0;
+    int #mask5 = 0;
+    int #mask6 = 0;
+    int #mask7 = 0;
+
+    #init()
+    {
+        if (sprite != 0)
+            $.sprite_init_body(sprite,
+                               mass,
+                               group,
+                               ivec4{mask0, mask1, mask2, mask3},
+                               ivec4{mask4, mask5, mask6, mask7});
     }
 }

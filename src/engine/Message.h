@@ -33,7 +33,7 @@
 namespace gaen
 {
 
-typedef u32 task_id; // defined here since we are the root of the includes, and we need this
+typedef i32 task_id; // defined here since we are the root of the includes, and we need this
 
 static const u32 kMessageFlag_None     = 0;
 

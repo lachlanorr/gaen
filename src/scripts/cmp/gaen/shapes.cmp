@@ -29,7 +29,7 @@ component Box
     vec3 #size = vec3{1.0, 1.0, 1.0};
     color #diffuse = color{255, 0, 0, 255};
     handle model;
-    uint modelUid = $.renderer_gen_uid();
+    int modelUid = $.renderer_gen_uid();
 
     #init()
     {
@@ -46,10 +46,10 @@ component Box
 component Cone
 {
     vec3 #size = vec3{1.0, 1.0, 1.0};
-    uint #slices = 16;
+    int #slices = 16;
     color #diffuse = color{255, 0, 0, 255};
     handle model;
-    uint modelUid = $.renderer_gen_uid();
+    int modelUid = $.renderer_gen_uid();
 
     #init()
     {
@@ -66,10 +66,10 @@ component Cone
 component Cylinder
 {
     vec3 #size = vec3{1.0, 1.0, 1.0};
-    uint #slices = 16;
+    int #slices = 16;
     color #diffuse = color{255, 0, 0, 255};
     handle model;
-    uint modelUid = $.renderer_gen_uid();
+    int modelUid = $.renderer_gen_uid();
 
     #init()
     {
@@ -86,11 +86,11 @@ component Cylinder
 component Sphere
 {
     vec3 #size = vec3{1.0, 1.0, 1.0};
-    uint #sections = 16;
-    uint #slices = 16;
+    int #sections = 16;
+    int #slices = 16;
     color #diffuse = color{255, 0, 0, 255};
     handle model;
-    uint modelUid = $.renderer_gen_uid();
+    int modelUid = $.renderer_gen_uid();
 
     #init()
     {
@@ -107,10 +107,10 @@ component Sphere
 component QuadSphere
 {
     vec3 #size = vec3{1.0, 1.0, 1.0};
-    uint #sections = 16;
+    int #sections = 16;
     color #diffuse = color{255, 0, 0, 255};
     handle model;
-    uint modelUid = $.renderer_gen_uid();
+    int modelUid = $.renderer_gen_uid();
 
     #init()
     {
