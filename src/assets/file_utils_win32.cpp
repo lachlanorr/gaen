@@ -89,7 +89,7 @@ void process_path(char * path)
     normalize_path(path);
 }
 
-void full_path(char * outPath, char * path)
+void full_path(char * outPath, const char * path)
 {
     DWORD retval = GetFullPathNameA(path, kMaxPath, outPath, NULL);
 

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// CookerRegistry.h - Registration for cookers
+// Cooker.h - Pure abstract base class for cookers
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,40 +24,34 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKER_REGISTRY_H
-#define GAEN_CHEF_COOKER_REGISTRY_H
+#ifndef GAEN_CHEF_COOKER_H
+#define GAEN_CHEF_COOKER_H
 
-#include "core/mem.h"
-#include "core/HashMap.h"
 #include "core/List.h"
 #include "core/String.h"
-#include "assets/Config.h"
-#include "chef/CookInfo.h"
-#include "chef/Cooker.h"
 
 namespace gaen
 {
-class CookerRegistry
+
+class CookInfo;
+class Chef;
+
+class Cooker
 {
 public:
-    static void register_cooker(UniquePtr<Cooker> pCooker);
+    virtual ~Cooker() {}
 
-    static const Cooker * find_cooker_from_raw(const ChefString & rawPath);
-    static const Cooker * find_cooker_from_cooked(const ChefString & cookedPath);
+    typedef List<kMEM_Chef, ChefString> ExtList;
+    const ExtList & rawExts() const { ASSERT(mCookedExts.size() > 0); return mRawExts; }
+    const ExtList & cookedExts() const { ASSERT(mCookedExts.size() > 0); return mCookedExts; }
 
-private:
-    static List<kMEM_Chef, UniquePtr<Cooker>> sCookers;
-    
-    // map for raw extension to cooker
-    static HashMap<kMEM_Chef, ChefString, const Cooker*> sRawExtToCooker;
+    virtual void cook(CookInfo * pCookInfo) const = 0;
 
-    // map for cooked extension to cooker
-    static HashMap<kMEM_Chef, ChefString, const Cooker*> sCookedExtToCooker;
+protected:
+    ExtList mRawExts;
+    ExtList mCookedExts;
 };
-
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKER_REGISTRY_H
-
-
+#endif // #ifndef GAEN_CHEF_COOKER_H

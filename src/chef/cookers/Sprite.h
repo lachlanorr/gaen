@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// CookerRegistry.h - Registration for cookers
+// Sprite.h - Sprite cooker
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,40 +24,32 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKER_REGISTRY_H
-#define GAEN_CHEF_COOKER_REGISTRY_H
+#ifndef GAEN_CHEF_COOKERS_SPRITE_H
+#define GAEN_CHEF_COOKERS_SPRITE_H
 
-#include "core/mem.h"
-#include "core/HashMap.h"
-#include "core/List.h"
-#include "core/String.h"
-#include "assets/Config.h"
-#include "chef/CookInfo.h"
 #include "chef/Cooker.h"
 
 namespace gaen
 {
-class CookerRegistry
+namespace cookers
+{
+static const char * kExtSpr = "spr";
+static const char * kExtGspr = "gspr";
+
+class Sprite : public Cooker
 {
 public:
-    static void register_cooker(UniquePtr<Cooker> pCooker);
-
-    static const Cooker * find_cooker_from_raw(const ChefString & rawPath);
-    static const Cooker * find_cooker_from_cooked(const ChefString & cookedPath);
-
-private:
-    static List<kMEM_Chef, UniquePtr<Cooker>> sCookers;
+    Sprite()
+    {
+        mRawExts.push_back(kExtSpr);
+        mCookedExts.push_back(kExtGspr);
+    }
     
-    // map for raw extension to cooker
-    static HashMap<kMEM_Chef, ChefString, const Cooker*> sRawExtToCooker;
-
-    // map for cooked extension to cooker
-    static HashMap<kMEM_Chef, ChefString, const Cooker*> sCookedExtToCooker;
+    virtual void cook(CookInfo * pCookInfo) const;
 };
 
-
+}
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKER_REGISTRY_H
-
+#endif // #ifndef GAEN_CHEF_COOKERS_SPRITE_H
 

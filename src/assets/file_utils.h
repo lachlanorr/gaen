@@ -48,11 +48,62 @@ bool dir_exists(const char * dirPath);
 void process_path(char * path);
 void delete_file(const char * filePath);
 
+// copy inPath to outPath, converting all '\' to '/'
+void normalize_path(char * outPath, const char * inPath);
+void normalize_path(char * path);
+
+template <class T>
+void normalize_path(T & path)
+{
+    for (size_t i = 0; i < path.size(); ++i)
+    {
+        if (path[i] == '\\')
+            path[i] = '/';
+    }
+    // strip last '/' if present
+    if (path.back() == '/')
+        path.resize(path.size()-1);
+
+}
+template <class T>
+T normalize_path(const T & path)
+{
+    T npath = path;
+    normalize_path(npath);
+    return npath;
+}
+
 // Get parent directory of file_path
 void parent_dir(char * dirPath, const char * filePath);
-
 // Set path to parent
 void parent_dir(char * path);
+
+
+template <class T>
+void parent_dir(T & path)
+{
+    normalize_path(path);
+    size_t lastSlashPos = path.find_last_of('/');
+    if (lastSlashPos != T::npos)
+        path.resize(lastSlashPos);
+    else
+        path.clear();
+}
+template <class T>
+T parent_dir(const T & filePath)
+{
+    T dirPath = filePath;
+    parent_dir(dirPath);
+    return dirPath;
+}
+
+template <class T>
+bool is_parent_dir(const T & parent, const T & child)
+{
+    return (0 == child.compare(0, parent.size(), parent) // child starts with parent
+            && child[parent.size()] == '/'); // first character after parent is a slash
+}
+
 
 // Make all directories specified in path
 void make_dirs(const char * dirPath);
@@ -61,6 +112,17 @@ const char * get_ext(const char * path);
 char * get_ext(char * path);
 void strip_ext(char * path);
 void change_ext(char * path, const char * ext);
+
+template <class T>
+void change_ext(T & path, const T & ext)
+{
+    size_t dotPos = path.find_last_of('.');
+    if (dotPos != T::npos)
+    {
+        path.replace(dotPos + 1, path.size() - (dotPos+1), ext);
+    }
+}
+
 
 // Dealing with 4 character codes can be endian dangerous, but we
 // only do this within a running process, these 4 character codes
@@ -75,13 +137,9 @@ void get_filename(char * filename, const char * path);
 void get_filename_root(char * filename, const char * path);
 void upper(char * str);
 
-// copy inPath to outPath, converting all '\' to '/'
-void normalize_path(char * outPath, const char * inPath);
-void normalize_path(char * path);
-
 void append_path(char * path, const char * append);
 
-void full_path(char * outPath, char * path);
+void full_path(char * outPath, const char * path);
 
 bool is_file_newer(const char * path, const char * comparePath);
 
@@ -89,14 +147,45 @@ bool is_file_newer(const char * path, const char * comparePath);
 //------------------------------------------------------------------------------
 // Asset cooking path manipulation
 //------------------------------------------------------------------------------
+static const char * kAssetsRawSuffix = "/raw";
+static const char * kAssetsRawTransSuffix = "/raw_trans";
+static const char * kAssetsCookedSuffix = "/cooked_";
+
 const char * default_platform();
 bool is_valid_platform(const char * platform);
 
 void assets_raw_dir(char * assetsRawDir, const char * assetsDir);
+void assets_raw_trans_dir(char * assetsRawTransDir, const char * assetsDir);
 void assets_cooked_dir(char * assetsCookedDir, const char * platform, const char * assetsDir);
 
 void find_assets_cooking_dir(char * assetsDir);
 void find_assets_runtime_dir(char * assetsDir);
+
+template <class T>
+T assets_raw_dir(const T & assetsDir)
+{
+    T rawDir = normalize_path(assetsDir);
+    rawDir += kAssetsRawSuffix;
+    return rawDir;
+}
+
+template <class T>
+T assets_raw_trans_dir(const T & assetsDir)
+{
+    T rawTransDir = normalize_path(assetsDir);
+    rawTransDir += kAssetsRawTransSuffix;
+    return rawTransDir;
+}
+
+template <class T>
+T assets_cooked_dir(const char * platform, const T & assetsDir)
+{
+    T cookedDir = normalize_path(assetsDir);
+    cookedDir += kAssetsCookedSuffix;
+    cookedDir += platform;
+    return cookedDir;
+}
+
 //------------------------------------------------------------------------------
 // Asset cooking path manipulation (END)
 //------------------------------------------------------------------------------

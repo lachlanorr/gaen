@@ -37,64 +37,113 @@
 
 namespace gaen
 {
+class Cooker;
+
 enum CookFlags
 {
     kCF_None              = 0x00,
     kCF_CookingDependency = 0x01
 };
 
-typedef List<kMEM_Chef, String<kMEM_Chef>> RecipeList;
+typedef Config<kMEM_Chef> Recipe;
+typedef List<kMEM_Chef, ChefString> RecipeList;
 class Chef;
+
+struct CookResult
+{
+    CookResult(const ChefString & cookedPath, const ChefString & gamePath)
+      : cookedPath(cookedPath)
+      , gamePath(gamePath)
+    {}
+
+    ChefString cookedPath;
+    ChefString gamePath;
+    mutable UniquePtr<void> pCookedBuffer;
+    mutable u64 cookedBufferSize = 0;
+
+    bool isCooked() const
+    {
+        return pCookedBuffer.get() && cookedBufferSize > 0;
+    }
+
+    void setCookedBuffer(void * pBuffer, u64 size) const
+    {
+        pCookedBuffer.reset(pBuffer);
+        cookedBufferSize = size;
+    }
+};
+typedef List<kMEM_Chef, CookResult> CookResultList;
+
+struct DependencyInfo
+{
+    DependencyInfo(const ChefString & relativePath)
+      : relativePath(relativePath)
+    {}
+
+    ChefString relativePath;
+    ChefString rawPath;
+    List<kMEM_Chef, ChefString> gamePaths;
+};
+struct DependencyInfoHash
+{
+    u64 operator()(const DependencyInfo & val) const
+    {
+        return fnv1a_32(val.relativePath.c_str());
+    }
+};
+struct DependencyInfoEquals
+{
+    u64 operator()(const DependencyInfo & lhs, const DependencyInfo & rhs) const
+    {
+        return lhs.relativePath == rhs.relativePath;
+    }
+};
+typedef HashSet<kMEM_Chef, DependencyInfo, DependencyInfoHash, DependencyInfoEquals> DependencySet;
 
 class CookInfo
 {
 public:
     CookInfo(Chef * pChef,
+             const Cooker * pCooker,
              CookFlags flags,
-             const char * rawPath,
-             const char * cookedPath,
-             const char * gamePath,
-             const RecipeList & recipes);
-    ~CookInfo();
+             const ChefString & rawPath,
+             const Recipe & recipe)
+      : mpChef(pChef)
+      , mpCooker(pCooker)
+      , mFlags(flags)
+      , mRawPath(rawPath)
+      , mRecipe(recipe)
+    {}
+
+    void addCookResult(const ChefString & cookedPath, const ChefString & gamePath);
 
     // Record a dependency, but don't cook it to include in the parent
     // asset.
-    void recordDependency(char * depRawPath, char * gamePath, const char * path) const;
+    const DependencyInfo & recordDependency(const ChefString & relativePath) const;
 
-    // Cook a dependency with the intention of including the cooked
-    // buffer in the parent asset.
-    UniquePtr<CookInfo> cookDependency(const char * path) const;
+    // Cook and record a dependency
+    UniquePtr<CookInfo> cookDependency(const ChefString & relativePath) const;
 
     CookFlags flags() const { return mFlags; }
-    const char * rawPath() const { return mRawPath; }
-    const char * cookedPath() const { return mCookedPath; }
-    const char * gamePath() const { return mGamePath; }
+    const ChefString & rawPath() const { return mRawPath; }
 
-    const void * cookedBuffer() const { return mpCookedBuffer; }
-    u64 cookedBufferSize() const { return mCookedBufferSize; }
-    
-    bool isCooked() const
-    {
-        return mpCookedBuffer != nullptr && mCookedBufferSize > 0;
-    }
+    const CookResultList & results() const { return mResults; }
 
-    void setCookedBuffer(void * pBuffer, u64 size) const;
+    const Recipe & recipe() const { return mRecipe; }
+    const DependencySet & dependencies() const { return mDependencies; }
 
-    const Config<kMEM_Chef> & recipe() const { return mRecipe; }
-    const Set<kMEM_Chef, String<kMEM_Chef>> & dependencies() const { return mDependencies; }
-
+    bool isCooked(const char * ext) const;
+    void setCookedBuffer(const char * ext, void * pBuffer, u64 size) const;
 private:
     Chef * mpChef;
+    const Cooker * mpCooker;
     CookFlags mFlags;
-    char mRawPath[kMaxPath+1];
-    char mCookedPath[kMaxPath+1];
-    char mGamePath[kMaxPath+1];
 
-    mutable void * mpCookedBuffer;
-    mutable u64 mCookedBufferSize;
+    ChefString mRawPath;
+    Recipe mRecipe;
 
-    Config<kMEM_Chef> mRecipe;
-    mutable Set<kMEM_Chef, String<kMEM_Chef>> mDependencies;
+    mutable CookResultList mResults;
+    mutable DependencySet mDependencies;
 };
 
 } // namespace gaen

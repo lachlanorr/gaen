@@ -31,45 +31,6 @@
 namespace gaen
 {
 
-void parent_dir(char * dirPath, const char * filePath)
-{
-    normalize_path(dirPath, filePath);
-    parent_dir(dirPath);
-}
-
-void parent_dir(char * path)
-{
-    char * lastSep = strrchr(path, '/');
-    if (!lastSep)
-        path[0] = '\0';
-    else
-        *lastSep = '\0';
-}
-
-
-const char * get_ext(const char * path)
-{
-    ASSERT(path);
-    const char * dotpos = strrchr(path, '.');
-    PANIC_IF(!dotpos || !dotpos[1], "Input file has no extension: %s");
-    return dotpos+1;
-}
-
-char * get_ext(char * path)
-{
-    ASSERT(path);
-    char * dotpos = strrchr(path, '.');
-    PANIC_IF(!dotpos || !dotpos[1], "Input file has no extension: %s");
-    return dotpos+1;
-}
-
-void strip_ext(char * path)
-{
-    char * dotpos = strrchr(path, '.');
-    if (dotpos)
-        *dotpos = '\0';
-}
-
 void normalize_path(char * outPath, const char * inPath)
 {
     ASSERT(outPath);
@@ -109,6 +70,45 @@ void normalize_path(char * path)
     // strip of trailing '/' if present
     if (p > path && p[-1] == '/')
         p[-1] = '\0';
+}
+
+void parent_dir(char * dirPath, const char * filePath)
+{
+    normalize_path(dirPath, filePath);
+    parent_dir(dirPath);
+}
+
+void parent_dir(char * path)
+{
+    char * lastSep = strrchr(path, '/');
+    if (!lastSep)
+        path[0] = '\0';
+    else
+        *lastSep = '\0';
+}
+
+
+const char * get_ext(const char * path)
+{
+    ASSERT(path);
+    const char * dotpos = strrchr(path, '.');
+    PANIC_IF(!dotpos || !dotpos[1], "Input file has no extension: %s");
+    return dotpos+1;
+}
+
+char * get_ext(char * path)
+{
+    ASSERT(path);
+    char * dotpos = strrchr(path, '.');
+    PANIC_IF(!dotpos || !dotpos[1], "Input file has no extension: %s");
+    return dotpos+1;
+}
+
+void strip_ext(char * path)
+{
+    char * dotpos = strrchr(path, '.');
+    if (dotpos)
+        *dotpos = '\0';
 }
 
 void append_path(char * path, const char * append)
@@ -229,7 +229,15 @@ void assets_raw_dir(char * assetsRawDir, const char * assetsDir)
     ASSERT(assetsRawDir);
     ASSERT(assetsDir);
     normalize_path(assetsRawDir, assetsDir);
-    strcat(assetsRawDir, "/raw");
+    strcat(assetsRawDir, kAssetsRawSuffix);
+}
+
+void assets_raw_trans_dir(char * assetsRawTransDir, const char * assetsDir)
+{
+    ASSERT(assetsRawTransDir);
+    ASSERT(assetsDir);
+    normalize_path(assetsRawTransDir, assetsDir);
+    strcat(assetsRawTransDir, kAssetsRawTransSuffix);
 }
 
 void assets_cooked_dir(char * assetsCookedDir, const char * platform, const char * assetsDir)
@@ -239,7 +247,7 @@ void assets_cooked_dir(char * assetsCookedDir, const char * platform, const char
     ASSERT(assetsDir);
     ASSERT(is_valid_platform(platform));
     normalize_path(assetsCookedDir, assetsDir);
-    strcat(assetsCookedDir, "/cooked_");
+    strcat(assetsCookedDir, kAssetsCookedSuffix);
     strcat(assetsCookedDir, platform);
 }
 

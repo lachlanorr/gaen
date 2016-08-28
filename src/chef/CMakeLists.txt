@@ -24,11 +24,21 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
+SET (cooker_SOURCES
+  cookers/Atlas.h
+  cookers/Atlas.cpp
+  cookers/Image.h
+  cookers/Image.cpp
+  cookers/Sprite.h
+  cookers/Sprite.cpp
+  )
+
 SET (chef_SOURCES
   Chef.cpp
   Chef.h
   CookerRegistry.cpp
   CookerRegistry.h
+  Cooker.h
   cookers.cpp
   cookers.h
   cooker_utils.cpp
@@ -38,10 +48,12 @@ SET (chef_SOURCES
   main_chef.cpp
   Tga.cpp
   Tga.h
+  ${cooker_SOURCES}
   )
 
 MSVC_PRECOMPILED_HEADER (chef chef_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${chef_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/cookers" "${cooker_SOURCES}")
 
 ADD_EXECUTABLE (chef
   ${chef_SOURCES}

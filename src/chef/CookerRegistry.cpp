@@ -34,53 +34,56 @@
 namespace gaen
 {
 
-void CookerRegistry::register_cooker(const char * rawExt, const char * cookedExt, CookCB cook)
+void CookerRegistry::register_cooker(UniquePtr<Cooker> pCooker)
 {
-    ASSERT(rawExt);
-    ASSERT(cookedExt);
-    ASSERT(cook);
+    for (const ChefString & rawExt : pCooker->rawExts())
+    {
+        PANIC_IF(sRawExtToCooker.find(rawExt) != sRawExtToCooker.end(),
+                 "Multiple cookers registered for same raw extension: %s",
+                 rawExt);
 
-    PANIC_IF(sRawExtToCooker.find(rawExt) != sRawExtToCooker.end(),
-             "Multiple cookers registered for same raw extension: %s",
-             rawExt);
+        sRawExtToCooker[rawExt] = pCooker.get();
+    }
 
-    PANIC_IF(sCookedExtToCooker.find(cookedExt) != sCookedExtToCooker.end(),
-             "Multiple cookers registered for same cooked extension: %s",
-             cookedExt);
+    for (const ChefString & cookedExt : pCooker->cookedExts())
+    {
+        PANIC_IF(sCookedExtToCooker.find(cookedExt) != sCookedExtToCooker.end(),
+                 "Multiple cookers registered for same cooked extension: %s",
+                 cookedExt);
 
-    sCookers.emplace_back(rawExt, cookedExt, cook);
+        sCookedExtToCooker[cookedExt] = pCooker.get();
+    }
 
-    sRawExtToCooker[rawExt] = &sCookers.back();
-    sCookedExtToCooker[cookedExt] = &sCookers.back();
+    sCookers.emplace_back(std::move(pCooker));
 }
 
-Cooker * CookerRegistry::find_cooker_from_raw(const char * path)
+const Cooker * CookerRegistry::find_cooker_from_raw(const ChefString & rawPath)
 {
     // find our cooker
-    const char * ext = get_ext(path);
+    ChefString ext = get_ext(rawPath.c_str());
     auto it = sRawExtToCooker.find(ext);
     if (it == sRawExtToCooker.end())
         return nullptr;
-    Cooker * pCooker = it->second;
+    const Cooker * pCooker = it->second;
     return pCooker;
 }
 
-Cooker * CookerRegistry::find_cooker_from_cooked(const char * path)
+const Cooker * CookerRegistry::find_cooker_from_cooked(const ChefString & cookedPath)
 {
     // find our cooker
-    const char * ext = get_ext(path);
+    ChefString ext = get_ext(cookedPath.c_str());
     auto it = sCookedExtToCooker.find(ext);
     if (it == sCookedExtToCooker.end())
         return nullptr;
-    Cooker * pCooker = it->second;
+    const Cooker * pCooker = it->second;
     return pCooker;
 }
 
 
 // CookerRegistry statics
-List<kMEM_Chef, Cooker> CookerRegistry::sCookers;
-HashMap<kMEM_Chef, String<kMEM_Chef>, Cooker*> CookerRegistry::sRawExtToCooker;
-HashMap<kMEM_Chef, String<kMEM_Chef>, Cooker*> CookerRegistry::sCookedExtToCooker;
+List<kMEM_Chef, UniquePtr<Cooker>> CookerRegistry::sCookers;
+HashMap<kMEM_Chef, ChefString, const Cooker*> CookerRegistry::sRawExtToCooker;
+HashMap<kMEM_Chef, ChefString, const Cooker*> CookerRegistry::sCookedExtToCooker;
 
 
 

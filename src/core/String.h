@@ -41,6 +41,8 @@ using String = std::basic_string<char,
                                  std::char_traits<char>,
                                  gaen::Allocator<memType, char>>;
 
+typedef String<kMEM_Chef> ChefString;
+
 } // namespace gaen
 
 #endif //#ifndef GAEN_CORE_STRING_H

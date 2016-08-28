@@ -35,7 +35,7 @@
 namespace gaen
 {
 
-struct Cooker;
+class Cooker;
 class CookInfo;
 
 class Chef
@@ -45,42 +45,43 @@ public:
     Chef(u32 id, const char * platform, const char * assetsDir, bool force);
     
     u32 id() { return mId; }
-    const char * platform() { return mPlatform.c_str(); }
+    const ChefString & platform() { return mPlatform; }
 
-    UniquePtr<CookInfo> cookDependency(const char * path);
     void cookAndWrite(const char * path);
-
-    // Path conversion functions
-    bool isRawPath(const char * path);
-    bool isCookedPath(const char * path);
-    bool isGamePath(const char * path);
-    
-    void getRawPath(char * rawPath, const char * path, Cooker * pCooker = nullptr);
-    void getRawRelativePath(char * rawRelativePath, const char * rawPath);
-    void getCookedPath(char * cookedPath, const char * path, Cooker * pCooker = nullptr);
-    void getGamePath(char * gamePath, const char * path, Cooker * pCooker = nullptr);
 
 private:
     const size_t kMaxPlatform = 4;
 
-    UniquePtr<CookInfo> cook(const char * path, CookFlags flags);
-    bool shouldCook(const CookInfo & ci, const RecipeList & recipes, bool force);
-    RecipeList findRecipes(const char * rawPath);
-    void overlayRecipes(Config<kMEM_Chef> & recipe, const RecipeList & recipes);
-    bool convertRelativeDependencyPath(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath);
+    // Path conversion functions
+    bool isRawPath(const ChefString & path);
+    bool isCookedPath(const ChefString & path);
+    bool isGamePath(const ChefString & path);
 
-	void getDependencyFilePath(char * dependencyFilePath, const char * rawPath);
+    ChefString getRawPath(const ChefString & path);
+    ChefString getRawRelativePath(const ChefString & rawPath);
+    ChefString getCookedPath(const ChefString & path, const ChefString & cookedExt);
+    ChefString getGamePath(const ChefString & path, const ChefString & cookedExt);
+    ChefString getRelativeDependencyRawPath(const ChefString & sourceRawPath, const ChefString & dependencyPath);
+	ChefString getDependencyFilePath(const ChefString & rawPath);
+
+    UniquePtr<CookInfo> cook(const ChefString & path, CookFlags flags);
+    UniquePtr<CookInfo> cookDependency(const ChefString & path);
+    bool shouldCook(const CookInfo & ci, const RecipeList & recipes, bool force);
+    RecipeList findRecipes(const ChefString & rawPath);
+    void overlayRecipes(Config<kMEM_Chef> & recipe, const RecipeList & recipes);
+
     void writeDependencyFile(const CookInfo & ci);
-    List<kMEM_Chef, String<kMEM_Chef>> readDependencyFile(const char * rawPath);
-	void deleteDependencyFile(const char * rawPath);
+    List<kMEM_Chef, ChefString> readDependencyFile(const ChefString & rawPath);
+	void deleteDependencyFile(const ChefString & rawPath);
 
     u32 mId;
     bool mForce;
 
-    String<kMEM_Chef> mPlatform;
-    String<kMEM_Chef> mAssetsDir;
-    String<kMEM_Chef> mAssetsRawDir;
-    String<kMEM_Chef> mAssetsCookedDir;
+    ChefString mPlatform;
+    ChefString mAssetsDir;
+    ChefString mAssetsRawDir;
+    ChefString mAssetsRawTransDir;
+    ChefString mAssetsCookedDir;
 };
 
 } // namespace gaen

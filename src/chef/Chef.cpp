@@ -45,272 +45,179 @@ Chef::Chef(u32 id, const char * platform, const char * assetsDir, bool force)
     ASSERT(assetsDir);
 
     mPlatform = platform;
-    
-    char scratch[kMaxPath+1];
-    normalize_path(scratch, assetsDir);
-    mAssetsDir = scratch;
 
-    assets_raw_dir(scratch, mAssetsDir.c_str());
-    mAssetsRawDir = scratch;
+    mAssetsDir = normalize_path(ChefString(assetsDir));
 
-    assets_cooked_dir(scratch, platform, mAssetsDir.c_str());
-    mAssetsCookedDir = scratch;
+    mAssetsRawDir = assets_raw_dir(mAssetsDir);
+    mAssetsRawTransDir = assets_raw_trans_dir(mAssetsDir);
+    mAssetsCookedDir = assets_cooked_dir(platform, mAssetsDir);
 }
 
-UniquePtr<CookInfo> Chef::cook(const char * path, CookFlags flags)
+void Chef::cookAndWrite(const char * path)
 {
-    ASSERT(path);
-    PANIC_IF(strlen(path) > kMaxPath-1, "File path too long, max size allowed: %u, %s", kMaxPath-1, path);
+    ChefString pathStr(path);
+    UniquePtr<CookInfo> pCi(cook(path, kCF_None));
 
-    char rawPath[kMaxPath+1];
-    getRawPath(rawPath, path);
+    if (pCi.get())
+    {
+        writeDependencyFile(*pCi);
 
-    Cooker * pCooker = CookerRegistry::find_cooker_from_raw(rawPath);
+        for (const CookResult & res : pCi->results())
+        {
+            if (res.isCooked())
+            {
+                // write out file
+                FileWriter wrtr(res.cookedPath.c_str());
+                wrtr.ofs.write((const char *)res.pCookedBuffer.get(), res.cookedBufferSize);
+                printf("Cooked: %s -> %s\n", pCi->rawPath().c_str(), res.cookedPath.c_str());
+            }
+        }
+    }
+}
+
+
+bool Chef::isRawPath(const ChefString & path)
+{
+    return is_parent_dir(mAssetsRawDir, path);
+}
+
+bool Chef::isCookedPath(const ChefString & path)
+{
+    return is_parent_dir(mAssetsCookedDir, path);
+}
+
+bool Chef::isGamePath(const ChefString & path)
+{
+    return (path.size() > 0 &&
+            path[0] == '/' &&
+            !isRawPath(path) &&
+            !isCookedPath(path));
+}
+
+ChefString Chef::getRawPath(const ChefString & path)
+{
+    ASSERT(path.size() > 0);
+
+    ChefString pathNorm = normalize_path(path);
+
+    // Only valid raw paths should be sent to this function
+    ASSERT(isRawPath(pathNorm));
+    
+    return pathNorm;
+}
+
+ChefString Chef::getRawRelativePath(const ChefString & rawPath)
+{
+    PANIC_IF(!isRawPath(rawPath), "Not a raw path: %s", rawPath.c_str());
+    return ChefString(rawPath, mAssetsRawDir.size() + 1, ChefString::npos);
+}
+
+ChefString Chef::getCookedPath(const ChefString & rawPath, const ChefString & cookedExt)
+{
+    ASSERT(isRawPath(rawPath));
+
+    ChefString cookedPath(mAssetsCookedDir);
+    cookedPath += '/';
+    cookedPath += getRawRelativePath(rawPath);
+    change_ext(cookedPath, cookedExt);
+    return cookedPath;
+}
+
+ChefString Chef::getGamePath(const ChefString & rawPath, const ChefString & cookedExt)
+{
+    ASSERT(isRawPath(rawPath));
+
+    ChefString gamePath("/"); // game paths always start with a '/'
+    gamePath += getRawRelativePath(rawPath);
+    change_ext(gamePath, cookedExt);
+    return gamePath;
+}
+
+ChefString Chef::getRelativeDependencyRawPath(const ChefString & sourceRawPath, const ChefString & dependencyPath)
+{
+    ASSERT(isRawPath(sourceRawPath));
+
+    // assume it's relative to sourceRawPaths' directory
+    ChefString dependencyRawPath = parent_dir(sourceRawPath);
+    dependencyRawPath += '/';
+    dependencyRawPath += normalize_path(dependencyPath);
+    return dependencyRawPath;
+}
+
+ChefString Chef::getDependencyFilePath(const ChefString & rawPath)
+{
+    ASSERT(isRawPath(rawPath));
+    return rawPath + ".deps";
+}
+
+
+UniquePtr<CookInfo> Chef::cook(const ChefString & rawPath, CookFlags flags)
+{
+    ASSERT(isRawPath(rawPath));
+
+    const Cooker * pCooker = CookerRegistry::find_cooker_from_raw(rawPath);
     if (!pCooker)
     {
         // not a cookable file
         return UniquePtr<CookInfo>();
     }
 
-    char cookedPath[kMaxPath+1];
-    getCookedPath(cookedPath, rawPath);
-
     // check if file exists
-    PANIC_IF(!file_exists(rawPath), "Raw file does not exist: %s", rawPath);
-
-    char gamePath[kMaxPath+1];
-    getGamePath(gamePath, rawPath, pCooker);
+    PANIC_IF(!file_exists(rawPath.c_str()), "Raw file does not exist: %s", rawPath.c_str());
 
     RecipeList recipes = findRecipes(rawPath);
-    UniquePtr<CookInfo> pCi(GNEW(kMEM_Chef, CookInfo, this, flags, rawPath, cookedPath, gamePath, recipes));
+    Recipe recipe;
+    overlayRecipes(recipe, recipes);
 
+    UniquePtr<CookInfo> pCi(GNEW(kMEM_Chef, CookInfo, this, pCooker, flags, rawPath, recipe));
+
+    for (const ChefString & cookedExt : pCooker->cookedExts())
+    {
+        pCi->addCookResult(getCookedPath(rawPath, cookedExt),
+                           getGamePath(rawPath, cookedExt));
+    }
+    
     // verify we should cook
     if (!shouldCook(*pCi, recipes, mForce))
         return pCi;
 
-    // make any directories needed in cookedPath
-    char cookedDir[kMaxPath+1];
-    parent_dir(cookedDir, cookedPath);
-    make_dirs(cookedDir);
+    // make any directories needed in cookedPath (use first cookResult path, all are the same)
+    ChefString cookedDir = parent_dir(pCi->results().front().cookedPath);
+    make_dirs(cookedDir.c_str());
 
-    pCooker->cook(*pCi);
+    pCooker->cook(pCi.get());
 
     return pCi;
 }
 
-UniquePtr<CookInfo> Chef::cookDependency(const char * path)
+UniquePtr<CookInfo> Chef::cookDependency(const ChefString & path)
 {
     return cook(path, kCF_CookingDependency);
 }
 
-void Chef::cookAndWrite(const char * path)
+void Chef::deleteDependencyFile(const ChefString & rawPath)
 {
-    UniquePtr<CookInfo> pCi(cook(path, kCF_None));
+    ASSERT(isRawPath(rawPath));
 
-    if (pCi.get() && pCi->isCooked())
-    {
-        writeDependencyFile(*pCi);
+    ChefString depFilePath = getDependencyFilePath(rawPath);
 
-        if (pCi->isCooked())
-        {
-            // write out file
-            FileWriter wrtr(pCi->cookedPath());
-            wrtr.ofs.write((const char *)pCi->cookedBuffer(), pCi->cookedBufferSize());
-            printf("Cooked: %s -> %s\n", pCi->rawPath(), pCi->cookedPath());
-        }
-    }
-}
-
-bool Chef::isRawPath(const char * path)
-{
-    ASSERT(path);
-    return 0 == strncmp(path, mAssetsRawDir.c_str(), mAssetsRawDir.size());
-}
-
-bool Chef::isCookedPath(const char * path)
-{
-    ASSERT(path);
-    return 0 == strncmp(path, mAssetsCookedDir.c_str(), mAssetsCookedDir.size());
-}
-
-bool Chef::isGamePath(const char * path)
-{
-    ASSERT(path);
-    return (*path == '/' &&
-            !isRawPath(path) &&
-            !isCookedPath(path));
-}
-
-void Chef::getRawPath(char * rawPath, const char * path, Cooker * pCooker)
-{
-    ASSERT(rawPath);
-    ASSERT(path);
-    
-    char pathNorm[kMaxPath+1];
-    normalize_path(pathNorm, path);
-
-    if (isCookedPath(pathNorm))
-    {
-        strcpy(rawPath, mAssetsRawDir.c_str());
-        strcat(rawPath, pathNorm + mAssetsCookedDir.size());
-        if (!pCooker) pCooker = CookerRegistry::find_cooker_from_cooked(pathNorm);
-        PANIC_IF(!pCooker, "No registered cooker for %s", pathNorm);
-        change_ext(rawPath, pCooker->rawExt);
-    }
-    else if (isGamePath(pathNorm))
-    {
-        strcpy(rawPath, mAssetsRawDir.c_str());
-        strcat(rawPath, pathNorm);
-        if (!pCooker) pCooker = CookerRegistry::find_cooker_from_cooked(pathNorm);
-        PANIC_IF(!pCooker, "No registered cooker for %s", pathNorm);
-        change_ext(rawPath, pCooker->rawExt);
-    }
-    else if (isRawPath(pathNorm))
-    {
-        strcpy(rawPath, pathNorm);
-    }
-    else
-    {
-        PANIC("Invalid path: %s", path);
-    }
-}
-
-void Chef::getRawRelativePath(char * rawRelativePath, const char * rawPath)
-{
-    ASSERT(rawRelativePath);
-    ASSERT(rawPath);
-    PANIC_IF(!isRawPath(rawPath), "Not a raw path: %s", rawPath);
-    strcpy(rawRelativePath, rawPath + mAssetsRawDir.size() + 1);
-}
-
-void Chef::getCookedPath(char * cookedPath, const char * path, Cooker * pCooker)
-{
-    ASSERT(cookedPath);
-    ASSERT(path);
-
-    char pathNorm[kMaxPath+1];
-    normalize_path(pathNorm, path);
-
-    if (isRawPath(pathNorm))
-    {
-        strcpy(cookedPath, mAssetsCookedDir.c_str());
-        strcat(cookedPath, pathNorm + mAssetsRawDir.size());
-        if (!pCooker) pCooker = CookerRegistry::find_cooker_from_raw(pathNorm);
-        PANIC_IF(!pCooker, "No registered cooker for %s", pathNorm);
-        change_ext(cookedPath, pCooker->cookedExt);
-    }
-    else if (isGamePath(pathNorm))
-    {
-        if (!pCooker) pCooker = CookerRegistry::find_cooker_from_cooked(pathNorm);
-        PANIC_IF(!pCooker, "No registered cooker for %s", pathNorm);
-        strcpy(cookedPath, mAssetsCookedDir.c_str());
-        strcat(cookedPath, pathNorm);
-    }
-    else if (isCookedPath(pathNorm))
-    {
-        strcpy(cookedPath, pathNorm);
-    }
-    else
-    {
-        PANIC("Invalid path: %s", path);
-    }
-}
-
-void Chef::getGamePath(char * gamePath, const char * path, Cooker * pCooker)
-{
-    ASSERT(gamePath);
-    ASSERT(path);
-
-    char pathNorm[kMaxPath+1];
-    normalize_path(pathNorm, path);
-
-    if (isRawPath(pathNorm))
-    {
-        strcpy(gamePath, pathNorm + mAssetsRawDir.size());
-        if (!pCooker) pCooker = CookerRegistry::find_cooker_from_raw(pathNorm);
-        PANIC_IF(!pCooker, "No registered cooker for %s", pathNorm);
-        change_ext(gamePath, pCooker->cookedExt);
-    }
-    else if (isCookedPath(pathNorm))
-    {
-        strcpy(gamePath, pathNorm + mAssetsCookedDir.size());
-    }
-    else if (isGamePath(pathNorm))
-    {
-        strcpy(gamePath, pathNorm);
-    }
-    else
-    {
-        PANIC("Invalid path: %s", path);
-    }
-}
-
-bool Chef::convertRelativeDependencyPath(char * dependencyRawPath, const char * sourceRawPath, const char * dependencyPath)
-{
-    ASSERT(sourceRawPath);
-    ASSERT(dependencyPath);
-    ASSERT(isRawPath(sourceRawPath));
-
-    char normDepPath[kMaxPath+1];
-
-    normalize_path(normDepPath, dependencyPath);
-
-    if (isRawPath(normDepPath))
-    {
-        strcpy(dependencyRawPath, normDepPath);
-        return true;
-    }
-    else if (isGamePath(normDepPath) || isCookedPath(normDepPath))
-    {
-        getRawPath(dependencyRawPath, normDepPath);
-        return true;
-    }
-    else if (normDepPath[0] != '/')
-    {
-        // assume it's relative to sourceRawPaths' directory
-        parent_dir(dependencyRawPath, sourceRawPath);
-        strcat(dependencyRawPath, "/");
-        strcat(dependencyRawPath, normDepPath);
-        return true;
-    }
-    return false;
-}
-
-void Chef::getDependencyFilePath(char * dependencyFilePath, const char * rawPath)
-{
-    ASSERT(dependencyFilePath);
-    ASSERT(rawPath);
-
-    strcpy(dependencyFilePath, rawPath);
-    strcat(dependencyFilePath, ".deps");
-}
-
-void Chef::deleteDependencyFile(const char * rawPath)
-{
-    ASSERT(rawPath);
-
-    char depFilePath[kMaxPath+1];
-
-    getDependencyFilePath(depFilePath, rawPath);
-
-    if (file_exists(depFilePath))
-        delete_file(depFilePath);
+    if (file_exists(depFilePath.c_str()))
+        delete_file(depFilePath.c_str());
 }
 
 void Chef::writeDependencyFile(const CookInfo & ci)
 {
 	if (ci.dependencies().size() > 0)
 	{
-        char depFilePath[kMaxPath + 1];
-        getDependencyFilePath(depFilePath, ci.rawPath());
+        ChefString depFilePath = getDependencyFilePath(ci.rawPath());
 
         Config<kMEM_Chef> depConf;
-        for (const String<kMEM_Chef> & dep : ci.dependencies())
+        for (const DependencyInfo & dep : ci.dependencies())
         {
-            depConf.setValueless(dep.c_str());
+            depConf.setValueless(dep.relativePath.c_str());
         }
 
-        depConf.write(depFilePath);
+        depConf.write(depFilePath.c_str());
 	}
 	else
     {
@@ -319,17 +226,18 @@ void Chef::writeDependencyFile(const CookInfo & ci)
     }
 }
 
-List<kMEM_Chef, String<kMEM_Chef>> Chef::readDependencyFile(const char * rawPath)
+List<kMEM_Chef, ChefString> Chef::readDependencyFile(const ChefString & rawPath)
 {
-    char depFilePath[kMaxPath + 1];
-    getDependencyFilePath(depFilePath, rawPath);
+    ASSERT(isRawPath(rawPath));
 
-    List<kMEM_Chef, String<kMEM_Chef>> deps;
+    ChefString depFilePath = getDependencyFilePath(rawPath);
 
-    if (file_exists(depFilePath))
+    List<kMEM_Chef, ChefString> deps;
+
+    if (file_exists(depFilePath.c_str()))
     {
         Config<kMEM_Chef> conf;
-        conf.read(depFilePath);
+        conf.read(depFilePath.c_str());
 
         for (auto keyIt = conf.keysBegin(); keyIt != conf.keysEnd(); ++keyIt)
         {
@@ -352,60 +260,69 @@ bool Chef::shouldCook(const CookInfo & ci, const RecipeList & recipes, bool forc
     if (force)
         return true;
 
-    if (!file_exists(ci.cookedPath()))
-        return true;
-
-    if (is_file_newer(ci.rawPath(), ci.cookedPath()))
-        return true;
-
-    for (const String<kMEM_Chef> & recipePath : recipes)
+    // shouldCook if any cooked path doesn't exist
+    // While looping, find the oldest cooked path to use in comparisons below.
+    const ChefString * pOldestCookedPath = nullptr;
+    for (const CookResult & res : ci.results())
     {
-        if (is_file_newer(recipePath.c_str(), ci.cookedPath()))
+        if (!file_exists(res.cookedPath.c_str()))
+            return true;
+        if (pOldestCookedPath == nullptr)
+            pOldestCookedPath = &res.cookedPath;
+        else if (is_file_newer(pOldestCookedPath->c_str(), res.cookedPath.c_str()))
+            pOldestCookedPath = &res.cookedPath;
+    }            
+            
+    // shouldCook if raw path is newer than the oldest cooked path
+    if (is_file_newer(ci.rawPath().c_str(), pOldestCookedPath->c_str()))
+        return true;
+
+    
+    // shouldCook if any recipe is newer than the oldest cooked path
+    for (const ChefString & recipePath : recipes)
+    {
+        if (is_file_newer(recipePath.c_str(), pOldestCookedPath->c_str()))
             return true;
     }
 
-    auto deps = readDependencyFile(ci.rawPath());
 
+    // shouldCook if any dependency is newer than the oldest cooked path
+    auto deps = readDependencyFile(ci.rawPath());
     for (auto dep : deps)
     {
-        char depRawPath[kMaxPath + 1];
-        if (!convertRelativeDependencyPath(depRawPath, ci.rawPath(), dep.c_str()))
-        {
-            PANIC("Unable to convert dependency relative path to raw path: %s", dep.c_str());
-        }
-        if (is_file_newer(depRawPath, ci.cookedPath()))
+        ChefString depRawPath = getRelativeDependencyRawPath(ci.rawPath(), dep);
+        if (is_file_newer(depRawPath.c_str(), pOldestCookedPath->c_str()))
             return true;
     }
 
     return false;
 }
 
-RecipeList Chef::findRecipes(const char * rawPath)
+RecipeList Chef::findRecipes(const ChefString & rawPath)
 {
+    ASSERT(isRawPath(rawPath));
+
+    static const char * kRcpExt = ".rcp";
+    
     RecipeList recipes;
 
-    const char * ext = get_ext(rawPath);
+    ChefString ext = get_ext(rawPath.c_str());
+    ChefString dir = parent_dir(rawPath);
 
-    char dir[kMaxPath+1];
-    normalize_path(dir, rawPath);
-    parent_dir(dir);
-
-    char rcpFile[kMaxPath+1];
-    normalize_path(rcpFile, rawPath);
-    strcat(rcpFile, ".rcp");
-    if (file_exists(rcpFile))
+    ChefString rcpFile = rawPath + kRcpExt;
+    if (file_exists(rcpFile.c_str()))
         recipes.push_front(rcpFile);
 
-    while (strstr(dir, mAssetsRawDir.c_str()) == dir)
+    while (is_parent_dir(mAssetsRawDir, dir))
     {
         // check for file type override, e.g. .tga.rcp
-        sprintf(rcpFile, "%s/.%s.rcp", dir, ext);
-        if (file_exists(rcpFile))
+        ChefString rcpFile = dir + "/" + ext + kRcpExt;
+        if (file_exists(rcpFile.c_str()))
             recipes.push_front(rcpFile);
 
         // check for directory override, e.g. .rcp
-        sprintf(rcpFile, "%s/.rcp", dir);
-        if (file_exists(rcpFile))
+        rcpFile = dir + "/" + kRcpExt;
+        if (file_exists(rcpFile.c_str()))
             recipes.push_front(rcpFile);
 
         // move on to parent directory
@@ -417,10 +334,10 @@ RecipeList Chef::findRecipes(const char * rawPath)
 
 void Chef::overlayRecipes(Config<kMEM_Chef> & recipe, const RecipeList & recipes)
 {
-    for (String<kMEM_Chef> rcp : recipes)
+    for (ChefString rcp : recipes)
     {
         if (!recipe.read(rcp.c_str()))
-            PANIC("Failure reading recipe: %s", rcp);
+            PANIC("Failure reading recipe: %s", rcp.c_str());
     }
 }
 

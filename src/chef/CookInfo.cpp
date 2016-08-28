@@ -27,85 +27,77 @@
 #include "chef/stdafx.h"
 
 #include "chef/Chef.h"
+#include "chef/Cooker.h"
 
+#include "chef/CookerRegistry.h"
 #include "chef/CookInfo.h"
 
 namespace gaen
 {
 
-CookInfo::CookInfo(Chef * pChef,
-         CookFlags flags,
-         const char * rawPath,
-         const char * cookedPath,
-         const char * gamePath,
-         const RecipeList & recipes)
-  : mpChef(pChef)
-  , mFlags(flags)
+void CookInfo::addCookResult(const ChefString & cookedPath, const ChefString & gamePath)
 {
-    strcpy(mRawPath, rawPath);
-    strcpy(mCookedPath, cookedPath);
-    strcpy(mGamePath, gamePath);
-
-    mpChef->overlayRecipes(mRecipe, recipes);
-
-    mpCookedBuffer = nullptr;
-    mCookedBufferSize = 0;
+    mResults.emplace_back(cookedPath, gamePath);
 }
 
-CookInfo::~CookInfo()
+const DependencyInfo & CookInfo::recordDependency(const ChefString & relativePath) const
 {
-    if (mpCookedBuffer)
+    DependencyInfo depInfo(relativePath);
+    depInfo.rawPath = mpChef->getRelativeDependencyRawPath(mRawPath, relativePath);
+
+    const Cooker * pDepCooker = CookerRegistry::find_cooker_from_raw(depInfo.rawPath);
+    ASSERT(pDepCooker);
+
+    for (const ChefString & cookedExt : pDepCooker->cookedExts())
     {
-        GFREE(mpCookedBuffer);
-        mpCookedBuffer = nullptr;
-        mCookedBufferSize = 0;
+        depInfo.gamePaths.push_back(mpChef->getGamePath(depInfo.rawPath, cookedExt));
     }
+
+    auto diPair = mDependencies.insert(depInfo);
+    return *diPair.first;
 }
 
-void CookInfo::recordDependency(char * rawPath, char * gamePath, const char * path) const
+UniquePtr<CookInfo> CookInfo::cookDependency(const ChefString & relativePath) const
 {
-    mDependencies.emplace(path);
+    const DependencyInfo & depInfo = recordDependency(relativePath);
 
-    if (gamePath != nullptr)
-    {
-        if (!mpChef->convertRelativeDependencyPath(rawPath, mRawPath, path))
-        {
-            PANIC("Unable to convert dependency relative path to raw path: %s", path);
-        }
-        mpChef->getGamePath(gamePath, rawPath);
-    }
-}
-
-UniquePtr<CookInfo> CookInfo::cookDependency(const char * path) const
-{
-    char depRawPath[kMaxPath+1];
-
-    if (!mpChef->convertRelativeDependencyPath(depRawPath, mRawPath, path))
-    {
-        PANIC("Unable to convert dependency relative path to raw path: %s", path);
-    }
-
-    UniquePtr<CookInfo> pCi = mpChef->cookDependency(depRawPath);
-    PANIC_IF(!pCi->cookedBuffer() || pCi->cookedBufferSize() == 0, "Failed to cook dependency: %s", path);
-
-    char rawRelativePath[kMaxPath+1];
-    mpChef->getRawRelativePath(rawRelativePath, depRawPath);
-
-    mDependencies.emplace(path);
+    UniquePtr<CookInfo> pCi = mpChef->cookDependency(depInfo.rawPath);
 
     for (auto & dep : pCi->dependencies())
     {
-        mDependencies.emplace(dep);
+        mDependencies.insert(dep);
     }
     return pCi;
 }
 
-void CookInfo::setCookedBuffer(void * pBuffer, u64 size) const
+bool CookInfo::isCooked(const char * ext) const
 {
-    if (mpCookedBuffer)
-        GFREE(mpCookedBuffer);
-    mpCookedBuffer = pBuffer;
-    mCookedBufferSize = size;
+    ASSERT(ext);
+    for (CookResult & cr : mResults)
+    {
+        const char * cookedExt = get_ext(cr.cookedPath.c_str());
+        if (0 == strcmp(cookedExt, ext))
+        {
+            return cr.isCooked();
+        }
+    }
+    PANIC("Invalid extension to isCooked: %s", ext);
+    return false;
+}
+
+void CookInfo::setCookedBuffer(const char * ext, void * pBuffer, u64 size) const
+{
+    ASSERT(ext);
+    for (CookResult & cr : mResults)
+    {
+        const char * cookedExt = get_ext(cr.cookedPath.c_str());
+        if (0 == strcmp(cookedExt, ext))
+        {
+            cr.setCookedBuffer(pBuffer, size);
+            return;
+        }
+    }
+    PANIC("Invalid extension to setCookedBuffer: %s", ext);
 }
 
 } // namespace gaen
