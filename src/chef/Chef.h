@@ -42,12 +42,17 @@ class Chef
 {
     friend class CookInfo;
 public:
-    Chef(u32 id, const char * platform, const char * assetsDir, bool force);
+    Chef(u32 id, const char * platform, const char * assetsDir);
     
     u32 id() { return mId; }
     const ChefString & platform() { return mPlatform; }
 
-    void cookAndWrite(const char * path);
+    UniquePtr<CookInfo> cook(const char * rawPath, bool force);
+    void forceCook(CookInfo * pCi);
+    void forceCookAndWrite(CookInfo * pCi);
+
+    UniquePtr<CookInfo> prepCookInfo(const char * rawPath, bool force);
+    bool shouldCook(const CookInfo & ci);
 
 private:
     const size_t kMaxPlatform = 4;
@@ -64,10 +69,6 @@ private:
     ChefString getRelativeDependencyRawPath(const ChefString & sourceRawPath, const ChefString & dependencyPath);
 	ChefString getDependencyFilePath(const ChefString & rawPath);
 
-    UniquePtr<CookInfo> prepCookInfo(const ChefString & rawPath, CookFlags flags);
-    UniquePtr<CookInfo> cook(const ChefString & rawPath, CookFlags flags);
-    UniquePtr<CookInfo> cookDependency(const ChefString & rawPath);
-    bool shouldCook(const CookInfo & ci, bool force);
     RecipeList findRecipes(const ChefString & rawPath);
     Recipe overlayRecipes(const RecipeList & recipes);
 
@@ -76,7 +77,6 @@ private:
 	void deleteDependencyFile(const ChefString & rawPath);
 
     u32 mId;
-    bool mForce;
 
     ChefString mPlatform;
     ChefString mAssetsDir;

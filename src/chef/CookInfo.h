@@ -40,12 +40,6 @@ namespace gaen
 {
 class Cooker;
 
-enum CookFlags
-{
-    kCF_None              = 0x00,
-    kCF_CookingDependency = 0x01
-};
-
 typedef Config<kMEM_Chef> Recipe;
 typedef List<kMEM_Chef, ChefString> RecipeList;
 
@@ -109,13 +103,13 @@ class CookInfo
 public:
     CookInfo(Chef * pChef,
              const Cooker * pCooker,
-             CookFlags flags,
+             bool force,
              const ChefString & rawPath,
              const RecipeList & recipes,
              const Recipe & fullRecipe)
       : mpChef(pChef)
       , mpCooker(pCooker)
-      , mFlags(flags)
+      , mForce(force)
       , mRawPath(rawPath)
       , mRecipes(recipes)
       , mFullRecipe(fullRecipe)
@@ -123,7 +117,7 @@ public:
 
     Chef & chef() { return *mpChef; }
     const Cooker & cooker() const { return *mpCooker; }
-    CookFlags flags() const { return mFlags; }
+    bool force() const { return mForce; }
 
     const ChefString & rawPath() const { return mRawPath; }
     const RecipeList & recipes() const { return mRecipes; }
@@ -148,7 +142,7 @@ public:
 private:
     Chef * mpChef;
     const Cooker * mpCooker;
-    CookFlags mFlags;
+    bool mForce;
 
     ChefString mRawPath;
 

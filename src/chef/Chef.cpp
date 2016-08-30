@@ -39,9 +39,8 @@ namespace gaen
 {
 static const u16 kChefVersion = 1;
 
-Chef::Chef(u32 id, const char * platform, const char * assetsDir, bool force)
+Chef::Chef(u32 id, const char * platform, const char * assetsDir)
   : mId(id)
-  , mForce(force)
 {
     ASSERT(platform);
     ASSERT(assetsDir);
@@ -55,30 +54,160 @@ Chef::Chef(u32 id, const char * platform, const char * assetsDir, bool force)
     mAssetsCookedDir = assets_cooked_dir(platform, mAssetsDir);
 }
 
-void Chef::cookAndWrite(const char * path)
+UniquePtr<CookInfo> Chef::cook(const char * rawPath, bool force)
 {
-    ChefString pathStr(path);
-    UniquePtr<CookInfo> pCi(cook(path, kCF_None));
+    UniquePtr<CookInfo> pCi = prepCookInfo(rawPath, force);
 
-    if (pCi.get())
+    // verify we should cook
+    if (!pCi || !shouldCook(*pCi))
+        return UniquePtr<CookInfo>();
+    else
+        forceCookAndWrite(pCi.get());
+
+    return pCi;
+}
+
+void Chef::forceCook(CookInfo * pCi)
+{
+    pCi->cooker().cook(pCi);
+
+    // Set versions in each cooked AssetHeader
+    for (const CookResult & res : pCi->results())
     {
-        for (const CookResult & res : pCi->results())
+        if (res.isCooked())
         {
-            if (res.isCooked())
-            {
-
-                // write out file
-                {
-                FileWriter wrtr(res.cookedPath.c_str());
-                wrtr.ofs.write((const char *)res.pCookedBuffer.get(), res.cookedBufferSize);
-                }
-
-                writeDependencyFile(*pCi);
-                printf("Cooked: %s -> %s\n", pCi->rawPath().c_str(), res.cookedPath.c_str());
-            }
+            AssetHeader ah(fourcc(res.cookedExt), res.cookedBufferSize);
+            PANIC_IF(ah != *res.pCookedBuffer, "Cooked buffer doesn't contain expected AssetHeader: %s", res.cookedPath.c_str());
+            res.pCookedBuffer->setChefVersion(kChefVersion);
+            res.pCookedBuffer->setCookerVersion(pCi->cooker().version());
         }
     }
 }
+
+void Chef::forceCookAndWrite(CookInfo * pCi)
+{
+    forceCook(pCi);
+
+    // make any directories needed in cookedPath (use first cookResult path, all are the same)
+    ChefString cookedDir = parent_dir(pCi->results().front().cookedPath);
+    make_dirs(cookedDir.c_str());
+
+    // Set versions in each cooked AssetHeader
+    for (const CookResult & res : pCi->results())
+    {
+        if (res.isCooked())
+        {
+            // write out file
+            {
+                FileWriter wrtr(res.cookedPath.c_str());
+                wrtr.ofs.write((const char *)res.pCookedBuffer.get(), res.cookedBufferSize);
+            }
+
+            writeDependencyFile(*pCi);
+            printf("Cooked: %s -> %s\n", pCi->rawPath().c_str(), res.cookedPath.c_str());
+        }
+    }
+}
+
+UniquePtr<CookInfo> Chef::prepCookInfo(const char * rawPath, bool force)
+{
+    ChefString rawPathStr(rawPath);
+    ASSERT(isRawPath(rawPathStr));
+
+    const Cooker * pCooker = CookerRegistry::find_cooker_from_raw(rawPathStr);
+    if (!pCooker)
+    {
+        // not a cookable file
+        return UniquePtr<CookInfo>();
+    }
+
+    // check if file exists
+    PANIC_IF(!file_exists(rawPathStr.c_str()), "Raw file does not exist: %s", rawPathStr.c_str());
+
+    RecipeList recipes = findRecipes(rawPathStr);
+    Recipe fullRecipe = overlayRecipes(recipes);
+
+    UniquePtr<CookInfo> pCi(GNEW(kMEM_Chef, CookInfo, this, pCooker, force, rawPathStr, recipes, fullRecipe));
+
+    for (const ChefString & cookedExt : pCooker->cookedExts())
+    {
+        pCi->addCookResult(cookedExt,
+                           getCookedPath(rawPathStr, cookedExt),
+                           getGamePath(rawPathStr, cookedExt));
+    }
+
+    return pCi;
+}
+
+bool Chef::shouldCook(const CookInfo & ci)
+{
+    if (ci.force())
+        return true;
+
+    // If this is a dependent file, we don't cook it as an individual
+    // file, but let the asset that is its parent cook it.
+    if (ci.fullRecipe().getBool("is_dependent"))
+        return false;
+
+    // shouldCook if any cooked path doesn't exist
+    // While looping, find the oldest cooked path to use in comparisons below.
+    const ChefString * pOldestCookedPath = nullptr;
+    for (const CookResult & res : ci.results())
+    {
+        if (!file_exists(res.cookedPath.c_str()))
+        {
+            return true;
+        }
+        else
+        {
+            // shouldCook if cooked version exists but is cooked with an older version of the cooker
+            FileReader fr(res.cookedPath.c_str());
+            AssetHeader ah(0, 0);
+            fr.read(&ah, sizeof(AssetHeader));
+            if (ah.chefVersion() < kChefVersion ||
+                ah.cookerVersion() < ci.cooker().version())
+            {
+                return true;
+            }
+            else if (ah.chefVersion() > kChefVersion ||
+                     ah.cookerVersion() > ci.cooker().version())
+            {
+                ERR("Cooked asset was cooked with newer version than chef.exe; are you sure you have latest code?: %s", res.cookedPath.c_str());
+                return false;
+            }
+        }
+        if (pOldestCookedPath == nullptr)
+            pOldestCookedPath = &res.cookedPath;
+        else if (is_file_newer(pOldestCookedPath->c_str(), res.cookedPath.c_str()))
+            pOldestCookedPath = &res.cookedPath;
+    }            
+            
+    // shouldCook if raw path is newer than the oldest cooked path
+    if (is_file_newer(ci.rawPath().c_str(), pOldestCookedPath->c_str()))
+        return true;
+
+    
+    // shouldCook if any recipe is newer than the oldest cooked path
+    for (const ChefString & recipePath : ci.recipes())
+    {
+        if (is_file_newer(recipePath.c_str(), pOldestCookedPath->c_str()))
+            return true;
+    }
+
+
+    // shouldCook if any dependency is newer than the oldest cooked path
+    auto deps = readDependencyFile(ci.rawPath());
+    for (auto dep : deps)
+    {
+        ChefString depRawPath = getRelativeDependencyRawPath(ci.rawPath(), dep);
+        UniquePtr<CookInfo> pDepCi = prepCookInfo(depRawPath.c_str(), false);
+        if (pDepCi.get() && shouldCook(*pDepCi))
+            return true;
+    }
+
+    return false;
+}
+
 
 
 bool Chef::isRawPath(const ChefString & path)
@@ -155,69 +284,6 @@ ChefString Chef::getDependencyFilePath(const ChefString & rawPath)
     return rawPath + ".deps";
 }
 
-UniquePtr<CookInfo> Chef::prepCookInfo(const ChefString & rawPath, CookFlags flags)
-{
-    ASSERT(isRawPath(rawPath));
-
-    const Cooker * pCooker = CookerRegistry::find_cooker_from_raw(rawPath);
-    if (!pCooker)
-    {
-        // not a cookable file
-        return UniquePtr<CookInfo>();
-    }
-
-    // check if file exists
-    PANIC_IF(!file_exists(rawPath.c_str()), "Raw file does not exist: %s", rawPath.c_str());
-
-    RecipeList recipes = findRecipes(rawPath);
-    Recipe fullRecipe = overlayRecipes(recipes);
-
-    UniquePtr<CookInfo> pCi(GNEW(kMEM_Chef, CookInfo, this, pCooker, flags, rawPath, recipes, fullRecipe));
-
-    for (const ChefString & cookedExt : pCooker->cookedExts())
-    {
-        pCi->addCookResult(cookedExt,
-                           getCookedPath(rawPath, cookedExt),
-                           getGamePath(rawPath, cookedExt));
-    }
-
-    return pCi;
-}
-
-UniquePtr<CookInfo> Chef::cook(const ChefString & rawPath, CookFlags flags)
-{
-    UniquePtr<CookInfo> pCi = prepCookInfo(rawPath, flags);
-
-    // verify we should cook
-    if (!pCi || !shouldCook(*pCi, mForce))
-        return pCi;
-
-    // make any directories needed in cookedPath (use first cookResult path, all are the same)
-    ChefString cookedDir = parent_dir(pCi->results().front().cookedPath);
-    make_dirs(cookedDir.c_str());
-
-    pCi->cooker().cook(pCi.get());
-
-    // Set versions in each cooked AssetHeader
-    for (const CookResult & res : pCi->results())
-    {
-        if (res.isCooked())
-        {
-            AssetHeader ah(fourcc(res.cookedExt), res.cookedBufferSize);
-            PANIC_IF(ah != *res.pCookedBuffer, "Cooked buffer doesn't contain expected AssetHeader: %s", res.cookedPath.c_str());
-            res.pCookedBuffer->setChefVersion(kChefVersion);
-            res.pCookedBuffer->setCookerVersion(pCi->cooker().version());
-        }
-    }
-
-    return pCi;
-}
-
-UniquePtr<CookInfo> Chef::cookDependency(const ChefString & rawPath)
-{
-    return cook(rawPath, kCF_CookingDependency);
-}
-
 void Chef::deleteDependencyFile(const ChefString & rawPath)
 {
     ASSERT(isRawPath(rawPath));
@@ -269,77 +335,6 @@ List<kMEM_Chef, ChefString> Chef::readDependencyFile(const ChefString & rawPath)
     }
 
     return deps;
-}
-
-bool Chef::shouldCook(const CookInfo & ci, bool force)
-{
-    // If this is a dependent file, we don't cook it as an individual
-    // file, but let the asset that is its parent cook it.
-    if ((ci.flags() & kCF_CookingDependency) == kCF_CookingDependency)
-        return true;
-    else if (ci.fullRecipe().getBool("is_dependent"))
-        return false;
-
-    if (force)
-        return true;
-
-    // shouldCook if any cooked path doesn't exist
-    // While looping, find the oldest cooked path to use in comparisons below.
-    const ChefString * pOldestCookedPath = nullptr;
-    for (const CookResult & res : ci.results())
-    {
-        if (!file_exists(res.cookedPath.c_str()))
-        {
-            return true;
-        }
-        else
-        {
-            // shouldCook if cooked version exists but is cooked with an older version of the cooker
-            FileReader fr(res.cookedPath.c_str());
-            AssetHeader ah(0, 0);
-            fr.read(&ah, sizeof(AssetHeader));
-            if (ah.chefVersion() < kChefVersion ||
-                ah.cookerVersion() < ci.cooker().version())
-            {
-                return true;
-            }
-            else if (ah.chefVersion() > kChefVersion ||
-                     ah.cookerVersion() > ci.cooker().version())
-            {
-                ERR("Cooked asset was cooked with newer version than chef.exe; are you sure you have latest code?: %s", res.cookedPath.c_str());
-                return false;
-            }
-        }
-        if (pOldestCookedPath == nullptr)
-            pOldestCookedPath = &res.cookedPath;
-        else if (is_file_newer(pOldestCookedPath->c_str(), res.cookedPath.c_str()))
-            pOldestCookedPath = &res.cookedPath;
-    }            
-            
-    // shouldCook if raw path is newer than the oldest cooked path
-    if (is_file_newer(ci.rawPath().c_str(), pOldestCookedPath->c_str()))
-        return true;
-
-    
-    // shouldCook if any recipe is newer than the oldest cooked path
-    for (const ChefString & recipePath : ci.recipes())
-    {
-        if (is_file_newer(recipePath.c_str(), pOldestCookedPath->c_str()))
-            return true;
-    }
-
-
-    // shouldCook if any dependency is newer than the oldest cooked path
-    auto deps = readDependencyFile(ci.rawPath());
-    for (auto dep : deps)
-    {
-        ChefString depRawPath = getRelativeDependencyRawPath(ci.rawPath(), dep);
-        UniquePtr<CookInfo> pDepCi = prepCookInfo(depRawPath, kCF_None);
-        if (pDepCi.get() && shouldCook(*pDepCi, false))
-            return true;
-    }
-
-    return false;
 }
 
 RecipeList Chef::findRecipes(const ChefString & rawPath)

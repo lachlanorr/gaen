@@ -63,7 +63,8 @@ UniquePtr<CookInfo> CookInfo::cookDependency(const ChefString & relativePath) co
 {
     const DependencyInfo & depInfo = recordDependency(relativePath);
 
-    UniquePtr<CookInfo> pCi = mpChef->cookDependency(depInfo.rawPath);
+    UniquePtr<CookInfo> pCi = mpChef->prepCookInfo(depInfo.rawPath.c_str(), true);
+    mpChef->forceCook(pCi.get());
 
     for (auto & dep : pCi->dependencies())
     {

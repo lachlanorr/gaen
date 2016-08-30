@@ -45,7 +45,20 @@
 namespace gaen
 {
 
-extern const bool reg;
+typedef List<kMEM_Chef, UniquePtr<CookInfo>> CookList;
+
+struct RecurseContext
+{
+    Chef & chef;
+    CookList & cookList;
+    bool force;
+
+    RecurseContext(Chef & chef, CookList & cookList, bool force)
+      : chef(chef)
+      , cookList(cookList)
+      , force(force)
+    {}
+};
 
 void failure_cb(const char * msg)
 {
@@ -61,14 +74,18 @@ void print_usage_and_exit(int retcode = 1)
 
 void chef_thread(SpscRingBuffer<CookInfo*> & spsc, const char * platform, const char * assetsDir, bool force)
 {
-    Chef chef(active_thread_id(), platform, assetsDir, force);
+    Chef chef(active_thread_id(), platform, assetsDir);
 }
 
 void recurse_dir_cb(const char * path, void * context)
 {
-    Chef * pChef = reinterpret_cast<Chef*>(context);
+    RecurseContext * pRc = static_cast<RecurseContext*>(context);
 
-    pChef->cookAndWrite(path);
+    UniquePtr<CookInfo> pCi = pRc->chef.prepCookInfo(path, pRc->force);
+    if (pCi.get() && pRc->chef.shouldCook(*pCi))
+    {
+        pRc->cookList.push_back(std::move(pCi));
+    }
 }
 
 } // namespace gaen
@@ -170,16 +187,30 @@ int main(int argc, char ** argv)
     // Register any cookers defined in gaen
     register_cookers();
 
-    Chef chef(1, platform, assetsDir, force);
+    Chef chef(1, platform, assetsDir);
 
     if (dir_exists(path))
     {
+        CookList cookList;
+        RecurseContext rc(chef, cookList, force);
+
         // if it's a directory, cook all recursively
-        recurse_dir(path, &chef, recurse_dir_cb);
+        recurse_dir(path, &rc, recurse_dir_cb);
+
+        if (rc.cookList.size() > 0)
+        {
+            printf("Cooking %u files...\n", (u32)rc.cookList.size());
+
+            for (const UniquePtr<CookInfo> & pCi : cookList)
+            {
+                // Already checked that these need cooking when recursing directory
+                chef.forceCookAndWrite(pCi.get());
+            }
+        }
     }
     else if (file_exists(path))
     {
-        chef.cookAndWrite(path);
+        chef.cook(path, force);
     }
     else
     {
