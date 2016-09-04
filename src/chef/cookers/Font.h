@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// cookers.cpp - Cookers for various asset types
+// Font.h - Font cooker
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,48 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "chef/stdafx.h"
+#ifndef GAEN_CHEF_COOKERS_FONT_H
+#define GAEN_CHEF_COOKERS_FONT_H
 
-#include <glm/common.hpp>
-
-#include "core/base_defines.h"
-#include "core/thread_local.h"
-#include "core/hashing.h"
-
-#include "assets/file_utils.h"
-#include "assets/Gimg.h"
-#include "assets/Gatl.h"
-#include "assets/Gspr.h"
-
-#include "chef/Chef.h"
-#include "chef/CookerRegistry.h"
-#include "chef/Tga.h"
-#include "chef/cooker_utils.h"
-#include "chef/cookers.h"
-
-#include "chef/cookers/Atlas.h"
-#include "chef/cookers/Font.h"
-#include "chef/cookers/Image.h"
-#include "chef/cookers/Sprite.h"
+#include "chef/Cooker.h"
 
 namespace gaen
 {
-
-void register_cookers()
+namespace cookers
 {
-    CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Atlas)));
-    CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Font)));
-    CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Image)));
-    CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Sprite)));
 
-    register_project_cookers();
-}
+static const char * kExtFnt = "fnt";
+static const char * kExtGfnt = "gfnt";
 
-#ifdef IS_GAEN_PROJECT
-void register_project_cookers()
+class Font : public Cooker
 {
-    // If we're compiling gaen as a project, no custom asset cookers.
-}
-#endif
+public:
+    Font();
+    virtual void cook(CookInfo * pCookInfo) const;
+};
 
+}
 } // namespace gaen
+
+#endif // #ifndef GAEN_CHEF_COOKERS_FONT_H

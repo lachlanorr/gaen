@@ -27,6 +27,8 @@
 #ifndef GAEN_CHEF_STDAFX_H
 #define GAEN_CHEF_STDAFX_H
 
+#include <codecvt>
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 

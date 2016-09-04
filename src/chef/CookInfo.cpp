@@ -48,11 +48,13 @@ const DependencyInfo & CookInfo::recordDependency(const ChefString & relativePat
     depInfo.rawPath = mpChef->getRelativeDependencyRawPath(mRawPath, relativePath);
 
     const Cooker * pDepCooker = CookerRegistry::find_cooker_from_raw(depInfo.rawPath);
-    ASSERT(pDepCooker);
 
-    for (const ChefString & cookedExt : pDepCooker->cookedExts())
+    if (pDepCooker)
     {
-        depInfo.gamePaths.push_back(mpChef->getGamePath(depInfo.rawPath, cookedExt));
+        for (const ChefString & cookedExt : pDepCooker->cookedExts())
+        {
+            depInfo.gamePaths.push_back(mpChef->getGamePath(depInfo.rawPath, cookedExt));
+        }
     }
 
     auto diPair = mDependencies.insert(depInfo);

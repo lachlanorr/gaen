@@ -25,12 +25,14 @@
 #-------------------------------------------------------------------------------
 
 SET (cooker_SOURCES
-  cookers/Atlas.h
   cookers/Atlas.cpp
-  cookers/Image.h
+  cookers/Atlas.h
+  cookers/Font.cpp
+  cookers/Font.h
   cookers/Image.cpp
-  cookers/Sprite.h
+  cookers/Image.h
   cookers/Sprite.cpp
+  cookers/Sprite.h
   )
 
 SET (chef_SOURCES

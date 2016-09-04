@@ -34,7 +34,7 @@
 namespace gaen
 {
 
-static const u32 kMaxLine = 1024;
+static const u32 kMaxLine = 4096;
 
 static inline bool is_whitespace(char c)
 {
@@ -68,6 +68,40 @@ i32 to_int(const char * val)
     return static_cast<i32>(strtol(val, nullptr, 0));
 }
 
+template <MemType memType>
+void Config<memType>::getLine(char * line, u32 maxLine, std::istream & input)
+{
+    char * pos = line;
+    u32 spaceLeft = maxLine;
+    while (1)
+    {
+        input.getline(pos, maxLine);
+
+        if (input.fail())
+            return;
+
+        u32 len = (u32)strlen(pos);
+
+        if (len == 0)
+        {
+            return;
+        }
+        else
+        {
+            pos += len;
+            *pos = '\0';
+            spaceLeft -= len;
+
+            if (pos[-1] != '\\')
+                return;
+            else
+            {
+                pos--;
+                *pos = '\0'; // remove trailing '\\'
+            }
+        }
+    }
+}
 
 template <MemType memType>
 bool Config<memType>::read(std::istream & input)
@@ -78,7 +112,7 @@ bool Config<memType>::read(std::istream & input)
 
     while (!input.eof())
     {
-        input.getline(line, kMaxLine);
+        getLine(line, kMaxLine, input);
         if (input.fail())
             break;
         Config<memType>::ProcessResult res = processLine(line);
@@ -557,6 +591,34 @@ static char * find_eq(char * line)
     return nullptr;
 }
 
+static inline bool is_hex_char(char c)
+{
+    return ((c >= '0' && c <= '9') ||
+            (c >= 'a' && c <= 'f') ||
+            (c >= 'A' && c <= 'F'));
+}
+
+static inline u8 parse_hex_char(char c)
+{
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    else if (c >= 'a' && c <= 'f')
+        return 10 + (c - 'a');
+    else if (c >= 'A' && c <= 'F')
+        return 10 + (c - 'A');
+
+    PANIC("Non-hex character encountered within hex character literal: '%c'", c);
+    return 0;
+}
+
+static inline u8 parse_hex_char(const char * in)
+{
+    PANIC_IF(!in[0] || !in[1], "End of line encountered within hex character literal");
+
+    u8 n = (parse_hex_char(in[0]) << 4) | parse_hex_char(in[1]);
+    return n;
+}
+
 static void de_escape(char * line)
 {
     const char * s = line;
@@ -583,15 +645,35 @@ static void de_escape(char * line)
             case 'f':
                 *d = '\f';
                 break;
+            case ',':
+                // preserve the \, so we can utilize ',' literals in
+                // comma separated lists of chars (e.g. font files)
+                d[0] = '\\';
+                d[1] = ',';
+                d++;
+                break;
             case 'x':
             {
-                PANIC_IF(!s[2] || !s[3], "End of line encountered within \\x character literal");
-                char hex[3];
-                hex[0] = s[2];
-                hex[1] = s[3];
-                hex[2] = '\0';
-                *d = (char)strtoul(hex, nullptr, 16);
+                *d = parse_hex_char(s+2);
                 s+=2; // need to go past 2 digit hex value, \x11, for example
+                break;
+            }
+            case 'u':
+            {
+                d[0] = parse_hex_char(s+2);
+                d[1] = parse_hex_char(s+4);
+                d++;
+                s+=4; // need to go past 4 digit hex value, \u6c34, for example
+                break;
+            }
+            case 'U':
+            {
+                d[0] = parse_hex_char(s+2);
+                d[1] = parse_hex_char(s+4);
+                d[2] = parse_hex_char(s+6);
+                d[3] = parse_hex_char(s+8);
+                d+=3;
+                s+=8; // need to go past 8 digit hex value, \u0001d10b, for example
                 break;
             }
             default:
@@ -656,6 +738,7 @@ typename Config<memType>::ProcessResult Config<memType>::processLine(char * line
     }
 
     // A line without a value is interpreted as a valueless key/value pair
+    line = strip(line);
     de_escape(line);
     return ProcessResult(kPRT_KeyVal, line, "");
 }

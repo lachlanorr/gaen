@@ -51,6 +51,7 @@ public:
     typedef Vector<memType, i32> IntVec;
     typedef Vector<memType, f32> FloatVec;
 
+    void getLine(char * line, u32 maxLine, std::istream & input);
     bool read(std::istream & input);
     bool read(const char * path);
 
