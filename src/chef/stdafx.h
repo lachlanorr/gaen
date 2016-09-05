@@ -29,6 +29,9 @@
 
 #include <codecvt>
 
+#define PNG_DEBUG 3
+#include <png.h>
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 

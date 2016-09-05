@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// cooker_utils.cpp - Shared utilities used by various cookers
+// Png.h - Png image processing
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,41 +24,61 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "chef/stdafx.h"
+#ifndef GAEN_CHEF_PNG_H
+#define GAEN_CHEF_PNG_H
 
-#include "assets/file_utils.h"
+#include <cstdio>
 
-#include "chef/Png.h"
-#include "chef/Tga.h"
-
+#include "core/mem.h"
 #include "chef/cooker_utils.h"
 
 namespace gaen
 {
 
-ImageInfo read_image_info(const char * path)
+class Gimg;
+
+class Png
 {
-    const char * ext = get_ext(path);
+public:
+    static UniquePtr<Png> read(const char * path);
+    static ImageInfo read_image_info(const char * path);
+    ~Png();
+    
+    u32 width() { return mWidth; }
+    u32 height() { return mHeight; }
+    u8 colorType() { return mColorType; }
+    u8 bitDepth() { return mBitDepth; }
 
-    if (0 == strcmp(ext, "png"))
-    {
-        return Png::read_image_info(path);
-    }
-    else if (0 == strcmp(ext, "tga"))
-    {
-        FileReader rdr(path);
-        PANIC_IF(!rdr.isOk(), "Unable to load file: %s", path);
+    u8 * scanline(u32 idx);
 
-        Tga tga;
-        rdr.read(&tga);
-        return ImageInfo(kORIG_TopLeft, tga.width, tga.height);
-    }
-    else
-    {
-        PANIC("Unknown image format: %s", ext);
-        return ImageInfo(kORIG_TopLeft, 0, 0);
-    }
-}
+    // Callers should GFREE pGimg
+    void convertToGimg(Gimg ** pGimgOut);
+
+private:
+    Png();
+    Png(const Png&)              = delete;
+    Png(Png&&)                   = delete;
+    Png & operator=(const Png&)  = delete;
+    Png & operator=(Png&&)       = delete;
+
+    void readInfo(const char * path);
+    void readData();
+
+    FILE * mFd;
+    png_structp mpPng;
+    png_infop mpInfo;
+    png_bytep * mppRows;
+
+    u32 mWidth;
+    u32 mHeight;
+    i32 mBitDepth;
+    i32 mColorType;
+    i32 mInterlaceMethod;
+    i32 mCompressionMethod;
+    i32 mFilterMethod;
+};
 
 
 } // namespace gaen
+
+#endif // #ifndef GAEN_CHEF_PNG_H

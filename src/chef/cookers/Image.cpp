@@ -29,6 +29,8 @@
 #include "assets/file_utils.h"
 #include "assets/Config.h"
 #include "assets/Gimg.h"
+
+#include "chef/Png.h"
 #include "chef/Tga.h"
 
 #include "chef/cooker_utils.h"
@@ -43,11 +45,50 @@ namespace cookers
 Image::Image()
 {
     mVersion = 1;
+    mRawExts.push_back(kExtPng);
     mRawExts.push_back(kExtTga);
     mCookedExts.push_back(kExtGimg);
 }
 
 void Image::cook(CookInfo * pCookInfo) const
+{
+    const char * ext = get_ext(pCookInfo->rawPath().c_str());
+
+    if (0 == strcmp(ext, "png"))
+    {
+        cookPng(pCookInfo);
+    }
+    else if (0 == strcmp(ext, "tga"))
+    {
+        cookTga(pCookInfo);
+    }
+    else
+    {
+        PANIC("Unable to cook image: %s", pCookInfo->rawPath().c_str());
+    }
+}
+
+void Image::cookPng(CookInfo * pCookInfo) const
+{
+    UniquePtr<Png> pPng = Png::read(pCookInfo->rawPath().c_str());
+    PANIC_IF(!pPng, "Failed to read png: %s", pCookInfo->rawPath().c_str());
+
+    // Convert to a Gimg with same-ish pixel format
+    Gimg * pGimgPng;
+    pPng->convertToGimg(&pGimgPng);
+    Scoped_GFREE<Gimg> pGimg_sp(pGimgPng);
+
+    PixelFormat pixFmt = pixel_format_from_str(pCookInfo->fullRecipe().getWithDefault("pixel_format", "RGBA8"));
+
+    // Convert the pixel format if necessary
+    Gimg * pGimg;
+    pGimgPng->convertFormat(&pGimg, kMEM_Chef, pixFmt);
+
+    ASSERT(pGimg);
+    pCookInfo->setCookedBuffer(kExtGimg, pGimg, pGimg->size());
+}
+
+void Image::cookTga(CookInfo * pCookInfo) const
 {
     FileReader rdr(pCookInfo->rawPath().c_str());
     PANIC_IF(!rdr.isOk(), "Unable to load file: %s", pCookInfo->rawPath().c_str());

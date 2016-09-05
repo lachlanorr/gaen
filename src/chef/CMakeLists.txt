@@ -48,6 +48,8 @@ SET (chef_SOURCES
   CookInfo.cpp
   CookInfo.h
   main_chef.cpp
+  Png.cpp
+  Png.h
   Tga.cpp
   Tga.h
   ${cooker_SOURCES}
@@ -72,6 +74,10 @@ TARGET_LINK_LIBRARIES (chef
   ${PROJECT_COOKERS_LIB}
   optimized ${FREETYPE_LIB}
   debug     ${FREETYPE_LIBD}
+  optimized ${LIBPNG_LIB}
+  debug     ${LIBPNG_LIBD}
+  optimized ${ZLIB_LIB}
+  debug     ${ZLIB_LIBD}
   ${PLATFORM_LINK_LIBS}
   )
 

@@ -57,6 +57,54 @@ ENDIF ()
 #-------------------------------------------------------------------------------
 INCLUDE (ExternalProject)
 
+# zlib
+SET (ZLIB_VER "1.2.8")
+SET (ZLIB_NAME_VER "zlib-${ZLIB_VER}")
+SET (ZLIB_PATH "${CMAKE_CURRENT_BINARY_DIR}/zlib")
+ExternalProject_Add(zlib
+  URL "${ext_dir}/${ZLIB_NAME_VER}.tar.gz"
+  URL_MD5 44d667c142d7cda120332623eab69f40
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/zlib
+  CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX:PATH=${ZLIB_PATH}"
+             "-DCMAKE_CXX_FLAGS_DEBUG:STRING=/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1"
+             "-DCMAKE_CXX_FLAGS_MINSIZEREL:STRING=/MT /O1 /Ob1 /D NDEBUG"
+             "-DCMAKE_CXX_FLAGS_RELEASE:STRING=/MT /O2 /Ob2 /D NDEBUG"
+             "-DCMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=/MT /Zi /O2 /Ob1 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_DEBUG:STRING=/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1"
+             "-DCMAKE_C_FLAGS_MINSIZEREL:STRING=/MT /O1 /Ob1 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_RELEASE:STRING=/MT /O2 /Ob2 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_RELWITHDEBINFO:STRING=/MT /Zi /O2 /Ob1 /D NDEBUG"
+  )
+SET (ZLIB_INCLUDE "${ZLIB_PATH}/include")
+INCLUDE_DIRECTORIES (ZLIB_INCLUDE)
+SET (ZLIB_LIB "${ZLIB_PATH}/lib/zlibstatic.lib")
+SET (ZLIB_LIBD "${ZLIB_PATH}/lib/zlibstaticd.lib")
+
+# libpng
+SET (LIBPNG_VER "1.6.25")
+SET (LIBPNG_NAME_VER "libpng-${LIBPNG_VER}")
+SET (LIBPNG_PATH "${CMAKE_CURRENT_BINARY_DIR}/libpng")
+ExternalProject_Add(libpng
+  URL "${ext_dir}/${LIBPNG_NAME_VER}.tar.gz"
+  URL_MD5 87cbd0f69e4bff0215de3994a149df77
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libpng
+  CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX:PATH=${LIBPNG_PATH}"
+             "-DZLIB_INCLUDE_DIR:PATH=${ZLIB_INCLUDE}"
+             "-DZLIB_LIBRARY_RELEASE:PATH=${ZLIB_LIB}"
+             "-DZLIB_LIBRARY_DEBUG:PATH=${ZLIB_LIBD}"
+             "-DCMAKE_CXX_FLAGS_DEBUG:STRING=/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1"
+             "-DCMAKE_CXX_FLAGS_MINSIZEREL:STRING=/MT /O1 /Ob1 /D NDEBUG"
+             "-DCMAKE_CXX_FLAGS_RELEASE:STRING=/MT /O2 /Ob2 /D NDEBUG"
+             "-DCMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=/MT /Zi /O2 /Ob1 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_DEBUG:STRING=/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1"
+             "-DCMAKE_C_FLAGS_MINSIZEREL:STRING=/MT /O1 /Ob1 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_RELEASE:STRING=/MT /O2 /Ob2 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_RELWITHDEBINFO:STRING=/MT /Zi /O2 /Ob1 /D NDEBUG"
+  )
+INCLUDE_DIRECTORIES (${LIBPNG_PATH}/include)
+SET (LIBPNG_LIB "${LIBPNG_PATH}/lib/libpng16_static.lib")
+SET (LIBPNG_LIBD "${LIBPNG_PATH}/lib/libpng16_staticd.lib")
+
 # FreeType
 SET (FREETYPE_VER "2.6.5")
 SET (FREETYPE_NAME_VER "freetype-${FREETYPE_VER}")
@@ -75,8 +123,6 @@ ExternalProject_Add(freetype
              "-DCMAKE_C_FLAGS_RELEASE:STRING=/MT /O2 /Ob2 /D NDEBUG"
              "-DCMAKE_C_FLAGS_RELWITHDEBINFO:STRING=/MT /Zi /O2 /Ob1 /D NDEBUG"
   )
-MESSAGE("git apply --ignore-space-change --ignore-whitespace --whitespace=nowarn ${ext_dir}/${FREETYPE_NAME_VER}.patch")
-
 INCLUDE_DIRECTORIES (${FREETYPE_PATH}/include/freetype2)
 SET (FREETYPE_LIB "${FREETYPE_PATH}/lib/freetype.lib")
 SET (FREETYPE_LIBD "${FREETYPE_PATH}/lib/freetyped.lib")

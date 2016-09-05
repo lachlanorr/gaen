@@ -34,6 +34,7 @@ namespace gaen
 namespace cookers
 {
 
+static const char * kExtPng = "png";
 static const char * kExtTga = "tga";
 static const char * kExtGimg = "gimg";
 
@@ -42,6 +43,9 @@ class Image : public Cooker
 public:
     Image();
     virtual void cook(CookInfo * pCookInfo) const;
+private:
+    void cookPng(CookInfo * pCookInfo) const;
+    void cookTga(CookInfo * pCookInfo) const;
 };
 
 }
