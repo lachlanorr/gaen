@@ -26,6 +26,8 @@
 
 #include "chef/stdafx.h"
 
+#include "assets/Gimg.h"
+
 #include "chef/Png.h"
 
 namespace gaen
@@ -40,7 +42,7 @@ Png::~Png()
     if (mpPng)
     {
         ASSERT(mpInfo);
-        png_destroy_info_struct(mpPng, &mpInfo);
+        png_destroy_read_struct(&mpPng, &mpInfo, nullptr);
         mpPng = nullptr;
         mpInfo = nullptr;
     }
@@ -79,6 +81,8 @@ void Png::readInfo(const char * path)
 void Png::readData()
 {
     ASSERT(mFd && mpPng && mpInfo && !mppRows);
+    mppRows = png_get_rows(mpPng, mpInfo);
+    PANIC_IF(!mppRows, "Failed to png_get_rows");
 }
 
 UniquePtr<Png> Png::read(const char * path)
@@ -102,13 +106,77 @@ ImageInfo Png::read_image_info(const char * path)
 u8 * Png::scanline(u32 idx)
 {
     ASSERT(mppRows);
-    return nullptr;
+    PANIC_IF(idx >= mHeight, "Invalid scanline idx: %d", idx);
+
+    return mppRows[idx];
+}
+
+u32 Png::bytesPerPixel()
+{
+    ASSERT(mpPng);
+    PANIC_IF(mBitDepth != 8, "Invalid png BitDepth: %d", mBitDepth);
+    switch(mColorType)
+    {
+    case PNG_COLOR_TYPE_RGB:
+        return 3;
+    case PNG_COLOR_TYPE_RGB_ALPHA:
+        return 4;
+    case PNG_COLOR_TYPE_GRAY_ALPHA:
+        return 1;
+    default:
+        PANIC("Invalid png ColorType: %d", mColorType);
+        return 0;
+    }
 }
 
 // Callers should GFREE pGimg
 void Png::convertToGimg(Gimg ** pGimgOut)
 {
     ASSERT(mppRows);
+
+    PixelFormat pixFmt = kPXL_R8;
+    switch(mColorType)
+    {
+    case PNG_COLOR_TYPE_RGB:
+        pixFmt = kPXL_RGB8;
+        break;
+    case PNG_COLOR_TYPE_RGB_ALPHA:
+        pixFmt = kPXL_RGBA8;
+        break;
+    case PNG_COLOR_TYPE_GRAY_ALPHA:
+        pixFmt = kPXL_R8;
+        break;
+    default:
+        PANIC("Invalid png ColorType: %d", mColorType);
+        break;
+    }
+
+    Gimg * pGimg = Gimg::create(pixFmt, mWidth, mHeight);
+    // If pGimg is larger since we're not power of two or our width
+    // and height differ, go ahead and zero out the image.
+    if (mWidth != pGimg->width() || mHeight != pGimg->height())
+        pGimg->clear(Color(0, 0, 0, 255));
+
+    u32 bpp = bytesPerPixel();
+
+    for (u32 line = 0; line < mHeight; ++line)
+    {
+        u8 * pngLine = scanline(line);
+        u8 * gimgLine = pGimg->scanline(pGimg->height() - line - 1); // reverse row order for opengl
+
+        for (u32 pix = 0; pix < mWidth; ++pix)
+        {
+            u32 ipix = bpp * pix;
+
+            for (u32 ch = 0; ch < bpp; ++ch)
+            {
+                gimgLine[ipix + ch] = pngLine[ipix + ch];
+            }
+        }
+    }
+
+    *pGimgOut = pGimg;
+
 }
 
 } // namespace gaen

@@ -48,6 +48,7 @@ public:
     u32 height() { return mHeight; }
     u8 colorType() { return mColorType; }
     u8 bitDepth() { return mBitDepth; }
+    u32 bytesPerPixel();
 
     u8 * scanline(u32 idx);
 

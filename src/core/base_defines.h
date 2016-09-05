@@ -271,12 +271,14 @@ inline bool is_power_of_two(u32 val)
 
 inline u32 next_power_of_two(u32 val)
 {
-    val = val | (val >> 1);
-    val = val | (val >> 2);
-    val = val | (val >> 4);
-    val = val | (val >> 8);
-    val = val | (val >> 16);
-    return val - (val >> 1);
+    val--;
+    val |= val >> 1;
+    val |= val >> 2;
+    val |= val >> 4;
+    val |= val >> 8;
+    val |= val >> 16;
+    val++;
+    return val;
 }
 
 //------------------------------------------------------------------------------

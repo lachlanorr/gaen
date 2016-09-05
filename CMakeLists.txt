@@ -101,6 +101,9 @@ ExternalProject_Add(libpng
              "-DCMAKE_C_FLAGS_RELEASE:STRING=/MT /O2 /Ob2 /D NDEBUG"
              "-DCMAKE_C_FLAGS_RELWITHDEBINFO:STRING=/MT /Zi /O2 /Ob1 /D NDEBUG"
   )
+ADD_DEPENDENCIES(libpng
+  zlib
+  )
 INCLUDE_DIRECTORIES (${LIBPNG_PATH}/include)
 SET (LIBPNG_LIB "${LIBPNG_PATH}/lib/libpng16_static.lib")
 SET (LIBPNG_LIBD "${LIBPNG_PATH}/lib/libpng16_staticd.lib")
