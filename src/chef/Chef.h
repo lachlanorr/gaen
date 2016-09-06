@@ -54,6 +54,14 @@ public:
     UniquePtr<CookInfo> prepCookInfo(const char * rawPath, bool force);
     bool shouldCook(const CookInfo & ci);
 
+    ChefString getRawPath(const ChefString & path);
+    ChefString getRawRelativePath(const ChefString & rawPath);
+    ChefString getRawTransPath(const ChefString & rawPath, const ChefString & transExt);
+    ChefString getCookedPath(const ChefString & path, const ChefString & cookedExt);
+    ChefString getGamePath(const ChefString & path, const ChefString & cookedExt);
+    ChefString getRelativeDependencyRawPath(const ChefString & sourceRawPath, const ChefString & dependencyPath);
+    ChefString getDependencyFilePath(const ChefString & rawPath);
+
 private:
     const size_t kMaxPlatform = 4;
 
@@ -61,13 +69,6 @@ private:
     bool isRawPath(const ChefString & path);
     bool isCookedPath(const ChefString & path);
     bool isGamePath(const ChefString & path);
-
-    ChefString getRawPath(const ChefString & path);
-    ChefString getRawRelativePath(const ChefString & rawPath);
-    ChefString getCookedPath(const ChefString & path, const ChefString & cookedExt);
-    ChefString getGamePath(const ChefString & path, const ChefString & cookedExt);
-    ChefString getRelativeDependencyRawPath(const ChefString & sourceRawPath, const ChefString & dependencyPath);
-	ChefString getDependencyFilePath(const ChefString & rawPath);
 
     RecipeList findRecipes(const ChefString & rawPath);
     Recipe overlayRecipes(const RecipeList & recipes);

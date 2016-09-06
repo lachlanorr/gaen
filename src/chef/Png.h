@@ -30,18 +30,20 @@
 #include <cstdio>
 
 #include "core/mem.h"
+#include "assets/Gimg.h"
 #include "chef/cooker_utils.h"
 
 namespace gaen
 {
-
-class Gimg;
-
 class Png
 {
 public:
     static UniquePtr<Png> read(const char * path);
     static ImageInfo read_image_info(const char * path);
+    static void write_gimg(const char * path, const Gimg * pGimg);
+    static PixelFormat color_type_to_pixel_format(int colorType);
+    static int pixel_format_to_color_type(PixelFormat pixelFormat);
+
     ~Png();
     
     u32 width() { return mWidth; }
@@ -65,10 +67,12 @@ private:
     void readInfo(const char * path);
     void readData();
 
-    FILE * mFd;
+    FILE * mFp;
     png_structp mpPng;
     png_infop mpInfo;
     png_bytep * mppRows;
+
+    bool mIsWriting;
 
     u32 mWidth;
     u32 mHeight;

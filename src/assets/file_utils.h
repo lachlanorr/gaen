@@ -114,6 +114,17 @@ void strip_ext(char * path);
 void change_ext(char * path, const char * ext);
 
 template <class T>
+void strip_ext(T & path)
+{
+    size_t dotPos = path.find_last_of('.');
+    if (dotPos != T::npos)
+    {
+        path.resize(dotPos);
+    }
+}
+
+
+template <class T>
 void change_ext(T & path, const T & ext)
 {
     size_t dotPos = path.find_last_of('.');
@@ -138,6 +149,35 @@ void get_filename_root(char * filename, const char * path);
 void upper(char * str);
 
 void append_path(char * path, const char * append);
+
+
+template <class T>
+T get_filename_root(const T & path)
+{
+    size_t lastSlash = path.find_last_of('/');
+    T fname;
+    if (lastSlash != T::npos)
+    {
+        fname = path.substr(lastSlash);
+    }
+    else
+    {
+        fname = path;
+    }
+    strip_ext(fname);
+    return fname;
+}
+
+template <class T>
+void append_path(T & path, const T & append)
+{
+    // ensure path has trailing slash
+    normalize_path(path);
+    T appendNorm = normalize_path(append);
+    path += "/";
+    path += append;
+}
+
 
 void full_path(char * outPath, const char * path);
 

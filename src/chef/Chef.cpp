@@ -246,6 +246,17 @@ ChefString Chef::getRawRelativePath(const ChefString & rawPath)
     return ChefString(rawPath, mAssetsRawDir.size() + 1, ChefString::npos);
 }
 
+ChefString Chef::getRawTransPath(const ChefString & rawPath, const ChefString & transExt)
+{
+    ASSERT(isRawPath(rawPath));
+
+    ChefString transPath(mAssetsRawTransDir);
+    transPath += '/';
+    transPath += getRawRelativePath(rawPath);
+    change_ext(transPath, transExt);
+    return transPath;
+}
+
 ChefString Chef::getCookedPath(const ChefString & rawPath, const ChefString & cookedExt)
 {
     ASSERT(isRawPath(rawPath));

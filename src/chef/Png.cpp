@@ -42,36 +42,40 @@ Png::~Png()
     if (mpPng)
     {
         ASSERT(mpInfo);
-        png_destroy_read_struct(&mpPng, &mpInfo, nullptr);
+
+        if (!mIsWriting)
+            png_destroy_read_struct(&mpPng, &mpInfo, nullptr);
+        else
+            png_destroy_write_struct(&mpPng, &mpInfo);
+
         mpPng = nullptr;
         mpInfo = nullptr;
     }
 
-    if (mFd)
+    if (mFp)
     {
-        fclose(mFd);
-        mFd = 0;
+        fclose(mFp);
+        mFp = 0;
     }
 }
 
 void Png::readInfo(const char * path)
 {
-    ASSERT(!mFd && !mpPng && !mpInfo && !mppRows);
+    ASSERT(!mFp && !mpPng && !mpInfo && !mppRows);
     
-    mFd = fopen(path, "rb");
-    PANIC_IF(mFd == 0, "Unable to read png file: %s", path);
+    mFp = fopen(path, "rb");
+    PANIC_IF(mFp == 0, "Unable to read png file: %s", path);
 
     mpPng = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    PANIC_IF(!mpPng, "png_create_read_struct failed: %s", path);
+    PANIC_IF(!mpPng, "png_create_read_struct failed");
 
     mpInfo = png_create_info_struct(mpPng);
-    PANIC_IF(!mpInfo, "png_create_info_struct failed: %s", path);
-    
+    PANIC_IF(!mpInfo, "png_create_info_struct failed");
     
     if (setjmp(png_jmpbuf(mpPng)))
-        PANIC("Unable to setup libpng error handlers: %s", path);
+        PANIC("Unable to setup libpng error handlers");
 
-    png_init_io(mpPng, mFd);
+    png_init_io(mpPng, mFp);
 
     png_read_png(mpPng, mpInfo, PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_EXPAND, NULL);
 
@@ -80,7 +84,7 @@ void Png::readInfo(const char * path)
 
 void Png::readData()
 {
-    ASSERT(mFd && mpPng && mpInfo && !mppRows);
+    ASSERT(mFp && mpPng && mpInfo && !mppRows);
     mppRows = png_get_rows(mpPng, mpInfo);
     PANIC_IF(!mppRows, "Failed to png_get_rows");
 }
@@ -103,6 +107,51 @@ ImageInfo Png::read_image_info(const char * path)
     return imgInf;
 }
 
+void Png::write_gimg(const char * path, const Gimg * pGimg)
+{
+    ASSERT(path);
+    ASSERT(pGimg);
+    
+    Png png;
+
+    png.mFp = fopen(path, "wb");
+    PANIC_IF(!png.mFp, "Unable to open file for writing png: %s", path);
+
+    png.mpPng = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    png.mIsWriting = true;
+    PANIC_IF(!png.mpPng, "png_create_read_struct failed");
+
+    png.mpInfo = png_create_info_struct(png.mpPng);
+    PANIC_IF(!png.mpInfo, "png_create_info_struct failed");
+    
+    if (setjmp(png_jmpbuf(png.mpPng)))
+        PANIC("Unable to setup libpng error handlers");
+
+    png_init_io(png.mpPng, png.mFp);
+
+    int colorType = pixel_format_to_color_type(pGimg->pixelFormat());
+
+    png_set_IHDR(png.mpPng,
+                 png.mpInfo,
+                 pGimg->width(),
+                 pGimg->height(),
+                 8,
+                 colorType,
+                 PNG_INTERLACE_NONE,
+                 PNG_COMPRESSION_TYPE_BASE,
+                 PNG_FILTER_TYPE_BASE);
+
+    png_write_info(png.mpPng, png.mpInfo);
+
+    for (u32 line = 0; line < pGimg->height(); ++line)
+    {
+        const u8 * gimgLine = pGimg->scanline(pGimg->height() - line - 1); // reverse row order for opengl
+        png_write_row(png.mpPng, gimgLine);
+    }
+
+    png_write_end(png.mpPng, NULL);
+}
+
 u8 * Png::scanline(u32 idx)
 {
     ASSERT(mppRows);
@@ -121,7 +170,7 @@ u32 Png::bytesPerPixel()
         return 3;
     case PNG_COLOR_TYPE_RGB_ALPHA:
         return 4;
-    case PNG_COLOR_TYPE_GRAY_ALPHA:
+    case PNG_COLOR_TYPE_GRAY:
         return 1;
     default:
         PANIC("Invalid png ColorType: %d", mColorType);
@@ -129,27 +178,45 @@ u32 Png::bytesPerPixel()
     }
 }
 
+PixelFormat Png::color_type_to_pixel_format(int colorType)
+{
+    switch(colorType)
+    {
+    case PNG_COLOR_TYPE_RGB:
+        return kPXL_RGB8;
+    case PNG_COLOR_TYPE_RGB_ALPHA:
+        return kPXL_RGBA8;
+    case PNG_COLOR_TYPE_GRAY:
+        return kPXL_R8;
+    default:
+        PANIC("Invalid png ColorType: %d", colorType);
+        return kPXL_R8;
+    }
+}
+
+int Png::pixel_format_to_color_type(PixelFormat pixelFormat)
+{
+    switch(pixelFormat)
+    {
+    case kPXL_RGB8:
+        return PNG_COLOR_TYPE_RGB;
+    case kPXL_RGBA8:
+        return PNG_COLOR_TYPE_RGB_ALPHA;
+    case kPXL_R8:
+        return PNG_COLOR_TYPE_GRAY;
+    default:
+        PANIC("Invalid png pixelFormat: %d", pixelFormat);
+        return PNG_COLOR_TYPE_GRAY;
+    }
+}
+
+
 // Callers should GFREE pGimg
 void Png::convertToGimg(Gimg ** pGimgOut)
 {
     ASSERT(mppRows);
 
-    PixelFormat pixFmt = kPXL_R8;
-    switch(mColorType)
-    {
-    case PNG_COLOR_TYPE_RGB:
-        pixFmt = kPXL_RGB8;
-        break;
-    case PNG_COLOR_TYPE_RGB_ALPHA:
-        pixFmt = kPXL_RGBA8;
-        break;
-    case PNG_COLOR_TYPE_GRAY_ALPHA:
-        pixFmt = kPXL_R8;
-        break;
-    default:
-        PANIC("Invalid png ColorType: %d", mColorType);
-        break;
-    }
+    PixelFormat pixFmt = color_type_to_pixel_format(mColorType);
 
     Gimg * pGimg = Gimg::create(pixFmt, mWidth, mHeight);
     // If pGimg is larger since we're not power of two or our width

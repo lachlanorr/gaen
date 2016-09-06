@@ -35,4 +35,6 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include <glm/exponential.hpp>
+
 #endif // #ifndef GAEN_CHEF_STDAFX_H
