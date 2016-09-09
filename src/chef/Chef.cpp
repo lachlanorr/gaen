@@ -67,6 +67,13 @@ UniquePtr<CookInfo> Chef::cook(const char * rawPath, bool force)
     return pCi;
 }
 
+UniquePtr<CookInfo> Chef::forceCook(const ChefString & rawPath)
+{
+    UniquePtr<CookInfo> pCi = prepCookInfo(rawPath.c_str(), true);
+    forceCook(pCi.get());
+    return pCi;
+}
+
 void Chef::forceCook(CookInfo * pCi)
 {
     pCi->cooker().cook(pCi);
@@ -76,10 +83,18 @@ void Chef::forceCook(CookInfo * pCi)
     {
         if (res.isCooked())
         {
-            AssetHeader ah(fourcc(res.cookedExt), res.cookedBufferSize);
-            PANIC_IF(ah != *res.pCookedBuffer, "Cooked buffer doesn't contain expected AssetHeader: %s", res.cookedPath.c_str());
+            PANIC_IF(res.pCookedBuffer->magic4cc() != fourcc(res.cookedExt), "Cooked buffer has wrong ext 4CC: %s", res.cookedPath.c_str());
+            PANIC_IF(res.pCookedBuffer->size() != res.cookedBufferSize, "Cooked buffer has wrong size: %s", res.cookedPath.c_str());
             res.pCookedBuffer->setChefVersion(kChefVersion);
-            res.pCookedBuffer->setCookerVersion(pCi->cooker().version());
+
+            // Only set CookerVersion if it hasn't already been set.
+            // It may have been set if we're cooking a transitory
+            // file, for example when a .fnt results in cooking a
+            // .gimg. In cases like this, we want to keep the Image
+            // cooker version, and not override it with the Font
+            // coooker version.
+            if (res.pCookedBuffer->cookerVersion() == 0)
+                res.pCookedBuffer->setCookerVersion(pCi->cooker().version());
         }
     }
 }
@@ -161,16 +176,25 @@ bool Chef::shouldCook(const CookInfo & ci)
         else
         {
             // shouldCook if cooked version exists but is cooked with an older version of the cooker
+
+            // Find the result cooker, which may be different from the
+            // raw cooker. For example, in the case of .fnt cooking, the
+            // results are .gimg and .gatl. We want to use the cooker
+            // versions for the .gimg and .gatl cookers rather than
+            // the cooker version of the .fnt.
+            const Cooker * pResultCooker = CookerRegistry::find_cooker_from_cooked(res.cookedPath);
+            PANIC_IF(!pResultCooker, "No cooker registered exclusively for this cooked extension: %s", res.cookedPath.c_str());
+        
             FileReader fr(res.cookedPath.c_str());
             AssetHeader ah(0, 0);
             fr.read(&ah, sizeof(AssetHeader));
             if (ah.chefVersion() < kChefVersion ||
-                ah.cookerVersion() < ci.cooker().version())
+                ah.cookerVersion() < pResultCooker->version())
             {
                 return true;
             }
             else if (ah.chefVersion() > kChefVersion ||
-                     ah.cookerVersion() > ci.cooker().version())
+                     ah.cookerVersion() > pResultCooker->version())
             {
                 ERR("Cooked asset was cooked with newer version than chef.exe; are you sure you have latest code?: %s", res.cookedPath.c_str());
                 return false;
@@ -212,7 +236,8 @@ bool Chef::shouldCook(const CookInfo & ci)
 
 bool Chef::isRawPath(const ChefString & path)
 {
-    return is_parent_dir(mAssetsRawDir, path);
+    return is_parent_dir(mAssetsRawDir, path) ||
+           is_parent_dir(mAssetsRawTransDir, path);
 }
 
 bool Chef::isCookedPath(const ChefString & path)
@@ -242,8 +267,20 @@ ChefString Chef::getRawPath(const ChefString & path)
 
 ChefString Chef::getRawRelativePath(const ChefString & rawPath)
 {
-    PANIC_IF(!isRawPath(rawPath), "Not a raw path: %s", rawPath.c_str());
-    return ChefString(rawPath, mAssetsRawDir.size() + 1, ChefString::npos);
+    size_t stripSize = 0;
+    if (is_parent_dir(mAssetsRawDir, rawPath))
+    {
+        stripSize = mAssetsRawDir.size();
+    }
+    else if (is_parent_dir(mAssetsRawTransDir, rawPath))
+    {
+        stripSize = mAssetsRawTransDir.size();
+    }
+    else
+    {
+        PANIC("Not a raw path: %s", rawPath.c_str());
+    }
+    return ChefString(rawPath, stripSize + 1, ChefString::npos);
 }
 
 ChefString Chef::getRawTransPath(const ChefString & rawPath, const ChefString & transExt)

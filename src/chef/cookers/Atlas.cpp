@@ -42,9 +42,9 @@ namespace cookers
 
 Atlas::Atlas()
 {
-    mVersion = 1;
-    mRawExts.push_back(kExtAtl);
-    mCookedExts.push_back(kExtGatl);
+    setVersion(2);
+    addRawExt(kExtAtl);
+    addCookedExtExclusive(kExtGatl);
 }
 
 struct GlyphQuad
@@ -120,6 +120,18 @@ static GlyphQuad glyph_quad(i32 left, i32 top, i32 width, i32 height, const Imag
     return quad;
 }
 
+static bool parse_numeric(u32 * pVal, const char * str)
+{
+    char * end = nullptr;
+    u32 val = strtoul(str, &end, 0);
+    if (end && end - str == strlen(str))
+    {
+        *pVal = val;
+        return true;
+    }
+    return false;
+}
+
 void Atlas::cook(CookInfo * pCookInfo) const
 {
     Config<kMEM_Chef> atl;
@@ -132,6 +144,7 @@ void Atlas::cook(CookInfo * pCookInfo) const
     static const char * kGlyphs = "glyphs";
     static const char * kFixedSize = "fixed_size";
     static const char * kImage = "image";
+    static const char * kRenderOffset = "render_offset";
 
     PANIC_IF(!atl.hasKey(kImage), "Missing image in .atl");
 
@@ -141,6 +154,16 @@ void Atlas::cook(CookInfo * pCookInfo) const
     // when considering coordinates.
     ImageInfo imageInfo = read_image_info(depInfo.rawPath.c_str());
     PANIC_IF(imageInfo.height != imageInfo.width || !is_power_of_two(imageInfo.height), "Image not square or not power of 2 sized: %s", depInfo.rawPath.c_str());
+
+    // Pull out render_offset if present, else use (0.0f, 0.0f)
+    glm::vec2 renderOffset{0.0f, 0.0f};
+    if (atl.hasKey(kRenderOffset))
+    {
+        Config<kMEM_Chef>::FloatVec rov = atl.getFloatVec(kRenderOffset);
+        PANIC_IF(rov.size() != 2, "%s must be a list of 2 integers", kRenderOffset);
+        renderOffset.x = rov[0];
+        renderOffset.y = rov[1];
+    }
 
     // Pull out the fixed width/height if present
     bool hasFixedSize = false;
@@ -177,10 +200,11 @@ void Atlas::cook(CookInfo * pCookInfo) const
 
             GlyphAlias alias;
 
-            if (key[1] == '\0')
+            u32 numeric = 0;
+            if (parse_numeric(&numeric, key))
             {
                 // treat key as a literal value (i.e. a font character)
-                alias.hash = key[0];
+                alias.hash = numeric;
             }
             else
             {
@@ -267,7 +291,7 @@ void Atlas::cook(CookInfo * pCookInfo) const
     }
 
     ASSERT(vertsList.size() % 4 == 0);
-    Gatl * pGatl = Gatl::create(depInfo.gamePaths.front().c_str(), (u16)vertsList.size() / 4, (u16)aliasesList.size(), defaultIndex);
+    Gatl * pGatl = Gatl::create(depInfo.gamePaths.front().c_str(), (u16)vertsList.size() / 4, (u16)aliasesList.size(), defaultIndex, renderOffset);
     ASSERT(pGatl);
 
     // Place verts into Gatl buffer
@@ -285,7 +309,7 @@ void Atlas::cook(CookInfo * pCookInfo) const
     for (const auto & alias : aliasesList)
         pGatl->alias(idx++) = alias;
 
-    pCookInfo->setCookedBuffer(kExtGatl, pGatl, pGatl->size());
+    pCookInfo->setCookedBuffer(pGatl);
 }
 
 }

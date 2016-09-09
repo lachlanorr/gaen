@@ -45,7 +45,7 @@ void CookerRegistry::register_cooker(UniquePtr<Cooker> pCooker)
         sRawExtToCooker[rawExt] = pCooker.get();
     }
 
-    for (const ChefString & cookedExt : pCooker->cookedExts())
+    for (const ChefString & cookedExt : pCooker->cookedExtsExclusive())
     {
         PANIC_IF(sCookedExtToCooker.find(cookedExt) != sCookedExtToCooker.end(),
                  "Multiple cookers registered for same cooked extension: %s",

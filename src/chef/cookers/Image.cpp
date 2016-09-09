@@ -44,10 +44,10 @@ namespace cookers
 
 Image::Image()
 {
-    mVersion = 1;
-    mRawExts.push_back(kExtPng);
-    mRawExts.push_back(kExtTga);
-    mCookedExts.push_back(kExtGimg);
+    setVersion(1);
+    addRawExt(kExtPng);
+    addRawExt(kExtTga);
+    addCookedExtExclusive(kExtGimg);
 }
 
 void Image::cook(CookInfo * pCookInfo) const
@@ -85,7 +85,7 @@ void Image::cookPng(CookInfo * pCookInfo) const
     pGimgPng->convertFormat(&pGimg, kMEM_Chef, pixFmt);
 
     ASSERT(pGimg);
-    pCookInfo->setCookedBuffer(kExtGimg, pGimg, pGimg->size());
+    pCookInfo->setCookedBuffer(pGimg);
 }
 
 void Image::cookTga(CookInfo * pCookInfo) const
@@ -122,7 +122,7 @@ void Image::cookTga(CookInfo * pCookInfo) const
     pGimgTga->convertFormat(&pGimg, kMEM_Chef, pixFmt);
 
     ASSERT(pGimg);
-    pCookInfo->setCookedBuffer(kExtGimg, pGimg, pGimg->size());
+    pCookInfo->setCookedBuffer(pGimg);
 }
 
 }

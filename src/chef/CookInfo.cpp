@@ -42,6 +42,30 @@ void CookInfo::addCookResult(const ChefString & cookedExt,
     mResults.emplace_back(cookedExt, cookedPath, gamePath);
 }
 
+void CookInfo::transferCookResult(const CookInfo & ci, const ChefString & cookedExt)
+{
+    for (const CookResult & rhsCr : ci.mResults)
+    {
+        if (rhsCr.cookedExt == cookedExt)
+        {
+            ASSERT(rhsCr.isCooked());
+            for (CookResult & lhsCr : mResults)
+            {
+                if (lhsCr.cookedExt == cookedExt)
+                {
+                    ASSERT(!lhsCr.isCooked());
+                    lhsCr.pCookedBuffer = std::move(rhsCr.pCookedBuffer);
+                    ASSERT(rhsCr.pCookedBuffer.get() == nullptr);
+                    lhsCr.cookedBufferSize = rhsCr.cookedBufferSize;
+                    rhsCr.cookedBufferSize = 0;
+                    return;
+                }
+            }
+        }
+    }
+    PANIC("Failed to transferCookResult, cookedExt: %s", cookedExt.c_str());
+}
+
 const DependencyInfo & CookInfo::recordDependency(const ChefString & relativePath) const
 {
     DependencyInfo depInfo(relativePath);
@@ -90,15 +114,17 @@ bool CookInfo::isCooked(const char * ext) const
     return false;
 }
 
-void CookInfo::setCookedBuffer(const char * ext, AssetHeader * pBuffer, u64 size) const
+void CookInfo::setCookedBuffer(AssetHeader * pBuffer) const
 {
-    ASSERT(ext);
+    ASSERT(pBuffer);
+    char ext[5];
+    pBuffer->getExt(ext);
     for (CookResult & cr : mResults)
     {
         const char * cookedExt = get_ext(cr.cookedPath.c_str());
         if (0 == strcmp(cookedExt, ext))
         {
-            cr.setCookedBuffer(pBuffer, size);
+            cr.setCookedBuffer(pBuffer, pBuffer->size());
             return;
         }
     }

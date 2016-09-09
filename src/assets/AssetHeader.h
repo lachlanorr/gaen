@@ -54,17 +54,14 @@ public:
     u64 size() const { return mSize; }
     void setSize(u64 size) { mSize = size; }
 
-    bool operator==(const AssetHeader & rhs) const
+    void getExt(char * ext)
     {
-        return (mMagic4cc == rhs.mMagic4cc &&
-                mChefVersion == rhs.mChefVersion &&
-                mCookerVersion == rhs.mCookerVersion &&
-                mSize == rhs.mSize);
-    }
-
-    bool operator!=(const AssetHeader & rhs) const
-    {
-        return !operator==(rhs);
+        char * p4cc = (char*)&mMagic4cc;
+        ext[0] = p4cc[0];
+        ext[1] = p4cc[1];
+        ext[2] = p4cc[2];
+        ext[3] = p4cc[3];
+        ext[4] = '\0';
     }
 
 protected:

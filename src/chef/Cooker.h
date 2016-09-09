@@ -45,16 +45,35 @@ public:
 
     typedef List<kMEM_Chef, ChefString> ExtList;
     const ExtList & rawExts() const { ASSERT(mCookedExts.size() > 0); return mRawExts; }
+
+    // Output extensions of this cooker, not necessarily unique.
+    // E.g. Font->(gimg,gatl)
     const ExtList & cookedExts() const { ASSERT(mCookedExts.size() > 0); return mCookedExts; }
+
+    // Output extensions exclusive to this cooker, allowing us to lookup cookers from cooked extensions.
+    // E.g. Image->(gimg), Atlas->(gatl)
+    const ExtList & cookedExtsExclusive() const { return mCookedExtsExclusive; }
 
     virtual void cook(CookInfo * pCookInfo) const = 0;
 
 protected:
+    void setVersion(u16 version) { mVersion = version; }
+    void addRawExt(const ChefString & ext) { mRawExts.push_back(ext); }
+
+    void addCookedExt(const ChefString & ext) { mCookedExts.push_back(ext); }
+    void addCookedExtExclusive(const ChefString & ext)
+    {
+        mCookedExts.push_back(ext);
+        mCookedExtsExclusive.push_back(ext);
+    }
+
+private:
     // Increase version in subclasses to force a recook of those asset types.
     u16 mVersion = 0;
 
     ExtList mRawExts;
     ExtList mCookedExts;
+    ExtList mCookedExtsExclusive;
 };
 
 } // namespace gaen

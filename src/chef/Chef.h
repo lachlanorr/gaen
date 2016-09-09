@@ -48,6 +48,7 @@ public:
     const ChefString & platform() { return mPlatform; }
 
     UniquePtr<CookInfo> cook(const char * rawPath, bool force);
+    UniquePtr<CookInfo> forceCook(const ChefString & rawPath);
     void forceCook(CookInfo * pCi);
     void forceCookAndWrite(CookInfo * pCi);
 

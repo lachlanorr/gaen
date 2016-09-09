@@ -81,7 +81,7 @@ public:
 
     static u64 required_size(const char * imagePath, u16 glyphCount, u16 aliasCount);
 
-    static Gatl * create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 defaultIndex);
+    static Gatl * create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 defaultIndex, const glm::vec2 & renderOffset);
 
     u64 size() const { return mSize; }
 
@@ -255,13 +255,15 @@ private:
     u16 mDefaultIndex;
     u16 mVertsOffset;
 
+    glm::vec2 mRenderOffset;
+
     const Gimg * mpImage;
 };
 #pragma pack(pop)
 
 // If this isn't a multiple of 16, consider adding more alignment
 // corrections in size functions
-static_assert(sizeof(Gatl) == 32, "Gatl unexpected size");
+static_assert(sizeof(Gatl) == 40, "Gatl unexpected size");
 
 } // namespace gaen
 

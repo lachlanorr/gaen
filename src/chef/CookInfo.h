@@ -130,6 +130,8 @@ public:
                        const ChefString & cookedPath,
                        const ChefString & gamePath);
 
+    void transferCookResult(const CookInfo & ci, const ChefString & cookedExt);
+
     // Record a dependency, but don't cook it to include in the parent
     // asset.
     const DependencyInfo & recordDependency(const ChefString & relativePath) const;
@@ -138,7 +140,7 @@ public:
     UniquePtr<CookInfo> cookDependency(const ChefString & relativePath) const;
 
     bool isCooked(const char * ext) const;
-    void setCookedBuffer(const char * ext, AssetHeader * pBuffer, u64 size) const;
+    void setCookedBuffer(AssetHeader * pBuffer) const;
 private:
     Chef * mpChef;
     const Cooker * mpCooker;

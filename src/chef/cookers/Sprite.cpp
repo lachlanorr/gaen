@@ -42,9 +42,9 @@ namespace cookers
 
 Sprite::Sprite()
 {
-    mVersion = 1;
-    mRawExts.push_back(kExtSpr);
-    mCookedExts.push_back(kExtGspr);
+    setVersion(1);
+    addRawExt(kExtSpr);
+    addCookedExtExclusive(kExtGspr);
 }
 
 void Sprite::cook(CookInfo * pCookInfo) const
@@ -147,7 +147,7 @@ void Sprite::cook(CookInfo * pCookInfo) const
     }
 
     ASSERT(Gspr::is_valid(pGspr, pGspr->size()));
-    pCookInfo->setCookedBuffer(kExtGspr, pGspr, pGspr->size());
+    pCookInfo->setCookedBuffer(pGspr);
 }
 
 }
