@@ -34,7 +34,7 @@
 namespace gaen
 {
 
-// Declare maps with the aditional MemType enum parameter, E.g.:
+// Declare maps with the additional MemType enum parameter, E.g.:
 //   Map<int, void*, kMT_Engine> myMap;
 template <MemType memType,
           class Key,
@@ -44,6 +44,17 @@ using Map = std::map<Key,
                      T,
                      Compare,
                      gaen::Allocator<memType, std::pair<const Key,T>>>;
+
+
+template <MemType memType,
+          class Key,
+          class T,
+          class Compare = std::less<Key>>
+using MultiMap = std::multimap<Key,
+                               T,
+                               Compare,
+                               gaen::Allocator<memType, std::pair<const Key,T>>>;
+
 
 } // namespace gaen
 

@@ -34,7 +34,7 @@
 namespace gaen
 {
 
-// Declare strings with the aditional MemType enum parameter, E.g.:
+// Declare strings with the additional MemType enum parameter, E.g.:
 //   String<kMT_Engine> myStr;
 template <MemType memType>
 using String = std::basic_string<char,

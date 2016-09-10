@@ -34,7 +34,7 @@
 namespace gaen
 {
 
-// Declare sets with the aditional MemType enum parameter, E.g.:
+// Declare sets with the additional MemType enum parameter, E.g.:
 //   HashSet<int, void*, kMT_Engine> mySet;
 template <MemType memType,
           class Key,

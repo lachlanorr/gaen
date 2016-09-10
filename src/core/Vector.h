@@ -34,7 +34,7 @@
 namespace gaen
 {
 
-// Declare vectors with the aditional MemType enum parameter, E.g.:
+// Declare vectors with the additional MemType enum parameter, E.g.:
 //   Vector<int, kMT_Texture> myVector;
 template <MemType memType, class T>
 using Vector = std::vector<T, gaen::Allocator<memType, T>>;

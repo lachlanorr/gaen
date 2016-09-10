@@ -34,7 +34,7 @@
 namespace gaen
 {
 
-// Declare maps with the aditional MemType enum parameter, E.g.:
+// Declare maps with the additional MemType enum parameter, E.g.:
 //   HashMap<int, void*, kMT_Engine> myMap;
 template <MemType memType,
           class Key,
