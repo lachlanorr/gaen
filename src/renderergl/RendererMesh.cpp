@@ -117,7 +117,7 @@ void RendererMesh::initViewport()
                                 static_cast<f32>(mScreenWidth) * 0.5f,
                                 static_cast<f32>(mScreenHeight) * -0.5f,
                                 static_cast<f32>(mScreenHeight) * 0.5f,
-                                0.0f,
+                                -100.0f,
                                 100.0f);
 
 }
@@ -340,7 +340,7 @@ void RendererMesh::render()
     ASSERT(mIsInit);
 
     glClear(GL_COLOR_BUFFER_BIT);
-    GL_CLEAR_DEPTH(1.0f);
+    //GL_CLEAR_DEPTH(1.0f);
 
 
     ModelMgr<RendererMesh>::MeshIterator meshIt = mpModelMgr->begin();
@@ -390,18 +390,33 @@ void RendererMesh::render()
         ++meshIt;
     }
 
-    if (mSpriteMap.size() > 0)
+    if (mSprites.size() > 0)
     {
         setActiveShader(HASH::sprite);
         static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
 
         //glm::mat4 mvp = mGuiProjection; // * view  ;// * glm::mat4x4(0.05); // to_mat4x4(matMeshInst.pModelInstance->transform);
 
-        for(const auto & spriteGlPair : mSpriteMap)
+        for(auto it = mOrderedSprites.begin();
+            it != mOrderedSprites.end();
+            /* no increment so we can remove while iterating */)
         {
-            glm::mat4 mvp = mGuiProjection * to_mat4x4(spriteGlPair.second->mpSpriteInstance->mTransform);
-            mpActiveShader->setUniformMat4(HASH::proj, mvp);
-            spriteGlPair.second->render();
+            if (it->second->status == kSGLS_Active)
+            {
+                glm::mat4 mvp = mGuiProjection * to_mat4x4(it->second->mpSpriteInstance->mTransform);
+                mpActiveShader->setUniformMat4(HASH::proj, mvp);
+                it->second->render();
+                ++it;
+            }
+            else if (it->second->status == kSGLS_Destroyed)
+            {
+                unloadTexture(&it->second->mpSpriteInstance->sprite().image());
+                unloadGlyphVerts(it->second->mpSpriteInstance->sprite().verts());
+                unloadGlyphTris(it->second->mpSpriteInstance->sprite().tris());
+                mSprites.erase(it->second->mpSpriteInstance->sprite().uid());
+                mOrderedSprites.erase(it++);
+                ASSERT(mOrderedSprites.size() == mSprites.size());
+            }
         }
     }
 }
@@ -473,9 +488,9 @@ MessageResult RendererMesh::message(const T & msgAcc)
     case HASH::sprite_anim:
     {
         messages::SpriteAnimR<T> msgr(msgAcc);
-        auto & spritePairIt = mSpriteMap.find(msgr.uid());
+        auto & spritePairIt = mSprites.find(msgr.uid());
 
-        if (spritePairIt != mSpriteMap.end())
+        if (spritePairIt != mSprites.end())
         {
             spritePairIt->second->mpSpriteInstance->animate(msgr.animHash(), msgr.animFrameIdx());
         }
@@ -489,11 +504,33 @@ MessageResult RendererMesh::message(const T & msgAcc)
     {
         messages::TransformUidR<T> msgr(msgAcc);
 
-        auto & spritePairIt = mSpriteMap.find(msgr.uid());
+        auto & it = mSprites.find(msgr.uid());
 
-        if (spritePairIt != mSpriteMap.end())
+        if (it != mSprites.end())
         {
-            spritePairIt->second->mpSpriteInstance->mTransform = msgr.transform();
+            SpriteGL * pOrderedSprite = nullptr;
+            // if the z value has changed, we need to reorganize in the ordered map
+            if (it->second->mpSpriteInstance->zdepth() != msgr.transform()[3][2])
+            {
+                // remove from ordered list
+                auto range = mOrderedSprites.equal_range(it->second->mpSpriteInstance->zdepth());
+                for (auto itOrd = range.first; itOrd != range.second; ++itOrd)
+                {
+                    if (itOrd->second->mpSpriteInstance->sprite().uid() == msgr.uid())
+                    {
+                        pOrderedSprite = it->second.get();
+                        mOrderedSprites.erase(itOrd);
+                        break;
+                    }
+                }
+                ASSERT(pOrderedSprite);
+            }
+            it->second->mpSpriteInstance->mTransform = msgr.transform();
+            if (pOrderedSprite)
+            {
+                // zdepth changed, reinsert into ordered list
+                mOrderedSprites.emplace(pOrderedSprite->mpSpriteInstance->zdepth(), pOrderedSprite);
+            }
         }
         else
         {
@@ -504,15 +541,13 @@ MessageResult RendererMesh::message(const T & msgAcc)
     case HASH::sprite_destroy:
     {
         u32 uid = msg.payload.u;
-        auto & spritePairIt = mSpriteMap.find(uid);
+        auto & spritePairIt = mSprites.find(uid);
 
-        if (spritePairIt != mSpriteMap.end())
+        if (spritePairIt != mSprites.end())
         {
-            unloadTexture(&spritePairIt->second->mpSpriteInstance->sprite().image());
-            unloadGlyphVerts(spritePairIt->second->mpSpriteInstance->sprite().verts());
-            unloadGlyphTris(spritePairIt->second->mpSpriteInstance->sprite().tris());
+            // Mark destroyed, it will get pulled from maps during next render pass.
+            spritePairIt->second->status = kSGLS_Destroyed;
 
-            mSpriteMap.erase(spritePairIt);
             SpriteInstance::send_sprite_destroy(kRendererTaskId, kSpriteMgrTaskId, uid);
         }
         else
@@ -593,13 +628,15 @@ shaders::Shader * RendererMesh::getShader(u32 nameHash)
 void RendererMesh::insertSprite(SpriteInstance * pSpriteInst)
 {
     ASSERT(pSpriteInst);
-    ASSERT(mSpriteMap.find(pSpriteInst->sprite().uid()) == mSpriteMap.end());
+    ASSERT(mSprites.find(pSpriteInst->sprite().uid()) == mSprites.end());
 
     SpriteGLUP spriteGL(GNEW(kMEM_Renderer, SpriteGL, pSpriteInst, this));
 
     spriteGL->loadGpu();
     
-    mSpriteMap.emplace(pSpriteInst->sprite().uid(), std::move(spriteGL));
+    mOrderedSprites.emplace(pSpriteInst->zdepth(), spriteGL.get());
+    mSprites.emplace(pSpriteInst->sprite().uid(), std::move(spriteGL));
+    ASSERT(mOrderedSprites.size() == mSprites.size());
 }
 
 // Template decls so we can define message func here in the .cpp

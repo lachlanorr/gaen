@@ -24,7 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "hashes/hashes.h"
 #include "renderergl/ShaderRegistry.h"
 #include "renderergl/shaders/compute_present.h"
 #include "renderergl/shaders/compute_test.h"
@@ -39,13 +38,13 @@ namespace gaen
 
 void ShaderRegistry::registerAllShaderConstructors()
 {
-    registerShaderConstructor(HASH::compute_present, shaders::compute_present::construct);
-    registerShaderConstructor(HASH::compute_test, shaders::compute_test::construct);
-    registerShaderConstructor(HASH::faceted, shaders::faceted::construct);
-    registerShaderConstructor(HASH::sprite, shaders::sprite::construct);
-    registerShaderConstructor(HASH::voxel27, shaders::voxel27::construct);
-    registerShaderConstructor(HASH::voxel_cast, shaders::voxel_cast::construct);
-    registerShaderConstructor(HASH::voxel_cast_frag, shaders::voxel_cast_frag::construct);
+    registerShaderConstructor(0x4613be76 /* HASH::compute_present */, shaders::compute_present::construct);
+    registerShaderConstructor(0x62ad79eb /* HASH::compute_test */, shaders::compute_test::construct);
+    registerShaderConstructor(0x09352ef9 /* HASH::faceted */, shaders::faceted::construct);
+    registerShaderConstructor(0x81e2581c /* HASH::sprite */, shaders::sprite::construct);
+    registerShaderConstructor(0x9a83b4b8 /* HASH::voxel27 */, shaders::voxel27::construct);
+    registerShaderConstructor(0xe9f55c27 /* HASH::voxel_cast */, shaders::voxel_cast::construct);
+    registerShaderConstructor(0x427a5ca4 /* HASH::voxel_cast_frag */, shaders::voxel_cast_frag::construct);
 }
 
 

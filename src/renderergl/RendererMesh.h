@@ -129,7 +129,10 @@ private:
     ModelMgr<RendererMesh> * mpModelMgr;
 
     typedef HashMap<kMEM_Renderer, u32, SpriteGLUP> SpriteMap;
-    SpriteMap mSpriteMap;
+    SpriteMap mSprites;
+
+    typedef MultiMap<kMEM_Renderer, f32, SpriteGL*> OrderedSpriteMap;
+    OrderedSpriteMap mOrderedSprites;
 
     List<kMEM_Renderer, DirectionalLight> mDirectionalLights;
     List<kMEM_Renderer, PointLight> mPointLights;

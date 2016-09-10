@@ -110,6 +110,9 @@ public:
     static void send_sprite_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform);
     static void send_sprite_destroy(task_id source, task_id target, u32 uid);
 
+    glm::vec3 position() { return mTransform[3]; }
+    f32 zdepth() { return mTransform[3][2]; }
+
     glm::mat4x3 mTransform;
 private:
     // Delete these to make sure we construct through the asset->addref path

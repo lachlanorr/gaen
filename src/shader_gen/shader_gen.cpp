@@ -218,7 +218,7 @@ void append_shader_registration_file_cb(const char * path, void * context)
         if (0 == strcmp(scratch, "Shader.h"))
             return;
         char scratch2[kMaxPath+1];
-        sprintf(scratch2, "    registerShaderConstructor(HASH::%s, shaders::%s::construct);\n", scratch, scratch);
+        sprintf(scratch2, "    registerShaderConstructor(0x%08x /* HASH::%s */, shaders::%s::construct);\n", gaen_hash(scratch), scratch, scratch);
         S & code = *reinterpret_cast<S*>(context);
         code += scratch2;
     }
@@ -253,7 +253,6 @@ S generate_shader_registration(const char * shadersDir)
         "//   distribution.\n"
         "//------------------------------------------------------------------------------\n"
         "\n"
-        "#include \"hashes/hashes.h\"\n"
         "#include \"renderergl/ShaderRegistry.h\"\n";
 
     recurse_dir(shadersDir, &code, append_shader_registration_file_includes_cb);

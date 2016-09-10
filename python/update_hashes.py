@@ -63,12 +63,15 @@ def process_file(path):
 def process_dir(path):
     hashes = []
     for root, dirs, files in os.walk(path):
-        for f in files:
-            if f not in ['hashes.h', 'hashes.cpp']:
-                ext = os.path.splitext(f)[1]
-                if ext in ['.h', '.cpp', '.mm']:
-                    fullpath = os.path.join(root, f)
-                    hashes += process_file(fullpath)
+        if not root.endswith('renderergl\\shaders'):
+            for f in files:
+                if f not in ['hashes.h', 'hashes.cpp']:
+                    ext = os.path.splitext(f)[1]
+                    if ext in ['.h', '.cpp', '.mm']:
+                        fullpath = os.path.join(root, f)
+                        hashes += process_file(fullpath)
+        else:
+            print 'skipping ' + root
     return hashes
             
 

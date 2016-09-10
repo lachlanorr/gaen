@@ -35,12 +35,19 @@ namespace gaen
 
 class RendererMesh;
 
+enum SpriteGLStatus
+{
+    kSGLS_Active,
+    kSGLS_Destroyed
+};
+
 class SpriteGL
 {
 public:
     SpriteGL(SpriteInstance * pSpriteInstance, RendererMesh * pRenderer)
       : mpSpriteInstance(pSpriteInstance)
       , mpRenderer(pRenderer)
+      , status(kSGLS_Active)
       , vertArrayId(0)
       , vertBufferId(0)
       , primBufferId(0)
@@ -53,19 +60,21 @@ public:
 
     void prepareMeshAttributes();
     
+    UniquePtr<SpriteInstance> mpSpriteInstance;
+    RendererMesh * mpRenderer;
+
+    SpriteGLStatus status;
+
     u32 vertArrayId;
     u32 vertBufferId;
     u32 primBufferId;
 
     u32 textureId;
     u32 textureUnit;
-
-    UniquePtr<SpriteInstance> mpSpriteInstance;
-    RendererMesh * mpRenderer;
 };
 
 typedef UniquePtr<SpriteGL> SpriteGLUP;
 
-} // namespcae gaen
+} // namespace gaen
 
 #endif // #ifndef GAEN_RENDERERGL_SPRITEGL_H

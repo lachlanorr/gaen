@@ -40,7 +40,8 @@ void SpriteMotionState::getWorldTransform(btTransform& worldTrans) const
     worldTrans.setBasis(btMatrix3x3(t[0][0], t[0][1], t[0][2],
                                     t[1][0], t[1][1], t[1][2],
                                     t[2][0], t[2][1], t[2][2]));
-    worldTrans.setOrigin(btVector3(t[3][0], t[3][1], t[3][2]));
+
+    worldTrans.setOrigin(btVector3(t[3][0], t[3][1], 0.0f /* Don't use t[3][2] for z position since we use it for render order */));
 }
 
 void SpriteMotionState::setWorldTransform(const btTransform& worldTrans)
@@ -61,7 +62,9 @@ void SpriteMotionState::setWorldTransform(const btTransform& worldTrans)
 
     t[3][0] = worldTrans.getOrigin()[0];
     t[3][1] = worldTrans.getOrigin()[1];
-    t[3][2] = worldTrans.getOrigin()[2];
+
+    // Don't set z position since we use it for render order
+    ASSERT(worldTrans.getOrigin()[2] == 0.0f);
 
     SpriteInstance::send_sprite_transform(kSpriteMgrTaskId, kRendererTaskId, mSpriteInstance.sprite().uid(), mSpriteInstance.mTransform);
     {
