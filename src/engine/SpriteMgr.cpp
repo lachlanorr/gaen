@@ -252,6 +252,21 @@ void sprite_init_body(i32 spriteUid, f32 mass, i32 group, glm::ivec4 mask03, glm
     msgw.setMask47(mask47);
 }
 
+void sprite_show_stage(i32 stageHash, Entity & caller)
+{
+    MessageQueueWriter msgw(HASH::sprite_show_stage, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+}
+
+void sprite_hide_stage(i32 stageHash, Entity & caller)
+{
+    MessageQueueWriter msgw(HASH::sprite_hide_stage, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+}
+
+void sprite_destroy_stage(i32 stageHash, Entity & caller)
+{
+    MessageQueueWriter msgw(HASH::sprite_destroy_stage, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+}
+
 } // namespace system_api
 
 } // namespace gaen

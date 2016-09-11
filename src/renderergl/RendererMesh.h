@@ -106,7 +106,7 @@ private:
     void transformSprite(u32 uid, const glm::mat4x3 & transform);
     void destroySprite(u32 uid);
     
-    void showSpriteStage(u32 stageHash, bool hideOthers);
+    void showSpriteStage(u32 stageHash);
     void hideSpriteStage(u32 stageHash);
     void destroySpriteStage(u32 stageHash);
     

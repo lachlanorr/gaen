@@ -501,6 +501,25 @@ MessageResult RendererMesh::message(const T & msgAcc)
         break;
     }
 
+    case HASH::sprite_show_stage:
+    {
+        u32 stageHash = msg.payload.u;
+        showSpriteStage(stageHash);
+        break;
+    }
+    case HASH::sprite_hide_stage:
+    {
+        u32 stageHash = msg.payload.u;
+        hideSpriteStage(stageHash);
+        break;
+    }
+    case HASH::sprite_destroy_stage:
+    {
+        u32 stageHash = msg.payload.u;
+        destroySpriteStage(stageHash);
+        break;
+    }
+
     default:
         PANIC("Unknown renderer message: %d", msg.msgId);
     }
@@ -579,7 +598,7 @@ void RendererMesh::insertSprite(SpriteInstance * pSpriteInst)
         ASSERT(empIt.second == true);
         it = empIt.first;
     }
-    //it->second->insertSprite(pSpriteInst);
+    it->second->insertSprite(pSpriteInst);
 }
 
 void RendererMesh::animateSprite(u32 uid, u32 animHash, u32 animFrameIdx)
@@ -612,12 +631,26 @@ void RendererMesh::destroySprite(u32 uid)
     ERR("destroySprite in renderer for unkonwn sprite, uid: %u", uid);
 }
 
-void RendererMesh::showSpriteStage(u32 stageHash, bool hideOthers)
+void RendererMesh::showSpriteStage(u32 stageHash)
 {
+    // hide all other stages, show the one specified
+    for (auto & stagePair : mSpriteStages)
+    {
+        if (stagePair.first != stageHash)
+            stagePair.second->hide();
+    }
+
     auto it = mSpriteStages.find(stageHash);
     if (it != mSpriteStages.end())
     {
         it->second->show();
+    }
+    else
+    {
+        auto empIt = mSpriteStages.emplace(stageHash,
+                                           GNEW(kMEM_Renderer, SpriteStage, this));
+        ASSERT(empIt.second == true);
+        empIt.first->second->show();
     }
 }
 
