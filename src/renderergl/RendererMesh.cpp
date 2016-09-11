@@ -87,7 +87,7 @@ void RendererMesh::initViewport()
 
     glEnable(GL_PROGRAM_POINT_SIZE);
 
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     glEnable(GL_CULL_FACE);
     //glEnable(GL_DEPTH_TEST);   // Enables Depth Testing
