@@ -136,8 +136,9 @@ const Gimg & Sprite::image() const
 
 // SpriteInstance methods
 
-SpriteInstance::SpriteInstance(Sprite * pSprite, const glm::mat4x3 & transform)
+SpriteInstance::SpriteInstance(Sprite * pSprite, u32 stageHash, const glm::mat4x3 & transform)
   : mpSprite(pSprite)
+  , mStageHash(stageHash)
   , mHasBody(false)
   , mTransform(transform)
   , mIsAnimating(false)

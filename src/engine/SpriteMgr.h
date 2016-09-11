@@ -60,7 +60,7 @@ private:
 class Entity;
 namespace system_api
 {
-i32 sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Entity & caller);
+i32 sprite_create(AssetHandleP pAssetHandle, i32 spriteHash, const glm::mat4x3 & transform, Entity & caller);
 void sprite_play_anim(i32 spriteUid, i32 animHash, f32 duration, bool loop, i32 doneMessage, Entity & caller);
 void sprite_set_velocity(i32 spriteUid, const glm::vec2 & velocity, Entity & caller);
 

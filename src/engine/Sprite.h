@@ -94,9 +94,10 @@ class SpriteInstance
     friend class SpriteMotionState;
     friend class SpritePhysics;
 public:
-    SpriteInstance(Sprite * pSprite, const glm::mat4x3 & transform);
+    SpriteInstance(Sprite * pSprite, u32 stageHash, const glm::mat4x3 & transform);
 
     const Sprite & sprite() { return *mpSprite; }
+    u32 stageHash() { return mStageHash; }
 
     void desroySprite();
 
@@ -125,6 +126,8 @@ private:
     bool advanceAnim(f32 delta);
 
     Sprite * mpSprite;
+    u32 mStageHash;
+
     bool mHasBody;
     
     const AnimInfo * mpAnimInfo;

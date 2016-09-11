@@ -102,7 +102,7 @@ MessageResult SpriteMgr::message(const T & msgAcc)
 
         // Send a copy to the renderer
         Sprite * pSpriteRenderer = GNEW(kMEM_Renderer, Sprite, pSpriteInst->sprite());
-        SpriteInstance * pSpriteInstRenderer = GNEW(kMEM_Renderer, SpriteInstance, pSpriteRenderer, pSpriteInst->mTransform);
+        SpriteInstance * pSpriteInstRenderer = GNEW(kMEM_Renderer, SpriteInstance, pSpriteRenderer, pSpriteInst->stageHash(), pSpriteInst->mTransform);
         SpriteInstance::send_sprite_insert(kSpriteMgrTaskId, kRendererTaskId, pSpriteInstRenderer);
 
         return MessageResult::Consumed;
@@ -215,13 +215,13 @@ template MessageResult SpriteMgr::message<MessageQueueAccessor>(const MessageQue
 namespace system_api
 {
 
-i32 sprite_create(AssetHandleP pAssetHandle, const glm::mat4x3 & transform, Entity & caller)
+i32 sprite_create(AssetHandleP pAssetHandle, i32 stageHash, const glm::mat4x3 & transform, Entity & caller)
 {
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
     const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
 
     Sprite * pSprite = GNEW(kMEM_Engine, Sprite, caller.task().id(), pAsset);
-    SpriteInstance * pSpriteInst = GNEW(kMEM_Engine, SpriteInstance, pSprite, transform);
+    SpriteInstance * pSpriteInst = GNEW(kMEM_Engine, SpriteInstance, pSprite, stageHash, transform);
 
     SpriteInstance::send_sprite_insert(caller.task().id(), kSpriteMgrTaskId, pSpriteInst);
 

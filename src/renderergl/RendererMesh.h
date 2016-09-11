@@ -37,13 +37,11 @@
 #include "engine/renderer_structs.h"
 
 #include "renderergl/gaen_opengl.h"
-#include "renderergl/SpriteGL.h"
+#include "renderergl/SpriteStage.h"
 #include "renderergl/ShaderRegistry.h"
 
 namespace gaen
 {
-
-class SpriteGL;
 
 class RendererMesh
 {
@@ -102,8 +100,15 @@ private:
                      Model * pModel,
                      const glm::mat4x3 & worldTransform,
                      bool isAssetManaged);
-    
+
     void insertSprite(SpriteInstance * pSpriteInst);
+    void animateSprite(u32 uid, u32 animHash, u32 animFrameIdx);
+    void transformSprite(u32 uid, const glm::mat4x3 & transform);
+    void destroySprite(u32 uid);
+    
+    void showSpriteStage(u32 stageHash, bool hideOthers);
+    void hideSpriteStage(u32 stageHash);
+    void destroySpriteStage(u32 stageHash);
     
     bool mIsInit = false;
     
@@ -128,12 +133,9 @@ private:
 
     ModelMgr<RendererMesh> * mpModelMgr;
 
-    typedef HashMap<kMEM_Renderer, u32, SpriteGLUP> SpriteMap;
-    SpriteMap mSprites;
-
-    typedef MultiMap<kMEM_Renderer, f32, SpriteGL*> OrderedSpriteMap;
-    OrderedSpriteMap mOrderedSprites;
-
+    typedef HashMap<kMEM_Renderer, u32, SpriteStageUP> SpriteStageMap;
+    SpriteStageMap mSpriteStages;
+    
     List<kMEM_Renderer, DirectionalLight> mDirectionalLights;
     List<kMEM_Renderer, PointLight> mPointLights;
 

@@ -40,6 +40,8 @@ SET (renderergl_SOURCES
   ShaderRegistry.h
   SpriteGL.cpp
   SpriteGL.h
+  SpriteStage.cpp
+  SpriteStage.h
   ${shaders_codegen_SOURCES}
   )
 

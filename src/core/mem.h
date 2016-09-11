@@ -54,7 +54,8 @@ enum MemType
     kMEM_Network     = 9,
     kMEM_Compose     = 10,
     kMEM_Chef        = 11,
-    kMEM_Voxel       = 12,
+    kMEM_Cara        = 12,
+    kMEM_Voxel       = 13,
 
     kMEM_COUNT
 };

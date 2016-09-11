@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// String.h - Typedefed std::string that uses our allocator
+// Frame.h - Base class for all UI frames (text boxes, labels, dialogs, etc)
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,26 +24,37 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CORE_STRING_H
-#define GAEN_CORE_STRING_H
+#ifndef GAEN_ENGINE_FRAME_H
+#define GAEN_ENGINE_FRAME_H
 
-#include <string>
+#include "core/String.h"
+#include "assets/Color.h"
 
-#include "core/mem.h"
+#include "engine/Task.h"
+
 
 namespace gaen
 {
 
-// Declare strings with the additional MemType enum parameter, E.g.:
-//   String<kMT_Engine> myStr;
-template <MemType memType>
-using String = std::basic_string<char,
-                                 std::char_traits<char>,
-                                 gaen::Allocator<memType, char>>;
+class Asset;
 
-typedef String<kMEM_Chef> ChefString;
-typedef String<kMEM_Cara> CaraString;
+class Frame
+{
+public:
+    Frame(task_id owner,
+          const Asset* pGatlFont,
+          const char * text,
+          Color textColor,
+          Color backgroundColor);
+
+private:
+    CaraString mText;
+
+    Color mTextColor;
+    Color mBackgroundColor;
+    
+};
 
 } // namespace gaen
 
-#endif //#ifndef GAEN_CORE_STRING_H
+#endif GAEN_ENGINE_FRAME_H

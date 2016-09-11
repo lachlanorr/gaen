@@ -51,7 +51,7 @@ class UpdateLightDirectional(FieldHandler):
 
 class SpriteInstance(FieldHandler):
     pSpriteInstance = PointerField(type_name='SpriteInstance *',
-                      includes=['engine/Sprite.h'])
+                                   includes=['engine/Sprite.h'])
 
 class SpritePlayAnim(FieldHandler):
     uid         = i32Field(payload=True)

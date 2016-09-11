@@ -390,32 +390,35 @@ void RendererMesh::render()
         ++meshIt;
     }
 
-    if (mSprites.size() > 0)
+
+    setActiveShader(HASH::sprite);
+    for (auto & stagePair : mSpriteStages)
     {
-        setActiveShader(HASH::sprite);
-        static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-
-        //glm::mat4 mvp = mGuiProjection; // * view  ;// * glm::mat4x4(0.05); // to_mat4x4(matMeshInst.pModelInstance->transform);
-
-        for(auto it = mOrderedSprites.begin();
-            it != mOrderedSprites.end();
-            /* no increment so we can remove while iterating */)
+        if (stagePair.second->isShown() && stagePair.second->spriteCount() > 0)
         {
-            if (it->second->status == kSGLS_Active)
+            //static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+            //glm::mat4 mvp = mGuiProjection; // * view  ;// * glm::mat4x4(0.05); // to_mat4x4(matMeshInst.pModelInstance->transform);
+
+            for(auto it = stagePair.second->begin();
+                it != stagePair.second->end();
+                /* no increment so we can remove while iterating */)
             {
-                glm::mat4 mvp = mGuiProjection * to_mat4x4(it->second->mpSpriteInstance->mTransform);
-                mpActiveShader->setUniformMat4(HASH::proj, mvp);
-                it->second->render();
-                ++it;
-            }
-            else if (it->second->status == kSGLS_Destroyed)
-            {
-                unloadTexture(&it->second->mpSpriteInstance->sprite().image());
-                unloadGlyphVerts(it->second->mpSpriteInstance->sprite().verts());
-                unloadGlyphTris(it->second->mpSpriteInstance->sprite().tris());
-                mSprites.erase(it->second->mpSpriteInstance->sprite().uid());
-                mOrderedSprites.erase(it++);
-                ASSERT(mOrderedSprites.size() == mSprites.size());
+                SpriteGL * pSpriteGL = *it;
+                if (pSpriteGL->status == kSGLS_Active)
+                {
+                    glm::mat4 mvp = mGuiProjection * to_mat4x4(pSpriteGL->mpSpriteInstance->mTransform);
+                    mpActiveShader->setUniformMat4(HASH::proj, mvp);
+                    pSpriteGL->render();
+                    ++it;
+                }
+                else if (pSpriteGL->status == kSGLS_Destroyed)
+                {
+                    unloadTexture(&pSpriteGL->mpSpriteInstance->sprite().image());
+                    unloadGlyphVerts(pSpriteGL->mpSpriteInstance->sprite().verts());
+                    unloadGlyphTris(pSpriteGL->mpSpriteInstance->sprite().tris());
+
+                    stagePair.second->erase(it++);
+                }
             }
         }
     }
@@ -475,85 +478,26 @@ MessageResult RendererMesh::message(const T & msgAcc)
     // sprites
     case HASH::sprite_insert:
     {
-        messages::SpriteInstanceR<T> msgR(msgAcc);
-
-        SpriteInstance * pSpriteInst = msgR.spriteInstance();
-
-        insertSprite(pSpriteInst);
-
-        return MessageResult::Consumed;
-
+        messages::SpriteInstanceR<T> msgr(msgAcc);
+        insertSprite(msgr.spriteInstance());
         break;
     }
     case HASH::sprite_anim:
     {
         messages::SpriteAnimR<T> msgr(msgAcc);
-        auto & spritePairIt = mSprites.find(msgr.uid());
-
-        if (spritePairIt != mSprites.end())
-        {
-            spritePairIt->second->mpSpriteInstance->animate(msgr.animHash(), msgr.animFrameIdx());
-        }
-        else
-        {
-            ERR("sprite_anim in renderer for unkonwn sprite, uid: %u", msgr.uid());
-        }
+        animateSprite(msgr.uid(), msgr.animHash(), msgr.animFrameIdx());
         break;
     }
     case HASH::sprite_transform:
     {
         messages::TransformUidR<T> msgr(msgAcc);
-
-        auto & it = mSprites.find(msgr.uid());
-
-        if (it != mSprites.end())
-        {
-            SpriteGL * pOrderedSprite = nullptr;
-            // if the z value has changed, we need to reorganize in the ordered map
-            if (it->second->mpSpriteInstance->zdepth() != msgr.transform()[3][2])
-            {
-                // remove from ordered list
-                auto range = mOrderedSprites.equal_range(it->second->mpSpriteInstance->zdepth());
-                for (auto itOrd = range.first; itOrd != range.second; ++itOrd)
-                {
-                    if (itOrd->second->mpSpriteInstance->sprite().uid() == msgr.uid())
-                    {
-                        pOrderedSprite = it->second.get();
-                        mOrderedSprites.erase(itOrd);
-                        break;
-                    }
-                }
-                ASSERT(pOrderedSprite);
-            }
-            it->second->mpSpriteInstance->mTransform = msgr.transform();
-            if (pOrderedSprite)
-            {
-                // zdepth changed, reinsert into ordered list
-                mOrderedSprites.emplace(pOrderedSprite->mpSpriteInstance->zdepth(), pOrderedSprite);
-            }
-        }
-        else
-        {
-            ERR("sprite_transform in renderer for unkonwn sprite, uid: %u", msgr.uid());
-        }
+        transformSprite(msgr.uid(), msgr.transform());
         break;
     }
     case HASH::sprite_destroy:
     {
         u32 uid = msg.payload.u;
-        auto & spritePairIt = mSprites.find(uid);
-
-        if (spritePairIt != mSprites.end())
-        {
-            // Mark destroyed, it will get pulled from maps during next render pass.
-            spritePairIt->second->status = kSGLS_Destroyed;
-
-            SpriteInstance::send_sprite_destroy(kRendererTaskId, kSpriteMgrTaskId, uid);
-        }
-        else
-        {
-            ERR("sprite_destroy in renderer for unkonwn sprite, uid: %u", uid);
-        }
+        destroySprite(uid);
         break;
     }
 
@@ -627,17 +571,74 @@ shaders::Shader * RendererMesh::getShader(u32 nameHash)
 
 void RendererMesh::insertSprite(SpriteInstance * pSpriteInst)
 {
-    ASSERT(pSpriteInst);
-    ASSERT(mSprites.find(pSpriteInst->sprite().uid()) == mSprites.end());
-
-    SpriteGLUP spriteGL(GNEW(kMEM_Renderer, SpriteGL, pSpriteInst, this));
-
-    spriteGL->loadGpu();
-    
-    mOrderedSprites.emplace(pSpriteInst->zdepth(), spriteGL.get());
-    mSprites.emplace(pSpriteInst->sprite().uid(), std::move(spriteGL));
-    ASSERT(mOrderedSprites.size() == mSprites.size());
+    auto it = mSpriteStages.find(pSpriteInst->stageHash());
+    if (it == mSpriteStages.end())
+    {
+        auto empIt = mSpriteStages.emplace(pSpriteInst->stageHash(),
+                                           GNEW(kMEM_Renderer, SpriteStage, this));
+        ASSERT(empIt.second == true);
+        it = empIt.first;
+    }
+    //it->second->insertSprite(pSpriteInst);
 }
+
+void RendererMesh::animateSprite(u32 uid, u32 animHash, u32 animFrameIdx)
+{
+    for (auto & stagePair : mSpriteStages)
+    {
+        if (stagePair.second->animateSprite(uid, animHash, animFrameIdx))
+            return;
+    }
+    ERR("animateSprite in renderer for unkonwn sprite, uid: %u", uid);
+}
+
+void RendererMesh::transformSprite(u32 uid, const glm::mat4x3 & transform)
+{
+    for (auto & stagePair : mSpriteStages)
+    {
+        if (stagePair.second->transformSprite(uid, transform))
+            return;
+    }
+    ERR("transformSprite in renderer for unkonwn sprite, uid: %u", uid);
+}
+
+void RendererMesh::destroySprite(u32 uid)
+{
+    for (auto & stagePair : mSpriteStages)
+    {
+        if (stagePair.second->destroySprite(uid))
+            return;
+    }
+    ERR("destroySprite in renderer for unkonwn sprite, uid: %u", uid);
+}
+
+void RendererMesh::showSpriteStage(u32 stageHash, bool hideOthers)
+{
+    auto it = mSpriteStages.find(stageHash);
+    if (it != mSpriteStages.end())
+    {
+        it->second->show();
+    }
+}
+
+void RendererMesh::hideSpriteStage(u32 stageHash)
+{
+    auto it = mSpriteStages.find(stageHash);
+    if (it != mSpriteStages.end())
+    {
+        it->second->hide();
+    }
+}
+
+void RendererMesh::destroySpriteStage(u32 stageHash)
+{
+    auto it = mSpriteStages.find(stageHash);
+    if (it != mSpriteStages.end())
+    {
+        mSpriteStages.erase(it);
+    }
+}
+
 
 // Template decls so we can define message func here in the .cpp
 template MessageResult RendererMesh::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
