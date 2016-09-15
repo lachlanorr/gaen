@@ -1210,6 +1210,19 @@ Ast * ast_create_transform_init(Ast * pVal, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_ready_init(Ast * pVal, ParseData * pParseData)
+{
+    const SymDataType * pSdt = ast_data_type(pVal);
+    if (pSdt->typeDesc.dataType != kDT_int)
+    {
+        COMP_ERROR(pParseData, "'ready' initialization only valid with int expression");
+        return nullptr;
+    }
+    Ast * pAst = ast_create(kAST_ReadyInit, pParseData);
+    ast_set_rhs(pAst, pVal);
+    return pAst;
+}
+
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData)
 {
     ASSERT(pParseData);

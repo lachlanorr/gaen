@@ -125,6 +125,7 @@ ParseData * pParseData = yyextra;
 "post"       { parsedata_push_prop_prepost_scope(pParseData); return POST; }
 
 "transform"  { return TRANSFORM; }
+"ready"      { return READY; }
 
 
 "true"   { return TRUE_; }

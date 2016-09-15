@@ -106,19 +106,20 @@ extern int yydebug;
     XOR_ASSIGN = 316,
     OR_ASSIGN = 317,
     TRANSFORM = 318,
-    OR = 319,
-    AND = 320,
-    EQ = 321,
-    NEQ = 322,
-    LTE = 323,
-    GTE = 324,
-    LSHIFT = 325,
-    RSHIFT = 326,
-    INC = 327,
-    DEC = 328,
-    UMINUS = 329,
-    POSTINC = 330,
-    POSTDEC = 331
+    READY = 319,
+    OR = 320,
+    AND = 321,
+    EQ = 322,
+    NEQ = 323,
+    LTE = 324,
+    GTE = 325,
+    LSHIFT = 326,
+    RSHIFT = 327,
+    INC = 328,
+    DEC = 329,
+    UMINUS = 330,
+    POSTINC = 331,
+    POSTDEC = 332
   };
 #endif
 
@@ -137,7 +138,7 @@ union YYSTYPE
     SymTab*             pSymTab;
     const SymDataType*  pSymDataType;
 
-#line 141 "compose_parser.h" /* yacc.c:1909  */
+#line 142 "compose_parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
