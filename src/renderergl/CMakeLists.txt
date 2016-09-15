@@ -28,6 +28,7 @@ SET (shaders_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 INCLUDE (${shaders_dir}/codegen.cmake)
 
 SET (renderergl_SOURCES
+  FrameGL.h
   gaen_opengl.h
   Renderer.h
   RendererMesh.h
