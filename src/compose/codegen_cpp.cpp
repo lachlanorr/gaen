@@ -837,6 +837,10 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                     code += I + S("}\n");
                 }
             }
+            else if (pPropInit->type == kAST_ReadyInit)
+            {
+                // This is a no-op. Calling codegen_ready_message utilizes the ready initializer
+            }
             else
             {
                 // Ensure the property is valid
