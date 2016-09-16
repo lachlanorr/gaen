@@ -762,10 +762,11 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
                 mIsRunning = false;
             }
         }
-        else
-        {
-            LOG_INFO("None HASH::shutdown__ message received during finalization, msgid: %u", msg.msgId);
-        }
+
+        // We may get some other messages here, but we ignore them.
+        // Examples include cleanup messages related to shutting down, like:
+        // HASH::remove_task
+        // HASH::release_asset__
     }
     else
     {

@@ -50,7 +50,9 @@ public:
     Entity(u32 nameHash,
            u32 childrenMax,
            u32 componentsMax,
-           u32 blocksMax);
+           u32 blocksMax,
+           task_id creatorTask,
+           u32 readyMessage);
     ~Entity();
 
     const Task & task() const { return mTask; }
@@ -88,6 +90,11 @@ public:
     void collect();
 
     void requestAsset(u32 subTaskId, u32 nameHash, const CmpString & path);
+
+    static void send_ready_init(u32 sourceTaskId, u32 targetTaskId, u32 message);
+    static void send_ready_notify(u32 sourceTaskId, u32 targetTaskId, u32 message);
+    void readyInit(u32 message);
+    void readyNotify(u32 message);
 protected:
     enum InitStatus
     {
@@ -145,7 +152,6 @@ protected:
 
     bool mIsTransformDirty;
     glm::mat4x3 mTransform;
-    glm::mat4x3 mParentTransform;
 
     u32 mPlayer;
 
@@ -172,6 +178,22 @@ protected:
     u32 mAssetsLoaded;
 
     EntityInit * mpEntityInit;
+
+
+    // Ready notification members
+    task_id mCreatorTask;
+    u32 mReadyMessage;
+    struct ReadyInfo
+    {
+        u32 message;
+        i32 waitingCount;
+        void clear() { message = 0; waitingCount = 0; }
+    };
+    static const u32 kReadyInfoCount = 4;
+    ReadyInfo mReadyInfos[kReadyInfoCount];
+    void notifyCreatorReady();
+    ReadyInfo * findReadyInfo(u32 message);
+
 };
 
 } // namespace gaen

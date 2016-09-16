@@ -844,6 +844,9 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
 
                 SymRec * pSymRec = symtab_find_symbol(pPropsSymTab, propName);
 
+                if (!pSymRec)
+                    COMP_ERROR(pAst->pParseData, "Unknown property: %s", propName);
+
                 ScriptDataCategory cat = data_category(pSymRec->pAst);
                 if (cat == dataCategory)
                 {
@@ -931,6 +934,22 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
         }
     }
 
+    return code;
+}
+
+static S codegen_ready_message(Ast * pAst)
+{
+    S code = S("0"); // default to 0 if no ready message was specified
+    if (pAst && pAst->pChildren)
+    {
+        for (Ast * pPropInit : pAst->pChildren->nodes)
+        {
+            if (pPropInit->type == kAST_ReadyInit)
+            {
+                code = codegen_recurse(pPropInit->pRhs, 0);
+            }
+        }
+    }
     return code;
 }
 
@@ -1168,7 +1187,7 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
 
         code += I + S("task_id ") + entity_init_func(pAst->str) + S("(") + closureParams + S(")") + LF;
         code += I + S("{") + LF;
-        code += I + S("    Entity * pEntity = get_registry().constructEntity(") + hash_literal(pAst->pSymRecRef->fullName) + S(", 8);") + LF;
+        code += I + S("    Entity * pEntity = get_registry().constructEntity(") + hash_literal(pAst->pSymRecRef->fullName) + S(", 8, self().task().id(), ") + codegen_ready_message(pAst->pRhs) + (");") + LF;
         code += I + S("    ") + entity_init_class(pAst->str) + S(" * pEntityInit = GNEW(kMEM_Engine, ") + entity_init_class(pAst->str) + S(", this, pEntity");
         S closureArgs = closure_args(pClosure);
         if (closureArgs.size() > 0)
@@ -1485,9 +1504,9 @@ static S codegen_recurse(const Ast * pAst,
         code += codegen_helper_funcs(pAst);
 
         code += I + S("public:\n");
-        code += I + S("    static Entity * construct(u32 childCount)\n");
+        code += I + S("    static Entity * construct(u32 childCount, task_id creatorTask, u32 readyMessage)\n");
         code += I + S("    {\n");
-        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount);\n");
+        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount, creatorTask, readyMessage);\n");
         code += I + S("    }\n");
         code += I + S("\n");
 
@@ -1583,8 +1602,8 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("private:\n");
 
         // Constructor
-        code += I + S("    ") + entName + S("(u32 childCount)\n");
-        code += I + S("      : Entity(") + hash_literal(entName.c_str()) + S(", childCount, 36, 36) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
+        code += I + S("    ") + entName + S("(u32 childCount, task_id creatorTask, u32 readyMessage)\n");
+        code += I + S("      : Entity(") + hash_literal(entName.c_str()) + S(", childCount, 36, 36, creatorTask, readyMessage) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
         code += I + S("    {\n");
 
         // Initialize mBlockSize

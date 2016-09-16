@@ -50,9 +50,13 @@ namespace gaen
 Entity::Entity(u32 nameHash,
                u32 childrenMax,
                u32 componentsMax,
-               u32 blocksMax)
+               u32 blocksMax,
+               task_id creatorTask,
+               u32 readyMessage)
   : mpParent(nullptr)
   , mpBlockMemory(nullptr)
+  , mCreatorTask(creatorTask)
+  , mReadyMessage(readyMessage)
 {
     mTransform = glm::mat4x3(1.0f);
     mIsTransformDirty = false;
@@ -93,6 +97,11 @@ Entity::Entity(u32 nameHash,
     mIsDead = false;
 
     mpEntityInit = nullptr;
+
+    memset(mReadyInfos, 0, sizeof(mReadyInfos));
+    // Send our creator a ready_init
+    if (mCreatorTask != 0 && mReadyMessage != 0)
+        send_ready_init(task().id(), mCreatorTask, mReadyMessage);
 
     // LORRTEMP
     //LOG_INFO("Entity created: id: %u, name: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()));
@@ -140,7 +149,7 @@ void Entity::finSelf()
 
 Entity * Entity::activate_start_entity(u32 entityHash)
 {
-    Entity * pEntity = get_registry().constructEntity(entityHash, 32);
+    Entity * pEntity = get_registry().constructEntity(entityHash, 32, 0, 0);
 
     if (pEntity)
     {
@@ -157,6 +166,20 @@ Entity * Entity::activate_start_entity(u32 entityHash)
 void Entity::update(f32 delta)
 {
     ASSERT(mInitStatus == kIS_Activated);
+
+    // Look for any ready notifications that should be processed
+    for (u32 i = 0; i < kReadyInfoCount; ++i)
+    {
+        if (mReadyInfos[i].message != 0 && mReadyInfos[i].waitingCount == 0)
+        {
+            // All tasks we were waiting on have notified us, send us the ready message.
+            u32 msg = mReadyInfos[i].message;
+            mReadyInfos[i].clear();
+            StackMessageBlockWriter<0> msgw(msg, kMessageFlag_None, task().id(), scriptTask().id(), to_cell(0));
+            scriptTask().message(msgw.accessor());
+        }
+    }
+
 
     mScriptTask.update(delta);
 
@@ -274,7 +297,7 @@ MessageResult Entity::message(const T & msgAcc)
         // since they can come in very early in initialization
         // and we don't have any reason to prevent them from
         // going through at any stage of an Entity's life.
-        if (msgId == HASH::set_property)
+        else if (msgId == HASH::set_property)
         {
             mScriptTask.message(msgAcc);
             return MessageResult::Consumed;
@@ -286,6 +309,18 @@ MessageResult Entity::message(const T & msgAcc)
         {
             switch (msgId)
             {
+            case HASH::ready_init:
+            {
+                u32 readyMessage = msgAcc.message().payload.u;
+                readyInit(readyMessage);
+                return MessageResult::Consumed;
+            }
+            case HASH::ready_notify:
+            {
+                u32 readyMessage = msgAcc.message().payload.u;
+                readyNotify(readyMessage);
+                return MessageResult::Consumed;
+            }
             case HASH::insert_component:
             {
                 messages::InsertComponentR<T> msgr(msgAcc);
@@ -640,10 +675,14 @@ void Entity::finalizeAssetInit()
         mpEntityInit = nullptr;
     }
 
+    // Send the #init message, which may be handled explicitly in the script
     {
     StackMessageBlockWriter<0> msg(HASH::init, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
     mTask.message(msg.accessor());
     }
+
+    // Entity is now fully initialized, if it has a ready message, notify the creator
+    notifyCreatorReady();
 }
 
 Task& Entity::insertComponent(u32 nameHash, u32 index)
@@ -861,6 +900,71 @@ void Entity::requestAsset(u32 subTaskId, u32 nameHash, const CmpString & path)
     msgw[0].cells[0].u = nameHash;
     path.writeMessage(msgw.accessor(), 1);
 }
+
+void Entity::send_ready_init(u32 sourceTaskId, u32 targetTaskId, u32 message)
+{
+    MessageQueueWriter msgw(HASH::ready_init, kMessageFlag_None, sourceTaskId, targetTaskId, to_cell(message), 0);
+}
+
+void Entity::send_ready_notify(u32 sourceTaskId, u32 targetTaskId, u32 message)
+{
+    MessageQueueWriter msgw(HASH::ready_notify, kMessageFlag_None, sourceTaskId, targetTaskId, to_cell(message), 0);
+}
+
+void Entity::readyInit(u32 message)
+{
+    ReadyInfo * pRi = findReadyInfo(message);
+    if (pRi)
+    {
+        pRi->waitingCount++;
+    }
+    else
+    {
+        ReadyInfo * pRi = findReadyInfo(0);
+        if (pRi)
+        {
+            pRi->message = message;
+            pRi->waitingCount = 1;
+        }
+        else
+        {
+            ERR("readyInit unable to init, out of ReadyInfo structs: %u", message);
+        }
+    }
+}
+
+void Entity::readyNotify(u32 message)
+{
+    ReadyInfo * pRi = findReadyInfo(message);
+    if (pRi)
+    {
+        ASSERT(pRi->waitingCount > 0);
+        pRi->waitingCount--;
+    }
+    else
+    {
+        ERR("readyNotify to unknown message: %u", message);
+    }
+}
+
+void Entity::notifyCreatorReady()
+{
+    if (mCreatorTask != 0 && mReadyMessage != 0)
+    {
+        send_ready_notify(mTask.id(), mCreatorTask, mReadyMessage);
+    }
+}
+
+Entity::ReadyInfo * Entity::findReadyInfo(u32 message)
+{
+    for (u32 i = 0; i < kReadyInfoCount; ++i)
+    {
+        if (mReadyInfos[i].message == message)
+            return &mReadyInfos[i];
+    }
+    return nullptr;
+}
+
 
 // Template decls so we can define message func here in the .cpp
 template MessageResult Entity::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);

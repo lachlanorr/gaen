@@ -645,13 +645,6 @@ void RendererMesh::showSpriteStage(u32 stageHash)
     {
         it->second->show();
     }
-    else
-    {
-        auto empIt = mSpriteStages.emplace(stageHash,
-                                           GNEW(kMEM_Renderer, SpriteStage, this));
-        ASSERT(empIt.second == true);
-        empIt.first->second->show();
-    }
 }
 
 void RendererMesh::hideSpriteStage(u32 stageHash)
