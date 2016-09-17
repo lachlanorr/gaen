@@ -131,7 +131,7 @@ void mangle_function(char * mangledName, i32 mangledNameSize, const char * name,
     strcpy(p, name);
 }
 
-const char * unmangle_function(const char * mangledName)
+const char * unmangle(const char * mangledName)
 {
     const char * lastDoubleDash = strstr(mangledName, "__");
 
@@ -534,6 +534,9 @@ SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
     // Ok, we haven't found the symbol anywhere, including explicit usings.
     // Attempt to implicitly using the containing file.
     {
+        // Unmangle the name, as we mangled it looking for a type
+        name = unmangle(name);
+
         const char * dotPos = strrchr(name, '.');
         if (dotPos)
         {
@@ -1989,7 +1992,7 @@ Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData
         {
             pAst->pSymRecRef = pSymRec;
             ast_set_rhs(pAst, pParams);
-            pAst->str = unmangle_function(pSymRec->name);
+            pAst->str = unmangle(pSymRec->name);
         }
     }
     else
