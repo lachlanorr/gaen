@@ -27,19 +27,17 @@
 #ifndef GAEN_RENDERERGL_SPRITEGL_H
 #define GAEN_RENDERERGL_SPRITEGL_H
 
+#include <glm/mat4x3.hpp>
+
 #include "core/mem.h"
 #include "engine/Sprite.h"
+
+#include "renderergl/RenderCollection.h"
 
 namespace gaen
 {
 
 class RendererMesh;
-
-enum SpriteGLStatus
-{
-    kSGLS_Active,
-    kSGLS_Destroyed
-};
 
 class SpriteGL
 {
@@ -47,7 +45,7 @@ public:
     SpriteGL(SpriteInstance * pSpriteInstance, RendererMesh * pRenderer)
       : mpSpriteInstance(pSpriteInstance)
       , mpRenderer(pRenderer)
-      , status(kSGLS_Active)
+      , mStatus(kRIS_Active)
       , vertArrayId(0)
       , vertBufferId(0)
       , primBufferId(0)
@@ -56,14 +54,27 @@ public:
     {}
 
     void loadGpu();
+    void unloadGpu();
     void render();
 
+    void animate(u32 animHash, u32 animFrameIdx);
+
     void prepareMeshAttributes();
-    
+
+    u32 uid() const { return mpSpriteInstance->sprite().uid(); }
+    f32 order() const { return mpSpriteInstance->zdepth(); }
+
+    const glm::mat4x3 & transform() { return mpSpriteInstance->mTransform; }
+    void setTransform(const glm::mat4x3 & transform) { mpSpriteInstance->mTransform = transform; }
+
+    RenderItemStatus status() { return mStatus; }
+    void setStatus(RenderItemStatus status) { mStatus = status; }
+
+private:
     UniquePtr<SpriteInstance> mpSpriteInstance;
     RendererMesh * mpRenderer;
 
-    SpriteGLStatus status;
+    RenderItemStatus mStatus;
 
     u32 vertArrayId;
     u32 vertBufferId;

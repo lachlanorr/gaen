@@ -58,6 +58,13 @@ void SpriteGL::loadGpu()
     mpRenderer->unbindBuffers();
 }
 
+void SpriteGL::unloadGpu()
+{
+    mpRenderer->unloadTexture(&mpSpriteInstance->sprite().image());
+    mpRenderer->unloadGlyphVerts(mpSpriteInstance->sprite().verts());
+    mpRenderer->unloadGlyphTris(mpSpriteInstance->sprite().tris());
+}
+
 void SpriteGL::render()
 {
 #if HAS(OPENGL3)
@@ -73,6 +80,11 @@ void SpriteGL::render()
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, mpSpriteInstance->currentFrameElemsOffset());
 
     mpRenderer->unbindBuffers();
+}
+
+void SpriteGL::animate(u32 animHash, u32 animFrameIdx)
+{
+    mpSpriteInstance->animate(animHash, animFrameIdx);
 }
 
 void SpriteGL::prepareMeshAttributes()

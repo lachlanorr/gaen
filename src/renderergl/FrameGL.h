@@ -32,6 +32,8 @@ namespace gaen
 
 class FrameGL
 {
+public:
+    u32 uid() { return 0; /* TODO */ }
 
 };
 

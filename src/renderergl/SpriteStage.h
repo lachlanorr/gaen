@@ -29,10 +29,8 @@
 
 #include "core/base_defines.h"
 
-#include "core/HashMap.h"
-#include "core/Map.h"
-
 #include "renderergl/SpriteGL.h"
+#include "renderergl/FrameGL.h"
 
 namespace gaen
 {
@@ -48,7 +46,8 @@ public:
       , mIsShown(false)
     {}
 
-    size_t spriteCount() { return mOrderedSprites.size(); }
+    u32 spritesSize() { return mSprites.size(); }
+    u32 framesSize() { return mFrames.size(); }
 
     void insertSprite(SpriteInstance * pSpriteInst);
     bool animateSprite(u32 uid, u32 animHash, u32 animFrameIdx);
@@ -58,78 +57,21 @@ public:
     bool isShown() { return mIsShown; }
     void show() { mIsShown = true; }
     void hide() { mIsShown = false; }
-
-private:
-    typedef HashMap<kMEM_Renderer, u32, SpriteGLUP> SpriteMap;
-    typedef MultiMap<kMEM_Renderer, f32, SpriteGL*> OrderedSpriteMap;
-
-public:
-    class Iter
-    {
-        friend class SpriteStage;
-    public:
-        Iter& operator++()
-        {
-            ++mOsmIt;
-            return *this;
-        }
-
-        Iter operator++(int)
-        {
-            Iter tmp(*this);
-            operator++();
-            return tmp;
-        }
-
-        SpriteGL * operator*()
-        {
-            return mOsmIt->second;
-        }
-
-        const SpriteGL * operator*() const
-        {
-            return mOsmIt->second;
-        }
-
-        SpriteGL * operator->()
-        {
-            return mOsmIt->second;
-        }
-
-        const SpriteGL * operator->() const
-        {
-            return mOsmIt->second;
-        }
-
-        bool operator==(const Iter & rhs)
-        {
-            return mOsmIt == rhs.mOsmIt;
-        }
-
-        bool operator!=(const Iter & rhs)
-        {
-            return mOsmIt != rhs.mOsmIt;
-        }
-    private:
-        Iter(OrderedSpriteMap::iterator osmIt)
-          : mOsmIt(osmIt)
-        {}
-        
-        OrderedSpriteMap::iterator mOsmIt;
-    }; // class Iter
     
-    Iter begin() { return Iter(mOrderedSprites.begin()); }
-    Iter end()   { return Iter(mOrderedSprites.end()); }
-    void erase(Iter it);
+    RenderCollection<SpriteGL>::Iter beginSprites()       { return mSprites.begin(); }
+    RenderCollection<SpriteGL>::Iter endSprites()         { return mSprites.end(); }
+    void eraseSprite(RenderCollection<SpriteGL>::Iter it) { mSprites.erase(it); }
+
+    RenderCollection<FrameGL>::Iter beginFrames()       { return mFrames.begin(); }
+    RenderCollection<FrameGL>::Iter endFrames()         { return mFrames.end(); }
+    void eraseFrame(RenderCollection<FrameGL>::Iter it) { mFrames.erase(it); }
 
 private:
     RendererMesh * mpRenderer;
     bool mIsShown;
-    
-    SpriteMap mSprites;
 
-    OrderedSpriteMap mOrderedSprites;
-
+    RenderCollection<SpriteGL> mSprites;
+    RenderCollection<FrameGL> mFrames;
     
 }; // class SpriteStage
 

@@ -394,30 +394,28 @@ void RendererMesh::render()
     setActiveShader(HASH::sprite);
     for (auto & stagePair : mSpriteStages)
     {
-        if (stagePair.second->isShown() && stagePair.second->spriteCount() > 0)
+        if (stagePair.second->isShown() && stagePair.second->spritesSize() > 0)
         {
             //static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
             //glm::mat4 mvp = mGuiProjection; // * view  ;// * glm::mat4x4(0.05); // to_mat4x4(matMeshInst.pModelInstance->transform);
 
-            for(auto it = stagePair.second->begin();
-                it != stagePair.second->end();
+            for(auto it = stagePair.second->beginSprites();
+                it != stagePair.second->endSprites();
                 /* no increment so we can remove while iterating */)
             {
                 SpriteGL * pSpriteGL = *it;
-                if (pSpriteGL->status == kSGLS_Active)
+                if (pSpriteGL->status() == kRIS_Active)
                 {
-                    glm::mat4 mvp = mGuiProjection * to_mat4x4(pSpriteGL->mpSpriteInstance->mTransform);
+                    glm::mat4 mvp = mGuiProjection * to_mat4x4(pSpriteGL->transform());
                     mpActiveShader->setUniformMat4(HASH::proj, mvp);
                     pSpriteGL->render();
                     ++it;
                 }
-                else if (pSpriteGL->status == kSGLS_Destroyed)
+                else if (pSpriteGL->status() == kRIS_Destroyed)
                 {
-                    unloadTexture(&pSpriteGL->mpSpriteInstance->sprite().image());
-                    unloadGlyphVerts(pSpriteGL->mpSpriteInstance->sprite().verts());
-                    unloadGlyphTris(pSpriteGL->mpSpriteInstance->sprite().tris());
+                    pSpriteGL->unloadGpu();
 
-                    stagePair.second->erase(it++);
+                    stagePair.second->eraseSprite(it++);
                 }
             }
         }

@@ -38,13 +38,9 @@ void SpriteStage::insertSprite(SpriteInstance * pSpriteInst)
     ASSERT(pSpriteInst);
     ASSERT(mSprites.find(pSpriteInst->sprite().uid()) == mSprites.end());
 
-    SpriteGLUP spriteGL(GNEW(kMEM_Renderer, SpriteGL, pSpriteInst, mpRenderer));
-
-    spriteGL->loadGpu();
-    
-    mOrderedSprites.emplace(pSpriteInst->zdepth(), spriteGL.get());
-    mSprites.emplace(pSpriteInst->sprite().uid(), std::move(spriteGL));
-    ASSERT(mOrderedSprites.size() == mSprites.size());
+    SpriteGLUP pSpriteGL(GNEW(kMEM_Renderer, SpriteGL, pSpriteInst, mpRenderer));
+    pSpriteGL->loadGpu();
+    mSprites.insert(std::move(pSpriteGL));
 }
 
 bool SpriteStage::animateSprite(u32 uid, u32 animHash, u32 animFrameIdx)
@@ -52,7 +48,7 @@ bool SpriteStage::animateSprite(u32 uid, u32 animHash, u32 animFrameIdx)
     auto it = mSprites.find(uid);
     if (it != mSprites.end())
     {
-        it->second->mpSpriteInstance->animate(animHash, animFrameIdx);
+        it->animate(animHash, animFrameIdx);
         return true;
     }
     return false;
@@ -63,30 +59,12 @@ bool SpriteStage::transformSprite(u32 uid, const glm::mat4x3 & transform)
     auto it = mSprites.find(uid);
     if (it != mSprites.end())
     {
-        SpriteGL * pOrderedSprite = nullptr;
-        // if the z value has changed, we need to reorganize in the ordered map
-        if (it->second->mpSpriteInstance->zdepth() != transform[3][2])
+        f32 oldOrder = it->order();
+        it->setTransform(transform);
+        if (oldOrder != it->order())
         {
-            // remove from ordered list
-            auto range = mOrderedSprites.equal_range(it->second->mpSpriteInstance->zdepth());
-            for (auto itOrd = range.first; itOrd != range.second; ++itOrd)
-            {
-                if (itOrd->second->mpSpriteInstance->sprite().uid() == uid)
-                {
-                    pOrderedSprite = it->second.get();
-                    mOrderedSprites.erase(itOrd);
-                    break;
-                }
-            }
-            ASSERT(pOrderedSprite);
+            mSprites.reorder(uid);
         }
-        it->second->mpSpriteInstance->mTransform = transform;
-        if (pOrderedSprite)
-        {
-            // zdepth changed, reinsert into ordered list
-            mOrderedSprites.emplace(pOrderedSprite->mpSpriteInstance->zdepth(), pOrderedSprite);
-        }
-
         return true;
     }
     return false;
@@ -98,20 +76,13 @@ bool SpriteStage::destroySprite(u32 uid)
     if (it != mSprites.end())
     {
         // Mark destroyed, it will get pulled from maps during next render pass.
-        it->second->status = kSGLS_Destroyed;
+        it->setStatus(kRIS_Destroyed);
 
         SpriteInstance::send_sprite_destroy(kRendererTaskId, kSpriteMgrTaskId, uid);
 
         return true;
     }
     return false;
-}
-
-void SpriteStage::erase(Iter it)
-{
-    mSprites.erase(it->mpSpriteInstance->sprite().uid());
-    mOrderedSprites.erase(it.mOsmIt);
-    ASSERT(mOrderedSprites.size() == mSprites.size());
 }
 
 } // namespace gaen
