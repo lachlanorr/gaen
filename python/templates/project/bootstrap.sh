@@ -8,7 +8,7 @@ BUILD_ROOT=$<<PROJECT_NAME_UPPER>>_ROOT/build
 # anyone who has cloned the project specific repository and is running
 # bootstrap.sh for the first time.
 if [ ! -d "./gaen" ]; then
-    git clone -b <<GAEN_GIT_BRANCH>> <<GAEN_GIT_REMOTE>> gaen
+    git clone -b --recursive <<GAEN_GIT_BRANCH>> <<GAEN_GIT_REMOTE>> gaen
     cd gaen
     git checkout <<GAEN_GIT_COMMIT>>
     cd ..

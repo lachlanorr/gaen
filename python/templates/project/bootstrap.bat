@@ -14,7 +14,7 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 :: anyone who has cloned the project specific repository and is running
 :: bootstrap.bat for the first time.
 IF NOT EXIST .\gaen (
-  git clone -b <<GAEN_GIT_BRANCH>> <<GAEN_GIT_REMOTE>> gaen
+  git clone -b --recursive <<GAEN_GIT_BRANCH>> <<GAEN_GIT_REMOTE>> gaen
   if %errorlevel% neq 0 exit /b %errorlevel%
   cd gaen
   git checkout <<GAEN_GIT_COMMIT>>

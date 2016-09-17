@@ -6,6 +6,10 @@ SETLOCAL
 :: Change to root dir
 CD /d %~dp0
 
+:: Pull down our submodules
+git submodule init
+git submodule update
+
 :: Write root directory to main GAEN_ROOT env var
 FOR /f "tokens=1" %%B in ('CHDIR') do set GAEN_ROOT=%%B
 
