@@ -43,7 +43,7 @@ void RENDERER_TYPE::initRenderDevice()
     // We have to wait until here to do this since if you call it too
     // early, the GL driver dll hasn't been loaded and
     // wglGetProcAddress will return NULL for all functions.
-    init_win32gl();
+    gladLoadGL();
 }
 
 void RENDERER_TYPE::endFrame()

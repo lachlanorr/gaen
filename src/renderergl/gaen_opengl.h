@@ -30,11 +30,14 @@
 #include "core/base_defines.h"
 
 #if IS_PLATFORM_WIN32
+// #ifndef APIENTRY
+//  #define APIENTRY __stdcall
+// #endif
  #ifndef WIN32_LEAN_AND_MEAN
   #define WIN32_LEAN_AND_MEAN
  #endif // #ifndef WIN32_LEAN_AND_MEAN
  #include <windows.h>
- #include "renderergl/win32gl.h"
+ #include "glad/glad.h"
  namespace gaen
  {
  typedef HDC device_context;
@@ -43,6 +46,9 @@
  #define OPENGL3 HAS_X
  #define GL_CLEAR_DEPTH glClearDepth
  #define SHADER_HEADER "#version 430 core\n#define OPENGL3\n"
+
+// LORRTODO: Switched windows to use glad, work needs to be done on
+// OSX and Linux, leaving for now.
 #elif IS_PLATFORM_OSX
  #include <OpenGL/gl3.h>
  namespace gaen

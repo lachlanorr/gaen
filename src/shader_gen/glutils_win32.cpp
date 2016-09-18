@@ -25,12 +25,9 @@
 //------------------------------------------------------------------------------
 
 #include <windows.h>
+#include <glad/glad.h>
 
 #include "core/base_defines.h"
-
-#if IS_PLATFORM_WIN32
-#include "renderergl/win32gl.h"
-#endif
 
 namespace gaen
 {
@@ -119,7 +116,7 @@ void init_opengl()
     // We have to wait until here to do this since if you call it too
     // early, the GL driver dll hasn't been loaded and
     // wglGetProcAddress will return NULL for all functions.
-    init_win32gl();
+    gladLoadGL();
 }
 
 void fin_opengl()

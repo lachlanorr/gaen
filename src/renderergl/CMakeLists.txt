@@ -47,17 +47,18 @@ SET (renderergl_SOURCES
   ${shaders_codegen_SOURCES}
   )
 
-IF (WIN32)
-  SET(renderergl_SOURCES ${renderergl_SOURCES}
-    win32gl.cpp
-    win32gl.h
-    )
-ENDIF (WIN32)
-
 IDE_SOURCE_PROPERTIES( "/" "${renderergl_SOURCES}")
+
+SET (glad_SOURCES
+  ${ext_dir}/glad/src/glad.c
+  ${ext_dir}/glad/include/glad/glad.h
+  ${ext_dir}/glad/include/KHR/khrplatform.h
+  )
+IDE_SOURCE_PROPERTIES( "/glad" "${glad_SOURCES}")
 
 ADD_LIBRARY (renderergl
   ${renderergl_SOURCES}
+  ${glad_SOURCES}
   )
 
 ADD_DEPENDENCIES(renderergl

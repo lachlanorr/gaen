@@ -28,14 +28,19 @@ SET (shader_gen_SOURCES
   shader_gen.cpp
   glutils.h
   glutils_${platform}.${platform_ext}
-  ../renderergl/win32gl.cpp
-  ../renderergl/win32gl.h
   )
-
 IDE_SOURCE_PROPERTIES( "/" "${shader_gen_SOURCES}")
+
+SET (glad_SOURCES
+  ${ext_dir}/glad/src/glad.c
+  ${ext_dir}/glad/include/glad/glad.h
+  ${ext_dir}/glad/include/KHR/khrplatform.h
+  )
+IDE_SOURCE_PROPERTIES( "/glad" "${glad_SOURCES}")
 
 ADD_EXECUTABLE (shader_gen
   ${shader_gen_SOURCES}
+  ${glad_SOURCES}
   )
 
 TARGET_LINK_LIBRARIES (shader_gen
