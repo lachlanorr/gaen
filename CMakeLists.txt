@@ -152,6 +152,30 @@ SET (BULLET_LIBS
      debug ${BULLET_PATH}/bullet-build/lib/Debug/BulletCollision_Debug.lib
      debug ${BULLET_PATH}/bullet-build/lib/Debug/LinearMath_Debug.lib
      )
+
+# glfw
+SET (GLFW_VER "3.2.1")
+SET (GLFW_NAME_VER "glfw-${GLFW_VER}")
+SET (GLFW_PATH "${CMAKE_CURRENT_BINARY_DIR}/glfw/src")
+ExternalProject_Add(glfw
+  URL "${ext_dir}/${GLFW_NAME_VER}.zip"
+  URL_MD5 824c99eea073bdd6d2fec76b538f79af
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/glfw
+  INSTALL_COMMAND ""
+  CMAKE_ARGS "-DCMAKE_CXX_FLAGS_DEBUG:STRING=/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1"
+             "-DCMAKE_CXX_FLAGS_MINSIZEREL:STRING=/MT /O1 /Ob1 /D NDEBUG"
+             "-DCMAKE_CXX_FLAGS_RELEASE:STRING=/MT /O2 /Ob2 /D NDEBUG"
+             "-DCMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=/MT /Zi /O2 /Ob1 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_DEBUG:STRING=/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1"
+             "-DCMAKE_C_FLAGS_MINSIZEREL:STRING=/MT /O1 /Ob1 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_RELEASE:STRING=/MT /O2 /Ob2 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_RELWITHDEBINFO:STRING=/MT /Zi /O2 /Ob1 /D NDEBUG"
+)
+INCLUDE_DIRECTORIES (${GLFW_PATH}/glfw/include)
+SET (GLFW_LIBS
+     optimized ${GLFW_PATH}/glfw-build/src/Release/glfw3.lib
+     debug ${GLFW_PATH}/glfw-build/src/Debug/glfw3.lib
+     )
 #-------------------------------------------------------------------------------
 # External dependencies (END)
 #-------------------------------------------------------------------------------

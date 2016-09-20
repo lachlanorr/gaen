@@ -24,7 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include <windows.h>
 #include <glad/glad.h>
 
 #include "core/base_defines.h"

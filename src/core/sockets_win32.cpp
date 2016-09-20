@@ -26,6 +26,8 @@
 
 #include "core/stdafx.h"
 
+#include <winsock2.h>
+
 #include "core/sockets.h"
 
 namespace gaen

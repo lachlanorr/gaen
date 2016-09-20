@@ -27,16 +27,6 @@
 #ifndef GAEN_CORE_SOCKETS_H
 #define GAEN_CORE_SOCKETS_H
 
-#if IS_PLATFORM_WIN32
-#include <winsock2.h>
-#elif IS_PLATFORM_POSIX // #if IS_PLATFORM_WIN32
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#else  // #elif IS_PLATFORM_POSIX
-#error Unsupported C++ compiler
-#endif // #if IS_PLATFORM_WIN32
-
 #include "core/base_defines.h"
 
 namespace gaen
@@ -47,7 +37,7 @@ extern const u16 kLoggingPort;
 //static u16 kProfilePort = 0x6AEF;
 
 #if IS_PLATFORM_WIN32
-typedef SOCKET Sock;
+typedef uintptr_t Sock;
 #elif IS_PLATFORM_POSIX // #if IS_PLATFORM_WIN32
 typedef int Sock;
 #else  // #elif IS_PLATFORM_POSIX

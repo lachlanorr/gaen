@@ -36,21 +36,32 @@ void RENDERER_TYPE::initRenderDevice()
 {
     ASSERT(mIsInit);
 
-    if (!wglMakeCurrent(mDeviceContext, mRenderContext))
-        PANIC("Cannot activate GL rendering context");
+    glfwMakeContextCurrent((GLFWwindow*)mpRenderDevice);
 
     // Prepare our GL function pointers.
     // We have to wait until here to do this since if you call it too
     // early, the GL driver dll hasn't been loaded and
     // wglGetProcAddress will return NULL for all functions.
-    gladLoadGL();
+    gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+    glfwSwapBuffers((GLFWwindow*)mpRenderDevice);
 }
 
 void RENDERER_TYPE::endFrame()
 {
     ASSERT(mIsInit);
 
-    SwapBuffers(mDeviceContext);
+    static bool sIsVisible = false;
+
+    glfwSwapBuffers((GLFWwindow*)mpRenderDevice);
+
+    // Show the window which starts as not visible.
+    // Starting with a visible window gives a nasty white window on
+    // screen before our renderer initializes.
+    if (!sIsVisible)
+    {
+        glfwShowWindow((GLFWwindow*)mpRenderDevice);
+        sIsVisible = true;
+    }
 }
 
 } // namespace gaen

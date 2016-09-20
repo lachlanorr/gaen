@@ -101,7 +101,7 @@ private:
         {}
     };
 
-    bool queryKeyCode(KeyCode keyCode);
+    bool queryKey(Key key);
     u32 queryState(const glm::ivec4 & keys);
 
     void processKeyInput(const KeyInput & keyInput);

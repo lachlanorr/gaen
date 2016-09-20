@@ -26,11 +26,18 @@
 
 #include "core/stdafx.h"
 
+#if IS_PLATFORM_WIN32
 // LORRTODO: Need to work out the IP6 solution with inet_notoa nad inet_addr below.
 // For now, pretty low priority.
-#if (IS_PLATFORM_WIN32)
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-#endif // #if (IS_PLATFORM_WIN32)
+#include <winsock2.h>
+#elif IS_PLATFORM_POSIX // #if IS_PLATFORM_WIN32
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#else  // #elif IS_PLATFORM_POSIX
+#error Unsupported C++ compiler
+#endif // #if IS_PLATFORM_WIN32
 
 #include "core/sockets.h"
 

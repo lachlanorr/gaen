@@ -70,8 +70,7 @@ public:
         kMSHR_PrimBuffer = 2
     };
 
-    void init(device_context deviceContext,
-              render_context renderContext,
+    void init(void * pRenderDevice,
               u32 screenWidth,
               u32 screenHeight);
 
@@ -94,8 +93,7 @@ private:
 
     bool mIsInit = false;
     
-    device_context mDeviceContext = 0;
-    render_context mRenderContext = 0;
+    void * mpRenderDevice = nullptr;
     u32 mScreenWidth = 0;
     u32 mScreenHeight = 0;
 

@@ -24,10 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 
 #include "core/logging.h"
 #include "core/platutils.h"
@@ -37,330 +35,37 @@
 #include "renderergl/gaen_opengl.h"
 #include "gaen/gaen.h"
 
-// Set INPUT_LOGGING to HAS_X to log raw mouse/keyboard inputs
-#define INPUT_LOGGING HAS__
-#if HAS(INPUT_LOGGING)
-#define LOG_INPUT LOG_INFO
-#else
-#define LOG_INPUT(...)
-#endif
-
-
-// Force Optimus enabled systems to use Nvidia adapter
-extern "C"
+void glfw_error_callback(int error, const char * description)
 {
-    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+    ERR("GLFW ERROR: %d - %s", error, description);
 }
 
-namespace gaen
+void glfw_focus_callback(GLFWwindow * pWindow, int focused)
 {
-
-static const char * kClassName = "GaenMainWindow";
-
-static HINSTANCE sHinstance = 0;
-static HWND sHwnd = 0;
-static HDC sHdc = 0;
-static HGLRC sHrc = 0;
-
-static bool sFullScreen = false;
-
-static const size_t kKeyCount = 256;
-static bool sKeys[kKeyCount];
-
-LRESULT CALLBACK wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-    switch(msg)
-    {
-
-        // TODO: LORR 2011-06-01 - Consider handling WM_ACTIVATE to pause on minimize
-        //case WM_ACTIVATE:
-        //active_ = !HIWORD(wParam);
-        //return 0;
-
-    case WM_SYSCOMMAND:
-        // Prevent screen saver and power save modes
-        switch(wParam)
-        {
-        case SC_SCREENSAVE:
-        case SC_MONITORPOWER:
-            return 0;
-        }
-        break;
-
-    case WM_CLOSE:
-        PostQuitMessage(0);
-        return 0;
-
-    case WM_KILLFOCUS:
-        kill_focus();
-        return 0;
-
-    case WM_INPUT:
-    {
-        const u32 kMaxInputBufferSize = 256;
-        u8 inputBuffer[kMaxInputBufferSize];
-
-        u32 inputBufferSize = 0;
-        GetRawInputData((HRAWINPUT)lParam,
-                        RID_INPUT,
-                        NULL,
-                        &inputBufferSize,
-                        sizeof(RAWINPUTHEADER));
-
-        if (inputBufferSize > kMaxInputBufferSize)
-        {
-            PANIC("RawInput buffer size too large: %d", inputBufferSize);
-            return 0;
-        }
-
-        GetRawInputData((HRAWINPUT)lParam,
-                        RID_INPUT,
-                        inputBuffer,
-                        &inputBufferSize,
-                        sizeof(RAWINPUTHEADER));
-
-        RAWINPUT* pRaw = (RAWINPUT*)inputBuffer;
-
-        if (pRaw->header.dwType == RIM_TYPEKEYBOARD)
-        {
-            LOG_INPUT("WM_INPUT Keyboard: make=%04x Flags:%04x Reserved:%04x ExtraInformation:%08x, msg=%04x VK=%04x",
-                      pRaw->data.keyboard.MakeCode,
-                      pRaw->data.keyboard.Flags,
-                      pRaw->data.keyboard.Reserved,
-                      pRaw->data.keyboard.ExtraInformation,
-                      pRaw->data.keyboard.Message,
-                      pRaw->data.keyboard.VKey);
-
-            process_key_input(pRaw);
-
-        }
-        else if (pRaw->header.dwType == RIM_TYPEMOUSE)
-        {
-            LOG_INPUT("WM_INPUT Mouse: usFlags=%04x ulButtons=%04x usButtonFlags=%04x usButtonData=%04x ulRawButtons=%04x lLastX=%4d lLastY=%4d ulExtraInformation=%04x",
-                      pRaw->data.mouse.usFlags,
-                      pRaw->data.mouse.ulButtons,
-                      pRaw->data.mouse.usButtonFlags,
-                      pRaw->data.mouse.usButtonData,
-                      pRaw->data.mouse.ulRawButtons,
-                      pRaw->data.mouse.lLastX,
-                      pRaw->data.mouse.lLastY,
-                      pRaw->data.mouse.ulExtraInformation);
-            process_mouse_input(pRaw);
-        }
-        //return DefWindowProc(hWnd, msg, wParam, lParam);
-        return 0;
-    }
-
-    case WM_KEYDOWN:
-        sKeys[wParam] = true;
-        return 0;
-
-    case WM_KEYUP:
-        sKeys[wParam] = false;
-        return 0;
-
-    case WM_LBUTTONDOWN:
-        //pmPrimary_->eventMgr().queueEvent(new MouseButton(LOWORD(lParam), HIWORD(lParam), eMouseButton_Left, eMouseButtonState_Down));
-        return 0;
-
-    case WM_LBUTTONUP:
-        //pmPrimary_->eventMgr().queueEvent(new MouseButton(LOWORD(lParam), HIWORD(lParam), eMouseButton_Left, eMouseButtonState_Up));
-        return 0;
-
-    case WM_RBUTTONDOWN:
-        //pmPrimary_->eventMgr().queueEvent(new MouseButton(LOWORD(lParam), HIWORD(lParam), eMouseButton_Right, eMouseButtonState_Down));
-        return 0;
-
-    case WM_RBUTTONUP:
-        //pmPrimary_->eventMgr().queueEvent(new MouseButton(LOWORD(lParam), HIWORD(lParam), eMouseButton_Right, eMouseButtonState_Up));
-        return 0;
-
-    case WM_MBUTTONDOWN:
-        //pmPrimary_->eventMgr().queueEvent(new MouseButton(LOWORD(lParam), HIWORD(lParam), eMouseButton_Middle, eMouseButtonState_Down));
-        return 0;
-
-    case WM_MBUTTONUP:
-        //pmPrimary_->eventMgr().queueEvent(new MouseButton(LOWORD(lParam), HIWORD(lParam), eMouseButton_Middle, eMouseButtonState_Up));
-        return 0;
-
-    case WM_MOUSEMOVE:
-        //pmPrimary_->eventMgr().queueEvent(new MouseMove(LOWORD(lParam), HIWORD(lParam)));
-        return 0;
-
-
-    case WM_SIZE:
-        // LoWord=Width, HiWord=Height
-        // LORRTODO - send message for resize, yet to be defined
-        //RendererS::inst().resizeScene(LOWORD(lParam),HIWORD(lParam)); 
-        return 0;
-    }
-
-    return DefWindowProc(hWnd,msg,wParam,lParam);
+    if (focused == GLFW_FALSE)
+       gaen::kill_focus();
 }
 
-void killGLWindow()
+// Some assertions to make sure our constants line up with glfw's
+static_assert(GLFW_RELEASE == gaen::kKACT_Release, "GLFW_RELEASE != gaen::kKACT_Release");
+static_assert(GLFW_PRESS   == gaen::kKACT_Press,   "GLFW_PRESS   != gaen::kKACT_Press");
+static_assert(GLFW_REPEAT  == gaen::kKACT_Repeat,  "GLFW_REPEAT  != gaen::kKACT_Repeat");
+
+static_assert(GLFW_MOD_SHIFT   == gaen::kKMOD_Shift,   "GLFW_MOD_SHIFT   != gaen::kKMOD_Shift");
+static_assert(GLFW_MOD_CONTROL == gaen::kKMOD_Control, "GLFW_MOD_CONTROL != gaen::kKMOD_Control");
+static_assert(GLFW_MOD_ALT     == gaen::kKMOD_Alt,     "GLFW_MOD_ALT     != gaen::kKMOD_Alt");
+static_assert(GLFW_MOD_SUPER   == gaen::kKMOD_Super,   "GLFW_MOD_SUPER   != gaen::kKMOD_Super");
+
+void glfw_key_callback(GLFWwindow * pWindow, int key, int scancode, int action, int mods)
 {
-    if (sFullScreen)
-    {
-        ChangeDisplaySettings(NULL, 0); // switch back to windowed
-        ShowCursor(TRUE);
-    }
+    gaen::KeyInput keyInput;
+    keyInput.key = gaen::convert_glfw_key(key);
+    keyInput.action = action;
+    keyInput.mods = mods;
+    keyInput.deviceId = 0;
 
-    if (sHrc)
-    {
-        if (!wglMakeCurrent(NULL, NULL))
-            PANIC("Failed to make our rendering context current");
-
-        if (!wglDeleteContext(sHrc))
-            PANIC("Failed to release rendering context");
-    }
-
-    if (sHdc && !ReleaseDC(sHwnd, sHdc))
-        PANIC("Failed to release device context");
-
-    if (sHwnd && !DestroyWindow(sHwnd))
-        PANIC("Failed to destroy window");
-
-    if (!UnregisterClass(kClassName, sHinstance))
-        PANIC("Failed to unregister window class");
-
+    process_key_input(keyInput);
 }
-
-void createGLWindow(const char * title, u32 screenWidth, u32 screenHeight, u32 bitsPerPixel)
-{
-    GLuint pixelFormat;
-    WNDCLASS wc;
-    DWORD exStyle;
-    DWORD style;
-
-
-    RECT windowRect;
-    windowRect.left = 0;
-    windowRect.right = screenWidth;
-    windowRect.top = 0;
-    windowRect.bottom = screenHeight;
-
-    wc.style                = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-    wc.lpfnWndProc          = (WNDPROC)wndProc;
-    wc.cbClsExtra           = 0;
-    wc.cbWndExtra           = 0;
-    wc.hInstance            = sHinstance;
-    wc.hIcon                = LoadIcon(NULL, IDI_WINLOGO);
-    wc.hCursor              = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground        = (HBRUSH)GetStockObject(BLACK_BRUSH);
-    wc.lpszMenuName         = NULL;
-    wc.lpszClassName        = kClassName;
-
-    // Register windows class
-    if (!RegisterClass(&wc))
-        PANIC("Failed to register WNDCLASS");
-        
-
-    if (sFullScreen)
-    {
-        DEVMODE screenSettings;
-        memset(&screenSettings, 0, sizeof(screenSettings));
-        screenSettings.dmSize = sizeof(screenSettings);
-        screenSettings.dmPelsWidth = screenWidth;
-        screenSettings.dmPelsHeight = screenHeight;
-        screenSettings.dmBitsPerPel = bitsPerPixel;
-        screenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-
-        // Try to set full screen mode
-        if (ChangeDisplaySettings(&screenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-        {
-            LOG_WARNING("The requested fullscreen mode is not supported.  Defaulting to windowed mode.");
-            sFullScreen = false;
-        }
-    }
-
-    // Still in full screen?
-    if (sFullScreen)                
-    {
-        exStyle = WS_EX_APPWINDOW;
-        style = WS_POPUP;
-        ShowCursor(FALSE);
-    }
-    else
-    {
-        exStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-        style = WS_OVERLAPPEDWINDOW;
-    }
-
-    AdjustWindowRectEx(&windowRect, style, FALSE, exStyle);
-
-    // Create The Window
-    sHwnd = CreateWindowEx(exStyle,
-                           kClassName,
-                           title,
-                           style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-                           0, 0,
-                           windowRect.right - windowRect.left,
-                           windowRect.bottom - windowRect.top,
-                           NULL,
-                           NULL,
-                           sHinstance,
-                           NULL);
-    if (!sHwnd)
-    {
-        killGLWindow();
-        PANIC("Window Creation Error");
-    }
-
-
-    PIXELFORMATDESCRIPTOR pfd;
-    memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
-    
-    // Set what's important, all else left 0
-    pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-    pfd.nVersion = 1;
-    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = 24;
-    pfd.cDepthBits = 16;
-    pfd.iLayerType = PFD_MAIN_PLANE;
-
-        
-    if (!(sHdc = GetDC(sHwnd)))
-        PANIC("Cannnot create GL device context");
-
-    if (!(pixelFormat = ChoosePixelFormat(sHdc, &pfd)))
-        PANIC("Cannot find suitable pixel format");
-
-    if(!SetPixelFormat(sHdc, pixelFormat, &pfd))
-        PANIC("Cannot set pixel format");
-
-    if (!(sHrc = wglCreateContext(sHdc)))
-        PANIC("Cannot create GL rendering context");
-
-    // Show and make our window have focus
-    ShowWindow(sHwnd, SW_SHOW);
-    SetForegroundWindow(sHwnd);
-    SetFocus(sHwnd);
-
-}
-
-void prep_raw_input()
-{
-    RAWINPUTDEVICE Rid[2];
-
-    Rid[0].usUsagePage = 0x01;
-    Rid[0].usUsage = 0x02;
-    Rid[0].dwFlags = 0; //RIDEV_NOLEGACY;   // adds HID mouse and also ignores legacy mouse messages
-    Rid[0].hwndTarget = 0;
-
-    Rid[1].usUsagePage = 0x01;
-    Rid[1].usUsage = 0x06;
-    Rid[1].dwFlags = RIDEV_NOLEGACY;   // adds HID keyboard and also ignores legacy keyboard messages
-    Rid[1].hwndTarget = 0;
-
-    if (!RegisterRawInputDevices(Rid, 2, sizeof(Rid[0])))
-    {
-        PANIC("Unable to register raw input devices");
-    }
-}
-
-} // namespace gaen
 
 int CALLBACK WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -369,18 +74,32 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 {
     using namespace gaen;
 
-    sHinstance = hInstance;
+    PANIC_IF(!glfwInit(), "glfwInit() failed");
+
+    glfwSetErrorCallback(glfw_error_callback);
 
     const u32 kScreenWidth = 1280;
     const u32 kScreenHeight = 720;
-    createGLWindow("Gaen", kScreenWidth, kScreenHeight, 32);
 
-    prep_raw_input();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+
+    // Starting with a visible window gives a nasty white window on
+    // screen before our renderer initializes. Will get shown by
+    // renderer on first endFrame call.
+    glfwWindowHint(GLFW_VISIBLE, 0);
+
+    GLFWwindow * pWindow = glfwCreateWindow(kScreenWidth, kScreenHeight, "Gaen", NULL, NULL);
+
+    PANIC_IF(!pWindow, "glfwCreateWindow failed");
 
     init_gaen(__argc, __argv);
 
+    glfwSetWindowFocusCallback(pWindow, glfw_focus_callback);
+    glfwSetKeyCallback(pWindow, glfw_key_callback);
+
     RendererType renderer;
-    renderer.init(sHdc, sHrc, kScreenWidth, kScreenHeight);
+    renderer.init(pWindow, kScreenWidth, kScreenHeight);
     Task rendererTask = Task::create(&renderer, HASH::renderer);
     set_renderer(rendererTask);
 
@@ -390,25 +109,13 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     start_game_loops();
 
-    BOOL ret;
-    MSG msg;
-
-    while ((ret = GetMessage( &msg, NULL, 0, 0 )) != 0)
-    { 
-        if (ret != -1)
-        {
-            TranslateMessage(&msg); 
-            DispatchMessage(&msg); 
-        }
-        else
-        {
-            PANIC("Error returned from GetMessage");
-        }
-        send_mouse_input();
+    while (!glfwWindowShouldClose(pWindow))
+    {
+        glfwWaitEvents();
     }
 
     fin_gaen();
  
-    // Return the exit code to the system. 
-    return static_cast<int>(msg.wParam);
+    glfwTerminate();
+    return 0;
 }

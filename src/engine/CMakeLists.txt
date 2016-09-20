@@ -57,7 +57,6 @@ SET (engine_SOURCES
   ImageBuffer.cpp
   ImageBuffer.h
   input.cpp
-  input_${platform}.${platform_ext}
   input.h
   InputMgr.cpp
   InputMgr.h

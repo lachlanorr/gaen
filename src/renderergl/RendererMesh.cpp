@@ -53,13 +53,11 @@ namespace gaen
 {
 
 
-void RendererMesh::init(device_context deviceContext,
-                        render_context renderContext,
+void RendererMesh::init(void * pRenderDevice,
                         u32 screenWidth,
                         u32 screenHeight)
 {
-    mDeviceContext = deviceContext;
-    mRenderContext = renderContext;
+    mpRenderDevice = pRenderDevice;
     mScreenWidth = screenWidth;
     mScreenHeight = screenHeight;
 

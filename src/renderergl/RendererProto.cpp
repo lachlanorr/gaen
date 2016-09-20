@@ -119,13 +119,11 @@ static_assert(sizeof(kVoxelPoints) == sizeof(u32) * 8, "kVoxelPoints unexpected 
 #endif
 
 
-void RendererProto::init(device_context deviceContext,
-                      render_context renderContext,
-                      u32 screenWidth,
-                      u32 screenHeight)
+void RendererProto::init(void * pRenderDevice,
+                         u32 screenWidth,
+                         u32 screenHeight)
 {
-    mDeviceContext = deviceContext;
-    mRenderContext = renderContext;
+    mpRenderDevice = pRenderDevice;
     mScreenWidth = screenWidth;
     mScreenHeight = screenHeight;
 

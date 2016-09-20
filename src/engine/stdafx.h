@@ -59,4 +59,6 @@
 #include <btBulletDynamicsCommon.h>
 #include <BulletCollision/CollisionShapes/btBox2dShape.h>
 
+#include <GLFW/glfw3.h>
+
 #endif // #ifndef GAEN_ENGINE_STDAFX_H

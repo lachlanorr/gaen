@@ -51,7 +51,7 @@ bool Gatl::is_valid(const void * pBuffer, u64 size)
     if (pAssetData->mDefaultIndex >= pAssetData->glyphCount())
         return false;
 
-    size_t imagePathLen = strnlen(pAssetData->imagePath(), MAX_PATH);
+    size_t imagePathLen = strnlen(pAssetData->imagePath(), kMaxPath);
     if (pAssetData->mVertsOffset != reinterpret_cast<const char*>(pAssetData) + verts_offset(imagePathLen) - reinterpret_cast<const char*>(pAssetData))
         return false;
 

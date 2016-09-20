@@ -125,15 +125,15 @@ u32 InputMgr::queryState(u32 player, u32 stateHash, glm::vec4 * pMeasure)
     return 0;
 }
 
-bool InputMgr::queryKeyCode(KeyCode keyCode)
+bool InputMgr::queryKey(Key key)
 {
-    if (keyCode == kKEY_NOKEY)
+    if (key == kKEY_NOKEY)
         return true;
-    else if (keyCode > kKEY_NOKEY)
+    else if (key > kKEY_NOKEY)
         return false;
 
-    u32 idx = keyCode / 32;
-    u32 bit = keyCode % 32;
+    u32 idx = key / 32;
+    u32 bit = key % 32;
     u32 mask = 1 << bit;
 
     return (mPressedKeys[idx] & mask) != 0;
@@ -142,18 +142,18 @@ bool InputMgr::queryKeyCode(KeyCode keyCode)
 u32 InputMgr::queryState(const glm::ivec4 & keys)
 {
     u32 ret = 0;
-    if (queryKeyCode((KeyCode)keys[0]))
+    if (queryKey((Key)keys[0]))
     {
-        ret += (KeyCode)keys[0] != kKEY_NOKEY ? 1 : 0;
-        if (queryKeyCode((KeyCode)keys[1]))
+        ret += (Key)keys[0] != kKEY_NOKEY ? 1 : 0;
+        if (queryKey((Key)keys[1]))
         {
-            ret += (KeyCode)keys[1] != kKEY_NOKEY ? 1 : 0;
-            if (queryKeyCode((KeyCode)keys[2]))
+            ret += (Key)keys[1] != kKEY_NOKEY ? 1 : 0;
+            if (queryKey((Key)keys[2]))
             {
-                ret += (KeyCode)keys[1] != kKEY_NOKEY ? 1 : 0;
-                if (queryKeyCode((KeyCode)keys[3]))
+                ret += (Key)keys[1] != kKEY_NOKEY ? 1 : 0;
+                if (queryKey((Key)keys[3]))
                 {
-                    ret += (KeyCode)keys[3] != kKEY_NOKEY ? 1 : 0;
+                    ret += (Key)keys[3] != kKEY_NOKEY ? 1 : 0;
                     return ret;
                 }
                 else
@@ -179,15 +179,15 @@ u32 InputMgr::queryState(const glm::ivec4 & keys)
 
 void InputMgr::processKeyInput(const KeyInput & keyInput)
 {
-    ASSERT(keyInput.keyCode < kKEY_NOKEY);
-    u32 idx = keyInput.keyCode / 32;
-    u32 bit = keyInput.keyCode % 32;
+    ASSERT(keyInput.key < kKEY_NOKEY);
+    u32 idx = keyInput.key / 32;
+    u32 bit = keyInput.key % 32;
     u32 mask = 1 << bit;
 
-    if (keyInput.keyEvent == kKST_Down)
-        mPressedKeys[idx] |= mask;
-    else
+    if (keyInput.action == kKACT_Release)
         mPressedKeys[idx] &= ~mask;
+    else // kKACT_Press || kKACT_Repeat
+        mPressedKeys[idx] |= mask;
 }
 
 void InputMgr::processMouseMoveInput(const MouseInput::Movement & moveInput)

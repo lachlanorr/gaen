@@ -35,160 +35,173 @@
 namespace gaen
 {
 
-enum InputDevice
+enum Key
 {
-    kIDV_Keyboard,
-    kIDV_Mouse,
-    kIDV_Controller
+    kKEY_Space          = 0,
+    kKEY_Apostrophe     = 1,
+    kKEY_Comma          = 2,
+    kKEY_Minus          = 3,
+    kKEY_Period         = 4,
+    kKEY_Slash          = 5,
+    kKEY_0              = 6,
+    kKEY_1              = 7,
+    kKEY_2              = 8,
+    kKEY_3              = 9,
+    kKEY_4              = 10,
+    kKEY_5              = 11,
+    kKEY_6              = 12,
+    kKEY_7              = 13,
+    kKEY_8              = 14,
+    kKEY_9              = 15,
+    kKEY_Semicolon      = 16,
+    kKEY_Equal          = 17,
+    kKEY_A              = 18,
+    kKEY_B              = 19,
+    kKEY_C              = 20,
+    kKEY_D              = 21,
+    kKEY_E              = 22,
+    kKEY_F              = 23,
+    kKEY_G              = 24,
+    kKEY_H              = 25,
+    kKEY_I              = 26,
+    kKEY_J              = 27,
+    kKEY_K              = 28,
+    kKEY_L              = 29,
+    kKEY_M              = 30,
+    kKEY_N              = 31,
+    kKEY_O              = 32,
+    kKEY_P              = 33,
+    kKEY_Q              = 34,
+    kKEY_R              = 35,
+    kKEY_S              = 36,
+    kKEY_T              = 37,
+    kKEY_U              = 38,
+    kKEY_V              = 39,
+    kKEY_W              = 40,
+    kKEY_X              = 41,
+    kKEY_Y              = 42,
+    kKEY_Z              = 43,
+    kKEY_LeftBracket    = 44,
+    kKEY_Backslash      = 45,
+    kKEY_RightBracket   = 46,
+    kKEY_GraveAccent    = 47,
+    kKEY_World1         = 48,
+    kKEY_World2         = 49,
+    kKEY_Escape         = 50,
+    kKEY_Enter          = 51,
+    kKEY_Tab            = 52,
+    kKEY_Backspace      = 53,
+    kKEY_Insert         = 54,
+    kKEY_Delete         = 55,
+    kKEY_Right          = 56,
+    kKEY_Left           = 57,
+    kKEY_Down           = 58,
+    kKEY_Up             = 59,
+    kKEY_PageUp         = 60,
+    kKEY_PageDown       = 61,
+    kKEY_Home           = 62,
+    kKEY_End            = 63,
+    kKEY_CapsLock       = 64,
+    kKEY_ScrollLock     = 65,
+    kKEY_NumLock        = 66,
+    kKEY_PrintScreen    = 67,
+    kKEY_Pause          = 68,
+    kKEY_F1             = 69,
+    kKEY_F2             = 70,
+    kKEY_F3             = 71,
+    kKEY_F4             = 72,
+    kKEY_F5             = 73,
+    kKEY_F6             = 74,
+    kKEY_F7             = 75,
+    kKEY_F8             = 76,
+    kKEY_F9             = 77,
+    kKEY_F10            = 78,
+    kKEY_F11            = 79,
+    kKEY_F12            = 80,
+    kKEY_F13            = 81,
+    kKEY_F14            = 82,
+    kKEY_F15            = 83,
+    kKEY_F16            = 84,
+    kKEY_F17            = 85,
+    kKEY_F18            = 86,
+    kKEY_F19            = 87,
+    kKEY_F20            = 88,
+    kKEY_F21            = 89,
+    kKEY_F22            = 90,
+    kKEY_F23            = 91,
+    kKEY_F24            = 92,
+    kKEY_F25            = 93,
+    kKEY_NumPad0        = 94,
+    kKEY_NumPad1        = 95,
+    kKEY_NumPad2        = 96,
+    kKEY_NumPad3        = 97,
+    kKEY_NumPad4        = 98,
+    kKEY_NumPad5        = 99,
+    kKEY_NumPad6        = 100,
+    kKEY_NumPad7        = 101,
+    kKEY_NumPad8        = 102,
+    kKEY_NumPad9        = 103,
+    kKEY_NumPadDecimal  = 104,
+    kKEY_NumPadDivide   = 105,
+    kKEY_NumPadMultiply = 106,
+    kKEY_NumPadSubtract = 107,
+    kKEY_NumPadAdd      = 108,
+    kKEY_NumPadEnter    = 109,
+    kKEY_NumPadEqual    = 110,
+    kKEY_LeftShift      = 111,
+    kKEY_LeftControl    = 112,
+    kKEY_LeftAlt        = 113,
+    kKEY_RightShift     = 114,
+    kKEY_RightControl   = 115,
+    kKEY_RightAlt       = 116,
+    kKEY_Menu           = 117,
+
+    kKEY_Mouse1         = 118,
+    kKEY_Mouse2         = 119,
+    kKEY_Mouse3         = 120,
+    kKEY_Mouse4         = 121,
+    kKEY_Mouse5         = 122,
+    kKEY_Mouse6         = 123,
+    kKEY_Mouse7         = 124,
+    kKEY_Mouse8         = 125,
+
+    kKEY_NOKEY          = 126 // Indicative of no key pressed, used when specifying no key in a 4 key combo
 };
 
-enum KeyCode
+enum KeyAction
 {
-    kKEY_0                = 0,
-    kKEY_1                = 1,
-    kKEY_2                = 2,
-    kKEY_3                = 3,
-    kKEY_4                = 4,
-    kKEY_5                = 5,
-    kKEY_6                = 6,
-    kKEY_7                = 7,
-    kKEY_8                = 8,
-    kKEY_9                = 9,
-    kKEY_A                = 10,
-    kKEY_B                = 11,
-    kKEY_C                = 12,
-    kKEY_D                = 13,
-    kKEY_E                = 14,
-    kKEY_F                = 15,
-    kKEY_G                = 16,
-    kKEY_H                = 17,
-    kKEY_I                = 18,
-    kKEY_J                = 19,
-    kKEY_K                = 20,
-    kKEY_L                = 21,
-    kKEY_M                = 22,
-    kKEY_N                = 23,
-    kKEY_O                = 24,
-    kKEY_P                = 25,
-    kKEY_Q                = 26,
-    kKEY_R                = 27,
-    kKEY_S                = 28,
-    kKEY_T                = 29,
-    kKEY_U                = 30,
-    kKEY_V                = 31,
-    kKEY_W                = 32,
-    kKEY_X                = 33,
-    kKEY_Y                = 34,
-    kKEY_Z                = 35,
-    kKEY_Num0             = 36,
-    kKEY_Num1             = 37,
-    kKEY_Num2             = 38,
-    kKEY_Num3             = 39,
-    kKEY_Num4             = 40,
-    kKEY_Num5             = 41,
-    kKEY_Num6             = 42,
-    kKEY_Num7             = 43,
-    kKEY_Num8             = 44,
-    kKEY_Num9             = 45,
-    kKEY_NumMul           = 46,
-    kKEY_NumAdd           = 47,
-    kKEY_NumSub           = 48,
-    kKEY_NumDot           = 49,
-    kKEY_NumDiv           = 50,
-    kKEY_LeftShift        = 51,
-    kKEY_RightShift       = 52,
-    kKEY_LeftControl      = 53,
-    kKEY_RightControl     = 54,
-    kKEY_LeftAlt          = 55,
-    kKEY_RightAlt         = 56,
-    kKEY_Backspace        = 57,
-    kKEY_Tab              = 58,
-    kKEY_Clear            = 59,
-    kKEY_Enter            = 60,
-    kKEY_Pause            = 61,
-    kKEY_CapsLock         = 62,
-    kKEY_Escape           = 63,
-    kKEY_Space            = 64,
-    kKEY_PageUp           = 65,
-    kKEY_PageDown         = 66,
-    kKEY_End              = 67,
-    kKEY_Home             = 68,
-    kKEY_Left             = 69,
-    kKEY_Up               = 70,
-    kKEY_Right            = 71,
-    kKEY_Down             = 72,
-    kKEY_PrintScreen      = 73,
-    kKEY_Insert           = 74,
-    kKEY_Delete           = 75,
-    kKEY_NumLock          = 76,
-    kKEY_ScrollLock       = 77,
-    kKEY_Semicolon        = 78,
-    kKEY_Equal            = 79,
-    kKEY_Comma            = 80,
-    kKEY_Dash             = 81,
-    kKEY_Period           = 82,
-    kKEY_Slash            = 83,
-    kKEY_BackTick         = 84,
-    kKEY_LeftBracket      = 85,
-    kKEY_BackSlash        = 86,
-    kKEY_BracketBackSlash = 87,
-    kKEY_RightBracket     = 88,
-    kKEY_Tick             = 89,
-    kKEY_F1               = 90,
-    kKEY_F2               = 91,
-    kKEY_F3               = 92,
-    kKEY_F4               = 93,
-    kKEY_F5               = 94,
-    kKEY_F6               = 95,
-    kKEY_F7               = 96,
-    kKEY_F8               = 97,
-    kKEY_F9               = 98,
-    kKEY_F10              = 99,
-    kKEY_F11              = 100,
-    kKEY_F12              = 101,
-    kKEY_F13              = 102,
-    kKEY_F14              = 103,
-    kKEY_F15              = 104,
-    kKEY_F16              = 105,
-    kKEY_F17              = 106,
-    kKEY_F18              = 107,
-    kKEY_F19              = 108,
-    kKEY_F20              = 109,
-    kKEY_F21              = 110,
-    kKEY_F22              = 111,
-    kKEY_F23              = 112,
-    kKEY_F24              = 113,
-
-    kKEY_Mouse1           = 121,
-    kKEY_Mouse2           = 122,
-    kKEY_Mouse3           = 123,
-    kKEY_Mouse4           = 124,
-    kKEY_Mouse5           = 125,
-
-    kKEY_NOKEY            = 126 // Indicative of no key pressed, used when specifying no key in a 4 key combo
+    kKACT_Release = 0,
+    kKACT_Press   = 1,
+    kKACT_Repeat  = 2
 };
 
-enum KeyState
+enum KeyMod
 {
-    kKST_Up   = 0,
-    kKST_Down = 1
+    kKMOD_Shift   = 1,
+    kKMOD_Control = 2,
+    kKMOD_Alt     = 4,
+    kKMOD_Super   = 8
 };
 
 struct KeyInput
 {
-    u32 keyCode:7;
-    u32 keyEvent:1;
-    u32 deviceId:4; // keep this to 4 so we can pack taskid + deviceid into 32 bits
-    u32 PADDING__:20;
+    u32 key:7;
+    u32 action:2;
+    u32 mods:4;
+    u32 deviceId:4; // keep this to 4 so we can pack taskid + deviceid into 32 bits (LORRNOTE 2016-09-18: ???, don't remember rational for previous comment)
+    u32 PADDING__:15;
 
     KeyInput()
-    {}
+    {
+        *reinterpret_cast<u32*>(this) = 0;
+    }
 
     KeyInput(cell c)
     {
-        *this = *reinterpret_cast<KeyInput*>(&c);
+        *reinterpret_cast<u32*>(this) = c.u;
     }
 };
+static_assert(sizeof(KeyInput) == sizeof(u32), "KeyInput unexpected size");
 
 enum ControllerButton
 {
@@ -225,7 +238,7 @@ inline cell to_cell(KeyInput val)
 }
 
 // Convert string to KeyCode, useful when parsing config files
-KeyCode lookup_key_code(const char * str);
+Key lookup_key_code(const char * str);
 
 // KeyInput is 4 bytes to simplify passing it around as a message payload.
 // We have 16 unused bits, maybe find something interesting for them
@@ -234,8 +247,8 @@ KeyCode lookup_key_code(const char * str);
 // void* to accomodate different platforms structs/values for key code
 // information.
 
-void process_key_input(const void * pKeyInfo);
-KeyInput convert_key_input(const void * pKeyInfo);
+void process_key_input(KeyInput keyInput);
+Key convert_glfw_key(int glfwKey);
 void kill_focus();
 
 
@@ -295,7 +308,7 @@ inline cell to_cell(MouseInput::Movement val)
 
 void send_mouse_input();
 void process_mouse_input(const void * pMouseInfo);
-MouseInput convert_mouse_input(const void * pKeyInfo);
+//MouseInput convert_mouse_input(const void * pKeyInfo);
 
 } // namespace gaen
 
