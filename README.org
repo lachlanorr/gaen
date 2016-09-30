@@ -11,19 +11,26 @@ modifications.
 Gaen is licensed under the terms of the [[http://en.wikipedia.org/wiki/Zlib_License][zlib License]].
 
 ** Cooperative Shared Data
-Cooperative Shared Data (CSD) is what I believe to be a novel approach to cpu concurrency.
+Cooperative Shared Data (CSD) is what I believe to be a novel approach
+to CPU concurrency.
 
 In traditional threaded concurrency, one must take care not to have
 two logical tasks modify data simulatenously. There are two primary
 reasons this is so:
 
 - Operating system threading is pre-emptive
-- Access to data is not governed by physical core
+- Simultaneous access to data may occur on multiple cores
 
-The CSD approach, introduced with the Gaen engine, solves these problems by:
+The CSD approach, introduced with the Gaen engine, solves these
+problems with:
 
 - A custom, non-pre-emptive, cooperative task runtime
 - Mutable data segratation by physical core
+
+This may not be an appropriate general purpose concurrency strategy,
+but the structure of games, whereby there is a game loop polling for
+inputs, updating objects, and rendering, make them particularly well
+suited for the CSD approach.
 
 ** Compose Scripting Language
 To enable rapid prototyping and empower non-C++ programmers to create
@@ -32,27 +39,49 @@ syntactic sugar around components, entities and message passing. It
 eliminates the boiler plate verbosity that comes with forcing C++ into
 a message passing, component based model.
 
-The language is designed to get compiled into C++. Plans for a VM
-are in the works, but right now you run the cmpc compiler to
-covert your .cmp files to .cpp files.
+The compiler code generates into C++. There are several nice
+advantages to this, including taking advantage of modern C++
+optimizing compilers, and being able to use a debugger on generated
+code.
 
-In shipping game code, this is what you want since the C++ compiler
-will give you great performance gains over an interpreted scripting
-language. However, it is pretty darn useful to prototype scripts
-without stopping/starting your game, and as such a VM is in the works
-so that Gaen can support the best of both worlds. You will use
-dynamic scripting while edit/debug/testing scripts, and compile
-to C++ when they are more nailed down.
+Plans for an interpreter and VM are in the works. Ultimately, a
+designer will be able to utilize an interpreted version of the
+language for rapid development, and compile into C++ when code
+stabilizes.
+
+** Chef Asset Cooker
+A solid asset cooking toolset is a must for any substantially complex
+game project. Chef serves this purpose in Gaen.
+
+Cookers are modular, and can be easily registered, even by projects
+outside of the Gaen core code.
+
+Asset dependencies are tracked, and exotic cooking methodologies are
+supported, such as multi-stage cooks from a raw type to multiple other
+raw types and finally to cooked assets.
+
+** Shadergen Shader Compiler
+Shadergen allows you to write GLSL shaders and compile them into C++
+wrapper classes. Preprocessor defines are supported. Compile time
+errors in shader code can be found easily and corrected at build
+time. Shader uniform and varying variables are settable through the
+C++ wrappers.
+
+** Project System
+Gaen is intended to be incorporated into larger projects. To start a
+project simply run the python/start_project.py program and template
+starter files will be created for you to make a custom project based
+on Gaen.
+
+Projects have the opportunity to provide their own assets, as well as
+Compose scripts and asset cookers specific to the project.
 
 ** Platforms
 Active development is for Windows, and that platform will generally
 always be functional. The engine is designed for 64 bit, but a 32 bit
-builds work as well.
-
-OSX and iOS are also supported. Linux support is forthcoming. I don't
-expect there to be any issues with the port, as going to OSX has made
-me work through most of the Posix required changes. But, alas, I
-haven't ported to Linux yet.
+builds work as well.  OSX, Linux, and iOS support is periodically
+tested and updated, but may not be working at a particular time as
+they are not my priority right now.
 
 [[http://en.wikipedia.org/wiki/C++11][C++11]] features are used extensively, so you must have a recent
 compiler.  On Windows this means VC 2015 or above. On OSX, the most
