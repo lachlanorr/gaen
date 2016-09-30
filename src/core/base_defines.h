@@ -36,7 +36,7 @@ namespace gaen
 
 // These HAS/WHEN macros ensure that things are either
 // defined as true or false, but aren't false by default
-// simply because they were't defined.
+// simply because they weren't defined.
 // Use them as such:
 //#define RENDERTHREAD_DEBUG_MARKS  HAS_X
 //#define TRACK_MEM                 WHEN(HAS(DEV_BUILD))

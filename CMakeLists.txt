@@ -184,8 +184,10 @@ SET (GLFW_LIBS
 LIST (APPEND CMAKE_MODULE_PATH "${ext_dir}/rpavlik-cmake")
 INCLUDE (CreateLaunchers)
 
-ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY (${ext_dir}/nana)
+INCLUDE_DIRECTORIES (${ext_dir}/nana/include)
 
+ADD_SUBDIRECTORY(src)
 
 # Set debugging params for ALL_BUILD
 create_default_target_launcher(

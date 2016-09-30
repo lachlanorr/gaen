@@ -10,8 +10,20 @@ modifications.
 
 Gaen is licensed under the terms of the [[http://en.wikipedia.org/wiki/Zlib_License][zlib License]].
 
-Check out [[http://gaen.org][gaen.org]] for more gory details, but here's the
-gist.
+** Cooperative Shared Data
+Cooperative Shared Data (CSD) is what I believe to be a novel approach to cpu concurrency.
+
+In traditional threaded concurrency, one must take care not to have
+two logical tasks modify data simulatenously. There are two primary
+reasons this is so:
+
+- Operating system threading is pre-emptive
+- Access to data is not governed by physical core
+
+The CSD approach, introduced with the Gaen engine, solves these problems by:
+
+- A custom, non-pre-emptive, cooperative task runtime
+- Mutable data segratation by physical core
 
 ** Compose Scripting Language
 To enable rapid prototyping and empower non-C++ programmers to create
