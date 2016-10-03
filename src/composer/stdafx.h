@@ -34,5 +34,6 @@
 #include <nana/gui.hpp>
 #include <nana/gui/widgets/label.hpp>
 #include <nana/gui/widgets/button.hpp>
+#include <nana/gui/widgets/menu.hpp>
 
 #endif // #ifndef GAEN_COMPOSER_STDAFX_H

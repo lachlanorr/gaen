@@ -30,10 +30,19 @@
 
 namespace gaen
 {
+void on_menu_item(nana::menu::item_proxy& ip)
+{
+    return;
+}
 
 MainWindow::MainWindow()
   : nana::form(nana::rectangle(nana::size(1280, 720)))
 {
+    mpMenu.reset(new nana::menu());
+    mpMenu->append("item1", on_menu_item);
+    (*this)["menu"] << *mpMenu;
+
+
     //Define a label and display a text.
     mpLabel.reset(new nana::label(*this, "Hello, <bold blue size=16>Nana C++ Library</>"));
     mpLabel->format(true);
@@ -58,6 +67,11 @@ MainWindow::MainWindow()
     (*mpSubForm)["text"] << *mpLabel2;
     mpSubForm->collocate();
     mpSubForm->show();
+}
+
+MainWindow::~MainWindow()
+{
+
 }
 
 } // namespace

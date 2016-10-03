@@ -37,8 +37,10 @@ class MainWindow : public nana::form
 
 public:
     MainWindow();
+    ~MainWindow();
 
 private:
+    std::unique_ptr<nana::menu> mpMenu;
     std::unique_ptr<nana::label> mpLabel;
     std::unique_ptr<nana::button> mpButton;
     std::unique_ptr<nana::nested_form> mpSubForm;
