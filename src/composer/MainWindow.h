@@ -40,7 +40,7 @@ public:
     ~MainWindow();
 
 private:
-    std::unique_ptr<nana::menu> mpMenu;
+    std::unique_ptr<nana::menubar> mpMenuBar;
     std::unique_ptr<nana::label> mpLabel;
     std::unique_ptr<nana::button> mpButton;
     std::unique_ptr<nana::nested_form> mpSubForm;

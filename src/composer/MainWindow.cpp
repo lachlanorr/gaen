@@ -26,21 +26,23 @@
 
 #include "composer/stdafx.h"
 
+#include "core/logging.h"
+
 #include "composer/MainWindow.h"
 
 namespace gaen
 {
 void on_menu_item(nana::menu::item_proxy& ip)
 {
-    return;
+    LOG_INFO("on_menu_item clicked");
 }
 
 MainWindow::MainWindow()
   : nana::form(nana::rectangle(nana::size(1280, 720)))
 {
-    mpMenu.reset(new nana::menu());
-    mpMenu->append("item1", on_menu_item);
-    (*this)["menu"] << *mpMenu;
+    mpMenuBar.reset(new nana::menubar(this->handle()));
+    nana::menu & m = mpMenuBar->push_back("File");
+    m.append("item1", on_menu_item);
 
 
     //Define a label and display a text.
@@ -59,6 +61,7 @@ MainWindow::MainWindow()
     (*this)["button"] << *mpButton;
     collocate();
 
+    /*
     mpSubForm.reset(new nana::nested_form(*this));
     //Define a label and display a text.
     mpLabel2.reset(new nana::label(*mpSubForm, "Hello2, <bold blue size=16>Nana C++ Library</>"));
@@ -67,6 +70,7 @@ MainWindow::MainWindow()
     (*mpSubForm)["text"] << *mpLabel2;
     mpSubForm->collocate();
     mpSubForm->show();
+    */
 }
 
 MainWindow::~MainWindow()

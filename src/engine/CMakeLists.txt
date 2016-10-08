@@ -112,6 +112,7 @@ ADD_LIBRARY (engine
 
 ADD_DEPENDENCIES(engine
   bullet
+  glfw
   )
 
 # Run each time we build.
