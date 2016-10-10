@@ -28,6 +28,8 @@ SET (composer_SOURCES
   main_composer.cpp
   MainWindow.cpp
   MainWindow.h
+  MessagesWindow.cpp
+  MessagesWindow.h
   )
 
 MSVC_PRECOMPILED_HEADER (composer composer_SOURCES)

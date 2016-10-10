@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// MainWindow.cpp - MainWindow for composer application
+// MessagesWindow.cpp - MessagesWindow for composer application
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -26,59 +26,24 @@
 
 #include "composer/stdafx.h"
 
-#include "core/logging.h"
-
 #include "composer/MessagesWindow.h"
-
-#include "composer/MainWindow.h"
 
 namespace gaen
 {
-MainWindow::MainWindow()
-  : nana::form(nana::rectangle(nana::size(1280, 720)))
+
+MessagesWindow::MessagesWindow(nana::form & form)
+  : nana::nested_form(form)
 {
-
-    //Define a label and display a text.
-    mpLabel.reset(new nana::label(*this, "Hello, <bold blue size=16>Nana C++ Library</>"));
-    mpLabel->format(true);
-
-    //Define a button and answer the click event.
-    mpButton.reset(new nana::button(*this, "Quit"));
-    mpButton->events().click([this]{
-        close();
-    });
-
-    //Layout management
-    div("vert <><<><weight=80% text><>><><weight=24<><button><>><>");
-    (*this)["text"] << *mpLabel;
-    (*this)["button"] << *mpButton;
-    collocate();
-
-    mpMessagesWindow.reset(new MessagesWindow(*this));
-    mpMessagesWindow->collocate();
-    mpMessagesWindow->show();
+    mpLabel2.reset(new nana::label(*this, "Hello2, <bold blue size=16>Nana C++ Library</>"));
+    mpLabel2->format(true);
+    this->div("vert <><<><weight=80% text><>>");
+    (*this)["text"] << *mpLabel2;
 }
 
-MainWindow::~MainWindow()
+MessagesWindow::~MessagesWindow()
 {
 
 }
 
 
-
-void on_menu_item(nana::menu::item_proxy& ip)
-{
-    LOG_INFO("on_menu_item clicked");
-}
-
-void MainWindow::buildMenus()
-{
-    mpMenuBar.reset(new nana::menubar(this->handle()));
-    nana::menu & m = mpMenuBar->push_back("View");
-    m.append("Messages", on_menu_item);
-
-    //mpMessagesWindow->
-}
-
-
-} // namespace
+} // namespace gaen
