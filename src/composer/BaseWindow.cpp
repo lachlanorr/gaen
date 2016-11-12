@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// MainWindow.cpp - MainWindow for composer application
+// BaseWindow.cpp - BaseWindow for composer application
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -28,38 +28,48 @@
 
 #include "core/logging.h"
 
-#include "composer/MessagesWindow.h"
+#include "composer/Messages.h"
 
-#include "composer/MainWindow.h"
+#include "composer/BaseWindow.h"
 
 namespace gaen
 {
-MainWindow::MainWindow()
-  : nana::form(nana::rectangle(nana::size(1280, 720)))
+
+void BaseWindow::dockable__()
 {
+    // some sample code that creates dockable windows
+    mpPlace.reset(new nana::place(*this));
 
-    //Define a label and display a text.
-    mpLabel.reset(new nana::label(*this, "Hello, <bold blue size=16>Nana C++ Library</>"));
-    mpLabel->format(true);
+    //plc.div("vert <><<><weight=80% text><>><><weight=24<><button><>><>");
+    //plc["text"] << *mpLabel;
+    //plc["button"] << *mpButton;
 
-    //Define a button and answer the click event.
-    mpButton.reset(new nana::button(*this, "Quit"));
-    mpButton->events().click([this]{
-        close();
-    });
+    mpPlace->div("vert <menubar weight=25><dock<dockableA><dockableB>><dock<dockableC><dockableD>>");
+    mpPlace->dock<nana::button>("dockableA", "f", std::string("Button"));
+    mpPlace->dock<nana::button>("dockableB", "g", std::string("Button2"));
 
-    //Layout management
-    div("vert <><<><weight=80% text><>><><weight=24<><button><>><>");
-    (*this)["text"] << *mpLabel;
-    (*this)["button"] << *mpButton;
-    collocate();
+    buildMenus();
+    (*mpPlace)["menubar"] << *mpMenuBar;
 
-    mpMessagesWindow.reset(new MessagesWindow(*this));
-    mpMessagesWindow->collocate();
-    mpMessagesWindow->show();
+    mpPlace->dock_create("f");
+    mpPlace->dock_create("f");
+    mpPlace->dock_create("f");
+    mpPlace->dock_create("f");
+    mpPlace->dock_create("g");
+    mpPlace->dock_create("g");
+    mpPlace->dock_create("g");
+    mpPlace->dock_create("g");
+
+    mpPlace->collocate();
 }
 
-MainWindow::~MainWindow()
+BaseWindow::BaseWindow(nana::size size)
+  : nana::form(nana::rectangle(size))
+{
+    buildMenus();
+}
+
+BaseWindow::~BaseWindow()
 {
 
 }
@@ -71,11 +81,12 @@ void on_menu_item(nana::menu::item_proxy& ip)
     LOG_INFO("on_menu_item clicked");
 }
 
-void MainWindow::buildMenus()
+void BaseWindow::buildMenus()
 {
-    mpMenuBar.reset(new nana::menubar(this->handle()));
-    nana::menu & m = mpMenuBar->push_back("View");
-    m.append("Messages", on_menu_item);
+    mpMenuBar.reset(new nana::menubar(*this));
+    nana::menu & m = mpMenuBar->push_back("File");
+    m.append("New", on_menu_item);
+    m.append("Open", on_menu_item);
 
     //mpMessagesWindow->
 }

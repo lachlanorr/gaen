@@ -26,10 +26,10 @@
 
 SET (composer_SOURCES
   main_composer.cpp
-  MainWindow.cpp
-  MainWindow.h
-  MessagesWindow.cpp
-  MessagesWindow.h
+  BaseWindow.cpp
+  BaseWindow.h
+  Messages.cpp
+  Messages.h
   )
 
 MSVC_PRECOMPILED_HEADER (composer composer_SOURCES)
@@ -39,9 +39,18 @@ ADD_EXECUTABLE (composer WIN32
   ${composer_SOURCES}
   )
 
+ADD_DEPENDENCIES(composer
+  zlib
+  libpng
+  )
+
 TARGET_LINK_LIBRARIES (composer
   core
   nana
+  optimized ${LIBPNG_LIB}
+  debug     ${LIBPNG_LIBD}
+  optimized ${ZLIB_LIB}
+  debug     ${ZLIB_LIBD}
   ${PLATFORM_LINK_LIBS}
   )
 

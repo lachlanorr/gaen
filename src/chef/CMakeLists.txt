@@ -65,6 +65,7 @@ ADD_EXECUTABLE (chef
 
 ADD_DEPENDENCIES(chef
   freetype
+  zlib
   libpng
   )
 

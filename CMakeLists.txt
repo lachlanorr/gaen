@@ -184,6 +184,7 @@ SET (GLFW_LIBS
 LIST (APPEND CMAKE_MODULE_PATH "${ext_dir}/rpavlik-cmake")
 INCLUDE (CreateLaunchers)
 
+ADD_DEFINITIONS("-DNANA_ENABLE_PNG=1")
 ADD_SUBDIRECTORY (${ext_dir}/nana)
 INCLUDE_DIRECTORIES (${ext_dir}/nana/include)
 

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// MainWindow.h - MainWindow for composer application
+// MessagesWindow.cpp - MessagesWindow for composer application
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,42 +24,26 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_COMPOSER_MAIN_WINDOW_H
-#define GAEN_COMPOSER_MAIN_WINDOW_H
+#include "composer/stdafx.h"
 
-#include <memory>
-
-namespace nana
-{
-class form;
-class menubar;
-class label;
-class button;
-}
+#include "composer/Messages.h"
 
 namespace gaen
 {
 
-class MessagesWindow;
+Messages::Messages(nana::size size)
+  : BaseWindow(size)
+{
+    mpLabel2.reset(new nana::label(*this, "Hello2, <bold blue size=16>Nana C++ Library</>"));
+    mpLabel2->format(true);
+    this->div("vert <><<><weight=80% text><>>");
+    (*this)["text"] << *mpLabel2;
+}
 
-class MainWindow : public nana::form
+Messages::~Messages()
 {
 
-public:
-    MainWindow();
-    ~MainWindow();
+}
 
-private:
-    void buildMenus();
-
-    std::unique_ptr<nana::menubar> mpMenuBar;
-    std::unique_ptr<nana::label> mpLabel;
-    std::unique_ptr<nana::button> mpButton;
-
-    std::unique_ptr<MessagesWindow> mpMessagesWindow;
-
-}; // class MainWindow
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_COMPOSER_MAIN_WINDOW_H

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// MessagesWindow.cpp - MessagesWindow for composer application
+// MessagesWindow.h - MessagesWindow for composer application
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,26 +24,36 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "composer/stdafx.h"
+#ifndef GAEN_COMPOSER_MESSAGES_WINDOW_H
+#define GAEN_COMPOSER_MESSAGES_WINDOW_H
 
-#include "composer/MessagesWindow.h"
+#include <memory>
+
+#include "composer/BaseWindow.h"
+
+namespace nana
+{
+class form;
+class nested_form;
+class label;
+}
 
 namespace gaen
 {
 
-MessagesWindow::MessagesWindow(nana::form & form)
-  : nana::nested_form(form)
+class Messages : public BaseWindow
 {
-    mpLabel2.reset(new nana::label(*this, "Hello2, <bold blue size=16>Nana C++ Library</>"));
-    mpLabel2->format(true);
-    this->div("vert <><<><weight=80% text><>>");
-    (*this)["text"] << *mpLabel2;
-}
+public:
+    Messages(nana::size size);
+    virtual ~Messages();
 
-MessagesWindow::~MessagesWindow()
-{
+private:
+    std::unique_ptr<nana::label> mpLabel2;
 
-}
+}; // class MessagesWindow
 
 
 } // namespace gaen
+
+
+#endif // #ifndef GAEN_COMPOSER_MESSAGES_WINDOW_H
