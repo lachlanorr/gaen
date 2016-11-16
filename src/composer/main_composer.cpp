@@ -27,6 +27,7 @@
 #include "composer/stdafx.h"
 
 #include "core/sockets.h"
+#include "core/logging.h"
 
 #include "composer/Messages.h"
 
@@ -307,6 +308,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
                      int nCmdShow)
 {
     gaen::init_sockets();
+    gaen::init_logging("127.0.0.1");
 
 
 #if 0

@@ -34,13 +34,13 @@
 namespace gaen
 {
 
-#define LOGGING WHEN(HAS(DEV_BUILD))
+#define LOGGING WHEN(HAS(DEV_BUILD) || HAS(TOOL_BUILD))
 
 #define LOG_ERROR(format, ...)   LOG(kLS_Error,    format, ##__VA_ARGS__)
 #define LOG_WARNING(format, ...) LOG(kLS_Warning,  format, ##__VA_ARGS__)
 #define LOG_INFO(format, ...)    LOG(kLS_Info,     format, ##__VA_ARGS__)
 
-#if HAS(DEV_BUILD)
+#if HAS(LOGGING)
 #define LOG(severity, format, ...) gaen::logf(severity, format, ##__VA_ARGS__)
 #else  // #if HAS(DEV_BUILD)
 #define LOG(severity, format, ...) do {} while(0)
@@ -55,6 +55,7 @@ class Logger
 {
 public:
     void init(u32 serverIp);
+    void init(const char * serverIp);
     void fin();
     void log(LogSeverity severity, const char * message);
 

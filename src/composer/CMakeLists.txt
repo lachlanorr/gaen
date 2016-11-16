@@ -37,6 +37,8 @@ SET (composer_SOURCES
 MSVC_PRECOMPILED_HEADER (composer composer_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${composer_SOURCES}")
 
+ADD_DEFINITIONS("-DIS_BUILD_Tool=1")
+
 ADD_EXECUTABLE (composer WIN32
   ${composer_SOURCES}
   )

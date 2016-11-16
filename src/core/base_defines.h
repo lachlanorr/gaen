@@ -116,6 +116,12 @@ namespace gaen
 #define DEV_BUILD HAS__
 #endif
 
+#if IS_BUILD_Tool
+#define TOOL_BUILD HAS_X
+#else
+#define TOOL_BUILD HAS__
+#endif
+
 // LORRTODO - define Profile build type in CMakeLists.txt
 #if IS_BUILD_Profile || HAS(DEV_BUILD)
 #define PROFILE HAS_X

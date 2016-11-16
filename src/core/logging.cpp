@@ -46,9 +46,7 @@ namespace gaen
 void init_logging(const char * serverIp)
 {
 #if HAS(LOGGING)
-    ASSERT(is_valid_ip(serverIp));
-    u32 ip = str_to_ip(serverIp);
-    singleton<Logger>().init(ip);
+    singleton<Logger>().init(serverIp);
 #endif
 }
 
@@ -76,6 +74,13 @@ void Logger::init(u32 serverIp)
     mServerIp = serverIp;
     set_report_failure_cb(log_failure);
     mIsInit = true;
+}
+
+void Logger::init(const char * serverIp)
+{
+    ASSERT(is_valid_ip(serverIp));
+    u32 ip = str_to_ip(serverIp);
+    init(ip);
 }
 
 void Logger::fin()
