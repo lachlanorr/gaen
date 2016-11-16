@@ -26,14 +26,9 @@
 
 #include "composer/stdafx.h"
 
+#include "core/sockets.h"
+
 #include "composer/Messages.h"
-
-
-
-
-
-
-
 
 
 
@@ -311,6 +306,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
                      LPSTR lpCmdLine,
                      int nCmdShow)
 {
+    gaen::init_sockets();
+
 
 #if 0
     using namespace nana;

@@ -28,6 +28,8 @@ SET (composer_SOURCES
   main_composer.cpp
   BaseWindow.cpp
   BaseWindow.h
+  MenuBar.cpp
+  MenuBar.h
   Messages.cpp
   Messages.h
   )

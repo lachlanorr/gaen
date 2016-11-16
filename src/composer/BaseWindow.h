@@ -29,13 +29,7 @@
 
 #include <memory>
 
-namespace nana
-{
-class form;
-class menubar;
-class label;
-class button;
-}
+#include "composer/MenuBar.h"
 
 namespace gaen
 {
@@ -47,15 +41,11 @@ public:
     BaseWindow(nana::size size);
     virtual ~BaseWindow();
 
-private:
-    void buildMenus();
+protected:
 
-    void dockable__();
-
-    std::unique_ptr<nana::place> mpPlace;
-    std::unique_ptr<nana::menubar> mpMenuBar;
-    std::unique_ptr<nana::label> mpLabel;
-    std::unique_ptr<nana::button> mpButton;
+//    void dockable__();
+    nana::place mPlace{*this};
+    MenuBar mMenuBar{*this};
 
 }; // class BaseWindow
 

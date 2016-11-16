@@ -34,7 +34,7 @@
 
 namespace gaen
 {
-
+/*
 void BaseWindow::dockable__()
 {
     // some sample code that creates dockable windows
@@ -62,34 +62,16 @@ void BaseWindow::dockable__()
 
     mpPlace->collocate();
 }
-
+*/
 BaseWindow::BaseWindow(nana::size size)
   : nana::form(nana::rectangle(size))
 {
-    buildMenus();
 }
+
 
 BaseWindow::~BaseWindow()
 {
 
 }
-
-
-
-void on_menu_item(nana::menu::item_proxy& ip)
-{
-    LOG_INFO("on_menu_item clicked");
-}
-
-void BaseWindow::buildMenus()
-{
-    mpMenuBar.reset(new nana::menubar(*this));
-    nana::menu & m = mpMenuBar->push_back("File");
-    m.append("New", on_menu_item);
-    m.append("Open", on_menu_item);
-
-    //mpMessagesWindow->
-}
-
 
 } // namespace

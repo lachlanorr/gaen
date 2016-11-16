@@ -64,6 +64,9 @@ bool sock_recvfrom(Sock sock,
                    u32 * pFromIp,
                    u16 * pFromPort);
 
+bool sock_select_read(Sock sock,
+                      u32 timeout_ms);
+
 const char* ip_to_str(u32 ip);
 u32 str_to_ip(const char * ipStr);
 bool is_valid_ip(const char * ipStr);

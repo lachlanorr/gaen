@@ -29,14 +29,9 @@
 
 #include <memory>
 
-#include "composer/BaseWindow.h"
+#include "core/LogListener.h"
 
-namespace nana
-{
-class form;
-class nested_form;
-class label;
-}
+#include "composer/BaseWindow.h"
 
 namespace gaen
 {
@@ -48,8 +43,11 @@ public:
     virtual ~Messages();
 
 private:
-    std::unique_ptr<nana::label> mpLabel2;
+    void operator()(const char * time, const char * sev, const char * msg);
 
+    nana::textbox mText{*this};
+
+    LogListener<Messages> mLogListener{*this};
 }; // class MessagesWindow
 
 

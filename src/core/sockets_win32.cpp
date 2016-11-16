@@ -142,11 +142,11 @@ bool sock_sendto(Sock sock,
 }
 
 bool sock_recvfrom(Sock sock,
-                  u8 * pData,
-                  size_t dataSize,
-                  size_t * pRecvSize,
-                  u32 * pFromIp,
-                  u16 * pFromPort)
+                   u8 * pData,
+                   size_t dataSize,
+                   size_t * pRecvSize,
+                   u32 * pFromIp,
+                   u16 * pFromPort)
 {
     sockaddr_in winAddr;
     int winAddrSize = sizeof(sockaddr_in);
@@ -170,5 +170,22 @@ bool sock_recvfrom(Sock sock,
 
     return true;
 }
+
+bool sock_select_read(Sock sock,
+                      u32 timeout_ms)
+{
+    fd_set sockSet;
+    FD_ZERO(&sockSet);
+    FD_SET(sock, &sockSet);
+
+    timeval tv;
+    tv.tv_sec = timeout_ms / 1000;
+    tv.tv_usec = (timeout_ms % 1000) * 1000;
+
+    int res = select(0, &sockSet, nullptr, nullptr, &tv);
+
+    return res > 0;
+}
+
 
 } // namespace gaen

@@ -29,6 +29,7 @@
 #include "core/logging.h"
 
 #include "assets/Config.h"
+#include "assets/file_utils.h"
 
 #include "engine/TaskMaster.h"
 #include "engine/MessageWriter.h"
@@ -39,7 +40,33 @@
 namespace gaen
 {
 
-static const char * kKeyboardConf = "input.conf";
+static const char * kInputConf = "input.conf";
+
+void find_input_conf(char * inputConfPath)
+{
+    char path[kMaxPath+1];
+    char checkPath[kMaxPath+1];
+
+    strcpy(inputConfPath, kInputConf);
+
+    process_path(path);
+    parent_dir(path);
+
+    for (;;)
+    {
+        PANIC_IF(!*path, "Unable to find input.conf, make sure input.conf is located under a gaen or gaen project directory tree.");
+
+        snprintf(checkPath, kMaxPath, "%s/%s", path, kInputConf);
+
+        if (file_exists(checkPath))
+        {
+            strcpy(inputConfPath, checkPath);
+            return;
+        }
+        parent_dir(path);
+    }
+}
+
 
 InputMgr::InputMgr(bool isPrimary)
   : mIsPrimary(isPrimary)
@@ -49,7 +76,11 @@ InputMgr::InputMgr(bool isPrimary)
     zeroState();
 
     mpActiveMode = 0;
-    if (keyConf.read(kKeyboardConf))
+
+    char inputConfPath[kMaxPath+1];
+    find_input_conf(inputConfPath);
+    
+    if (keyConf.read(inputConfPath))
     {
         for (auto secIt = keyConf.sectionsBegin();
              secIt != keyConf.sectionsEnd();
@@ -212,7 +243,7 @@ MessageResult InputMgr::message(const T& msgAcc)
         processKeyInput(KeyInput(msg.payload));
         break;
     case HASH::kill_focus:
-        LOG_INFO("Killing focus");
+        //LOG_INFO("Killing focus");
         mPressedKeys = glm::ivec4(0);
         break;
     case HASH::mouse_move:

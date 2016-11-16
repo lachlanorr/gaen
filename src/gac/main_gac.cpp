@@ -32,71 +32,22 @@
 
 #include "core/platutils.h"
 #include "core/log_message.h"
+#include "core/LogListener.h"
 
-namespace gaen
+struct LogPrinter
 {
-
-static const char * sLogSeverityText[] = {"ERR ",
-                                          "WARN",
-                                          "INFO"};
-
-static_assert(sizeof(sLogSeverityText) / sizeof(char*) == kLS_COUNT,
-              "sLogSeverityText should have the same number of entries as LogSeverity enum");
-
-
-void log_listen_and_print()
-{
-    // LORRTODO - Make this multithreaded.  Recv thread should be as lightweight as possible and
-    // put inbounds on an spsc queue.  Consider using the MemMgr here as well.  Logging must never
-    // become a bottleneck, nor do we want to drop logs.
-
-    init_sockets();
-
-    Sock sock;
-
-    if (!sock_create(&sock))
-        PANIC("Unable to create socket");
-
-    if (!sock_bind(sock, kLoggingPort))
-        PANIC("Unable to bind socket");
-
-
-    u8 buff[kMaxLogPacketSize];
-
-    size_t recvSize;
-    u32 fromIp;
-    u16 fromPort;
-
-    while(1)
+    void operator()(const char * time, const char * sev, const char * msg)
     {
-        if (!sock_recvfrom(sock, buff, kMaxLogPacketSize-1, &recvSize, &fromIp, &fromPort))
-        {
-            puts("LOGERR: Failed to recv");
-            exit(-1);
-        }
-
-        LogMessage * pLogMessage = reinterpret_cast<LogMessage*>(buff);
-        pLogMessage->msg[kMaxLogMessageSize-1] = '\0'; // just in case we were sent junk
-
-        char timeStr[32];
-        if (!time_to_str(timeStr, 32, pLogMessage->header.time))
-        {
-            strcpy(timeStr, "????");
-        }
-
-        printf("%s %s - %s\n",
-               timeStr,
-               sLogSeverityText[pLogMessage->header.sev],
-               pLogMessage->msg);
+        printf("%s %s - %s\n", time, sev, msg);
     }
-}
-
-} // namespace gaen
+};
 
 int main(int argc, char ** argv)
 {
     using namespace gaen;
-    
+
+    init_sockets();
+
     bool shouldLogListen = false;
     
     // parse args
@@ -108,7 +59,13 @@ int main(int argc, char ** argv)
         }
     }
 
-
     if (shouldLogListen)
-        log_listen_and_print();
+    {
+        LogPrinter logPrinter;
+        LogListener<LogPrinter> ll(logPrinter);
+        while (1)
+        {
+            sleep(1000);
+        }
+    }
 }

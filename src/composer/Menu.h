@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// MessagesWindow.cpp - MessagesWindow for composer application
+// Menu.h - Standard menu shown on all windows
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,48 +24,14 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "composer/stdafx.h"
-
-#include "core/logging.h"
-
-#include "composer/Messages.h"
+#ifndef GAEN_COMPOSER_MENU_H
+#define GAEN_COMPOSER_MENU_H
 
 namespace gaen
 {
 
-static bool key_accept(wchar_t)
-{
-    return false;
-}
 
-Messages::Messages(nana::size size)
-  : BaseWindow(size)
-{
-    caption("Messages");
-
-    //mText.editable(false);
-    mText.select_behavior(false);
-    mText.focus_behavior(nana::textbox::text_focus_behavior::none);
-    mText.typeface(nana::paint::font("Consolas", 10));
-    mText.set_accept(key_accept);
-
-    mPlace.div("vert<menubar weight=28><text>");
-    mPlace["menubar"] << mMenuBar;
-    mPlace["text"] << mText;
-    mPlace.collocate();
-}
-
-Messages::~Messages()
-{
-
-}
-
-void Messages::operator()(const char * time, const char * sev, const char * msg)
-{
-    std::stringstream ss;
-    ss << time << "\t" << sev << "\t" << msg << "\n";
-    mText.append(ss.str(), false);
-    mText.select(false);
-}
 
 } // namespace gaen
+
+#endif // #ifndef GAEN_COMPOSER_MENU_H

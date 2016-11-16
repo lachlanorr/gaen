@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// MessagesWindow.cpp - MessagesWindow for composer application
+// MenuBar.cpp - Standard menu shown on all windows
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -28,44 +28,22 @@
 
 #include "core/logging.h"
 
-#include "composer/Messages.h"
+#include "composer/MenuBar.h"
 
 namespace gaen
 {
 
-static bool key_accept(wchar_t)
+MenuBar::MenuBar(nana::window wd)
+  : nana::menubar(wd)
 {
-    return false;
+    nana::menu & m = push_back("File");
+    m.append("New", on_menu_item);
+    m.append("Open", on_menu_item);
 }
 
-Messages::Messages(nana::size size)
-  : BaseWindow(size)
+void MenuBar::on_menu_item(nana::menu::item_proxy& ip)
 {
-    caption("Messages");
-
-    //mText.editable(false);
-    mText.select_behavior(false);
-    mText.focus_behavior(nana::textbox::text_focus_behavior::none);
-    mText.typeface(nana::paint::font("Consolas", 10));
-    mText.set_accept(key_accept);
-
-    mPlace.div("vert<menubar weight=28><text>");
-    mPlace["menubar"] << mMenuBar;
-    mPlace["text"] << mText;
-    mPlace.collocate();
-}
-
-Messages::~Messages()
-{
-
-}
-
-void Messages::operator()(const char * time, const char * sev, const char * msg)
-{
-    std::stringstream ss;
-    ss << time << "\t" << sev << "\t" << msg << "\n";
-    mText.append(ss.str(), false);
-    mText.select(false);
+    LOG_INFO("on_menu_item clicked");
 }
 
 } // namespace gaen

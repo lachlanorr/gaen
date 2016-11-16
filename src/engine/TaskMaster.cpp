@@ -790,7 +790,7 @@ void TaskMaster::insertTask(thread_id threadOwner, const Task & task)
         mOwnedTaskMap[task.id()] = mOwnedTasks.size() - 1;
     }
 
-    LOG_INFO("Task Count(%u): %u", threadId(), (u32)mOwnedTaskMap.size());
+    //LOG_INFO("Task Count(%u): %u", threadId(), (u32)mOwnedTaskMap.size());
 }
 
 void TaskMaster::removeTask(task_id taskId)

@@ -38,6 +38,7 @@ SET (core_SOURCES
   log_message.h
   logging.cpp
   logging.h
+  LogListener.h
   Map.h
   mem.cpp
   mem.h
