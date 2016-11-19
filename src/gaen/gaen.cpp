@@ -39,6 +39,12 @@
 #include "engine/Entity.h"
 #include "engine/Registry.h"
 
+// Force Optimus enabled systems to use Nvidia adapter
+extern "C"
+{
+    __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+}
+
 namespace gaen
 {
 static const char * kDefaultMemInitStr = "16:100,64:100,256:100,1024:100,4096:100";

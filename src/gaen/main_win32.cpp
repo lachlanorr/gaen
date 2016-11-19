@@ -81,8 +81,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     const u32 kScreenWidth = 1280;
     const u32 kScreenHeight = 720;
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
     // Starting with a visible window gives a nasty white window on
     // screen before our renderer initializes. Will get shown by
