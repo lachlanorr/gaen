@@ -31,6 +31,8 @@ SET (cooker_SOURCES
   cookers/Font.h
   cookers/Image.cpp
   cookers/Image.h
+  cookers/Model.cpp
+  cookers/Model.h
   cookers/Sprite.cpp
   cookers/Sprite.h
   )
