@@ -307,6 +307,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
                      LPSTR lpCmdLine,
                      int nCmdShow)
 {
+    gaen::init_time();
     gaen::init_sockets();
     gaen::init_logging("127.0.0.1");
 

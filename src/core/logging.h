@@ -49,8 +49,6 @@ namespace gaen
 void init_logging(const char * serverIp);
 void fin_logging();
 
-
-#if HAS(LOGGING)    
 class Logger
 {
 public:
@@ -68,7 +66,6 @@ private:
 };
 
 void logf(LogSeverity severity, const char * format, ...);
-#endif // #if HAS(LOGGING)
 
 
 } // namespace gaen

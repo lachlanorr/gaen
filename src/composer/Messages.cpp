@@ -53,6 +53,22 @@ Messages::Messages(nana::size size)
     mPlace["menubar"] << mMenuBar;
     mPlace["text"] << mText;
     mPlace.collocate();
+
+
+    mTimer.interval(100);
+    mTimer.elapse([this]()
+    {
+        std::lock_guard<std::mutex> lock(mPendingMessagesMutex);
+        for (LogMessage & lm : mPendingMessages)
+        {
+            std::stringstream ss;
+            ss << lm.time << "\t" << lm.sev << "\t" << lm.msg << "\n";
+            mText.append(ss.str(), false);
+            mText.select(false);
+        }
+        mPendingMessages.clear();
+    });
+    mTimer.start();
 }
 
 Messages::~Messages()
@@ -62,10 +78,8 @@ Messages::~Messages()
 
 void Messages::operator()(const char * time, const char * sev, const char * msg)
 {
-    std::stringstream ss;
-    ss << time << "\t" << sev << "\t" << msg << "\n";
-    mText.append(ss.str(), false);
-    mText.select(false);
+    std::lock_guard<std::mutex> lock(mPendingMessagesMutex);
+    mPendingMessages.emplace_back(time, sev, msg);
 }
 
 } // namespace gaen

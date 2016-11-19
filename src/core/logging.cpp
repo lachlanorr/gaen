@@ -58,8 +58,6 @@ void fin_logging()
 }
 
 
-#if HAS(LOGGING)    
-
 
 void log_failure(const char * msg)
 {
@@ -146,7 +144,5 @@ void logf(LogSeverity severity, const char * format, ...)
 
     singleton<Logger>().log(severity, tMessage);
 }
-
-#endif // #if HAS(LOGGING)
 
 }

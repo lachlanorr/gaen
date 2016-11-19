@@ -28,6 +28,9 @@
 #define GAEN_COMPOSER_MESSAGES_WINDOW_H
 
 #include <memory>
+#include <string>
+#include <list>
+#include <mutex>
 
 #include "core/LogListener.h"
 
@@ -43,9 +46,26 @@ public:
     virtual ~Messages();
 
 private:
+    struct LogMessage
+    {
+        std::string time;
+        std::string sev;
+        std::string msg;
+
+        LogMessage(const char * time, const char * sev, const char * msg)
+          : time(time)
+          , sev(sev)
+          , msg(msg)
+        {}
+    };
+
     void operator()(const char * time, const char * sev, const char * msg);
 
     nana::textbox mText{*this};
+    nana::timer mTimer;
+
+    std::mutex mPendingMessagesMutex;
+    std::list<LogMessage> mPendingMessages;
 
     LogListener<Messages> mLogListener{*this};
 }; // class MessagesWindow
