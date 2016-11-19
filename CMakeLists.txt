@@ -188,6 +188,8 @@ ADD_DEFINITIONS("-DNANA_ENABLE_PNG=1")
 ADD_SUBDIRECTORY (${ext_dir}/nana)
 INCLUDE_DIRECTORIES (${ext_dir}/nana/include)
 
+INCLUDE_DIRECTORIES (${ext_dir}/tiny_obj_loader-1.0.2)
+
 ADD_SUBDIRECTORY(src)
 
 # Set debugging params for ALL_BUILD
