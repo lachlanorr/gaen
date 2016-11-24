@@ -43,38 +43,67 @@ Model::Model()
 {
     setVersion(1);
     addRawExt(kExtObj);
+//    addRawExt(kExtPly);
+//    addRawExt(kExtFbx);
     addCookedExtExclusive(kExtGmdl);
 }
 
 void Model::cook(CookInfo * pCookInfo) const
 {
-    const char * ext = get_ext(pCookInfo->rawPath().c_str());
+    const struct aiScene * pScene = aiImportFile(pCookInfo->rawPath().c_str(),
+                                                 aiProcess_Triangulate |
+                                                 aiProcess_SortByPType |
+                                                 aiProcess_GenNormals |
+                                                 aiProcess_ImproveCacheLocality);
 
-    if (0 == strcmp(ext, "png"))
+    PANIC_IF(!pScene, "Failure in aiImportFile, %s", pCookInfo->rawPath().c_str());
+
+    // We only support one vertex type currently, kVERT_PosNormCol
+    u32 vertCount = 0;
+    u32 triCount = 0;
+
+    for (u32 i = 0; i < pScene->mNumMeshes; ++i)
     {
-        cookPng(pCookInfo);
+        vertCount += pScene->mMeshes[i]->mNumVertices;
+        triCount += pScene->mMeshes[i]->mNumFaces;
     }
-    else if (0 == strcmp(ext, "tga"))
+
+    Gmdl * pGmdlObj = Gmdl::create(1, kVERT_PosNormCol, vertCount, kPRIM_Triangle, triCount);
+
+    PANIC_IF(!pGmdlObj, "Failure in Gmdl::create, %s", pCookInfo->rawPath().c_str());
+
+    for (u32 i = 0; i < pScene->mNumMeshes; ++i)
     {
-        cookTga(pCookInfo);
+        aiMesh * pAiMesh = pScene->mMeshes[i];
+        aiMaterial * pAiMaterial = pScene->mMaterials[pAiMesh->mMaterialIndex];
+
+        Mesh * pMesh = pGmdlObj->mesh(i);
+        Mesh::init(pMesh, kVERT_PosNormCol, pAiMesh->mNumVertices, kPRIM_Triangle, pAiMesh->mNumFaces);
+
+        VertPosNormCol* pVert = *pMesh;
+        for (u32 v = 0; v < pAiMesh->mNumVertices; ++v)
+        {
+            pVert[v].position.x = pAiMesh->mVertices[v].x;
+            pVert[v].position.y = pAiMesh->mVertices[v].y;
+            pVert[v].position.z = pAiMesh->mVertices[v].z;
+
+            pVert[v].normal.x = pAiMesh->mNormals[v].x;
+            pVert[v].normal.y = pAiMesh->mNormals[v].y;
+            pVert[v].normal.z = pAiMesh->mNormals[v].z;
+
+            pVert[v].color = Color(255, 0, 255, 255);
+        }
+
+        PrimTriangle * pTri = *pMesh;
+        for (u32 t = 0; t < pAiMesh->mNumFaces; ++t)
+        {
+            pTri[t].p0 = pAiMesh->mFaces[t].mIndices[0];
+            pTri[t].p1 = pAiMesh->mFaces[t].mIndices[1];
+            pTri[t].p2 = pAiMesh->mFaces[t].mIndices[2];
+        }
     }
-    else
-    {
-        PANIC("Unable to cook model: %s", pCookInfo->rawPath().c_str());
-    }
-}
 
-void Model::cookObj(CookInfo * pCookInfo) const
-{
-//    UniquePtr<Png> pPng = Png::read(pCookInfo->rawPath().c_str());
-//    PANIC_IF(!pPng, "Failed to read png: %s", pCookInfo->rawPath().c_str());
-
-    // Convert to a Gimg with same-ish pixel format
-    //Gmdl * pGmdlObj;
-
-
-//    ASSERT(pGimg);
-//    pCookInfo->setCookedBuffer(pGimg);
+    pCookInfo->setCookedBuffer(pGmdlObj);
 }
 
 }

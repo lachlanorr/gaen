@@ -29,7 +29,7 @@
 
 #include <glm/vec3.hpp>
 
-#include "engine/Mesh.h"
+#include "assets/Mesh.h"
 #include "engine/Model.h"
 #include "engine/Handle.h"
 

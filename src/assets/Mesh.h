@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Gmdl.h - Runtime model format
+// Mesh.h - Geometry structs
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,341 +24,30 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ASSETS_GMDL_H
-#define GAEN_ASSETS_GMDL_H
+#ifndef GAEN_ASETS_MESH_H
+#define GAEN_ASETS_MESH_H
+
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
 
 #include "core/base_defines.h"
 #include "core/mem.h"
-
 #include "assets/Color.h"
-#include "assets/AssetHeader.h"
 
 namespace gaen
 {
 
-enum VertType
-{
-    kVERT_Unknown      = 0,
-
-    kVERT_Pos          = 1,
-    kVERT_PosNorm      = 2,
-    kVERT_PosNormCol   = 3,
-    kVERT_PosNormUv    = 4,
-    kVERT_PosNormUvTan = 5,
-
-    kVERT_END
-};
-
-enum PrimType
-{
-    kPRIM_Unknown  = 0,
-
-    kPRIM_Point    = 1,
-    kPRIM_Line     = 2,
-    kPRIM_Triangle = 3,
-
-    kPRIM_END
-};
-
-//------------------------------------------------------------------------------
-// Vertex structs
-//------------------------------------------------------------------------------
-#pragma pack(push, 1)
-struct VertPos
-{
-    static const VertType kVertType = kVERT_Pos;
-    glm::vec3 position;
-};
-
-struct VertPosNorm
-{
-    static const VertType kVertType = kVERT_PosNorm;
-    glm::vec3 position;
-    glm::vec3 normal;
-};
-
-struct VertPosNormCol
-{
-    static const VertType kVertType = kVERT_PosNorm;
-    glm::vec3 position;
-    glm::vec3 normal;
-    Color color;
-};
-
-struct VertPosNormUv
-{
-    static const VertType kVertType = kVERT_PosNormUv;
-    glm::vec3 position;
-    glm::vec3 normal;
-    f32 u;
-    f32 v;
-};
-
-struct VertPosNormUvTan
-{
-    static const VertType kVertType = kVERT_PosNormUvTan;
-    glm::vec3 position;
-    glm::vec3 normal;
-    f32 u;
-    f32 v;
-    glm::vec4 tangent;
-};
-#pragma pack(pop)
-
-const u32 kOffsetPosition = 0;
-const u32 kOffsetNormal   = kOffsetPosition + sizeof(glm::vec3);
-const u32 kOffsetColor    = kOffsetNormal + sizeof(glm::vec3);
-const u32 kOffsetUV       = kOffsetNormal + sizeof(glm::vec3);
-const u32 kOffsetTangent  = kOffsetUV + sizeof(f32) + sizeof(f32);
-
-inline bool is_valid_vert_type(u32 vertType)
-{
-    return vertType >= kVERT_Pos && vertType < kVERT_END;
-}
-
-inline bool is_valid_prim_type(u32 primType)
-{
-    return primType >= kPRIM_Point && primType < kPRIM_END;
-}
-
-inline u8 vert_type_zero_based_id(VertType vertType)
-{
-    // LORRTODO - Big endian support needed here if we ever port to such a platform
-    ASSERT(is_valid_vert_type(vertType));
-    static const u32 kSwapped_kVERT_Pos = BYTESWAP32(kVERT_Pos);
-    return (u8)(BYTESWAP32(vertType) - kSwapped_kVERT_Pos);
-}
-
-inline u8 vert_type_zero_based_id_end()
-{
-    // LORRTODO - Big endian support needed here if we ever port to such a platform
-    static const u32 diff = BYTESWAP32(kVERT_END) - BYTESWAP32(kVERT_Pos);
-    return (u8)diff;
-}
+typedef u16 index;
 
 
-inline u8 prim_type_zero_based_id(PrimType primType)
-{
-    // LORRTODO - Big endian support needed here if we ever port to such a platform
-    ASSERT(is_valid_prim_type(primType));
-    static const u32 kSwapped_kPRIM_Point = BYTESWAP32(kPRIM_Point);
-    return (u8)(BYTESWAP32(primType) - kSwapped_kPRIM_Point);
-}
 
-inline u8 prim_type_zero_based_id_end()
-{
-    // LORRTODO - Big endian support needed here if we ever port to such a platform
-    static const u32 diff = BYTESWAP32(kPRIM_END) - BYTESWAP32(kPRIM_Point);
-    return (u8)diff;
-}
-
-#pragma pack(push, 1)
-struct PrimPoint
-{
-    PrimPoint(index p0)
-      : p0(p0) {}
-
-    // a point is composed of a single index into point array
-    index p0;
-};
-
-struct PrimLine
-{
-    PrimLine(index p0, index p1)
-      : p0(p0), p1(p1) {}
-
-    // a line is composed of 2 indices into point array
-    index p0;
-    index p1;
-};
-
-
-struct PrimTriangle
-{
-    // a triangle is composed of 3 indices into point array
-    PrimTriangle(index p0, index p1, index p2)
-      : p0(p0), p1(p1), p2(p2) {}
-
-    index p0;
-    index p1;
-    index p2;
-};
-#pragma pack(pop)
-
-
-inline u32 vert_stride(VertType vertType)
-{
-    switch(vertType)
-    {
-    case kVERT_Pos:
-        return sizeof(VertPos);
-    case kVERT_PosNorm:
-        return sizeof(VertPosNorm);
-    case kVERT_PosNormCol:
-        return sizeof(VertPosNormCol);
-    case kVERT_PosNormUv:
-        return sizeof(VertPosNormUv);
-    case kVERT_PosNormUvTan:
-        return sizeof(VertPosNormUvTan);
-    default:
-        PANIC("Invalid VertexType: %d", vertType);
-        return 0;
-    }
-}
-
-inline u32 prim_stride(PrimType primType)
-{
-    switch(primType)
-    {
-    case kPRIM_Point:
-        return sizeof(PrimPoint);
-    case kPRIM_Line:
-        return sizeof(PrimLine);
-    case kPRIM_Triangle:
-        return sizeof(PrimTriangle);
-    default:
-        PANIC("Invalid PrimType: %d", primType);
-        return 0;
-    }
-}
-
-inline u32 index_count(PrimType primType)
-{
-    switch (primType)
-    {
-    case kPRIM_Point:
-        return 1;
-    case kPRIM_Line:
-        return 2;
-    case kPRIM_Triangle:
-        return 3;
-    default:
-        PANIC("Invalid PrimType: %d", primType);
-        return 0;
-    }
-}
-
-//-------------------------------------------
-// Comparison operators for Polygon and Line
-//-------------------------------------------
-inline bool operator==(const PrimTriangle & lhs, const PrimTriangle & rhs)
-{
-    return lhs.p0 == rhs.p0 &&
-        lhs.p1 == rhs.p1 &&
-        lhs.p2 == rhs.p2;
-}
-
-inline bool operator<(const PrimTriangle & lhs, const PrimTriangle & rhs)
-{
-    if(lhs.p0 != rhs.p0)
-        return lhs.p0 < rhs.p0;
-    else if(lhs.p1 != rhs.p1)
-        return lhs.p1 < rhs.p1;
-    else if(lhs.p2 != rhs.p2)
-        return lhs.p2 < rhs.p2;
-
-    // if we get here, all elements match
-    return false;
-}
-
-inline bool operator==(const PrimLine & lhs, const PrimLine & rhs)
-{
-    // do a simple sort of points to consider two lines equal even if
-    // their points are in different order
-    index line0p0,line0p1,line1p0,line1p1;
-
-    if(lhs.p0 < lhs.p1)
-    {
-        line0p0 = lhs.p0;
-        line0p1 = lhs.p1;
-    }
-    else
-    {
-        line0p0 = lhs.p1;
-        line0p1 = lhs.p0;
-    }
-
-    if(rhs.p0 <= rhs.p1)
-    {
-        line1p0 = rhs.p0;
-        line1p1 = rhs.p1;
-    }
-    else
-    {
-        line1p0 = rhs.p1;
-        line1p1 = rhs.p0;
-    }
-
-
-    return line0p0 == line1p0 &&
-        line0p1 == line1p1;
-}
-
-inline bool operator<(const PrimLine & lhs, const PrimLine & rhs)
-{
-    // do a simple sort of points to consider two lines equal even if
-    // their points are in different order
-    index line0p0,line0p1,line1p0,line1p1;
-
-    if(lhs.p0 < lhs.p1)
-    {
-        line0p0 = lhs.p0;
-        line0p1 = lhs.p1;
-    }
-    else
-    {
-        line0p0 = lhs.p1;
-        line0p1 = lhs.p0;
-    }
-
-    if(rhs.p0 <= rhs.p1)
-    {
-        line1p0 = rhs.p0;
-        line1p1 = rhs.p1;
-    }
-    else
-    {
-        line1p0 = rhs.p1;
-        line1p1 = rhs.p0;
-    }
-
-
-    if(line0p0 != line1p0)
-        return line0p0 < line1p0;
-    else if(line0p1 != line1p1)
-        return line0p1 < line1p1;
-
-    // if we get here, all elements match
-    return false;
-}
-
-#pragma pack(push, 1)
-class Gmdl : public AssetHeader4CC<FOURCC("gmdl")>
+class Mesh
 {
 public:
     static const u32 kRendererReservedCount = 4;
 
-    static bool is_valid(const void * pBuffer, u64 size);
-    static Gmdl * instance(void * pBuffer, u64 size);
-    static const Gmdl * instance(const void * pBuffer, u64 size);
-    
-    static u64 required_size(VertType vertType,
-                             u32 vertCount,
-                             PrimType primType,
-                             u32 primCount);
-
-    static Gmdl * create(VertType vertType,
-                         u32 vertCount,
-                         PrimType primType,
-                         u32 primCount);
-    static Gmdl * load(const char * rawPath);
-
     VertType vertType() const { return static_cast<VertType>(mVertType); }
     PrimType primType() const { return static_cast<PrimType>(mPrimType); }
-
-    u32 vertCount() const { return mTotalVertCount; }
-    u32 primCount() const { return mTotalPrimCount; }
-    u32 indexCount() const { return mTotalPrimCount * index_count(primType()); }
 
     f32 * verts()
     {
@@ -576,11 +265,23 @@ public:
     // Cast operators (END)
     //--------------------------------------------------------------------------
 
+
+    u32 vertCount() const { return mVertCount; }
+    u32 primCount() const { return mPrimCount; }
+
+    static bool is_valid(const void * pBuffer, u64 size);
+    static u64 required_size(VertType vertType, u32 vertCount, PrimType primType, u32 primCount);
+
+    static Mesh * cast(u8 * pBuffer, u64 size);
+    static Mesh * init(Mesh * pMesh, VertType vertType, u32 vertCount, PrimType primType, u32 primCount);
+    static Mesh * create(VertType vertType, u32 vertCount, PrimType primType, u32 primCount);
+    static void destroy(Mesh * pMesh);
+
 private:
     // Class should not be constructed directly.  Use cast and create static methods.
-    Gmdl() = default;
-    Gmdl(const Gmdl&) = delete;
-    Gmdl & operator=(const Gmdl&) = delete;
+    Mesh() = default;
+    Mesh(const Mesh&) = delete;
+    Mesh & operator=(const Mesh&) = delete;
 
     u32 mVertType:8;
     u32 mPrimType:8;
@@ -594,10 +295,7 @@ private:
     u32 mPrimOffset;  // offset from start of struct
 
     u32 mRendererReserved[kRendererReservedCount];
-
-    // LORRTODO: Add material, bone, anim support
 };
-#pragma pack(pop)
 
 // Sanity checks for sizeof our structs.
 static_assert(sizeof(VertPos) == 12,          "VertPos geometry struct has unexpected size");
@@ -608,8 +306,8 @@ static_assert(sizeof(VertPosNormUvTan) == 48, "VertPosNormUvTan geometry struct 
 static_assert(sizeof(PrimPoint) == 2,         "PrimLine geometry struct has unexpected size");
 static_assert(sizeof(PrimLine) == 4,          "PrimLine geometry struct has unexpected size");
 static_assert(sizeof(PrimTriangle) == 6,      "PrimTriangle geometry struct has unexpected size");
-static_assert(sizeof(Gmdl) == 48,             "Gmdl has unexpected size");
+static_assert(sizeof(Mesh) == 32,             "Mesh struct has unexpected size");
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ASSETS_GMDL_H
+#endif // #ifndef GAEN_ASETS_MESH_H

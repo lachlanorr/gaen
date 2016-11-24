@@ -62,8 +62,6 @@ SET (engine_SOURCES
   InputMgr.h
   Material.cpp
   Material.h
-  Mesh.cpp
-  Mesh.h
   Message.h
   MessageAccessor.h
   MessageQueue.h

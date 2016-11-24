@@ -37,4 +37,8 @@
 
 #include <glm/exponential.hpp>
 
+#include <assimp/cimport.h>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #endif // #ifndef GAEN_CHEF_STDAFX_H

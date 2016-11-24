@@ -176,6 +176,33 @@ SET (GLFW_LIBS
      optimized ${GLFW_PATH}/glfw-build/src/Release/glfw3.lib
      debug ${GLFW_PATH}/glfw-build/src/Debug/glfw3.lib
      )
+
+# assimp
+SET (ASSIMP_VER "3.3.1")
+SET (ASSIMP_NAME_VER "assimp-${ASSIMP_VER}")
+SET (ASSIMP_PATH "${CMAKE_CURRENT_BINARY_DIR}/assimp/src")
+ExternalProject_Add(assimp
+  URL "${ext_dir}/${ASSIMP_NAME_VER}.tar.gz"
+  URL_MD5 fc57b024e80ebb13301bd0983826cad3
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/assimp
+  INSTALL_COMMAND ""
+  CMAKE_ARGS "-DBUILD_SHARED_LIBS:STRING=OFF"
+             "-DASSIMP_BUILD_ASSIMP_TOOLS:STRING=OFF"
+             "-DASSIMP_BUILD_TESTS:STRING=OFF"
+             "-DCMAKE_CXX_FLAGS_DEBUG:STRING=/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1"
+             "-DCMAKE_CXX_FLAGS_MINSIZEREL:STRING=/MT /O1 /Ob1 /D NDEBUG"
+             "-DCMAKE_CXX_FLAGS_RELEASE:STRING=/MT /O2 /Ob2 /D NDEBUG"
+             "-DCMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=/MT /Zi /O2 /Ob1 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_DEBUG:STRING=/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1"
+             "-DCMAKE_C_FLAGS_MINSIZEREL:STRING=/MT /O1 /Ob1 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_RELEASE:STRING=/MT /O2 /Ob2 /D NDEBUG"
+             "-DCMAKE_C_FLAGS_RELWITHDEBINFO:STRING=/MT /Zi /O2 /Ob1 /D NDEBUG"
+)
+INCLUDE_DIRECTORIES (${ASSIMP_PATH}/assimp/include)
+SET (ASSIMP_LIBS
+     optimized ${ASSIMP_PATH}/assimp-build/code/Release/assimp-vc140-mt.lib
+     debug ${ASSIMP_PATH}/assimp-build/code/Debug/assimp-vc140-mt.lib
+     )
 #-------------------------------------------------------------------------------
 # External dependencies (END)
 #-------------------------------------------------------------------------------

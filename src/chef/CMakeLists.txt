@@ -71,6 +71,7 @@ ADD_DEPENDENCIES(chef
   freetype
   zlib
   libpng
+  assimp
   )
 
 TARGET_LINK_LIBRARIES (chef
@@ -84,6 +85,7 @@ TARGET_LINK_LIBRARIES (chef
   debug     ${LIBPNG_LIBD}
   optimized ${ZLIB_LIB}
   debug     ${ZLIB_LIBD}
+  ${ASSIMP_LIBS}
   ${PLATFORM_LINK_LIBS}
   )
 

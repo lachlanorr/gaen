@@ -29,7 +29,7 @@
 
 #include "core/Vector.h"
 
-#include "engine/Mesh.h"
+#include "assets/Gmdl.h"
 #include "engine/Material.h"
 
 namespace gaen
@@ -46,7 +46,7 @@ public:
     class MaterialMesh
     {
     public:
-        MaterialMesh(Model * pModel, Material * pMaterial, Mesh * pMesh);
+        MaterialMesh(Model * pModel, Material * pMaterial, Gmdl * pMesh);
 
         ~MaterialMesh();
 
@@ -56,7 +56,7 @@ public:
 
         Model & model() { return *mpModel; }
         Material & material() { return *mpMaterial; }
-        Mesh & mesh() { return *mpMesh; }
+        Gmdl & mesh() { return *mpMesh; }
 
     private:
         material_mesh_sort calcSortOrder();

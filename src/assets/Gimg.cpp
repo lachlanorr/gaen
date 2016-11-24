@@ -167,11 +167,6 @@ Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
     return pGimg;
 }
 
-u64 Gimg::size() const
-{
-    return required_size(mPixelFormat, mWidth, mHeight);
-}
-
 u8 * Gimg::scanline(u32 idx)
 {
     PANIC_IF(idx + 1 > mHeight, "Invalid scanline %d, for image with height %d", idx, mHeight);

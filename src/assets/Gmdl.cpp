@@ -35,6 +35,11 @@
 namespace gaen
 {
 
+static u32 calc_size(u32 vertStride, u32 vertCount, u32 primitiveStride, u32 primitiveCount)
+{
+    return (sizeof(Gmdl) + vertStride * vertCount + primitiveStride * primitiveCount);
+}
+
 bool Gmdl::is_valid(const void * pBuffer, u64 size)
 {
     if (size < sizeof(Gmdl))
@@ -47,16 +52,26 @@ bool Gmdl::is_valid(const void * pBuffer, u64 size)
     if (pAssetData->size() != size)
         return false;
 
-    switch (pAssetData->mPixelFormat)
-    {
-    case kPXL_RGB_DXT1:
-    case kPXL_RGBA_DXT1:
-    case kPXL_RGBA_DXT3:
-    case kPXL_RGBA_DXT5:
-        // DXT textures should have multiples of 4 for width and height
-        if (pAssetData->mWidth % 4 != 0 || pAssetData->mHeight % 4 != 0)
-            return false;
-    }
+    if (!is_valid_vert_type(pAssetData->mVertType))
+        return false;
+
+    if (!is_valid_prim_type(pAssetData->mPrimType))
+        return false;
+
+    u64 reqSize = required_size(pAssetData->vertType(),
+                                pAssetData->mTotalVertCount,
+                                pAssetData->primType(),
+                                pAssetData->mTotalPrimCount);
+    if (reqSize != size)
+        return false;
+
+    u32 vertStride = pAssetData->vertStride();
+
+    if (size != pAssetData->totalSize())
+        return false;
+
+    if (pAssetData->primOffset() != sizeof(Gmdl) + vertStride * pAssetData->mVertCount)
+        return false;
 
     return true;
 }
@@ -83,58 +98,53 @@ const Gmdl * Gmdl::instance(const void * pBuffer, u64 size)
     return reinterpret_cast<const Gmdl*>(pBuffer);
 }
 
-u64 Gmdl::required_size(PixelFormat pixelFormat, u32 width, u32 height)
+u64 Gmdl::required_size(u32 meshCount,
+                        VertType vertType,
+                        u32 totalVertCount,
+                        PrimType primType,
+                        u32 totalPrimCount)
 {
-    u64 size = sizeof(Gmdl);
-    
-    switch (pixelFormat)
-    {
-    case kPXL_R8:
-        size += width * height;
-        break;
-    case kPXL_RGB8:
-        size += width * height * 3;
-        break;
-    case kPXL_RGBA8:
-        size += width * height * 4;
-        break;
-    case kPXL_RGB_DXT1:
-    case kPXL_RGBA_DXT1:
-        PANIC_IF(width % 4 != 0 || height % 4 != 0, "DXT1 texture with width or height not a multiple of 4");
-        size += width * height / 2; // every block of 16 pixels becomes 8 bytes
-        break;
-    case kPXL_RGBA_DXT3:
-    case kPXL_RGBA_DXT5:
-        PANIC_IF(width % 4 != 0 || height % 4 != 0, "DXT texture with width or height not a multiple of 4");
-        size += width * height; // every block of 16 pixels becomes 16 bytes
-        break;
-    }
+    u32 vertStride = vert_stride(vertType);
+    u32 primStride = prim_stride(primType);
 
-    return size;
+    return calc_size(vertStride, vertCount, primStride, primCount);
 }
 
-Gmdl * Gmdl::create(PixelFormat pixelFormat, u32 width, u32 height)
+Gmdl * Gmdl::create(u32 meshCount,
+                    VertType vertType,
+                    u32 totalVertCount,
+                    PrimType primType,
+                    u32 totalPrimCount)
 {
-    // adjust width and height to ensure power of 2 and equal size
-    width = height = next_power_of_two(glm::max(width, height));
+    u64 size = Gmdl::required_size(meshCount,
+                                   vertType,
+                                   totalVertCount,
+                                   primType,
+                                   totalPrimCount);
 
-    u64 size = Gmdl::required_size(pixelFormat, width, height);
-    Gmdl * pGmdl = alloc_asset<Gmdl>(kMEM_Texture, size);
+    Gmdl * pGmdl = alloc_asset<Gmdl>(kMEM_Model, size);
 
-    pGmdl->mPixelFormat = pixelFormat;
-    pGmdl->mWidth = width;
-    pGmdl->mHeight = height;
+    PANIC_IF(meshCount > 32767, "Invalid meshCount: %u", meshCount);
+    PANIC_IF(!is_valid_vert_type(vertType), "Invalid vertType, %d", vertType);
+    PANIC_IF(!is_valid_prim_type(primType), "Invalid primTYpe, %d", primType);
+    
+    u32 vertStride = vert_stride(vertType);
+    u32 primStride = prim_stride(primType);
 
-    ASSERT(is_valid(pGmdl, required_size(pixelFormat, width, height)));
+    pMesh->mVertType = vertType;
+    pMesh->mPrimType = primType;
+    pMesh->mVertCount = vertCount;
+    pMesh->mPrimCount = primCount;
+    pMesh->mPrimOffset = pMesh->vertOffset() + vertStride * vertCount;
+
+    for (u32 i = 0; i < kRendererReservedCount; ++i)
+        pMesh->mRendererReserved[i] = -1;
+
+    pMesh->mHas32BitIndices = 0;
+    pMesh->mMorphTargetCount = 0; // no targets, just one set of verts
 
     return pGmdl;
 }
-
-u64 Gmdl::size() const
-{
-    return required_size(mPixelFormat, mWidth, mHeight);
-}
-
 
 } // namespace gaen
 

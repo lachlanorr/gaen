@@ -83,8 +83,6 @@ public:
 
     static Gatl * create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 defaultIndex, const glm::vec2 & renderOffset);
 
-    u64 size() const { return mSize; }
-
     u16 glyphCount() const { return mGlyphCount; }
     u16 aliasCount() const { return mAliasCount; }
 

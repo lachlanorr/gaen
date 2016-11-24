@@ -62,8 +62,6 @@ public:
                          u32 animCount,
                          u32 totalFrameCount);
 
-    u64 size() const { return mSize; }
-
     u32 frameWidth() const { return mFrameWidth; }
     u32 frameHeight() const { return mFrameHeight; }
 

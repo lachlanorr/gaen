@@ -34,7 +34,9 @@ namespace gaen
 namespace cookers
 {
 
+static const char * kExtFbx = "fbx";
 static const char * kExtObj = "obj";
+static const char * kExtPly = "ply";
 static const char * kExtGmdl = "gmdl";
 
 class Model : public Cooker
@@ -42,8 +44,6 @@ class Model : public Cooker
 public:
     Model();
     virtual void cook(CookInfo * pCookInfo) const;
-private:
-    void cookObj(CookInfo * pCookInfo) const;
 };
 
 }

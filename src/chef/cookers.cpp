@@ -46,6 +46,7 @@
 #include "chef/cookers/Atlas.h"
 #include "chef/cookers/Font.h"
 #include "chef/cookers/Image.h"
+#include "chef/cookers/Model.h"
 #include "chef/cookers/Sprite.h"
 
 namespace gaen
@@ -56,6 +57,7 @@ void register_cookers()
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Atlas)));
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Font)));
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Image)));
+    CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Model)));
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Sprite)));
 
     register_project_cookers();

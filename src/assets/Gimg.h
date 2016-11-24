@@ -64,8 +64,6 @@ public:
     static Gimg * create(PixelFormat pixelFormat, u32 width, u32 height);
     static Gimg * load(const char * rawPath);
 
-    u64 size() const;
-
     u8 * scanline(u32 idx);
     const u8 * scanline(u32 idx) const;
 
