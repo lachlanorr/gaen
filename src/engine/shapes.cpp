@@ -37,14 +37,14 @@ namespace gaen
 //------------------------------------------------------------------------------
 // ShapeBuilder
 //------------------------------------------------------------------------------
-ShapeBuilder::ShapeBuilder(Mesh * pMesh)
-  : mMesh(*pMesh)
+ShapeBuilder::ShapeBuilder(Gmdl * pGmdl)
+  : mGmdl(*pGmdl)
 {
-    if (mMesh.vertType() != kVERT_PosNorm)
-        PANIC("ShapeBuilder only builds meshes with vertices of type kVERT_PosNorm");
+    if (mGmdl.vertType() != kVERT_PosNorm)
+        PANIC("ShapeBuilder only builds gmdls with vertices of type kVERT_PosNorm");
 
-    if (mMesh.primType() != kPRIM_Triangle)
-        PANIC("ShapeBuilder only builds meshes with indices of type kIND_Triangle");
+    if (mGmdl.primType() != kPRIM_Triangle)
+        PANIC("ShapeBuilder only builds gmdls with indices of type kIND_Triangle");
 }
 
 
@@ -52,15 +52,15 @@ void ShapeBuilder::addTri(const glm::vec3 & p0,
                           const glm::vec3 & p1,
                           const glm::vec3 & p2)
 {
-    if (mCurrVertex + 3 > mMesh.vertCount())
+    if (mCurrVertex + 3 > mGmdl.vertCount())
         PANIC("Vertex array overrun during pushTri");
-    if (mCurrPrimitive + 1 > mMesh.primCount())
+    if (mCurrPrimitive + 1 > mGmdl.primCount())
         PANIC("Index array overrun during pushTri");
 
-    VertPosNorm * pVert = mMesh;
+    VertPosNorm * pVert = mGmdl;
     pVert += mCurrVertex;
 
-    PrimTriangle * pTris = mMesh;
+    PrimTriangle * pTris = mGmdl;
     PrimTriangle & tri = pTris[mCurrPrimitive];
 
     glm::vec3 vecNorm = tri_normal(p0, p1, p2);
@@ -103,15 +103,15 @@ void ShapeBuilder::addQuad(const glm::vec3 & p0,
                            const glm::vec3 & p2,
                            const glm::vec3 & p3)
 {
-    if (mCurrVertex + 4 > mMesh.vertCount())
+    if (mCurrVertex + 4 > mGmdl.vertCount())
         PANIC("Vertex array overrun during pushQuad");
-    if (mCurrPrimitive + 2 > mMesh.primCount())
+    if (mCurrPrimitive + 2 > mGmdl.primCount())
         PANIC("Index array overrun during pushQuad");
 
-    VertPosNorm * pVert = mMesh;
+    VertPosNorm * pVert = mGmdl;
     pVert += mCurrVertex;
 
-    PrimTriangle * pTris = mMesh;
+    PrimTriangle * pTris = mGmdl;
     PrimTriangle & tri0 = pTris[mCurrPrimitive];
     PrimTriangle & tri1 = pTris[mCurrPrimitive+1];
 
@@ -163,42 +163,42 @@ void ShapeBuilder::addQuad(const glm::vec4 & p0,
             glm::vec3(p3));
 }
 
-void ShapeBuilder::addMesh(const Mesh & mesh)
+void ShapeBuilder::addGmdl(const Gmdl & gmdl)
 {
-    if (mesh.vertType() != kVERT_PosNorm)
-        PANIC("ShapeBuilder only appends meshes with vertices of type kVERT_PosNorm");
-    if (mesh.primType() != kPRIM_Triangle)
-        PANIC("ShapeBuilder only appends meshes with indices of type kIND_Triangle");
+    if (gmdl.vertType() != kVERT_PosNorm)
+        PANIC("ShapeBuilder only appends gmdls with vertices of type kVERT_PosNorm");
+    if (gmdl.primType() != kPRIM_Triangle)
+        PANIC("ShapeBuilder only appends gmdls with indices of type kIND_Triangle");
 
-    if (mCurrVertex + mesh.vertCount() >= mMesh.vertCount())
-        PANIC("Vertex array overrun during pushMesh");
-    if (mCurrPrimitive + mesh.primCount() >= mMesh.primCount())
-        PANIC("Index array overrun during pushMesh");
+    if (mCurrVertex + gmdl.vertCount() >= mGmdl.vertCount())
+        PANIC("Vertex array overrun during pushGmdl");
+    if (mCurrPrimitive + gmdl.primCount() >= mGmdl.primCount())
+        PANIC("Index array overrun during pushGmdl");
 
-    VertPosNorm * pVert = mMesh;
+    VertPosNorm * pVert = mGmdl;
     pVert += mCurrVertex;
     
-    const VertPosNorm * pMeshVert = mesh;
-    for (u32 i = 0; i < mesh.vertCount(); ++i)
+    const VertPosNorm * pGmdlVert = gmdl;
+    for (u32 i = 0; i < gmdl.vertCount(); ++i)
     {
-        *pVert++ = *pMeshVert++;
+        *pVert++ = *pGmdlVert++;
     }
 
-    PrimTriangle * pInd = mMesh;
+    PrimTriangle * pInd = mGmdl;
     pInd += mCurrPrimitive;
 
-    const PrimTriangle * pMeshInd = mesh;
-    for (u32 i = 0; i < mesh.primCount(); ++i)
+    const PrimTriangle * pGmdlInd = gmdl;
+    for (u32 i = 0; i < gmdl.primCount(); ++i)
     {
-        pInd[0].p0 = pMeshInd[0].p0 + mCurrPrimitive;
-        pInd[0].p1 = pMeshInd[0].p1 + mCurrPrimitive;
-        pInd[0].p2 = pMeshInd[0].p2 + mCurrPrimitive;
+        pInd[0].p0 = pGmdlInd[0].p0 + mCurrPrimitive;
+        pInd[0].p1 = pGmdlInd[0].p1 + mCurrPrimitive;
+        pInd[0].p2 = pGmdlInd[0].p2 + mCurrPrimitive;
         pInd++;
-        pMeshInd++;
+        pGmdlInd++;
     }
 
-    mCurrVertex += mesh.vertCount();
-    mCurrPrimitive += mesh.primCount();
+    mCurrVertex += gmdl.vertCount();
+    mCurrPrimitive += gmdl.primCount();
 }
 //------------------------------------------------------------------------------
 // ShapeBuilder (END)
@@ -206,9 +206,9 @@ void ShapeBuilder::addMesh(const Mesh & mesh)
 
 Model * build_box(const glm::vec3 & size, Color color)
 {
-    Mesh * pMesh = Mesh::create(kVERT_PosNorm, 24, kPRIM_Triangle, 12);
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNorm, 24, kPRIM_Triangle, 12);
 
-    ShapeBuilder builder(pMesh);
+    ShapeBuilder builder(pGmdl);
 
     f32 xmax = size.x / 2.0f;
     f32 xmin = -xmax;
@@ -240,12 +240,12 @@ Model * build_box(const glm::vec3 & size, Color color)
     Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
     pMat->registerVec4Var(HASH::uvColor, color.toVec4());
 
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
     return pModel;
 }
 
 // Lathe around y axis
-Mesh * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices)
+Gmdl * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices)
 {
     ASSERT(slices > 2);
 
@@ -255,9 +255,9 @@ Mesh * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices)
     triCount += slices * (pPoints[0].x == 0.0f ? 1 : 2);
     triCount += slices * (pPoints[count-1].x == 0.0f ? 1 : 2);
 
-    Mesh * pMesh = Mesh::create(kVERT_PosNorm, triCount * 3, kPRIM_Triangle, triCount);
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNorm, triCount * 3, kPRIM_Triangle, triCount);
 
-    ShapeBuilder builder(pMesh);
+    ShapeBuilder builder(pGmdl);
 
     f32 fullArc = glm::radians(360.0f);
     f32 arcPart = fullArc / slices;
@@ -304,7 +304,7 @@ Mesh * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices)
         }
     }
 
-    return pMesh;
+    return pGmdl;
 }
 
 Model * build_cone(const glm::vec3 & size, u32 slices, Color color)
@@ -319,12 +319,12 @@ Model * build_cone(const glm::vec3 & size, u32 slices, Color color)
     points[1] = glm::vec4(halfX, -halfY, 0.0f, 1.0f);
     points[2] = glm::vec4(0.0f, -halfY, 0.0f, 1.0f);
 
-    Mesh * pMesh = lathe_points(points, 3, slices);
+    Gmdl * pGmdl = lathe_points(points, 3, slices);
 
     Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
     pMat->registerVec4Var(HASH::uvColor, color.toVec4());
 
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
     return pModel;
 }
 
@@ -341,12 +341,12 @@ Model * build_cylinder(const glm::vec3 & size, u32 slices, Color color)
     points[2] = glm::vec4(halfX, -halfY, 0.0f, 1.0f);
     points[3] = glm::vec4(0.0f, -halfY, 0.0f, 1.0f);
 
-    Mesh * pMesh = lathe_points(points, 4, slices);
+    Gmdl * pGmdl = lathe_points(points, 4, slices);
 
     Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
     pMat->registerVec4Var(HASH::uvColor, color.toVec4());
 
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
     return pModel;
 }
 
@@ -368,14 +368,14 @@ Model * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color col
     }
     points[pointCount-1] = glm::vec4(0.0f, -halfY, 0.0f, 1.0f);
 
-    Mesh * pMesh = lathe_points(points, pointCount, slices);
+    Gmdl * pGmdl = lathe_points(points, pointCount, slices);
 
     GFREE(points);
 
     Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
     pMat->registerVec4Var(HASH::uvColor, color.toVec4());
 
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
     return pModel;
 }
 
@@ -394,9 +394,9 @@ inline glm::vec3 project_to_sphere(f32 x, f32 y, f32 z, f32 radius)
 Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
 {
     u32 triCount = sections * sections * 2 * 6; // 2 tris per quad, 6 sides
-    Mesh * pMesh = Mesh::create(kVERT_PosNorm, triCount * 3, kPRIM_Triangle, triCount);
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNorm, triCount * 3, kPRIM_Triangle, triCount);
 
-    ShapeBuilder builder(pMesh);
+    ShapeBuilder builder(pGmdl);
 
     f32 radius = size.x / 2.0f;
 
@@ -468,7 +468,7 @@ Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
     Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
     pMat->registerVec4Var(HASH::uvColor, color.toVec4());
 
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pMesh);
+    Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
     return pModel;
 }
 

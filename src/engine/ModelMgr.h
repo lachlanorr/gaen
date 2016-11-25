@@ -60,28 +60,28 @@ struct ModelInstance
     
 //------------------------------------------------------------------------------
 
-struct MaterialMeshInstance
+struct MaterialGmdlInstance
 {
-    MaterialMeshInstance(ModelInstance * pModelInstance,
-                         Model::MaterialMesh * pMaterialMesh)
+    MaterialGmdlInstance(ModelInstance * pModelInstance,
+                         Model::MaterialGmdl * pMaterialGmdl)
       : pModelInstance(pModelInstance)
-      , pMaterialMesh(pMaterialMesh)
+      , pMaterialGmdl(pMaterialGmdl)
     {}
 
     ModelInstance * pModelInstance;
-    Model::MaterialMesh * pMaterialMesh;
+    Model::MaterialGmdl * pMaterialGmdl;
 };
 
 //------------------------------------------------------------------------------
 
 typedef List<kMEM_Model,
-    MaterialMeshInstance> MeshList;
+    MaterialGmdlInstance> GmdlList;
 typedef Map<kMEM_Model,
             u32, // uid
-            MeshList> ModelMeshMap;
+            GmdlList> ModelGmdlMap;
 typedef Map<kMEM_Model,
-            material_mesh_sort,
-            ModelMeshMap> ShaderModelMap;
+            material_gmdl_sort,
+            ModelGmdlMap> ShaderModelMap;
 
 //------------------------------------------------------------------------------
 
@@ -90,67 +90,67 @@ class ModelMgr
 {
 public:
 
-    class MeshIterator
+    class GmdlIterator
     {
         friend class ModelMgr<RendererT>;
     public:
-        const MeshIterator& operator++()
+        const GmdlIterator& operator++()
         {
-            ++mMeshListIterator;
+            ++mGmdlListIterator;
 
-            if (mMeshListIterator == mModelMeshIterator->second.end())
+            if (mGmdlListIterator == mModelGmdlIterator->second.end())
             {
-                ++mModelMeshIterator;
+                ++mModelGmdlIterator;
 
-                if (mModelMeshIterator == mShaderModelIterator->second.end())
+                if (mModelGmdlIterator == mShaderModelIterator->second.end())
                 {
                     ++mShaderModelIterator;
-                    mModelMeshIterator = mShaderModelIterator->second.begin();
+                    mModelGmdlIterator = mShaderModelIterator->second.begin();
                 }
 
-                mMeshListIterator = mModelMeshIterator->second.begin();
+                mGmdlListIterator = mModelGmdlIterator->second.begin();
             }
 
             return *this;
         }
         
-        bool operator!=(const MeshIterator & rhs) const
+        bool operator!=(const GmdlIterator & rhs) const
         {
-            return mMeshListIterator->pModelInstance != rhs.mMeshListIterator->pModelInstance;
+            return mGmdlListIterator->pModelInstance != rhs.mGmdlListIterator->pModelInstance;
         }
             
-        const MaterialMeshInstance & operator*() const
+        const MaterialGmdlInstance & operator*() const
         {
-            return *mMeshListIterator;
+            return *mGmdlListIterator;
         }
 
     private:
-        MeshIterator(const ShaderModelMap::const_iterator & shaderModelIterator,
-                     const ModelMeshMap::const_iterator & modelMeshIterator,
-                     const MeshList::const_iterator & meshIterator)
+        GmdlIterator(const ShaderModelMap::const_iterator & shaderModelIterator,
+                     const ModelGmdlMap::const_iterator & modelGmdlIterator,
+                     const GmdlList::const_iterator & gmdlIterator)
         {
             mShaderModelIterator = shaderModelIterator;
-            mModelMeshIterator = modelMeshIterator;
-            mMeshListIterator = meshIterator;
+            mModelGmdlIterator = modelGmdlIterator;
+            mGmdlListIterator = gmdlIterator;
         }
 
         ShaderModelMap::const_iterator mShaderModelIterator;
-        ModelMeshMap::const_iterator mModelMeshIterator;
-        MeshList::const_iterator mMeshListIterator;
+        ModelGmdlMap::const_iterator mModelGmdlIterator;
+        GmdlList::const_iterator mGmdlListIterator;
     };
 
     //--------------------------------------------------------------------------
 
-    friend class MeshIterator;
+    friend class GmdlIterator;
 
     ModelMgr(RendererT & renderer)
       : mRenderer(renderer)
     {
-        // Place a dummy entry to ShaderMeshInstanceMap.
+        // Place a dummy entry to ShaderGmdlInstanceMap.
         // This simplifies our iterators knowing that there is always at
-        // least this entry. Mesh list will remain empty, so impact
+        // least this entry. Gmdl list will remain empty, so impact
         // to iteration will be minimal.
-        mShaderModelMap[-1][-1] = MeshList();
+        mShaderModelMap[-1][-1] = GmdlList();
     }
 
     void fin()
@@ -158,28 +158,28 @@ public:
         // LORRTODO - delete all models and materials not managed by asset mgr
     }
 
-    // Iterate meshes sorted by material/vertex type
-    MeshIterator begin()
+    // Iterate gmdls sorted by material/vertex type
+    GmdlIterator begin()
     {
         ShaderModelMap::const_iterator shaderModelIt = mShaderModelMap.begin();
-        ModelMeshMap::const_iterator modelMeshIt = shaderModelIt->second.begin();
+        ModelGmdlMap::const_iterator modelGmdlIt = shaderModelIt->second.begin();
     
-        return MeshIterator(shaderModelIt,
-                            modelMeshIt,
-                            modelMeshIt->second.begin());
+        return GmdlIterator(shaderModelIt,
+                            modelGmdlIt,
+                            modelGmdlIt->second.begin());
     }
 
-    MeshIterator end()
+    GmdlIterator end()
     {
         ShaderModelMap::const_iterator shaderModelIt = mShaderModelMap.end();
         --shaderModelIt;
 
-        ModelMeshMap::const_iterator modelMeshIt = shaderModelIt->second.end();
-        --modelMeshIt;
+        ModelGmdlMap::const_iterator modelGmdlIt = shaderModelIt->second.end();
+        --modelGmdlIt;
 
-        return ModelMgr<RendererT>::MeshIterator(shaderModelIt,
-                                                 modelMeshIt,
-                                                 modelMeshIt->second.end());
+        return ModelMgr<RendererT>::GmdlIterator(shaderModelIt,
+                                                 modelGmdlIt,
+                                                 modelGmdlIt->second.end());
     }
 
     ModelInstance * findModelInstance(u32 uid)
@@ -218,22 +218,22 @@ public:
         auto modelInstanceIt = empResult.first;
 
         // Insert materials
-        for (Model::MaterialMesh & matMesh : *pModel)
+        for (Model::MaterialGmdl & matGmdl : *pModel)
         {
-            insertMaterial(&matMesh.material(), isAssetManaged);
+            insertMaterial(&matGmdl.material(), isAssetManaged);
 
-            // Insert meshes into mShaderModelMap
-            mShaderModelMap[matMesh.sortOrder()][uid].push_back(MaterialMeshInstance(&modelInstanceIt->second, &matMesh));
+            // Insert gmdls into mShaderModelMap
+            mShaderModelMap[matGmdl.sortOrder()][uid].push_back(MaterialGmdlInstance(&modelInstanceIt->second, &matGmdl));
 
-            // Load material and mesh into GPU through renderer
-            if (matMesh.mesh().rendererReserved(0) == -1)
+            // Load material and gmdl into GPU through renderer
+            if (matGmdl.gmdl().rendererReserved(0) == -1)
             {
                 // All should be -1 as they are initialized together
-                static_assert(Mesh::kRendererReservedCount == 4, "Unexpected kRendererReservedCount, ASSERT below needs to be updated");
-                ASSERT(matMesh.mesh().rendererReserved(1) == -1 &&
-                       matMesh.mesh().rendererReserved(2) == -1 &&
-                       matMesh.mesh().rendererReserved(3) == -1);
-                mRenderer.loadMaterialMesh(matMesh);
+                static_assert(Gmdl::kRendererReservedCount == 4, "Unexpected kRendererReservedCount, ASSERT below needs to be updated");
+                ASSERT(matGmdl.gmdl().rendererReserved(1) == -1 &&
+                       matGmdl.gmdl().rendererReserved(2) == -1 &&
+                       matGmdl.gmdl().rendererReserved(3) == -1);
+                mRenderer.loadMaterialGmdl(matGmdl);
             }
         }
     }
@@ -260,12 +260,12 @@ public:
         Model * pModel = modelInst.pModel;
 
         // Remove materials
-        for (Model::MaterialMesh & matMesh : *pModel)
+        for (Model::MaterialGmdl & matGmdl : *pModel)
         {
-            // Delete all meshes from mShaderModelMap for this uid
-            mShaderModelMap[matMesh.sortOrder()].erase(uid);
+            // Delete all gmdls from mShaderModelMap for this uid
+            mShaderModelMap[matGmdl.sortOrder()].erase(uid);
 
-            removeMaterial(&matMesh.material());
+            removeMaterial(&matGmdl.material());
         }
 
         // Remove the modelInstanceIt
@@ -385,7 +385,7 @@ private:
     ModelMap mModelMap;
     ModelInstanceMap mModelInstanceMap;
 
-    // Meshes sorted by material. Iterate this with begin and end.
+    // Gmdls sorted by material. Iterate this with begin and end.
     ShaderModelMap mShaderModelMap;
 };
 

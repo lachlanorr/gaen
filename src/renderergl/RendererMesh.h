@@ -68,7 +68,7 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    void loadMaterialMesh(Model::MaterialMesh & matMesh);
+    void loadMaterialGmdl(Model::MaterialGmdl & matGmdl);
 
     u32 loadTexture(u32 textureUnit, const Gimg * pGimg);
     void unloadTexture(const Gimg * pGimg);
@@ -88,7 +88,7 @@ private:
 
     static u32 load_texture(u32 nameHash, const Gimg * pGimg, void * pContext);
 
-    static void prepare_mesh_attributes(const Mesh & mesh);
+    static void prepare_gmdl_attributes(const Gmdl & gmdl);
 
 
     void setActiveShader(u32 nameHash);

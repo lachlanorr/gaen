@@ -347,30 +347,30 @@ static void set_shader_vec4_var(u32 nameHash, const glm::vec4 & val, void * cont
     pShader->setUniformVec4(nameHash, val);
 }
 
-static void prepare_mesh_attributes(const Mesh & mesh)
+static void prepare_gmdl_attributes(const Gmdl & gmdl)
 {
     // position
-    if (mesh.hasVertPosition())
+    if (gmdl.hasVertPosition())
     {
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertPositionOffset());
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertPositionOffset());
         glEnableVertexAttribArray(0);
 
         // normal
-        if (mesh.hasVertNormal())
+        if (gmdl.hasVertNormal())
         {
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertNormalOffset());
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertNormalOffset());
             glEnableVertexAttribArray(1);
 
             // uv
-            if (mesh.hasVertUv())
+            if (gmdl.hasVertUv())
             {
-                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertUvOffset());
+                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertUvOffset());
                 glEnableVertexAttribArray(2);
 
                 // uv tangents
-                if (mesh.hasTan())
+                if (gmdl.hasTan())
                 {
-                    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertTanOffset());
+                    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertTanOffset());
                     glEnableVertexAttribArray(3);
                 }
             }
@@ -449,14 +449,14 @@ void RendererProto::render()
     glDrawArrays(GL_POINTS, 0, 8);
 
 #elif RENDERTYPE == RENDERTYPE_MESH
-    ModelMgr<RendererProto>::MeshIterator meshIt = mpModelMgr->begin();
-    ModelMgr<RendererProto>::MeshIterator meshItEnd = mpModelMgr->end();
+    ModelMgr<RendererProto>::GmdlIterator gmdlIt = mpModelMgr->begin();
+    ModelMgr<RendererProto>::GmdlIterator gmdlItEnd = mpModelMgr->end();
 
-    while (meshIt != meshItEnd)
+    while (gmdlIt != gmdlItEnd)
     {
-        const MaterialMeshInstance & matMeshInst = *meshIt;
-        Mesh & mesh = matMeshInst.pMaterialMesh->mesh();
-        Material & mat = matMeshInst.pMaterialMesh->material();
+        const MaterialGmdlInstance & matGmdlInst = *gmdlIt;
+        Gmdl & gmdl = matGmdlInst.pMaterialGmdl->gmdl();
+        Material & mat = matGmdlInst.pMaterialGmdl->material();
 
         setActiveShader(mat.shaderNameHash());
 
@@ -471,8 +471,8 @@ void RendererProto::render()
         mpActiveShader->setUniformVec4(HASH::uvColor, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
 
         static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-        glm::mat4 mvp = mProjection * view * glm::to_mat4x4(matMeshInst.pModelInstance->transform);
-        glm::mat3 normalTrans = glm::to_mat3x3(view * glm::to_mat4x4(matMeshInst.pModelInstance->transform));
+        glm::mat4 mvp = mProjection * view * glm::to_mat4x4(matGmdlInst.pModelInstance->transform);
+        glm::mat3 normalTrans = glm::to_mat3x3(view * glm::to_mat4x4(matGmdlInst.pModelInstance->transform));
 
         mpActiveShader->setUniformMat4(HASH::umMVP, mvp);
         mpActiveShader->setUniformMat3(HASH::umNormal, normalTrans);
@@ -483,18 +483,18 @@ void RendererProto::render()
         mat.setShaderVec4Vars(set_shader_vec4_var, mpActiveShader);
         
 #if HAS(OPENGL3)
-        glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
+        glBindVertexArray(gmdl.rendererReserved(kMSHR_VAO));
 #else
-        glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
+        glBindBuffer(GL_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_VertBuffer));
 
-        prepare_mesh_attributes(mesh);
+        prepare_gmdl_attributes(gmdl);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_PrimBuffer));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_PrimBuffer));
 #endif
 
-        glDrawElements(GL_TRIANGLES, mesh.indexCount(), GL_UNSIGNED_SHORT, (void*)0);
+        glDrawElements(GL_TRIANGLES, gmdl.indexCount(), GL_UNSIGNED_SHORT, (void*)0);
 
-        ++meshIt;
+        ++gmdlIt;
     }
 #endif // #elif RENDERTYPE == RENDERTYPE_MESH
 }
@@ -564,35 +564,35 @@ MessageResult RendererProto::message(const T & msgAcc)
     return MessageResult::Consumed;
 }
 
-void RendererProto::loadMaterialMesh(Model::MaterialMesh & matMesh)
+void RendererProto::loadMaterialGmdl(Model::MaterialGmdl & matGmdl)
 {
-    Mesh & mesh = matMesh.mesh();
+    Gmdl & gmdl = matGmdl.gmdl();
 
 #if HAS(OPENGL3)
-    if (mesh.rendererReserved(kMSHR_VAO) == -1)
+    if (gmdl.rendererReserved(kMSHR_VAO) == -1)
     {
-        glGenVertexArrays(1, &mesh.rendererReserved(kMSHR_VAO));
+        glGenVertexArrays(1, &gmdl.rendererReserved(kMSHR_VAO));
     }
 
-    glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
+    glBindVertexArray(gmdl.rendererReserved(kMSHR_VAO));
 #endif
     
-    if (mesh.rendererReserved(kMSHR_VertBuffer) == -1)
+    if (gmdl.rendererReserved(kMSHR_VertBuffer) == -1)
     {
-        glGenBuffers(1, &mesh.rendererReserved(kMSHR_VertBuffer));
-        glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
-        glBufferData(GL_ARRAY_BUFFER, mesh.vertsSize(), mesh.verts(), GL_STATIC_DRAW);
+        glGenBuffers(1, &gmdl.rendererReserved(kMSHR_VertBuffer));
+        glBindBuffer(GL_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_VertBuffer));
+        glBufferData(GL_ARRAY_BUFFER, gmdl.vertsSize(), gmdl.verts(), GL_STATIC_DRAW);
 
 #if HAS(OPENGL3)
-        prepare_mesh_attributes(mesh);
+        prepare_gmdl_attributes(gmdl);
 #endif
     }
 
-    if (mesh.rendererReserved(kMSHR_PrimBuffer) == -1)
+    if (gmdl.rendererReserved(kMSHR_PrimBuffer) == -1)
     {
-        glGenBuffers(1, &mesh.rendererReserved(kMSHR_PrimBuffer));
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_PrimBuffer));
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.primsSize(), mesh.prims(), GL_STATIC_DRAW);
+        glGenBuffers(1, &gmdl.rendererReserved(kMSHR_PrimBuffer));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_PrimBuffer));
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, gmdl.primsSize(), gmdl.prims(), GL_STATIC_DRAW);
     }
 
 #if HAS(OPENGL3)

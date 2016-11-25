@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Model.cpp - Model, a collection of meshes/materials
+// Model.cpp - Model, a collection of gmdls/materials
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -31,30 +31,30 @@
 namespace gaen
 {
 
-static std::atomic<material_mesh_id> sNextMaterialMeshId(0);
+static std::atomic<material_gmdl_id> sNextMaterialGmdlId(0);
 static std::atomic<model_id> sNextModelId(0);
 
-Model::MaterialMesh::MaterialMesh(Model * pModel, Material * pMaterial, Mesh * pMesh)
+Model::MaterialGmdl::MaterialGmdl(Model * pModel, Material * pMaterial, Gmdl * pGmdl)
   : mpModel(pModel)
   , mpMaterial(pMaterial)
-  , mpMesh(pMesh)
+  , mpGmdl(pGmdl)
 {
     ASSERT(pMaterial);
-    ASSERT(pMesh);
+    ASSERT(pGmdl);
 
-    mId = sNextMaterialMeshId.fetch_add(1,std::memory_order_relaxed);
+    mId = sNextMaterialGmdlId.fetch_add(1,std::memory_order_relaxed);
 
     // Calculate unique shader hash
     mSortOrder = calcSortOrder();
 }
 
-Model::MaterialMesh::~MaterialMesh()
+Model::MaterialGmdl::~MaterialGmdl()
 {
     GDELETE(mpMaterial);
-    GDELETE(mpMesh);
+    GDELETE(mpGmdl);
 }
 
-material_mesh_sort Model::MaterialMesh::calcSortOrder()
+material_gmdl_sort Model::MaterialGmdl::calcSortOrder()
 {
     // Pack the bits to build a sort order/unique hash for the shader.
 
@@ -68,38 +68,38 @@ material_mesh_sort Model::MaterialMesh::calcSortOrder()
     PANIC_IF(matLayer      >= (1 << 4),  "Not enough bits for MaterialLayer %d", matLayer);
     PANIC_IF(mpModel->id() >= (1 << 28), "Not enough bits for ModelId %d", mpModel->id());
 
-    material_mesh_sort matMeshSort = ((u64)matLayer << 60) |
+    material_gmdl_sort matGmdlSort = ((u64)matLayer << 60) |
                                      ((u64)mpModel->id() << 32) |
                                      mpMaterial->shaderNameHash();
 
-    return matMeshSort;
+    return matGmdlSort;
 }
 
 
-Model::Model(Material * pMaterial, Mesh * pMesh, size_t meshCount)
+Model::Model(Material * pMaterial, Gmdl * pGmdl, size_t gmdlCount)
 {
     mId = sNextModelId.fetch_add(1, std::memory_order_relaxed);
 
-    if (meshCount > 1)
-        reserveMeshCapacity(meshCount);
-    insertMaterialMesh(pMaterial, pMesh);
+    if (gmdlCount > 1)
+        reserveGmdlCapacity(gmdlCount);
+    insertMaterialGmdl(pMaterial, pGmdl);
 }
 
 Model::~Model()
 {
-    mMaterialMeshes.clear();
+    mMaterialGmdls.clear();
 }
 
-void Model::reserveMeshCapacity(size_t meshCount)
+void Model::reserveGmdlCapacity(size_t gmdlCount)
 {
-    mMaterialMeshes.reserve(meshCount);
+    mMaterialGmdls.reserve(gmdlCount);
 }
 
-void Model::insertMaterialMesh(Material * pMaterial, Mesh * pMesh)
+void Model::insertMaterialGmdl(Material * pMaterial, Gmdl * pGmdl)
 {
     if (mIsReadOnly)
-        PANIC("Mesh being added to read only model");
-    mMaterialMeshes.emplace_back(this, pMaterial, pMesh);
+        PANIC("Gmdl being added to read only model");
+    mMaterialGmdls.emplace_back(this, pMaterial, pGmdl);
 }
 
 

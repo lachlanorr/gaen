@@ -29,7 +29,7 @@
 
 #include <glm/vec3.hpp>
 
-#include "assets/Mesh.h"
+#include "assets/Gmdl.h"
 #include "engine/Model.h"
 #include "engine/Handle.h"
 
@@ -39,7 +39,7 @@ namespace gaen
 class ShapeBuilder
 {
 public:
-    ShapeBuilder(Mesh * pMesh);
+    ShapeBuilder(Gmdl * pGmdl);
 
     void addTri(const glm::vec3 & p0,
                 const glm::vec3 & p1,
@@ -59,14 +59,14 @@ public:
                  const glm::vec4 & p2,
                  const glm::vec4 & p3);
 
-    void addMesh(const Mesh & mesh);
+    void addGmdl(const Gmdl & gmdl);
 
-    Mesh & mesh() { return mMesh; }
+    Gmdl & gmdl() { return mGmdl; }
     u32 currVertex() { return mCurrVertex; }
     u32 currPrimitive() { return mCurrPrimitive; }
 
 private:
-    Mesh & mMesh;
+    Gmdl & mGmdl;
     u32 mCurrVertex = 0;
     u32 mCurrPrimitive = 0;
 };

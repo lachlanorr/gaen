@@ -63,7 +63,7 @@ namespace gaen
 class RendererProto
 {
 public:
-    enum MeshReservedIndex
+    enum GmdlReservedIndex
     {
         kMSHR_VAO = 0,
         kMSHR_VertBuffer = 1,
@@ -85,7 +85,7 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    void loadMaterialMesh(Model::MaterialMesh & matMesh);
+    void loadMaterialGmdl(Model::MaterialGmdl & matGmdl);
 
 private:
     void setActiveShader(u32 nameHash);

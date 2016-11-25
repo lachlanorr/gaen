@@ -302,30 +302,30 @@ u32 RendererMesh::load_texture(u32 nameHash, const Gimg * pGimg, void * pContext
     return pRenderer->loadTexture(texture_unit(nameHash), pGimg);
 }
 
-void RendererMesh::prepare_mesh_attributes(const Mesh & mesh)
+void RendererMesh::prepare_gmdl_attributes(const Gmdl & gmdl)
 {
     // position
-    if (mesh.hasVertPosition())
+    if (gmdl.hasVertPosition())
     {
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertPositionOffset());
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertPositionOffset());
         glEnableVertexAttribArray(0);
 
         // normal
-        if (mesh.hasVertNormal())
+        if (gmdl.hasVertNormal())
         {
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertNormalOffset());
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertNormalOffset());
             glEnableVertexAttribArray(1);
 
             // uv
-            if (mesh.hasVertUv())
+            if (gmdl.hasVertUv())
             {
-                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertUvOffset());
+                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertUvOffset());
                 glEnableVertexAttribArray(2);
 
                 // uv tangents
-                if (mesh.hasTan())
+                if (gmdl.hasTan())
                 {
-                    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, mesh.vertStride(), (void*)(uintptr_t)mesh.vertTanOffset());
+                    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertTanOffset());
                     glEnableVertexAttribArray(3);
                 }
             }
@@ -341,14 +341,14 @@ void RendererMesh::render()
     //GL_CLEAR_DEPTH(1.0f);
 
 
-    ModelMgr<RendererMesh>::MeshIterator meshIt = mpModelMgr->begin();
-    ModelMgr<RendererMesh>::MeshIterator meshItEnd = mpModelMgr->end();
+    ModelMgr<RendererMesh>::GmdlIterator gmdlIt = mpModelMgr->begin();
+    ModelMgr<RendererMesh>::GmdlIterator gmdlItEnd = mpModelMgr->end();
 
-    while (meshIt != meshItEnd)
+    while (gmdlIt != gmdlItEnd)
     {
-        const MaterialMeshInstance & matMeshInst = *meshIt;
-        Mesh & mesh = matMeshInst.pMaterialMesh->mesh();
-        Material & mat = matMeshInst.pMaterialMesh->material();
+        const MaterialGmdlInstance & matGmdlInst = *gmdlIt;
+        Gmdl & gmdl = matGmdlInst.pMaterialGmdl->gmdl();
+        Material & mat = matGmdlInst.pMaterialGmdl->material();
 
         setActiveShader(mat.shaderNameHash());
 
@@ -360,8 +360,8 @@ void RendererMesh::render()
         }
 
         static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-        glm::mat4 mvp = mProjection * view * glm::to_mat4x4(matMeshInst.pModelInstance->transform);
-        glm::mat3 normalTrans = glm::to_mat3x3(view * glm::to_mat4x4(matMeshInst.pModelInstance->transform));
+        glm::mat4 mvp = mProjection * view * glm::to_mat4x4(matGmdlInst.pModelInstance->transform);
+        glm::mat3 normalTrans = glm::to_mat3x3(view * glm::to_mat4x4(matGmdlInst.pModelInstance->transform));
 
         mpActiveShader->setUniformMat4(HASH::umMVP, mvp);
         mpActiveShader->setUniformMat3(HASH::umNormal, normalTrans);
@@ -374,18 +374,18 @@ void RendererMesh::render()
         mat.setTextures(set_texture, this);
         
 #if HAS(OPENGL3)
-        glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
+        glBindVertexArray(gmdl.rendererReserved(kMSHR_VAO));
 #else
-        glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
+        glBindBuffer(GL_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_VertBuffer));
 
-        prepare_mesh_attributes(mesh);
+        prepare_gmdl_attributes(gmdl);
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_PrimBuffer));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_PrimBuffer));
 #endif
 
-        glDrawElements(GL_TRIANGLES, mesh.indexCount(), GL_UNSIGNED_SHORT, (void*)0);
+        glDrawElements(GL_TRIANGLES, gmdl.indexCount(), GL_UNSIGNED_SHORT, (void*)0);
 
-        ++meshIt;
+        ++gmdlIt;
     }
 
 
@@ -395,7 +395,7 @@ void RendererMesh::render()
         if (stagePair.second->isShown() && stagePair.second->spritesSize() > 0)
         {
             //static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-            //glm::mat4 mvp = mGuiProjection; // * view  ;// * glm::mat4x4(0.05); // to_mat4x4(matMeshInst.pModelInstance->transform);
+            //glm::mat4 mvp = mGuiProjection; // * view  ;// * glm::mat4x4(0.05); // to_mat4x4(matGmdlInst.pModelInstance->transform);
 
             for(auto it = stagePair.second->beginSprites();
                 it != stagePair.second->endSprites();
@@ -523,35 +523,35 @@ MessageResult RendererMesh::message(const T & msgAcc)
     return MessageResult::Consumed;
 }
 
-void RendererMesh::loadMaterialMesh(Model::MaterialMesh & matMesh)
+void RendererMesh::loadMaterialGmdl(Model::MaterialGmdl & matGmdl)
 {
-    Mesh & mesh = matMesh.mesh();
+    Gmdl & gmdl = matGmdl.gmdl();
 
 #if HAS(OPENGL3)
-    if (mesh.rendererReserved(kMSHR_VAO) == -1)
+    if (gmdl.rendererReserved(kMSHR_VAO) == -1)
     {
-        glGenVertexArrays(1, &mesh.rendererReserved(kMSHR_VAO));
+        glGenVertexArrays(1, &gmdl.rendererReserved(kMSHR_VAO));
     }
 
-    glBindVertexArray(mesh.rendererReserved(kMSHR_VAO));
+    glBindVertexArray(gmdl.rendererReserved(kMSHR_VAO));
 #endif
     
-    if (mesh.rendererReserved(kMSHR_VertBuffer) == -1)
+    if (gmdl.rendererReserved(kMSHR_VertBuffer) == -1)
     {
-        glGenBuffers(1, &mesh.rendererReserved(kMSHR_VertBuffer));
-        glBindBuffer(GL_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_VertBuffer));
-        glBufferData(GL_ARRAY_BUFFER, mesh.vertsSize(), mesh.verts(), GL_STATIC_DRAW);
+        glGenBuffers(1, &gmdl.rendererReserved(kMSHR_VertBuffer));
+        glBindBuffer(GL_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_VertBuffer));
+        glBufferData(GL_ARRAY_BUFFER, gmdl.vertsSize(), gmdl.verts(), GL_STATIC_DRAW);
 
 #if HAS(OPENGL3)
-        prepare_mesh_attributes(mesh);
+        prepare_gmdl_attributes(gmdl);
 #endif
     }
 
-    if (mesh.rendererReserved(kMSHR_PrimBuffer) == -1)
+    if (gmdl.rendererReserved(kMSHR_PrimBuffer) == -1)
     {
-        glGenBuffers(1, &mesh.rendererReserved(kMSHR_PrimBuffer));
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.rendererReserved(kMSHR_PrimBuffer));
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.primsSize(), mesh.prims(), GL_STATIC_DRAW);
+        glGenBuffers(1, &gmdl.rendererReserved(kMSHR_PrimBuffer));
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_PrimBuffer));
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, gmdl.primsSize(), gmdl.prims(), GL_STATIC_DRAW);
     }
 
 #if HAS(OPENGL3)
@@ -561,7 +561,7 @@ void RendererMesh::loadMaterialMesh(Model::MaterialMesh & matMesh)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // Load textures
-    matMesh.material().loadTextures(load_texture, this);
+    matGmdl.material().loadTextures(load_texture, this);
 }
 
 void RendererMesh::setActiveShader(u32 nameHash)

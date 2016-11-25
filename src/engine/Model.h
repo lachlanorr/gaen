@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Model.h - Model, a collection of meshes/materials
+// Model.h - Model, a collection of gmdls/materials
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -36,59 +36,59 @@ namespace gaen
 {
 
 typedef u32 model_id;
-typedef u32 material_mesh_id;
-typedef u64 material_mesh_sort;
+typedef u32 material_gmdl_id;
+typedef u64 material_gmdl_sort;
 
 class Model
 {
 public:
-    // Mesh and material
-    class MaterialMesh
+    // Gmdl and material
+    class MaterialGmdl
     {
     public:
-        MaterialMesh(Model * pModel, Material * pMaterial, Gmdl * pMesh);
+        MaterialGmdl(Model * pModel, Material * pMaterial, Gmdl * pGmdl);
 
-        ~MaterialMesh();
+        ~MaterialGmdl();
 
-        material_mesh_id id() const { return mId; }
+        material_gmdl_id id() const { return mId; }
 
-        material_mesh_sort sortOrder() const { return mSortOrder; }
+        material_gmdl_sort sortOrder() const { return mSortOrder; }
 
         Model & model() { return *mpModel; }
         Material & material() { return *mpMaterial; }
-        Gmdl & mesh() { return *mpMesh; }
+        Gmdl & gmdl() { return *mpGmdl; }
 
     private:
-        material_mesh_sort calcSortOrder();
+        material_gmdl_sort calcSortOrder();
 
-        material_mesh_id mId;
-        material_mesh_sort mSortOrder;
+        material_gmdl_id mId;
+        material_gmdl_sort mSortOrder;
 
         Model * mpModel;
         Material * mpMaterial;
-        Gmdl * mpMesh;
+        Gmdl * mpGmdl;
     };
 
-    Model(Material * pMaterial, Gmdl * pMesh, size_t meshCount=1);
+    Model(Material * pMaterial, Gmdl * pGmdl, size_t gmdlCount=1);
     ~Model();
 
     model_id id() const { return mId; }
     
-    typedef Vector<kMEM_Model, MaterialMesh> MaterialMeshVector;
-    MaterialMeshVector::iterator begin() { return mMaterialMeshes.begin(); }
-    MaterialMeshVector::iterator end() { return mMaterialMeshes.end(); }
+    typedef Vector<kMEM_Model, MaterialGmdl> MaterialGmdlVector;
+    MaterialGmdlVector::iterator begin() { return mMaterialGmdls.begin(); }
+    MaterialGmdlVector::iterator end() { return mMaterialGmdls.end(); }
 
-    void reserveMeshCapacity(size_t meshCount);
-    void insertMaterialMesh(Material * pMaterial, Gmdl * pMesh);
+    void reserveGmdlCapacity(size_t gmdlCount);
+    void insertMaterialGmdl(Material * pMaterial, Gmdl * pGmdl);
 
-    // Call this once all meshes have been pushed.  After that
+    // Call this once all gmdls have been pushed.  After that
     // the Model should not be modified.
     void makeReadOnly() { mIsReadOnly = true; }
 
 private:
     model_id mId;
     bool mIsReadOnly = false;
-    MaterialMeshVector mMaterialMeshes;
+    MaterialGmdlVector mMaterialGmdls;
 };
 
 } // namespace gaen
