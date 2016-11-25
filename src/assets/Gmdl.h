@@ -36,6 +36,8 @@
 namespace gaen
 {
 
+typedef u16 index;
+
 enum VertType
 {
     kVERT_Unknown      = 0,
@@ -265,7 +267,7 @@ inline bool operator==(const PrimLine & lhs, const PrimLine & rhs)
 {
     // do a simple sort of points to consider two lines equal even if
     // their points are in different order
-    index line0p0,line0p1,line1p0,line1p1;
+    index line0p0, line0p1, line1p0, line1p1;
 
     if(lhs.p0 < lhs.p1)
     {
@@ -356,9 +358,9 @@ public:
     VertType vertType() const { return static_cast<VertType>(mVertType); }
     PrimType primType() const { return static_cast<PrimType>(mPrimType); }
 
-    u32 vertCount() const { return mTotalVertCount; }
-    u32 primCount() const { return mTotalPrimCount; }
-    u32 indexCount() const { return mTotalPrimCount * index_count(primType()); }
+    u32 vertCount() const { return mVertCount; }
+    u32 primCount() const { return mPrimCount; }
+    u32 indexCount() const { return mPrimCount * index_count(primType()); }
 
     f32 * verts()
     {
@@ -382,7 +384,7 @@ public:
 
     u32 vertOffset() const
     {
-        return sizeof(Mesh);
+        return sizeof(Gmdl);
     }
 
     u32 primOffset() const
@@ -412,14 +414,9 @@ public:
         return primStride() * mPrimCount;
     }
 
-    u32 indexCount() const
-    {
-        return mPrimCount * index_count(primType());
-    }
-
     u32 totalSize() const
     {
-        return sizeof(Mesh) + vertsSize() + primsSize();
+        return sizeof(Gmdl) + vertsSize() + primsSize();
     }
 
     u32& rendererReserved(u32 idx)
@@ -590,7 +587,7 @@ private:
 
     u32 mVertCount;
     u32 mPrimCount;
-    // VertOffset is sizeof(Mesh), they start immediately after the header
+    // VertOffset is sizeof(Gmdl), they start immediately after the header
     u32 mPrimOffset;  // offset from start of struct
 
     u32 mRendererReserved[kRendererReservedCount];

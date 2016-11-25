@@ -59,9 +59,9 @@ bool Gmdl::is_valid(const void * pBuffer, u64 size)
         return false;
 
     u64 reqSize = required_size(pAssetData->vertType(),
-                                pAssetData->mTotalVertCount,
+                                pAssetData->mVertCount,
                                 pAssetData->primType(),
-                                pAssetData->mTotalPrimCount);
+                                pAssetData->mPrimCount);
     if (reqSize != size)
         return false;
 
@@ -98,11 +98,10 @@ const Gmdl * Gmdl::instance(const void * pBuffer, u64 size)
     return reinterpret_cast<const Gmdl*>(pBuffer);
 }
 
-u64 Gmdl::required_size(u32 meshCount,
-                        VertType vertType,
-                        u32 totalVertCount,
+u64 Gmdl::required_size(VertType vertType,
+                        u32 vertCount,
                         PrimType primType,
-                        u32 totalPrimCount)
+                        u32 primCount)
 {
     u32 vertStride = vert_stride(vertType);
     u32 primStride = prim_stride(primType);
@@ -110,38 +109,35 @@ u64 Gmdl::required_size(u32 meshCount,
     return calc_size(vertStride, vertCount, primStride, primCount);
 }
 
-Gmdl * Gmdl::create(u32 meshCount,
-                    VertType vertType,
-                    u32 totalVertCount,
+Gmdl * Gmdl::create(VertType vertType,
+                    u32 vertCount,
                     PrimType primType,
-                    u32 totalPrimCount)
+                    u32 primCount)
 {
-    u64 size = Gmdl::required_size(meshCount,
-                                   vertType,
-                                   totalVertCount,
+    u64 size = Gmdl::required_size(vertType,
+                                   vertCount,
                                    primType,
-                                   totalPrimCount);
+                                   primCount);
 
     Gmdl * pGmdl = alloc_asset<Gmdl>(kMEM_Model, size);
 
-    PANIC_IF(meshCount > 32767, "Invalid meshCount: %u", meshCount);
     PANIC_IF(!is_valid_vert_type(vertType), "Invalid vertType, %d", vertType);
     PANIC_IF(!is_valid_prim_type(primType), "Invalid primTYpe, %d", primType);
     
     u32 vertStride = vert_stride(vertType);
     u32 primStride = prim_stride(primType);
 
-    pMesh->mVertType = vertType;
-    pMesh->mPrimType = primType;
-    pMesh->mVertCount = vertCount;
-    pMesh->mPrimCount = primCount;
-    pMesh->mPrimOffset = pMesh->vertOffset() + vertStride * vertCount;
+    pGmdl->mVertType = vertType;
+    pGmdl->mPrimType = primType;
+    pGmdl->mVertCount = vertCount;
+    pGmdl->mPrimCount = primCount;
+    pGmdl->mPrimOffset = pGmdl->vertOffset() + vertStride * vertCount;
 
     for (u32 i = 0; i < kRendererReservedCount; ++i)
-        pMesh->mRendererReserved[i] = -1;
+        pGmdl->mRendererReserved[i] = -1;
 
-    pMesh->mHas32BitIndices = 0;
-    pMesh->mMorphTargetCount = 0; // no targets, just one set of verts
+    pGmdl->mHas32BitIndices = 0;
+    pGmdl->mMorphTargetCount = 0; // no targets, just one set of verts
 
     return pGmdl;
 }

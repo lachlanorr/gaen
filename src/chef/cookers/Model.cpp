@@ -68,19 +68,18 @@ void Model::cook(CookInfo * pCookInfo) const
         triCount += pScene->mMeshes[i]->mNumFaces;
     }
 
-    Gmdl * pGmdlObj = Gmdl::create(1, kVERT_PosNormCol, vertCount, kPRIM_Triangle, triCount);
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, vertCount, kPRIM_Triangle, triCount);
 
-    PANIC_IF(!pGmdlObj, "Failure in Gmdl::create, %s", pCookInfo->rawPath().c_str());
+    PANIC_IF(!pGmdl, "Failure in Gmdl::create, %s", pCookInfo->rawPath().c_str());
 
+    VertPosNormCol* pVert = *pGmdl;
+    u32 vertIdxOffset = 0;
+    PrimTriangle * pTri = *pGmdl;
     for (u32 i = 0; i < pScene->mNumMeshes; ++i)
     {
         aiMesh * pAiMesh = pScene->mMeshes[i];
         aiMaterial * pAiMaterial = pScene->mMaterials[pAiMesh->mMaterialIndex];
 
-        Mesh * pMesh = pGmdlObj->mesh(i);
-        Mesh::init(pMesh, kVERT_PosNormCol, pAiMesh->mNumVertices, kPRIM_Triangle, pAiMesh->mNumFaces);
-
-        VertPosNormCol* pVert = *pMesh;
         for (u32 v = 0; v < pAiMesh->mNumVertices; ++v)
         {
             pVert[v].position.x = pAiMesh->mVertices[v].x;
@@ -94,16 +93,19 @@ void Model::cook(CookInfo * pCookInfo) const
             pVert[v].color = Color(255, 0, 255, 255);
         }
 
-        PrimTriangle * pTri = *pMesh;
         for (u32 t = 0; t < pAiMesh->mNumFaces; ++t)
         {
-            pTri[t].p0 = pAiMesh->mFaces[t].mIndices[0];
-            pTri[t].p1 = pAiMesh->mFaces[t].mIndices[1];
-            pTri[t].p2 = pAiMesh->mFaces[t].mIndices[2];
+            pTri[t].p0 = pAiMesh->mFaces[t].mIndices[0] + vertIdxOffset;
+            pTri[t].p1 = pAiMesh->mFaces[t].mIndices[1] + vertIdxOffset;
+            pTri[t].p2 = pAiMesh->mFaces[t].mIndices[2] + vertIdxOffset;
         }
+
+        pVert += pAiMesh->mNumVertices;
+        vertIdxOffset += pAiMesh->mNumVertices;
+        pTri += pAiMesh->mNumFaces;
     }
 
-    pCookInfo->setCookedBuffer(pGmdlObj);
+    pCookInfo->setCookedBuffer(pGmdl);
 }
 
 }

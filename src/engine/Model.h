@@ -66,10 +66,10 @@ public:
 
         Model * mpModel;
         Material * mpMaterial;
-        Mesh * mpMesh;
+        Gmdl * mpMesh;
     };
 
-    Model(Material * pMaterial, Mesh * pMesh, size_t meshCount=1);
+    Model(Material * pMaterial, Gmdl * pMesh, size_t meshCount=1);
     ~Model();
 
     model_id id() const { return mId; }
@@ -79,7 +79,7 @@ public:
     MaterialMeshVector::iterator end() { return mMaterialMeshes.end(); }
 
     void reserveMeshCapacity(size_t meshCount);
-    void insertMaterialMesh(Material * pMaterial, Mesh * pMesh);
+    void insertMaterialMesh(Material * pMaterial, Gmdl * pMesh);
 
     // Call this once all meshes have been pushed.  After that
     // the Model should not be modified.
