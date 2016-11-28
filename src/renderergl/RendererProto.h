@@ -33,7 +33,6 @@
 #include "core/HashMap.h"
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
-#include "engine/ModelMgr.h"
 #include "engine/renderer_structs.h"
 
 // LORRTODO: probably a temp include only until we get voxel stuff more defined
@@ -51,8 +50,8 @@
 #define RENDERTYPE_GPUCOMPVOXEL 4
 #define RENDERTYPE_VOXEL27      5
 
-#define RENDERTYPE RENDERTYPE_MESH
-//#define RENDERTYPE RENDERTYPE_CPUFRAGVOXEL
+//#define RENDERTYPE RENDERTYPE_MESH
+#define RENDERTYPE RENDERTYPE_CPUFRAGVOXEL
 //#define RENDERTYPE RENDERTYPE_CPUCOMPVOXEL
 //#define RENDERTYPE RENDERTYPE_GPUFRAGVOXEL
 //#define RENDERTYPE RENDERTYPE_GPUCOMPVOXEL
@@ -84,8 +83,6 @@ public:
 
     template <typename T>
     MessageResult message(const T& msgAcc);
-
-    void loadMaterialGmdl(Model::MaterialGmdl & matGmdl);
 
 private:
     void setActiveShader(u32 nameHash);
@@ -121,8 +118,6 @@ private:
 
     glm::mat4 mProjection;
     glm::mat4 mGuiProjection;
-
-    ModelMgr<RendererProto> * mpModelMgr;
 
     List<kMEM_Renderer, DirectionalLight> mDirectionalLights;
     List<kMEM_Renderer, PointLight> mPointLights;

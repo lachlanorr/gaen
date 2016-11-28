@@ -32,7 +32,6 @@
 #include "engine/shapes.h"
 #include "engine/InputMgr.h"
 #include "engine/MessageWriter.h"
-#include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/TransformUid.h"
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/UpdateLightDirectional.h"
@@ -127,46 +126,6 @@ void renderer_move_camera(const glm::vec3 & position, const glm::quat & directio
 
     msgQW.setPosition(position);
     msgQW.setDirection(direction);
-}
-
-void renderer_insert_model_instance(i32 uid,
-                                    HandleP modelHandle,
-                                    Entity & caller)
-{
-    if (modelHandle->typeHash() != HASH::model)
-        PANIC("Invalid model handle");
-
-    messages::InsertModelInstanceQW msgQW(HASH::renderer_insert_model_instance,
-                                          kMessageFlag_None,
-                                          caller.task().id(),
-                                          kRendererTaskId,
-                                          uid);
-    msgQW.setIsAssetManaged(true);
-    msgQW.setModel((Model*)modelHandle->data());
-    msgQW.setTransform(caller.transform());
-
-    // Renderer now owns the model
-    modelHandle->clearData();
-}
-
-void renderer_transform_model_instance(i32 uid, const glm::mat4x3 & transform, Entity & caller)
-{
-    messages::TransformUidQW msgQW(HASH::renderer_transform_model_instance,
-                                  kMessageFlag_None,
-                                  caller.task().id(),
-                                  kRendererTaskId,
-                                  uid);
-    msgQW.setTransform(transform);
-}
-
-void renderer_remove_model_instance(i32 uid, Entity & caller)
-{
-    MessageQueueWriter msgQW(HASH::renderer_remove_model_instance,
-                             kMessageFlag_None,
-                             caller.task().id(),
-                             kRendererTaskId,
-                             to_cell(uid),
-                             0);
 }
 
 void renderer_insert_light_directional(i32 uid,

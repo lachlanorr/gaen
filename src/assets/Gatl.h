@@ -94,10 +94,10 @@ public:
         return reinterpret_cast<const char*>(this+1);
     }
     
-    const Gimg * image() const
+    const Gimg * gimg() const
     {
-        ASSERT(mpImage);
-        return mpImage;
+        ASSERT(mpGimg);
+        return mpGimg;
     }
 
     GlyphTri * glyphElems(u16 idx)
@@ -240,11 +240,11 @@ private:
     }
     const Gimg * dep0() const
     {
-        return mpImage;
+        return mpGimg;
     }
-    void setDep0(const Gimg * pImage)
+    void setDep0(const Gimg * pGimg)
     {
-        mpImage = pImage;
+        mpGimg = pGimg;
     }
 
     u16 mGlyphCount;
@@ -255,7 +255,7 @@ private:
 
     glm::vec2 mRenderOffset;
 
-    const Gimg * mpImage;
+    const Gimg * mpGimg;
 };
 #pragma pack(pop)
 

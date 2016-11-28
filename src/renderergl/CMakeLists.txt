@@ -30,6 +30,10 @@ INCLUDE (${shaders_dir}/codegen.cmake)
 SET (renderergl_SOURCES
   FrameGL.h
   gaen_opengl.h
+  ModelGL.cpp
+  ModelGL.h
+  ModelStage.cpp
+  ModelStage.h
   RenderCollection.h
   Renderer.h
   RendererMesh.h

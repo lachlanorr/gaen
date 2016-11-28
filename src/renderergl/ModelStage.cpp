@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.h - Precompiled headers
+// ModelStage.cpp - Grouping of models in a plane, including a cara layer
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,22 +24,49 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_STDAFX_H
-#define GAEN_CHEF_STDAFX_H
+#include "engine/Model.h"
 
-#include <codecvt>
+#include "renderergl/RendererMesh.h"
+#include "renderergl/ModelGL.h"
+#include "renderergl/ModelStage.h"
 
-#define PNG_DEBUG 3
-#include <png.h>
+namespace gaen
+{
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
+void ModelStage::insertModel(ModelInstance * pModelInst)
+{
+    ASSERT(pModelInst);
+    ASSERT(mModels.find(pModelInst->model().uid()) == mModels.end());
 
-#include <glm/common.hpp>
-#include <glm/exponential.hpp>
+    ModelGLUP pModelGL(GNEW(kMEM_Renderer, ModelGL, pModelInst, mpRenderer));
+    pModelGL->loadGpu();
+    mModels.insert(std::move(pModelGL));
+}
 
-#include <assimp/cimport.h>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+bool ModelStage::transformModel(u32 uid, const glm::mat4x3 & transform)
+{
+    auto it = mModels.find(uid);
+    if (it != mModels.end())
+    {
+        it->setTransform(transform);
+        return true;
+    }
+    return false;
+}
 
-#endif // #ifndef GAEN_CHEF_STDAFX_H
+bool ModelStage::destroyModel(u32 uid)
+{
+    auto it = mModels.find(uid);
+    if (it != mModels.end())
+    {
+        // Mark destroyed, it will get pulled from maps during next render pass.
+        it->setStatus(kRIS_Destroyed);
+
+        ModelInstance::send_model_destroy(kRendererTaskId, kModelMgrTaskId, uid);
+
+        return true;
+    }
+    return false;
+}
+
+} // namespace gaen

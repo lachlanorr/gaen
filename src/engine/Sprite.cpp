@@ -128,9 +128,9 @@ glm::vec3 Sprite::halfExtents() const
     return ext / 2.0f;
 }
 
-const Gimg & Sprite::image() const
+const Gimg & Sprite::gimg() const
 {
-    return *mpGatl->image();
+    return *mpGatl->gimg();
 }
 
 
@@ -151,7 +151,7 @@ SpriteInstance::SpriteInstance(Sprite * pSprite, u32 stageHash, const glm::mat4x
     animate(mpSprite->mpGspr->defaultAnimHash(), 0);
 }
 
-void SpriteInstance::desroySprite()
+void SpriteInstance::destroySprite()
 {
     if (mpSprite)
     {

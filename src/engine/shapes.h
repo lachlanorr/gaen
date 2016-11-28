@@ -62,6 +62,8 @@ public:
     void addGmdl(const Gmdl & gmdl);
 
     Gmdl & gmdl() { return mGmdl; }
+    const Gmdl & gmdl() const { return mGmdl; }
+
     u32 currVertex() { return mCurrVertex; }
     u32 currPrimitive() { return mCurrPrimitive; }
 

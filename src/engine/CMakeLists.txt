@@ -70,7 +70,10 @@ SET (engine_SOURCES
   messages_def.py
   Model.cpp
   Model.h
+  ModelMgr.cpp
   ModelMgr.h
+  ModelPhysics.cpp
+  ModelPhysics.h
   RaycastCamera.cpp
   RaycastCamera.h
   Registry.cpp

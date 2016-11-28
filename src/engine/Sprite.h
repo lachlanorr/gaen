@@ -64,7 +64,7 @@ public:
 
     glm::vec3 halfExtents() const;
 
-    const Gimg & image() const;
+    const Gimg & gimg() const;
 
 private:
     // Delete these to make sure w construct through the asset->addref path
@@ -79,7 +79,7 @@ private:
     task_id mOwner;
     const Asset * mpGsprAsset;
 
-    // pointers int mpGsprAsset, no need to clean these up
+    // pointers into mpGsprAsset, no need to clean up
     const Gspr * mpGspr;
     const Gatl * mpGatl;
 };
@@ -99,7 +99,7 @@ public:
     const Sprite & sprite() { return *mpSprite; }
     u32 stageHash() { return mStageHash; }
 
-    void desroySprite();
+    void destroySprite();
 
     const void * currentFrameElemsOffset() { return mpCurrentFrameElemsOffset; }
     bool animate(u32 animHash, u32 animFrameIdx);

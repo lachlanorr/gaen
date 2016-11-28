@@ -32,13 +32,6 @@ class TransformUid(FieldHandler):
     uid       = i32Field(payload=True)
     transform = mat4x3Field()
 
-class InsertModelInstance(FieldHandler):
-    uid             = i32Field(payload=True)
-    pModel          = PointerField(type_name='Model *',
-                                   includes=['engine/Model.h'])
-    isAssetManaged  = boolField()
-    transform  = mat4x3Field()
-    
 class InsertLightDirectional(FieldHandler):
     uid       = i32Field(payload=True)
     color     = ColorField()
@@ -70,6 +63,21 @@ class SpriteVelocity(FieldHandler):
     velocity     = vec2Field()
 
 class SpriteBody(FieldHandler):
+    uid          = i32Field(payload=True)
+    mass         = f32Field()
+    group        = i32Field()
+    mask03       = ivec4Field()
+    mask47       = ivec4Field()
+
+class ModelInstance(FieldHandler):
+    pModelInstance = PointerField(type_name='ModelInstance *',
+                                  includes=['engine/Model.h'])
+
+class ModelVelocity(FieldHandler):
+    uid          = i32Field(payload=True)
+    velocity     = vec3Field()
+
+class ModelBody(FieldHandler):
     uid          = i32Field(payload=True)
     mass         = f32Field()
     group        = i32Field()

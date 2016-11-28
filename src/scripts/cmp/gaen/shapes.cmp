@@ -34,12 +34,14 @@ component Box
     #init()
     {
         model = $.create_shape_box(size, diffuse);
-        $.renderer_insert_model_instance(modelUid, model);
+        // LORRTODO: Use gmdl and new Model code
+        //$.renderer_insert_model_instance(modelUid, model);
     }
 
     #update_transform()
     {
-        $.renderer_transform_model_instance(modelUid, transform);
+        // LORRTODO: Use gmdl and new Model code
+        //$.renderer_transform_model_instance(modelUid, transform);
     }
 }
 
@@ -54,12 +56,14 @@ component Cone
     #init()
     {
         model = $.create_shape_cone(size, slices, diffuse);
-        $.renderer_insert_model_instance(modelUid, model);
+        // LORRTODO: Use gmdl and new Model code
+        //$.renderer_insert_model_instance(modelUid, model);
     }
 
     #update_transform()
     {
-        $.renderer_transform_model_instance(modelUid, transform);
+        // LORRTODO: Use gmdl and new Model code
+        //$.renderer_transform_model_instance(modelUid, transform);
     }
 }
 
@@ -74,12 +78,14 @@ component Cylinder
     #init()
     {
         model = $.create_shape_cylinder(size, slices, diffuse);
-        $.renderer_insert_model_instance(modelUid, model);
+        // LORRTODO: Use gmdl and new Model code
+        //$.renderer_insert_model_instance(modelUid, model);
     }
 
     #update_transform()
     {
-        $.renderer_transform_model_instance(modelUid, transform);
+        // LORRTODO: Use gmdl and new Model code
+        //$.renderer_transform_model_instance(modelUid, transform);
     }
 }
 
@@ -95,12 +101,14 @@ component Sphere
     #init()
     {
         model = $.create_shape_sphere(size, slices, sections, diffuse);
-        $.renderer_insert_model_instance(modelUid, model);
+        // LORRTODO: Use gmdl and new Model code
+        //$.renderer_insert_model_instance(modelUid, model);
     }
 
     #update_transform()
     {
-        $.renderer_transform_model_instance(modelUid, transform);
+        // LORRTODO: Use gmdl and new Model code
+        //$.renderer_transform_model_instance(modelUid, transform);
     }
 }
 
@@ -115,11 +123,13 @@ component QuadSphere
     #init()
     {
         model = $.create_shape_quad_sphere(size, sections, diffuse);
-        $.renderer_insert_model_instance(modelUid, model);
+        // LORRTODO: Use gmdl and new Model code
+        //$.renderer_insert_model_instance(modelUid, model);
     }
 
     #update_transform()
     {
-        $.renderer_transform_model_instance(modelUid, transform);
+        // LORRTODO: Use gmdl and new Model code
+        //$.renderer_transform_model_instance(modelUid, transform);
     }
 }

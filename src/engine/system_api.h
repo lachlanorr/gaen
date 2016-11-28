@@ -72,12 +72,6 @@ i32 renderer_gen_uid(Entity & caller);
 void renderer_move_camera(const glm::vec3 & position, const glm::quat & direction, Entity & caller);
 void renderer_move_fps_camera(const glm::vec3 & position, f32 pitch, f32 yaw, Entity & caller);
 
-void renderer_insert_model_instance(i32 uid,
-                                    HandleP modelHandle,
-                                    Entity & caller);
-void renderer_transform_model_instance(i32 uid, const glm::mat4x3 & transform, Entity & caller);
-void renderer_remove_model_instance(i32 uid, Entity & caller);
-
 void renderer_insert_light_directional(i32 uid,
                                        const glm::vec3 & direction,
                                        Color color,

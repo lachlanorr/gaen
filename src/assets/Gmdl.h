@@ -27,6 +27,8 @@
 #ifndef GAEN_ASSETS_GMDL_H
 #define GAEN_ASSETS_GMDL_H
 
+#include <glm/vec3.hpp>
+
 #include "core/base_defines.h"
 #include "core/mem.h"
 
@@ -353,7 +355,6 @@ public:
                          u32 vertCount,
                          PrimType primType,
                          u32 primCount);
-    static Gmdl * load(const char * rawPath);
 
     VertType vertType() const { return static_cast<VertType>(mVertType); }
     PrimType primType() const { return static_cast<PrimType>(mPrimType); }
@@ -361,6 +362,9 @@ public:
     u32 vertCount() const { return mVertCount; }
     u32 primCount() const { return mPrimCount; }
     u32 indexCount() const { return mPrimCount * index_count(primType()); }
+
+    glm::vec3 & halfExtents() { return mHalfExtents; }
+    const glm::vec3 & halfExtents() const { return mHalfExtents; }
 
     f32 * verts()
     {
@@ -437,9 +441,7 @@ public:
 
     bool hasVertNormal() const
     {
-        return (mVertType == kVERT_PosNorm ||
-                mVertType == kVERT_PosNormUv ||
-                mVertType == kVERT_PosNormUvTan);
+        return (mVertType >= kVERT_PosNorm);
     }
 
     u32 vertNormalOffset() const
@@ -459,8 +461,7 @@ public:
 
     bool hasVertUv() const
     {
-        return (mVertType == kVERT_PosNormUv ||
-                mVertType == kVERT_PosNormUvTan);
+        return (mVertType >= kVERT_PosNormUv);
     }
 
     u32 vertUvOffset() const
@@ -468,7 +469,7 @@ public:
         return sizeof(VertPosNorm);
     }
 
-    bool hasTan() const
+    bool hasVertTan() const
     {
         return (mVertType == kVERT_PosNormUvTan);
     }
@@ -590,6 +591,8 @@ private:
     // VertOffset is sizeof(Gmdl), they start immediately after the header
     u32 mPrimOffset;  // offset from start of struct
 
+    glm::vec3 mHalfExtents;
+
     u32 mRendererReserved[kRendererReservedCount];
 
     // LORRTODO: Add material, bone, anim support
@@ -605,7 +608,7 @@ static_assert(sizeof(VertPosNormUvTan) == 48, "VertPosNormUvTan geometry struct 
 static_assert(sizeof(PrimPoint) == 2,         "PrimLine geometry struct has unexpected size");
 static_assert(sizeof(PrimLine) == 4,          "PrimLine geometry struct has unexpected size");
 static_assert(sizeof(PrimTriangle) == 6,      "PrimTriangle geometry struct has unexpected size");
-static_assert(sizeof(Gmdl) == 48,             "Gmdl has unexpected size");
+static_assert(sizeof(Gmdl) == 60,             "Gmdl has unexpected size");
 
 } // namespace gaen
 

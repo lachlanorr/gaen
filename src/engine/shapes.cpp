@@ -237,11 +237,10 @@ Model * build_box(const glm::vec3 & size, Color color)
     // Right
     builder.addQuad(glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymax, zmax));
 
-    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
-    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
-
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
-    return pModel;
+    //Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
+    //return pModel;
+    // LORRTODO: Fix shapes
+    return nullptr;
 }
 
 // Lathe around y axis
@@ -321,11 +320,10 @@ Model * build_cone(const glm::vec3 & size, u32 slices, Color color)
 
     Gmdl * pGmdl = lathe_points(points, 3, slices);
 
-    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
-    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
-
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
-    return pModel;
+    //Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
+    //return pModel;
+    // LORRTODO: Fix shapes
+    return nullptr;
 }
 
 Model * build_cylinder(const glm::vec3 & size, u32 slices, Color color)
@@ -343,11 +341,10 @@ Model * build_cylinder(const glm::vec3 & size, u32 slices, Color color)
 
     Gmdl * pGmdl = lathe_points(points, 4, slices);
 
-    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
-    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
-
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
-    return pModel;
+    //Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
+    //return pModel;
+    // LORRTODO: Fix shapes
+    return nullptr;
 }
 
 Model * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color)
@@ -372,11 +369,10 @@ Model * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color col
 
     GFREE(points);
 
-    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
-    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
-
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
-    return pModel;
+    //Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
+    //return pModel;
+    // LORRTODO: Fix shapes
+    return nullptr;
 }
 
 inline glm::vec3 convert_quad_sphere_vert(const glm::vec3 & vert, f32 radius)
@@ -465,11 +461,10 @@ Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
         }
     }
 
-    Material * pMat = GNEW(kMEM_Texture, Material, HASH::faceted);
-    pMat->registerVec4Var(HASH::uvColor, color.toVec4());
-
-    Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
-    return pModel;
+    //Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
+    //return pModel;
+    // LORRTODO: Fix shapes
+    return nullptr;
 }
 
 namespace system_api

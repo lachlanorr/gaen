@@ -30,16 +30,16 @@
 #include "core/base_defines.h"
 
 #include "assets/Gimg.h"
+#include "assets/Gmdl.h"
 
 #include "engine/MessageQueue.h"
-#include "engine/ModelMgr.h"
 #include "engine/glm_ext.h"
 #include "engine/Asset.h"
 #include "engine/AssetMgr.h"
 
-#include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/TransformUid.h"
+#include "engine/messages/ModelInstance.h"
 #include "engine/messages/SpriteInstance.h"
 #include "engine/messages/SpriteAnim.h"
 
@@ -61,16 +61,12 @@ void RendererMesh::init(void * pRenderDevice,
     mScreenWidth = screenWidth;
     mScreenHeight = screenHeight;
 
-    mpModelMgr = GNEW(kMEM_Engine, ModelMgr<RendererMesh>, *this);
-
     mIsInit = true;
 }
 
 void RendererMesh::fin()
 {
     ASSERT(mIsInit);
-    mpModelMgr->fin();
-    GDELETE(mpModelMgr);
 }
 
 
@@ -90,8 +86,6 @@ void RendererMesh::initViewport()
     glEnable(GL_CULL_FACE);
     //glEnable(GL_DEPTH_TEST);   // Enables Depth Testing
     //glDepthFunc(GL_LEQUAL);    // The Type Of Depth Testing To Do
-
-    glEnable(GL_TEXTURE_2D);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    // Make sure we don't divide by zero
@@ -200,10 +194,12 @@ void RendererMesh::unloadTexture(const Gimg * pGimg)
     }
 }
 
-void RendererMesh::loadGlyphVerts(u32 * pVertArrayId, u32 * pVertBufferId, const GlyphVert * pVerts, u64 vertsSize)
+
+
+bool RendererMesh::loadVerts(u32 * pVertArrayId, u32 * pVertBufferId, const void * pVerts, u64 vertsSize)
 {
-    auto it = mLoadedGlyphVerts.find(pVerts);
-    if (it == mLoadedGlyphVerts.end())
+    auto it = mLoadedVerts.find(pVerts);
+    if (it == mLoadedVerts.end())
     {
 #if HAS(OPENGL3)
         glGenVertexArrays(1, pVertArrayId);
@@ -217,75 +213,81 @@ void RendererMesh::loadGlyphVerts(u32 * pVertArrayId, u32 * pVertBufferId, const
         glBindBuffer(GL_ARRAY_BUFFER, *pVertBufferId);
         glBufferData(GL_ARRAY_BUFFER, vertsSize, pVerts, GL_STATIC_DRAW);
 
-        mLoadedGlyphVerts.emplace(std::piecewise_construct,
-                                  std::forward_as_tuple(pVerts),
-                                  std::forward_as_tuple(pVerts, *pVertArrayId, *pVertBufferId, 1));
+        mLoadedVerts.emplace(std::piecewise_construct,
+                             std::forward_as_tuple(pVerts),
+                             std::forward_as_tuple(pVerts, *pVertArrayId, *pVertBufferId, 1));
+        return true;
     }
     else
     {
         it->second.refCount++;
         *pVertArrayId = it->second.glId0;
         *pVertBufferId = it->second.glId1;
+        return false;
     }
 }
 
-void RendererMesh::unloadGlyphVerts(const GlyphVert * pVerts)
+void RendererMesh::unloadVerts(const void * pVerts)
 {
-    auto it = mLoadedGlyphVerts.find(pVerts);
-    if (it != mLoadedGlyphVerts.end())
+    auto it = mLoadedVerts.find(pVerts);
+    if (it != mLoadedVerts.end())
     {
         ASSERT(it->second.refCount > 0);
         it->second.refCount--;
         if (it->second.refCount == 0)
         {
-            LOG_ERROR("TODO: Add code to unloadGlyphVerts");
-            mLoadedGlyphVerts.erase(it);
+            LOG_ERROR("TODO: Add code to unloadVerts");
+            mLoadedVerts.erase(it);
         }
     }
     else
     {
-        LOG_ERROR("unloadGlyphVerts on unkown Gimg");
+        LOG_ERROR("unloadVerts on unkown Gimg");
     }
 }
 
-void RendererMesh::loadGlyphTris(u32 * pPrimBufferId, const GlyphTri * pTris, u64 trisSize)
+bool RendererMesh::loadPrims(u32 * pPrimBufferId, const void * pPrims, u64 primsSize)
 {
-    auto it = mLoadedGlyphTris.find(pTris);
-    if (it == mLoadedGlyphTris.end())
+    auto it = mLoadedPrims.find(pPrims);
+    if (it == mLoadedPrims.end())
     {
         glGenBuffers(1, pPrimBufferId);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *pPrimBufferId);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, trisSize, pTris, GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, primsSize, pPrims, GL_STATIC_DRAW);
 
-        mLoadedGlyphTris.emplace(std::piecewise_construct,
-                                 std::forward_as_tuple(pTris),
-                                 std::forward_as_tuple(pTris, *pPrimBufferId, 1));
+        mLoadedPrims.emplace(std::piecewise_construct,
+                             std::forward_as_tuple(pPrims),
+                             std::forward_as_tuple(pPrims, *pPrimBufferId, 1));
+        return true;
     }
     else
     {
         it->second.refCount++;
         *pPrimBufferId = it->second.glId0;
+        return false;
     }
 }
 
-void RendererMesh::unloadGlyphTris(const GlyphTri * pTris)
+void RendererMesh::unloadPrims(const void * pPrims)
 {
-    auto it = mLoadedGlyphTris.find(pTris);
-    if (it != mLoadedGlyphTris.end())
+    auto it = mLoadedPrims.find(pPrims);
+    if (it != mLoadedPrims.end())
     {
         ASSERT(it->second.refCount > 0);
         it->second.refCount--;
         if (it->second.refCount == 0)
         {
-            LOG_ERROR("TODO: Add code to unloadGlyphTris");
-            mLoadedGlyphTris.erase(it);
+            LOG_ERROR("TODO: Add code to unloadPrims");
+            mLoadedPrims.erase(it);
         }
     }
     else
     {
-        LOG_ERROR("unloadGlyphTris on unkown Gimg");
+        LOG_ERROR("unloadPrims on unkown Gimg");
     }
 }
+
+
 
 void RendererMesh::unbindBuffers()
 {
@@ -323,7 +325,7 @@ void RendererMesh::prepare_gmdl_attributes(const Gmdl & gmdl)
                 glEnableVertexAttribArray(2);
 
                 // uv tangents
-                if (gmdl.hasTan())
+                if (gmdl.hasVertTan())
                 {
                     glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertTanOffset());
                     glEnableVertexAttribArray(3);
@@ -341,53 +343,37 @@ void RendererMesh::render()
     //GL_CLEAR_DEPTH(1.0f);
 
 
-    ModelMgr<RendererMesh>::GmdlIterator gmdlIt = mpModelMgr->begin();
-    ModelMgr<RendererMesh>::GmdlIterator gmdlItEnd = mpModelMgr->end();
 
-    while (gmdlIt != gmdlItEnd)
+    setActiveShader(HASH::faceted);
+    for (auto & stagePair : mModelStages)
     {
-        const MaterialGmdlInstance & matGmdlInst = *gmdlIt;
-        Gmdl & gmdl = matGmdlInst.pMaterialGmdl->gmdl();
-        Material & mat = matGmdlInst.pMaterialGmdl->material();
-
-        setActiveShader(mat.shaderNameHash());
-
-        if (mDirectionalLights.size() > 0)
+        if (stagePair.second->isShown() && stagePair.second->modelsSize() > 0)
         {
-            const DirectionalLight & light = mDirectionalLights.front();
-            mpActiveShader->setUniformVec3(HASH::uvLightDirection, light.direction);
-            //mpActiveShader->setUniformVec4(HASH::uvLightColor, light.color);
+            //static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+
+            for(auto it = stagePair.second->beginModels();
+                it != stagePair.second->endModels();
+                /* no increment so we can remove while iterating */)
+            {
+                ModelGL * pModelGL = *it;
+                if (pModelGL->status() == kRIS_Active)
+                {
+                    glm::mat4 mvp = mProjection * to_mat4x4(pModelGL->transform());
+                    mpActiveShader->setUniformMat4(HASH::umMVP, mvp);
+                    pModelGL->render();
+                    ++it;
+                }
+                else if (pModelGL->status() == kRIS_Destroyed)
+                {
+                    pModelGL->unloadGpu();
+
+                    stagePair.second->eraseModel(it++);
+                }
+            }
         }
-
-        static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-        glm::mat4 mvp = mProjection * view * glm::to_mat4x4(matGmdlInst.pModelInstance->transform);
-        glm::mat3 normalTrans = glm::to_mat3x3(view * glm::to_mat4x4(matGmdlInst.pModelInstance->transform));
-
-        mpActiveShader->setUniformMat4(HASH::umMVP, mvp);
-        mpActiveShader->setUniformMat3(HASH::umNormal, normalTrans);
-
-        // Set all material specific uniforms.
-        // Add new types here as they become necessary, and the associated
-        // callbacks, support in Material class, etc.
-        mat.setShaderVec4Vars(set_shader_vec4_var, mpActiveShader);
-
-        mat.setTextures(set_texture, this);
-        
-#if HAS(OPENGL3)
-        glBindVertexArray(gmdl.rendererReserved(kMSHR_VAO));
-#else
-        glBindBuffer(GL_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_VertBuffer));
-
-        prepare_gmdl_attributes(gmdl);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_PrimBuffer));
-#endif
-
-        glDrawElements(GL_TRIANGLES, gmdl.indexCount(), GL_UNSIGNED_SHORT, (void*)0);
-
-        ++gmdlIt;
     }
 
+    
 
     setActiveShader(HASH::sprite);
     for (auto & stagePair : mSpriteStages)
@@ -427,29 +413,6 @@ MessageResult RendererMesh::message(const T & msgAcc)
 
     switch(msg.msgId)
     {
-    case HASH::renderer_insert_model_instance:
-    {
-        messages::InsertModelInstanceR<T> msgr(msgAcc);
-        mpModelMgr->insertModelInstance(msgAcc.message().source,
-                                        msgr.uid(),
-                                        msgr.model(),
-                                        msgr.transform(),
-                                        msgr.isAssetManaged());
-        break;
-    }
-    case HASH::renderer_transform_model_instance:
-    {
-        messages::TransformUidR<T> msgr(msgAcc);
-        ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.uid());
-        ASSERT(pModelInst);
-        pModelInst->transform = msgr.transform();
-        break;
-    }
-    case HASH::renderer_remove_model_instance:
-    {
-        mpModelMgr->removeModelInstance(msg.source, msg.payload.u);
-        break;
-    }
     case HASH::renderer_insert_light_directional:
     {
         messages::InsertLightDirectionalR<T> msgr(msgAcc);
@@ -468,6 +431,45 @@ MessageResult RendererMesh::message(const T & msgAcc)
                                         msgr.uid(),
                                         msgr.direction(),
                                         msgr.color());
+        break;
+    }
+
+    // models
+    case HASH::model_insert:
+    {
+        messages::ModelInstanceR<T> msgr(msgAcc);
+        insertModel(msgr.modelInstance());
+        break;
+    }
+    case HASH::model_transform:
+    {
+        messages::TransformUidR<T> msgr(msgAcc);
+        transformModel(msgr.uid(), msgr.transform());
+        break;
+    }
+    case HASH::model_destroy:
+    {
+        u32 uid = msg.payload.u;
+        destroyModel(uid);
+        break;
+    }
+
+    case HASH::model_show_stage:
+    {
+        u32 stageHash = msg.payload.u;
+        showModelStage(stageHash);
+        break;
+    }
+    case HASH::model_hide_stage:
+    {
+        u32 stageHash = msg.payload.u;
+        hideModelStage(stageHash);
+        break;
+    }
+    case HASH::model_destroy_stage:
+    {
+        u32 stageHash = msg.payload.u;
+        destroyModelStage(stageHash);
         break;
     }
 
@@ -523,47 +525,6 @@ MessageResult RendererMesh::message(const T & msgAcc)
     return MessageResult::Consumed;
 }
 
-void RendererMesh::loadMaterialGmdl(Model::MaterialGmdl & matGmdl)
-{
-    Gmdl & gmdl = matGmdl.gmdl();
-
-#if HAS(OPENGL3)
-    if (gmdl.rendererReserved(kMSHR_VAO) == -1)
-    {
-        glGenVertexArrays(1, &gmdl.rendererReserved(kMSHR_VAO));
-    }
-
-    glBindVertexArray(gmdl.rendererReserved(kMSHR_VAO));
-#endif
-    
-    if (gmdl.rendererReserved(kMSHR_VertBuffer) == -1)
-    {
-        glGenBuffers(1, &gmdl.rendererReserved(kMSHR_VertBuffer));
-        glBindBuffer(GL_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_VertBuffer));
-        glBufferData(GL_ARRAY_BUFFER, gmdl.vertsSize(), gmdl.verts(), GL_STATIC_DRAW);
-
-#if HAS(OPENGL3)
-        prepare_gmdl_attributes(gmdl);
-#endif
-    }
-
-    if (gmdl.rendererReserved(kMSHR_PrimBuffer) == -1)
-    {
-        glGenBuffers(1, &gmdl.rendererReserved(kMSHR_PrimBuffer));
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_PrimBuffer));
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, gmdl.primsSize(), gmdl.prims(), GL_STATIC_DRAW);
-    }
-
-#if HAS(OPENGL3)
-    glBindVertexArray(0);
-#endif
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    // Load textures
-    matGmdl.material().loadTextures(load_texture, this);
-}
-
 void RendererMesh::setActiveShader(u32 nameHash)
 {
     if (!mpActiveShader || mpActiveShader->nameHash() != nameHash)
@@ -583,6 +544,76 @@ shaders::Shader * RendererMesh::getShader(u32 nameHash)
     mShaders[nameHash] = pShader;
     return pShader;
 }
+
+
+void RendererMesh::insertModel(ModelInstance * pModelInst)
+{
+    auto it = mModelStages.find(pModelInst->stageHash());
+    if (it == mModelStages.end())
+    {
+        auto empIt = mModelStages.emplace(pModelInst->stageHash(),
+                                          GNEW(kMEM_Renderer, ModelStage, this));
+        ASSERT(empIt.second == true);
+        it = empIt.first;
+    }
+    it->second->insertModel(pModelInst);
+}
+
+void RendererMesh::transformModel(u32 uid, const glm::mat4x3 & transform)
+{
+    for (auto & stagePair : mModelStages)
+    {
+        if (stagePair.second->transformModel(uid, transform))
+            return;
+    }
+    ERR("transformModel in renderer for unkonwn model, uid: %u", uid);
+}
+
+void RendererMesh::destroyModel(u32 uid)
+{
+    for (auto & stagePair : mModelStages)
+    {
+        if (stagePair.second->destroyModel(uid))
+            return;
+    }
+    ERR("destroyModel in renderer for unkonwn model, uid: %u", uid);
+}
+
+void RendererMesh::showModelStage(u32 stageHash)
+{
+    // hide all other stages, show the one specified
+    for (auto & stagePair : mModelStages)
+    {
+        if (stagePair.first != stageHash)
+            stagePair.second->hide();
+    }
+
+    auto it = mModelStages.find(stageHash);
+    if (it != mModelStages.end())
+    {
+        it->second->show();
+    }
+}
+
+void RendererMesh::hideModelStage(u32 stageHash)
+{
+    auto it = mModelStages.find(stageHash);
+    if (it != mModelStages.end())
+    {
+        it->second->hide();
+    }
+}
+
+void RendererMesh::destroyModelStage(u32 stageHash)
+{
+    auto it = mModelStages.find(stageHash);
+    if (it != mModelStages.end())
+    {
+        mModelStages.erase(it);
+    }
+}
+
+
 
 void RendererMesh::insertSprite(SpriteInstance * pSpriteInst)
 {

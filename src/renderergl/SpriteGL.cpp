@@ -38,21 +38,22 @@ void SpriteGL::loadGpu()
 {
     // Load images if they're not loaded yet
     textureUnit = 0;
-    textureId = mpRenderer->loadTexture(textureUnit, &mpSpriteInstance->sprite().image());
+    textureId = mpRenderer->loadTexture(textureUnit, &mpSpriteInstance->sprite().gimg());
 
-    // Load sprite's verts and tris
-    mpRenderer->loadGlyphVerts(&vertArrayId,
-                               &vertBufferId,
-                               mpSpriteInstance->sprite().verts(),
-                               mpSpriteInstance->sprite().vertsSize());
+    // Load sprite's verts and prims
+    if (mpRenderer->loadVerts(&vertArrayId,
+                              &vertBufferId,
+                              mpSpriteInstance->sprite().verts(),
+                              mpSpriteInstance->sprite().vertsSize()))
+    {
 #if HAS(OPENGL3)
-    prepareMeshAttributes();
+        prepareMeshAttributes();
 #endif
+    }
 
-
-    mpRenderer->loadGlyphTris(&primBufferId,
-                              mpSpriteInstance->sprite().tris(),
-                              mpSpriteInstance->sprite().trisSize());
+    mpRenderer->loadPrims(&primBufferId,
+                          mpSpriteInstance->sprite().tris(),
+                          mpSpriteInstance->sprite().trisSize());
 
 
     mpRenderer->unbindBuffers();
@@ -60,9 +61,9 @@ void SpriteGL::loadGpu()
 
 void SpriteGL::unloadGpu()
 {
-    mpRenderer->unloadTexture(&mpSpriteInstance->sprite().image());
-    mpRenderer->unloadGlyphVerts(mpSpriteInstance->sprite().verts());
-    mpRenderer->unloadGlyphTris(mpSpriteInstance->sprite().tris());
+    mpRenderer->unloadTexture(&mpSpriteInstance->sprite().gimg());
+    mpRenderer->unloadVerts(mpSpriteInstance->sprite().verts());
+    mpRenderer->unloadPrims(mpSpriteInstance->sprite().tris());
 }
 
 void SpriteGL::render()
@@ -72,9 +73,9 @@ void SpriteGL::render()
 #else
     glBindBuffer(GL_ARRAY_BUFFER, mpSpriteInstance->vertBufferId);
 
-    prepareMeshAttributes(mesh);
+    prepareMeshAttributes();
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mpSpriteInstance->primBufferId);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primBufferId);
 #endif
     const void * pOffset = mpSpriteInstance->currentFrameElemsOffset();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, mpSpriteInstance->currentFrameElemsOffset());

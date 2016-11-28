@@ -27,6 +27,7 @@
 #ifndef GAEN_ENGINE_SPRITEMGR_H
 #define GAEN_ENGINE_SPRITEMGR_H
 
+#include "core/HashMap.h"
 #include "core/List.h"
 
 #include "engine/Handle.h"

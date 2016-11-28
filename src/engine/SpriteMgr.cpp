@@ -194,7 +194,7 @@ MessageResult SpriteMgr::message(const T & msgAcc)
         auto spritePair = mSpriteMap.find(uid);
         if (spritePair != mSpriteMap.end())
         {
-            spritePair->second->desroySprite();
+            spritePair->second->destroySprite();
             mSpriteMap.erase(spritePair);
         }
         else

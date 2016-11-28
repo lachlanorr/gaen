@@ -29,11 +29,11 @@
 
 #include "core/base_defines.h"
 
+#include "assets/Gmdl.h"
+
 #include "engine/MessageQueue.h"
-#include "engine/ModelMgr.h"
 #include "engine/glm_ext.h"
 
-#include "engine/messages/InsertModelInstance.h"
 #include "engine/messages/InsertLightDirectional.h"
 #include "engine/messages/TransformUid.h"
 #include "engine/messages/MoveCamera.h"
@@ -127,8 +127,6 @@ void RendererProto::init(void * pRenderDevice,
     mScreenWidth = screenWidth;
     mScreenHeight = screenHeight;
 
-    mpModelMgr = GNEW(kMEM_Engine, ModelMgr<RendererProto>, *this);
-
 #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL
     mShaderSim.init(kPresentImgSize, &mRaycastCamera);
 #elif RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
@@ -141,8 +139,6 @@ void RendererProto::init(void * pRenderDevice,
 void RendererProto::fin()
 {
     ASSERT(mIsInit);
-    mpModelMgr->fin();
-    GDELETE(mpModelMgr);
 }
 
 
@@ -368,7 +364,7 @@ static void prepare_gmdl_attributes(const Gmdl & gmdl)
                 glEnableVertexAttribArray(2);
 
                 // uv tangents
-                if (gmdl.hasTan())
+                if (gmdl.hasVertTan())
                 {
                     glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertTanOffset());
                     glEnableVertexAttribArray(3);
@@ -449,53 +445,7 @@ void RendererProto::render()
     glDrawArrays(GL_POINTS, 0, 8);
 
 #elif RENDERTYPE == RENDERTYPE_MESH
-    ModelMgr<RendererProto>::GmdlIterator gmdlIt = mpModelMgr->begin();
-    ModelMgr<RendererProto>::GmdlIterator gmdlItEnd = mpModelMgr->end();
-
-    while (gmdlIt != gmdlItEnd)
-    {
-        const MaterialGmdlInstance & matGmdlInst = *gmdlIt;
-        Gmdl & gmdl = matGmdlInst.pMaterialGmdl->gmdl();
-        Material & mat = matGmdlInst.pMaterialGmdl->material();
-
-        setActiveShader(mat.shaderNameHash());
-
-        if (mDirectionalLights.size() > 0)
-        {
-            const DirectionalLight & light = mDirectionalLights.front();
-            mpActiveShader->setUniformVec3(HASH::uvLightDirection, light.direction);
-            //mpActiveShader->setUniformVec4(HASH::uvLightColor, light.color);
-        }
-
-        // LORRTEMP - Remove once we get materials setting the color properly
-        mpActiveShader->setUniformVec4(HASH::uvColor, glm::vec4(1.0f, 0.0f, 1.0f, 1.0f));
-
-        static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-        glm::mat4 mvp = mProjection * view * glm::to_mat4x4(matGmdlInst.pModelInstance->transform);
-        glm::mat3 normalTrans = glm::to_mat3x3(view * glm::to_mat4x4(matGmdlInst.pModelInstance->transform));
-
-        mpActiveShader->setUniformMat4(HASH::umMVP, mvp);
-        mpActiveShader->setUniformMat3(HASH::umNormal, normalTrans);
-
-        // Set all material specific uniforms.
-        // Add new types here as they become necessary, and the associated
-        // callbacks, support in Material class, etc.
-        mat.setShaderVec4Vars(set_shader_vec4_var, mpActiveShader);
-        
-#if HAS(OPENGL3)
-        glBindVertexArray(gmdl.rendererReserved(kMSHR_VAO));
-#else
-        glBindBuffer(GL_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_VertBuffer));
-
-        prepare_gmdl_attributes(gmdl);
-
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_PrimBuffer));
-#endif
-
-        glDrawElements(GL_TRIANGLES, gmdl.indexCount(), GL_UNSIGNED_SHORT, (void*)0);
-
-        ++gmdlIt;
-    }
+#error Mesh rendering needs to be reimplemented based on new code in RendererMesh.h/cpp
 #endif // #elif RENDERTYPE == RENDERTYPE_MESH
 }
 
@@ -506,29 +456,6 @@ MessageResult RendererProto::message(const T & msgAcc)
 
     switch(msg.msgId)
     {
-    case HASH::renderer_insert_model_instance:
-    {
-        messages::InsertModelInstanceR<T> msgr(msgAcc);
-        mpModelMgr->insertModelInstance(msgAcc.message().source,
-                                        msgr.uid(),
-                                        msgr.model(),
-                                        msgr.transform(),
-                                        msgr.isAssetManaged());
-        break;
-    }
-    case HASH::renderer_transform_model_instance:
-    {
-        messages::TransformUidR<T> msgr(msgAcc);
-        ModelInstance * pModelInst = mpModelMgr->findModelInstance(msgr.uid());
-        ASSERT(pModelInst);
-        pModelInst->transform = msgr.transform();
-        break;
-    }
-    case HASH::renderer_remove_model_instance:
-    {
-        mpModelMgr->removeModelInstance(msg.source, msg.payload.u);
-        break;
-    }
     case HASH::renderer_insert_light_directional:
     {
         messages::InsertLightDirectionalR<T> msgr(msgAcc);
@@ -564,43 +491,6 @@ MessageResult RendererProto::message(const T & msgAcc)
     return MessageResult::Consumed;
 }
 
-void RendererProto::loadMaterialGmdl(Model::MaterialGmdl & matGmdl)
-{
-    Gmdl & gmdl = matGmdl.gmdl();
-
-#if HAS(OPENGL3)
-    if (gmdl.rendererReserved(kMSHR_VAO) == -1)
-    {
-        glGenVertexArrays(1, &gmdl.rendererReserved(kMSHR_VAO));
-    }
-
-    glBindVertexArray(gmdl.rendererReserved(kMSHR_VAO));
-#endif
-    
-    if (gmdl.rendererReserved(kMSHR_VertBuffer) == -1)
-    {
-        glGenBuffers(1, &gmdl.rendererReserved(kMSHR_VertBuffer));
-        glBindBuffer(GL_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_VertBuffer));
-        glBufferData(GL_ARRAY_BUFFER, gmdl.vertsSize(), gmdl.verts(), GL_STATIC_DRAW);
-
-#if HAS(OPENGL3)
-        prepare_gmdl_attributes(gmdl);
-#endif
-    }
-
-    if (gmdl.rendererReserved(kMSHR_PrimBuffer) == -1)
-    {
-        glGenBuffers(1, &gmdl.rendererReserved(kMSHR_PrimBuffer));
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gmdl.rendererReserved(kMSHR_PrimBuffer));
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, gmdl.primsSize(), gmdl.prims(), GL_STATIC_DRAW);
-    }
-
-#if HAS(OPENGL3)
-    glBindVertexArray(0);
-#endif
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
 
 void RendererProto::setActiveShader(u32 nameHash)
 {

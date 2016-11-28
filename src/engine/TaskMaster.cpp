@@ -36,6 +36,7 @@
 #include "engine/messages/TaskStatus.h"
 #include "engine/InputMgr.h"
 #include "engine/AssetMgr.h"
+#include "engine/ModelMgr.h"
 #include "engine/SpriteMgr.h"
 #include "engine/renderer_api.h"
 
@@ -406,6 +407,7 @@ void TaskMaster::runPrimaryGameLoop()
     // LORRNOTE: SpriteMgr should be started on all TaskMasters and
     // the broadcast HASH::sprite_insert messages can be handled by
     // the appropriate TaskMaster
+    mpModelMgr.reset(GNEW(kMEM_Engine, ModelMgr));
     mpSpriteMgr.reset(GNEW(kMEM_Engine, SpriteMgr));
 
     renderer_init_device(mRendererTask);
@@ -457,6 +459,7 @@ void TaskMaster::runPrimaryGameLoop()
         if (mStatus == kTMS_Initialized)
         {
             // LORRTODO - Do physics
+            mpModelMgr->update(delta);
             mpSpriteMgr->update(delta);
 
 
@@ -633,6 +636,9 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
                     mOwnedTasks[ownedIt->second].message(finw.accessor());
                 }
 
+                if (mpModelMgr)
+                    mpModelMgr->message(msgAcc);
+
                 if (mpSpriteMgr)
                     mpSpriteMgr->message(msgAcc);
 
@@ -661,6 +667,11 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
         {
             ASSERT(mpAssetMgr.get() != nullptr);
             mpAssetMgr->message(msgAcc);
+        }
+        else if (msg.target == kModelMgrTaskId)
+        {
+            ASSERT(mpModelMgr.get() != nullptr);
+            mpModelMgr->message(msgAcc);
         }
         else if (msg.target == kSpriteMgrTaskId)
         {

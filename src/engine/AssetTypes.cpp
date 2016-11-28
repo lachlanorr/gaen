@@ -47,6 +47,7 @@ AssetTypes::AssetTypes()
     registerAssetType("gimg", kMEM_Texture,  Asset::construct<Asset>);
     registerAssetType("gmat", kMEM_Renderer, Asset::construct<Asset>);
     registerAssetType("gvtx", kMEM_Engine,   Asset::construct<Asset>);
+    registerAssetType("gmdl", kMEM_Engine,   Asset::construct<Asset>);
 
     registerAssetType("gatl", kMEM_Engine,   Asset::construct<AssetWithDep<Gatl,Gimg>>);
     registerAssetType("gspr", kMEM_Engine,   Asset::construct<AssetWithDep<Gspr,Gatl>>);

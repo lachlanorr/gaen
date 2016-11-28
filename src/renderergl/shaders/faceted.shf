@@ -1,11 +1,11 @@
 #ifdef OPENGL3
 
-in vec4 vColor;
+in vec4 oColor;
 out vec4 color;
 
 void main()
 {
-    color = vColor;
+    color = oColor;
 };
 
 #else // #ifdef OPENGL3
@@ -17,6 +17,6 @@ varying vec4 vColor;
 
 void main()
 {
-    gl_FragColor = vColor;
+    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);//vColor;
 };
 #endif // #else // #ifdef OPENGL3

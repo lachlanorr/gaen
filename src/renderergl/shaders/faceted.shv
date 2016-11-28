@@ -2,6 +2,7 @@
 
 in vec4 vPosition;
 in vec3 vNormal;
+in vec4 vColor;
 
 uniform mat4 umMVP;
 uniform mat3 umNormal;
@@ -9,14 +10,15 @@ uniform vec4 uvColor;
 uniform vec3 uvLightDirection;
 uniform vec4 uvLightColor;
 
-out vec4 vColor;
+out vec4 oColor;
 
 void main()
 {
     vec3 normalTrans = normalize(umNormal * vNormal);
     float intensity = max(dot(normalTrans, uvLightDirection), 0.0);
     intensity += min(intensity + 0.3, 1.0);
-    vColor = intensity * uvColor;
+    //oColor = vec4(1.0, 0.0, 0.0, 1.0);//intensity * uvColor;
+    oColor = vColor * max(intensity, 1.0);
     //vColor = vec4((umNormal * vNormal), 1.0);
     //vColor = vec4(dot(uvLightDirection, normalTrans));
     //vColor = abs(dot(uvLightDirection, normalTrans)) * uvColor;
@@ -40,7 +42,7 @@ uniform vec4 uvColor;
 uniform vec3 uvLightDirection;
 uniform vec4 uvLightColor;
 
-varying vec4 vColor;
+varying vec4 vColor
 
 void main()
 {

@@ -26,81 +26,86 @@
 
 #include "engine/stdafx.h"
 
+#include "assets/Gmdl.h"
+#include "engine/AssetMgr.h"
+
+#include "engine/messages/ModelInstance.h"
+#include "engine/messages/TransformUid.h"
+
 #include "engine/Model.h"
 
 namespace gaen
 {
 
-static std::atomic<material_gmdl_id> sNextMaterialGmdlId(0);
-static std::atomic<model_id> sNextModelId(0);
+static std::atomic<model_id> sNextModelId(1);
 
-Model::MaterialGmdl::MaterialGmdl(Model * pModel, Material * pMaterial, Gmdl * pGmdl)
-  : mpModel(pModel)
-  , mpMaterial(pMaterial)
-  , mpGmdl(pGmdl)
+
+Model::Model(task_id owner, const Asset * pGmdlAsset)
+  : mOwner(owner)
+  , mpGmdlAsset(pGmdlAsset)
 {
-    ASSERT(pMaterial);
-    ASSERT(pGmdl);
+    VALIDATE_ASSET(Gmdl, pGmdlAsset);
+    AssetMgr::addref_asset(0, mpGmdlAsset);
+    mpGmdl = Gmdl::instance(mpGmdlAsset->buffer(), mpGmdlAsset->size());
 
-    mId = sNextMaterialGmdlId.fetch_add(1,std::memory_order_relaxed);
-
-    // Calculate unique shader hash
-    mSortOrder = calcSortOrder();
+    mUid = sNextModelId.fetch_add(1, std::memory_order_relaxed);
 }
 
-Model::MaterialGmdl::~MaterialGmdl()
+Model::Model(const Model& rhs)
+  : mOwner(rhs.mOwner)
+  , mpGmdlAsset(rhs.mpGmdlAsset)
 {
-    GDELETE(mpMaterial);
-    GDELETE(mpGmdl);
-}
-
-material_gmdl_sort Model::MaterialGmdl::calcSortOrder()
-{
-    // Pack the bits to build a sort order/unique hash for the shader.
-
-    // Current packing is: (high order on left)
-    //
-    // | MaterialLayer | ModelId | ShaderNameHash |
-    // | 4 bits        | 28 bits | 32 bits        |
-    
-    u8 matLayer = static_cast<u8>(mpMaterial->layer());
-
-    PANIC_IF(matLayer      >= (1 << 4),  "Not enough bits for MaterialLayer %d", matLayer);
-    PANIC_IF(mpModel->id() >= (1 << 28), "Not enough bits for ModelId %d", mpModel->id());
-
-    material_gmdl_sort matGmdlSort = ((u64)matLayer << 60) |
-                                     ((u64)mpModel->id() << 32) |
-                                     mpMaterial->shaderNameHash();
-
-    return matGmdlSort;
-}
-
-
-Model::Model(Material * pMaterial, Gmdl * pGmdl, size_t gmdlCount)
-{
-    mId = sNextModelId.fetch_add(1, std::memory_order_relaxed);
-
-    if (gmdlCount > 1)
-        reserveGmdlCapacity(gmdlCount);
-    insertMaterialGmdl(pMaterial, pGmdl);
+    mpGmdl = Gmdl::instance(mpGmdlAsset->buffer(), mpGmdlAsset->size());
+    mUid = rhs.mUid;
 }
 
 Model::~Model()
 {
-    mMaterialGmdls.clear();
+    // LORRTODO: Cleanup is causing crash on exit... need to redesign how we release assets
+    //AssetMgr::release_asset(0, mpGmdlAsset);
 }
 
-void Model::reserveGmdlCapacity(size_t gmdlCount)
+const Gmdl & Model::gmdl() const
 {
-    mMaterialGmdls.reserve(gmdlCount);
+    return *mpGmdl;
 }
 
-void Model::insertMaterialGmdl(Material * pMaterial, Gmdl * pGmdl)
+
+// ModelInstance methods
+
+ModelInstance::ModelInstance(Model * pModel, u32 stageHash, const glm::mat4x3 & transform)
+  : mpModel(pModel)
+  , mStageHash(stageHash)
+  , mHasBody(false)
+  , mTransform(transform)
+{}
+
+void ModelInstance::destroyModel()
 {
-    if (mIsReadOnly)
-        PANIC("Gmdl being added to read only model");
-    mMaterialGmdls.emplace_back(this, pMaterial, pGmdl);
+    if (mpModel)
+    {
+        GDELETE(mpModel);
+        mpModel = nullptr;
+    }
+}
+
+void ModelInstance::send_model_insert(task_id source, task_id target, ModelInstance * pModelInst)
+{
+    messages::ModelInstanceQW msgw(HASH::model_insert, kMessageFlag_None, source, target);
+    msgw.setModelInstance(pModelInst);
+}
+
+void ModelInstance::send_model_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform)
+{
+    messages::TransformUidQW msgw(HASH::model_transform, kMessageFlag_None, source, target, uid);
+    msgw.setTransform(transform);
+}
+
+void ModelInstance::send_model_destroy(task_id source, task_id target, u32 uid)
+{
+    MessageQueueWriter msgw(HASH::model_destroy, kMessageFlag_None, source, target, to_cell(uid), 0);
 }
 
 
 } // namespace gaen
+

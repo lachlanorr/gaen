@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// SpriteStage.h - Grouping of sprites in a plane, including a cara layer
+// ModelStage.h - Grouping of models in a plane, including a cara layer
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,53 +24,52 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_RENDERERGL_SPRITESTAGE_H
-#define GAEN_RENDERERGL_SPRITESTAGE_H
+#ifndef GAEN_RENDERERGL_MODELSTAGE_H
+#define GAEN_RENDERERGL_MODELSTAGE_H
 
 #include "core/base_defines.h"
 
-#include "renderergl/SpriteGL.h"
+#include "renderergl/ModelGL.h"
 #include "renderergl/FrameGL.h"
 
 namespace gaen
 {
 
 class RendererMesh;
-class SpriteInstance;
+class ModelInstance;
 
-class SpriteStage
+class ModelStage
 {
 public:
-    SpriteStage(RendererMesh * pRenderer)
+    ModelStage(RendererMesh * pRenderer)
       : mpRenderer(pRenderer)
       , mIsShown(false)
     {}
 
-    u32 spritesSize() { return mSprites.size(); }
+    u32 modelsSize() { return mModels.size(); }
 
-    void insertSprite(SpriteInstance * pSpriteInst);
-    bool animateSprite(u32 uid, u32 animHash, u32 animFrameIdx);
-    bool transformSprite(u32 uid, const glm::mat4x3 & transform);
-    bool destroySprite(u32 uid);
+    void insertModel(ModelInstance * pModelInst);
+    bool transformModel(u32 uid, const glm::mat4x3 & transform);
+    bool destroyModel(u32 uid);
 
     bool isShown() { return mIsShown; }
     void show() { mIsShown = true; }
     void hide() { mIsShown = false; }
     
-    RenderCollection<SpriteGL>::Iter beginSprites()       { return mSprites.begin(); }
-    RenderCollection<SpriteGL>::Iter endSprites()         { return mSprites.end(); }
-    void eraseSprite(RenderCollection<SpriteGL>::Iter it) { mSprites.erase(it); }
+    RenderCollection<ModelGL>::Iter beginModels()       { return mModels.begin(); }
+    RenderCollection<ModelGL>::Iter endModels()         { return mModels.end(); }
+    void eraseModel(RenderCollection<ModelGL>::Iter it) { mModels.erase(it); }
 
 private:
     RendererMesh * mpRenderer;
     bool mIsShown;
 
-    RenderCollection<SpriteGL> mSprites;
+    RenderCollection<ModelGL> mModels;
     
-}; // class SpriteStage
+}; // class ModelStage
 
-typedef UniquePtr<SpriteStage> SpriteStageUP;
+typedef UniquePtr<ModelStage> ModelStageUP;
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_RENDERERGL_SPRITESTAGE_H
+#endif // #ifndef GAEN_RENDERERGL_MODELSTAGE_H

@@ -102,7 +102,7 @@ Gatl * Gatl::create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 
 
     pGatl->mRenderOffset = renderOffset;
 
-    pGatl->mpImage = nullptr;
+    pGatl->mpGimg = nullptr;
 
     strcpy(reinterpret_cast<char*>(pGatl+1), imagePath);
     

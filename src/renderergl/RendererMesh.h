@@ -33,10 +33,10 @@
 #include "core/HashMap.h"
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
-#include "engine/ModelMgr.h"
 #include "engine/renderer_structs.h"
 
 #include "renderergl/gaen_opengl.h"
+#include "renderergl/ModelStage.h"
 #include "renderergl/SpriteStage.h"
 #include "renderergl/ShaderRegistry.h"
 
@@ -68,16 +68,14 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    void loadMaterialGmdl(Model::MaterialGmdl & matGmdl);
-
     u32 loadTexture(u32 textureUnit, const Gimg * pGimg);
     void unloadTexture(const Gimg * pGimg);
 
-    void loadGlyphVerts(u32 * pVertArrayId, u32 * pVertBufferId, const GlyphVert * pVerts, u64 vertsSize);
-    void unloadGlyphVerts(const GlyphVert * pVerts);
+    bool loadVerts(u32 * pVertArrayId, u32 * pVertBufferId, const void * pVerts, u64 vertsSize);
+    void unloadVerts(const void * pVerts);
 
-    void loadGlyphTris(u32 * pPrimBufferId, const GlyphTri * pTris, u64 trisSize);
-    void unloadGlyphTris(const GlyphTri * pTris);
+    bool loadPrims(u32 * pPrimBufferId, const void * pPrims, u64 trisSize);
+    void unloadPrims(const void * pPrims);
 
     void unbindBuffers();
 
@@ -94,17 +92,17 @@ private:
     void setActiveShader(u32 nameHash);
     shaders::Shader * getShader(u32 nameHash);
 
-    void insertModel(task_id owner,
-                     u32 uid,
-                     Model * pModel,
-                     const glm::mat4x3 & worldTransform,
-                     bool isAssetManaged);
+    void insertModel(ModelInstance * pModelInst);
+    void transformModel(u32 uid, const glm::mat4x3 & transform);
+    void destroyModel(u32 uid);
+    void showModelStage(u32 stageHash);
+    void hideModelStage(u32 stageHash);
+    void destroyModelStage(u32 stageHash);
 
     void insertSprite(SpriteInstance * pSpriteInst);
     void animateSprite(u32 uid, u32 animHash, u32 animFrameIdx);
     void transformSprite(u32 uid, const glm::mat4x3 & transform);
     void destroySprite(u32 uid);
-    
     void showSpriteStage(u32 stageHash);
     void hideSpriteStage(u32 stageHash);
     void destroySpriteStage(u32 stageHash);
@@ -129,7 +127,8 @@ private:
     glm::mat4 mProjection;
     glm::mat4 mGuiProjection;
 
-    ModelMgr<RendererMesh> * mpModelMgr;
+    typedef HashMap<kMEM_Renderer, u32, ModelStageUP> ModelStageMap;
+    ModelStageMap mModelStages;
 
     typedef HashMap<kMEM_Renderer, u32, SpriteStageUP> SpriteStageMap;
     SpriteStageMap mSpriteStages;
@@ -169,8 +168,8 @@ private:
     using LoadMap = HashMap<kMEM_Renderer, const T*, LoadInfo<T>>;
 
     LoadMap<Gimg> mLoadedTextures;
-    LoadMap<GlyphVert> mLoadedGlyphVerts;
-    LoadMap<GlyphTri> mLoadedGlyphTris;
+    LoadMap<void> mLoadedVerts;
+    LoadMap<void> mLoadedPrims;
 };
 
 } // namespace gaen

@@ -27,69 +27,83 @@
 #ifndef GAEN_ENGINE_MODEL_H
 #define GAEN_ENGINE_MODEL_H
 
-#include "core/Vector.h"
+#include <glm/mat4x3.hpp>
 
-#include "assets/Gmdl.h"
-#include "engine/Material.h"
+#include "engine/task.h"
+
+class Asset;
+class Gmdl;
 
 namespace gaen
 {
 
 typedef u32 model_id;
-typedef u32 material_gmdl_id;
-typedef u64 material_gmdl_sort;
 
 class Model
 {
 public:
-    // Gmdl and material
-    class MaterialGmdl
-    {
-    public:
-        MaterialGmdl(Model * pModel, Material * pMaterial, Gmdl * pGmdl);
-
-        ~MaterialGmdl();
-
-        material_gmdl_id id() const { return mId; }
-
-        material_gmdl_sort sortOrder() const { return mSortOrder; }
-
-        Model & model() { return *mpModel; }
-        Material & material() { return *mpMaterial; }
-        Gmdl & gmdl() { return *mpGmdl; }
-
-    private:
-        material_gmdl_sort calcSortOrder();
-
-        material_gmdl_id mId;
-        material_gmdl_sort mSortOrder;
-
-        Model * mpModel;
-        Material * mpMaterial;
-        Gmdl * mpGmdl;
-    };
-
-    Model(Material * pMaterial, Gmdl * pGmdl, size_t gmdlCount=1);
+    Model(task_id owner, const Asset* pGmdlAsset);
+    Model(const Model& rhs);
     ~Model();
 
-    model_id id() const { return mId; }
-    
-    typedef Vector<kMEM_Model, MaterialGmdl> MaterialGmdlVector;
-    MaterialGmdlVector::iterator begin() { return mMaterialGmdls.begin(); }
-    MaterialGmdlVector::iterator end() { return mMaterialGmdls.end(); }
+    model_id uid() const { return mUid; }
+    task_id owner() const { return mOwner; }
 
-    void reserveGmdlCapacity(size_t gmdlCount);
-    void insertMaterialGmdl(Material * pMaterial, Gmdl * pGmdl);
-
-    // Call this once all gmdls have been pushed.  After that
-    // the Model should not be modified.
-    void makeReadOnly() { mIsReadOnly = true; }
+    const Gmdl & gmdl() const;
 
 private:
-    model_id mId;
-    bool mIsReadOnly = false;
-    MaterialGmdlVector mMaterialGmdls;
+    // Delete these to make sure w construct through the asset->addref path
+    Model(Model&&)                  = delete;
+    Model & operator=(const Model&) = delete;
+    Model & operator=(Model&&)      = delete;
+
+    model_id mUid;
+
+    task_id mOwner;
+    const Asset * mpGmdlAsset;
+
+    // pointers into mpGmdlAsset, no need to clean up
+    const Gmdl * mpGmdl;
 };
+
+class ModelBody;
+class ModelInstance
+{
+    friend class ModelMgr;
+    friend class ModelBody;
+    friend class ModelMotionState;
+    friend class ModelPhysics;
+public:
+    ModelInstance(Model * pModel, u32 stageHash, const glm::mat4x3 & transform);
+
+    const Model & model() { return *mpModel; }
+    u32 stageHash() { return mStageHash; }
+
+    void destroyModel();
+
+    static void send_model_insert(task_id source, task_id target, ModelInstance * pModelInst);
+    static void send_model_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform);
+    static void send_model_destroy(task_id source, task_id target, u32 uid);
+
+    glm::vec3 position() { return mTransform[3]; }
+    f32 zdepth() { return mTransform[3][2]; }
+
+    glm::mat4x3 mTransform;
+
+private:
+    // Delete these to make sure we construct through the asset->addref path
+    ModelInstance(const ModelInstance&)             = delete;
+    ModelInstance(ModelInstance&&)                  = delete;
+    ModelInstance & operator=(const ModelInstance&) = delete;
+    ModelInstance & operator=(ModelInstance&&)      = delete;
+
+    Model * mpModel;
+    u32 mStageHash;
+
+    bool mHasBody;
+};
+
+typedef UniquePtr<ModelInstance> ModelInstanceUP;
 
 } // namespace gaen
 
