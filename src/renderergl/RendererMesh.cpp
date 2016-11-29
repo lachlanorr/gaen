@@ -102,7 +102,7 @@ void RendererMesh::initViewport()
     mProjection = glm::perspective(glm::radians(60.0f),
                                    mScreenWidth / static_cast<f32>(mScreenHeight),
                                    0.1f,
-                                   100.0f);
+                                   100000.0f);
 
     // setup gui projection, which is orthographic
     mGuiProjection = glm::ortho(static_cast<f32>(mScreenWidth) * -0.5f,
