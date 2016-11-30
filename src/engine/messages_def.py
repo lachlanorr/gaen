@@ -89,6 +89,24 @@ class Collision(FieldHandler):
     subject      = i32Field()
     location     = vec3Field()
 
+class PerspectiveCamera(FieldHandler):
+    cameraHash   = i32Field(payload=True)
+    stageHash    = i32Field()
+    fieldOfView  = f32Field()
+    nearFarClip  = vec2Field()
+    transform    = mat4x3Field()
+
+class OrthographicCamera(FieldHandler):
+    cameraHash   = i32Field(payload=True)
+    stageHash    = i32Field()
+    nearFarClip  = vec2Field()
+    transform    = mat4x3Field()
+
+class TransformCamera(FieldHandler):
+    cameraHash   = i32Field(payload=True)
+    stageHash    = i32Field()
+    transform    = mat4x3Field()
+
 class MoveCamera(FieldHandler):
     position = vec3Field()
     direction = quatField()

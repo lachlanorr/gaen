@@ -28,6 +28,7 @@ SET (shaders_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 INCLUDE (${shaders_dir}/codegen.cmake)
 
 SET (renderergl_SOURCES
+  Camera.h
   FrameGL.h
   gaen_opengl.h
   ModelGL.cpp
@@ -48,6 +49,7 @@ SET (renderergl_SOURCES
   SpriteGL.h
   SpriteStage.cpp
   SpriteStage.h
+  Stage.h
   ${shaders_codegen_SOURCES}
   )
 

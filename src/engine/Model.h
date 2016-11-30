@@ -79,6 +79,8 @@ public:
     const Model & model() { return *mpModel; }
     u32 stageHash() { return mStageHash; }
 
+    model_id uid() const { return mpModel->uid(); }
+
     void destroyModel();
 
     static void send_model_insert(task_id source, task_id target, ModelInstance * pModelInst);

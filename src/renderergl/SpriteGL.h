@@ -42,6 +42,8 @@ class RendererMesh;
 class SpriteGL
 {
 public:
+    typedef SpriteInstance InstanceT;
+    
     SpriteGL(SpriteInstance * pSpriteInstance, RendererMesh * pRenderer)
       : mpSpriteInstance(pSpriteInstance)
       , mpRenderer(pRenderer)
@@ -64,6 +66,8 @@ public:
     u32 uid() const { return mpSpriteInstance->sprite().uid(); }
     f32 order() const { return mpSpriteInstance->zdepth(); }
 
+    void reportDestruction();
+    
     const glm::mat4x3 & transform() { return mpSpriteInstance->mTransform; }
     void setTransform(const glm::mat4x3 & transform) { mpSpriteInstance->mTransform = transform; }
 

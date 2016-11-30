@@ -31,41 +31,18 @@
 
 #include "renderergl/ModelGL.h"
 #include "renderergl/FrameGL.h"
+#include "renderergl/Stage.h"
 
 namespace gaen
 {
 
-class RendererMesh;
 class ModelInstance;
 
-class ModelStage
+class ModelStage : public Stage<ModelGL>
 {
 public:
-    ModelStage(RendererMesh * pRenderer)
-      : mpRenderer(pRenderer)
-      , mIsShown(false)
-    {}
+    ModelStage(RendererMesh * pRenderer);
 
-    u32 modelsSize() { return mModels.size(); }
-
-    void insertModel(ModelInstance * pModelInst);
-    bool transformModel(u32 uid, const glm::mat4x3 & transform);
-    bool destroyModel(u32 uid);
-
-    bool isShown() { return mIsShown; }
-    void show() { mIsShown = true; }
-    void hide() { mIsShown = false; }
-    
-    RenderCollection<ModelGL>::Iter beginModels()       { return mModels.begin(); }
-    RenderCollection<ModelGL>::Iter endModels()         { return mModels.end(); }
-    void eraseModel(RenderCollection<ModelGL>::Iter it) { mModels.erase(it); }
-
-private:
-    RendererMesh * mpRenderer;
-    bool mIsShown;
-
-    RenderCollection<ModelGL> mModels;
-    
 }; // class ModelStage
 
 typedef UniquePtr<ModelStage> ModelStageUP;

@@ -94,6 +94,10 @@ void SpriteGL::prepareMeshAttributes()
     glEnableVertexAttribArray(0);
 }
 
+void SpriteGL::reportDestruction()
+{
+    SpriteInstance::send_sprite_destroy(kRendererTaskId, kSpriteMgrTaskId, uid());
+}
 
 } // namespace gaen
 

@@ -42,6 +42,8 @@ class RendererMesh;
 class ModelGL
 {
 public:
+    typedef ModelInstance InstanceT;
+    
     ModelGL(ModelInstance * pModelInstance, RendererMesh * pRenderer)
       : mpModelInstance(pModelInstance)
       , mpRenderer(pRenderer)
@@ -62,6 +64,8 @@ public:
     u32 uid() const { return mpModelInstance->model().uid(); }
     f32 order() const { return 0; } // LORRTODO: Decide what to do with this ordering for models, only make sense for sprites
 
+    void reportDestruction();
+    
     const glm::mat4x3 & transform() { return mpModelInstance->mTransform; }
     void setTransform(const glm::mat4x3 & transform) { mpModelInstance->mTransform = transform; }
 

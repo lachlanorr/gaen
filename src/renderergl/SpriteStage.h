@@ -31,42 +31,19 @@
 
 #include "renderergl/SpriteGL.h"
 #include "renderergl/FrameGL.h"
+#include "renderergl/Stage.h"
 
 namespace gaen
 {
 
-class RendererMesh;
 class SpriteInstance;
 
-class SpriteStage
+class SpriteStage : public Stage<SpriteGL>
 {
 public:
-    SpriteStage(RendererMesh * pRenderer)
-      : mpRenderer(pRenderer)
-      , mIsShown(false)
-    {}
+    SpriteStage(RendererMesh * pRenderer);
 
-    u32 spritesSize() { return mSprites.size(); }
-
-    void insertSprite(SpriteInstance * pSpriteInst);
-    bool animateSprite(u32 uid, u32 animHash, u32 animFrameIdx);
-    bool transformSprite(u32 uid, const glm::mat4x3 & transform);
-    bool destroySprite(u32 uid);
-
-    bool isShown() { return mIsShown; }
-    void show() { mIsShown = true; }
-    void hide() { mIsShown = false; }
-    
-    RenderCollection<SpriteGL>::Iter beginSprites()       { return mSprites.begin(); }
-    RenderCollection<SpriteGL>::Iter endSprites()         { return mSprites.end(); }
-    void eraseSprite(RenderCollection<SpriteGL>::Iter it) { mSprites.erase(it); }
-
-private:
-    RendererMesh * mpRenderer;
-    bool mIsShown;
-
-    RenderCollection<SpriteGL> mSprites;
-    
+    bool animateItem(u32 uid, u32 animHash, u32 animFrameIdx);
 }; // class SpriteStage
 
 typedef UniquePtr<SpriteStage> SpriteStageUP;

@@ -99,6 +99,8 @@ public:
     const Sprite & sprite() { return *mpSprite; }
     u32 stageHash() { return mStageHash; }
 
+    sprite_id uid() const { return mpSprite->uid(); }
+
     void destroySprite();
 
     const void * currentFrameElemsOffset() { return mpCurrentFrameElemsOffset; }

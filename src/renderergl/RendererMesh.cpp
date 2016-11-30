@@ -98,20 +98,6 @@ void RendererMesh::initViewport()
     // reset viewport
     glViewport(0, 0, mScreenWidth, mScreenHeight);
 
-    // setup projection with current width/height
-    mProjection = glm::perspective(glm::radians(60.0f),
-                                   mScreenWidth / static_cast<f32>(mScreenHeight),
-                                   0.1f,
-                                   100000.0f);
-
-    // setup gui projection, which is orthographic
-    mGuiProjection = glm::ortho(static_cast<f32>(mScreenWidth) * -0.5f,
-                                static_cast<f32>(mScreenWidth) * 0.5f,
-                                static_cast<f32>(mScreenHeight) * -0.5f,
-                                static_cast<f32>(mScreenHeight) * 0.5f,
-                                -100.0f,
-                                100.0f);
-
 }
 
 void RendererMesh::set_shader_vec4_var(u32 nameHash, const glm::vec4 & val, void * pContext)
@@ -347,18 +333,19 @@ void RendererMesh::render()
     setActiveShader(HASH::faceted);
     for (auto & stagePair : mModelStages)
     {
-        if (stagePair.second->isShown() && stagePair.second->modelsSize() > 0)
+        if (stagePair.second->isShown() && stagePair.second->itemsSize() > 0)
         {
             //static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+            const glm::mat4 & projection = stagePair.second->camera().projection();
 
-            for(auto it = stagePair.second->beginModels();
-                it != stagePair.second->endModels();
+            for(auto it = stagePair.second->beginItems();
+                it != stagePair.second->endItems();
                 /* no increment so we can remove while iterating */)
             {
                 ModelGL * pModelGL = *it;
                 if (pModelGL->status() == kRIS_Active)
                 {
-                    glm::mat4 mvp = mProjection * to_mat4x4(pModelGL->transform());
+                    glm::mat4 mvp = projection * to_mat4x4(pModelGL->transform());
                     mpActiveShader->setUniformMat4(HASH::umMVP, mvp);
                     pModelGL->render();
                     ++it;
@@ -367,7 +354,7 @@ void RendererMesh::render()
                 {
                     pModelGL->unloadGpu();
 
-                    stagePair.second->eraseModel(it++);
+                    stagePair.second->eraseItem(it++);
                 }
             }
         }
@@ -378,19 +365,20 @@ void RendererMesh::render()
     setActiveShader(HASH::sprite);
     for (auto & stagePair : mSpriteStages)
     {
-        if (stagePair.second->isShown() && stagePair.second->spritesSize() > 0)
+        if (stagePair.second->isShown() && stagePair.second->itemsSize() > 0)
         {
             //static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
             //glm::mat4 mvp = mGuiProjection; // * view  ;// * glm::mat4x4(0.05); // to_mat4x4(matGmdlInst.pModelInstance->transform);
+            const glm::mat4 & projection = stagePair.second->camera().projection();
 
-            for(auto it = stagePair.second->beginSprites();
-                it != stagePair.second->endSprites();
+            for(auto it = stagePair.second->beginItems();
+                it != stagePair.second->endItems();
                 /* no increment so we can remove while iterating */)
             {
                 SpriteGL * pSpriteGL = *it;
                 if (pSpriteGL->status() == kRIS_Active)
                 {
-                    glm::mat4 mvp = mGuiProjection * to_mat4x4(pSpriteGL->transform());
+                    glm::mat4 mvp = projection * to_mat4x4(pSpriteGL->transform());
                     mpActiveShader->setUniformMat4(HASH::proj, mvp);
                     pSpriteGL->render();
                     ++it;
@@ -399,7 +387,7 @@ void RendererMesh::render()
                 {
                     pSpriteGL->unloadGpu();
 
-                    stagePair.second->eraseSprite(it++);
+                    stagePair.second->eraseItem(it++);
                 }
             }
         }
@@ -556,14 +544,14 @@ void RendererMesh::insertModel(ModelInstance * pModelInst)
         ASSERT(empIt.second == true);
         it = empIt.first;
     }
-    it->second->insertModel(pModelInst);
+    it->second->insertItem(pModelInst);
 }
 
 void RendererMesh::transformModel(u32 uid, const glm::mat4x3 & transform)
 {
     for (auto & stagePair : mModelStages)
     {
-        if (stagePair.second->transformModel(uid, transform))
+        if (stagePair.second->transformItem(uid, transform))
             return;
     }
     ERR("transformModel in renderer for unkonwn model, uid: %u", uid);
@@ -573,7 +561,7 @@ void RendererMesh::destroyModel(u32 uid)
 {
     for (auto & stagePair : mModelStages)
     {
-        if (stagePair.second->destroyModel(uid))
+        if (stagePair.second->destroyItem(uid))
             return;
     }
     ERR("destroyModel in renderer for unkonwn model, uid: %u", uid);
@@ -625,14 +613,14 @@ void RendererMesh::insertSprite(SpriteInstance * pSpriteInst)
         ASSERT(empIt.second == true);
         it = empIt.first;
     }
-    it->second->insertSprite(pSpriteInst);
+    it->second->insertItem(pSpriteInst);
 }
 
 void RendererMesh::animateSprite(u32 uid, u32 animHash, u32 animFrameIdx)
 {
     for (auto & stagePair : mSpriteStages)
     {
-        if (stagePair.second->animateSprite(uid, animHash, animFrameIdx))
+        if (stagePair.second->animateItem(uid, animHash, animFrameIdx))
             return;
     }
     ERR("animateSprite in renderer for unkonwn sprite, uid: %u", uid);
@@ -642,7 +630,7 @@ void RendererMesh::transformSprite(u32 uid, const glm::mat4x3 & transform)
 {
     for (auto & stagePair : mSpriteStages)
     {
-        if (stagePair.second->transformSprite(uid, transform))
+        if (stagePair.second->transformItem(uid, transform))
             return;
     }
     ERR("transformSprite in renderer for unkonwn sprite, uid: %u", uid);
@@ -652,7 +640,7 @@ void RendererMesh::destroySprite(u32 uid)
 {
     for (auto & stagePair : mSpriteStages)
     {
-        if (stagePair.second->destroySprite(uid))
+        if (stagePair.second->destroyItem(uid))
             return;
     }
     ERR("destroySprite in renderer for unkonwn sprite, uid: %u", uid);

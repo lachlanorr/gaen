@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include <glm/gtx/transform.hpp>
+
 #include "engine/Model.h"
 
 #include "renderergl/RendererMesh.h"
@@ -33,40 +35,13 @@
 namespace gaen
 {
 
-void ModelStage::insertModel(ModelInstance * pModelInst)
-{
-    ASSERT(pModelInst);
-    ASSERT(mModels.find(pModelInst->model().uid()) == mModels.end());
-
-    ModelGLUP pModelGL(GNEW(kMEM_Renderer, ModelGL, pModelInst, mpRenderer));
-    pModelGL->loadGpu();
-    mModels.insert(std::move(pModelGL));
-}
-
-bool ModelStage::transformModel(u32 uid, const glm::mat4x3 & transform)
-{
-    auto it = mModels.find(uid);
-    if (it != mModels.end())
-    {
-        it->setTransform(transform);
-        return true;
-    }
-    return false;
-}
-
-bool ModelStage::destroyModel(u32 uid)
-{
-    auto it = mModels.find(uid);
-    if (it != mModels.end())
-    {
-        // Mark destroyed, it will get pulled from maps during next render pass.
-        it->setStatus(kRIS_Destroyed);
-
-        ModelInstance::send_model_destroy(kRendererTaskId, kModelMgrTaskId, uid);
-
-        return true;
-    }
-    return false;
-}
+ModelStage::ModelStage(RendererMesh * pRenderer)
+  : Stage(pRenderer,
+          Camera(glm::perspective(glm::radians(60.0f),
+                                  pRenderer->screenWidth() / static_cast<f32>(pRenderer->screenHeight()),
+                                  0.1f,
+                                  100000.0f),
+                 glm::mat4x3(1.0)))
+{}
 
 } // namespace gaen

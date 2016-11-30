@@ -62,6 +62,9 @@ public:
     void initRenderDevice();
     void initViewport();
 
+    u32 screenWidth() { return mScreenWidth; }
+    u32 screenHeight() { return mScreenHeight; }
+
     void render();
     void endFrame();
 
@@ -117,15 +120,6 @@ private:
     GLint mMaxCombinedTextureImageUnits = 0;
     GLint mMaxTextureImageUnits = 0;
     GLint mMaxTextureSize = 0;
-
-    GLuint mPresentVAO;
-    GLuint mPresentVertexBuffer;
-    GLuint mPresentImage;
-    GLuint mPresentImageLocation;
-    shaders::Shader * mpPresentShader;
-
-    glm::mat4 mProjection;
-    glm::mat4 mGuiProjection;
 
     typedef HashMap<kMEM_Renderer, u32, ModelStageUP> ModelStageMap;
     ModelStageMap mModelStages;

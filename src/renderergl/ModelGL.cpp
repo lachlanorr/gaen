@@ -112,6 +112,10 @@ void ModelGL::prepareMeshAttributes()
     
 }
 
+void ModelGL::reportDestruction()
+{
+    ModelInstance::send_model_destroy(kRendererTaskId, kModelMgrTaskId, uid());
+}
 
 } // namespace gaen
 

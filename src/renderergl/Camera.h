@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// SpriteStage.cpp - Grouping of sprites in a plane, including a cara layer
+// Camera.h - Camera containing projection and view matrices
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,36 +24,41 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include <glm/gtx/transform.hpp>
+#ifndef GAEN_RENDERERGL_CAMERA_H
+#define GAEN_RENDERERGL_CAMERA_H
 
-#include "engine/Sprite.h"
-
-#include "renderergl/RendererMesh.h"
-#include "renderergl/SpriteGL.h"
-#include "renderergl/SpriteStage.h"
+#include <glm/mat4x4.hpp>
+#include "engine/glm_ext.h"
 
 namespace gaen
 {
-SpriteStage::SpriteStage(RendererMesh * pRenderer)
-  : Stage(pRenderer,
-          Camera(glm::ortho(static_cast<f32>(pRenderer->screenWidth()) * -0.5f,
-                            static_cast<f32>(pRenderer->screenWidth()) * 0.5f,
-                            static_cast<f32>(pRenderer->screenHeight()) * -0.5f,
-                            static_cast<f32>(pRenderer->screenHeight()) * 0.5f,
-                            -100.0f,
-                            100.0f),
-                 glm::mat4x3(1.0)))
-{}
 
-bool SpriteStage::animateItem(u32 uid, u32 animHash, u32 animFrameIdx)
+class Camera
 {
-    auto it = mItems.find(uid);
-    if (it != mItems.end())
+public:
+    Camera(glm::mat4 & projection, glm::mat4x3 & transform)
     {
-        it->animate(animHash, animFrameIdx);
-        return true;
+        mProjection = projection;
+        setTransform(transform);
     }
-    return false;
-}
+
+    const glm::mat4 & projection() const { return mProjection; }
+
+    const glm::mat4x3 & transform(const glm::mat4x3 & transform) { return mTransform; }
+    void setTransform(const glm::mat4x3 & transform)
+    {
+        mTransform = to_mat4x4(transform) * mTransform;
+        mView = inverse(mTransform);
+    }
+    
+    const glm::mat4 & view() const { return mView; }
+
+private:
+    glm::mat4 mProjection;
+    glm::mat4 mTransform;
+    glm::mat4 mView;
+};
 
 } // namespace gaen
+
+#endif // #ifndef GAEN_RENDERERGL_CAMERA_H
