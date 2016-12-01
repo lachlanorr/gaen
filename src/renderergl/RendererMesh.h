@@ -82,6 +82,8 @@ public:
 
     void unbindBuffers();
 
+    void setActiveShader(u32 nameHash);
+    shaders::Shader & activeShader() { return *mpActiveShader; }
 private:
     static void set_shader_vec4_var(u32 nameHash, const glm::vec4 & val, void * pContext);
     static u32 texture_unit(u32 nameHash);
@@ -92,7 +94,6 @@ private:
     static void prepare_gmdl_attributes(const Gmdl & gmdl);
 
 
-    void setActiveShader(u32 nameHash);
     shaders::Shader * getShader(u32 nameHash);
 
     void insertModel(ModelInstance * pModelInst);

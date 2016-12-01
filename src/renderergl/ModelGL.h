@@ -64,6 +64,8 @@ public:
     u32 uid() const { return mpModelInstance->model().uid(); }
     f32 order() const { return 0; } // LORRTODO: Decide what to do with this ordering for models, only make sense for sprites
 
+    u32 shaderHash() const { return HASH::faceted; } // LORTODO: allow shader to be specified in ModelInstance and use that
+
     void reportDestruction();
     
     const glm::mat4x3 & transform() { return mpModelInstance->mTransform; }

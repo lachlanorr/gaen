@@ -47,16 +47,19 @@ public:
     const glm::mat4x3 & transform(const glm::mat4x3 & transform) { return mTransform; }
     void setTransform(const glm::mat4x3 & transform)
     {
-        mTransform = to_mat4x4(transform) * mTransform;
+        mTransform = to_mat4x4(transform);
         mView = inverse(mTransform);
+        mViewProjection = mView * mProjection;
     }
     
     const glm::mat4 & view() const { return mView; }
+    const glm::mat4 & viewProjection() const { return mViewProjection; }
 
 private:
     glm::mat4 mProjection;
     glm::mat4 mTransform;
     glm::mat4 mView;
+    glm::mat4 mViewProjection;
 };
 
 } // namespace gaen

@@ -35,19 +35,19 @@ namespace shaders
 static const char * kShaderCode_shv =
     "layout(location = 0) in vec4 vPosUv;\n"
     "\n"
-    "uniform mat4 proj;\n"
+    "uniform mat4 uMvp;\n"
     "\n"
-    "out vec2 uv;\n"
+    "out vec2 oiUv;\n"
     "\n"
     "void main()\n"
     "{\n"
-    "    gl_Position = proj * vec4(vPosUv.xy, 0.0, 1.0);\n"
-    "    uv = vPosUv.zw;\n"
+    "    gl_Position = uMvp * vec4(vPosUv.xy, 0.0, 1.0);\n"
+    "    oiUv = vPosUv.zw;\n"
     "};\n"
     ; // kShaderCode_shv (END)
 
 static const char * kShaderCode_shf =
-    "in vec2 uv;\n"
+    "in vec2 oiUv;\n"
     "\n"
     "out vec4 color;\n"
     "\n"
@@ -55,7 +55,7 @@ static const char * kShaderCode_shf =
     "\n"
     "void main()\n"
     "{\n"
-    "    color = texture(imageSampler, uv).rgba;\n"
+    "    color = texture(imageSampler, oiUv).rgba;\n"
     "};\n"
     ; // kShaderCode_shf (END)
 
@@ -79,7 +79,7 @@ Shader * sprite::construct()
     pShader->mUniforms[0].location = 0;
     pShader->mUniforms[0].type = GL_SAMPLER_2D;
 
-    pShader->mUniforms[1].nameHash = 0xe33e21b6; /* HASH::proj */
+    pShader->mUniforms[1].nameHash = 0xce837dc9; /* HASH::uMvp */
     pShader->mUniforms[1].index = 1;
     pShader->mUniforms[1].location = 1;
     pShader->mUniforms[1].type = GL_FLOAT_MAT4;

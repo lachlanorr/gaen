@@ -1,11 +1,11 @@
 #ifdef OPENGL3
 
-in vec4 oColor;
+in vec4 oiColor;
 out vec4 color;
 
 void main()
 {
-    color = oColor;
+    color = oiColor;
 };
 
 #else // #ifdef OPENGL3

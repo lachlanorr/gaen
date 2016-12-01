@@ -49,6 +49,37 @@ public:
 
     const Camera & camera() const { return *mpCamera; }
 
+    void render()
+    {
+        if (isShown() && itemsSize() > 0)
+        {
+            //static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+            const glm::mat4 & viewProj = camera().viewProjection();
+
+            for(auto it = beginItems();
+                it != endItems();
+                /* no increment so we can remove while iterating */)
+            {
+                ItemGLT * pItemGL = *it;
+                mpRenderer->setActiveShader(pItemGL->shaderHash());
+
+                if (pItemGL->status() == kRIS_Active)
+                {
+                    glm::mat4 mvp = viewProj * to_mat4x4(pItemGL->transform());
+                    mpRenderer->activeShader().setUniformMat4(HASH::uMvp, mvp);
+                    pItemGL->render();
+                    ++it;
+                }
+                else if (pItemGL->status() == kRIS_Destroyed)
+                {
+                    pItemGL->unloadGpu();
+
+                    eraseItem(it++);
+                }
+            }
+        }
+    }
+
     void activateCamera(u32 cameraHash)
     {
         auto it = mCameraMap.find(cameraHash);

@@ -66,6 +66,8 @@ public:
     u32 uid() const { return mpSpriteInstance->sprite().uid(); }
     f32 order() const { return mpSpriteInstance->zdepth(); }
 
+    u32 shaderHash() const { return HASH::sprite; }
+
     void reportDestruction();
     
     const glm::mat4x3 & transform() { return mpSpriteInstance->mTransform; }

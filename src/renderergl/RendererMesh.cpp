@@ -328,69 +328,14 @@ void RendererMesh::render()
     glClear(GL_COLOR_BUFFER_BIT);
     //GL_CLEAR_DEPTH(1.0f);
 
-
-
-    setActiveShader(HASH::faceted);
     for (auto & stagePair : mModelStages)
     {
-        if (stagePair.second->isShown() && stagePair.second->itemsSize() > 0)
-        {
-            //static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-            const glm::mat4 & projection = stagePair.second->camera().projection();
-
-            for(auto it = stagePair.second->beginItems();
-                it != stagePair.second->endItems();
-                /* no increment so we can remove while iterating */)
-            {
-                ModelGL * pModelGL = *it;
-                if (pModelGL->status() == kRIS_Active)
-                {
-                    glm::mat4 mvp = projection * to_mat4x4(pModelGL->transform());
-                    mpActiveShader->setUniformMat4(HASH::umMVP, mvp);
-                    pModelGL->render();
-                    ++it;
-                }
-                else if (pModelGL->status() == kRIS_Destroyed)
-                {
-                    pModelGL->unloadGpu();
-
-                    stagePair.second->eraseItem(it++);
-                }
-            }
-        }
+        stagePair.second->render();
     }
 
-    
-
-    setActiveShader(HASH::sprite);
     for (auto & stagePair : mSpriteStages)
     {
-        if (stagePair.second->isShown() && stagePair.second->itemsSize() > 0)
-        {
-            //static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-            //glm::mat4 mvp = mGuiProjection; // * view  ;// * glm::mat4x4(0.05); // to_mat4x4(matGmdlInst.pModelInstance->transform);
-            const glm::mat4 & projection = stagePair.second->camera().projection();
-
-            for(auto it = stagePair.second->beginItems();
-                it != stagePair.second->endItems();
-                /* no increment so we can remove while iterating */)
-            {
-                SpriteGL * pSpriteGL = *it;
-                if (pSpriteGL->status() == kRIS_Active)
-                {
-                    glm::mat4 mvp = projection * to_mat4x4(pSpriteGL->transform());
-                    mpActiveShader->setUniformMat4(HASH::proj, mvp);
-                    pSpriteGL->render();
-                    ++it;
-                }
-                else if (pSpriteGL->status() == kRIS_Destroyed)
-                {
-                    pSpriteGL->unloadGpu();
-
-                    stagePair.second->eraseItem(it++);
-                }
-            }
-        }
+        stagePair.second->render();
     }
 }
 
