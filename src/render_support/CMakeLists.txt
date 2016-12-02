@@ -24,49 +24,47 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (shaders_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
-INCLUDE (${shaders_dir}/codegen.cmake)
-
-SET (renderergl_SOURCES
-  FrameGL.h
-  gaen_opengl.h
-  ModelGL.cpp
-  ModelGL.h
-  ModelStage.cpp
-  ModelStage.h
-  RenderCollection.h
-  Renderer.h
-  RendererMesh.h
-  RendererMesh.cpp
-  RendererProto.h
-  RendererProto.cpp
-  Renderer_${platform}.${platform_ext}
-  renderer_api.cpp
-  ShaderRegistry.cpp
-  ShaderRegistry.h
-  SpriteGL.cpp
-  SpriteGL.h
-  SpriteStage.cpp
-  SpriteStage.h
-  Stage.h
-  ${shaders_codegen_SOURCES}
+SET (render_support_SOURCES
+  Camera.h
+  collision.h
+  ImageBuffer.cpp
+  ImageBuffer.h
+  Material.cpp
+  Material.h
+  Model.cpp
+  Model.h
+  ModelMgr.cpp
+  ModelMgr.h
+  ModelPhysics.cpp
+  ModelPhysics.h
+  RaycastCamera.cpp
+  RaycastCamera.h
+  renderer_api.h
+  renderer_structs.h
+  shapes.cpp
+  shapes.h
+  Sprite.cpp
+  Sprite.h
+  SpriteMgr.cpp
+  SpriteMgr.h
+  SpritePhysics.cpp
+  SpritePhysics.h
+  voxel.cpp
+  voxel.h
+  voxel27.cpp
+  voxel27.h
+  voxel_proto.cpp
+  voxel_proto.h
   )
 
-IDE_SOURCE_PROPERTIES( "/" "${renderergl_SOURCES}")
+MSVC_PRECOMPILED_HEADER (render_support render_support_SOURCES)
+IDE_SOURCE_PROPERTIES( "/" "${render_support_SOURCES}")
 
-SET (glad_SOURCES
-  ${ext_dir}/glad/src/glad.c
-  ${ext_dir}/glad/include/glad/glad.h
-  ${ext_dir}/glad/include/KHR/khrplatform.h
-  )
-IDE_SOURCE_PROPERTIES( "/glad" "${glad_SOURCES}")
-
-ADD_LIBRARY (renderergl
-  ${renderergl_SOURCES}
-  ${glad_SOURCES}
+ADD_LIBRARY (render_support
+  ${render_support_SOURCES}
   )
 
-ADD_DEPENDENCIES(renderergl
+ADD_DEPENDENCIES(render_support
   hashes
-  engine
+  CODEGEN_MESSAGES
   )

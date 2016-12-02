@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// renderer_api.cpp - OpenGL renderer versions of renderer_api.h functions
+// Camera.h - Camera containing projection and view matrices
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,42 +24,44 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "render_support/renderer_api.h"
+#ifndef GAEN_RENDER_SUPPORT_CAMERA_H
+#define GAEN_RENDER_SUPPORT_CAMERA_H
 
-#include "renderergl/Renderer.h"
+#include <glm/mat4x4.hpp>
+#include "engine/glm_ext.h"
 
 namespace gaen
 {
 
-void renderer_fin(Task & rendererTask)
+class Camera
 {
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->fin();
-}
+public:
+    Camera(glm::mat4 & projection, glm::mat4x3 & transform)
+    {
+        mProjection = projection;
+        setTransform(transform);
+    }
 
-void renderer_init_device(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initRenderDevice();
-}
+    const glm::mat4 & projection() const { return mProjection; }
 
-void renderer_init_viewport(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initViewport();
-}
+    const glm::mat4x3 & transform(const glm::mat4x3 & transform) { return mTransform; }
+    void setTransform(const glm::mat4x3 & transform)
+    {
+        mTransform = to_mat4x4(transform);
+        mView = inverse(mTransform);
+        mViewProjection = mView * mProjection;
+    }
+    
+    const glm::mat4 & view() const { return mView; }
+    const glm::mat4 & viewProjection() const { return mViewProjection; }
 
-void renderer_render(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->render();
-}
-
-void renderer_end_frame(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->endFrame();
-}
+private:
+    glm::mat4 mProjection;
+    glm::mat4 mTransform;
+    glm::mat4 mView;
+    glm::mat4 mViewProjection;
+};
 
 } // namespace gaen
 
+#endif // #ifndef GAEN_RENDER_SUPPORT_CAMERA_H

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// renderer_api.cpp - OpenGL renderer versions of renderer_api.h functions
+// stdafx.h - Precompiled headers
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,42 +24,41 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "render_support/renderer_api.h"
+#ifndef GAEN_RENDER_SUPPORT_STDAFX_H
+#define GAEN_RENDER_SUPPORT_STDAFX_H
 
-#include "renderergl/Renderer.h"
+#include <cfloat>
+#include <csignal>
+#include <cstdarg>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
-namespace gaen
-{
+#include <algorithm>
+#include <atomic>
+#include <list>
+#include <limits>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <new>
+#include <string>
+#include <thread>
+#include <type_traits>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-void renderer_fin(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->fin();
-}
+#include <glm/glm.hpp>
+#include <glm/gtx/quaternion.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-void renderer_init_device(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initRenderDevice();
-}
+#include <btBulletDynamicsCommon.h>
+#include <BulletCollision/CollisionShapes/btBox2dShape.h>
 
-void renderer_init_viewport(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initViewport();
-}
+#include <GLFW/glfw3.h>
 
-void renderer_render(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->render();
-}
-
-void renderer_end_frame(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->endFrame();
-}
-
-} // namespace gaen
-
+#endif // #ifndef GAEN_RENDER_SUPPORT_STDAFX_H

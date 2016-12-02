@@ -58,6 +58,7 @@ ADD_EXECUTABLE (unit_tests
 TARGET_LINK_LIBRARIES (unit_tests
   core
   engine
+  render_support
   compose
   ${PLATFORM_LINK_LIBS}
 )

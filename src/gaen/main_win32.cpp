@@ -29,8 +29,8 @@
 
 #include "core/logging.h"
 #include "core/platutils.h"
-#include "engine/renderer_api.h"
 #include "engine/input.h"
+#include "render_support/renderer_api.h"
 #include "renderergl/Renderer.h"
 #include "renderergl/gaen_opengl.h"
 #include "gaen/gaen.h"

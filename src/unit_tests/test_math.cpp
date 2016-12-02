@@ -31,7 +31,7 @@
 
 #include "engine/glm_ext.h"
 
-#include "engine/voxel.h"
+#include "render_support/voxel.h"
 
 using namespace gaen;
 

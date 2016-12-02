@@ -26,7 +26,7 @@
 
 #include <glm/gtx/transform.hpp>
 
-#include "engine/Model.h"
+#include "render_support/Model.h"
 
 #include "renderergl/RendererMesh.h"
 #include "renderergl/ModelGL.h"

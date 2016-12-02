@@ -38,7 +38,7 @@
 #include "engine/messages/TransformUid.h"
 #include "engine/messages/MoveCamera.h"
 
-#include "engine/voxel27.h"
+#include "render_support/voxel27.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/shaders/Shader.h"

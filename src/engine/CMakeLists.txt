@@ -45,7 +45,6 @@ SET (engine_SOURCES
   BlockMemory.h
   CmpString.cpp
   CmpString.h
-  collision.h
   Component.h
   Entity.cpp
   Entity.h
@@ -54,52 +53,24 @@ SET (engine_SOURCES
   glm_ext.h
   Handle.cpp
   Handle.h
-  ImageBuffer.cpp
-  ImageBuffer.h
   input.cpp
   input.h
   InputMgr.cpp
   InputMgr.h
-  Material.cpp
-  Material.h
   Message.h
   MessageAccessor.h
   MessageQueue.h
   MessageWriter.cpp
   MessageWriter.h
   messages_def.py
-  Model.cpp
-  Model.h
-  ModelMgr.cpp
-  ModelMgr.h
-  ModelPhysics.cpp
-  ModelPhysics.h
-  RaycastCamera.cpp
-  RaycastCamera.h
   Registry.cpp
   Registry.h
-  renderer_api.h
-  renderer_structs.h
-  shapes.cpp
-  shapes.h
-  Sprite.cpp
-  Sprite.h
-  SpriteMgr.cpp
-  SpriteMgr.h
-  SpritePhysics.cpp
-  SpritePhysics.h
   system_api.cpp
   system_api.h
   Task.cpp
   Task.h
   TaskMaster.cpp
   TaskMaster.h
-  voxel.cpp
-  voxel.h
-  voxel27.cpp
-  voxel27.h
-  voxel_proto.cpp
-  voxel_proto.h
   ${engine_messages_SOURCES}
   )
 

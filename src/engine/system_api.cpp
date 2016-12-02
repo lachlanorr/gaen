@@ -29,7 +29,6 @@
 #include "core/logging.h"
 #include "hashes/hashes.h"
 #include "engine/glm_ext.h"
-#include "engine/shapes.h"
 #include "engine/InputMgr.h"
 #include "engine/MessageWriter.h"
 #include "engine/messages/TransformUid.h"

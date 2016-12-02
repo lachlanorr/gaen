@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// renderer_api.cpp - OpenGL renderer versions of renderer_api.h functions
+// voxel27.cpp - Septemvigesimal (27 degree) Voxels
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,42 +24,21 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "render_support/renderer_api.h"
+#include "render_support/stdafx.h"
 
-#include "renderergl/Renderer.h"
+#include "render_support/voxel27.h"
+
 
 namespace gaen
 {
 
-void renderer_fin(Task & rendererTask)
+Voxel27PointData extract_point_data(u32 voxelPoint)
 {
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->fin();
-}
-
-void renderer_init_device(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initRenderDevice();
-}
-
-void renderer_init_viewport(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initViewport();
-}
-
-void renderer_render(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->render();
-}
-
-void renderer_end_frame(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->endFrame();
+    return Voxel27PointData(voxelPoint & 0x7f,
+                            (voxelPoint & 0x3f80) >> 7,
+                            (voxelPoint & 0x1fc000) >> 14,
+                            (voxelPoint & 0x1e00000) >> 21,
+                            (voxelPoint & 0xfe000000) >> 25);
 }
 
 } // namespace gaen
-

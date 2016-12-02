@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// renderer_api.cpp - OpenGL renderer versions of renderer_api.h functions
+// renderer_structs.h - Structures shared by renderers and the engine
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,42 +24,60 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "render_support/renderer_api.h"
+#ifndef GAEN_RENDER_SUPPORT_RENDERER_STRUCTS_H
+#define GAEN_RENDER_SUPPORT_RENDERER_STRUCTS_H
 
-#include "renderergl/Renderer.h"
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+
+#include "core/base_defines.h"
+
+#include "assets/Color.h"
+#include "engine/task.h"
 
 namespace gaen
 {
 
-void renderer_fin(Task & rendererTask)
+struct Ruid
 {
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->fin();
-}
+    task_id owner;
+    u32 uid;
 
-void renderer_init_device(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initRenderDevice();
-}
+    Ruid(task_id owner, u32 uid)
+      : owner(owner)
+      , uid(uid)
+    {}
+};
 
-void renderer_init_viewport(Task & rendererTask)
+struct DirectionalLight
 {
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initViewport();
-}
+    Ruid ruid;
+    glm::vec3 direction;
+    glm::vec4 color;
 
-void renderer_render(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->render();
-}
+    DirectionalLight(task_id owner, u32 uid, const glm::vec3 & direction, Color color)
+      : ruid(owner, uid)
+      , direction(direction)
+      , color(Color::build_vec4(color))
+    {}
+};
 
-void renderer_end_frame(Task & rendererTask)
+struct PointLight
 {
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->endFrame();
-}
+    Ruid ruid;
+    glm::vec3 location;
+    glm::vec4 color;
+
+    PointLight(task_id owner, u32 uid, const glm::vec3 & location, Color color)
+      : ruid(owner, uid)
+      , location(location)
+      , color(Color::build_vec4(color))
+    {}
+};
+
+
 
 } // namespace gaen
 
+
+#endif // #ifndef GAEN_RENDER_SUPPORT_RENDERER_STRUCTS_H

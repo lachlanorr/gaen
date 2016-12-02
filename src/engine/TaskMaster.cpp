@@ -36,9 +36,9 @@
 #include "engine/messages/TaskStatus.h"
 #include "engine/InputMgr.h"
 #include "engine/AssetMgr.h"
-#include "engine/ModelMgr.h"
-#include "engine/SpriteMgr.h"
-#include "engine/renderer_api.h"
+#include "render_support/ModelMgr.h"
+#include "render_support/SpriteMgr.h"
+#include "render_support/renderer_api.h"
 
 #include "engine/TaskMaster.h"
 

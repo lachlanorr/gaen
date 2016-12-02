@@ -30,7 +30,7 @@
 #include <glm/mat4x3.hpp>
 
 #include "core/mem.h"
-#include "engine/Sprite.h"
+#include "render_support/Sprite.h"
 
 #include "renderergl/RenderCollection.h"
 

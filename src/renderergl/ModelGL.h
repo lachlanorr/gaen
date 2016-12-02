@@ -30,7 +30,7 @@
 #include <glm/mat4x3.hpp>
 
 #include "core/mem.h"
-#include "engine/Model.h"
+#include "render_support/Model.h"
 
 #include "renderergl/RenderCollection.h"
 

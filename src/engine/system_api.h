@@ -33,7 +33,6 @@
 #include <glm/mat4x3.hpp>
 
 #include "engine/Handle.h"
-#include "engine/Model.h"
 #include "engine/Entity.h"
 #include "engine/BlockMemory.h"
 

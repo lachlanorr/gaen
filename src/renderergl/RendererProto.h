@@ -33,12 +33,12 @@
 #include "core/HashMap.h"
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
-#include "engine/renderer_structs.h"
+#include "render_support/renderer_structs.h"
 
 // LORRTODO: probably a temp include only until we get voxel stuff more defined
-#include "engine/voxel_proto.h"
+#include "render_support/voxel_proto.h"
 
-#include "engine/RaycastCamera.h"
+#include "render_support/RaycastCamera.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/ShaderRegistry.h"

@@ -83,6 +83,7 @@ ELSE(IOS)
     hashes
     assets
     engine
+    render_support
     renderergl
     scripts
     ${PROJECT_ASSETS_LIB}

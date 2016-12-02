@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// renderer_api.cpp - OpenGL renderer versions of renderer_api.h functions
+// ImageBuffer.cpp - OpenGL compatible image buffers
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,42 +24,32 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "render_support/renderer_api.h"
+#include "render_support/stdafx.h"
 
-#include "renderergl/Renderer.h"
+#include "core/mem.h"
+
+#include "render_support/ImageBuffer.h"
 
 namespace gaen
 {
 
-void renderer_fin(Task & rendererTask)
+ImageBuffer::ImageBuffer(u16 size, size_t pixelSize)
 {
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->fin();
+    mSize = size;
+    mPixelSize = (u8)pixelSize;
+    mPixels = (u8*)GALLOC(kMEM_Engine, bufferSize());
 }
 
-void renderer_init_device(Task & rendererTask)
+ImageBuffer::~ImageBuffer()
 {
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initRenderDevice();
+    GFREE(mPixels);
 }
 
-void renderer_init_viewport(Task & rendererTask)
+void ImageBuffer::copy(const ImageBuffer & sourceBuffer)
 {
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initViewport();
+    ASSERT(sourceBuffer.bufferSize() == bufferSize());
+    memcpy(mPixels, sourceBuffer.buffer(), bufferSize());
 }
 
-void renderer_render(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->render();
-}
-
-void renderer_end_frame(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->endFrame();
-}
 
 } // namespace gaen
-

@@ -44,7 +44,7 @@ class UpdateLightDirectional(FieldHandler):
 
 class SpriteInstance(FieldHandler):
     pSpriteInstance = PointerField(type_name='SpriteInstance *',
-                                   includes=['engine/Sprite.h'])
+                                   includes=['render_support/Sprite.h'])
 
 class SpritePlayAnim(FieldHandler):
     uid         = i32Field(payload=True)
@@ -71,7 +71,7 @@ class SpriteBody(FieldHandler):
 
 class ModelInstance(FieldHandler):
     pModelInstance = PointerField(type_name='ModelInstance *',
-                                  includes=['engine/Model.h'])
+                                  includes=['render_support/Model.h'])
 
 class ModelVelocity(FieldHandler):
     uid          = i32Field(payload=True)

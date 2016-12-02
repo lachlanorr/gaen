@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// renderer_api.cpp - OpenGL renderer versions of renderer_api.h functions
+// renderer_api.h - Functions thet must be implemented by the renderer
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,42 +24,23 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "render_support/renderer_api.h"
+#ifndef GAEN_RENDER_SUPPORT_RENDERER_API_H
+#define GAEN_RENDER_SUPPORT_RENDERER_API_H
 
-#include "renderergl/Renderer.h"
+#include "engine/Task.h"
 
 namespace gaen
 {
 
-void renderer_fin(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->fin();
-}
+// The renderer must implement these functions.
+void renderer_fin(Task & rendererTask);
 
-void renderer_init_device(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initRenderDevice();
-}
+void renderer_init_device(Task & rendererTask);
+void renderer_init_viewport(Task & rendererTask);
 
-void renderer_init_viewport(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->initViewport();
-}
-
-void renderer_render(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->render();
-}
-
-void renderer_end_frame(Task & rendererTask)
-{
-    RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
-    pRenderer->endFrame();
-}
+void renderer_render(Task & rendererTask);
+void renderer_end_frame(Task & rendererTask);
 
 } // namespace gaen
 
+#endif // #ifndef GAEN_RENDER_SUPPORT_RENDERER_API_H

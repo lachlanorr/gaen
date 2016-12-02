@@ -27,7 +27,7 @@
 #ifndef GAEN_RENDERERGL_STAGE_H
 #define GAEN_RENDERERGL_STAGE_H
 
-#include "renderergl/Camera.h"
+#include "render_support/Camera.h"
 #include "renderergl/RenderCollection.h"
 
 namespace gaen

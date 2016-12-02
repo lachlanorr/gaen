@@ -26,7 +26,7 @@
 
 #include <glm/gtx/transform.hpp>
 
-#include "engine/Sprite.h"
+#include "render_support/Sprite.h"
 
 #include "renderergl/RendererMesh.h"
 #include "renderergl/SpriteGL.h"
