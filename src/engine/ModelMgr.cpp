@@ -37,6 +37,10 @@
 #include "engine/messages/ModelVelocity.h"
 #include "engine/messages/ModelBody.h"
 
+#include "engine/messages/PerspectiveCamera.h"
+#include "engine/messages/OrthographicCamera.h"
+#include "engine/messages/TransformCamera.h"
+
 #include "engine/ModelMgr.h"
 
 namespace gaen

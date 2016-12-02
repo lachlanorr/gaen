@@ -90,25 +90,28 @@ class Collision(FieldHandler):
     location     = vec3Field()
 
 class PerspectiveCamera(FieldHandler):
-    cameraHash   = i32Field(payload=True)
+    groupHash    = i32Field(payload=True)
     stageHash    = i32Field()
+    cameraHash   = i32Field()
     fieldOfView  = f32Field()
     nearFarClip  = vec2Field()
     transform    = mat4x3Field()
 
 class OrthographicCamera(FieldHandler):
-    cameraHash   = i32Field(payload=True)
+    groupHash    = i32Field(payload=True)
     stageHash    = i32Field()
+    cameraHash   = i32Field()
     nearFarClip  = vec2Field()
     transform    = mat4x3Field()
 
 class TransformCamera(FieldHandler):
-    cameraHash   = i32Field(payload=True)
+    groupHash    = i32Field(payload=True)
+    cameraHash   = i32Field()
     stageHash    = i32Field()
     transform    = mat4x3Field()
 
 class MoveCamera(FieldHandler):
-    position = vec3Field()
+    position  = vec3Field()
     direction = quatField()
 
 class MouseMove(FieldHandler):
@@ -116,14 +119,14 @@ class MouseMove(FieldHandler):
     yDelta = i32Field()
 
 class Handle(FieldHandler):
-    taskId = i32Field(payload=True)
+    taskId   = i32Field(payload=True)
     nameHash = i32Field()
-    pHandle = PointerField(type_name='Handle *',
-                           includes=['engine/Handle.h'])
+    pHandle  = PointerField(type_name='Handle *',
+                            includes=['engine/Handle.h'])
 
 class Asset(FieldHandler):
-    taskId = i32Field(payload=True)
+    taskId    = i32Field(payload=True)
     subTaskId = i32Field()
-    nameHash = i32Field()
-    pAsset = PointerField(type_name='Asset *',
-                          includes=['engine/Asset.h'])
+    nameHash  = i32Field()
+    pAsset    = PointerField(type_name='Asset *',
+                             includes=['engine/Asset.h'])
