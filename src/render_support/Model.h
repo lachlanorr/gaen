@@ -30,6 +30,7 @@
 #include <glm/mat4x3.hpp>
 
 #include "engine/task.h"
+#include "render_support/render_objects.h"
 
 class Asset;
 class Gmdl;
@@ -37,17 +38,12 @@ class Gmdl;
 namespace gaen
 {
 
-typedef u32 model_id;
-
-class Model
+class Model : public RenderObject
 {
 public:
     Model(task_id owner, const Asset* pGmdlAsset);
     Model(const Model& rhs);
     ~Model();
-
-    model_id uid() const { return mUid; }
-    task_id owner() const { return mOwner; }
 
     const Gmdl & gmdl() const;
 
@@ -57,9 +53,6 @@ private:
     Model & operator=(const Model&) = delete;
     Model & operator=(Model&&)      = delete;
 
-    model_id mUid;
-
-    task_id mOwner;
     const Asset * mpGmdlAsset;
 
     // pointers into mpGmdlAsset, no need to clean up
@@ -79,7 +72,7 @@ public:
     const Model & model() { return *mpModel; }
     u32 stageHash() { return mStageHash; }
 
-    model_id uid() const { return mpModel->uid(); }
+    ruid uid() const { return mpModel->uid(); }
 
     void destroyModel();
 

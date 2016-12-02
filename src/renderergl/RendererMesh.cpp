@@ -352,7 +352,6 @@ MessageResult RendererMesh::message(const T & msgAcc)
         glm::vec3 normDir = glm::normalize(msgr.direction());
         glm::vec3 relDir = -normDir; // flip direction of vector relative to objects
         mDirectionalLights.emplace_back(msgAcc.message().source,
-                                        msgr.uid(),
                                         relDir,
                                         msgr.color());
         break;
@@ -361,7 +360,6 @@ MessageResult RendererMesh::message(const T & msgAcc)
     {
         messages::InsertLightDirectionalR<T> msgr(msgAcc);
         mDirectionalLights.emplace_back(msgAcc.message().source,
-                                        msgr.uid(),
                                         msgr.direction(),
                                         msgr.color());
         break;

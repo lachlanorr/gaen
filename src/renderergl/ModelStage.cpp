@@ -37,7 +37,8 @@ namespace gaen
 
 ModelStage::ModelStage(RendererMesh * pRenderer)
   : Stage(pRenderer,
-          Camera(glm::perspective(glm::radians(60.0f),
+          Camera(kRendererTaskId,
+                 glm::perspective(glm::radians(60.0f),
                                   pRenderer->screenWidth() / static_cast<f32>(pRenderer->screenHeight()),
                                   0.1f,
                                   100000.0f),

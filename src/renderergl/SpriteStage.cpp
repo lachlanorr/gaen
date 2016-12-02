@@ -36,7 +36,8 @@ namespace gaen
 {
 SpriteStage::SpriteStage(RendererMesh * pRenderer)
   : Stage(pRenderer,
-          Camera(glm::ortho(static_cast<f32>(pRenderer->screenWidth()) * -0.5f,
+          Camera(kRendererTaskId,
+                 glm::ortho(static_cast<f32>(pRenderer->screenWidth()) * -0.5f,
                             static_cast<f32>(pRenderer->screenWidth()) * 0.5f,
                             static_cast<f32>(pRenderer->screenHeight()) * -0.5f,
                             static_cast<f32>(pRenderer->screenHeight()) * 0.5f,

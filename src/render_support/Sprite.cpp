@@ -39,11 +39,8 @@
 namespace gaen
 {
 
-static std::atomic<sprite_id> sNextSpriteId(1);
-
-
 Sprite::Sprite(task_id owner, const Asset * pGsprAsset)
-  : mOwner(owner)
+  : RenderObject(owner)
   , mpGsprAsset(pGsprAsset)
 {
     VALIDATE_ASSET(Gspr, pGsprAsset);
@@ -51,17 +48,14 @@ Sprite::Sprite(task_id owner, const Asset * pGsprAsset)
     mpGspr = Gspr::instance(mpGsprAsset->buffer(), mpGsprAsset->size());
     mpGatl = mpGspr->atlas();
     ASSERT(mpGatl);
-
-    mUid = sNextSpriteId.fetch_add(1, std::memory_order_relaxed);
 }
 
 Sprite::Sprite(const Sprite& rhs)
-  : mOwner(rhs.mOwner)
+  : RenderObject(rhs.owner(), rhs.uid())
   , mpGsprAsset(rhs.mpGsprAsset)
 {
     mpGspr = Gspr::instance(mpGsprAsset->buffer(), mpGsprAsset->size());
     mpGatl = mpGspr->atlas();
-    mUid = rhs.mUid;
 }
 
 Sprite::~Sprite()

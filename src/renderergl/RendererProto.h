@@ -33,7 +33,7 @@
 #include "core/HashMap.h"
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
-#include "render_support/renderer_structs.h"
+#include "render_support/render_objects.h"
 
 // LORRTODO: probably a temp include only until we get voxel stuff more defined
 #include "render_support/voxel_proto.h"

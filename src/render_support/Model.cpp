@@ -37,26 +37,20 @@
 namespace gaen
 {
 
-static std::atomic<model_id> sNextModelId(1);
-
-
 Model::Model(task_id owner, const Asset * pGmdlAsset)
-  : mOwner(owner)
+  : RenderObject(owner)
   , mpGmdlAsset(pGmdlAsset)
 {
     VALIDATE_ASSET(Gmdl, pGmdlAsset);
     AssetMgr::addref_asset(0, mpGmdlAsset);
     mpGmdl = Gmdl::instance(mpGmdlAsset->buffer(), mpGmdlAsset->size());
-
-    mUid = sNextModelId.fetch_add(1, std::memory_order_relaxed);
 }
 
 Model::Model(const Model& rhs)
-  : mOwner(rhs.mOwner)
+  : RenderObject(rhs.owner(), rhs.uid())
   , mpGmdlAsset(rhs.mpGmdlAsset)
 {
     mpGmdl = Gmdl::instance(mpGmdlAsset->buffer(), mpGmdlAsset->size());
-    mUid = rhs.mUid;
 }
 
 Model::~Model()

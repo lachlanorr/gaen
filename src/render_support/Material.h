@@ -32,6 +32,8 @@
 #include "assets/Color.h"
 #include "core/base_defines.h"
 
+#include "render_support/render_objects.h"
+
 namespace gaen
 {
 
@@ -57,7 +59,7 @@ typedef void(*SetTextureCB)(u32 nameHash, u32 gpuId, void * pContext);
 typedef u32(*LoadTextureCB)(u32 nameHash, const Gimg * pGimg, void * pContext);
 typedef void(*UnloadTextureCB)(u32 gpuId, const Gimg * pGimg, void * pContext);
 
-class Material
+class Material : RenderObject
 {
 public:
     Material(u32 shaderNameHash);
@@ -65,8 +67,6 @@ public:
 
     MaterialLayer layer() const { return mLayer; }
     u32 shaderNameHash() { return mShaderNameHash; }
-
-    material_id id() const { return mId; }
 
     void registerVec4Var(u32 nameHash, const glm::vec4 & value);
     void registerTexture(u32 nameHash, const Asset * pAsset);
@@ -78,9 +78,6 @@ public:
 private:
     MaterialLayer mLayer;
     u32 mShaderNameHash;
-
-    material_id mId;
-
 
     static const u32 kMaxVec4Vars = 4;
     struct Vec4Var

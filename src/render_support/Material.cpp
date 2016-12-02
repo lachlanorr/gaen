@@ -33,14 +33,11 @@
 namespace gaen
 {
 
-static std::atomic<material_id> sNextMaterialId(0);
-
 Material::Material(u32 shaderNameHash)
-  : mLayer(kMAT_Colored)
+  : RenderObject(kRendererTaskId)
+  , mLayer(kMAT_Colored)
   , mShaderNameHash(shaderNameHash)
 {
-    mId = sNextMaterialId.fetch_add(1,std::memory_order_relaxed);
-
     mVec4VarCount = 0;
     memset(mVec4Vars, 0, sizeof(mVec4Vars));
 

@@ -33,7 +33,7 @@
 #include "core/HashMap.h"
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
-#include "render_support/renderer_structs.h"
+#include "render_support/render_objects.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/ModelStage.h"

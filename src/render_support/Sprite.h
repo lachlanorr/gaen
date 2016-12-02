@@ -30,6 +30,7 @@
 #include <glm/mat4x3.hpp>
 
 #include "engine/task.h"
+#include "render_support/render_objects.h"
 
 namespace gaen
 {
@@ -41,10 +42,8 @@ class Gimg;
 struct GlyphVert;
 struct GlyphTri;
 
-typedef u32 sprite_id;
-
 // Immutable properties of a sprite
-class Sprite
+class Sprite : public RenderObject
 {
     friend class SpriteInstance;
     friend class SpriteMgr;
@@ -52,9 +51,6 @@ public:
     Sprite(task_id owner, const Asset* pGsprAsset);
     Sprite(const Sprite& rhs);
     ~Sprite();
-
-    sprite_id uid() const { return mUid; }
-    task_id owner() const { return mOwner; }
 
     const GlyphVert * verts() const;
     u64 vertsSize() const;
@@ -74,9 +70,6 @@ private:
     
     const void * triOffset(u32 idx) const;
 
-    sprite_id mUid;
-
-    task_id mOwner;
     const Asset * mpGsprAsset;
 
     // pointers into mpGsprAsset, no need to clean up
@@ -99,7 +92,7 @@ public:
     const Sprite & sprite() { return *mpSprite; }
     u32 stageHash() { return mStageHash; }
 
-    sprite_id uid() const { return mpSprite->uid(); }
+    ruid uid() const { return mpSprite->uid(); }
 
     void destroySprite();
 

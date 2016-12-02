@@ -36,7 +36,7 @@
 #include "core/mem.h"
 #include "core/List.h"
 #include "render_support/RaycastCamera.h"
-#include "render_support/renderer_structs.h"
+#include "render_support/render_objects.h"
 #include "render_support/voxel.h"
 
 namespace gaen

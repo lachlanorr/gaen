@@ -25,7 +25,6 @@
 #-------------------------------------------------------------------------------
 
 SET (render_support_SOURCES
-  Camera.h
   collision.h
   ImageBuffer.cpp
   ImageBuffer.h
@@ -40,7 +39,8 @@ SET (render_support_SOURCES
   RaycastCamera.cpp
   RaycastCamera.h
   renderer_api.h
-  renderer_structs.h
+  render_objects.cpp
+  render_objects.h
   shapes.cpp
   shapes.h
   Sprite.cpp

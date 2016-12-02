@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Camera.h - Camera containing projection and view matrices
+// render_objects.h - Classes shared by renderers and the engine
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,44 +24,19 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_RENDER_SUPPORT_CAMERA_H
-#define GAEN_RENDER_SUPPORT_CAMERA_H
+#include "render_support/stdafx.h"
 
-#include <glm/mat4x4.hpp>
-#include "engine/glm_ext.h"
+#include "render_support/render_objects.h"
 
 namespace gaen
 {
 
-class Camera
+std::atomic<ruid> RenderObject::sNextRuid(1);
+
+RenderObject::RenderObject(task_id owner)
+  : mOwner(owner)
 {
-public:
-    Camera(glm::mat4 & projection, glm::mat4x3 & transform)
-    {
-        mProjection = projection;
-        setTransform(transform);
-    }
-
-    const glm::mat4 & projection() const { return mProjection; }
-
-    const glm::mat4x3 & transform(const glm::mat4x3 & transform) { return mTransform; }
-    void setTransform(const glm::mat4x3 & transform)
-    {
-        mTransform = to_mat4x4(transform);
-        mView = inverse(mTransform);
-        mViewProjection = mView * mProjection;
-    }
-    
-    const glm::mat4 & view() const { return mView; }
-    const glm::mat4 & viewProjection() const { return mViewProjection; }
-
-private:
-    glm::mat4 mProjection;
-    glm::mat4 mTransform;
-    glm::mat4 mView;
-    glm::mat4 mViewProjection;
-};
+    mUid = sNextRuid.fetch_add(1, std::memory_order_relaxed);    
+}
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_RENDER_SUPPORT_CAMERA_H
