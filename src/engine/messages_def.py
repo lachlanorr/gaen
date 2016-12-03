@@ -6,7 +6,7 @@ consumed when build_messages.py is run.
 '''
 
 # A single, 32 byte task
-class InsertTask(FieldHandler):
+class OwnerTask(FieldHandler):
     owner = i32Field(payload=True,
                      type_name='thread_id',
                      includes=['core/threading.h'])
@@ -18,7 +18,7 @@ class TaskStatus(FieldHandler):
                       includes=['engine/Task.h'])
 
 # Instantiate and insert a component
-class InsertComponent(FieldHandler):
+class ComponentIndex(FieldHandler):
     nameHash = i32Field(payload=True)
     index = i32Field()
 
@@ -28,16 +28,23 @@ class Transform(FieldHandler):
     transform = mat4x3Field()
 
 # Transform and entity
-class TransformUid(FieldHandler):
+class UidTransform(FieldHandler):
     uid       = i32Field(payload=True)
     transform = mat4x3Field()
 
-class InsertLightDirectional(FieldHandler):
+class UidColor(FieldHandler):
     uid       = i32Field(payload=True)
     color     = ColorField()
-    direction = vec3Field()
 
-class UpdateLightDirectional(FieldHandler):
+class UidVec3(FieldHandler):
+    uid       = i32Field(payload=True)
+    vector    = vec3Field()
+
+class UidScalar(FieldHandler):
+    uid       = i32Field(payload=True)
+    scalar    = f32Field()
+
+class LightDistant(FieldHandler):
     uid       = i32Field(payload=True)
     color     = ColorField()
     direction = vec3Field()
@@ -90,29 +97,18 @@ class Collision(FieldHandler):
     location     = vec3Field()
 
 class PerspectiveCamera(FieldHandler):
-    groupHash    = i32Field(payload=True)
+    uid          = i32Field(payload=True)
     stageHash    = i32Field()
-    cameraHash   = i32Field()
     fieldOfView  = f32Field()
     nearFarClip  = vec2Field()
     transform    = mat4x3Field()
 
 class OrthographicCamera(FieldHandler):
-    groupHash    = i32Field(payload=True)
+    uid          = i32Field(payload=True)
     stageHash    = i32Field()
     cameraHash   = i32Field()
     nearFarClip  = vec2Field()
     transform    = mat4x3Field()
-
-class TransformCamera(FieldHandler):
-    groupHash    = i32Field(payload=True)
-    cameraHash   = i32Field()
-    stageHash    = i32Field()
-    transform    = mat4x3Field()
-
-class MoveCamera(FieldHandler):
-    position  = vec3Field()
-    direction = quatField()
 
 class MouseMove(FieldHandler):
     xDelta = i32Field(payload=True)

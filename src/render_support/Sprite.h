@@ -101,10 +101,10 @@ public:
 
     const AnimInfo & SpriteInstance::currentAnim();
 
-    static void send_sprite_insert(task_id source, task_id target, SpriteInstance * pSpriteInst);
-    static void send_sprite_anim(task_id source, task_id target, u32 uid, u32 animHash, u32 animFrameIdx);
-    static void send_sprite_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform);
-    static void send_sprite_destroy(task_id source, task_id target, u32 uid);
+    static void sprite_insert(task_id source, task_id target, SpriteInstance * pSpriteInst);
+    static void sprite_anim(task_id source, task_id target, u32 uid, u32 animHash, u32 animFrameIdx);
+    static void sprite_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform);
+    static void sprite_remove(task_id source, task_id target, u32 uid);
 
     glm::vec3 position() { return mTransform[3]; }
     f32 zdepth() { return mTransform[3][2]; }

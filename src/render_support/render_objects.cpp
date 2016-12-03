@@ -26,6 +26,11 @@
 
 #include "render_support/stdafx.h"
 
+#include "engine/messages/UidTransform.h"
+#include "engine/messages/UidColor.h"
+#include "engine/messages/UidVec3.h"
+#include "engine/messages/LightDistant.h"
+
 #include "render_support/render_objects.h"
 
 namespace gaen
@@ -33,10 +38,83 @@ namespace gaen
 
 std::atomic<ruid> RenderObject::sNextRuid(1);
 
-RenderObject::RenderObject(task_id owner)
-  : mOwner(owner)
+ruid RenderObject::next_uid()
 {
-    mUid = sNextRuid.fetch_add(1, std::memory_order_relaxed);    
+    return sNextRuid.fetch_add(1, std::memory_order_relaxed);
 }
+
+
+namespace system_api
+{
+
+i32 gen_uid(Entity & caller)
+{
+    return RenderObject::next_uid();
+}
+
+void camera_move(i32 uid,
+                 const glm::vec3 & position,
+                 const glm::quat & direction,
+                 Entity & caller)
+{
+    messages::UidTransformQW msgQW(HASH::camera_move,
+                                   kMessageFlag_None,
+                                   caller.task().id(),
+                                   kRendererTaskId,
+                                   uid);
+
+    glm::mat4x4 trans = glm::translate(glm::mat4(1.0), position) * glm::mat4_cast(direction);
+    msgQW.setTransform(trans);
+}
+
+void light_distant_insert(i32 uid,
+                          const glm::vec3 & direction,
+                          Color color,
+                          Entity & caller)
+{
+    messages::LightDistantQW msgQW(HASH::light_distant_insert,
+                                   kMessageFlag_None,
+                                   caller.task().id(),
+                                   kRendererTaskId,
+                                   uid);
+    msgQW.setDirection(direction);
+    msgQW.setColor(color);
+}
+
+void light_distant_direction(i32 uid,
+                             const glm::vec3 & direction,
+                             Entity & caller)
+{
+    messages::UidVec3QW msgQW(HASH::light_distant_update,
+                                   kMessageFlag_None,
+                                   caller.task().id(),
+                                   kRendererTaskId,
+                                   uid);
+    msgQW.setVector(direction);
+}
+
+void light_distant_color(i32 uid,
+                         Color color,
+                         Entity & caller)
+{
+    messages::UidColorQW msgQW(HASH::light_distant_update,
+                               kMessageFlag_None,
+                               caller.task().id(),
+                               kRendererTaskId,
+                               uid);
+    msgQW.setColor(color);
+}
+
+void light_distant_remove(i32 uid, Entity & caller)
+{
+    MessageQueueWriter msgQW(HASH::light_distant_remove,
+                             kMessageFlag_None,
+                             caller.task().id(),
+                             kRendererTaskId,
+                             to_cell(uid),
+                             0);
+}
+
+} // namespace system_api
 
 } // namespace gaen

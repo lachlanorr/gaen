@@ -32,7 +32,7 @@
 
 #include "engine/messages/SpriteInstance.h"
 #include "engine/messages/SpriteAnim.h"
-#include "engine/messages/TransformUid.h"
+#include "engine/messages/UidTransform.h"
 
 #include "render_support/Sprite.h"
 
@@ -172,11 +172,11 @@ void SpriteInstance::playAnim(u32 animHash, f32 duration, bool loop, u32 doneMes
 
     // Send the renderer the message immediately so there isn't a
     // delay in frame switch until next frame times out
-    SpriteInstance::send_sprite_anim(kSpriteMgrTaskId,
-                                     kRendererTaskId,
-                                     mpSprite->uid(),
-                                     mAnimHash,
-                                     mAnimFrameIdx);
+    SpriteInstance::sprite_anim(kSpriteMgrTaskId,
+                                kRendererTaskId,
+                                mpSprite->uid(),
+                                mAnimHash,
+                                mAnimFrameIdx);
 }
 
 bool SpriteInstance::advanceAnim(f32 delta)
@@ -225,28 +225,28 @@ bool SpriteInstance::animate(u32 animHash, u32 animFrameIdx)
     return false;
 }
 
-void SpriteInstance::send_sprite_insert(task_id source, task_id target, SpriteInstance * pSpriteInst)
+void SpriteInstance::sprite_insert(task_id source, task_id target, SpriteInstance * pSpriteInst)
 {
     messages::SpriteInstanceQW msgw(HASH::sprite_insert, kMessageFlag_None, source, target);
     msgw.setSpriteInstance(pSpriteInst);
 }
 
-void SpriteInstance::send_sprite_anim(task_id source, task_id target, u32 uid, u32 animHash, u32 animFrameIdx)
+void SpriteInstance::sprite_anim(task_id source, task_id target, u32 uid, u32 animHash, u32 animFrameIdx)
 {
     messages::SpriteAnimQW msgw(HASH::sprite_anim, kMessageFlag_None, source, target, uid);
     msgw.setAnimHash(animHash);
     msgw.setAnimFrameIdx(animFrameIdx);
 }
 
-void SpriteInstance::send_sprite_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform)
+void SpriteInstance::sprite_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform)
 {
-    messages::TransformUidQW msgw(HASH::sprite_transform, kMessageFlag_None, source, target, uid);
+    messages::UidTransformQW msgw(HASH::sprite_transform, kMessageFlag_None, source, target, uid);
     msgw.setTransform(transform);
 }
 
-void SpriteInstance::send_sprite_destroy(task_id source, task_id target, u32 uid)
+void SpriteInstance::sprite_remove(task_id source, task_id target, u32 uid)
 {
-    MessageQueueWriter msgw(HASH::sprite_destroy, kMessageFlag_None, source, target, to_cell(uid), 0);
+    MessageQueueWriter msgw(HASH::sprite_remove, kMessageFlag_None, source, target, to_cell(uid), 0);
 }
 
 } // namespace gaen

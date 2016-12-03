@@ -66,24 +66,7 @@ glm::mat3 rotation_mat3(const glm::vec3 & angles, Entity & caller);
 glm::quat quat_from_axis_angle(const glm::vec3 & dir, f32 angle, Entity & caller);
 glm::quat quat_normalize(const glm::quat & quat, Entity & caller);
 
-i32 renderer_gen_uid(Entity & caller);
-
-void renderer_move_camera(const glm::vec3 & position, const glm::quat & direction, Entity & caller);
-void renderer_move_fps_camera(const glm::vec3 & position, f32 pitch, f32 yaw, Entity & caller);
-
-void renderer_insert_light_directional(i32 uid,
-                                       const glm::vec3 & direction,
-                                       Color color,
-                                       Entity & caller);
-
-void renderer_update_light_directional(i32 uid,
-                                       const glm::vec3 & direction,
-                                       Color color,
-                                       Entity & caller);
-
-void renderer_remove_light_directional(i32 uid, Entity & caller);
-
-}
+} // namespace system_api
 
 } // namespace gaen
 

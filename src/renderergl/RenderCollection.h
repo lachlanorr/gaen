@@ -30,6 +30,8 @@
 #include "core/HashMap.h"
 #include "core/Map.h"
 
+#include "render_support/render_objects.h"
+
 namespace gaen
 {
 
@@ -38,11 +40,11 @@ namespace gaen
 // ordered traversal based on a float order.
 
 // There are two maps to support these operations:
-// HashMapT is for fast lookups based on u32 uid values.
+// HashMapT is for fast lookups based on ruid values.
 // OrderedMapT is for ordered traversal during rendering.
 
 // class T must supply the following methods:
-//   u32 uid()
+//   ruid uid()
 //   f32 order()
 //   
 
@@ -63,7 +65,7 @@ class RenderCollection
 {
 private:
     typedef MultiMap<kMEM_Renderer, f32, UniquePtr<T>> OrderedMapT;
-    typedef HashMap<kMEM_Renderer, u32, typename OrderedMapT::iterator> HashMapT;
+    typedef HashMap<kMEM_Renderer, ruid, typename OrderedMapT::iterator> HashMapT;
 
 public:
     class Iter
@@ -123,7 +125,7 @@ public:
     Iter begin()       { return Iter(mOrderedMap.begin()); }
     Iter end()         { return Iter(mOrderedMap.end()); }
     u32  size()        { return (u32)mOrderedMap.size(); }
-    Iter find(u32 uid)
+    Iter find(ruid uid)
     {
         auto hashIt = mHashMap.find(uid);
         if (hashIt != mHashMap.end())
@@ -147,7 +149,7 @@ public:
         ASSERT(mHashMap.size() == mOrderedMap.size());
     }
 
-    void reorder(u32 uid)
+    void reorder(ruid uid)
     {
         ASSERT(mHashMap.size() == mOrderedMap.size());
         auto hashIt = mHashMap.find(uid);

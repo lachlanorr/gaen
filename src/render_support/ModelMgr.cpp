@@ -37,10 +37,6 @@
 #include "engine/messages/ModelVelocity.h"
 #include "engine/messages/ModelBody.h"
 
-#include "engine/messages/PerspectiveCamera.h"
-#include "engine/messages/OrthographicCamera.h"
-#include "engine/messages/TransformCamera.h"
-
 #include "render_support/ModelMgr.h"
 
 namespace gaen
@@ -52,7 +48,7 @@ ModelMgr::~ModelMgr()
     // LORRTODO: Cleanup is causing crash on exit... need to redesign how we release assets
     //for (auto & modelPair : mModelMap)
     //{
-    //    ModelInstance::send_model_destroy(kModelMgrTaskId, kRendererTaskId, modelPair.second->model().uid());
+    //    ModelInstance::model_remove(kModelMgrTaskId, kRendererTaskId, modelPair.second->model().uid());
     //}
 }
 
@@ -81,7 +77,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
         // Send a copy to the renderer
         Model * pModelRenderer = GNEW(kMEM_Renderer, Model, pModelInst->model());
         ModelInstance * pModelInstRenderer = GNEW(kMEM_Renderer, ModelInstance, pModelRenderer, pModelInst->stageHash(), pModelInst->mTransform);
-        ModelInstance::send_model_insert(kModelMgrTaskId, kRendererTaskId, pModelInstRenderer);
+        ModelInstance::model_insert(kModelMgrTaskId, kRendererTaskId, pModelInstRenderer);
 
         return MessageResult::Consumed;
     }
@@ -138,8 +134,8 @@ MessageResult ModelMgr::message(const T & msgAcc)
                         mPhysics.remove(uid);
                     }
                     
-                    // send model_destroy to renderer who in turn will send it back to us once
-                    ModelInstance::send_model_destroy(kModelMgrTaskId, kRendererTaskId, uid);
+                    // send model_remove to renderer who in turn will send it back to us once
+                    ModelInstance::model_remove(kModelMgrTaskId, kRendererTaskId, uid);
                 }
                 else
                 {
@@ -150,7 +146,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
         }
         return MessageResult::Consumed;
 	}
-    case HASH::model_destroy:
+    case HASH::model_remove:
     {
         u32 uid = msg.payload.u;
 
@@ -162,7 +158,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
         }
         else
         {
-            ERR("model_destroy for unknown animation, uid: %u", uid);
+            ERR("model_remove for unknown animation, uid: %u", uid);
         }
         return MessageResult::Consumed;
     }
@@ -187,7 +183,7 @@ i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const glm::mat4x3 & t
     Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pAsset);
     ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, transform);
 
-    ModelInstance::send_model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
+    ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
 
     return pModel->uid();
 
@@ -208,19 +204,19 @@ void model_init_body(i32 modelUid, f32 mass, i32 group, glm::ivec4 mask03, glm::
     msgw.setMask47(mask47);
 }
 
-void model_show_stage(i32 stageHash, Entity & caller)
+void model_stage_show(i32 stageHash, Entity & caller)
 {
-    MessageQueueWriter msgw(HASH::model_show_stage, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::model_stage_show, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
-void model_hide_stage(i32 stageHash, Entity & caller)
+void model_stage_hide(i32 stageHash, Entity & caller)
 {
-    MessageQueueWriter msgw(HASH::model_hide_stage, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::model_stage_hide, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
-void model_destroy_stage(i32 stageHash, Entity & caller)
+void model_stage_remove(i32 stageHash, Entity & caller)
 {
-    MessageQueueWriter msgw(HASH::model_destroy_stage, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::model_stage_remove, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
 

@@ -66,9 +66,9 @@ void sprite_play_anim(i32 spriteUid, i32 animHash, f32 duration, bool loop, i32 
 void sprite_set_velocity(i32 spriteUid, const glm::vec2 & velocity, Entity & caller);
 void sprite_init_body(i32 spriteUid, f32 mass, i32 group, glm::ivec4 mask03, glm::ivec4 mask47, Entity & caller);
 
-void sprite_show_stage(i32 stageHash, Entity & caller);
-void sprite_hide_stage(i32 stageHash, Entity & caller);
-void sprite_destroy_stage(i32 stageHash, Entity & caller);
+void sprite_stage_show(i32 stageHash, Entity & caller);
+void sprite_stage_hide(i32 stageHash, Entity & caller);
+void sprite_stage_remove(i32 stageHash, Entity & caller);
 
 }
 

@@ -32,7 +32,7 @@
 #include "hashes/hashes.h"
 #include "engine/MessageQueue.h"
 #include "engine/Entity.h"
-#include "engine/messages/InsertTask.h"
+#include "engine/messages/OwnerTask.h"
 #include "engine/messages/TaskStatus.h"
 #include "engine/InputMgr.h"
 #include "engine/AssetMgr.h"
@@ -620,7 +620,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             }
             case HASH::insert_task:
             {
-                messages::InsertTaskR<MessageQueueAccessor> msgr(msgAcc);
+                messages::OwnerTaskR<MessageQueueAccessor> msgr(msgAcc);
                 insertTask(msgr.owner(), msgr.task());
                 return MessageResult::Consumed;
             }

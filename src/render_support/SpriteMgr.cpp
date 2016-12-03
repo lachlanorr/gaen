@@ -48,7 +48,7 @@ SpriteMgr::~SpriteMgr()
     // LORRTODO: Cleanup is causing crash on exit... need to redesign how we release assets
     //for (auto & spritePair : mSpriteMap)
     //{
-    //    SpriteInstance::send_sprite_destroy(kSpriteMgrTaskId, kRendererTaskId, spritePair.second->sprite().uid());
+    //    SpriteInstance::sprite_remove(kSpriteMgrTaskId, kRendererTaskId, spritePair.second->sprite().uid());
     //}
 }
 
@@ -74,11 +74,11 @@ void SpriteMgr::update(f32 delta)
         if (pSpriteInst->mIsAnimating && pSpriteInst->advanceAnim(delta))
         {
             // update renderer with new frame
-            SpriteInstance::send_sprite_anim(kSpriteMgrTaskId,
-                                             kRendererTaskId,
-                                             pSpriteInst->sprite().uid(),
-                                             pSpriteInst->mAnimHash,
-                                             pSpriteInst->mAnimFrameIdx);
+            SpriteInstance::sprite_anim(kSpriteMgrTaskId,
+                                        kRendererTaskId,
+                                        pSpriteInst->sprite().uid(),
+                                        pSpriteInst->mAnimHash,
+                                        pSpriteInst->mAnimFrameIdx);
         }
     }
 }
@@ -103,7 +103,7 @@ MessageResult SpriteMgr::message(const T & msgAcc)
         // Send a copy to the renderer
         Sprite * pSpriteRenderer = GNEW(kMEM_Renderer, Sprite, pSpriteInst->sprite());
         SpriteInstance * pSpriteInstRenderer = GNEW(kMEM_Renderer, SpriteInstance, pSpriteRenderer, pSpriteInst->stageHash(), pSpriteInst->mTransform);
-        SpriteInstance::send_sprite_insert(kSpriteMgrTaskId, kRendererTaskId, pSpriteInstRenderer);
+        SpriteInstance::sprite_insert(kSpriteMgrTaskId, kRendererTaskId, pSpriteInstRenderer);
 
         return MessageResult::Consumed;
     }
@@ -175,8 +175,8 @@ MessageResult SpriteMgr::message(const T & msgAcc)
                         mPhysics.remove(uid);
                     }
                     
-                    // send sprite_destroy to renderer who in turn will send it back to us once
-                    SpriteInstance::send_sprite_destroy(kSpriteMgrTaskId, kRendererTaskId, uid);
+                    // send sprite_remove to renderer who in turn will send it back to us once
+                    SpriteInstance::sprite_remove(kSpriteMgrTaskId, kRendererTaskId, uid);
                 }
                 else
                 {
@@ -187,7 +187,7 @@ MessageResult SpriteMgr::message(const T & msgAcc)
         }
         return MessageResult::Consumed;
 	}
-    case HASH::sprite_destroy:
+    case HASH::sprite_remove:
     {
         u32 uid = msg.payload.u;
 
@@ -199,7 +199,7 @@ MessageResult SpriteMgr::message(const T & msgAcc)
         }
         else
         {
-            ERR("sprite_destroy for unknown animation, uid: %u", uid);
+            ERR("sprite_remove for unknown animation, uid: %u", uid);
         }
         return MessageResult::Consumed;
     }
@@ -223,7 +223,7 @@ i32 sprite_create(AssetHandleP pAssetHandle, i32 stageHash, const glm::mat4x3 & 
     Sprite * pSprite = GNEW(kMEM_Engine, Sprite, caller.task().id(), pAsset);
     SpriteInstance * pSpriteInst = GNEW(kMEM_Engine, SpriteInstance, pSprite, stageHash, transform);
 
-    SpriteInstance::send_sprite_insert(caller.task().id(), kSpriteMgrTaskId, pSpriteInst);
+    SpriteInstance::sprite_insert(caller.task().id(), kSpriteMgrTaskId, pSpriteInst);
 
     return pSprite->uid();
 }
@@ -252,19 +252,19 @@ void sprite_init_body(i32 spriteUid, f32 mass, i32 group, glm::ivec4 mask03, glm
     msgw.setMask47(mask47);
 }
 
-void sprite_show_stage(i32 stageHash, Entity & caller)
+void sprite_stage_show(i32 stageHash, Entity & caller)
 {
-    MessageQueueWriter msgw(HASH::sprite_show_stage, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::sprite_stage_show, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
-void sprite_hide_stage(i32 stageHash, Entity & caller)
+void sprite_stage_hide(i32 stageHash, Entity & caller)
 {
-    MessageQueueWriter msgw(HASH::sprite_hide_stage, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::sprite_stage_hide, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
-void sprite_destroy_stage(i32 stageHash, Entity & caller)
+void sprite_stage_remove(i32 stageHash, Entity & caller)
 {
-    MessageQueueWriter msgw(HASH::sprite_destroy_stage, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::sprite_stage_remove, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
 } // namespace system_api

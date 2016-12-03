@@ -30,7 +30,7 @@
 #include "engine/AssetMgr.h"
 
 #include "engine/messages/ModelInstance.h"
-#include "engine/messages/TransformUid.h"
+#include "engine/messages/UidTransform.h"
 
 #include "render_support/Model.h"
 
@@ -83,21 +83,21 @@ void ModelInstance::destroyModel()
     }
 }
 
-void ModelInstance::send_model_insert(task_id source, task_id target, ModelInstance * pModelInst)
+void ModelInstance::model_insert(task_id source, task_id target, ModelInstance * pModelInst)
 {
     messages::ModelInstanceQW msgw(HASH::model_insert, kMessageFlag_None, source, target);
     msgw.setModelInstance(pModelInst);
 }
 
-void ModelInstance::send_model_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform)
+void ModelInstance::model_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform)
 {
-    messages::TransformUidQW msgw(HASH::model_transform, kMessageFlag_None, source, target, uid);
+    messages::UidTransformQW msgw(HASH::model_transform, kMessageFlag_None, source, target, uid);
     msgw.setTransform(transform);
 }
 
-void ModelInstance::send_model_destroy(task_id source, task_id target, u32 uid)
+void ModelInstance::model_remove(task_id source, task_id target, u32 uid)
 {
-    MessageQueueWriter msgw(HASH::model_destroy, kMessageFlag_None, source, target, to_cell(uid), 0);
+    MessageQueueWriter msgw(HASH::model_remove, kMessageFlag_None, source, target, to_cell(uid), 0);
 }
 
 

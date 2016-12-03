@@ -68,7 +68,7 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
     // Don't set z position since we use it for render order
     ASSERT(worldTrans.getOrigin()[2] == 0.0f);
 
-    ModelInstance::send_model_transform(kModelMgrTaskId, kRendererTaskId, mModelInstance.model().uid(), mModelInstance.mTransform);
+    ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, mModelInstance.model().uid(), mModelInstance.mTransform);
     {
         messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), false);
         msgw.setTransform(mModelInstance.mTransform);

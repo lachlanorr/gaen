@@ -96,7 +96,7 @@ void SpriteGL::prepareMeshAttributes()
 
 void SpriteGL::reportDestruction()
 {
-    SpriteInstance::send_sprite_destroy(kRendererTaskId, kSpriteMgrTaskId, uid());
+    SpriteInstance::sprite_remove(kRendererTaskId, kSpriteMgrTaskId, uid());
 }
 
 } // namespace gaen

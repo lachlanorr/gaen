@@ -31,10 +31,6 @@
 #include "engine/glm_ext.h"
 #include "engine/InputMgr.h"
 #include "engine/MessageWriter.h"
-#include "engine/messages/TransformUid.h"
-#include "engine/messages/InsertLightDirectional.h"
-#include "engine/messages/UpdateLightDirectional.h"
-#include "engine/messages/MoveCamera.h"
 
 #include "engine/system_api.h"
 
@@ -109,63 +105,6 @@ glm::quat quat_normalize(const glm::quat & quat, Entity & caller)
     glm::normalize(q);
     return q;
 }
-
-i32 renderer_gen_uid(Entity & caller)
-{
-    static std::atomic<i32> sNextUid(1);
-    return sNextUid.fetch_add(1, std::memory_order_relaxed);
-}
-
-void renderer_move_camera(const glm::vec3 & position, const glm::quat & direction, Entity & caller)
-{
-    messages::MoveCameraQW msgQW(HASH::renderer_move_camera,
-                                 kMessageFlag_None,
-                                 caller.task().id(),
-                                 kRendererTaskId);
-
-    msgQW.setPosition(position);
-    msgQW.setDirection(direction);
-}
-
-void renderer_insert_light_directional(i32 uid,
-                                       const glm::vec3 & direction,
-                                       Color color,
-                                       Entity & caller)
-{
-    messages::InsertLightDirectionalQW msgQW(HASH::renderer_insert_light_directional,
-                                             kMessageFlag_None,
-                                             caller.task().id(),
-                                             kRendererTaskId,
-                                             uid);
-    msgQW.setDirection(direction);
-    msgQW.setColor(color);
-}
-
-void renderer_update_light_directional(i32 uid,
-                                       const glm::vec3 & direction,
-                                       Color color,
-                                       Entity & caller)
-{
-    messages::UpdateLightDirectionalQW msgQW(HASH::renderer_update_light_directional,
-                                             kMessageFlag_None,
-                                             caller.task().id(),
-                                             kRendererTaskId,
-                                             uid);
-    msgQW.setDirection(direction);
-    msgQW.setColor(color);
-}
-
-void renderer_remove_light_directional(i32 uid, Entity & caller)
-{
-    MessageQueueWriter msgQW(HASH::renderer_remove_light_directional,
-                             kMessageFlag_None,
-                             caller.task().id(),
-                             kRendererTaskId,
-                             to_cell(uid),
-                             0);
-}
-
-
 
 } // namespace system_api
 

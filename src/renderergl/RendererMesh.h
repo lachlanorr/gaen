@@ -96,20 +96,20 @@ private:
 
     shaders::Shader * getShader(u32 nameHash);
 
-    void insertModel(ModelInstance * pModelInst);
-    void transformModel(u32 uid, const glm::mat4x3 & transform);
-    void destroyModel(u32 uid);
-    void showModelStage(u32 stageHash);
-    void hideModelStage(u32 stageHash);
-    void destroyModelStage(u32 stageHash);
+    void modelInsert(ModelInstance * pModelInst);
+    void modelTransform(u32 uid, const glm::mat4x3 & transform);
+    void modelRemove(u32 uid);
+    void modelStageShow(u32 stageHash);
+    void modelStageHide(u32 stageHash);
+    void modelStageRemove(u32 stageHash);
 
-    void insertSprite(SpriteInstance * pSpriteInst);
-    void animateSprite(u32 uid, u32 animHash, u32 animFrameIdx);
-    void transformSprite(u32 uid, const glm::mat4x3 & transform);
-    void destroySprite(u32 uid);
-    void showSpriteStage(u32 stageHash);
-    void hideSpriteStage(u32 stageHash);
-    void destroySpriteStage(u32 stageHash);
+    void spriteInsert(SpriteInstance * pSpriteInst);
+    void spriteAnim(u32 uid, u32 animHash, u32 animFrameIdx);
+    void spriteTransform(u32 uid, const glm::mat4x3 & transform);
+    void spriteRemove(u32 uid);
+    void spriteStageShow(u32 stageHash);
+    void spriteStageHide(u32 stageHash);
+    void spriteStageRemove(u32 stageHash);
     
     bool mIsInit = false;
     
@@ -128,7 +128,7 @@ private:
     typedef HashMap<kMEM_Renderer, u32, SpriteStageUP> SpriteStageMap;
     SpriteStageMap mSpriteStages;
     
-    List<kMEM_Renderer, DirectionalLight> mDirectionalLights;
+    List<kMEM_Renderer, DistantLight> mDistantLights;
     List<kMEM_Renderer, PointLight> mPointLights;
 
     shaders::Shader * mpActiveShader = nullptr;

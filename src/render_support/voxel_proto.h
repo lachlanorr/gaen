@@ -52,7 +52,7 @@ public:
 
     const u8 * frameBuffer() { return un_FrameBuffer->buffer(); }
 
-    void render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights);
+    void render(const RaycastCamera & camera, const List<kMEM_Renderer, DistantLight> & lights);
 
 private:
     void compShader_Test();
@@ -100,7 +100,7 @@ public:
     void init(u32 outputImageSize, RaycastCamera * pRaycastCamera);
     const u8 * frameBuffer() { return mFrameBuffer->buffer(); }
 
-    void render(const RaycastCamera & camera, const List<kMEM_Renderer, DirectionalLight> & lights);
+    void render(const RaycastCamera & camera, const List<kMEM_Renderer, DistantLight> & lights);
 private:
     void fragShader_Blue();
     void fragShader_Raycast();

@@ -24,7 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-component Directional
+component Distant
 {
     int lightUid = $.renderer_gen_uid();
 
@@ -33,6 +33,6 @@ component Directional
 
     #init()
     {
-        $.renderer_insert_light_directional(lightUid, dir, col);
+        $.light_distant_insert(lightUid, dir, col);
     }
 }

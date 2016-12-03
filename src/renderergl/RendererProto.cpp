@@ -34,9 +34,8 @@
 #include "engine/MessageQueue.h"
 #include "engine/glm_ext.h"
 
-#include "engine/messages/InsertLightDirectional.h"
-#include "engine/messages/TransformUid.h"
-#include "engine/messages/MoveCamera.h"
+#include "engine/messages/LightDistant.h"
+#include "engine/messages/UidTransform.h"
 
 #include "render_support/voxel27.h"
 
@@ -383,7 +382,7 @@ void RendererProto::render()
 
 
 #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
-    mShaderSim.render(mRaycastCamera, mDirectionalLights);
+    mShaderSim.render(mRaycastCamera, mDistantLights);
 
     mpPresentShader->use();
 
@@ -456,29 +455,31 @@ MessageResult RendererProto::message(const T & msgAcc)
 
     switch(msg.msgId)
     {
-    case HASH::renderer_insert_light_directional:
+    case HASH::light_directional_insert:
     {
-        messages::InsertLightDirectionalR<T> msgr(msgAcc);
+        messages::LightDistantR<T> msgr(msgAcc);
         glm::vec3 normDir = glm::normalize(msgr.direction());
         glm::vec3 relDir = -normDir; // flip direction of vector relative to objects
-        mDirectionalLights.emplace_back(msgAcc.message().source,
+        mDistantLights.emplace_back(msgAcc.message().source,
                                         relDir,
                                         msgr.color());
         break;
     }
-    case HASH::renderer_update_light_directional:
+    case HASH::light_directional_update:
     {
-        messages::InsertLightDirectionalR<T> msgr(msgAcc);
-        mDirectionalLights.emplace_back(msgAcc.message().source,
+        messages::LightDistantR<T> msgr(msgAcc);
+        mDistantLights.emplace_back(msgAcc.message().source,
                                         msgr.direction(),
                                         msgr.color());
         break;
     }
-    case HASH::renderer_move_camera:
+    case HASH::camera_transform:
     {
 #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL || RENDERTYPE == RENDERTYPE_GPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
-        messages::MoveCameraR<T> msgr(msgAcc);
-        mRaycastCamera.move(msgr.position(), msgr.direction());
+// LORRTODO: Support uid/stage cameras
+//        messages::MoveCameraR<T> msgr(msgAcc);
+//        mRaycastCamera.move(msgr.position(), msgr.direction());
+        ERR("Need support for uid/stage based cameras");
 #endif
         break;
     }

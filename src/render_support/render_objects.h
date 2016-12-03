@@ -32,6 +32,7 @@
 
 #include "core/base_defines.h"
 
+#include "engine/Entity.h"
 #include "engine/glm_ext.h"
 
 #include "assets/Color.h"
@@ -40,12 +41,15 @@
 namespace gaen
 {
 
-typedef u32 ruid;
+typedef i32 ruid;
 
 class RenderObject
 {
 protected:
-    RenderObject(task_id owner);
+    RenderObject(task_id owner)
+      : mOwner(owner)
+      , mUid(next_uid())
+    {}
     RenderObject(task_id owner, ruid uid)
       : mOwner(owner)
       , mUid(uid)
@@ -54,6 +58,8 @@ protected:
 public:    
     task_id owner() const { return mOwner; }
     ruid uid() const { return mUid; }
+
+    static ruid next_uid();
 
 private:
     static std::atomic<ruid> sNextRuid;
@@ -91,12 +97,12 @@ private:
     glm::mat4 mViewProjection;
 };
 
-struct DirectionalLight : public RenderObject
+struct DistantLight : public RenderObject
 {
     glm::vec3 direction;
     glm::vec4 color;
 
-    DirectionalLight(task_id owner, const glm::vec3 & direction, Color color)
+    DistantLight(task_id owner, const glm::vec3 & direction, Color color)
       : RenderObject(owner)
       , direction(direction)
       , color(Color::build_vec4(color))
@@ -115,7 +121,32 @@ struct PointLight : public RenderObject
     {}
 };
 
+namespace system_api
+{
 
+i32 gen_uid(Entity & caller);
+
+void camera_move(i32 uid,
+                 const glm::vec3 & position,
+                 const glm::quat & direction,
+                 Entity & caller);
+
+void light_distant_insert(i32 uid,
+                              const glm::vec3 & direction,
+                              Color color,
+                              Entity & caller);
+
+void light_distant_direction(i32 uid,
+                             const glm::vec3 & direction,
+                             Entity & caller);
+
+void light_distant_color(i32 uid,
+                         Color color,
+                         Entity & caller);
+
+void light_distant_remove(i32 uid, Entity & caller);
+
+} // namespace system_api
 
 } // namespace gaen
 

@@ -66,7 +66,7 @@ void SpriteMotionState::setWorldTransform(const btTransform& worldTrans)
     // Don't set z position since we use it for render order
     ASSERT(worldTrans.getOrigin()[2] == 0.0f);
 
-    SpriteInstance::send_sprite_transform(kSpriteMgrTaskId, kRendererTaskId, mSpriteInstance.sprite().uid(), mSpriteInstance.mTransform);
+    SpriteInstance::sprite_transform(kSpriteMgrTaskId, kRendererTaskId, mSpriteInstance.sprite().uid(), mSpriteInstance.mTransform);
     {
         messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, mSpriteInstance.sprite().owner(), false);
         msgw.setTransform(mSpriteInstance.mTransform);

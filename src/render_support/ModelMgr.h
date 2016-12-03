@@ -66,9 +66,9 @@ i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const glm::mat4x3 & t
 void model_set_velocity(i32 modelUid, const glm::vec3 & velocity, Entity & caller);
 void model_init_body(i32 modelUid, f32 mass, i32 group, glm::ivec4 mask03, glm::ivec4 mask47, Entity & caller);
 
-void model_show_stage(i32 stageHash, Entity & caller);
-void model_hide_stage(i32 stageHash, Entity & caller);
-void model_destroy_stage(i32 stageHash, Entity & caller);
+void model_stage_show(i32 stageHash, Entity & caller);
+void model_stage_hide(i32 stageHash, Entity & caller);
+void model_stage_remove(i32 stageHash, Entity & caller);
 }
 
 } // namespace gaen

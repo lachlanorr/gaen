@@ -37,8 +37,8 @@
 #include "engine/Asset.h"
 
 #include "engine/messages/Handle.h"
-#include "engine/messages/InsertComponent.h"
-#include "engine/messages/InsertTask.h"
+#include "engine/messages/ComponentIndex.h"
+#include "engine/messages/OwnerTask.h"
 #include "engine/messages/TaskStatus.h"
 #include "engine/messages/Transform.h"
 
@@ -123,11 +123,11 @@ void Entity::activate()
     ASSERT(mTask.status() == TaskStatus::Initializing);
 
     // Insert Entity into the TaskMasters
-    messages::InsertTaskBW msgInsertTask(HASH::insert_task,
-                                         kMessageFlag_None,
-                                         mTask.id(),
-                                         active_thread_id(),
-                                         active_thread_id());
+    messages::OwnerTaskBW msgInsertTask(HASH::insert_task,
+                                        kMessageFlag_None,
+                                        mTask.id(),
+                                        active_thread_id(),
+                                        active_thread_id());
     msgInsertTask.setTask(mTask);
     broadcast_message(msgInsertTask.accessor());
 
@@ -323,7 +323,7 @@ MessageResult Entity::message(const T & msgAcc)
             }
             case HASH::insert_component:
             {
-                messages::InsertComponentR<T> msgr(msgAcc);
+                messages::ComponentIndexR<T> msgr(msgAcc);
                 u32 index = msgr.index() == (u32)-1 ? mComponentCount : msgr.index();
                 insertComponent(msgr.nameHash(), index);
                 return MessageResult::Consumed;

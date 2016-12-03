@@ -37,8 +37,8 @@
 #include "engine/Asset.h"
 #include "engine/AssetMgr.h"
 
-#include "engine/messages/InsertLightDirectional.h"
-#include "engine/messages/TransformUid.h"
+#include "engine/messages/LightDistant.h"
+#include "engine/messages/UidTransform.h"
 #include "engine/messages/ModelInstance.h"
 #include "engine/messages/SpriteInstance.h"
 #include "engine/messages/SpriteAnim.h"
@@ -346,20 +346,29 @@ MessageResult RendererMesh::message(const T & msgAcc)
 
     switch(msg.msgId)
     {
-    case HASH::renderer_insert_light_directional:
+    case HASH::light_distant_insert:
     {
-        messages::InsertLightDirectionalR<T> msgr(msgAcc);
+        messages::LightDistantR<T> msgr(msgAcc);
         glm::vec3 normDir = glm::normalize(msgr.direction());
         glm::vec3 relDir = -normDir; // flip direction of vector relative to objects
-        mDirectionalLights.emplace_back(msgAcc.message().source,
+        mDistantLights.emplace_back(msgAcc.message().source,
                                         relDir,
                                         msgr.color());
         break;
     }
-    case HASH::renderer_update_light_directional:
+    case HASH::light_distant_direction:
     {
-        messages::InsertLightDirectionalR<T> msgr(msgAcc);
-        mDirectionalLights.emplace_back(msgAcc.message().source,
+        messages::LightDistantR<T> msgr(msgAcc);
+        mDistantLights.emplace_back(msgAcc.message().source,
+                                        msgr.direction(),
+                                        msgr.color());
+        break;
+    }
+
+    case HASH::light_distant_color:
+    {
+        messages::LightDistantR<T> msgr(msgAcc);
+        mDistantLights.emplace_back(msgAcc.message().source,
                                         msgr.direction(),
                                         msgr.color());
         break;
@@ -369,38 +378,38 @@ MessageResult RendererMesh::message(const T & msgAcc)
     case HASH::model_insert:
     {
         messages::ModelInstanceR<T> msgr(msgAcc);
-        insertModel(msgr.modelInstance());
+        modelInsert(msgr.modelInstance());
         break;
     }
     case HASH::model_transform:
     {
-        messages::TransformUidR<T> msgr(msgAcc);
-        transformModel(msgr.uid(), msgr.transform());
+        messages::UidTransformR<T> msgr(msgAcc);
+        modelTransform(msgr.uid(), msgr.transform());
         break;
     }
-    case HASH::model_destroy:
+    case HASH::model_remove:
     {
         u32 uid = msg.payload.u;
-        destroyModel(uid);
+        modelRemove(uid);
         break;
     }
 
-    case HASH::model_show_stage:
+    case HASH::model_stage_show:
     {
         u32 stageHash = msg.payload.u;
-        showModelStage(stageHash);
+        modelStageShow(stageHash);
         break;
     }
-    case HASH::model_hide_stage:
+    case HASH::model_stage_hide:
     {
         u32 stageHash = msg.payload.u;
-        hideModelStage(stageHash);
+        modelStageHide(stageHash);
         break;
     }
-    case HASH::model_destroy_stage:
+    case HASH::model_stage_remove:
     {
         u32 stageHash = msg.payload.u;
-        destroyModelStage(stageHash);
+        modelStageRemove(stageHash);
         break;
     }
 
@@ -408,44 +417,44 @@ MessageResult RendererMesh::message(const T & msgAcc)
     case HASH::sprite_insert:
     {
         messages::SpriteInstanceR<T> msgr(msgAcc);
-        insertSprite(msgr.spriteInstance());
+        spriteInsert(msgr.spriteInstance());
         break;
     }
     case HASH::sprite_anim:
     {
         messages::SpriteAnimR<T> msgr(msgAcc);
-        animateSprite(msgr.uid(), msgr.animHash(), msgr.animFrameIdx());
+        spriteAnim(msgr.uid(), msgr.animHash(), msgr.animFrameIdx());
         break;
     }
     case HASH::sprite_transform:
     {
-        messages::TransformUidR<T> msgr(msgAcc);
-        transformSprite(msgr.uid(), msgr.transform());
+        messages::UidTransformR<T> msgr(msgAcc);
+        spriteTransform(msgr.uid(), msgr.transform());
         break;
     }
-    case HASH::sprite_destroy:
+    case HASH::sprite_remove:
     {
         u32 uid = msg.payload.u;
-        destroySprite(uid);
+        spriteRemove(uid);
         break;
     }
 
-    case HASH::sprite_show_stage:
+    case HASH::sprite_stage_show:
     {
         u32 stageHash = msg.payload.u;
-        showSpriteStage(stageHash);
+        spriteStageShow(stageHash);
         break;
     }
-    case HASH::sprite_hide_stage:
+    case HASH::sprite_stage_hide:
     {
         u32 stageHash = msg.payload.u;
-        hideSpriteStage(stageHash);
+        spriteStageHide(stageHash);
         break;
     }
-    case HASH::sprite_destroy_stage:
+    case HASH::sprite_stage_remove:
     {
         u32 stageHash = msg.payload.u;
-        destroySpriteStage(stageHash);
+        spriteStageRemove(stageHash);
         break;
     }
 
@@ -477,7 +486,7 @@ shaders::Shader * RendererMesh::getShader(u32 nameHash)
 }
 
 
-void RendererMesh::insertModel(ModelInstance * pModelInst)
+void RendererMesh::modelInsert(ModelInstance * pModelInst)
 {
     auto it = mModelStages.find(pModelInst->stageHash());
     if (it == mModelStages.end())
@@ -490,7 +499,7 @@ void RendererMesh::insertModel(ModelInstance * pModelInst)
     it->second->insertItem(pModelInst);
 }
 
-void RendererMesh::transformModel(u32 uid, const glm::mat4x3 & transform)
+void RendererMesh::modelTransform(u32 uid, const glm::mat4x3 & transform)
 {
     for (auto & stagePair : mModelStages)
     {
@@ -500,7 +509,7 @@ void RendererMesh::transformModel(u32 uid, const glm::mat4x3 & transform)
     ERR("transformModel in renderer for unkonwn model, uid: %u", uid);
 }
 
-void RendererMesh::destroyModel(u32 uid)
+void RendererMesh::modelRemove(u32 uid)
 {
     for (auto & stagePair : mModelStages)
     {
@@ -510,7 +519,7 @@ void RendererMesh::destroyModel(u32 uid)
     ERR("destroyModel in renderer for unkonwn model, uid: %u", uid);
 }
 
-void RendererMesh::showModelStage(u32 stageHash)
+void RendererMesh::modelStageShow(u32 stageHash)
 {
     // hide all other stages, show the one specified
     for (auto & stagePair : mModelStages)
@@ -526,7 +535,7 @@ void RendererMesh::showModelStage(u32 stageHash)
     }
 }
 
-void RendererMesh::hideModelStage(u32 stageHash)
+void RendererMesh::modelStageHide(u32 stageHash)
 {
     auto it = mModelStages.find(stageHash);
     if (it != mModelStages.end())
@@ -535,7 +544,7 @@ void RendererMesh::hideModelStage(u32 stageHash)
     }
 }
 
-void RendererMesh::destroyModelStage(u32 stageHash)
+void RendererMesh::modelStageRemove(u32 stageHash)
 {
     auto it = mModelStages.find(stageHash);
     if (it != mModelStages.end())
@@ -546,7 +555,7 @@ void RendererMesh::destroyModelStage(u32 stageHash)
 
 
 
-void RendererMesh::insertSprite(SpriteInstance * pSpriteInst)
+void RendererMesh::spriteInsert(SpriteInstance * pSpriteInst)
 {
     auto it = mSpriteStages.find(pSpriteInst->stageHash());
     if (it == mSpriteStages.end())
@@ -559,7 +568,7 @@ void RendererMesh::insertSprite(SpriteInstance * pSpriteInst)
     it->second->insertItem(pSpriteInst);
 }
 
-void RendererMesh::animateSprite(u32 uid, u32 animHash, u32 animFrameIdx)
+void RendererMesh::spriteAnim(u32 uid, u32 animHash, u32 animFrameIdx)
 {
     for (auto & stagePair : mSpriteStages)
     {
@@ -569,7 +578,7 @@ void RendererMesh::animateSprite(u32 uid, u32 animHash, u32 animFrameIdx)
     ERR("animateSprite in renderer for unkonwn sprite, uid: %u", uid);
 }
 
-void RendererMesh::transformSprite(u32 uid, const glm::mat4x3 & transform)
+void RendererMesh::spriteTransform(u32 uid, const glm::mat4x3 & transform)
 {
     for (auto & stagePair : mSpriteStages)
     {
@@ -579,7 +588,7 @@ void RendererMesh::transformSprite(u32 uid, const glm::mat4x3 & transform)
     ERR("transformSprite in renderer for unkonwn sprite, uid: %u", uid);
 }
 
-void RendererMesh::destroySprite(u32 uid)
+void RendererMesh::spriteRemove(u32 uid)
 {
     for (auto & stagePair : mSpriteStages)
     {
@@ -589,7 +598,7 @@ void RendererMesh::destroySprite(u32 uid)
     ERR("destroySprite in renderer for unkonwn sprite, uid: %u", uid);
 }
 
-void RendererMesh::showSpriteStage(u32 stageHash)
+void RendererMesh::spriteStageShow(u32 stageHash)
 {
     // hide all other stages, show the one specified
     for (auto & stagePair : mSpriteStages)
@@ -605,7 +614,7 @@ void RendererMesh::showSpriteStage(u32 stageHash)
     }
 }
 
-void RendererMesh::hideSpriteStage(u32 stageHash)
+void RendererMesh::spriteStageHide(u32 stageHash)
 {
     auto it = mSpriteStages.find(stageHash);
     if (it != mSpriteStages.end())
@@ -614,7 +623,7 @@ void RendererMesh::hideSpriteStage(u32 stageHash)
     }
 }
 
-void RendererMesh::destroySpriteStage(u32 stageHash)
+void RendererMesh::spriteStageRemove(u32 stageHash)
 {
     auto it = mSpriteStages.find(stageHash);
     if (it != mSpriteStages.end())
