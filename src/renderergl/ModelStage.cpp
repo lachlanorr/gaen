@@ -35,14 +35,16 @@
 namespace gaen
 {
 
-ModelStage::ModelStage(RendererMesh * pRenderer)
-  : Stage(pRenderer,
+ModelStage::ModelStage(u32 stageHash, RendererMesh * pRenderer)
+  : Stage(stageHash,
+          pRenderer,
           Camera(kRendererTaskId,
+                 stageHash,
                  glm::perspective(glm::radians(60.0f),
-                                  pRenderer->screenWidth() / static_cast<f32>(pRenderer->screenHeight()),
+                                  pRenderer->screenWidth() / (f32)pRenderer->screenHeight(),
                                   0.1f,
                                   100000.0f),
-                 glm::mat4x3(1.0)))
+                 glm::mat4x4(1.0)))
 {}
 
 } // namespace gaen

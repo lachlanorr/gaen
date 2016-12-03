@@ -69,6 +69,28 @@ void model_init_body(i32 modelUid, f32 mass, i32 group, glm::ivec4 mask03, glm::
 void model_stage_show(i32 stageHash, Entity & caller);
 void model_stage_hide(i32 stageHash, Entity & caller);
 void model_stage_remove(i32 stageHash, Entity & caller);
+
+i32 model_stage_camera_create_persp(i32 stageHash,
+                                    f32 fov,
+                                    f32 nearClip,
+                                    f32 farClip,
+                                    const glm::mat4x3 & view,
+                                    Entity & caller);
+
+i32 model_stage_camera_create_ortho(i32 stageHash,
+                                    f32 scale,
+                                    f32 nearClip,
+                                    f32 farClip,
+                                    const glm::mat4x3 & view,
+                                    Entity & caller);
+
+void model_stage_camera_view(i32 cameraUid,
+                             const glm::mat4x3 & view,
+                             Entity & caller);
+
+void model_stage_camera_activate(i32 cameraUid, Entity & caller);
+void model_stage_camera_remove(i32 cameraUid, Entity & caller);
+
 }
 
 } // namespace gaen

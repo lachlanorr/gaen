@@ -34,16 +34,16 @@
 
 namespace gaen
 {
-SpriteStage::SpriteStage(RendererMesh * pRenderer)
-  : Stage(pRenderer,
+SpriteStage::SpriteStage(u32 stageHash, RendererMesh * pRenderer)
+  : Stage(stageHash,
+          pRenderer,
           Camera(kRendererTaskId,
-                 glm::ortho(static_cast<f32>(pRenderer->screenWidth()) * -0.5f,
-                            static_cast<f32>(pRenderer->screenWidth()) * 0.5f,
-                            static_cast<f32>(pRenderer->screenHeight()) * -0.5f,
-                            static_cast<f32>(pRenderer->screenHeight()) * 0.5f,
-                            -100.0f,
-                            100.0f),
-                 glm::mat4x3(1.0)))
+                 stageHash,
+                 glm::ortho(pRenderer->screenWidth() * -0.5f,
+                            pRenderer->screenWidth() * 0.5f,
+                            pRenderer->screenHeight() * -0.5f,
+                            pRenderer->screenHeight() * 0.5f),
+                 glm::mat4(1.0)))
 {}
 
 bool SpriteStage::animateItem(u32 uid, u32 animHash, u32 animFrameIdx)

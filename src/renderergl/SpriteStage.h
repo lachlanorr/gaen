@@ -41,7 +41,7 @@ class SpriteInstance;
 class SpriteStage : public Stage<SpriteGL>
 {
 public:
-    SpriteStage(RendererMesh * pRenderer);
+    SpriteStage(u32 stageHash, RendererMesh * pRenderer);
 
     bool animateItem(u32 uid, u32 animHash, u32 animFrameIdx);
 }; // class SpriteStage

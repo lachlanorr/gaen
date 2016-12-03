@@ -24,17 +24,13 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_ENGINE_SYSTEM_API_H
-#define GAEN_ENGINE_SYSTEM_API_H
+#ifndef GAEN_RENDER_SUPPORT_SYSTEM_API_H
+#define GAEN_RENDER_SUPPORT_SYSTEM_API_H
 
 #include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/mat3x3.hpp>
 #include <glm/mat4x3.hpp>
-
-#include "engine/Handle.h"
-#include "engine/Entity.h"
-#include "engine/BlockMemory.h"
 
 namespace gaen
 {
@@ -47,27 +43,34 @@ namespace gaen
 namespace system_api
 {
 
-void print(CmpString str, Entity & caller);
-CmpString hashstr(i32 hash, Entity & caller);
+i32 gen_uid(Entity & caller);
 
-void print_asset_info(AssetHandleP asset, Entity & caller);
+void camera_move(i32 uid,
+                 const glm::vec3 & position,
+                 const glm::quat & direction,
+                 Entity & caller);
 
-//void activate_entity(task_id id, Entity & caller);
+glm::mat4x3 view_look_at(const glm::vec3 & position,
+                         const glm::vec3 & target,
+                         Entity & caller);
 
-f32 radians(f32 degrees, Entity & caller);
-f32 degrees(f32 radians, Entity & caller);
+void light_distant_insert(i32 uid,
+                          const glm::vec3 & direction,
+                          Color color,
+                          Entity & caller);
 
+void light_distant_direction(i32 uid,
+                             const glm::vec3 & direction,
+                             Entity & caller);
 
-glm::mat4x3 transform(const glm::vec3 & pos, glm::vec3 & angles, Entity & caller);
-glm::mat4x3 position(const glm::vec3 & pos, Entity & caller);
-glm::mat4x3 rotation(const glm::vec3 & angles, Entity & caller);
-glm::mat3 rotation_mat3(const glm::vec3 & angles, Entity & caller);
+void light_distant_color(i32 uid,
+                         Color color,
+                         Entity & caller);
 
-glm::quat quat_from_axis_angle(const glm::vec3 & dir, f32 angle, Entity & caller);
-glm::quat quat_normalize(const glm::quat & quat, Entity & caller);
+void light_distant_remove(i32 uid, Entity & caller);
 
 } // namespace system_api
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_ENGINE_SYSTEM_API_H
+#endif // #ifndef GAEN_RENDER_SUPPORT_SYSTEM_API_H

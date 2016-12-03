@@ -2492,7 +2492,7 @@ static S codegen_recurse(const Ast * pAst,
             {
                 ASSERT_MSG(bmId == 0, "BlockMemory param placed in message before regular param");
 
-                if (pAst->pBlockInfos->blockCount <= 1)
+                if (bi.cellCount <= kCellsPerBlock)
                 {
                     snprintf(scratch,
                              kScratchSize,

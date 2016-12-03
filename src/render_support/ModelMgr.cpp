@@ -36,6 +36,9 @@
 #include "engine/messages/ModelInstance.h"
 #include "engine/messages/ModelVelocity.h"
 #include "engine/messages/ModelBody.h"
+#include "engine/messages/CameraPersp.h"
+#include "engine/messages/CameraOrtho.h"
+#include "engine/messages/UidTransform.h"
 
 #include "render_support/ModelMgr.h"
 
@@ -186,7 +189,6 @@ i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const glm::mat4x3 & t
     ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
 
     return pModel->uid();
-
 }
 
 void model_set_velocity(i32 modelUid, const glm::vec3 & velocity, Entity & caller)
@@ -219,6 +221,57 @@ void model_stage_remove(i32 stageHash, Entity & caller)
     MessageQueueWriter msgw(HASH::model_stage_remove, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
+i32 model_stage_camera_create_persp(i32 stageHash,
+                                    f32 fov,
+                                    f32 nearClip,
+                                    f32 farClip,
+                                    const glm::mat4x3 & view,
+                                    Entity & caller)
+{
+    ruid uid = RenderObject::next_uid();
+    messages::CameraPerspQW msgw(HASH::model_stage_camera_insert_persp, kMessageFlag_None, caller.task().id(), kRendererTaskId, uid);
+    msgw.setStageHash(stageHash);
+    msgw.setFov(fov);
+    msgw.setNearClip(nearClip);
+    msgw.setFarClip(farClip);
+    msgw.setView(view);
+    return uid;
+}
+
+i32 model_stage_camera_create_ortho(i32 stageHash,
+                                    f32 scale,
+                                    f32 nearClip,
+                                    f32 farClip,
+                                    const glm::mat4x3 & view,
+                                    Entity & caller)
+{
+    ruid uid = RenderObject::next_uid();
+    messages::CameraOrthoQW msgw(HASH::model_stage_camera_insert_ortho, kMessageFlag_None, caller.task().id(), kRendererTaskId, uid);
+    msgw.setStageHash(stageHash);
+    msgw.setScale(scale);
+    msgw.setNearClip(nearClip);
+    msgw.setFarClip(farClip);
+    msgw.setView(view);
+    return uid;
+}
+
+void model_stage_camera_view(i32 cameraUid,
+                             const glm::mat4x3 & view,
+                             Entity & caller)
+{
+    messages::UidTransformQW msgw(HASH::model_stage_camera_view, kMessageFlag_None, caller.task().id(), kRendererTaskId, cameraUid);
+    msgw.setTransform(view);
+}
+
+void model_stage_camera_activate(i32 cameraUid, Entity & caller)
+{
+    MessageQueueWriter msgw(HASH::model_stage_camera_activate, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(cameraUid), 0);
+}
+
+void model_stage_camera_remove(i32 cameraUid, Entity & caller)
+{
+    MessageQueueWriter msgw(HASH::model_stage_camera_remove, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(cameraUid), 0);
+}
 
 } // namespace system_api
 

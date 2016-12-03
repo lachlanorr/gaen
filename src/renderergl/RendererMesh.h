@@ -99,14 +99,31 @@ private:
     void modelInsert(ModelInstance * pModelInst);
     void modelTransform(u32 uid, const glm::mat4x3 & transform);
     void modelRemove(u32 uid);
+    ModelStage * modelStageFindOrCreate(u32 stageHash);
     void modelStageShow(u32 stageHash);
     void modelStageHide(u32 stageHash);
     void modelStageRemove(u32 stageHash);
+    void modelStageCameraInsertPersp(u32 uid,
+                                     u32 stageHash,
+                                     f32 fov,
+                                     f32 nearClip,
+                                     f32 farClip,
+                                     const glm::mat4x3 view);
+    void modelStageCameraInsertOrtho(u32 uid,
+                                     u32 stageHash,
+                                     f32 scale,
+                                     f32 nearClip,
+                                     f32 farClip,
+                                     const glm::mat4x3 view);
+    void modelStageCameraView(u32 uid, const glm::mat4x3 view);
+    void modelStageCameraActivate(u32 uid);
+    void modelStageCameraRemove(u32 uid);
 
     void spriteInsert(SpriteInstance * pSpriteInst);
     void spriteAnim(u32 uid, u32 animHash, u32 animFrameIdx);
     void spriteTransform(u32 uid, const glm::mat4x3 & transform);
     void spriteRemove(u32 uid);
+    SpriteStage * spriteStageFindOrCreate(u32 stageHash);
     void spriteStageShow(u32 stageHash);
     void spriteStageHide(u32 stageHash);
     void spriteStageRemove(u32 stageHash);

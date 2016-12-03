@@ -70,31 +70,40 @@ private:
 class Camera : public RenderObject
 {
 public:
-    Camera(task_id owner, glm::mat4 & projection, glm::mat4x3 & transform)
-      : RenderObject(owner)
+    Camera(task_id owner, ruid uid, u32 stageHash, glm::mat4 & projection, glm::mat4 & view)
+      : RenderObject(owner, uid)
+      , mStageHash(stageHash)
       , mProjection(projection)
     {
-        setTransform(transform);
+        setView(view);
     }
+
+    Camera(task_id owner, u32 stageHash, glm::mat4 & projection, glm::mat4 & view)
+      : RenderObject(owner)
+      , mStageHash(stageHash)
+      , mProjection(projection)
+    {
+        setView(view);
+    }
+
+    u32 stageHash() { return mStageHash; }
 
     const glm::mat4 & projection() const { return mProjection; }
 
-    const glm::mat4x3 & transform(const glm::mat4x3 & transform) { return mTransform; }
-    void setTransform(const glm::mat4x3 & transform)
+    const glm::mat4 & view(const glm::mat4 & view) { return mView; }
+    void setView(const glm::mat4 & view)
     {
-        mTransform = to_mat4x4(transform);
-        mView = inverse(mTransform);
-        mViewProjection = mView * mProjection;
+        mView = view;
+        mViewProjection = mProjection * mView;
     }
     
-    const glm::mat4 & view() const { return mView; }
     const glm::mat4 & viewProjection() const { return mViewProjection; }
 
 private:
     glm::mat4 mProjection;
-    glm::mat4 mTransform;
     glm::mat4 mView;
     glm::mat4 mViewProjection;
+    u32 mStageHash;
 };
 
 struct DistantLight : public RenderObject
@@ -120,33 +129,6 @@ struct PointLight : public RenderObject
       , color(Color::build_vec4(color))
     {}
 };
-
-namespace system_api
-{
-
-i32 gen_uid(Entity & caller);
-
-void camera_move(i32 uid,
-                 const glm::vec3 & position,
-                 const glm::quat & direction,
-                 Entity & caller);
-
-void light_distant_insert(i32 uid,
-                              const glm::vec3 & direction,
-                              Color color,
-                              Entity & caller);
-
-void light_distant_direction(i32 uid,
-                             const glm::vec3 & direction,
-                             Entity & caller);
-
-void light_distant_color(i32 uid,
-                         Color color,
-                         Entity & caller);
-
-void light_distant_remove(i32 uid, Entity & caller);
-
-} // namespace system_api
 
 } // namespace gaen
 

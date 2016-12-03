@@ -41,7 +41,7 @@ class ModelInstance;
 class ModelStage : public Stage<ModelGL>
 {
 public:
-    ModelStage(RendererMesh * pRenderer);
+    ModelStage(u32 stageHash, RendererMesh * pRenderer);
 
 }; // class ModelStage
 

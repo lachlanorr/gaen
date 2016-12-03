@@ -49,6 +49,8 @@ SET (render_support_SOURCES
   SpriteMgr.h
   SpritePhysics.cpp
   SpritePhysics.h
+  system_api.cpp
+  system_api.h
   voxel.cpp
   voxel.h
   voxel27.cpp

@@ -42,6 +42,8 @@
 #include "engine/messages/ModelInstance.h"
 #include "engine/messages/SpriteInstance.h"
 #include "engine/messages/SpriteAnim.h"
+#include "engine/messages/CameraPersp.h"
+#include "engine/messages/CameraOrtho.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/shaders/Shader.h"
@@ -412,6 +414,47 @@ MessageResult RendererMesh::message(const T & msgAcc)
         modelStageRemove(stageHash);
         break;
     }
+    case HASH::model_stage_camera_insert_persp:
+    {
+        messages::CameraPerspR<T> msgr(msgAcc);
+        modelStageCameraInsertPersp(msgr.uid(),
+                                    msgr.stageHash(),
+                                    msgr.fov(),
+                                    msgr.nearClip(),
+                                    msgr.farClip(),
+                                    msgr.view());
+        break;
+    }
+    case HASH::model_stage_camera_insert_ortho:
+    {
+        messages::CameraOrthoR<T> msgr(msgAcc);
+        modelStageCameraInsertOrtho(msgr.uid(),
+                                    msgr.stageHash(),
+                                    msgr.scale(),
+                                    msgr.nearClip(),
+                                    msgr.farClip(),
+                                    msgr.view());
+        break;
+    }
+    case HASH::model_stage_camera_view:
+    {
+        messages::UidTransformR<T> msgr(msgAcc);
+        modelStageCameraView(msgr.uid(),
+                             msgr.transform());
+        break;
+    }
+    case HASH::model_stage_camera_activate:
+    {
+        u32 uid = msg.payload.u;
+        modelStageCameraActivate(uid);
+        break;
+    }
+    case HASH::model_stage_camera_remove:
+    {
+        u32 uid = msg.payload.u;
+        modelStageCameraRemove(uid);
+        break;
+    }
 
     // sprites
     case HASH::sprite_insert:
@@ -488,15 +531,8 @@ shaders::Shader * RendererMesh::getShader(u32 nameHash)
 
 void RendererMesh::modelInsert(ModelInstance * pModelInst)
 {
-    auto it = mModelStages.find(pModelInst->stageHash());
-    if (it == mModelStages.end())
-    {
-        auto empIt = mModelStages.emplace(pModelInst->stageHash(),
-                                          GNEW(kMEM_Renderer, ModelStage, this));
-        ASSERT(empIt.second == true);
-        it = empIt.first;
-    }
-    it->second->insertItem(pModelInst);
+    ModelStage * pStage = modelStageFindOrCreate(pModelInst->stageHash());
+    pStage->insertItem(pModelInst);
 }
 
 void RendererMesh::modelTransform(u32 uid, const glm::mat4x3 & transform)
@@ -506,7 +542,7 @@ void RendererMesh::modelTransform(u32 uid, const glm::mat4x3 & transform)
         if (stagePair.second->transformItem(uid, transform))
             return;
     }
-    ERR("transformModel in renderer for unkonwn model, uid: %u", uid);
+    ERR("modelTransform in renderer for unkonwn model, uid: %u", uid);
 }
 
 void RendererMesh::modelRemove(u32 uid)
@@ -516,7 +552,20 @@ void RendererMesh::modelRemove(u32 uid)
         if (stagePair.second->destroyItem(uid))
             return;
     }
-    ERR("destroyModel in renderer for unkonwn model, uid: %u", uid);
+    ERR("modelRemove in renderer for unkonwn model, uid: %u", uid);
+}
+
+ModelStage * RendererMesh::modelStageFindOrCreate(u32 stageHash)
+{
+    auto it = mModelStages.find(stageHash);
+    if (it == mModelStages.end())
+    {
+        auto empIt = mModelStages.emplace(stageHash,
+                                           GNEW(kMEM_Renderer, ModelStage, stageHash, this));
+        ASSERT(empIt.second == true);
+        it = empIt.first;
+    }
+    return it->second.get();
 }
 
 void RendererMesh::modelStageShow(u32 stageHash)
@@ -533,6 +582,8 @@ void RendererMesh::modelStageShow(u32 stageHash)
     {
         it->second->show();
     }
+    else
+        ERR("modelStageShow unkonwn stage: %u", stageHash);
 }
 
 void RendererMesh::modelStageHide(u32 stageHash)
@@ -542,6 +593,8 @@ void RendererMesh::modelStageHide(u32 stageHash)
     {
         it->second->hide();
     }
+    else
+        ERR("modelStageHide unkonwn stage: %u", stageHash);
 }
 
 void RendererMesh::modelStageRemove(u32 stageHash)
@@ -551,21 +604,91 @@ void RendererMesh::modelStageRemove(u32 stageHash)
     {
         mModelStages.erase(it);
     }
+    else
+        ERR("modelStageRemove unkonwn stage: %u", stageHash);
 }
 
+void RendererMesh::modelStageCameraInsertPersp(u32 uid,
+                                               u32 stageHash,
+                                               f32 fov,
+                                               f32 nearClip,
+                                               f32 farClip,
+                                               const glm::mat4x3 view)
+{
+    Camera cam(kRendererTaskId,
+               uid,
+               stageHash,
+               glm::perspective(fov,
+                                screenWidth() / (f32)screenHeight(),
+                                nearClip,
+                                farClip),
+               glm::to_mat4x4(view));
+                   
+    ModelStage * pStage = modelStageFindOrCreate(stageHash);
+    pStage->cameraInsert(uid, cam);
+}
+
+void RendererMesh::modelStageCameraInsertOrtho(u32 uid,
+                                               u32 stageHash,
+                                               f32 scale,
+                                               f32 nearClip,
+                                               f32 farClip,
+                                               const glm::mat4x3 view)
+{
+    Camera cam(kRendererTaskId,
+               uid,
+               stageHash,
+               glm::ortho(screenWidth() * -0.5f,
+                          screenWidth() * 0.5f,
+                          screenHeight() * -0.5f,
+                          screenHeight() * 0.5f,
+                          nearClip,
+                          farClip),
+               glm::to_mat4x4(view));
+                   
+    ModelStage * pStage = modelStageFindOrCreate(stageHash);
+    pStage->cameraInsert(uid, cam);
+}
+
+void RendererMesh::modelStageCameraView(u32 uid, const glm::mat4x3 view)
+{
+    for (auto & stagePair : mModelStages)
+    {
+        Camera * pCam = stagePair.second->camera(uid);
+        if (pCam)
+        {
+            pCam->setView(glm::to_mat4x4(view));
+            return;
+        }
+    }
+    ERR("modelStageCameraView in renderer for unkonwn camera, uid: %u", uid);
+}
+
+void RendererMesh::modelStageCameraActivate(u32 uid)
+{
+    for (auto & stagePair : mModelStages)
+    {
+        if (stagePair.second->cameraActivate(uid))
+            return;
+    }
+    ERR("modelStageCameraActivate in renderer for unkonwn camera, uid: %u", uid);
+}
+
+void RendererMesh::modelStageCameraRemove(u32 uid)
+{
+    for (auto & stagePair : mModelStages)
+    {
+        if (stagePair.second->cameraRemove(uid))
+            return;
+    }
+    ERR("modelStageCameraRemove in renderer for unkonwn camera, uid: %u", uid);
+}
 
 
 void RendererMesh::spriteInsert(SpriteInstance * pSpriteInst)
 {
-    auto it = mSpriteStages.find(pSpriteInst->stageHash());
-    if (it == mSpriteStages.end())
-    {
-        auto empIt = mSpriteStages.emplace(pSpriteInst->stageHash(),
-                                           GNEW(kMEM_Renderer, SpriteStage, this));
-        ASSERT(empIt.second == true);
-        it = empIt.first;
-    }
-    it->second->insertItem(pSpriteInst);
+    SpriteStage * pStage = spriteStageFindOrCreate(pSpriteInst->stageHash());
+    pStage->insertItem(pSpriteInst);
 }
 
 void RendererMesh::spriteAnim(u32 uid, u32 animHash, u32 animFrameIdx)
@@ -575,7 +698,7 @@ void RendererMesh::spriteAnim(u32 uid, u32 animHash, u32 animFrameIdx)
         if (stagePair.second->animateItem(uid, animHash, animFrameIdx))
             return;
     }
-    ERR("animateSprite in renderer for unkonwn sprite, uid: %u", uid);
+    ERR("spriteAnim in renderer for unkonwn sprite, uid: %u", uid);
 }
 
 void RendererMesh::spriteTransform(u32 uid, const glm::mat4x3 & transform)
@@ -585,7 +708,7 @@ void RendererMesh::spriteTransform(u32 uid, const glm::mat4x3 & transform)
         if (stagePair.second->transformItem(uid, transform))
             return;
     }
-    ERR("transformSprite in renderer for unkonwn sprite, uid: %u", uid);
+    ERR("spriteTransform in renderer for unkonwn sprite, uid: %u", uid);
 }
 
 void RendererMesh::spriteRemove(u32 uid)
@@ -595,7 +718,20 @@ void RendererMesh::spriteRemove(u32 uid)
         if (stagePair.second->destroyItem(uid))
             return;
     }
-    ERR("destroySprite in renderer for unkonwn sprite, uid: %u", uid);
+    ERR("spriteRemove in renderer for unkonwn sprite, uid: %u", uid);
+}
+
+SpriteStage * RendererMesh::spriteStageFindOrCreate(u32 stageHash)
+{
+    auto it = mSpriteStages.find(stageHash);
+    if (it == mSpriteStages.end())
+    {
+        auto empIt = mSpriteStages.emplace(stageHash,
+                                           GNEW(kMEM_Renderer, SpriteStage, stageHash, this));
+        ASSERT(empIt.second == true);
+        it = empIt.first;
+    }
+    return it->second.get();
 }
 
 void RendererMesh::spriteStageShow(u32 stageHash)
@@ -612,6 +748,8 @@ void RendererMesh::spriteStageShow(u32 stageHash)
     {
         it->second->show();
     }
+    else
+        ERR("spriteStageShow unkonwn stage: %u", stageHash);
 }
 
 void RendererMesh::spriteStageHide(u32 stageHash)
@@ -621,6 +759,8 @@ void RendererMesh::spriteStageHide(u32 stageHash)
     {
         it->second->hide();
     }
+    else
+        ERR("spriteStageHide unkonwn stage: %u", stageHash);
 }
 
 void RendererMesh::spriteStageRemove(u32 stageHash)
@@ -630,6 +770,8 @@ void RendererMesh::spriteStageRemove(u32 stageHash)
     {
         mSpriteStages.erase(it);
     }
+    else
+        ERR("spriteStageRemove unkonwn stage: %u", stageHash);
 }
 
 
