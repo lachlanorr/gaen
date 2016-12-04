@@ -53,6 +53,7 @@ public:
     void use();
 
     void setUniformUint(u32 nameHash, u32 value);
+    void setUniformFloat(u32 nameHash, f32 value);
 
     void setUniformVec3(u32 nameHash, const glm::vec3 & value);
     void setUniformVec4(u32 nameHash, const glm::vec4 & value);

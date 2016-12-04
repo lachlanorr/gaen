@@ -382,7 +382,7 @@ void RendererProto::render()
 
 
 #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
-    mShaderSim.render(mRaycastCamera, mDistantLights);
+    mShaderSim.render(mRaycastCamera, mLightDistants);
 
     mpPresentShader->use();
 
@@ -457,20 +457,28 @@ MessageResult RendererProto::message(const T & msgAcc)
     {
     case HASH::light_directional_insert:
     {
+        /*
         messages::LightDistantR<T> msgr(msgAcc);
         glm::vec3 normDir = glm::normalize(msgr.direction());
         glm::vec3 relDir = -normDir; // flip direction of vector relative to objects
-        mDistantLights.emplace_back(msgAcc.message().source,
-                                        relDir,
-                                        msgr.color());
+        mLightDistants.emplace_back(msgAcc.message().source,
+                                    RenderObject::next_uid(),
+                                    HASH::default,
+                                    Color(255, 255, 255, 255),
+                                    1.0f,
+                                    relDir,
+                                    msgr.color());
+                                    */
         break;
     }
     case HASH::light_directional_update:
     {
+        /*
         messages::LightDistantR<T> msgr(msgAcc);
-        mDistantLights.emplace_back(msgAcc.message().source,
-                                        msgr.direction(),
-                                        msgr.color());
+        mLightDistants.emplace_back(msgAcc.message().source,
+                                    msgr.direction(),
+                                    msgr.color());
+                                    */
         break;
     }
     case HASH::camera_transform:

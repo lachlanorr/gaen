@@ -139,7 +139,7 @@ void ComputeShaderSimulator::init(glm::uvec3 workGroupSize,
     gl_NumWorkGroups = numWorkGroups;
 }
 
-void ComputeShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, DistantLight> & lights)
+void ComputeShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, LightDistant> & lights)
 {
     // prpare uniforms
     un_CameraPos = camera.position();
@@ -393,7 +393,7 @@ void FragmentShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycast
     voxelRoot = set_shape_generic(voxelWorld, 0, 0, 3, glm::vec3(1.0f, 2.0f, -20.0f), kRad, glm::mat3(1.0f), SphereHitTest(kRad));
 }
 
-void FragmentShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, DistantLight> & lights)
+void FragmentShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, LightDistant> & lights)
 {
     projectionInv = camera.projectionInv();
 
@@ -402,8 +402,8 @@ void FragmentShaderSimulator::render(const RaycastCamera & camera, const List<kM
 
     if (lights.size() > 0)
     {
-        lightDir = lights.front().direction;
-        lightColor = lights.front().color;
+        lightDir = lights.front().direction();
+        lightColor = lights.front().color();
     }
 
     mDepthBuffer->copy(*mDepthBufferBlank);

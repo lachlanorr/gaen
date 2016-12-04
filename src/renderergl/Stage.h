@@ -39,6 +39,8 @@ template <class ItemGLT>
 class Stage
 {
 public:
+    const u32 kMaxLightDistantVecSize = 4;
+
     Stage(u32 stageHash, RendererMesh * pRenderer, const Camera & defaultCamera)
       : mStageHash(stageHash)
       , mpRenderer(pRenderer)
@@ -47,6 +49,8 @@ public:
         auto pair = mCameraMap.emplace(defaultCamera.uid(), defaultCamera);
         mpDefaultCamera = &pair.first->second;
         mpCamera = mpDefaultCamera;
+
+        mLightDistants.reserve(kMaxLightDistantVecSize);
     }
 
     u32 stageHash() { return mStageHash; }
@@ -71,6 +75,21 @@ public:
                 {
                     glm::mat4 mvp = viewProj * to_mat4x4(pItemGL->transform());
                     mpRenderer->activeShader().setUniformMat4(HASH::uMvp, mvp);
+
+                    if (mLightDistants.size() > 0)
+                    {
+                        mpRenderer->activeShader().setUniformVec3(HASH::uLight0_Incidence, mLightDistants[0].incidence());
+                        mpRenderer->activeShader().setUniformVec3(HASH::uLight0_Color, mLightDistants[0].color());
+                        mpRenderer->activeShader().setUniformFloat(HASH::uLight0_Ambient, mLightDistants[0].ambient());
+
+                        if (mLightDistants.size() > 1)
+                        {
+                            mpRenderer->activeShader().setUniformVec3(HASH::uLight1_Incidence, mLightDistants[1].incidence());
+                            mpRenderer->activeShader().setUniformVec3(HASH::uLight1_Color, mLightDistants[1].color());
+                            mpRenderer->activeShader().setUniformFloat(HASH::uLight1_Ambient, mLightDistants[1].ambient());
+                        }
+                    }
+
                     pItemGL->render();
                     ++it;
                 }
@@ -124,6 +143,71 @@ public:
         if (it != mCameraMap.end())
         {
             mpCamera = &it->second;
+            return true;
+        }
+        return false;
+    }
+
+    void lightDistantInsert(const LightDistant & light)
+    {
+        if (mLightDistants.size() < kMaxLightDistantVecSize)
+        {
+            mLightDistants.emplace_back(light);
+            return;
+        }
+    }
+
+    Vector<kMEM_Renderer, LightDistant>::iterator lightDistantFind(u32 uid)
+    {
+        for (auto it = mLightDistants.begin();
+             it != mLightDistants.end();
+             ++it)
+        {
+            if (it->uid() == uid)
+                return it;
+        }
+        return mLightDistants.end();
+    }
+
+    bool lightDistantDirection(u32 uid, const glm::vec3 & direction)
+    {
+        auto it = lightDistantFind(uid);
+        if (it != mLightDistants.end())
+        {
+            it->setDirection(direction);
+            return true;
+        }
+        return false;
+    }
+
+    bool lightDistantColor(u32 uid, Color color)
+    {
+        auto it = lightDistantFind(uid);
+        if (it != mLightDistants.end())
+        {
+            it->setColor(color);
+            return true;
+        }
+        return false;
+    }
+
+    bool lightDistantAmbient(u32 uid, f32 ambient)
+    {
+        auto it = lightDistantFind(uid);
+        if (it != mLightDistants.end())
+        {
+            it->setAmbient(ambient);
+            return true;
+        }
+        return false;
+    }
+
+    bool lightDistantRemove(u32 uid)
+    {
+        auto it = lightDistantFind(uid);
+        if (it != mLightDistants.end())
+        {
+            mLightDistants.erase(it);
             return true;
         }
         return false;
@@ -187,6 +271,8 @@ protected:
     const Camera * mpCamera;
     const Camera * mpDefaultCamera;
     HashMap<kMEM_Renderer, u32, Camera> mCameraMap;
+
+    Vector<kMEM_Renderer, LightDistant> mLightDistants;
 
     RenderCollection<ItemGLT> mItems;
 

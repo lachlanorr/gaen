@@ -29,6 +29,7 @@
 #include "engine/messages/UidTransform.h"
 #include "engine/messages/UidColor.h"
 #include "engine/messages/UidVec3.h"
+#include "engine/messages/UidScalar.h"
 #include "engine/messages/LightDistant.h"
 
 #include "render_support/render_objects.h"
@@ -74,8 +75,10 @@ glm::mat4x3 view_look_at(const glm::vec3 & position,
 }
 
 void light_distant_insert(i32 uid,
-                          const glm::vec3 & direction,
+                          i32 stageHash,
                           Color color,
+                          f32 ambient,
+                          const glm::vec3 & direction,
                           Entity & caller)
 {
     messages::LightDistantQW msgQW(HASH::light_distant_insert,
@@ -83,8 +86,10 @@ void light_distant_insert(i32 uid,
                                    caller.task().id(),
                                    kRendererTaskId,
                                    uid);
-    msgQW.setDirection(direction);
+    msgQW.setStageHash(stageHash);
     msgQW.setColor(color);
+    msgQW.setAmbient(ambient);
+    msgQW.setDirection(direction);
 }
 
 void light_distant_direction(i32 uid,
@@ -109,6 +114,18 @@ void light_distant_color(i32 uid,
                                kRendererTaskId,
                                uid);
     msgQW.setColor(color);
+}
+
+void light_distant_ambient(i32 uid,
+                             f32 ambient,
+                             Entity & caller)
+{
+    messages::UidScalarQW msgQW(HASH::light_distant_update,
+                                kMessageFlag_None,
+                                caller.task().id(),
+                                kRendererTaskId,
+                                uid);
+    msgQW.setScalar(ambient);
 }
 
 void light_distant_remove(i32 uid, Entity & caller)

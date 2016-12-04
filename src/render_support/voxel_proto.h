@@ -52,7 +52,7 @@ public:
 
     const u8 * frameBuffer() { return un_FrameBuffer->buffer(); }
 
-    void render(const RaycastCamera & camera, const List<kMEM_Renderer, DistantLight> & lights);
+    void render(const RaycastCamera & camera, const List<kMEM_Renderer, LightDistant> & lights);
 
 private:
     void compShader_Test();
@@ -100,7 +100,7 @@ public:
     void init(u32 outputImageSize, RaycastCamera * pRaycastCamera);
     const u8 * frameBuffer() { return mFrameBuffer->buffer(); }
 
-    void render(const RaycastCamera & camera, const List<kMEM_Renderer, DistantLight> & lights);
+    void render(const RaycastCamera & camera, const List<kMEM_Renderer, LightDistant> & lights);
 private:
     void fragShader_Blue();
     void fragShader_Raycast();
@@ -130,7 +130,7 @@ private:
     glm::mat4 projectionInv;
     glm::vec3 cameraPos;
     glm::vec3 lightDir;
-    glm::vec4 lightColor;
+    glm::vec3 lightColor;
     glm::vec2 windowSize;
     f32 nearZ;
     f32 farZ;

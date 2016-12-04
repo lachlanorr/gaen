@@ -82,6 +82,8 @@ const char * get_type_name(GLenum type)
     {
     case GL_UNSIGNED_INT:
         return "GL_UNSIGNED_INT";
+    case GL_FLOAT:
+        return "GL_FLOAT";
     case GL_FLOAT_VEC2:
         return "GL_FLOAT_VEC2";
     case GL_FLOAT_VEC3:

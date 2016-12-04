@@ -43,7 +43,7 @@ void ModelMotionState::getWorldTransform(btTransform& worldTrans) const
                                     t[1][0], t[1][1], t[1][2],
                                     t[2][0], t[2][1], t[2][2]));
 
-    worldTrans.setOrigin(btVector3(t[3][0], t[3][1], 0.0f /* Don't use t[3][2] for z position since we use it for render order */));
+    worldTrans.setOrigin(btVector3(t[3][0], t[3][1], t[3][2]));
 }
 
 void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
@@ -64,9 +64,7 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 
     t[3][0] = worldTrans.getOrigin()[0];
     t[3][1] = worldTrans.getOrigin()[1];
-
-    // Don't set z position since we use it for render order
-    ASSERT(worldTrans.getOrigin()[2] == 0.0f);
+    t[3][2] = worldTrans.getOrigin()[2];
 
     ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, mModelInstance.model().uid(), mModelInstance.mTransform);
     {
@@ -175,7 +173,7 @@ void ModelPhysics::insert(ModelInstance & modelInst,
         ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, pMotionState, group, constrInfo);
         mBodies.emplace(modelInst.model().uid(), pBody);
 
-        pBody->setLinearFactor(btVector3(1, 1, 0));
+        pBody->setLinearFactor(btVector3(1, 1, 1));
         pBody->setAngularFactor(btVector3(0, 0, 0));
 
         if (group == 0)

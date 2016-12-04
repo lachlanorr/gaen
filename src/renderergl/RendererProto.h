@@ -119,8 +119,7 @@ private:
     glm::mat4 mProjection;
     glm::mat4 mGuiProjection;
 
-    List<kMEM_Renderer, DistantLight> mDistantLights;
-    List<kMEM_Renderer, PointLight> mPointLights;
+    List<kMEM_Renderer, LightDistant> mLightDistants;
 
     shaders::Shader * mpActiveShader = nullptr;
 

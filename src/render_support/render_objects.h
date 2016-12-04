@@ -79,12 +79,8 @@ public:
     }
 
     Camera(task_id owner, u32 stageHash, glm::mat4 & projection, glm::mat4 & view)
-      : RenderObject(owner)
-      , mStageHash(stageHash)
-      , mProjection(projection)
-    {
-        setView(view);
-    }
+      : Camera(owner, RenderObject::next_uid(), stageHash, projection, view)
+    {}
 
     u32 stageHash() { return mStageHash; }
 
@@ -100,34 +96,63 @@ public:
     const glm::mat4 & viewProjection() const { return mViewProjection; }
 
 private:
+    u32 mStageHash;
     glm::mat4 mProjection;
     glm::mat4 mView;
     glm::mat4 mViewProjection;
+};
+
+class LightDistant : public RenderObject
+{
+public:
+    LightDistant(task_id owner,
+                 ruid uid,
+                 u32 stageHash,
+                 Color color,
+                 f32 ambient,
+                 const glm::vec3 & direction)
+      : RenderObject(owner, uid)
+      , mStageHash(stageHash)
+      , mColor(Color::build_vec4(color))
+      , mAmbient(ambient)
+    {
+        setDirection(direction);
+    }
+
+    LightDistant(task_id owner,
+                 u32 stageHash,
+                 Color color,
+                 f32 ambient,
+                 const glm::vec3 & direction)
+      : LightDistant(owner,
+                     RenderObject::next_uid(),
+                     stageHash,
+                     color,
+                     ambient,
+                     direction)
+    {}
+
+    const glm::vec3 & direction() const { return mDirection; }
+    void setDirection(const glm::vec3 & direction)
+    {
+        mDirection = direction;
+        mIncidence = -glm::normalize(direction);
+    }
+
+    const glm::vec3 & incidence() const { return mIncidence; }
+
+    const glm::vec3 & color() const { return mColor; }
+    void setColor(glm::vec3 & color) { mColor = color; }
+    void setColor(Color color) { mColor = color.toVec3(); }
+
+    const f32 ambient() const { return mAmbient; }
+    void setAmbient(f32 ambient) { mAmbient = ambient; }
+private:
     u32 mStageHash;
-};
-
-struct DistantLight : public RenderObject
-{
-    glm::vec3 direction;
-    glm::vec4 color;
-
-    DistantLight(task_id owner, const glm::vec3 & direction, Color color)
-      : RenderObject(owner)
-      , direction(direction)
-      , color(Color::build_vec4(color))
-    {}
-};
-
-struct PointLight : public RenderObject
-{
-    glm::vec3 location;
-    glm::vec4 color;
-
-    PointLight(task_id owner, const glm::vec3 & location, Color color)
-      : RenderObject(owner)
-      , location(location)
-      , color(Color::build_vec4(color))
-    {}
+    glm::vec3 mColor;
+    f32 mAmbient;
+    glm::vec3 mDirection;
+    glm::vec3 mIncidence;
 };
 
 } // namespace gaen

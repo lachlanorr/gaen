@@ -27,6 +27,7 @@
 #ifndef GAEN_ASSETS_COLOR_H
 #define GAEN_ASSETS_COLOR_H
 
+#include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
 #include "core/base_defines.h"
@@ -86,6 +87,9 @@ public:
     void setgf(f32 g) { setg(static_cast<u8>(clamp(g, 0.0f, 1.0f) * 255.0f + 0.5f)); }
     void setbf(f32 b) { setb(static_cast<u8>(clamp(b, 0.0f, 1.0f) * 255.0f + 0.5f)); }
     void setaf(f32 a) { seta(static_cast<u8>(clamp(a, 0.0f, 1.0f) * 255.0f + 0.5f)); }
+
+    glm::vec3 toVec3() const { return build_vec3(*this); }
+    static glm::vec3 build_vec3(const Color & col) { return glm::vec3(col.rf(), col.gf(), col.bf()); }
 
     glm::vec4 toVec4() const { return build_vec4(*this); }
     static glm::vec4 build_vec4(const Color & col) { return glm::vec4(col.rf(), col.gf(), col.bf(), col.af()); }

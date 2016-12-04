@@ -136,6 +136,16 @@ void Shader::setUniformUint(u32 nameHash, u32 value)
         ERR("UniformUint does not exist in shader");
 }
 
+void Shader::setUniformFloat(u32 nameHash, f32 value)
+{
+    ASSERT(mIsLoaded);
+    VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT);
+    if (pUniform)
+        glUniform1f(pUniform->location, value);
+    else
+        ERR("UniformFloat does not exist in shader");
+}
+
 void Shader::setUniformVec3(u32 nameHash, const glm::vec3 & value)
 {
     ASSERT(mIsLoaded);

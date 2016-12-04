@@ -41,25 +41,31 @@ static const char * kShaderCode_shv =
     "\n"
     "uniform mat4 uMvp;\n"
     "uniform mat3 uNormal;\n"
-    "uniform vec4 uColor;\n"
-    "uniform vec3 uLightDirection;\n"
-    "uniform vec4 uLightColor;\n"
+    "\n"
+    "uniform vec3 uLight0_Incidence;\n"
+    "uniform vec3 uLight0_Color;\n"
+    "uniform float uLight0_Ambient;\n"
+    "\n"
+    "uniform vec3 uLight1_Incidence;\n"
+    "uniform vec3 uLight1_Color;\n"
+    "uniform float uLight1_Ambient;\n"
     "\n"
     "out vec4 oiColor;\n"
     "\n"
     "void main()\n"
     "{\n"
-    "    vec3 normalTrans = normalize(uNormal * vNormal);\n"
-    "    float intensity = max(dot(normalTrans, uLightDirection), 0.0);\n"
-    "    intensity += min(intensity + 0.3, 1.0);\n"
-    "    //oiColor = vec4(1.0, 0.0, 0.0, 1.0);//intensity * uColor;\n"
-    "    oiColor = vColor * (intensity * 1.5);\n"
-    "    //vColor = vec4((uNormal * vNormal), 1.0);\n"
-    "    //vColor = vec4(dot(uLightDirection, normalTrans));\n"
-    "    //vColor = abs(dot(uLightDirection, normalTrans)) * uColor;\n"
-    "    //vColor = vec4(abs(uLightDirection), 1.0);\n"
-    "    //vColor = 0.5 * uColor;\n"
-    "    //vColor = vec4(1.0, 1.0, 0.0, 0.6);\n"
+    "    vec3 normalTrans = vNormal; // normalize(uNormal * vNormal);\n"
+    "\n"
+    "    float intensity = max(dot(normalTrans, uLight0_Incidence), 0.0);\n"
+    "    vec3 surfaceColor = intensity * vColor.rgb * uLight0_Color;\n"
+    "\n"
+    "    intensity = max(dot(normalTrans, uLight1_Incidence), 0.0);\n"
+    "    surfaceColor += intensity * vColor.rgb * uLight1_Color;\n"
+    "\n"
+    "    vec3 ambient = uLight0_Ambient * vColor.rgb * uLight0_Color;\n"
+    "    ambient += uLight1_Ambient * vColor.rgb * uLight1_Color;\n"
+    "\n"
+    "    oiColor = vec4(ambient + surfaceColor, vColor.a);\n"
     "    gl_Position = uMvp * vPosition;\n"
     "};\n"
     "\n"
@@ -74,7 +80,7 @@ static const char * kShaderCode_shv =
     "uniform mat4 uMvp;\n"
     "uniform mat3 uNormal;\n"
     "uniform vec4 uColor;\n"
-    "uniform vec3 uLightDirection;\n"
+    "uniform vec3 uLightIncidence;\n"
     "uniform vec4 uLightColor;\n"
     "\n"
     "varying vec4 vColor\n"
@@ -82,7 +88,7 @@ static const char * kShaderCode_shv =
     "void main()\n"
     "{\n"
     "    vec3 normalTrans = normalize(uNormal * vNormal);\n"
-    "    float intensity = max(dot(normalTrans, uLightDirection), 0.0);\n"
+    "    float intensity = max(dot(normalTrans, uLightIncidence), 0.0);\n"
     "    intensity += min(intensity + 0.3, 1.0);\n"
     "    vColor = intensity * uColor;\n"
     "    gl_Position = mvp * vPosition;\n"
@@ -99,6 +105,7 @@ static const char * kShaderCode_shf =
     "void main()\n"
     "{\n"
     "    color = oiColor;\n"
+    "    //color = vec4(gl_FragDepth, gl_FragDepth, gl_FragDepth, 1.0);\n"
     "};\n"
     "\n"
     "#else // #ifdef OPENGL3\n"
@@ -130,20 +137,40 @@ Shader * faceted::construct()
 
 
     // Uniforms
-    pShader->mUniforms[0].nameHash = 0x0eb55385; /* HASH::uLightDirection */
+    pShader->mUniforms[0].nameHash = 0xd7720547; /* HASH::uLight0_Ambient */
     pShader->mUniforms[0].index = 0;
     pShader->mUniforms[0].location = 0;
-    pShader->mUniforms[0].type = GL_FLOAT_VEC3;
+    pShader->mUniforms[0].type = GL_FLOAT;
 
-    pShader->mUniforms[1].nameHash = 0xce837dc9; /* HASH::uMvp */
+    pShader->mUniforms[1].nameHash = 0x8508e11c; /* HASH::uLight0_Color */
     pShader->mUniforms[1].index = 1;
     pShader->mUniforms[1].location = 1;
-    pShader->mUniforms[1].type = GL_FLOAT_MAT4;
+    pShader->mUniforms[1].type = GL_FLOAT_VEC3;
 
-    pShader->mUniforms[2].nameHash = 0x4b2c9b13; /* HASH::uNormal */
+    pShader->mUniforms[2].nameHash = 0xecd64955; /* HASH::uLight0_Incidence */
     pShader->mUniforms[2].index = 2;
     pShader->mUniforms[2].location = 2;
-    pShader->mUniforms[2].type = GL_FLOAT_MAT3;
+    pShader->mUniforms[2].type = GL_FLOAT_VEC3;
+
+    pShader->mUniforms[3].nameHash = 0x1b451a20; /* HASH::uLight1_Ambient */
+    pShader->mUniforms[3].index = 3;
+    pShader->mUniforms[3].location = 3;
+    pShader->mUniforms[3].type = GL_FLOAT;
+
+    pShader->mUniforms[4].nameHash = 0xe2bf5e87; /* HASH::uLight1_Color */
+    pShader->mUniforms[4].index = 4;
+    pShader->mUniforms[4].location = 4;
+    pShader->mUniforms[4].type = GL_FLOAT_VEC3;
+
+    pShader->mUniforms[5].nameHash = 0x855516a6; /* HASH::uLight1_Incidence */
+    pShader->mUniforms[5].index = 5;
+    pShader->mUniforms[5].location = 5;
+    pShader->mUniforms[5].type = GL_FLOAT_VEC3;
+
+    pShader->mUniforms[6].nameHash = 0xce837dc9; /* HASH::uMvp */
+    pShader->mUniforms[6].index = 6;
+    pShader->mUniforms[6].location = 6;
+    pShader->mUniforms[6].type = GL_FLOAT_MAT4;
 
 
     // Attributes

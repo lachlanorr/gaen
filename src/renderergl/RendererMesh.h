@@ -96,6 +96,16 @@ private:
 
     shaders::Shader * getShader(u32 nameHash);
 
+    void lightDistantInsert(u32 uid,
+                            u32 stageHash,
+                            Color color,
+                            f32 ambient,
+                            const glm::vec3 & direction);
+    void lightDistantDirection(u32 uid, const glm::vec3 & direction);
+    void lightDistantColor(u32 uid, Color color);
+    void lightDistantAmbient(u32 uid, f32 ambient);
+    void lightDistantRemove(u32 uid);
+
     void modelInsert(ModelInstance * pModelInst);
     void modelTransform(u32 uid, const glm::mat4x3 & transform);
     void modelRemove(u32 uid);
@@ -145,9 +155,6 @@ private:
     typedef HashMap<kMEM_Renderer, u32, SpriteStageUP> SpriteStageMap;
     SpriteStageMap mSpriteStages;
     
-    List<kMEM_Renderer, DistantLight> mDistantLights;
-    List<kMEM_Renderer, PointLight> mPointLights;
-
     shaders::Shader * mpActiveShader = nullptr;
 
     ShaderRegistry mShaderRegistry;

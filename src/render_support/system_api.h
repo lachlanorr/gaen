@@ -55,8 +55,10 @@ glm::mat4x3 view_look_at(const glm::vec3 & position,
                          Entity & caller);
 
 void light_distant_insert(i32 uid,
-                          const glm::vec3 & direction,
+                          i32 stageHash,
                           Color color,
+                          f32 ambient,
+                          const glm::vec3 & direction,
                           Entity & caller);
 
 void light_distant_direction(i32 uid,
@@ -66,6 +68,10 @@ void light_distant_direction(i32 uid,
 void light_distant_color(i32 uid,
                          Color color,
                          Entity & caller);
+
+void light_distant_ambient(i32 uid,
+                             f32 ambient,
+                             Entity & caller);
 
 void light_distant_remove(i32 uid, Entity & caller);
 
