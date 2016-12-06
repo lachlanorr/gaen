@@ -89,6 +89,7 @@ void RendererMesh::initViewport()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     glEnable(GL_CULL_FACE);
+    glEnable(GL_MULTISAMPLE);
 
     glClearDepth(1.0f);
     glDepthFunc(GL_LEQUAL);    // The Type Of Depth Testing To Do

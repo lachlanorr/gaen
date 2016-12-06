@@ -83,6 +83,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_SAMPLES, 8);
 
     // Starting with a visible window gives a nasty white window on
     // screen before our renderer initializes. Will get shown by
