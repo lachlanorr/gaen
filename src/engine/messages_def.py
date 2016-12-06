@@ -82,10 +82,6 @@ class ModelInstance(FieldHandler):
     pModelInstance = PointerField(type_name='ModelInstance *',
                                   includes=['render_support/Model.h'])
 
-class ModelVelocity(FieldHandler):
-    uid          = i32Field(payload=True)
-    velocity     = vec3Field()
-
 class ModelBody(FieldHandler):
     uid          = i32Field(payload=True)
     mass         = f32Field()

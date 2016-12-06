@@ -63,8 +63,11 @@ class Entity;
 namespace system_api
 {
 i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const glm::mat4x3 & transform, Entity & caller);
-void model_set_velocity(i32 modelUid, const glm::vec3 & velocity, Entity & caller);
+
 void model_init_body(i32 modelUid, f32 mass, i32 group, glm::ivec4 mask03, glm::ivec4 mask47, Entity & caller);
+void model_set_velocity(i32 modelUid, const glm::vec3 & velocity, Entity & caller);
+void model_set_angular_velocity(i32 modelUid, const glm::vec3 & velocity, Entity & caller);
+void model_transform(i32 modelUid, const glm::mat4x3 & transform, Entity & caller);
 
 void model_stage_show(i32 stageHash, Entity & caller);
 void model_stage_hide(i32 stageHash, Entity & caller);

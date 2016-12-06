@@ -36,40 +36,52 @@
 namespace gaen
 {
 
+void gaen_to_bullet_transform(btTransform & bT, const glm::mat4x3 & gT)
+{
+    bT.setBasis(btMatrix3x3(gT[0][0], gT[0][1], gT[0][2],
+                            gT[1][0], gT[1][1], gT[1][2],
+                            gT[2][0], gT[2][1], gT[2][2]));
+
+    bT.setOrigin(btVector3(gT[3][0], gT[3][1], gT[3][2]));
+}
+
+void bullet_to_gaen_transform(glm::mat4x3 & gT, const btTransform & bT)
+{
+    gT[0][0] = bT.getBasis()[0][0];
+    gT[0][1] = bT.getBasis()[0][1];
+    gT[0][2] = bT.getBasis()[0][2];
+
+    gT[1][0] = bT.getBasis()[1][0];
+    gT[1][1] = bT.getBasis()[1][1];
+    gT[1][2] = bT.getBasis()[1][2];
+
+    gT[2][0] = bT.getBasis()[2][0];
+    gT[2][1] = bT.getBasis()[2][1];
+    gT[2][2] = bT.getBasis()[2][2];
+
+    gT[3][0] = bT.getOrigin()[0];
+    gT[3][1] = bT.getOrigin()[1];
+    gT[3][2] = bT.getOrigin()[2];
+}
+
 void ModelMotionState::getWorldTransform(btTransform& worldTrans) const
 {
-    const glm::mat4x3 & t = mModelInstance.mTransform;
-    worldTrans.setBasis(btMatrix3x3(t[0][0], t[0][1], t[0][2],
-                                    t[1][0], t[1][1], t[1][2],
-                                    t[2][0], t[2][1], t[2][2]));
-
-    worldTrans.setOrigin(btVector3(t[3][0], t[3][1], t[3][2]));
+    gaen_to_bullet_transform(worldTrans, mModelInstance.mTransform);
 }
 
 void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 {
-    glm::mat4x3 & t = mModelInstance.mTransform;
+    glm::mat4x3 newTrans;
+    bullet_to_gaen_transform(newTrans, worldTrans);
 
-    t[0][0] = worldTrans.getBasis()[0][0];
-    t[0][1] = worldTrans.getBasis()[0][1];
-    t[0][2] = worldTrans.getBasis()[0][2];
-
-    t[1][0] = worldTrans.getBasis()[1][0];
-    t[1][1] = worldTrans.getBasis()[1][1];
-    t[1][2] = worldTrans.getBasis()[1][2];
-
-    t[2][0] = worldTrans.getBasis()[2][0];
-    t[2][1] = worldTrans.getBasis()[2][1];
-    t[2][2] = worldTrans.getBasis()[2][2];
-
-    t[3][0] = worldTrans.getOrigin()[0];
-    t[3][1] = worldTrans.getOrigin()[1];
-    t[3][2] = worldTrans.getOrigin()[2];
-
-    ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, mModelInstance.model().uid(), mModelInstance.mTransform);
+    if (newTrans != mModelInstance.mTransform)
     {
-        messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), false);
-        msgw.setTransform(mModelInstance.mTransform);
+        mModelInstance.mTransform = newTrans;
+        ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, mModelInstance.model().uid(), mModelInstance.mTransform);
+        {
+            messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), false);
+            msgw.setTransform(mModelInstance.mTransform);
+        }
     }
 }
 
@@ -154,13 +166,13 @@ void ModelPhysics::insert(ModelInstance & modelInst,
 
         glm::vec3 halfExtents = modelInst.model().gmdl().halfExtents();
         auto colShapeIt = mCollisionShapes.find(halfExtents);
+        btVector3 btExtents(halfExtents.x, halfExtents.y, halfExtents.z);
 
         btCollisionShape * pCollisionShape = nullptr;
         if (colShapeIt != mCollisionShapes.end())
             pCollisionShape = colShapeIt->second.get();
         else
         {
-            btVector3 btExtents(halfExtents.x, halfExtents.y, halfExtents.z);
             auto empRes = mCollisionShapes.emplace(std::piecewise_construct,
                                                    std::forward_as_tuple(halfExtents),
                                                    std::forward_as_tuple(GNEW(kMEM_Physics, btBoxShape, btExtents)));
@@ -170,11 +182,14 @@ void ModelPhysics::insert(ModelInstance & modelInst,
         ModelMotionState * pMotionState = GNEW(kMEM_Physics, ModelMotionState, modelInst);
         btRigidBody::btRigidBodyConstructionInfo constrInfo(mass, pMotionState, pCollisionShape);
 
+        constrInfo.m_angularDamping = 0.1;
+//        constrInfo.m_localInertia = btExtents;
+
         ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, pMotionState, group, constrInfo);
         mBodies.emplace(modelInst.model().uid(), pBody);
 
         pBody->setLinearFactor(btVector3(1, 1, 1));
-        pBody->setAngularFactor(btVector3(0, 0, 0));
+        pBody->setAngularFactor(btVector3(1, 0, 1));
 
         if (group == 0)
         {
@@ -208,13 +223,52 @@ void ModelPhysics::remove(u32 uid)
     }
 }
 
-void ModelPhysics::setVelocity(u32 uid, const glm::vec2 & velocity)
+void ModelPhysics::setTransform(u32 uid, const glm::mat4x3 & transform)
+{
+    auto it = mBodies.find(uid);
+    if (it != mBodies.end())
+    {
+        // update the instance
+        it->second->mpMotionState->mModelInstance.mTransform = transform;
+
+        // update the renderer
+        ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, it->second->mpMotionState->mModelInstance.model().uid(), transform);
+
+        // Update bullet
+        btTransform btTrans;
+        gaen_to_bullet_transform(btTrans, transform);
+        it->second->setWorldTransform(btTrans);
+
+        //it->second->getMotionState()->setWorldTransform(btTrans);
+        it->second->activate();
+    }
+    else
+    {
+        LOG_ERROR("Cannot find ModelBody %u to setTransform", uid);
+    }
+}
+
+void ModelPhysics::setVelocity(u32 uid, const glm::vec3 & velocity)
 {
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
     {
         it->second->activate();
-        it->second->setLinearVelocity(btVector3(velocity.x, velocity.y, 0));
+        it->second->setLinearVelocity(btVector3(velocity.x, velocity.y, velocity.z));
+    }
+    else
+    {
+        LOG_ERROR("Cannot find ModelBody %u to setVelocity", uid);
+    }
+}
+
+void ModelPhysics::setAngularVelocity(u32 uid, const glm::vec3 & velocity)
+{
+    auto it = mBodies.find(uid);
+    if (it != mBodies.end())
+    {
+        it->second->activate();
+        it->second->setAngularVelocity(btVector3(velocity.x, velocity.y, velocity.z));
     }
     else
     {

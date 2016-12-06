@@ -94,6 +94,29 @@ glm::mat3 rotation_mat3(const glm::vec3 & angles, Entity & caller)
     return glm::mat3_rotation(angles);
 }
 
+glm::mat4x3 transform_set_rotation(const glm::mat4x3 & trans, const glm::mat3 & rot, Entity & caller)
+{
+    glm::mat4x3 t;
+
+    t[0][0] = rot[0][0];
+    t[0][1] = rot[0][1];
+    t[0][2] = rot[0][2];
+
+    t[1][0] = rot[1][0];
+    t[1][1] = rot[1][1];
+    t[1][2] = rot[1][2];
+
+    t[2][0] = rot[2][0];
+    t[2][1] = rot[2][1];
+    t[2][2] = rot[2][2];
+
+    t[3][0] = trans[3][0];
+    t[3][1] = trans[3][1];
+    t[3][2] = trans[3][2];
+
+    return t;
+}
+
 glm::quat quat_from_axis_angle(const glm::vec3 & dir, f32 angle, Entity & caller)
 {
     return glm::quat(angle, dir);

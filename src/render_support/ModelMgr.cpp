@@ -34,7 +34,7 @@
 #include "engine/glm_ext.h"
 
 #include "engine/messages/ModelInstance.h"
-#include "engine/messages/ModelVelocity.h"
+#include "engine/messages/UidVec3.h"
 #include "engine/messages/ModelBody.h"
 #include "engine/messages/CameraPersp.h"
 #include "engine/messages/CameraOrtho.h"
@@ -86,13 +86,13 @@ MessageResult ModelMgr::message(const T & msgAcc)
     }
     case HASH::model_set_velocity:
     {
-        messages::ModelVelocityR<T> msgr(msgAcc);
+        messages::UidVec3R<T> msgr(msgAcc);
         auto modelPair = mModelMap.find(msgr.uid());
         if (modelPair != mModelMap.end())
         {
             if (modelPair->second->mHasBody)
             {
-                mPhysics.setVelocity(msgr.uid(), msgr.velocity());
+                mPhysics.setVelocity(msgr.uid(), msgr.vector());
             }
             else
             {
@@ -102,6 +102,48 @@ MessageResult ModelMgr::message(const T & msgAcc)
         else
         {
             ERR("model_set_velocity for unknown model, uid: %u", msgr.uid());
+        }
+        return MessageResult::Consumed;
+    }
+    case HASH::model_set_angular_velocity:
+    {
+        messages::UidVec3R<T> msgr(msgAcc);
+        auto modelPair = mModelMap.find(msgr.uid());
+        if (modelPair != mModelMap.end())
+        {
+            if (modelPair->second->mHasBody)
+            {
+                mPhysics.setAngularVelocity(msgr.uid(), msgr.vector());
+            }
+            else
+            {
+                ERR("model_set_angular_velocity for non rigid body model, uid: %u", msgr.uid());
+            }
+        }
+        else
+        {
+            ERR("model_set_angular_velocity for unknown model, uid: %u", msgr.uid());
+        }
+        return MessageResult::Consumed;
+    }
+    case HASH::model_transform:
+    {
+        messages::UidTransformR<T> msgr(msgAcc);
+        auto modelPair = mModelMap.find(msgr.uid());
+        if (modelPair != mModelMap.end())
+        {
+            if (modelPair->second->mHasBody)
+            {
+                mPhysics.setTransform(msgr.uid(), msgr.transform());
+            }
+            else
+            {
+                ERR("model_transform for non rigid body model, uid: %u", msgr.uid());
+            }
+        }
+        else
+        {
+            ERR("model_transform for unknown model, uid: %u", msgr.uid());
         }
         return MessageResult::Consumed;
     }
@@ -193,8 +235,20 @@ i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const glm::mat4x3 & t
 
 void model_set_velocity(i32 modelUid, const glm::vec3 & velocity, Entity & caller)
 {
-    messages::ModelVelocityQW msgw(HASH::model_set_velocity, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
-    msgw.setVelocity(velocity);
+    messages::UidVec3QW msgw(HASH::model_set_velocity, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
+    msgw.setVector(velocity);
+}
+
+void model_set_angular_velocity(i32 modelUid, const glm::vec3 & velocity, Entity & caller)
+{
+    messages::UidVec3QW msgw(HASH::model_set_angular_velocity, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
+    msgw.setVector(velocity);
+}
+
+void model_transform(i32 modelUid, const glm::mat4x3 & transform, Entity & caller)
+{
+    messages::UidTransformQW msgw(HASH::model_transform, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
+    msgw.setTransform(transform);
 }
 
 void model_init_body(i32 modelUid, f32 mass, i32 group, glm::ivec4 mask03, glm::ivec4 mask47, Entity & caller)

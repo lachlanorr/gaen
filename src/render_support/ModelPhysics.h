@@ -101,7 +101,9 @@ public:
                 const glm::ivec4 & mask47);
     void remove(u32 uid);
 
-    void setVelocity(u32 uid, const glm::vec2 & velocity);
+    void setTransform(u32 uid, const glm::mat4x3 & transform);
+    void setVelocity(u32 uid, const glm::vec3 & velocity);
+    void setAngularVelocity(u32 uid, const glm::vec3 & velocity);
 private:
     u16 buildMask(const glm::ivec4 & mask03, const glm::ivec4 & mask47);
     u16 maskFromHash(u32 hash);
