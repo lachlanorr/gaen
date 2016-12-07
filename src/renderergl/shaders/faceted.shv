@@ -30,7 +30,12 @@ void main()
     vec3 ambient = uLight0_Ambient * vColor.rgb * uLight0_Color;
     ambient += uLight1_Ambient * vColor.rgb * uLight1_Color;
 
-    oiColor = vec4(ambient + surfaceColor, vColor.a);
+    vec3 linearColor = vec3(ambient + surfaceColor);
+
+    const vec3 gamma = vec3(1.0/2.2);
+
+    oiColor = vec4(pow(linearColor, gamma), vColor.a);
+
     gl_Position = uMvp * vPosition;
 };
 
