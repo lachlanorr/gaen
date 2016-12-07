@@ -41,7 +41,7 @@ namespace cookers
 
 Model::Model()
 {
-    setVersion(2);
+    setVersion(6);
     addRawExt(kExtObj);
 //    addRawExt(kExtPly);
 //    addRawExt(kExtFbx);
@@ -97,7 +97,16 @@ void Model::cook(CookInfo * pCookInfo) const
             pVert[v].normal.y = pAiMesh->mNormals[v].y;
             pVert[v].normal.z = pAiMesh->mNormals[v].z;
 
-            pVert[v].color = Color(255, 0, 255, 255);
+            aiColor3D diffuse(1.0f, 1.0f, 1.0f);
+            aiReturn ret = pAiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+
+            Color col;
+            col.setrf(diffuse.r);
+            col.setgf(diffuse.g);
+            col.setbf(diffuse.b);
+            col.seta(255);
+
+            pVert[v].color = col;
         }
 
         for (u32 t = 0; t < pAiMesh->mNumFaces; ++t)
