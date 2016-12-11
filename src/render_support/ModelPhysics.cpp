@@ -77,7 +77,13 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
     if (newTrans != mModelInstance.mTransform)
     {
         mModelInstance.mTransform = newTrans;
-        ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, mModelInstance.model().uid(), mModelInstance.mTransform);
+
+        if (mModelInstance.mIsRenderable)
+        {
+            ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, mModelInstance.model().uid(), mModelInstance.mTransform);
+        }
+
+        // Send transform to entity
         {
             messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), false);
             msgw.setTransform(mModelInstance.mTransform);
@@ -182,7 +188,7 @@ void ModelPhysics::insert(ModelInstance & modelInst,
         ModelMotionState * pMotionState = GNEW(kMEM_Physics, ModelMotionState, modelInst);
         btRigidBody::btRigidBodyConstructionInfo constrInfo(mass, pMotionState, pCollisionShape);
 
-        constrInfo.m_angularDamping = 0.1;
+//        constrInfo.m_angularDamping = 0.1;
 //        constrInfo.m_localInertia = btExtents;
 
         ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, pMotionState, group, constrInfo);
@@ -232,7 +238,10 @@ void ModelPhysics::setTransform(u32 uid, const glm::mat4x3 & transform)
         it->second->mpMotionState->mModelInstance.mTransform = transform;
 
         // update the renderer
-        ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, it->second->mpMotionState->mModelInstance.model().uid(), transform);
+        if (it->second->mpMotionState->mModelInstance.mIsRenderable)
+        {
+            ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, it->second->mpMotionState->mModelInstance.model().uid(), transform);
+        }
 
         // Update bullet
         btTransform btTrans;

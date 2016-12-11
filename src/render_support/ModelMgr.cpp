@@ -77,10 +77,18 @@ MessageResult ModelMgr::message(const T & msgAcc)
         mModelMap.emplace(pModelInst->model().uid(), pModelInst);
         mModelOwners[pModelInst->model().owner()].push_back(pModelInst->model().uid());
 
-        // Send a copy to the renderer
-        Model * pModelRenderer = GNEW(kMEM_Renderer, Model, pModelInst->model());
-        ModelInstance * pModelInstRenderer = GNEW(kMEM_Renderer, ModelInstance, pModelRenderer, pModelInst->stageHash(), pModelInst->mTransform);
-        ModelInstance::model_insert(kModelMgrTaskId, kRendererTaskId, pModelInstRenderer);
+        if (pModelInst->mIsRenderable)
+        {
+            // Send a copy to the renderer
+            Model * pModelRenderer = GNEW(kMEM_Renderer, Model, pModelInst->model());
+            ModelInstance * pModelInstRenderer = GNEW(kMEM_Renderer,
+                                                      ModelInstance,
+                                                      pModelRenderer,
+                                                      pModelInst->stageHash(),
+                                                      pModelInst->mTransform,
+                                                      pModelInst->mIsRenderable);
+            ModelInstance::model_insert(kModelMgrTaskId, kRendererTaskId, pModelInstRenderer);
+        }
 
         return MessageResult::Consumed;
     }
@@ -226,7 +234,7 @@ i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const glm::mat4x3 & t
     const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
 
     Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pAsset);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, transform);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, transform, true);
 
     ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
 

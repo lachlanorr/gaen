@@ -42,6 +42,7 @@ class Model : public RenderObject
 {
 public:
     Model(task_id owner, const Asset* pGmdlAsset);
+    Model(task_id owner, const Gmdl* pGmdl);
     Model(const Model& rhs);
     ~Model();
 
@@ -67,7 +68,7 @@ class ModelInstance
     friend class ModelMotionState;
     friend class ModelPhysics;
 public:
-    ModelInstance(Model * pModel, u32 stageHash, const glm::mat4x3 & transform);
+    ModelInstance(Model * pModel, u32 stageHash, const glm::mat4x3 & transform, bool isRenderable);
 
     const Model & model() { return *mpModel; }
     u32 stageHash() { return mStageHash; }
@@ -96,6 +97,7 @@ private:
     u32 mStageHash;
 
     bool mHasBody;
+    bool mIsRenderable;
 };
 
 typedef UniquePtr<ModelInstance> ModelInstanceUP;

@@ -46,17 +46,34 @@ Model::Model(task_id owner, const Asset * pGmdlAsset)
     mpGmdl = Gmdl::instance(mpGmdlAsset->buffer(), mpGmdlAsset->size());
 }
 
+Model::Model(task_id owner, const Gmdl* pGmdl)
+  : RenderObject(owner)
+  , mpGmdlAsset(nullptr)
+{
+    mpGmdl = pGmdl;
+}
+
 Model::Model(const Model& rhs)
   : RenderObject(rhs.owner(), rhs.uid())
   , mpGmdlAsset(rhs.mpGmdlAsset)
-{
-    mpGmdl = Gmdl::instance(mpGmdlAsset->buffer(), mpGmdlAsset->size());
-}
+  , mpGmdl(rhs.mpGmdl)
+{}
 
 Model::~Model()
 {
-    // LORRTODO: Cleanup is causing crash on exit... need to redesign how we release assets
-    //AssetMgr::release_asset(0, mpGmdlAsset);
+    if (mpGmdlAsset)
+    {
+       // LORRTODO: Cleanup is causing crash on exit... need to redesign how we release assets
+       //AssetMgr::release_asset(0, mpGmdlAsset);
+    }
+    else
+    {
+        ASSERT(mpGmdl);
+        // Most models have a const Gmdl, only if there was no Asset
+        // do we force deletion and must strip const to do so.
+        GDELETE(const_cast<Gmdl*>(mpGmdl));
+        mpGmdl = nullptr;
+    }
 }
 
 const Gmdl & Model::gmdl() const
@@ -67,11 +84,12 @@ const Gmdl & Model::gmdl() const
 
 // ModelInstance methods
 
-ModelInstance::ModelInstance(Model * pModel, u32 stageHash, const glm::mat4x3 & transform)
-  : mpModel(pModel)
+ModelInstance::ModelInstance(Model * pModel, u32 stageHash, const glm::mat4x3 & transform, bool isRenderable)
+  : mTransform(transform)
+  , mpModel(pModel)
   , mStageHash(stageHash)
   , mHasBody(false)
-  , mTransform(transform)
+  , mIsRenderable(isRenderable)
 {}
 
 void ModelInstance::destroyModel()

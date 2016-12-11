@@ -40,8 +40,8 @@ namespace gaen
 ShapeBuilder::ShapeBuilder(Gmdl * pGmdl)
   : mGmdl(*pGmdl)
 {
-    if (mGmdl.vertType() != kVERT_PosNorm)
-        PANIC("ShapeBuilder only builds gmdls with vertices of type kVERT_PosNorm");
+    if (mGmdl.vertType() != kVERT_PosNormCol)
+        PANIC("ShapeBuilder only builds gmdls with vertices of type kVERT_PosNormCol");
 
     if (mGmdl.primType() != kPRIM_Triangle)
         PANIC("ShapeBuilder only builds gmdls with indices of type kIND_Triangle");
@@ -50,14 +50,15 @@ ShapeBuilder::ShapeBuilder(Gmdl * pGmdl)
 
 void ShapeBuilder::addTri(const glm::vec3 & p0,
                           const glm::vec3 & p1,
-                          const glm::vec3 & p2)
+                          const glm::vec3 & p2,
+                          Color color)
 {
     if (mCurrVertex + 3 > mGmdl.vertCount())
         PANIC("Vertex array overrun during pushTri");
     if (mCurrPrimitive + 1 > mGmdl.primCount())
         PANIC("Index array overrun during pushTri");
 
-    VertPosNorm * pVert = mGmdl;
+    VertPosNormCol * pVert = mGmdl;
     pVert += mCurrVertex;
 
     PrimTriangle * pTris = mGmdl;
@@ -67,12 +68,15 @@ void ShapeBuilder::addTri(const glm::vec3 & p0,
 
     pVert[0].position = p0;
     pVert[0].normal = vecNorm;
+    pVert[0].color = color;
 
     pVert[1].position = p1;
     pVert[1].normal = vecNorm;
+    pVert[1].color = color;
 
     pVert[2].position = p2;
     pVert[2].normal = vecNorm;
+    pVert[2].color = color;
     
     tri.p0 = mCurrVertex + 0;
     tri.p1 = mCurrVertex + 1;
@@ -82,33 +86,37 @@ void ShapeBuilder::addTri(const glm::vec3 & p0,
     mCurrPrimitive += 1;
 }
 
-void ShapeBuilder::addTri(const glm::vec3 * pPoints)
+void ShapeBuilder::addTri(const glm::vec3 * pPoints, Color color)
 {
     addTri(pPoints[0],
            pPoints[1],
-           pPoints[2]);
+           pPoints[2],
+           color);
 }
 
 void ShapeBuilder::addTri(const glm::vec4 & p0,
                           const glm::vec4 & p1,
-                          const glm::vec4 & p2)
+                          const glm::vec4 & p2,
+                          Color color)
 {
     addTri(glm::vec3(p0),
            glm::vec3(p1),
-           glm::vec3(p2));
+           glm::vec3(p2),
+           color);
 }
 
 void ShapeBuilder::addQuad(const glm::vec3 & p0,
                            const glm::vec3 & p1,
                            const glm::vec3 & p2,
-                           const glm::vec3 & p3)
+                           const glm::vec3 & p3,
+                           Color color)
 {
     if (mCurrVertex + 4 > mGmdl.vertCount())
         PANIC("Vertex array overrun during pushQuad");
     if (mCurrPrimitive + 2 > mGmdl.primCount())
         PANIC("Index array overrun during pushQuad");
 
-    VertPosNorm * pVert = mGmdl;
+    VertPosNormCol * pVert = mGmdl;
     pVert += mCurrVertex;
 
     PrimTriangle * pTris = mGmdl;
@@ -122,15 +130,19 @@ void ShapeBuilder::addQuad(const glm::vec3 & p0,
 
     pVert[0].position = p0;
     pVert[0].normal = vecNorm;
+    pVert[0].color = color;
 
     pVert[1].position = p1;
     pVert[1].normal = vecNorm;
+    pVert[1].color = color;
 
     pVert[2].position = p2;
     pVert[2].normal = vecNorm;
+    pVert[2].color = color;
 
     pVert[3].position = p3;
     pVert[3].normal = vecNorm;
+    pVert[3].color = color;
 
     tri0.p0 = mCurrVertex + 0;
     tri0.p1 = mCurrVertex + 1;
@@ -144,29 +156,32 @@ void ShapeBuilder::addQuad(const glm::vec3 & p0,
     mCurrPrimitive += 2;
 }
 
-void ShapeBuilder::addQuad(const glm::vec3 * pPoints)
+void ShapeBuilder::addQuad(const glm::vec3 * pPoints, Color color)
 {
     addQuad(pPoints[0],
             pPoints[1],
             pPoints[2],
-            pPoints[3]);
+            pPoints[3],
+            color);
 }
 
 void ShapeBuilder::addQuad(const glm::vec4 & p0,
                            const glm::vec4 & p1,
                            const glm::vec4 & p2,
-                           const glm::vec4 & p3)
+                           const glm::vec4 & p3,
+                           Color color)
 {
     addQuad(glm::vec3(p0),
             glm::vec3(p1),
             glm::vec3(p2),
-            glm::vec3(p3));
+            glm::vec3(p3),
+            color);
 }
 
 void ShapeBuilder::addGmdl(const Gmdl & gmdl)
 {
-    if (gmdl.vertType() != kVERT_PosNorm)
-        PANIC("ShapeBuilder only appends gmdls with vertices of type kVERT_PosNorm");
+    if (gmdl.vertType() != kVERT_PosNormCol)
+        PANIC("ShapeBuilder only appends gmdls with vertices of type kVERT_PosNormCol");
     if (gmdl.primType() != kPRIM_Triangle)
         PANIC("ShapeBuilder only appends gmdls with indices of type kIND_Triangle");
 
@@ -175,10 +190,10 @@ void ShapeBuilder::addGmdl(const Gmdl & gmdl)
     if (mCurrPrimitive + gmdl.primCount() >= mGmdl.primCount())
         PANIC("Index array overrun during pushGmdl");
 
-    VertPosNorm * pVert = mGmdl;
+    VertPosNormCol * pVert = mGmdl;
     pVert += mCurrVertex;
     
-    const VertPosNorm * pGmdlVert = gmdl;
+    const VertPosNormCol * pGmdlVert = gmdl;
     for (u32 i = 0; i < gmdl.vertCount(); ++i)
     {
         *pVert++ = *pGmdlVert++;
@@ -204,9 +219,9 @@ void ShapeBuilder::addGmdl(const Gmdl & gmdl)
 // ShapeBuilder (END)
 //------------------------------------------------------------------------------
 
-Model * build_box(const glm::vec3 & size, Color color)
+Gmdl * build_box(const glm::vec3 & size, Color color)
 {
-    Gmdl * pGmdl = Gmdl::create(kVERT_PosNorm, 24, kPRIM_Triangle, 12);
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, 24, kPRIM_Triangle, 12);
 
     ShapeBuilder builder(pGmdl);
 
@@ -220,31 +235,28 @@ Model * build_box(const glm::vec3 & size, Color color)
     f32 zmin = -zmax;
 
     // Front
-    builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymin, zmax), glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymax, zmax));
+    builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymin, zmax), glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymax, zmax), color);
 
     // Bottom
-    builder.addQuad(glm::vec3(xmin, ymin, zmax), glm::vec3(xmin, ymin, zmin), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymin, zmax));
+    builder.addQuad(glm::vec3(xmin, ymin, zmax), glm::vec3(xmin, ymin, zmin), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymin, zmax), color);
 
     // Back
-    builder.addQuad(glm::vec3(xmin, ymin, zmin), glm::vec3(xmin, ymax, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymin, zmin));
+    builder.addQuad(glm::vec3(xmin, ymin, zmin), glm::vec3(xmin, ymax, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymin, zmin), color);
 
     // Top
-    builder.addQuad(glm::vec3(xmax, ymax, zmax), glm::vec3(xmax, ymax, zmin), glm::vec3(xmin, ymax, zmin), glm::vec3(xmin, ymax, zmax));
+    builder.addQuad(glm::vec3(xmax, ymax, zmax), glm::vec3(xmax, ymax, zmin), glm::vec3(xmin, ymax, zmin), glm::vec3(xmin, ymax, zmax), color);
 
     // Left
-    builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymax, zmin), glm::vec3(xmin, ymin, zmin), glm::vec3(xmin, ymin, zmax));
+    builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymax, zmin), glm::vec3(xmin, ymin, zmin), glm::vec3(xmin, ymin, zmax), color);
 
     // Right
-    builder.addQuad(glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymax, zmax));
+    builder.addQuad(glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymax, zmax), color);
 
-    //Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
-    //return pModel;
-    // LORRTODO: Fix shapes
-    return nullptr;
+    return pGmdl;
 }
 
 // Lathe around y axis
-Gmdl * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices)
+Gmdl * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices, Color color)
 {
     ASSERT(slices > 2);
 
@@ -254,7 +266,7 @@ Gmdl * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices)
     triCount += slices * (pPoints[0].x == 0.0f ? 1 : 2);
     triCount += slices * (pPoints[count-1].x == 0.0f ? 1 : 2);
 
-    Gmdl * pGmdl = Gmdl::create(kVERT_PosNorm, triCount * 3, kPRIM_Triangle, triCount);
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, triCount * 3, kPRIM_Triangle, triCount);
 
     ShapeBuilder builder(pGmdl);
 
@@ -290,15 +302,15 @@ Gmdl * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices)
             // If first or last, make a tri
             if (i == 0)// (p0_0 == p0_1) // first, do a tri
             {
-                builder.addTri(p0_0, p1_0, p1_1);
+                builder.addTri(p0_0, p1_0, p1_1, color);
             }
             else if (i == count-2)// (p1_0 == p1_1) // last, do a tri
             {
-                builder.addTri(p0_0, p1_0, p0_1);
+                builder.addTri(p0_0, p1_0, p0_1, color);
             }
             else
             {
-                builder.addQuad(p0_0, p1_0, p1_1, p0_1);
+                builder.addQuad(p0_0, p1_0, p1_1, p0_1, color);
             }
         }
     }
@@ -306,7 +318,7 @@ Gmdl * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices)
     return pGmdl;
 }
 
-Model * build_cone(const glm::vec3 & size, u32 slices, Color color)
+Gmdl * build_cone(const glm::vec3 & size, u32 slices, Color color)
 {
     // build a 2d set of points to lathe
     glm::vec4 points[3];
@@ -318,15 +330,12 @@ Model * build_cone(const glm::vec3 & size, u32 slices, Color color)
     points[1] = glm::vec4(halfX, -halfY, 0.0f, 1.0f);
     points[2] = glm::vec4(0.0f, -halfY, 0.0f, 1.0f);
 
-    Gmdl * pGmdl = lathe_points(points, 3, slices);
+    Gmdl * pGmdl = lathe_points(points, 3, slices, color);
 
-    //Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
-    //return pModel;
-    // LORRTODO: Fix shapes
-    return nullptr;
+    return pGmdl;
 }
 
-Model * build_cylinder(const glm::vec3 & size, u32 slices, Color color)
+Gmdl * build_cylinder(const glm::vec3 & size, u32 slices, Color color)
 {
     // build a 2d set of points to lathe
     glm::vec4 points[4];
@@ -339,15 +348,12 @@ Model * build_cylinder(const glm::vec3 & size, u32 slices, Color color)
     points[2] = glm::vec4(halfX, -halfY, 0.0f, 1.0f);
     points[3] = glm::vec4(0.0f, -halfY, 0.0f, 1.0f);
 
-    Gmdl * pGmdl = lathe_points(points, 4, slices);
+    Gmdl * pGmdl = lathe_points(points, 4, slices, color);
 
-    //Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
-    //return pModel;
-    // LORRTODO: Fix shapes
-    return nullptr;
+    return pGmdl;
 }
 
-Model * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color)
+Gmdl * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color)
 {
     // build a 2d set of points to lathe
     u32 pointCount = sections+1;
@@ -365,14 +371,11 @@ Model * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color col
     }
     points[pointCount-1] = glm::vec4(0.0f, -halfY, 0.0f, 1.0f);
 
-    Gmdl * pGmdl = lathe_points(points, pointCount, slices);
+    Gmdl * pGmdl = lathe_points(points, pointCount, slices, color);
 
     GFREE(points);
 
-    //Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
-    //return pModel;
-    // LORRTODO: Fix shapes
-    return nullptr;
+    return pGmdl;
 }
 
 inline glm::vec3 convert_quad_sphere_vert(const glm::vec3 & vert, f32 radius)
@@ -387,10 +390,10 @@ inline glm::vec3 project_to_sphere(f32 x, f32 y, f32 z, f32 radius)
     return v * (radius / glm::length(v));
 }
 
-Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
+Gmdl * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
 {
     u32 triCount = sections * sections * 2 * 6; // 2 tris per quad, 6 sides
-    Gmdl * pGmdl = Gmdl::create(kVERT_PosNorm, triCount * 3, kPRIM_Triangle, triCount);
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, triCount * 3, kPRIM_Triangle, triCount);
 
     ShapeBuilder builder(pGmdl);
 
@@ -412,7 +415,7 @@ Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
                 glm::vec3 p1 = project_to_sphere(u, v - inc, radius, radius);
                 glm::vec3 p2 = project_to_sphere(u + inc, v - inc, radius, radius);
                 glm::vec3 p3 = project_to_sphere(u + inc, v, radius, radius);
-                builder.addQuad(p0, p1, p2, p3);
+                builder.addQuad(p0, p1, p2, p3, color);
             }
 
             // bottom
@@ -423,7 +426,7 @@ Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
                 glm::vec3 p1 = project_to_sphere(u, -radius, v - inc, radius);
                 glm::vec3 p2 = project_to_sphere(u + inc, -radius, v - inc, radius);
                 glm::vec3 p3 = project_to_sphere(u + inc, -radius, v, radius);
-                builder.addQuad(p0, p1, p2, p3);
+                builder.addQuad(p0, p1, p2, p3, color);
             }
 
             // back
@@ -434,7 +437,7 @@ Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
                 glm::vec3 p1 = project_to_sphere(u, v - inc, -radius, radius);
                 glm::vec3 p2 = project_to_sphere(u - inc, v - inc, -radius, radius);
                 glm::vec3 p3 = project_to_sphere(u - inc, v, -radius, radius);
-                builder.addQuad(p0, p1, p2, p3);
+                builder.addQuad(p0, p1, p2, p3, color);
             }
 
 /*
@@ -461,54 +464,67 @@ Model * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
         }
     }
 
-    //Model * pModel = GNEW(kMEM_Model, Model, pMat, pGmdl);
-    //return pModel;
-    // LORRTODO: Fix shapes
-    return nullptr;
+    return pGmdl;
 }
 
 namespace system_api
 {
-    HandleP create_shape_box(const glm::vec3 & size, Color color, Entity & caller)
+    i32 create_shape_box(i32 stageHash, const glm::vec3 & size, Color color, Entity & caller)
     {
-        Model * pModel = build_box(size, color);
-        ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
-        return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_box, caller.task().id(), pModel, handle_delete<Model>);
+        Gmdl * pGmdl = build_box(size, color);
+
+        Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pGmdl);
+        ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::to_mat4x3(glm::mat4(1.0)), true);
+        ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
+        return pModel->uid();
     }
 
-    HandleP create_shape_cone(const glm::vec3 & size, i32 slices, Color color, Entity & caller)
-    {
-        slices = slices > 0 ? slices : 0;
-        Model * pModel = build_cone(size, slices, color);
-        ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
-        return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_cone, caller.task().id(), pModel, handle_delete<Model>);
-    }
-
-    HandleP create_shape_cylinder(const glm::vec3 & size, i32 slices, Color color, Entity & caller)
+    i32 create_shape_cone(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, Entity & caller)
     {
         slices = slices > 0 ? slices : 0;
-        Model * pModel = build_cylinder(size, slices, color);
-        ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
-        return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_cylinder, caller.task().id(), pModel, handle_delete<Model>);
+        Gmdl * pGmdl = build_cone(size, slices, color);
+
+        Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pGmdl);
+        ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::to_mat4x3(glm::mat4(1.0)), true);
+        ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
+        return pModel->uid();
     }
 
-    HandleP create_shape_sphere(const glm::vec3 & size, i32 slices, i32 sections, Color color, Entity & caller)
+    i32 create_shape_cylinder(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, Entity & caller)
+    {
+        slices = slices > 0 ? slices : 0;
+        Gmdl * pGmdl = build_cylinder(size, slices, color);
+
+        Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pGmdl);
+        ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::to_mat4x3(glm::mat4(1.0)), true);
+        ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
+        return pModel->uid();
+    }
+
+    i32 create_shape_sphere(i32 stageHash, const glm::vec3 & size, i32 slices, i32 sections, Color color, Entity & caller)
     {
         slices = slices > 0 ? slices : 0;
         sections = sections > 0 ? sections : 0;
-        Model * pModel = build_sphere(size, slices, sections, color);
-        ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
-        return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_sphere, caller.task().id(), pModel, handle_delete<Model>);
+        Gmdl * pGmdl = build_sphere(size, slices, sections, color);
+
+        Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pGmdl);
+        ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::to_mat4x3(glm::mat4(1.0)), true);
+        ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
+        return pModel->uid();
     }
 
-    HandleP create_shape_quad_sphere(const glm::vec3 & size, i32 sections, Color color, Entity & caller)
+    i32 create_shape_quad_sphere(i32 stageHash, const glm::vec3 & size, i32 sections, Color color, Entity & caller)
     {
         sections = sections > 0 ? sections : 0;
-        Model * pModel = build_quad_sphere(size, sections, color);
-        ERR("create_shape_* code doesn't handle freeing of Handle and Handle data!!!");
-        return GNEW(kMEM_Model, Handle, HASH::model, HASH::shape_quad_sphere, caller.task().id(), pModel, handle_delete<Model>);
+        Gmdl * pGmdl = build_quad_sphere(size, sections, color);
+
+        Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pGmdl);
+        ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::to_mat4x3(glm::mat4(1.0)), true);
+        ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
+        return pModel->uid();
     }
 }
 
 } // namespace gaen
+
 
