@@ -115,8 +115,15 @@ const Ast * find_property_dependency(const Ast * pAst)
 
     if (is_prop(pAst) || pAst->type == kAST_Transform)
         return pAst;
-    
+
     const Ast * pCheck;
+    if (pAst->pSymRecRef)
+    {
+        pCheck = find_property_dependency(pAst->pSymRecRef->pAst);
+        if (pCheck)
+            return pCheck;
+    }
+
     pCheck = find_property_dependency(pAst->pLhs);
     if (pCheck)
         return pCheck;
