@@ -42,7 +42,7 @@ inline glm::vec3 tri_normal(const glm::vec3 & p0, const glm::vec3 & p1, const gl
 {
     glm::vec3 vecA = p1 - p0;
     glm::vec3 vecB = p2 - p0;
-    return glm::cross(vecA, vecB);
+    return glm::normalize(glm::cross(vecA, vecB));
 }
 
 // We use mat4x3 as a shrunk down 4x4 with an implied identity row.
