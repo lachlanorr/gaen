@@ -41,7 +41,7 @@ namespace cookers
 
 Model::Model()
 {
-    setVersion(6);
+    setVersion(8);
     addRawExt(kExtObj);
 //    addRawExt(kExtPly);
 //    addRawExt(kExtFbx);
@@ -57,6 +57,16 @@ void Model::cook(CookInfo * pCookInfo) const
                                                  aiProcess_ImproveCacheLocality);
 
     PANIC_IF(!pScene, "Failure in aiImportFile, %s", pCookInfo->rawPath().c_str());
+    if (0 == strcmp("obj", get_ext(pCookInfo->rawPath().c_str())))
+    {
+        static const ChefString kMtlExt = "mtl";
+        ChefString mtlPath = pCookInfo->rawPath();
+        change_ext<ChefString>(mtlPath, kMtlExt);
+        if (file_exists(mtlPath.c_str()))
+        {
+            pCookInfo->recordDependency(get_filename(mtlPath.c_str()));
+        }
+    }
 
     // We only support one vertex type currently, kVERT_PosNormCol
     u32 vertCount = 0;

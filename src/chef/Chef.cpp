@@ -227,6 +227,8 @@ bool Chef::shouldCook(const CookInfo & ci)
         UniquePtr<CookInfo> pDepCi = prepCookInfo(depRawPath.c_str(), false);
         if (pDepCi.get() && shouldCook(*pDepCi))
             return true;
+        else if (is_file_newer(depRawPath.c_str(), pOldestCookedPath->c_str()))
+            return true;
     }
 
     return false;
