@@ -158,7 +158,7 @@ T get_filename_root(const T & path)
     T fname;
     if (lastSlash != T::npos)
     {
-        fname = path.substr(lastSlash);
+        fname = path.substr(lastSlash + 1);
     }
     else
     {
