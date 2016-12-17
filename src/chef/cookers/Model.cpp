@@ -90,6 +90,12 @@ void Model::cook(CookInfo * pCookInfo) const
     for (u32 i = 0; i < pScene->mNumMeshes; ++i)
     {
         aiMesh * pAiMesh = pScene->mMeshes[i];
+
+        if (pAiMesh->mName.data == strstr(pAiMesh->mName.data, "col_"))
+        {
+            continue;
+        }
+
         aiMaterial * pAiMaterial = pScene->mMaterials[pAiMesh->mMaterialIndex];
 
         for (u32 v = 0; v < pAiMesh->mNumVertices; ++v)
