@@ -28,6 +28,7 @@
 #define GAEN_ENGINE_GLM_EXT_H
 
 #include <glm/mat4x3.hpp>
+#include <glm/gtx/transform.hpp>
 
 #include "hashes/hashes.h"
 #include "core/base_defines.h"
@@ -192,7 +193,7 @@ GLM_FUNC_QUALIFIER tmat3x3<T,P> mat3_rotation(glm::tvec3<T,P> angles)
 template <typename T, precision P>
 GLM_FUNC_QUALIFIER tmat4x3<T,P> mat43_rotation(glm::tvec3<T,P> angles)
 {
-    tmat4x4<T,P> m4(1.0f);
+    tmat4x4<T,P> m4(1.0);
     m4 = glm::rotate(m4, angles.x, glm::tvec3<T,P>(1.0f, 0.0f, 0.0f));
     m4 = glm::rotate(m4, angles.y, glm::tvec3<T,P>(0.0f, 1.0f, 0.0f));
     m4 = glm::rotate(m4, angles.z, glm::tvec3<T,P>(0.0f, 0.0f, 1.0f));
@@ -202,7 +203,7 @@ GLM_FUNC_QUALIFIER tmat4x3<T,P> mat43_rotation(glm::tvec3<T,P> angles)
 template <typename T, precision P>
 GLM_FUNC_QUALIFIER tmat4x3<T,P> mat43_position(glm::tvec3<T,P> pos)
 {
-    tmat4x4<T,P> m4(1.0f);
+    tmat4x4<T,P> m4(1.0);
     m4[3] = glm::tvec4<T,P>(pos, 0);
     return to_mat4x3(m4);
 }
@@ -210,7 +211,7 @@ GLM_FUNC_QUALIFIER tmat4x3<T,P> mat43_position(glm::tvec3<T,P> pos)
 template <typename T, precision P>
 GLM_FUNC_QUALIFIER tmat4x3<T,P> mat43_transform(glm::tvec3<T,P> pos, glm::tvec3<T,P> angles)
 {
-    tmat4x4<T,P> m4(1.0f);
+    tmat4x4<T,P> m4(1.0);
     m4 = glm::rotate(m4, angles.x, glm::tvec3<T,P>(1.0f, 0.0f, 0.0f));
     m4 = glm::rotate(m4, angles.y, glm::tvec3<T,P>(0.0f, 1.0f, 0.0f));
     m4 = glm::rotate(m4, angles.z, glm::tvec3<T,P>(0.0f, 0.0f, 1.0f));

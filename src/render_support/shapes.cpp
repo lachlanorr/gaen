@@ -219,7 +219,24 @@ void ShapeBuilder::addGmdl(const Gmdl & gmdl)
 // ShapeBuilder (END)
 //------------------------------------------------------------------------------
 
-Gmdl * build_box(const glm::vec3 & size, const glm::vec3 & offset, Color color)
+template <class VertT>
+void transform_gmdl(Gmdl * pGmdl, const glm::mat4x3 & transform)
+{
+    glm::mat4 t = glm::to_mat4x4(transform);
+
+    VertT * pVert = *pGmdl;
+    for (u32 i = 0; i < pGmdl->vertCount(); ++i)
+    {
+        glm::vec4 v4 = glm::vec4(pVert->position, 1.0f);
+        v4 = t * v4;
+
+        pVert->position = glm::vec3(v4);
+
+        ++pVert;
+    }
+}
+
+Gmdl * build_box(const glm::vec3 & size, Color color, const glm::mat4x3 & transform)
 {
     Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, 24, kPRIM_Triangle, 12);
 
@@ -227,18 +244,12 @@ Gmdl * build_box(const glm::vec3 & size, const glm::vec3 & offset, Color color)
 
     f32 xmax = size.x / 2.0f;
     f32 xmin = -xmax;
-    xmax += offset.x;
-    xmin += offset.x;
     
     f32 ymax = size.y / 2.0f;
     f32 ymin = -ymax;
-    ymax += offset.y;
-    ymin += offset.y;
 
     f32 zmax = size.z / 2.0f;
     f32 zmin = -zmax;
-    zmax += offset.z;
-    zmin += offset.z;
 
     // Front
     builder.addQuad(glm::vec3(xmin, ymax, zmax), glm::vec3(xmin, ymin, zmax), glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymax, zmax), color);
@@ -258,6 +269,7 @@ Gmdl * build_box(const glm::vec3 & size, const glm::vec3 & offset, Color color)
     // Right
     builder.addQuad(glm::vec3(xmax, ymin, zmax), glm::vec3(xmax, ymin, zmin), glm::vec3(xmax, ymax, zmin), glm::vec3(xmax, ymax, zmax), color);
 
+    transform_gmdl<VertPosNormCol>(pGmdl, transform);
     return pGmdl;
 }
 
@@ -324,7 +336,7 @@ Gmdl * lathe_points(const glm::vec4 * pPoints, u32 count, u32 slices, Color colo
     return pGmdl;
 }
 
-Gmdl * build_cone(const glm::vec3 & size, u32 slices, Color color)
+Gmdl * build_cone(const glm::vec3 & size, u32 slices, Color color, const glm::mat4x3 & transform)
 {
     // build a 2d set of points to lathe
     glm::vec4 points[3];
@@ -338,10 +350,11 @@ Gmdl * build_cone(const glm::vec3 & size, u32 slices, Color color)
 
     Gmdl * pGmdl = lathe_points(points, 3, slices, color);
 
+    transform_gmdl<VertPosNormCol>(pGmdl, transform);
     return pGmdl;
 }
 
-Gmdl * build_cylinder(const glm::vec3 & size, u32 slices, Color color)
+Gmdl * build_cylinder(const glm::vec3 & size, u32 slices, Color color, const glm::mat4x3 & transform)
 {
     // build a 2d set of points to lathe
     glm::vec4 points[4];
@@ -356,10 +369,11 @@ Gmdl * build_cylinder(const glm::vec3 & size, u32 slices, Color color)
 
     Gmdl * pGmdl = lathe_points(points, 4, slices, color);
 
+    transform_gmdl<VertPosNormCol>(pGmdl, transform);
     return pGmdl;
 }
 
-Gmdl * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color)
+Gmdl * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color, const glm::mat4x3 & transform)
 {
     // build a 2d set of points to lathe
     u32 pointCount = sections+1;
@@ -381,6 +395,7 @@ Gmdl * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color colo
 
     GFREE(points);
 
+    transform_gmdl<VertPosNormCol>(pGmdl, transform);
     return pGmdl;
 }
 
@@ -396,7 +411,7 @@ inline glm::vec3 project_to_sphere(f32 x, f32 y, f32 z, f32 radius)
     return v * (radius / glm::length(v));
 }
 
-Gmdl * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
+Gmdl * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color, const glm::mat4x3 & transform)
 {
     u32 triCount = sections * sections * 2 * 6; // 2 tris per quad, 6 sides
     Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, triCount * 3, kPRIM_Triangle, triCount);
@@ -470,62 +485,63 @@ Gmdl * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color)
         }
     }
 
+    transform_gmdl<VertPosNormCol>(pGmdl, transform);
     return pGmdl;
 }
 
 namespace system_api
 {
-i32 create_shape_box(i32 stageHash, const glm::vec3 & size, Color color, Entity & caller)
+i32 shape_box(i32 stageHash, const glm::vec3 & size, Color color, const glm::mat4x3 & transform, Entity & caller)
 {
-    Gmdl * pGmdl = build_box(size, glm::vec3(0.0f), color);
+    Gmdl * pGmdl = build_box(size, color, transform);
 
     Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pGmdl);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::to_mat4x3(glm::mat4(1.0)), true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::mat4x3(1.0f), true);
     ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
     return pModel->uid();
 }
 
-i32 create_shape_cone(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, Entity & caller)
-{
-    slices = slices > 0 ? slices : 0;
-    Gmdl * pGmdl = build_cone(size, slices, color);
-
-    Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pGmdl);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::to_mat4x3(glm::mat4(1.0)), true);
-    ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
-    return pModel->uid();
-}
-
-i32 create_shape_cylinder(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, Entity & caller)
+i32 shape_cone(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, const glm::mat4x3 & transform, Entity & caller)
 {
     slices = slices > 0 ? slices : 0;
-    Gmdl * pGmdl = build_cylinder(size, slices, color);
+    Gmdl * pGmdl = build_cone(size, slices, color, transform);
 
     Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pGmdl);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::to_mat4x3(glm::mat4(1.0)), true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::mat4x3(1.0f), true);
     ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
     return pModel->uid();
 }
 
-i32 create_shape_sphere(i32 stageHash, const glm::vec3 & size, i32 slices, i32 sections, Color color, Entity & caller)
+i32 shape_cylinder(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, const glm::mat4x3 & transform, Entity & caller)
+{
+    slices = slices > 0 ? slices : 0;
+    Gmdl * pGmdl = build_cylinder(size, slices, color, transform);
+
+    Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pGmdl);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::mat4x3(1.0f), true);
+    ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
+    return pModel->uid();
+}
+
+i32 shape_sphere(i32 stageHash, const glm::vec3 & size, i32 slices, i32 sections, Color color, const glm::mat4x3 & transform, Entity & caller)
 {
     slices = slices > 0 ? slices : 0;
     sections = sections > 0 ? sections : 0;
-    Gmdl * pGmdl = build_sphere(size, slices, sections, color);
+    Gmdl * pGmdl = build_sphere(size, slices, sections, color, transform);
 
     Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pGmdl);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::to_mat4x3(glm::mat4(1.0)), true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::mat4x3(1.0f), true);
     ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
     return pModel->uid();
 }
 
-i32 create_shape_quad_sphere(i32 stageHash, const glm::vec3 & size, i32 sections, Color color, Entity & caller)
+i32 shape_quad_sphere(i32 stageHash, const glm::vec3 & size, i32 sections, Color color, const glm::mat4x3 & transform, Entity & caller)
 {
     sections = sections > 0 ? sections : 0;
-    Gmdl * pGmdl = build_quad_sphere(size, sections, color);
+    Gmdl * pGmdl = build_quad_sphere(size, sections, color, transform);
 
     Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pGmdl);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::to_mat4x3(glm::mat4(1.0)), true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, glm::mat4x3(1.0f), true);
     ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
     return pModel->uid();
 }

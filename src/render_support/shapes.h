@@ -80,22 +80,22 @@ private:
 };
 
 
-Gmdl * build_box(const glm::vec3 & size, const glm::vec3 & offset, Color color);
-Gmdl * build_cone(const glm::vec3 & size, Color color);
-Gmdl * build_cylinder(const glm::vec3 & size, u32 slices, Color color);
-Gmdl * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color);
-Gmdl * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color);
+Gmdl * build_box(const glm::vec3 & size, Color color, const glm::mat4x3 & transform);
+Gmdl * build_cone(const glm::vec3 & size, u32 slices, Color color, const glm::mat4x3 & transform);
+Gmdl * build_cylinder(const glm::vec3 & size, u32 slices, Color color, const glm::mat4x3 & transform);
+Gmdl * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color, const glm::mat4x3 & transform);
+Gmdl * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color, const glm::mat4x3 & transform);
 
 
 // Compose wrappers
 class Entity;
 namespace system_api
 {
-i32 create_shape_box(i32 stageHash, const glm::vec3 & size, Color color, Entity & caller);
-i32 create_shape_cone(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, Entity & caller);
-i32 create_shape_cylinder(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, Entity & caller);
-i32 create_shape_sphere(i32 stageHash, const glm::vec3 & size, i32 slices, i32 sections, Color color, Entity & caller);
-i32 create_shape_quad_sphere(i32 stageHash, const glm::vec3 & size, i32 sections, Color color, Entity & caller);
+i32 shape_box(i32 stageHash, const glm::vec3 & size, Color color, const glm::mat4x3 & transform, Entity & caller);
+i32 shape_cone(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, const glm::mat4x3 & transform, Entity & caller);
+i32 shape_cylinder(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, const glm::mat4x3 & transform, Entity & caller);
+i32 shape_sphere(i32 stageHash, const glm::vec3 & size, i32 slices, i32 sections, Color color, const glm::mat4x3 & transform, Entity & caller);
+i32 shape_quad_sphere(i32 stageHash, const glm::vec3 & size, i32 sections, Color color, const glm::mat4x3 & transform, Entity & caller);
 } // namespace system_api
 
 } // namespace gaen

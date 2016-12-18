@@ -33,7 +33,7 @@ component Box
 
     #init()
     {
-        model = $.create_shape_box(size, diffuse);
+        model = $.shape_box(size, diffuse);
         // LORRTODO: Use gmdl and new Model code
         //$.renderer_insert_model_instance(modelUid, model);
     }
@@ -55,7 +55,7 @@ component Cone
 
     #init()
     {
-        model = $.create_shape_cone(size, slices, diffuse);
+        model = $.shape_cone(size, slices, diffuse);
         // LORRTODO: Use gmdl and new Model code
         //$.renderer_insert_model_instance(modelUid, model);
     }
@@ -77,7 +77,7 @@ component Cylinder
 
     #init()
     {
-        model = $.create_shape_cylinder(size, slices, diffuse);
+        model = $.shape_cylinder(size, slices, diffuse);
         // LORRTODO: Use gmdl and new Model code
         //$.renderer_insert_model_instance(modelUid, model);
     }
@@ -100,7 +100,7 @@ component Sphere
 
     #init()
     {
-        model = $.create_shape_sphere(size, slices, sections, diffuse);
+        model = $.shape_sphere(size, slices, sections, diffuse);
         // LORRTODO: Use gmdl and new Model code
         //$.renderer_insert_model_instance(modelUid, model);
     }
@@ -122,7 +122,7 @@ component QuadSphere
 
     #init()
     {
-        model = $.create_shape_quad_sphere(size, sections, diffuse);
+        model = $.shape_quad_sphere(size, sections, diffuse);
         // LORRTODO: Use gmdl and new Model code
         //$.renderer_insert_model_instance(modelUid, model);
     }
