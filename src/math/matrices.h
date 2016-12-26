@@ -52,15 +52,15 @@ T rotation_from_euler(f32 x, f32 y, f32 z)
     f32 bd  =  b * d;
 
     mat[0].x  =  c * e;
-    mat[0].y  = -c * f;
-    mat[0].z  =  d;
+    mat[1].x  = -c * f;
+    mat[2].x  =  d;
 
-    mat[1].x  =  bd * e + a * f;
+    mat[0].y  =  bd * e + a * f;
     mat[1].y  = -bd * f + a * e;
-    mat[1].z  = -b * c;
+    mat[2].y  = -b * c;
 
-    mat[2].x  = -ad * e + b * f;
-    mat[2].y  =  ad * f + b * e;
+    mat[0].z  = -ad * e + b * f;
+    mat[1].z  =  ad * f + b * e;
     mat[2].z  =  a * c;
 
     return mat;

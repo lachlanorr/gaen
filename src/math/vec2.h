@@ -85,7 +85,7 @@ inline bool operator==(const tvec2<T> & lhs, const tvec2<T> & rhs)
 template <typename T>
 inline bool operator!=(const tvec2<T> & lhs, const tvec2<T> & rhs)
 {
-    return lhs.x != rhs.x || lhs.y == rhs.y;
+    return lhs.x != rhs.x || lhs.y != rhs.y;
 }
 
 template <typename T>
