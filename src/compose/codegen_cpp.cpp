@@ -330,7 +330,11 @@ static S symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
         {
             const char * dot = strchr(pSymRec->name, '.');
             if (dot)
+            {
                 code = S("pThis->") + S(pSymRec->name, dot - pSymRec->name) + S("()") + S(dot);
+                if (pSymRec->flags & kSRFL_NeedsCppParens)
+                    code += S("()");
+            }
             else
                 code = S("pThis->") + S(pSymRec->name) + S("()");
         }

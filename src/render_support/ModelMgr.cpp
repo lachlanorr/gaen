@@ -145,7 +145,8 @@ MessageResult ModelMgr::message(const T & msgAcc)
             }
             else
             {
-                ERR("model_transform for non rigid body model, uid: %u", msgr.uid());
+                if (modelPair->second->mIsRenderable)
+                    ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, msgr.uid(), msgr.transform());
             }
         }
         else
