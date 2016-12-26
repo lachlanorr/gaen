@@ -27,10 +27,13 @@
 #ifndef GAEN_RENDERERGL_RENDERERMESH_H
 #define GAEN_RENDERERGL_RENDERERMESH_H
 
-#include <glm/mat4x4.hpp>
-
 #include "core/List.h"
 #include "core/HashMap.h"
+
+#include "math/vec3.h"
+#include "math/vec4.h"
+#include "math/mat4.h"
+
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
 #include "render_support/render_objects.h"
@@ -85,7 +88,7 @@ public:
     void setActiveShader(u32 nameHash);
     shaders::Shader & activeShader() { return *mpActiveShader; }
 private:
-    static void set_shader_vec4_var(u32 nameHash, const glm::vec4 & val, void * pContext);
+    static void set_shader_vec4_var(u32 nameHash, const vec4 & val, void * pContext);
     static u32 texture_unit(u32 nameHash);
     static void set_texture(u32 nameHash, u32 glId, void * pContext);
 
@@ -100,14 +103,14 @@ private:
                             u32 stageHash,
                             Color color,
                             f32 ambient,
-                            const glm::vec3 & direction);
-    void lightDistantDirection(u32 uid, const glm::vec3 & direction);
+                            const vec3 & direction);
+    void lightDistantDirection(u32 uid, const vec3 & direction);
     void lightDistantColor(u32 uid, Color color);
     void lightDistantAmbient(u32 uid, f32 ambient);
     void lightDistantRemove(u32 uid);
 
     void modelInsert(ModelInstance * pModelInst);
-    void modelTransform(u32 uid, const glm::mat4x3 & transform);
+    void modelTransform(u32 uid, const mat43 & transform);
     void modelRemove(u32 uid);
     ModelStage * modelStageFindOrCreate(u32 stageHash);
     void modelStageShow(u32 stageHash);
@@ -118,20 +121,20 @@ private:
                                      f32 fov,
                                      f32 nearClip,
                                      f32 farClip,
-                                     const glm::mat4x3 view);
+                                     const mat43 & view);
     void modelStageCameraInsertOrtho(u32 uid,
                                      u32 stageHash,
                                      f32 scale,
                                      f32 nearClip,
                                      f32 farClip,
-                                     const glm::mat4x3 view);
-    void modelStageCameraView(u32 uid, const glm::mat4x3 view);
+                                     const mat43 & view);
+    void modelStageCameraView(u32 uid, const mat43 & view);
     void modelStageCameraActivate(u32 uid);
     void modelStageCameraRemove(u32 uid);
 
     void spriteInsert(SpriteInstance * pSpriteInst);
     void spriteAnim(u32 uid, u32 animHash, u32 animFrameIdx);
-    void spriteTransform(u32 uid, const glm::mat4x3 & transform);
+    void spriteTransform(u32 uid, const mat43 & transform);
     void spriteRemove(u32 uid);
     SpriteStage * spriteStageFindOrCreate(u32 stageHash);
     void spriteStageShow(u32 stageHash);

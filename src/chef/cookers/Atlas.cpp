@@ -26,6 +26,8 @@
 
 #include "chef/stdafx.h"
 
+#include "math/vec2.h"
+
 #include "assets/file_utils.h"
 #include "assets/Config.h"
 #include "assets/Gatl.h"
@@ -156,7 +158,7 @@ void Atlas::cook(CookInfo * pCookInfo) const
     PANIC_IF(imageInfo.height != imageInfo.width || !is_power_of_two(imageInfo.height), "Image not square or not power of 2 sized: %s", depInfo.rawPath.c_str());
 
     // Pull out render_offset if present, else use (0.0f, 0.0f)
-    glm::vec2 renderOffset{0.0f, 0.0f};
+    vec2 renderOffset{0.0f, 0.0f};
     if (atl.hasKey(kRenderOffset))
     {
         Config<kMEM_Chef>::FloatVec rov = atl.getFloatVec(kRenderOffset);

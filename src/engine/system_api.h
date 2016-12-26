@@ -27,11 +27,6 @@
 #ifndef GAEN_ENGINE_SYSTEM_API_H
 #define GAEN_ENGINE_SYSTEM_API_H
 
-#include <glm/vec3.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/mat3x3.hpp>
-#include <glm/mat4x3.hpp>
-
 #include "engine/Handle.h"
 #include "engine/Entity.h"
 #include "engine/BlockMemory.h"
@@ -53,19 +48,6 @@ CmpString hashstr(i32 hash, Entity & caller);
 void print_asset_info(AssetHandleP asset, Entity & caller);
 
 //void activate_entity(task_id id, Entity & caller);
-
-f32 radians(f32 degrees, Entity & caller);
-f32 degrees(f32 radians, Entity & caller);
-
-
-glm::mat4x3 transform(const glm::vec3 & pos, glm::vec3 & angles, Entity & caller);
-glm::mat4x3 position(const glm::vec3 & pos, Entity & caller);
-glm::mat4x3 rotation(const glm::vec3 & angles, Entity & caller);
-glm::mat3 rotation_mat3(const glm::vec3 & angles, Entity & caller);
-glm::mat4x3 transform_set_rotation(const glm::mat4x3 & trans, const glm::mat3 & rotTrans, Entity & caller);
-
-glm::quat quat_from_axis_angle(const glm::vec3 & dir, f32 angle, Entity & caller);
-glm::quat quat_normalize(const glm::quat & quat, Entity & caller);
 
 } // namespace system_api
 

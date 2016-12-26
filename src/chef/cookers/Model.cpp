@@ -26,6 +26,9 @@
 
 #include "chef/stdafx.h"
 
+#include "math/common.h"
+#include "math/vec3.h"
+
 #include "assets/file_utils.h"
 #include "assets/Config.h"
 #include "assets/Gmdl.h"
@@ -85,7 +88,7 @@ void Model::cook(CookInfo * pCookInfo) const
     VertPosNormCol* pVert = *pGmdl;
     u32 vertIdxOffset = 0;
     PrimTriangle * pTri = *pGmdl;
-    glm::vec3 & halfExtents = pGmdl->halfExtents();
+    vec3 & halfExtents = pGmdl->halfExtents();
 
     for (u32 i = 0; i < pScene->mNumMeshes; ++i)
     {
@@ -105,9 +108,9 @@ void Model::cook(CookInfo * pCookInfo) const
             pVert[v].position.z = pAiMesh->mVertices[v].z;
 
             // Calculate extents as we are iterating verts
-            halfExtents.x = glm::max(halfExtents.x, glm::abs(pVert[v].position.x));
-            halfExtents.y = glm::max(halfExtents.y, glm::abs(pVert[v].position.y));
-            halfExtents.z = glm::max(halfExtents.z, glm::abs(pVert[v].position.z));
+            halfExtents.x = max(halfExtents.x, abs(pVert[v].position.x));
+            halfExtents.y = max(halfExtents.y, abs(pVert[v].position.y));
+            halfExtents.z = max(halfExtents.z, abs(pVert[v].position.z));
 
             pVert[v].normal.x = pAiMesh->mNormals[v].x;
             pVert[v].normal.y = pAiMesh->mNormals[v].y;

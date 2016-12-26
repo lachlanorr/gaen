@@ -24,10 +24,10 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include <glm/common.hpp>
-
 #include "core/HashMap.h"
 #include "core/String.h"
+
+#include "math/common.h"
 
 #include "assets/file_utils.h"
 #include "assets/Gimg.h"
@@ -153,7 +153,7 @@ u64 Gimg::required_size(PixelFormat pixelFormat, u32 width, u32 height)
 Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
 {
     // adjust width and height to ensure power of 2 and equal size
-    width = height = next_power_of_two(glm::max(width, height));
+    width = height = next_power_of_two(max(width, height));
 
     u64 size = Gimg::required_size(pixelFormat, width, height);
     Gimg * pGimg = alloc_asset<Gimg>(kMEM_Texture, size);

@@ -28,6 +28,8 @@
 
 #include "core/thread_local.h"
 
+#include "math/vec2.h"
+
 #include "assets/file_utils.h"
 #include "assets/Config.h"
 #include "assets/Gatl.h"
@@ -59,17 +61,17 @@ Font::Font()
 class FontAtl
 {
 public:
-    FontAtl(const char * image, glm::vec2 renderOffset)
+    FontAtl(const char * image, vec2 renderOffset)
       : mImage(image)
       , mRenderOffset(renderOffset)
     {}
 
-    void addGlyph(const char * key, const glm::uvec4 & coords)
+    void addGlyph(const char * key, const uvec4 & coords)
     {
         mGlyphs.emplace_back(key, coords);
     }
 
-    void addGlyph(const u32 key, const glm::uvec4 & coords)
+    void addGlyph(const u32 key, const uvec4 & coords)
     {
         char scratch[16];
         sprintf(scratch, "0x%08x", key);
@@ -97,16 +99,16 @@ private:
     struct Glyph
     {
         String<kMEM_Chef> key;
-        glm::uvec4 coords;
+        uvec4 coords;
 
-        Glyph(const char * key, const glm::uvec4 & coords)
+        Glyph(const char * key, const uvec4 & coords)
           : key(key)
           , coords(coords)
         {}
     };
     
     String<kMEM_Chef> mImage;
-    glm::vec2 mRenderOffset;
+    vec2 mRenderOffset;
     List<kMEM_Chef, Glyph> mGlyphs;
 };
 
@@ -198,10 +200,10 @@ void Font::cook(CookInfo * pCookInfo) const
     ASSERT(face->size->metrics.height % 64 == 0);
     u32 glyphHeight = size;
     i32 glyphYOffset = (u32)(-face->bbox.yMin / 64.0f + 0.5);
-    glm::vec2 glyphRenderOffset{0.0f, (f32)-glyphYOffset};
+    vec2 glyphRenderOffset{0.0f, (f32)-glyphYOffset};
 
     // Create an image large enough to hold all glyphs
-    u32 glyphsPerRow = (u32)(glm::sqrt((f32)utf32Codes.size()) + 0.5f);
+    u32 glyphsPerRow = (u32)(sqrt((f32)utf32Codes.size()) + 0.5f);
     u32 imgHeight = next_power_of_two(glyphsPerRow * glyphHeight);
     Scoped_GFREE<Gimg> pGimg = Gimg::create(kPXL_R8, imgHeight, imgHeight);
 
@@ -257,7 +259,7 @@ void Font::cook(CookInfo * pCookInfo) const
 
         // Atlas wants coords in non-opengl, 0,0 == top left coords
         u32 atlasTop = imgHeight - (glyphBottom + glyphHeight);
-        fontAtl.addGlyph(charCode, glm::uvec4(glyphLeft, atlasTop, advPixX, glyphHeight));
+        fontAtl.addGlyph(charCode, uvec4(glyphLeft, atlasTop, advPixX, glyphHeight));
 
         glyphLeft += advPixX;
     }

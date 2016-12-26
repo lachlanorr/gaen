@@ -27,9 +27,8 @@
 #ifndef GAEN_RENDERERGL_SPRITEGL_H
 #define GAEN_RENDERERGL_SPRITEGL_H
 
-#include <glm/mat4x3.hpp>
-
 #include "core/mem.h"
+#include "math/mat43.h"
 #include "render_support/Sprite.h"
 
 #include "renderergl/RenderCollection.h"
@@ -70,8 +69,8 @@ public:
 
     void reportDestruction();
     
-    const glm::mat4x3 & transform() { return mpSpriteInstance->mTransform; }
-    void setTransform(const glm::mat4x3 & transform) { mpSpriteInstance->mTransform = transform; }
+    const mat43 & transform() { return mpSpriteInstance->mTransform; }
+    void setTransform(const mat43 & transform) { mpSpriteInstance->mTransform = transform; }
 
     RenderItemStatus status() { return mStatus; }
     void setStatus(RenderItemStatus status) { mStatus = status; }

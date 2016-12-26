@@ -27,10 +27,10 @@
 #ifndef GAEN_RENDER_SUPPORT_VOXEL_PROTO_H
 #define GAEN_RENDER_SUPPORT_VOXEL_PROTO_H
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
-#include <glm/mat4x4.hpp>
+#include "math/vec2.h"
+#include "math/vec3.h"
+#include "math/vec4.h"
+#include "math/mat4.h"
 
 #include "core/base_defines.h"
 #include "core/mem.h"
@@ -47,8 +47,8 @@ class ComputeShaderSimulator
 public:
     ~ComputeShaderSimulator();
 
-    void init(glm::uvec3 workGroupSize,
-              glm::uvec3 numWorkGroups);
+    void init(uvec3 workGroupSize,
+              uvec3 numWorkGroups);
 
     const u8 * frameBuffer() { return un_FrameBuffer->buffer(); }
 
@@ -61,9 +61,9 @@ private:
     VoxelWorld mVoxelWorld;
 
     // uniforms
-    glm::vec3 un_CameraPos;
-    glm::quat un_CameraDir;
-    glm::mat4 un_CameraProjectionInv;
+    vec3 un_CameraPos;
+    quat un_CameraDir;
+    mat4 un_CameraProjectionInv;
 
     ImageBuffer * un_FrameBuffer = nullptr;
     const ImageBuffer * un_VoxelData = nullptr;
@@ -72,13 +72,13 @@ private:
     u32 un_VoxelRootCount;
 
     // glsl variables
-    glm::uvec3 gl_WorkGroupSize;
-    glm::uvec3 gl_NumWorkGroups;
+    uvec3 gl_WorkGroupSize;
+    uvec3 gl_NumWorkGroups;
 
-    glm::uvec3 gl_LocalInvocationID;
-    glm::uvec3 gl_WorkGroupID;
+    uvec3 gl_LocalInvocationID;
+    uvec3 gl_WorkGroupID;
 
-    glm::uvec3 gl_GlobalInvocationID;
+    uvec3 gl_GlobalInvocationID;
     u32 gl_LocalInvocationIndex;
 };
 
@@ -127,11 +127,11 @@ private:
     u32 uniform0 = 0;
 
     // camera stuff
-    glm::mat4 projectionInv;
-    glm::vec3 cameraPos;
-    glm::vec3 lightDir;
-    glm::vec3 lightColor;
-    glm::vec2 windowSize;
+    mat4 projectionInv;
+    vec3 cameraPos;
+    vec3 lightDir;
+    vec3 lightColor;
+    vec2 windowSize;
     f32 nearZ;
     f32 farZ;
 

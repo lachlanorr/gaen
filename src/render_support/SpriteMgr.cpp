@@ -31,7 +31,6 @@
 #include "engine/Handle.h"
 #include "engine/Asset.h"
 #include "engine/Entity.h"
-#include "engine/glm_ext.h"
 
 #include "engine/messages/SpriteInstance.h"
 #include "engine/messages/SpritePlayAnim.h"
@@ -60,10 +59,10 @@ void SpriteMgr::update(f32 delta)
     {
         SpriteInstance * pSpriteInst = spritePair.second.get();
         /*
-        if (pSpriteInst->mVelocity != glm::vec2{0.0})
+        if (pSpriteInst->mVelocity != vec2{0.0})
         {
-            glm::vec3 offset = glm::vec3(pSpriteInst->mVelocity * delta, 0.0f);
-            pSpriteInst->mTransform = glm::to_mat4x3(glm::translate(glm::mat4(1.0f), offset) * glm::mat4(pSpriteInst->mTransform));
+            vec3 offset = vec3(pSpriteInst->mVelocity * delta, 0.0f);
+            pSpriteInst->mTransform = to_mat4x3(translate(mat4(1.0f), offset) * mat4(pSpriteInst->mTransform));
             SpriteInstance::send_sprite_transform(kSpriteMgrTaskId, kRendererTaskId, pSpriteInst->sprite().uid(), pSpriteInst->mTransform);
             {
                 messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, pSpriteInst->sprite().mOwner, false);
@@ -215,7 +214,7 @@ template MessageResult SpriteMgr::message<MessageQueueAccessor>(const MessageQue
 namespace system_api
 {
 
-i32 sprite_create(AssetHandleP pAssetHandle, i32 stageHash, const glm::mat4x3 & transform, Entity & caller)
+i32 sprite_create(AssetHandleP pAssetHandle, i32 stageHash, const mat43 & transform, Entity & caller)
 {
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
     const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
@@ -237,13 +236,13 @@ void sprite_play_anim(i32 spriteUid, i32 animHash, f32 duration, bool loop, i32 
     msgw.setDoneMessage(doneMessage);
 }
 
-void sprite_set_velocity(i32 spriteUid, const glm::vec2 & velocity, Entity & caller)
+void sprite_set_velocity(i32 spriteUid, const vec2 & velocity, Entity & caller)
 {
     messages::SpriteVelocityQW msgw(HASH::sprite_set_velocity, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setVelocity(velocity);
 }
 
-void sprite_init_body(i32 spriteUid, f32 mass, i32 group, glm::ivec4 mask03, glm::ivec4 mask47, Entity & caller)
+void sprite_init_body(i32 spriteUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity & caller)
 {
     messages::SpriteBodyQW msgw(HASH::sprite_init_body, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setMass(mass);

@@ -26,8 +26,6 @@
 
 #include "chef/stdafx.h"
 
-#include <glm/common.hpp>
-
 #include "core/base_defines.h"
 #include "core/thread_local.h"
 #include "core/hashing.h"

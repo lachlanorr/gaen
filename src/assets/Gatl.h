@@ -27,10 +27,10 @@
 #ifndef GAEN_ASSETS_GATL_H
 #define GAEN_ASSETS_GATL_H
 
-#include <glm/vec2.hpp>
 #include "core/base_defines.h"
 #include "core/mem.h"
 #include "core/logging.h"
+#include "math/vec2.h"
 
 #include "assets/AssetHeader.h"
 
@@ -43,7 +43,7 @@ class Gimg;
 #pragma pack(push, 1)
 struct GlyphVert
 {
-    glm::vec2 position;
+    vec2 position;
     f32 u;
     f32 v;
 };
@@ -81,7 +81,7 @@ public:
 
     static u64 required_size(const char * imagePath, u16 glyphCount, u16 aliasCount);
 
-    static Gatl * create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 defaultIndex, const glm::vec2 & renderOffset);
+    static Gatl * create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 defaultIndex, const vec2 & renderOffset);
 
     u16 glyphCount() const { return mGlyphCount; }
     u16 aliasCount() const { return mAliasCount; }
@@ -253,7 +253,7 @@ private:
     u16 mDefaultIndex;
     u16 mVertsOffset;
 
-    glm::vec2 mRenderOffset;
+    vec2 mRenderOffset;
 
     const Gimg * mpGimg;
 };

@@ -26,6 +26,8 @@
 
 #include "render_support/stdafx.h"
 
+#include "math/matrices.h"
+
 #include "engine/messages/UidTransform.h"
 #include "engine/messages/UidColor.h"
 #include "engine/messages/UidVec3.h"
@@ -52,8 +54,8 @@ i32 gen_uid(Entity & caller)
 }
 
 void camera_move(i32 uid,
-                 const glm::vec3 & position,
-                 const glm::quat & direction,
+                 const vec3 & position,
+                 const quat & direction,
                  Entity & caller)
 {
     messages::UidTransformQW msgQW(HASH::camera_move,
@@ -62,23 +64,23 @@ void camera_move(i32 uid,
                                    kRendererTaskId,
                                    uid);
 
-    glm::mat4x4 trans = glm::translate(glm::mat4(1.0), position) * glm::mat4_cast(direction);
-    msgQW.setTransform(trans);
+    mat4 trans = mat4(position) * mat4(direction);
+    msgQW.setTransform(mat43(trans));
 }
 
-glm::mat4x3 view_look_at(const glm::vec3 & position,
-                         const glm::vec3 & target,
-                         Entity & caller)
+mat43 view_look_at(const vec3 & position,
+                   const vec3 & target,
+                   Entity & caller)
 {
-    static glm::vec3 up(0.0f, 1.0f, 0.0f);
-    return glm::lookAt(position, target, up);
+    static vec3 up(0.0f, 1.0f, 0.0f);
+    return mat43(look_at(position, target, up));
 }
 
 void light_distant_insert(i32 uid,
                           i32 stageHash,
                           Color color,
                           f32 ambient,
-                          const glm::vec3 & direction,
+                          const vec3 & direction,
                           Entity & caller)
 {
     messages::LightDistantQW msgQW(HASH::light_distant_insert,
@@ -93,7 +95,7 @@ void light_distant_insert(i32 uid,
 }
 
 void light_distant_direction(i32 uid,
-                             const glm::vec3 & direction,
+                             const vec3 & direction,
                              Entity & caller)
 {
     messages::UidVec3QW msgQW(HASH::light_distant_update,

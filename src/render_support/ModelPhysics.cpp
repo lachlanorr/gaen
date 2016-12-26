@@ -36,7 +36,7 @@
 namespace gaen
 {
 
-void gaen_to_bullet_transform(btTransform & bT, const glm::mat4x3 & gT)
+void gaen_to_bullet_transform(btTransform & bT, const mat43 & gT)
 {
     bT.setBasis(btMatrix3x3(gT[0][0], gT[0][1], gT[0][2],
                             gT[1][0], gT[1][1], gT[1][2],
@@ -45,7 +45,7 @@ void gaen_to_bullet_transform(btTransform & bT, const glm::mat4x3 & gT)
     bT.setOrigin(btVector3(gT[3][0], gT[3][1], gT[3][2]));
 }
 
-void bullet_to_gaen_transform(glm::mat4x3 & gT, const btTransform & bT)
+void bullet_to_gaen_transform(mat43 & gT, const btTransform & bT)
 {
     gT[0][0] = bT.getBasis()[0][0];
     gT[0][1] = bT.getBasis()[0][1];
@@ -71,7 +71,7 @@ void ModelMotionState::getWorldTransform(btTransform& worldTrans) const
 
 void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 {
-    glm::mat4x3 newTrans;
+    mat43 newTrans;
     bullet_to_gaen_transform(newTrans, worldTrans);
 
     if (newTrans != mModelInstance.mTransform)
@@ -145,12 +145,12 @@ void ModelPhysics::update(f32 delta)
                 {
                     messages::CollisionQW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obA->mpMotionState->mModelInstance.model().owner(), obB->mGroupHash);
                     msgw.setSubject(obB->mpMotionState->mModelInstance.model().owner());
-                    msgw.setLocation(glm::vec3(ptA.x(), ptA.y(), ptA.z()));
+                    msgw.setLocation(vec3(ptA.x(), ptA.y(), ptA.z()));
                 }
                 {
                     messages::CollisionQW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obB->mpMotionState->mModelInstance.model().owner(), obA->mGroupHash);
                     msgw.setSubject(obA->mpMotionState->mModelInstance.model().owner());
-                    msgw.setLocation(glm::vec3(ptB.x(), ptB.y(), ptB.z()));
+                    msgw.setLocation(vec3(ptB.x(), ptB.y(), ptB.z()));
                 }
 
 
@@ -163,14 +163,14 @@ void ModelPhysics::update(f32 delta)
 void ModelPhysics::insert(ModelInstance & modelInst,
                           f32 mass,
                           u32 group,
-                          const glm::ivec4 & mask03,
-                          const glm::ivec4 & mask47)
+                          const ivec4 & mask03,
+                          const ivec4 & mask47)
 {
     if (mBodies.find(modelInst.model().uid()) == mBodies.end())
     {
         ASSERT(modelInst.mHasBody == false);
 
-        glm::vec3 halfExtents = modelInst.model().gmdl().halfExtents();
+        vec3 halfExtents = modelInst.model().gmdl().halfExtents();
         auto colShapeIt = mCollisionShapes.find(halfExtents);
         btVector3 btExtents(halfExtents.x, halfExtents.y, halfExtents.z);
 
@@ -229,7 +229,7 @@ void ModelPhysics::remove(u32 uid)
     }
 }
 
-void ModelPhysics::setTransform(u32 uid, const glm::mat4x3 & transform)
+void ModelPhysics::setTransform(u32 uid, const mat43 & transform)
 {
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
@@ -257,7 +257,7 @@ void ModelPhysics::setTransform(u32 uid, const glm::mat4x3 & transform)
     }
 }
 
-void ModelPhysics::setVelocity(u32 uid, const glm::vec3 & velocity)
+void ModelPhysics::setVelocity(u32 uid, const vec3 & velocity)
 {
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
@@ -271,7 +271,7 @@ void ModelPhysics::setVelocity(u32 uid, const glm::vec3 & velocity)
     }
 }
 
-void ModelPhysics::setAngularVelocity(u32 uid, const glm::vec3 & velocity)
+void ModelPhysics::setAngularVelocity(u32 uid, const vec3 & velocity)
 {
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
@@ -285,7 +285,7 @@ void ModelPhysics::setAngularVelocity(u32 uid, const glm::vec3 & velocity)
     }
 }
 
-u16 ModelPhysics::buildMask(const glm::ivec4 & mask03, const glm::ivec4 & mask47)
+u16 ModelPhysics::buildMask(const ivec4 & mask03, const ivec4 & mask47)
 {
     u16 mask = 0;
     for (u32 i = 0; i < 4; ++i)

@@ -61,8 +61,7 @@ public:
     {
         if (isShown() && itemsSize() > 0)
         {
-            //static glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
-            const glm::mat4 & viewProj = cameraActive()->viewProjection();
+            const mat4 & viewProj = cameraActive()->viewProjection();
 
             for(auto it = beginItems();
                 it != endItems();
@@ -73,7 +72,7 @@ public:
 
                 if (pItemGL->status() == kRIS_Active)
                 {
-                    glm::mat4 mvp = viewProj * to_mat4x4(pItemGL->transform());
+                    mat4 mvp = viewProj * mat4(pItemGL->transform());
                     mpRenderer->activeShader().setUniformMat4(HASH::uMvp, mvp);
 
                     if (mLightDistants.size() > 0)
@@ -169,7 +168,7 @@ public:
         return mLightDistants.end();
     }
 
-    bool lightDistantDirection(u32 uid, const glm::vec3 & direction)
+    bool lightDistantDirection(u32 uid, const vec3 & direction)
     {
         auto it = lightDistantFind(uid);
         if (it != mLightDistants.end())
@@ -229,7 +228,7 @@ public:
         mItems.insert(std::move(pItemGL));
     }
     
-    bool transformItem(u32 uid, const glm::mat4x3 & transform)
+    bool transformItem(u32 uid, const mat43 & transform)
     {
         auto it = mItems.find(uid);
         if (it != mItems.end())

@@ -31,7 +31,6 @@
 #include "engine/Handle.h"
 #include "engine/Asset.h"
 #include "engine/Entity.h"
-#include "engine/glm_ext.h"
 
 #include "engine/messages/ModelInstance.h"
 #include "engine/messages/UidVec3.h"
@@ -228,7 +227,7 @@ template MessageResult ModelMgr::message<MessageQueueAccessor>(const MessageQueu
 namespace system_api
 {
 
-i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const glm::mat4x3 & transform, Entity & caller)
+i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const mat43 & transform, Entity & caller)
 {
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
     const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
@@ -241,25 +240,25 @@ i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const glm::mat4x3 & t
     return pModel->uid();
 }
 
-void model_set_velocity(i32 modelUid, const glm::vec3 & velocity, Entity & caller)
+void model_set_velocity(i32 modelUid, const vec3 & velocity, Entity & caller)
 {
     messages::UidVec3QW msgw(HASH::model_set_velocity, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
     msgw.setVector(velocity);
 }
 
-void model_set_angular_velocity(i32 modelUid, const glm::vec3 & velocity, Entity & caller)
+void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity & caller)
 {
     messages::UidVec3QW msgw(HASH::model_set_angular_velocity, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
     msgw.setVector(velocity);
 }
 
-void model_transform(i32 modelUid, const glm::mat4x3 & transform, Entity & caller)
+void model_transform(i32 modelUid, const mat43 & transform, Entity & caller)
 {
     messages::UidTransformQW msgw(HASH::model_transform, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
     msgw.setTransform(transform);
 }
 
-void model_init_body(i32 modelUid, f32 mass, i32 group, glm::ivec4 mask03, glm::ivec4 mask47, Entity & caller)
+void model_init_body(i32 modelUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity & caller)
 {
     messages::ModelBodyQW msgw(HASH::model_init_body, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
     msgw.setMass(mass);
@@ -287,7 +286,7 @@ i32 model_stage_camera_create_persp(i32 stageHash,
                                     f32 fov,
                                     f32 nearClip,
                                     f32 farClip,
-                                    const glm::mat4x3 & view,
+                                    const mat43 & view,
                                     Entity & caller)
 {
     ruid uid = RenderObject::next_uid();
@@ -304,7 +303,7 @@ i32 model_stage_camera_create_ortho(i32 stageHash,
                                     f32 scale,
                                     f32 nearClip,
                                     f32 farClip,
-                                    const glm::mat4x3 & view,
+                                    const mat43 & view,
                                     Entity & caller)
 {
     ruid uid = RenderObject::next_uid();
@@ -318,7 +317,7 @@ i32 model_stage_camera_create_ortho(i32 stageHash,
 }
 
 void model_stage_camera_view(i32 cameraUid,
-                             const glm::mat4x3 & view,
+                             const mat43 & view,
                              Entity & caller)
 {
     messages::UidTransformQW msgw(HASH::model_stage_camera_view, kMessageFlag_None, caller.task().id(), kRendererTaskId, cameraUid);

@@ -84,7 +84,7 @@ const Gmdl & Model::gmdl() const
 
 // ModelInstance methods
 
-ModelInstance::ModelInstance(Model * pModel, u32 stageHash, const glm::mat4x3 & transform, bool isRenderable)
+ModelInstance::ModelInstance(Model * pModel, u32 stageHash, const mat43 & transform, bool isRenderable)
   : mTransform(transform)
   , mpModel(pModel)
   , mStageHash(stageHash)
@@ -107,7 +107,7 @@ void ModelInstance::model_insert(task_id source, task_id target, ModelInstance *
     msgw.setModelInstance(pModelInst);
 }
 
-void ModelInstance::model_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform)
+void ModelInstance::model_transform(task_id source, task_id target, u32 uid, const mat43 & transform)
 {
     messages::UidTransformQW msgw(HASH::model_transform, kMessageFlag_None, source, target, uid);
     msgw.setTransform(transform);

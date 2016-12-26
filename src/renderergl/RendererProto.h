@@ -27,10 +27,11 @@
 #ifndef GAEN_RENDERERGL_RENDERERPROTO_H
 #define GAEN_RENDERERGL_RENDERERPROTO_H
 
-#include <glm/mat4x4.hpp>
-
 #include "core/List.h"
 #include "core/HashMap.h"
+
+#include "math/mat4.h"
+
 #include "engine/Message.h"
 #include "engine/MessageAccessor.h"
 #include "render_support/render_objects.h"
@@ -116,8 +117,8 @@ private:
     GLuint mVoxelRootsImageLocation;
     GLuint mVoxelRoots;
 
-    glm::mat4 mProjection;
-    glm::mat4 mGuiProjection;
+    mat4 mProjection;
+    mat4 mGuiProjection;
 
     List<kMEM_Renderer, LightDistant> mLightDistants;
 

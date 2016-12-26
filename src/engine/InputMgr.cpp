@@ -28,6 +28,8 @@
 
 #include "core/logging.h"
 
+#include "math/common.h"
+
 #include "assets/Config.h"
 #include "assets/file_utils.h"
 
@@ -102,9 +104,9 @@ InputMgr::InputMgr(bool isPrimary)
                 }
                 else
                 {
-                    glm::ivec4 keys;
+                    ivec4 keys;
                     auto keyVec = keyConf.getVec(*secIt, *keyIt);
-                    u32 keyCount = glm::min(4, (i32)keyVec.size());
+                    u32 keyCount = min(4, (i32)keyVec.size());
                     for (u32 i = 0; i < keyCount; ++i)
                     {
                         keys[i] = lookup_key_code(keyVec[i]);
@@ -125,7 +127,7 @@ InputMgr::InputMgr(bool isPrimary)
 
 void InputMgr::zeroState()
 {
-    mPressedKeys = glm::ivec4(0);
+    mPressedKeys = ivec4(0);
     mMouseState.zeroState();
 
     for (auto & cs : mCtrlState)
@@ -145,7 +147,7 @@ void InputMgr::setMode(u32 modeHash)
     }
 }
 
-u32 InputMgr::queryState(u32 player, u32 stateHash, glm::vec4 * pMeasure)
+u32 InputMgr::queryState(u32 player, u32 stateHash, vec4 * pMeasure)
 {
     if (mpActiveMode)
     {
@@ -170,7 +172,7 @@ bool InputMgr::queryKey(Key key)
     return (mPressedKeys[idx] & mask) != 0;
 }
 
-u32 InputMgr::queryState(const glm::ivec4 & keys)
+u32 InputMgr::queryState(const ivec4 & keys)
 {
     u32 ret = 0;
     if (queryKey((Key)keys[0]))
@@ -244,7 +246,7 @@ MessageResult InputMgr::message(const T& msgAcc)
         break;
     case HASH::kill_focus:
         //LOG_INFO("Killing focus");
-        mPressedKeys = glm::ivec4(0);
+        mPressedKeys = ivec4(0);
         break;
     case HASH::mouse_move:
         processMouseMoveInput(MouseInput::Movement(msg.payload));

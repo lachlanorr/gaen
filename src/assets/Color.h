@@ -27,8 +27,8 @@
 #ifndef GAEN_ASSETS_COLOR_H
 #define GAEN_ASSETS_COLOR_H
 
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
+#include "math/vec3.h"
+#include "math/vec4.h"
 
 #include "core/base_defines.h"
 
@@ -60,7 +60,7 @@ public:
         setaf(a);
     }
 
-    void setChannels(glm::vec4 vec)
+    void setChannels(vec4 vec)
     {
         setChannels(vec.x, vec.y, vec.z, vec.w);
     }
@@ -88,11 +88,11 @@ public:
     void setbf(f32 b) { setb(static_cast<u8>(clamp(b, 0.0f, 1.0f) * 255.0f + 0.5f)); }
     void setaf(f32 a) { seta(static_cast<u8>(clamp(a, 0.0f, 1.0f) * 255.0f + 0.5f)); }
 
-    glm::vec3 toVec3() const { return build_vec3(*this); }
-    static glm::vec3 build_vec3(const Color & col) { return glm::vec3(col.rf(), col.gf(), col.bf()); }
+    vec3 toVec3() const { return build_vec3(*this); }
+    static vec3 build_vec3(const Color & col) { return vec3(col.rf(), col.gf(), col.bf()); }
 
-    glm::vec4 toVec4() const { return build_vec4(*this); }
-    static glm::vec4 build_vec4(const Color & col) { return glm::vec4(col.rf(), col.gf(), col.bf(), col.af()); }
+    vec4 toVec4() const { return build_vec4(*this); }
+    static vec4 build_vec4(const Color & col) { return vec4(col.rf(), col.gf(), col.bf(), col.af()); }
 
     u8 luminance()
     {

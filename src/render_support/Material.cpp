@@ -60,7 +60,7 @@ void Material::registerTexture(u32 nameHash, const Asset * pGimgAsset)
     AssetMgr::addref_asset(kRendererTaskId, pGimgAsset);
 }
 
-void Material::registerVec4Var(u32 nameHash, const glm::vec4 & value)
+void Material::registerVec4Var(u32 nameHash, const vec4 & value)
 {
     PANIC_IF(mVec4VarCount >= kMaxVec4Vars, "Too many Vec4 material vars");
     mVec4Vars[mVec4VarCount++] = Material::Vec4Var(nameHash, value);

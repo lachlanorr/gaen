@@ -24,7 +24,9 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include <glm/gtx/transform.hpp>
+#include "math/common.h"
+#include "math/matrices.h"
+#include "math/mat4.h"
 
 #include "render_support/Model.h"
 
@@ -40,11 +42,11 @@ ModelStage::ModelStage(u32 stageHash, RendererMesh * pRenderer)
           pRenderer,
           Camera(kRendererTaskId,
                  stageHash,
-                 glm::perspective(glm::radians(60.0f),
-                                  pRenderer->screenWidth() / (f32)pRenderer->screenHeight(),
-                                  0.1f,
-                                  100000.0f),
-                 glm::mat4x4(1.0)))
+                 perspective(radians(60.0f),
+                             pRenderer->screenWidth() / (f32)pRenderer->screenHeight(),
+                             0.1f,
+                             100000.0f),
+                 mat43(1.0f)))
 {}
 
 } // namespace gaen

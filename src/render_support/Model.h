@@ -27,8 +27,7 @@
 #ifndef GAEN_RENDER_SUPPORT_MODEL_H
 #define GAEN_RENDER_SUPPORT_MODEL_H
 
-#include <glm/mat4x3.hpp>
-
+#include "math/mat43.h"
 #include "engine/task.h"
 #include "render_support/render_objects.h"
 
@@ -68,7 +67,7 @@ class ModelInstance
     friend class ModelMotionState;
     friend class ModelPhysics;
 public:
-    ModelInstance(Model * pModel, u32 stageHash, const glm::mat4x3 & transform, bool isRenderable);
+    ModelInstance(Model * pModel, u32 stageHash, const mat43 & transform, bool isRenderable);
 
     const Model & model() { return *mpModel; }
     u32 stageHash() { return mStageHash; }
@@ -78,13 +77,13 @@ public:
     void destroyModel();
 
     static void model_insert(task_id source, task_id target, ModelInstance * pModelInst);
-    static void model_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform);
+    static void model_transform(task_id source, task_id target, u32 uid, const mat43 & transform);
     static void model_remove(task_id source, task_id target, u32 uid);
 
-    glm::vec3 position() { return mTransform[3]; }
-    f32 zdepth() { return mTransform[3][2]; }
+    vec3 position() { return mTransform.pos(); }
+    f32 zdepth() { return mTransform.pos().z; }
 
-    glm::mat4x3 mTransform;
+    mat43 mTransform;
 
 private:
     // Delete these to make sure we construct through the asset->addref path

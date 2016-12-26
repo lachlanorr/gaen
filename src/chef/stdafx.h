@@ -35,9 +35,6 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <glm/common.hpp>
-#include <glm/exponential.hpp>
-
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>

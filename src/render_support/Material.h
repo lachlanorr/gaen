@@ -27,7 +27,7 @@
 #ifndef GAEN_RENDER_SUPPORT_MATERIAL_H
 #define GAEN_RENDER_SUPPORT_MATERIAL_H
 
-#include <glm/vec4.hpp>
+#include "math/vec4.h"
 
 #include "assets/Color.h"
 #include "core/base_defines.h"
@@ -54,7 +54,7 @@ enum MaterialLayer
 
 typedef u32 material_id;
 
-typedef void(*SetShaderVec4VarCB)(u32 nameHash, const glm::vec4 & val, void * pContext);
+typedef void(*SetShaderVec4VarCB)(u32 nameHash, const vec4 & val, void * pContext);
 typedef void(*SetTextureCB)(u32 nameHash, u32 gpuId, void * pContext);
 typedef u32(*LoadTextureCB)(u32 nameHash, const Gimg * pGimg, void * pContext);
 typedef void(*UnloadTextureCB)(u32 gpuId, const Gimg * pGimg, void * pContext);
@@ -68,7 +68,7 @@ public:
     MaterialLayer layer() const { return mLayer; }
     u32 shaderNameHash() { return mShaderNameHash; }
 
-    void registerVec4Var(u32 nameHash, const glm::vec4 & value);
+    void registerVec4Var(u32 nameHash, const vec4 & value);
     void registerTexture(u32 nameHash, const Asset * pAsset);
 
     void setShaderVec4Vars(SetShaderVec4VarCB setCB, void * context);
@@ -83,9 +83,9 @@ private:
     struct Vec4Var
     {
         u32 nameHash;
-        glm::vec4 value;
+        vec4 value;
         Vec4Var() {}
-        Vec4Var(u32 nameHash, const glm::vec4 & value)
+        Vec4Var(u32 nameHash, const vec4 & value)
           : nameHash(nameHash)
           , value(value)
         {}

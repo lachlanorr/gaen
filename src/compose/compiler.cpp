@@ -1543,6 +1543,16 @@ Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData)
 
     switch (pParams->pChildren->nodes.size())
     {
+    case 2:
+    {
+        Ast * pParam0 = *(pParams->pChildren->nodes.begin());
+        const SymDataType * pSdt0 = ast_data_type(pParam0);
+        Ast * pParam1 = *(++pParams->pChildren->nodes.begin());
+        const SymDataType * pSdt1 = ast_data_type(pParam1);
+        if (pSdt0->typeDesc.dataType != kDT_float || pSdt1->typeDesc.dataType != kDT_vec3)
+            COMP_ERROR(pParseData, "Invalid data type in quat initialization");
+        break;
+    }
     case 4:
     {
         for (Ast * pParam : pParams->pChildren->nodes)
@@ -1572,8 +1582,21 @@ Ast * ast_create_mat43_init(Ast * pParams, ParseData * pParseData)
     {
         Ast * pParam = pParams->pChildren->nodes.front();
         const SymDataType * pSdt = ast_data_type(pParam);
-        if (pSdt->typeDesc.dataType != kDT_float && pSdt->typeDesc.dataType != kDT_mat43)
+        if (pSdt->typeDesc.dataType != kDT_float &&
+            pSdt->typeDesc.dataType != kDT_vec3 && // position
+            pSdt->typeDesc.dataType != kDT_mat43)
             COMP_ERROR(pParseData, "Invalid data type in mat43 initialization");
+        break;
+    }
+    case 2:
+    {
+        // position and rotation
+        for (Ast * pParam : pParams->pChildren->nodes)
+        {
+            const SymDataType * pSdt = ast_data_type(pParam);
+            if (pSdt->typeDesc.dataType != kDT_vec3)
+                COMP_ERROR(pParseData, "Invalid data type in mat43 initialization");
+        }
         break;
     }
     case 12:
@@ -2981,63 +3004,64 @@ namespace gaen
 
     void register_basic_types(ParseData * pParseData)
     {
-        register_basic_type(kDT_void,  "void", "void", 0, pParseData);
-        register_basic_type(kDT_bool,  "bool", "bool", 1, pParseData);
+        RelatedTypes voidRt = register_basic_type(kDT_void,  "void", "void", 0, pParseData);
+        RelatedTypes boolRt = register_basic_type(kDT_bool,  "bool", "bool", 1, pParseData);
         RelatedTypes intRt = register_basic_type(kDT_int,   "int",  "i32",  1, pParseData);
-        register_basic_type(kDT_color, "color", "Color", 1, pParseData);
+        RelatedTypes colorRt = register_basic_type(kDT_color, "color", "Color", 1, pParseData);
 
         // Save float related types since we need them to register fields of each
         // composite type.
         RelatedTypes floatRt = register_basic_type(kDT_float, "float", "f32", 1, pParseData);
 
-        RelatedTypes rt;
+        RelatedTypes vec2Rt = register_basic_type(kDT_vec2, "vec2", "vec2", 2, pParseData);
+        symdatatype_add_field_related(&vec2Rt, floatRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&vec2Rt, floatRt.pNormal, "y", kSRFL_None);
 
-        rt = register_basic_type(kDT_vec2, "vec2", "glm::vec2", 2, pParseData);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "y", kSRFL_None);
+        RelatedTypes vec3Rt = register_basic_type(kDT_vec3, "vec3", "vec3", 3, pParseData);
+        symdatatype_add_field_related(&vec3Rt, floatRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&vec3Rt, floatRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&vec3Rt, floatRt.pNormal, "z", kSRFL_None);
 
-        rt = register_basic_type(kDT_vec3, "vec3", "glm::vec3", 3, pParseData);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "z", kSRFL_None);
+        RelatedTypes vec4Rt = register_basic_type(kDT_vec4, "vec4", "vec4", 4, pParseData);
+        symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "z", kSRFL_None);
+        symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "w", kSRFL_None);
 
-        rt = register_basic_type(kDT_vec4, "vec4", "glm::vec4", 4, pParseData);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "z", kSRFL_None);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "w", kSRFL_None);
+        RelatedTypes ivec2Rt = register_basic_type(kDT_ivec2, "ivec2", "ivec2", 2, pParseData);
+        symdatatype_add_field_related(&ivec2Rt, intRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&ivec2Rt, intRt.pNormal, "y", kSRFL_None);
 
-        rt = register_basic_type(kDT_ivec2, "ivec2", "glm::ivec2", 2, pParseData);
-        symdatatype_add_field_related(&rt, intRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&rt, intRt.pNormal, "y", kSRFL_None);
+        RelatedTypes ivec3Rt = register_basic_type(kDT_ivec3, "ivec3", "ivec3", 3, pParseData);
+        symdatatype_add_field_related(&ivec3Rt, intRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&ivec3Rt, intRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&ivec3Rt, intRt.pNormal, "z", kSRFL_None);
 
-        rt = register_basic_type(kDT_ivec3, "ivec3", "glm::ivec3", 3, pParseData);
-        symdatatype_add_field_related(&rt, intRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&rt, intRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&rt, intRt.pNormal, "z", kSRFL_None);
+        RelatedTypes ivec4Rt = register_basic_type(kDT_ivec4, "ivec4", "ivec4", 4, pParseData);
+        symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "z", kSRFL_None);
+        symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "w", kSRFL_None);
 
-        rt = register_basic_type(kDT_ivec4, "ivec4", "glm::ivec4", 4, pParseData);
-        symdatatype_add_field_related(&rt, intRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&rt, intRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&rt, intRt.pNormal, "z", kSRFL_None);
-        symdatatype_add_field_related(&rt, intRt.pNormal, "w", kSRFL_None);
+        RelatedTypes quatRt = register_basic_type(kDT_quat, "quat", "quat", 4, pParseData);
+        symdatatype_add_field_related(&quatRt, floatRt.pNormal, "x", kSRFL_None);
+        symdatatype_add_field_related(&quatRt, floatRt.pNormal, "y", kSRFL_None);
+        symdatatype_add_field_related(&quatRt, floatRt.pNormal, "z", kSRFL_None);
+        symdatatype_add_field_related(&quatRt, floatRt.pNormal, "w", kSRFL_None);
 
-        rt = register_basic_type(kDT_quat, "quat", "glm::quat", 4, pParseData);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "z", kSRFL_None);
-        symdatatype_add_field_related(&rt, floatRt.pNormal, "w", kSRFL_None);
+        RelatedTypes mat3Rt = register_basic_type(kDT_mat3,  "mat3",  "mat3",    9, pParseData);
 
-        register_basic_type(kDT_mat3,  "mat3",  "glm::mat3",    9, pParseData);
-        register_basic_type(kDT_mat43, "mat43", "glm::mat4x3", 12, pParseData);
-        register_basic_type(kDT_mat4,  "mat4",  "glm::mat4",   16, pParseData);
+        RelatedTypes mat43Rt = register_basic_type(kDT_mat43, "mat43", "mat43", 12, pParseData);
+        symdatatype_add_field_related(&mat43Rt, vec3Rt.pNormal, "pos", kSRFL_NeedsCppParens);
 
-        register_basic_type(kDT_handle,       "handle", "HandleP", 2, pParseData);
-        register_basic_type(kDT_asset_handle, "asset_handle", "AssetHandleP", 2, pParseData);
+        RelatedTypes mat4Rt = register_basic_type(kDT_mat4, "mat4", "mat4",   16, pParseData);
 
-        register_basic_type(kDT_entity, "entity", "task_id", 1, pParseData);
-        register_basic_type(kDT_string, "string", "CmpString", 2, pParseData);
-        register_basic_type(kDT_asset,  "asset",  "CmpStringAsset", 2, pParseData);
+        RelatedTypes handleRt = register_basic_type(kDT_handle,       "handle", "HandleP", 2, pParseData);
+        RelatedTypes asset_handleRt = register_basic_type(kDT_asset_handle, "asset_handle", "AssetHandleP", 2, pParseData);
+
+        RelatedTypes entityRt = register_basic_type(kDT_entity, "entity", "task_id", 1, pParseData);
+        RelatedTypes stringRt = register_basic_type(kDT_string, "string", "CmpString", 2, pParseData);
+        RelatedTypes assetRt = register_basic_type(kDT_asset,  "asset",  "CmpStringAsset", 2, pParseData);
     }
 
     ParseData * parse_file(const char * fullPath,

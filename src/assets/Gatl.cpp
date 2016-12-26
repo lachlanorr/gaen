@@ -86,7 +86,7 @@ u64 Gatl::required_size(const char * imagePath, u16 glyphCount, u16 aliasCount)
             aliases_size_aligned(aliasCount));
 }
 
-Gatl * Gatl::create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 defaultIndex, const glm::vec2 & renderOffset)
+Gatl * Gatl::create(const char * imagePath, u16 glyphCount, u16 aliasCount, u16 defaultIndex, const vec2 & renderOffset)
 {
     ASSERT(imagePath);
     u64 size = Gatl::required_size(imagePath, glyphCount, aliasCount);

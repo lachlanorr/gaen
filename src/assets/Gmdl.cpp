@@ -24,8 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include <glm/common.hpp>
-
 #include "core/HashMap.h"
 #include "core/String.h"
 

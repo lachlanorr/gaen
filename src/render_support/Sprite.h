@@ -27,8 +27,8 @@
 #ifndef GAEN_RENDER_SUPPORT_SPRITE_H
 #define GAEN_RENDER_SUPPORT_SPRITE_H
 
-#include <glm/mat4x3.hpp>
-
+#include "math/mat43.h"
+#include "math/vec3.h"
 #include "engine/task.h"
 #include "render_support/render_objects.h"
 
@@ -58,7 +58,7 @@ public:
     const GlyphTri * tris() const;
     u64 trisSize() const;
 
-    glm::vec3 halfExtents() const;
+    vec3 halfExtents() const;
 
     const Gimg & gimg() const;
 
@@ -87,7 +87,7 @@ class SpriteInstance
     friend class SpriteMotionState;
     friend class SpritePhysics;
 public:
-    SpriteInstance(Sprite * pSprite, u32 stageHash, const glm::mat4x3 & transform);
+    SpriteInstance(Sprite * pSprite, u32 stageHash, const mat43 & transform);
 
     const Sprite & sprite() { return *mpSprite; }
     u32 stageHash() { return mStageHash; }
@@ -103,13 +103,13 @@ public:
 
     static void sprite_insert(task_id source, task_id target, SpriteInstance * pSpriteInst);
     static void sprite_anim(task_id source, task_id target, u32 uid, u32 animHash, u32 animFrameIdx);
-    static void sprite_transform(task_id source, task_id target, u32 uid, const glm::mat4x3 & transform);
+    static void sprite_transform(task_id source, task_id target, u32 uid, const mat43 & transform);
     static void sprite_remove(task_id source, task_id target, u32 uid);
 
-    glm::vec3 position() { return mTransform[3]; }
-    f32 zdepth() { return mTransform[3][2]; }
+    vec3 position() { return mTransform.pos(); }
+    f32 zdepth() { return mTransform.pos().z; }
 
-    glm::mat4x3 mTransform;
+    mat43 mTransform;
 private:
     // Delete these to make sure we construct through the asset->addref path
     SpriteInstance(const SpriteInstance&)             = delete;

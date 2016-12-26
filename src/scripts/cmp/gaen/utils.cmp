@@ -134,7 +134,7 @@ component WasdCamera
 
             if (hasRotated)
             {
-                orientation = $.quat_normalize(orientation);
+                orientation = $.normalize(orientation);
                 
                 dirForward = orientation * dirForwardInit;
                 dirRight = orientation * dirRightInit;

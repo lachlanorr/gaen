@@ -27,10 +27,10 @@
 #ifndef GAEN_ASSETS_GMDL_H
 #define GAEN_ASSETS_GMDL_H
 
-#include <glm/vec3.hpp>
-
 #include "core/base_defines.h"
 #include "core/mem.h"
+
+#include "math/vec3.h"
 
 #include "assets/Color.h"
 #include "assets/AssetHeader.h"
@@ -71,29 +71,29 @@ enum PrimType
 struct VertPos
 {
     static const VertType kVertType = kVERT_Pos;
-    glm::vec3 position;
+    vec3 position;
 };
 
 struct VertPosNorm
 {
     static const VertType kVertType = kVERT_PosNorm;
-    glm::vec3 position;
-    glm::vec3 normal;
+    vec3 position;
+    vec3 normal;
 };
 
 struct VertPosNormCol
 {
     static const VertType kVertType = kVERT_PosNorm;
-    glm::vec3 position;
-    glm::vec3 normal;
+    vec3 position;
+    vec3 normal;
     Color color;
 };
 
 struct VertPosNormUv
 {
     static const VertType kVertType = kVERT_PosNormUv;
-    glm::vec3 position;
-    glm::vec3 normal;
+    vec3 position;
+    vec3 normal;
     f32 u;
     f32 v;
 };
@@ -101,18 +101,18 @@ struct VertPosNormUv
 struct VertPosNormUvTan
 {
     static const VertType kVertType = kVERT_PosNormUvTan;
-    glm::vec3 position;
-    glm::vec3 normal;
+    vec3 position;
+    vec3 normal;
     f32 u;
     f32 v;
-    glm::vec4 tangent;
+    vec4 tangent;
 };
 #pragma pack(pop)
 
 const u32 kOffsetPosition = 0;
-const u32 kOffsetNormal   = kOffsetPosition + sizeof(glm::vec3);
-const u32 kOffsetColor    = kOffsetNormal + sizeof(glm::vec3);
-const u32 kOffsetUV       = kOffsetNormal + sizeof(glm::vec3);
+const u32 kOffsetNormal   = kOffsetPosition + sizeof(vec3);
+const u32 kOffsetColor    = kOffsetNormal + sizeof(vec3);
+const u32 kOffsetUV       = kOffsetNormal + sizeof(vec3);
 const u32 kOffsetTangent  = kOffsetUV + sizeof(f32) + sizeof(f32);
 
 inline bool is_valid_vert_type(u32 vertType)
@@ -363,8 +363,8 @@ public:
     u32 primCount() const { return mPrimCount; }
     u32 indexCount() const { return mPrimCount * index_count(primType()); }
 
-    glm::vec3 & halfExtents() { return mHalfExtents; }
-    const glm::vec3 & halfExtents() const { return mHalfExtents; }
+    vec3 & halfExtents() { return mHalfExtents; }
+    const vec3 & halfExtents() const { return mHalfExtents; }
 
     f32 * verts()
     {
@@ -591,7 +591,7 @@ private:
     // VertOffset is sizeof(Gmdl), they start immediately after the header
     u32 mPrimOffset;  // offset from start of struct
 
-    glm::vec3 mHalfExtents;
+    vec3 mHalfExtents;
 
     u32 mRendererReserved[kRendererReservedCount];
 

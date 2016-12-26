@@ -27,13 +27,14 @@
 #ifndef GAEN_RENDER_SUPPORT_RENDER_OBJECTS_H
 #define GAEN_RENDER_SUPPORT_RENDER_OBJECTS_H
 
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
-
 #include "core/base_defines.h"
 
+#include "math/vec3.h"
+#include "math/vec4.h"
+#include "math/mat4.h"
+#include "math/mat43.h"
+
 #include "engine/Entity.h"
-#include "engine/glm_ext.h"
 
 #include "assets/Color.h"
 #include "engine/task.h"
@@ -70,7 +71,7 @@ private:
 class Camera : public RenderObject
 {
 public:
-    Camera(task_id owner, ruid uid, u32 stageHash, glm::mat4 & projection, glm::mat4 & view)
+    Camera(task_id owner, ruid uid, u32 stageHash, const mat4 & projection, const mat43 & view)
       : RenderObject(owner, uid)
       , mStageHash(stageHash)
       , mProjection(projection)
@@ -78,28 +79,28 @@ public:
         setView(view);
     }
 
-    Camera(task_id owner, u32 stageHash, glm::mat4 & projection, glm::mat4 & view)
+    Camera(task_id owner, u32 stageHash, mat4 & projection, mat43 & view)
       : Camera(owner, RenderObject::next_uid(), stageHash, projection, view)
     {}
 
     u32 stageHash() { return mStageHash; }
 
-    const glm::mat4 & projection() const { return mProjection; }
+    const mat4 & projection() const { return mProjection; }
 
-    const glm::mat4 & view(const glm::mat4 & view) { return mView; }
-    void setView(const glm::mat4 & view)
+    const mat43 & view() { return mView; }
+    void setView(const mat43 & view)
     {
         mView = view;
         mViewProjection = mProjection * mView;
     }
     
-    const glm::mat4 & viewProjection() const { return mViewProjection; }
+    const mat4 & viewProjection() const { return mViewProjection; }
 
 private:
     u32 mStageHash;
-    glm::mat4 mProjection;
-    glm::mat4 mView;
-    glm::mat4 mViewProjection;
+    mat4 mProjection;
+    mat43 mView;
+    mat4 mViewProjection;
 };
 
 class LightDistant : public RenderObject
@@ -110,7 +111,7 @@ public:
                  u32 stageHash,
                  Color color,
                  f32 ambient,
-                 const glm::vec3 & direction)
+                 const vec3 & direction)
       : RenderObject(owner, uid)
       , mStageHash(stageHash)
       , mColor(Color::build_vec4(color))
@@ -123,7 +124,7 @@ public:
                  u32 stageHash,
                  Color color,
                  f32 ambient,
-                 const glm::vec3 & direction)
+                 const vec3 & direction)
       : LightDistant(owner,
                      RenderObject::next_uid(),
                      stageHash,
@@ -132,27 +133,27 @@ public:
                      direction)
     {}
 
-    const glm::vec3 & direction() const { return mDirection; }
-    void setDirection(const glm::vec3 & direction)
+    const vec3 & direction() const { return mDirection; }
+    void setDirection(const vec3 & direction)
     {
         mDirection = direction;
-        mIncidence = -glm::normalize(direction);
+        mIncidence = -normalize(direction);
     }
 
-    const glm::vec3 & incidence() const { return mIncidence; }
+    const vec3 & incidence() const { return mIncidence; }
 
-    const glm::vec3 & color() const { return mColor; }
-    void setColor(glm::vec3 & color) { mColor = color; }
+    const vec3 & color() const { return mColor; }
+    void setColor(vec3 & color) { mColor = color; }
     void setColor(Color color) { mColor = color.toVec3(); }
 
     const f32 ambient() const { return mAmbient; }
     void setAmbient(f32 ambient) { mAmbient = ambient; }
 private:
     u32 mStageHash;
-    glm::vec3 mColor;
+    vec3 mColor;
     f32 mAmbient;
-    glm::vec3 mDirection;
-    glm::vec3 mIncidence;
+    vec3 mDirection;
+    vec3 mIncidence;
 };
 
 } // namespace gaen

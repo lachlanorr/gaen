@@ -36,7 +36,7 @@ namespace gaen
 
 void SpriteMotionState::getWorldTransform(btTransform& worldTrans) const
 {
-    const glm::mat4x3 & t = mSpriteInstance.mTransform;
+    const mat43 & t = mSpriteInstance.mTransform;
     worldTrans.setBasis(btMatrix3x3(t[0][0], t[0][1], t[0][2],
                                     t[1][0], t[1][1], t[1][2],
                                     t[2][0], t[2][1], t[2][2]));
@@ -46,7 +46,7 @@ void SpriteMotionState::getWorldTransform(btTransform& worldTrans) const
 
 void SpriteMotionState::setWorldTransform(const btTransform& worldTrans)
 {
-    glm::mat4x3 & t = mSpriteInstance.mTransform;
+    mat43 & t = mSpriteInstance.mTransform;
 
     t[0][0] = worldTrans.getBasis()[0][0];
     t[0][1] = worldTrans.getBasis()[0][1];
@@ -127,12 +127,12 @@ void SpritePhysics::update(f32 delta)
                 {
                     messages::CollisionQW msgw(HASH::collision, kMessageFlag_None, kSpriteMgrTaskId, obA->mpMotionState->mSpriteInstance.sprite().owner(), obB->mGroupHash);
                     msgw.setSubject(obB->mpMotionState->mSpriteInstance.sprite().owner());
-                    msgw.setLocation(glm::vec3(ptA.x(), ptA.y(), ptA.z()));
+                    msgw.setLocation(vec3(ptA.x(), ptA.y(), ptA.z()));
                 }
                 {
                     messages::CollisionQW msgw(HASH::collision, kMessageFlag_None, kSpriteMgrTaskId, obB->mpMotionState->mSpriteInstance.sprite().owner(), obA->mGroupHash);
                     msgw.setSubject(obA->mpMotionState->mSpriteInstance.sprite().owner());
-                    msgw.setLocation(glm::vec3(ptB.x(), ptB.y(), ptB.z()));
+                    msgw.setLocation(vec3(ptB.x(), ptB.y(), ptB.z()));
                 }
 
 
@@ -145,14 +145,14 @@ void SpritePhysics::update(f32 delta)
 void SpritePhysics::insert(SpriteInstance & spriteInst,
                            f32 mass,
                            u32 group,
-                           const glm::ivec4 & mask03,
-                           const glm::ivec4 & mask47)
+                           const ivec4 & mask03,
+                           const ivec4 & mask47)
 {
     if (mBodies.find(spriteInst.sprite().uid()) == mBodies.end())
     {
         ASSERT(spriteInst.mHasBody == false);
 
-        glm::vec3 halfExtents = spriteInst.sprite().halfExtents();
+        vec3 halfExtents = spriteInst.sprite().halfExtents();
         auto colShapeIt = mCollisionShapes.find(halfExtents);
 
         btCollisionShape * pCollisionShape = nullptr;
@@ -208,7 +208,7 @@ void SpritePhysics::remove(u32 uid)
     }
 }
 
-void SpritePhysics::setVelocity(u32 uid, const glm::vec2 & velocity)
+void SpritePhysics::setVelocity(u32 uid, const vec2 & velocity)
 {
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
@@ -222,7 +222,7 @@ void SpritePhysics::setVelocity(u32 uid, const glm::vec2 & velocity)
     }
 }
 
-u16 SpritePhysics::buildMask(const glm::ivec4 & mask03, const glm::ivec4 & mask47)
+u16 SpritePhysics::buildMask(const ivec4 & mask03, const ivec4 & mask47)
 {
     u16 mask = 0;
     for (u32 i = 0; i < 4; ++i)

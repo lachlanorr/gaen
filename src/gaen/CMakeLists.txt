@@ -81,6 +81,7 @@ ELSE(IOS)
   TARGET_LINK_LIBRARIES (${CMAKE_PROJECT_NAME}
     core
     hashes
+    math
     assets
     engine
     render_support

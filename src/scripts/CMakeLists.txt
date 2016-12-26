@@ -51,6 +51,7 @@ ADD_CUSTOM_TARGET (
 
 ADD_DEPENDENCIES(scripts
   hashes
+  math
   engine
   CODEGEN_SCRIPTS
   )

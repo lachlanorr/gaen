@@ -31,7 +31,6 @@
 #include "assets/file_utils.h"
 #include "engine/BlockMemory.h"
 #include "engine/MessageWriter.h"
-#include "engine/glm_ext.h"
 #include "hashes/hashes.h"
 #include "engine/Registry.h"
 #include "engine/Asset.h"
@@ -58,7 +57,7 @@ Entity::Entity(u32 nameHash,
   , mCreatorTask(creatorTask)
   , mReadyMessage(readyMessage)
 {
-    mTransform = glm::mat4x3(1.0f);
+    mTransform = mat43(1.0f);
     mIsTransformDirty = false;
 
     mPlayer = 0;
@@ -532,17 +531,17 @@ MessageResult Entity::message(const T & msgAcc)
 }
 
 
-void Entity::setTransform(const glm::mat4x3 & mat)
+void Entity::setTransform(const mat43 & mat)
 {
     mIsTransformDirty = true;
     mTransform = mat;
 }
 
-void Entity::applyTransform(bool isLocal, const glm::mat4x3 & mat)
+void Entity::applyTransform(bool isLocal, const mat43 & mat)
 {
     if (isLocal)
     {
-        glm::mat4x3 invTrans = inverse(mTransform);
+        mat43 invTrans = ~mTransform;
         setTransform(invTrans * mat * mTransform);
     }
     else
@@ -551,7 +550,7 @@ void Entity::applyTransform(bool isLocal, const glm::mat4x3 & mat)
             setTransform(mat);
         else
         {
-            glm::mat4x3 invParent = inverse(mpParent->transform());
+            mat43 invParent = ~mpParent->transform();
             setTransform(mTransform * mat * invParent);
         }
     }
@@ -565,16 +564,16 @@ void Entity::setParent(Entity * pEntity)
     {
         // Convert our global transform into local coords relative to parent
         mpParent = pEntity;
-        glm::mat4x3 invParent = inverse(mpParent->transform());
+        mat43 invParent = ~mpParent->transform();
         setTransform(mTransform * invParent);
     }
 }
 
-const glm::mat4x3 & Entity::parentTransform() const
+const mat43 & Entity::parentTransform() const
 {
     if (!mpParent)
     {
-        static const glm::mat4x3 ident = glm::mat4x3(1.0);
+        static const mat43 ident = mat43(1.0);
         return ident;
     }
     else

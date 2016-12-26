@@ -498,25 +498,25 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
     case kDT_bool:
         return S("false");
     case kDT_vec2:
-        return S("glm::vec2(0.0f, 0.0f)");
+        return S("vec2(0.0f, 0.0f)");
     case kDT_vec3:
-        return S("glm::vec3(0.0f, 0.0f, 0.0f)");
+        return S("vec3(0.0f, 0.0f, 0.0f)");
     case kDT_vec4:
-        return S("glm::vec4(0.0, 0.0f, 0.0f, 1.0f)");
+        return S("vec4(0.0, 0.0f, 0.0f, 1.0f)");
     case kDT_ivec2:
-        return S("glm::ivec2(0.0f, 0.0f)");
+        return S("ivec2(0.0f, 0.0f)");
     case kDT_ivec3:
-        return S("glm::ivec3(0.0f, 0.0f, 0.0f)");
+        return S("ivec3(0.0f, 0.0f, 0.0f)");
     case kDT_ivec4:
-        return S("glm::ivec4(0.0, 0.0f, 0.0f, 1.0f)");
+        return S("ivec4(0.0, 0.0f, 0.0f, 1.0f)");
     case kDT_quat:
-        return S("glm::quat(0.0, 0.0f, 0.0f, 1.0f)");
+        return S("quat(0.0, 0.0f, 0.0f, 1.0f)");
     case kDT_mat3:
-        return S("glm::mat3(1.0f)");
+        return S("mat3(1.0f)");
     case kDT_mat43:
-        return S("glm::mat4x3(1.0f)");
+        return S("mat43(1.0f)");
     case kDT_mat4:
-        return S("glm::mat4(1.0f)");
+        return S("mat4(1.0f)");
     case kDT_handle:
     case kDT_asset_handle:
         return S("nullptr");
@@ -1329,8 +1329,8 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
     S procCode;
     procCode += I1 + S("u32 maxInputMatch = 0;") + LF;
     procCode += I1 + S("u32 inputMatch = 0;") + LF;
-    procCode += I1 + S("glm::vec4 measure = glm::vec4(0);") + LF;
-    procCode += I1 + S("void (DefiningType::*pHandler)(f32, const glm::vec4&) = nullptr;") + LF;
+    procCode += I1 + S("vec4 measure = vec4(0.0f);") + LF;
+    procCode += I1 + S("void (DefiningType::*pHandler)(f32, const vec4&) = nullptr;") + LF;
     procCode += LF;
 
     const Ast * pInput;
@@ -1351,7 +1351,7 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
 
             procCode += I2 + S("maxInputMatch = 0;") + LF;
             procCode += I2 + S("inputMatch = 0;") + LF;
-            procCode += I2 + S("measure = glm::vec4(0);") + LF;
+            procCode += I2 + S("measure = vec4(0.0f);") + LF;
             procCode += I2 + S("pHandler = nullptr;") + LF;
             procCode += LF;
 
@@ -1382,7 +1382,7 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
                     }
                     code += input_handler_special_name(pInput->str, pInputDef->str);
                 }
-                code += S("(f32 delta, const glm::vec4 & measure)") + LF;
+                code += S("(f32 delta, const vec4 & measure)") + LF;
                 code += I + S("{") + LF;
                 code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
                 for (const Ast * pChild : pInputDef->pChildren->nodes)
@@ -1925,7 +1925,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_Vec2Init:
     {
-        S code = S("glm::vec2(");
+        S code = S("vec2(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -1937,7 +1937,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_Vec3Init:
     {
-        S code = S("glm::vec3(");
+        S code = S("vec3(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -1949,7 +1949,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_Vec4Init:
     {
-        S code = S("glm::vec4(");
+        S code = S("vec4(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -1961,7 +1961,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_Ivec2Init:
     {
-        S code = S("glm::ivec2(");
+        S code = S("ivec2(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -1973,7 +1973,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_Ivec3Init:
     {
-        S code = S("glm::ivec3(");
+        S code = S("ivec3(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -1985,7 +1985,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_Ivec4Init:
     {
-        S code = S("glm::ivec4(");
+        S code = S("ivec4(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -1997,7 +1997,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_QuatInit:
     {
-        S code = S("glm::quat(");
+        S code = S("quat(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -2009,7 +2009,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_Mat43Init:
     {
-        S code = S("glm::mat4x3(");
+        S code = S("mat43(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegen_recurse(pParam, indentLevel);
@@ -2627,6 +2627,7 @@ CodeCpp codegen_cpp(ParseData * pParseData)
     extract_filenames(pParseData->fullPath, codeCpp, pParseData);
     
     codeCpp.code += S("#include \"hashes/hashes.h\"\n");
+    codeCpp.code += S("#include \"math/math.h\"\n");
     codeCpp.code += S("#include \"engine/Block.h\"\n");
     codeCpp.code += S("#include \"engine/BlockMemory.h\"\n");
     codeCpp.code += S("#include \"engine/MessageWriter.h\"\n");

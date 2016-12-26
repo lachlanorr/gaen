@@ -27,10 +27,10 @@
 #ifndef GAEN_ENGINE_INPUT_MGR_H
 #define GAEN_ENGINE_INPUT_MGR_H
 
-#include <glm/vec4.hpp>
-
 #include "core/HashMap.h"
 #include "core/Vector.h"
+
+#include "math/vec4.h"
 
 #include "engine/MessageAccessor.h"
 #include "engine/input.h"
@@ -49,7 +49,7 @@ public:
     u32 mode() { return mpActiveMode ? mpActiveMode->nameHash : 0; }
     void setMode(u32 modeHash);
 
-    u32 queryState(u32 player, u32 stateHash, glm::vec4 * pMeasure);
+    u32 queryState(u32 player, u32 stateHash, vec4 * pMeasure);
 
 private:
     struct CtrlState
@@ -81,11 +81,11 @@ private:
     {
         u32 nameHash;
 
-        HashMap<kMEM_Engine, u32, glm::ivec4> keyboard;
-        HashMap<kMEM_Engine, u32, glm::ivec4> mouseButtons;
+        HashMap<kMEM_Engine, u32, ivec4> keyboard;
+        HashMap<kMEM_Engine, u32, ivec4> mouseButtons;
         u32 mouseMove;
 
-        HashMap<kMEM_Engine, u32, glm::ivec4> ctrlButtons;
+        HashMap<kMEM_Engine, u32, ivec4> ctrlButtons;
         u32 ctrlLTrigger;
         u32 ctrlRTrigger;
         u32 ctrlLStick;
@@ -102,7 +102,7 @@ private:
     };
 
     bool queryKey(Key key);
-    u32 queryState(const glm::ivec4 & keys);
+    u32 queryState(const ivec4 & keys);
 
     void processKeyInput(const KeyInput & keyInput);
     void processMouseMoveInput(const MouseInput::Movement & moveInput);
@@ -112,7 +112,7 @@ private:
 
     bool mIsPrimary;
 
-    glm::ivec4 mPressedKeys;
+    ivec4 mPressedKeys;
 
     MouseState mMouseState;
 

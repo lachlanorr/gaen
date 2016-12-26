@@ -24,7 +24,9 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include <glm/gtx/transform.hpp>
+#include "math/common.h"
+#include "math/matrices.h"
+#include "math/mat4.h"
 
 #include "render_support/Sprite.h"
 
@@ -39,11 +41,11 @@ SpriteStage::SpriteStage(u32 stageHash, RendererMesh * pRenderer)
           pRenderer,
           Camera(kRendererTaskId,
                  stageHash,
-                 glm::ortho(pRenderer->screenWidth() * -0.5f,
-                            pRenderer->screenWidth() * 0.5f,
-                            pRenderer->screenHeight() * -0.5f,
-                            pRenderer->screenHeight() * 0.5f),
-                 glm::mat4(1.0)))
+                 ortho(pRenderer->screenWidth() * -0.5f,
+                       pRenderer->screenWidth() * 0.5f,
+                       pRenderer->screenHeight() * -0.5f,
+                       pRenderer->screenHeight() * 0.5f),
+                 mat43(1.0f)))
 {}
 
 bool SpriteStage::animateItem(u32 uid, u32 animHash, u32 animFrameIdx)

@@ -24,15 +24,16 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include <glm/vec3.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "core/base_defines.h"
+
+#include "math/common.h"
+#include "math/matrices.h"
+#include "math/vec3.h"
 
 #include "assets/Gmdl.h"
 
 #include "engine/MessageQueue.h"
-#include "engine/glm_ext.h"
 
 #include "engine/messages/LightDistant.h"
 #include "engine/messages/UidTransform.h"
@@ -129,7 +130,7 @@ void RendererProto::init(void * pRenderDevice,
 #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL
     mShaderSim.init(kPresentImgSize, &mRaycastCamera);
 #elif RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
-    mShaderSim.init(glm::uvec3(16, 16, 1), glm::uvec3(20, 12, 1));
+    mShaderSim.init(uvec3(16, 16, 1), uvec3(20, 12, 1));
 #endif
 
     mIsInit = true;
@@ -141,7 +142,7 @@ void RendererProto::fin()
 }
 
 
-static glm::mat4 sMVPMat(1.0f);
+static mat4 sMVPMat(1.0f);
 
 void RendererProto::initViewport()
 {
@@ -174,24 +175,26 @@ void RendererProto::initViewport()
 #endif
 
     // setup projection with current width/height
-    mProjection = glm::perspective(glm::radians(60.0f),
-                                   mScreenWidth / static_cast<f32>(mScreenHeight),
-                                   0.1f,
-                                   100.0f);
+    mProjection = perspective(radians(60.0f),
+                              mScreenWidth / static_cast<f32>(mScreenHeight),
+                              0.1f,
+                              100.0f);
 
     // setup gui projection, which is orthographic
-    mGuiProjection = glm::ortho(static_cast<f32>(mScreenWidth) * -0.5f,
-                                static_cast<f32>(mScreenWidth) * 0.5f,
-                                static_cast<f32>(mScreenHeight) * -0.5f,
-                                static_cast<f32>(mScreenHeight) * 0.5f,
-                                0.0f,
-                                100.0f);
+    mGuiProjection = ortho(static_cast<f32>(mScreenWidth) * -0.5f,
+                           static_cast<f32>(mScreenWidth) * 0.5f,
+                           static_cast<f32>(mScreenHeight) * -0.5f,
+                           static_cast<f32>(mScreenHeight) * 0.5f,
+                           0.0f,
+                           100.0f);
 
     //sMVPMat = glm::translation(glm::vec3(0.0f, 0.0f, 0.0f));
     //sMVPMat = glm::lookat(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    sMVPMat = glm::mat4(1.0f);
-    sMVPMat = glm::rotate(sMVPMat, glm::pi<f32>() / 4.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-    sMVPMat = glm::rotate(sMVPMat, glm::pi<f32>() / 4.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    sMVPMat = mat4(1.0f);
+
+    // LORRTODO: fix for new math.h, no more glm::f
+//    sMVPMat = glm::rotate(sMVPMat, glm::pi<f32>() / 4.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+//    sMVPMat = glm::rotate(sMVPMat, glm::pi<f32>() / 4.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
 #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL || RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
     // Prepare GPU renderer presentation vars
@@ -248,7 +251,7 @@ void RendererProto::initViewport()
 
 #elif RENDERTYPE == RENDERTYPE_GPUFRAGVOXEL
     static const f32 kRad = 2.0f;
-    mVoxelRoot = set_shape_generic(mVoxelWorld, 0, 0, 3, glm::vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(glm::vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
+    mVoxelRoot = set_shape_generic(mVoxelWorld, 0, 0, 3, vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
 
     // prep voxel cast shader
     mpVoxelCast = getShader(HASH::voxel_cast_frag);
@@ -283,7 +286,7 @@ void RendererProto::initViewport()
 
 #elif RENDERTYPE == RENDERTYPE_GPUCOMPVOXEL
     static const f32 kRad = 2.0f;
-    mVoxelRoot = set_shape_generic(mVoxelWorld, 0, 0, 3, glm::vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(glm::vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
+    mVoxelRoot = set_shape_generic(mVoxelWorld, 0, 0, 3, vec3(1.0f, 2.0f, -20.0f), kRad, Mat3::rotation(vec3(0.0f, 0.0f, 0.0f)), SphereHitTest(kRad));
 
     // prep voxel cast shader
     mpVoxelCast = getShader(HASH::voxel_cast);
@@ -336,7 +339,7 @@ void RendererProto::initViewport()
 
 }
 
-static void set_shader_vec4_var(u32 nameHash, const glm::vec4 & val, void * context)
+static void set_shader_vec4_var(u32 nameHash, const vec4 & val, void * context)
 {
     shaders::Shader * pShader = (shaders::Shader*)context;
     pShader->setUniformVec4(nameHash, val);
@@ -433,10 +436,10 @@ void RendererProto::render()
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 #elif RENDERTYPE == RENDERTYPE_VOXEL27
-    glm::mat4 proj = mRaycastCamera.projection();
-    glm::mat4 view = mRaycastCamera.view();
+    mat4 proj = mRaycastCamera.projection();
+    mat4 view = mRaycastCamera.view();
 
-    glm::mat4 mvp = mRaycastCamera.projection() * mRaycastCamera.view();
+    mat4 mvp = mRaycastCamera.projection() * mRaycastCamera.view();
     mpPresentShader->setUniformMat4(HASH::un_MVP, mvp);
 
     mpPresentShader->use();
@@ -459,8 +462,8 @@ MessageResult RendererProto::message(const T & msgAcc)
     {
         /*
         messages::LightDistantR<T> msgr(msgAcc);
-        glm::vec3 normDir = glm::normalize(msgr.direction());
-        glm::vec3 relDir = -normDir; // flip direction of vector relative to objects
+        vec3 normDir = normalize(msgr.direction());
+        vec3 relDir = -normDir; // flip direction of vector relative to objects
         mLightDistants.emplace_back(msgAcc.message().source,
                                     RenderObject::next_uid(),
                                     HASH::default,

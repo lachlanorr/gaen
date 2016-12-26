@@ -27,10 +27,10 @@
 #ifndef GAEN_RENDER_SUPPORT_SYSTEM_API_H
 #define GAEN_RENDER_SUPPORT_SYSTEM_API_H
 
-#include <glm/vec3.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/mat3x3.hpp>
-#include <glm/mat4x3.hpp>
+#include "math/vec3.h"
+#include "math/quat.h"
+#include "math/mat3.h"
+#include "math/mat43.h"
 
 namespace gaen
 {
@@ -46,23 +46,23 @@ namespace system_api
 i32 gen_uid(Entity & caller);
 
 void camera_move(i32 uid,
-                 const glm::vec3 & position,
-                 const glm::quat & direction,
+                 const vec3 & position,
+                 const quat & direction,
                  Entity & caller);
 
-glm::mat4x3 view_look_at(const glm::vec3 & position,
-                         const glm::vec3 & target,
-                         Entity & caller);
+mat43 view_look_at(const vec3 & position,
+                   const vec3 & target,
+                   Entity & caller);
 
 void light_distant_insert(i32 uid,
                           i32 stageHash,
                           Color color,
                           f32 ambient,
-                          const glm::vec3 & direction,
+                          const vec3 & direction,
                           Entity & caller);
 
 void light_distant_direction(i32 uid,
-                             const glm::vec3 & direction,
+                             const vec3 & direction,
                              Entity & caller);
 
 void light_distant_color(i32 uid,

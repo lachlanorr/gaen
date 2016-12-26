@@ -27,8 +27,9 @@
 #ifndef GAEN_RENDER_SUPPORT_SHAPES_H
 #define GAEN_RENDER_SUPPORT_SHAPES_H
 
-#include <glm/vec3.hpp>
-
+#include "math/mat43.h"
+#include "math/vec3.h"
+#include "math/vec4.h"
 #include "assets/Gmdl.h"
 #include "engine/Handle.h"
 #include "render_support/Model.h"
@@ -41,28 +42,28 @@ class ShapeBuilder
 public:
     ShapeBuilder(Gmdl * pGmdl);
 
-    void addTri(const glm::vec3 & p0,
-                const glm::vec3 & p1,
-                const glm::vec3 & p2,
+    void addTri(const vec3 & p0,
+                const vec3 & p1,
+                const vec3 & p2,
                 Color color);
-    void addTri(const glm::vec3 * pPoints,
+    void addTri(const vec3 * pPoints,
                 Color color);
-    void addTri(const glm::vec4 & p0,
-                const glm::vec4 & p1,
-                const glm::vec4 & p2,
+    void addTri(const vec4 & p0,
+                const vec4 & p1,
+                const vec4 & p2,
                 Color color);
 
-    void addQuad(const glm::vec3 & p0,
-                 const glm::vec3 & p1,
-                 const glm::vec3 & p2,
-                 const glm::vec3 & p3,
+    void addQuad(const vec3 & p0,
+                 const vec3 & p1,
+                 const vec3 & p2,
+                 const vec3 & p3,
                  Color color);
-    void addQuad(const glm::vec3 * pPoints,
+    void addQuad(const vec3 * pPoints,
                  Color color);
-    void addQuad(const glm::vec4 & p0,
-                 const glm::vec4 & p1,
-                 const glm::vec4 & p2,
-                 const glm::vec4 & p3,
+    void addQuad(const vec4 & p0,
+                 const vec4 & p1,
+                 const vec4 & p2,
+                 const vec4 & p3,
                  Color color);
 
     void addGmdl(const Gmdl & gmdl);
@@ -80,22 +81,22 @@ private:
 };
 
 
-Gmdl * build_box(const glm::vec3 & size, Color color, const glm::mat4x3 & transform);
-Gmdl * build_cone(const glm::vec3 & size, u32 slices, Color color, const glm::mat4x3 & transform);
-Gmdl * build_cylinder(const glm::vec3 & size, u32 slices, Color color, const glm::mat4x3 & transform);
-Gmdl * build_sphere(const glm::vec3 & size, u32 slices, u32 sections, Color color, const glm::mat4x3 & transform);
-Gmdl * build_quad_sphere(const glm::vec3 & size, u32 sections, Color color, const glm::mat4x3 & transform);
+Gmdl * build_box(const vec3 & size, Color color, const mat43 & transform);
+Gmdl * build_cone(const vec3 & size, u32 slices, Color color, const mat43 & transform);
+Gmdl * build_cylinder(const vec3 & size, u32 slices, Color color, const mat43 & transform);
+Gmdl * build_sphere(const vec3 & size, u32 slices, u32 sections, Color color, const mat43 & transform);
+Gmdl * build_quad_sphere(const vec3 & size, u32 sections, Color color, const mat43 & transform);
 
 
 // Compose wrappers
 class Entity;
 namespace system_api
 {
-i32 shape_box(i32 stageHash, const glm::vec3 & size, Color color, const glm::mat4x3 & transform, Entity & caller);
-i32 shape_cone(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, const glm::mat4x3 & transform, Entity & caller);
-i32 shape_cylinder(i32 stageHash, const glm::vec3 & size, i32 slices, Color color, const glm::mat4x3 & transform, Entity & caller);
-i32 shape_sphere(i32 stageHash, const glm::vec3 & size, i32 slices, i32 sections, Color color, const glm::mat4x3 & transform, Entity & caller);
-i32 shape_quad_sphere(i32 stageHash, const glm::vec3 & size, i32 sections, Color color, const glm::mat4x3 & transform, Entity & caller);
+i32 shape_box(i32 stageHash, const vec3 & size, Color color, const mat43 & transform, Entity & caller);
+i32 shape_cone(i32 stageHash, const vec3 & size, i32 slices, Color color, const mat43 & transform, Entity & caller);
+i32 shape_cylinder(i32 stageHash, const vec3 & size, i32 slices, Color color, const mat43 & transform, Entity & caller);
+i32 shape_sphere(i32 stageHash, const vec3 & size, i32 slices, i32 sections, Color color, const mat43 & transform, Entity & caller);
+i32 shape_quad_sphere(i32 stageHash, const vec3 & size, i32 sections, Color color, const mat43 & transform, Entity & caller);
 } // namespace system_api
 
 } // namespace gaen

@@ -27,9 +27,8 @@
 #ifndef GAEN_RENDERERGL_MODELGL_H
 #define GAEN_RENDERERGL_MODELGL_H
 
-#include <glm/mat4x3.hpp>
-
 #include "core/mem.h"
+#include "math/mat43.h"
 #include "render_support/Model.h"
 
 #include "renderergl/RenderCollection.h"
@@ -68,8 +67,8 @@ public:
 
     void reportDestruction();
     
-    const glm::mat4x3 & transform() { return mpModelInstance->mTransform; }
-    void setTransform(const glm::mat4x3 & transform) { mpModelInstance->mTransform = transform; }
+    const mat43 & transform() { return mpModelInstance->mTransform; }
+    void setTransform(const mat43 & transform) { mpModelInstance->mTransform = transform; }
 
     RenderItemStatus status() { return mStatus; }
     void setStatus(RenderItemStatus status) { mStatus = status; }

@@ -27,7 +27,7 @@
 #ifndef GAEN_RENDER_SUPPORT_COLLISION_H
 #define GAEN_RENDER_SUPPORT_COLLISION_H
 
-#include <glm/vec3.hpp>
+#include "math/vec3.h"
 
 namespace gaen
 {
@@ -40,54 +40,54 @@ static const f32 kSqrtOf3 = 1.7320508075688772;
 struct Ray
 {
     Ray() {}
-    Ray(const glm::vec3 & pos, const glm::vec3 & dir)
+    Ray(const vec3 & pos, const vec3 & dir)
       : pos(pos)
       , dir(dir)
     {}
 
-    glm::vec3 pos;
-    glm::vec3 dir;
+    vec3 pos;
+    vec3 dir;
 };
 
 struct Plane
 {
     Plane() {}
 
-    Plane(const glm::vec3 & p0, const glm::vec3 & p1, const glm::vec3 & p2)
+    Plane(const vec3 & p0, const vec3 & p1, const vec3 & p2)
     {
-        norm = glm::cross(p1 - p0, p2 - p0);
-        glm::normalize(norm);
-        dist = glm::dot(norm, p0);
+        norm = cross(p1 - p0, p2 - p0);
+        normalize(norm);
+        dist = dot(norm, p0);
     }
 
-    glm::vec3 norm;  // plane's normalized surface normal
+    vec3 norm;  // plane's normalized surface normal
     f32 dist;   // distance from origin
 };
 
 struct Sphere
 {
-    Sphere(const glm::vec3 & center, f32 radius)
+    Sphere(const vec3 & center, f32 radius)
       : cent(center)
       , rad(radius)
     {}
 
-    glm::vec3 cent; // center point
+    vec3 cent; // center point
     f32 rad;   // radius
 };
 
 struct AABB_MinMax
 {
-    glm::vec3 min; // min coord values along each axis
-    glm::vec3 max; // max coord values along each axis
+    vec3 min; // min coord values along each axis
+    vec3 max; // max coord values along each axis
 
     AABB_MinMax() {}
 
-    AABB_MinMax(const glm::vec3 & min, const glm::vec3 & max)
+    AABB_MinMax(const vec3 & min, const vec3 & max)
       : min{min}
       , max{max}
     {}
 
-    AABB_MinMax(glm::vec3 cent, f32 rad)
+    AABB_MinMax(vec3 cent, f32 rad)
       : min{cent.x - rad, cent.y - rad, cent.z - rad}
       , max{cent.x + rad, cent.y + rad, cent.z + rad}
     {}
@@ -97,7 +97,7 @@ struct AABB_MinMax
       , max{rad, rad, rad}
     {}
 
-    glm::vec3 center() const
+    vec3 center() const
     {
         return min + ((max - min) / 2.0f);
     }
@@ -105,7 +105,7 @@ struct AABB_MinMax
 
 struct AABB_MinDiam
 {
-    glm::vec3 min;   // min coord values along each axis
+    vec3 min;   // min coord values along each axis
     f32 diamX;  // x width
     f32 diamY;  // y width
     f32 diamZ;  // z width
@@ -113,7 +113,7 @@ struct AABB_MinDiam
 
 struct AABB_CentRad
 {
-    glm::vec3 cent; // center point
+    vec3 cent; // center point
     f32 radX;  // x half-width
     f32 radY;  // y half-width
     f32 radZ;  // z half-width
@@ -122,7 +122,7 @@ struct AABB_CentRad
 // Axis-aligned bounding cube
 struct AABC
 {
-    glm::vec3 cent; // center point
+    vec3 cent; // center point
     f32 rad;   // half-width
 
     // Corner distance from center.
@@ -140,28 +140,28 @@ struct AABC
 
 struct OBB
 {
-    glm::vec3 cent; // center point
-    glm::vec3 locX; // local x axis
-    glm::vec3 locY; // local y axis
-    glm::vec3 ext;  // positive halfwidth extends along each axis
+    vec3 cent; // center point
+    vec3 locX; // local x axis
+    vec3 locY; // local y axis
+    vec3 ext;  // positive halfwidth extends along each axis
     
-    glm::vec3 locZ()
+    vec3 locZ()
     {
-        return glm::cross(locX, locY);
+        return cross(locX, locY);
     }
 };
 
 // Oriented bounding cube
 struct OBC
 {
-    glm::vec3 cent; // center point
-    glm::vec3 locX; // local x axis
-    glm::vec3 locY; // local y axis
+    vec3 cent; // center point
+    vec3 locX; // local x axis
+    vec3 locY; // local y axis
     f32 rad;   // half-width
 
-    glm::vec3 locZ()
+    vec3 locZ()
     {
-        return glm::cross(locX, locY);
+        return cross(locX, locY);
     }
 
     // Corner distance from center.
@@ -178,9 +178,9 @@ struct OBC
 };
 
 // Determine whether sphere intersects with negative halfspace of plane
-inline bool test_sphere_halfspace(const glm::vec3 & sCent, f32 sRad, const Plane & p)
+inline bool test_sphere_halfspace(const vec3 & sCent, f32 sRad, const Plane & p)
 {
-    f32 dist = glm::dot(sCent, p.norm) - p.dist;
+    f32 dist = dot(sCent, p.norm) - p.dist;
     return dist <= sRad;
 }
 inline bool test_sphere_halfpspace(const Sphere & s, const Plane & p)

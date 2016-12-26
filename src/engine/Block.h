@@ -27,9 +27,10 @@
 #ifndef GAEN_ENGINE_BLOCK_H
 #define GAEN_ENGINE_BLOCK_H
 
-#include <glm/vec3.hpp>
-#include <glm/vec4.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include "math/vec2.h"
+#include "math/vec3.h"
+#include "math/vec4.h"
+#include "math/quat.h"
 
 #include "assets/Color.h"
 
@@ -76,23 +77,23 @@ union dcell
     f64 f;
     void * p;
     cell cells[2];
-    glm::vec2 vec2;
-    glm::ivec2 ivec2;
+    vec2 vec2;
+    ivec2 ivec2;
 };
 static_assert(sizeof(dcell) == 8, "dcell must be 8 bytes");
 
 union tcell
 {
-    glm::vec3 vec3;
-    glm::ivec3 ivec3;
+    vec3 vec3;
+    ivec3 ivec3;
 };
 static_assert(sizeof(tcell) == 12, "tcell must be 12 bytes");
 
 union qcell
 {
-    glm::vec4 vec4;
-    glm::quat quat;
-    glm::ivec4 ivec4;
+    vec4 vec4;
+    quat quat;
+    ivec4 ivec4;
     cell cells[4];
     dcell dCells[2];
 };

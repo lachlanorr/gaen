@@ -25,12 +25,12 @@ class ComponentIndex(FieldHandler):
 # Transform and entity
 class Transform(FieldHandler):
     isLocal   = boolField(payload=True)
-    transform = mat4x3Field()
+    transform = mat43Field()
 
 # Transform and entity
 class UidTransform(FieldHandler):
     uid       = i32Field(payload=True)
-    transform = mat4x3Field()
+    transform = mat43Field()
 
 class UidColor(FieldHandler):
     uid       = i32Field(payload=True)
@@ -100,7 +100,7 @@ class CameraPersp(FieldHandler):
     fov          = f32Field()
     nearClip     = f32Field()
     farClip      = f32Field()
-    view         = mat4x3Field()
+    view         = mat43Field()
 
 class CameraOrtho(FieldHandler):
     uid          = i32Field(payload=True)
@@ -108,7 +108,7 @@ class CameraOrtho(FieldHandler):
     scale        = f32Field()
     nearClip     = f32Field()
     farClip      = f32Field()
-    view         = mat4x3Field()
+    view         = mat43Field()
 
 class MouseMove(FieldHandler):
     xDelta = i32Field(payload=True)

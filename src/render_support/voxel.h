@@ -27,13 +27,14 @@
 #ifndef GAEN_RENDER_SUPPORT_VOXEL_H
 #define GAEN_RENDER_SUPPORT_VOXEL_H
 
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/mat3x3.hpp>
-
 #include "core/base_defines.h"
 #include "core/mem.h"
 #include "core/Vector.h"
+
+#include "math/vec2.h"
+#include "math/vec3.h"
+#include "math/mat3.h"
+
 #include "assets/Color.h"
 #include "render_support/ImageBuffer.h"
 #include "render_support/collision.h"
@@ -143,8 +144,8 @@ static_assert(sizeof(VoxelRef) == 8, "VoxelRef not 8 bytes");
 
 struct VoxelRoot
 {
-    glm::vec3 pos;      // position    12 bytes - 12
-    glm::mat3 rot;      // rotation    36 bytes - 48
+    vec3 pos;      // position    12 bytes - 12
+    mat3 rot;      // rotation    36 bytes - 48
     f32 rad;            // radius       4 bytes - 52
     u32 PADDING__;
     VoxelRef children;  // children     8 bytes - 60
@@ -296,7 +297,7 @@ public:
 
     bool operator()(const AABB_MinMax & aabb) const
     {
-        f32 aabbLen = glm::length(aabb.center());
+        f32 aabbLen = length(aabb.center());
         return aabbLen < mRadius || abs(aabbLen - mRadius) <= (aabb.max.x - aabb.min.x) / 1.5f;
     }
 private:
@@ -357,7 +358,7 @@ static VoxelRef set_shape_recursive(VoxelWorld & voxelWorld, u32 imageIdx, u32 &
 }
 
 template <class HitTestType>
-static VoxelRoot set_shape_generic(VoxelWorld & voxelWorld, u32 imageIdx, u32 voxelIdx, u32 depth, const glm::vec3 & pos, f32 rad, const glm::mat3 & rot, HitTestType hitTest)
+static VoxelRoot set_shape_generic(VoxelWorld & voxelWorld, u32 imageIdx, u32 voxelIdx, u32 depth, const vec3 & pos, f32 rad, const mat3 & rot, HitTestType hitTest)
 {
     VoxelRoot voxelRoot;
     voxelRoot.pos = pos;
@@ -373,10 +374,10 @@ static VoxelRoot set_shape_generic(VoxelWorld & voxelWorld, u32 imageIdx, u32 vo
 
 AABB_MinMax voxel_subspace(const AABB_MinMax & pSpace, SubVoxel subIndex);
 
-bool test_ray_voxel(VoxelRef * pVoxelRef, glm::vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, glm::vec2 * pFaceUv, const VoxelWorld & voxelWorld, const glm::vec3 & rayPos, const glm::vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
-bool test_ray_voxel_gpu(VoxelRef * pVoxelRef, glm::vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, glm::vec2 * pFaceUv, const VoxelWorld & voxelWorld, const glm::vec3 & rayPos, const glm::vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
+bool test_ray_voxel(VoxelRef * pVoxelRef, vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, vec2 * pFaceUv, const VoxelWorld & voxelWorld, const vec3 & rayPos, const vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
+bool test_ray_voxel_gpu(VoxelRef * pVoxelRef, vec3 * pNormal, f32 * pZDepth, VoxelFace * pFace, vec2 * pFaceUv, const VoxelWorld & voxelWorld, const vec3 & rayPos, const vec3 & rayDir, const VoxelRoot & root, u32 maxDepth);
 
-glm::vec3 voxel_neighbor_offset(VoxelNeighbor vn);
+vec3 voxel_neighbor_offset(VoxelNeighbor vn);
 
 #pragma pack(pop)
 

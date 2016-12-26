@@ -31,8 +31,10 @@
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 
+#include "math/vec2.h"
+#include "math/vec3.h"
+
 #include "core/mem.h"
-#include "engine/glm_ext.h"
 #include "render_support/Sprite.h"
 
 
@@ -97,13 +99,13 @@ public:
     void insert(SpriteInstance & spriteInst,
                 f32 mass,
                 u32 group,
-                const glm::ivec4 & mask03,
-                const glm::ivec4 & mask47);
+                const ivec4 & mask03,
+                const ivec4 & mask47);
     void remove(u32 uid);
 
-    void setVelocity(u32 uid, const glm::vec2 & velocity);
+    void setVelocity(u32 uid, const vec2 & velocity);
 private:
-    u16 buildMask(const glm::ivec4 & mask03, const glm::ivec4 & mask47);
+    u16 buildMask(const ivec4 & mask03, const ivec4 & mask47);
     u16 maskFromHash(u32 hash);
 
     static void near_callback(btBroadphasePair & collisionPair,
@@ -117,7 +119,7 @@ private:
     btDiscreteDynamicsWorld * mpDynamicsWorld;
 
     HashMap<kMEM_Physics, u32, SpriteBodyUP> mBodies;
-    HashMap<kMEM_Physics, glm::vec3, btCollisionShapeUP> mCollisionShapes;
+    HashMap<kMEM_Physics, vec3, btCollisionShapeUP> mCollisionShapes;
     HashMap<kMEM_Physics, u32, u16> mMaskBits;
 };
 

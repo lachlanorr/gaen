@@ -27,10 +27,9 @@
 #ifndef GAEN_ENGINE_ENTITY_H
 #define GAEN_ENGINE_ENTITY_H
 
-#include <glm/mat4x3.hpp>
-
 #include "core/Vector.h"
 #include "core/List.h"
+#include "math/mat43.h"
 
 #include "engine/Task.h"
 #include "engine/Component.h"
@@ -76,15 +75,15 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    const glm::mat4x3 & transform() const { return mTransform; }
-    void setTransform(const glm::mat4x3 & mat);
-    void applyTransform(bool isLocal, const glm::mat4x3 & mat);
+    const mat43 & transform() const { return mTransform; }
+    void setTransform(const mat43 & mat);
+    void applyTransform(bool isLocal, const mat43 & mat);
 
     u32 player() const { return mPlayer; }
 
     Entity * parent() { return mpParent; }
     void setParent(Entity * pEntity);
-    const glm::mat4x3 & parentTransform() const;
+    const mat43 & parentTransform() const;
 
     BlockMemory & blockMemory();
     void collect();
@@ -151,7 +150,7 @@ protected:
     bool mIsDead;
 
     bool mIsTransformDirty;
-    glm::mat4x3 mTransform;
+    mat43 mTransform;
 
     u32 mPlayer;
 
