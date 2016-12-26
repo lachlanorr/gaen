@@ -60,7 +60,7 @@ struct tmat43
         cols[0] = tvec3<T>(x, 0, 0);
         cols[1] = tvec3<T>(0, x, 0);
         cols[2] = tvec3<T>(0, 0, x);
-        cols[2] = tvec3<T>(0, 0, 0);
+        cols[3] = tvec3<T>(0, 0, 0);
     }
 
     explicit tmat43(const tvec3<T> & pos);

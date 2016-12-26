@@ -61,7 +61,7 @@ struct tmat4
         cols[0] = tvec4<T>(x, 0, 0, 0);
         cols[1] = tvec4<T>(0, x, 0, 0);
         cols[2] = tvec4<T>(0, 0, x, 0);
-        cols[2] = tvec4<T>(0, 0, 0, x);
+        cols[3] = tvec4<T>(0, 0, 0, x);
     }
 
     explicit tmat4(const tvec3<T> & pos);
