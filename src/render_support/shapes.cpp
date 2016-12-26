@@ -301,8 +301,8 @@ Gmdl * lathe_points(const vec4 * pPoints, u32 count, u32 slices, Color color)
             vec4 p0 = pPoints[i];
             vec4 p1 = pPoints[i+1];
 
-            mat4 rotMat0 = mat4(quat(arc0, 0.0f, 1.0f, 0.0f));
-            mat4 rotMat1 = mat4(quat(arc1, 0.0f, 1.0f, 0.0f));
+            mat4 rotMat0 = mat4::from_rot(0.0f, arc0, 0.0f);
+            mat4 rotMat1 = mat4::from_rot(0.0f, arc1, 0.0f);
 
             vec4 p0_0 = rotMat0 * p0;
             vec4 p1_0 = rotMat0 * p1;
@@ -386,7 +386,7 @@ Gmdl * build_sphere(const vec3 & size, u32 slices, u32 sections, Color color, co
     points[0] = vec4(0.0f, halfY, 0.0f, 1.0f);
     for (u32 i = 1; i < pointCount-1; ++i)
     {
-        mat4 rotMat = mat4(quat(i * sectionArc, 0.0f, 0.0f, 1.0f));
+        mat4 rotMat = mat4::from_rot(0.0f, 0.0f, i * sectionArc);
         points[i] = rotMat * points[0];
     }
     points[pointCount-1] = vec4(0.0f, -halfY, 0.0f, 1.0f);

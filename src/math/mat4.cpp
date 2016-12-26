@@ -60,6 +60,18 @@ tmat4<T>::tmat4(const tvec3<T> & pos, const tvec3<T> & rot)
 }
 
 template <typename T>
+tmat4<T> tmat4<T>::from_pos(T x, T y, T z)
+{
+    return tmat4<T>(tvec3<T>(x, y, z));
+}
+
+template <typename T>
+tmat4<T> tmat4<T>::from_rot(T x, T y, T z)
+{
+    return rotation_from_euler<tmat4<T>>(x, y, z);
+}
+
+template <typename T>
 tmat4<T> tmat4<T>::from_scale(T scale)
 {
     tmat4<T> m(1);

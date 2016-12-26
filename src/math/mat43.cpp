@@ -62,6 +62,26 @@ tmat43<T>::tmat43(const tmat3<T> & rhs)
 }
 
 template <typename T>
+tmat43<T> tmat43<T>::from_pos(T x, T y, T z)
+{
+    return tmat43<T>(tvec3<T>(x, y, z));
+}
+
+template <typename T>
+tmat43<T> tmat43<T>::from_rot(T x, T y, T z)
+{
+    return rotation_from_euler<tmat43<T>>(x, y, z);
+}
+
+template <typename T>
+tmat43<T> tmat43<T>::from_scale(T scale)
+{
+    tmat43<T> m(1);
+    m[0][0] = m[1][1] = m[2][2] = scale;
+    return m;
+}
+
+template <typename T>
 tmat43<T> & tmat43<T>::operator=(const tmat4<T> & rhs)
 {
     cols[0] = tvec3<T>(rhs[0]);

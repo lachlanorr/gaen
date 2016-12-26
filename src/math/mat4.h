@@ -67,6 +67,8 @@ struct tmat4
     explicit tmat4(const tvec3<T> & pos);
     explicit tmat4(const tquat<T> & q);
     tmat4(const tvec3<T> & pos, const tvec3<T> & rot);
+    static tmat4 from_pos(T x, T y, T z);
+    static tmat4 from_rot(T x, T y, T z);
     static tmat4 from_scale(T scale);
 
     explicit tmat4(const tmat43<T> & rhs);
