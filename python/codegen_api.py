@@ -154,10 +154,10 @@ def api_start_regex():
     return r'^[\s]*' + type_regex() + r'[\s]+([a-zA-Z0-9_]+)\(.*$'
 
 def append_if_api(line, api_strs):
-    if line.endswith(", Entity & caller);") or line.endswith("(Entity & caller);"):
+    if line.endswith(", Entity * pCaller);") or line.endswith("(Entity * pCaller);"):
         api_strs.append(line)
     elif line != 'ApiResult get_last_result();':
-        print "Apparent API not being passed an 'Entity & caller' as last parameter: " + line
+        print "Apparent API not being passed an 'Entity * pCaller' as last parameter: " + line
 
 def get_api_strs(lines):
     in_call = False
@@ -210,9 +210,9 @@ def parse_api_str(api_str):
         rettype = (m.group(1), CPP_TO_COMPOSE_TYPE[m.group(1)])
         name = m.group(2)
         params = [p.strip() for p in m.group(3).split(',')]
-        if len(params) < 1 or "Entity &" not in params[-1]:
-            raise Exception("last parameter of api must be of type Entity &: " + api_str)
-        params = params[:-1] # remove the last 'Entity &' parameter
+        if len(params) < 1 or "Entity *" not in params[-1]:
+            raise Exception("last parameter of api must be of type Entity *: " + api_str)
+        params = params[:-1] # remove the last 'Entity *' parameter
         params = [parse_param(p) for p in params]
         return name, rettype, params
     

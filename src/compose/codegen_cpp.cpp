@@ -2071,7 +2071,7 @@ static S codegen_recurse(const Ast * pAst,
             code += codegen_recurse(pParam, indentLevel+1) + S(", ");
         }
         // Always add our entity as last parameter
-        code += S("pThis->self())");
+        code += S("&pThis->self())");
 
         return code;
     }

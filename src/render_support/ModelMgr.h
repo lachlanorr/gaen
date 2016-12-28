@@ -64,37 +64,37 @@ private:
 class Entity;
 namespace system_api
 {
-i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const mat43 & transform, Entity & caller);
+i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const mat43 & transform, Entity * pCaller);
 
-void model_init_body(i32 modelUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity & caller);
-void model_set_velocity(i32 modelUid, const vec3 & velocity, Entity & caller);
-void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity & caller);
-void model_transform(i32 modelUid, const mat43 & transform, Entity & caller);
+void model_init_body(i32 modelUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity * pCaller);
+void model_set_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller);
+void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller);
+void model_transform(i32 modelUid, const mat43 & transform, Entity * pCaller);
 
-void model_stage_show(i32 stageHash, Entity & caller);
-void model_stage_hide(i32 stageHash, Entity & caller);
-void model_stage_remove(i32 stageHash, Entity & caller);
+void model_stage_show(i32 stageHash, Entity * pCaller);
+void model_stage_hide(i32 stageHash, Entity * pCaller);
+void model_stage_remove(i32 stageHash, Entity * pCaller);
 
 i32 model_stage_camera_create_persp(i32 stageHash,
                                     f32 fov,
                                     f32 nearClip,
                                     f32 farClip,
                                     const mat43 & view,
-                                    Entity & caller);
+                                    Entity * pCaller);
 
 i32 model_stage_camera_create_ortho(i32 stageHash,
                                     f32 scale,
                                     f32 nearClip,
                                     f32 farClip,
                                     const mat43 & view,
-                                    Entity & caller);
+                                    Entity * pCaller);
 
 void model_stage_camera_view(i32 cameraUid,
                              const mat43 & view,
-                             Entity & caller);
+                             Entity * pCaller);
 
-void model_stage_camera_activate(i32 cameraUid, Entity & caller);
-void model_stage_camera_remove(i32 cameraUid, Entity & caller);
+void model_stage_camera_activate(i32 cameraUid, Entity * pCaller);
+void model_stage_camera_remove(i32 cameraUid, Entity * pCaller);
 
 }
 

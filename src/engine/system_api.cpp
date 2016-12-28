@@ -44,22 +44,22 @@ namespace gaen
 namespace system_api
 {
 
-void print(CmpString str, Entity & caller)
+void print(CmpString str, Entity * pCaller)
 {
     LOG_INFO(str.c_str());
 }
 
-CmpString hashstr(i32 hash, Entity & caller)
+CmpString hashstr(i32 hash, Entity * pCaller)
 {
-    return caller.blockMemory().stringAlloc(HASH::reverse_hash(hash));
+    return pCaller->blockMemory().stringAlloc(HASH::reverse_hash(hash));
 }
 
-void print_asset_info(AssetHandleP asset, Entity & caller)
+void print_asset_info(AssetHandleP asset, Entity * pCaller)
 {
     LOG_INFO("print_asset_info");
 }
 
-//void activate_entity(i32 id, Entity & caller)
+//void activate_entity(i32 id, Entity * pCaller)
 //{
 //    caller.activateEntity(id);
 //}

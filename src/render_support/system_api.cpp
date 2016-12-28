@@ -48,7 +48,7 @@ namespace gaen
 namespace system_api
 {
 
-i32 gen_uid(Entity & caller)
+i32 gen_uid(Entity * pCaller)
 {
     return RenderObject::next_uid();
 }
@@ -56,11 +56,11 @@ i32 gen_uid(Entity & caller)
 void camera_move(i32 uid,
                  const vec3 & position,
                  const quat & direction,
-                 Entity & caller)
+                 Entity * pCaller)
 {
     messages::UidTransformQW msgQW(HASH::camera_move,
                                    kMessageFlag_None,
-                                   caller.task().id(),
+                                   pCaller->task().id(),
                                    kRendererTaskId,
                                    uid);
 
@@ -70,7 +70,7 @@ void camera_move(i32 uid,
 
 mat43 view_look_at(const vec3 & position,
                    const vec3 & target,
-                   Entity & caller)
+                   Entity * pCaller)
 {
     static vec3 up(0.0f, 1.0f, 0.0f);
     return mat43(look_at(position, target, up));
@@ -81,11 +81,11 @@ void light_distant_insert(i32 uid,
                           Color color,
                           f32 ambient,
                           const vec3 & direction,
-                          Entity & caller)
+                          Entity * pCaller)
 {
     messages::LightDistantQW msgQW(HASH::light_distant_insert,
                                    kMessageFlag_None,
-                                   caller.task().id(),
+                                   pCaller->task().id(),
                                    kRendererTaskId,
                                    uid);
     msgQW.setStageHash(stageHash);
@@ -96,11 +96,11 @@ void light_distant_insert(i32 uid,
 
 void light_distant_direction(i32 uid,
                              const vec3 & direction,
-                             Entity & caller)
+                             Entity * pCaller)
 {
     messages::UidVec3QW msgQW(HASH::light_distant_update,
                                    kMessageFlag_None,
-                                   caller.task().id(),
+                                   pCaller->task().id(),
                                    kRendererTaskId,
                                    uid);
     msgQW.setVector(direction);
@@ -108,11 +108,11 @@ void light_distant_direction(i32 uid,
 
 void light_distant_color(i32 uid,
                          Color color,
-                         Entity & caller)
+                         Entity * pCaller)
 {
     messages::UidColorQW msgQW(HASH::light_distant_update,
                                kMessageFlag_None,
-                               caller.task().id(),
+                               pCaller->task().id(),
                                kRendererTaskId,
                                uid);
     msgQW.setColor(color);
@@ -120,21 +120,21 @@ void light_distant_color(i32 uid,
 
 void light_distant_ambient(i32 uid,
                              f32 ambient,
-                             Entity & caller)
+                             Entity * pCaller)
 {
     messages::UidScalarQW msgQW(HASH::light_distant_update,
                                 kMessageFlag_None,
-                                caller.task().id(),
+                                pCaller->task().id(),
                                 kRendererTaskId,
                                 uid);
     msgQW.setScalar(ambient);
 }
 
-void light_distant_remove(i32 uid, Entity & caller)
+void light_distant_remove(i32 uid, Entity * pCaller)
 {
     MessageQueueWriter msgQW(HASH::light_distant_remove,
                              kMessageFlag_None,
-                             caller.task().id(),
+                             pCaller->task().id(),
                              kRendererTaskId,
                              to_cell(uid),
                              0);

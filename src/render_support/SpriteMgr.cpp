@@ -214,56 +214,56 @@ template MessageResult SpriteMgr::message<MessageQueueAccessor>(const MessageQue
 namespace system_api
 {
 
-i32 sprite_create(AssetHandleP pAssetHandle, i32 stageHash, const mat43 & transform, Entity & caller)
+i32 sprite_create(AssetHandleP pAssetHandle, i32 stageHash, const mat43 & transform, Entity * pCaller)
 {
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
     const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
 
-    Sprite * pSprite = GNEW(kMEM_Engine, Sprite, caller.task().id(), pAsset);
+    Sprite * pSprite = GNEW(kMEM_Engine, Sprite, pCaller->task().id(), pAsset);
     SpriteInstance * pSpriteInst = GNEW(kMEM_Engine, SpriteInstance, pSprite, stageHash, transform);
 
-    SpriteInstance::sprite_insert(caller.task().id(), kSpriteMgrTaskId, pSpriteInst);
+    SpriteInstance::sprite_insert(pCaller->task().id(), kSpriteMgrTaskId, pSpriteInst);
 
     return pSprite->uid();
 }
 
-void sprite_play_anim(i32 spriteUid, i32 animHash, f32 duration, bool loop, i32 doneMessage, Entity & caller)
+void sprite_play_anim(i32 spriteUid, i32 animHash, f32 duration, bool loop, i32 doneMessage, Entity * pCaller)
 {
-    messages::SpritePlayAnimQW msgw(HASH::sprite_play_anim, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
+    messages::SpritePlayAnimQW msgw(HASH::sprite_play_anim, kMessageFlag_None, pCaller->task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setAnimHash(animHash);
     msgw.setDuration(duration);
     msgw.setLoop(loop);
     msgw.setDoneMessage(doneMessage);
 }
 
-void sprite_set_velocity(i32 spriteUid, const vec2 & velocity, Entity & caller)
+void sprite_set_velocity(i32 spriteUid, const vec2 & velocity, Entity * pCaller)
 {
-    messages::SpriteVelocityQW msgw(HASH::sprite_set_velocity, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
+    messages::SpriteVelocityQW msgw(HASH::sprite_set_velocity, kMessageFlag_None, pCaller->task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setVelocity(velocity);
 }
 
-void sprite_init_body(i32 spriteUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity & caller)
+void sprite_init_body(i32 spriteUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity * pCaller)
 {
-    messages::SpriteBodyQW msgw(HASH::sprite_init_body, kMessageFlag_None, caller.task().id(), kSpriteMgrTaskId, spriteUid);
+    messages::SpriteBodyQW msgw(HASH::sprite_init_body, kMessageFlag_None, pCaller->task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setMass(mass);
     msgw.setGroup(group);
     msgw.setMask03(mask03);
     msgw.setMask47(mask47);
 }
 
-void sprite_stage_show(i32 stageHash, Entity & caller)
+void sprite_stage_show(i32 stageHash, Entity * pCaller)
 {
-    MessageQueueWriter msgw(HASH::sprite_stage_show, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::sprite_stage_show, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
-void sprite_stage_hide(i32 stageHash, Entity & caller)
+void sprite_stage_hide(i32 stageHash, Entity * pCaller)
 {
-    MessageQueueWriter msgw(HASH::sprite_stage_hide, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::sprite_stage_hide, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
-void sprite_stage_remove(i32 stageHash, Entity & caller)
+void sprite_stage_remove(i32 stageHash, Entity * pCaller)
 {
-    MessageQueueWriter msgw(HASH::sprite_stage_remove, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::sprite_stage_remove, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
 } // namespace system_api

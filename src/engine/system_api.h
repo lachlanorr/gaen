@@ -42,12 +42,12 @@ namespace gaen
 namespace system_api
 {
 
-void print(CmpString str, Entity & caller);
-CmpString hashstr(i32 hash, Entity & caller);
+void print(CmpString str, Entity * pCaller);
+CmpString hashstr(i32 hash, Entity * pCaller);
 
-void print_asset_info(AssetHandleP asset, Entity & caller);
+void print_asset_info(AssetHandleP asset, Entity * pCaller);
 
-//void activate_entity(task_id id, Entity & caller);
+//void activate_entity(task_id id, Entity * pCaller);
 
 } // namespace system_api
 

@@ -49,8 +49,6 @@ inline vec3 position(const mat43 & transform, Entity * pCaller)
     return gaen::position(transform);
 }
 
-//void activate_entity(task_id id, Entity & caller);
-
 } // namespace compose_funcs
 
 } // namespace gaen

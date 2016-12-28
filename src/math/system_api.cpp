@@ -40,32 +40,32 @@ namespace gaen
 namespace system_api
 {
 
-f32 radians(f32 degrees, Entity & caller)
+f32 radians(f32 degrees, Entity * pCaller)
 {
     return gaen::radians(degrees);
 }
 
-f32 degrees(f32 radians, Entity & caller)
+f32 degrees(f32 radians, Entity * pCaller)
 {
     return gaen::degrees(radians);
 }
 
-vec2 normalize(const vec2 & vec2, Entity & caller)
+vec2 normalize(const vec2 & vec2, Entity * pCaller)
 {
     return gaen::normalize(vec2);
 }
 
-vec3 normalize(const vec3 & vec3, Entity & caller)
+vec3 normalize(const vec3 & vec3, Entity * pCaller)
 {
     return gaen::normalize(vec3);
 }
 
-vec4 normalize(const vec4 & vec4, Entity & caller)
+vec4 normalize(const vec4 & vec4, Entity * pCaller)
 {
     return gaen::normalize(vec4);
 }
 
-quat normalize(const quat & quat, Entity & caller)
+quat normalize(const quat & quat, Entity * pCaller)
 {
     return gaen::normalize(quat);
 }

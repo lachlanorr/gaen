@@ -228,59 +228,59 @@ template MessageResult ModelMgr::message<MessageQueueAccessor>(const MessageQueu
 namespace system_api
 {
 
-i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const mat43 & transform, Entity & caller)
+i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const mat43 & transform, Entity * pCaller)
 {
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
     const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
 
-    Model * pModel = GNEW(kMEM_Engine, Model, caller.task().id(), pAsset);
+    Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pAsset);
     ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, transform, true);
 
-    ModelInstance::model_insert(caller.task().id(), kModelMgrTaskId, pModelInst);
+    ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
 
     return pModel->uid();
 }
 
-void model_set_velocity(i32 modelUid, const vec3 & velocity, Entity & caller)
+void model_set_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller)
 {
-    messages::UidVec3QW msgw(HASH::model_set_velocity, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
+    messages::UidVec3QW msgw(HASH::model_set_velocity, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
     msgw.setVector(velocity);
 }
 
-void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity & caller)
+void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller)
 {
-    messages::UidVec3QW msgw(HASH::model_set_angular_velocity, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
+    messages::UidVec3QW msgw(HASH::model_set_angular_velocity, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
     msgw.setVector(velocity);
 }
 
-void model_transform(i32 modelUid, const mat43 & transform, Entity & caller)
+void model_transform(i32 modelUid, const mat43 & transform, Entity * pCaller)
 {
-    messages::UidTransformQW msgw(HASH::model_transform, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
+    messages::UidTransformQW msgw(HASH::model_transform, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
     msgw.setTransform(transform);
 }
 
-void model_init_body(i32 modelUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity & caller)
+void model_init_body(i32 modelUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity * pCaller)
 {
-    messages::ModelBodyQW msgw(HASH::model_init_body, kMessageFlag_None, caller.task().id(), kModelMgrTaskId, modelUid);
+    messages::ModelBodyQW msgw(HASH::model_init_body, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
     msgw.setMass(mass);
     msgw.setGroup(group);
     msgw.setMask03(mask03);
     msgw.setMask47(mask47);
 }
 
-void model_stage_show(i32 stageHash, Entity & caller)
+void model_stage_show(i32 stageHash, Entity * pCaller)
 {
-    MessageQueueWriter msgw(HASH::model_stage_show, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::model_stage_show, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
-void model_stage_hide(i32 stageHash, Entity & caller)
+void model_stage_hide(i32 stageHash, Entity * pCaller)
 {
-    MessageQueueWriter msgw(HASH::model_stage_hide, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::model_stage_hide, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
-void model_stage_remove(i32 stageHash, Entity & caller)
+void model_stage_remove(i32 stageHash, Entity * pCaller)
 {
-    MessageQueueWriter msgw(HASH::model_stage_remove, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(stageHash), 0);
+    MessageQueueWriter msgw(HASH::model_stage_remove, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
 i32 model_stage_camera_create_persp(i32 stageHash,
@@ -288,10 +288,10 @@ i32 model_stage_camera_create_persp(i32 stageHash,
                                     f32 nearClip,
                                     f32 farClip,
                                     const mat43 & view,
-                                    Entity & caller)
+                                    Entity * pCaller)
 {
     ruid uid = RenderObject::next_uid();
-    messages::CameraPerspQW msgw(HASH::model_stage_camera_insert_persp, kMessageFlag_None, caller.task().id(), kRendererTaskId, uid);
+    messages::CameraPerspQW msgw(HASH::model_stage_camera_insert_persp, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, uid);
     msgw.setStageHash(stageHash);
     msgw.setFov(fov);
     msgw.setNearClip(nearClip);
@@ -305,10 +305,10 @@ i32 model_stage_camera_create_ortho(i32 stageHash,
                                     f32 nearClip,
                                     f32 farClip,
                                     const mat43 & view,
-                                    Entity & caller)
+                                    Entity * pCaller)
 {
     ruid uid = RenderObject::next_uid();
-    messages::CameraOrthoQW msgw(HASH::model_stage_camera_insert_ortho, kMessageFlag_None, caller.task().id(), kRendererTaskId, uid);
+    messages::CameraOrthoQW msgw(HASH::model_stage_camera_insert_ortho, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, uid);
     msgw.setStageHash(stageHash);
     msgw.setScale(scale);
     msgw.setNearClip(nearClip);
@@ -319,20 +319,20 @@ i32 model_stage_camera_create_ortho(i32 stageHash,
 
 void model_stage_camera_view(i32 cameraUid,
                              const mat43 & view,
-                             Entity & caller)
+                             Entity * pCaller)
 {
-    messages::UidTransformQW msgw(HASH::model_stage_camera_view, kMessageFlag_None, caller.task().id(), kRendererTaskId, cameraUid);
+    messages::UidTransformQW msgw(HASH::model_stage_camera_view, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, cameraUid);
     msgw.setTransform(view);
 }
 
-void model_stage_camera_activate(i32 cameraUid, Entity & caller)
+void model_stage_camera_activate(i32 cameraUid, Entity * pCaller)
 {
-    MessageQueueWriter msgw(HASH::model_stage_camera_activate, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(cameraUid), 0);
+    MessageQueueWriter msgw(HASH::model_stage_camera_activate, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(cameraUid), 0);
 }
 
-void model_stage_camera_remove(i32 cameraUid, Entity & caller)
+void model_stage_camera_remove(i32 cameraUid, Entity * pCaller)
 {
-    MessageQueueWriter msgw(HASH::model_stage_camera_remove, kMessageFlag_None, caller.task().id(), kRendererTaskId, to_cell(cameraUid), 0);
+    MessageQueueWriter msgw(HASH::model_stage_camera_remove, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(cameraUid), 0);
 }
 
 } // namespace system_api

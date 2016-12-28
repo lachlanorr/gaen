@@ -33,13 +33,13 @@ namespace gaen
 namespace system_api
 {
 
-f32 radians(f32 degrees, Entity & caller);
-f32 degrees(f32 radians, Entity & caller);
+f32 radians(f32 degrees, Entity * pCaller);
+f32 degrees(f32 radians, Entity * pCaller);
 
-vec2 normalize(const vec2 & vec2, Entity & caller);
-vec3 normalize(const vec3 & vec3, Entity & caller);
-vec4 normalize(const vec4 & vec4, Entity & caller);
-quat normalize(const quat & quat, Entity & caller);
+vec2 normalize(const vec2 & vec2, Entity * pCaller);
+vec3 normalize(const vec3 & vec3, Entity * pCaller);
+vec4 normalize(const vec4 & vec4, Entity * pCaller);
+quat normalize(const quat & quat, Entity * pCaller);
 
 } // namespace system_api
 
