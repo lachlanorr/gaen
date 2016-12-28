@@ -33,6 +33,7 @@
 
 #include "math/vec3.h"
 #include "math/mat4.h"
+#include "math/mat43.h"
 
 namespace gaen
 {
@@ -66,6 +67,16 @@ T rotation_from_euler(f32 x, f32 y, f32 z)
     return mat;
 }
 
+inline vec3 position(const mat43 & transform)
+{
+    return transform[3];
+}
+
+inline vec3 position(const mat4 & transform)
+{
+    return vec3(transform[3]);
+}
+
 mat4 perspective(f32 fovy,
                  f32 aspect,
                  f32 near,
@@ -83,9 +94,9 @@ mat4 ortho(f32 left,
            f32 bottom,
            f32 top);
 
-mat4 look_at(const vec3 & eye,
-             const vec3 & center,
-             const vec3 & up);
+mat43 look_at(const vec3 & eye,
+              const vec3 & center,
+              const vec3 & up);
 
 } // namespace gaen
 

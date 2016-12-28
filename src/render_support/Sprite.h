@@ -29,6 +29,7 @@
 
 #include "math/mat43.h"
 #include "math/vec3.h"
+#include "math/matrices.h"
 #include "engine/task.h"
 #include "render_support/render_objects.h"
 
@@ -106,8 +107,8 @@ public:
     static void sprite_transform(task_id source, task_id target, u32 uid, const mat43 & transform);
     static void sprite_remove(task_id source, task_id target, u32 uid);
 
-    vec3 position() { return mTransform.pos(); }
-    f32 zdepth() { return mTransform.pos().z; }
+    vec3 position() { return gaen::position(mTransform); }
+    f32 zdepth() { return gaen::position(mTransform).z; }
 
     mat43 mTransform;
 private:

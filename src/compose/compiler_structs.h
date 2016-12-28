@@ -90,10 +90,11 @@ struct RelatedTypes
 
 enum SymRecFlag
 {
-    kSRFL_None           = 0x0000,
-    kSRFL_Member         = 0x0001,
-    kSRFL_NeedsCppParens = 0x0002,
-    kSRFL_AssetRelated   = 0x0004
+    kSRFL_None            = 0x0000,
+    kSRFL_Member          = 0x0001,
+    kSRFL_NeedsCppParens  = 0x0002,
+    kSRFL_AssetRelated    = 0x0004,
+    kSRFL_BuiltInFunction = 0x0008
 };
 
 struct SymRec

@@ -429,7 +429,7 @@ SymTab* symtab_add_symbol_with_fields(SymTab* pSymTab, SymRec * pSymRec, ParseDa
 {
     symtab_add_symbol(pSymTab, pSymRec, pParseData);
 
-    if (pSymRec->pSymDataType)
+    if (pSymRec->pSymDataType && !(pSymRec->flags & kSRFL_BuiltInFunction))
     {
         for (const SymStructField * pField : pSymRec->pSymDataType->fields)
         {
@@ -2419,6 +2419,7 @@ ParseData * parsedata_create(const char * fullPath,
     parsedata_prep_paths(pParseData, fullPath);
 
     register_basic_types(pParseData);
+    register_builtin_functions(pParseData);
     register_system_apis(pParseData);
 
     return pParseData;
@@ -3062,6 +3063,61 @@ namespace gaen
         RelatedTypes entityRt = register_basic_type(kDT_entity, "entity", "task_id", 1, pParseData);
         RelatedTypes stringRt = register_basic_type(kDT_string, "string", "CmpString", 2, pParseData);
         RelatedTypes assetRt = register_basic_type(kDT_asset,  "asset",  "CmpStringAsset", 2, pParseData);
+    }
+
+    void register_builtin_functions(ParseData * pParseData)
+    {
+        // position(mat43)
+        {
+        const char * funcName = "position";
+        SymRec * pRetTypeSymRec = parsedata_find_type_symbol(pParseData, "vec3", 0 /* isConst */, 0 /* isReference */);
+        Ast * pFuncArgs = ast_create_with_str(kAST_FunctionDecl, funcName, pParseData);
+        {
+            SymRec * pTypeSymRec = parsedata_find_type_symbol(pParseData, "mat43", 1 /* isConst */, 1 /* isReference */);
+            ast_add_child(pFuncArgs, ast_create_function_arg("transform", pTypeSymRec, pParseData));
+        }
+        size_t mangledLen = mangle_function_len(funcName, pFuncArgs->pChildren);
+        char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
+        mangle_function(mangledName, kMaxCmpId, funcName, pFuncArgs->pChildren);
+
+        Ast * pAst = ast_create_with_str(kAST_FunctionDef, mangledName, pParseData);
+        pAst->pSymRec = symrec_create(kSYMT_Function,
+                                      pRetTypeSymRec->pSymDataType,
+                                      mangledName,
+                                      pAst,
+                                      nullptr,
+                                      pParseData);
+        pAst->pSymRec->flags |= kSRFL_BuiltInFunction;
+        pAst->str = funcName;
+        pAst->pLhs = pFuncArgs;
+        parsedata_add_root_symbol(pParseData, pAst->pSymRec);
+        }
+
+        // rotation(mat43)
+        {
+        const char * funcName = "rotation";
+        SymRec * pRetTypeSymRec = parsedata_find_type_symbol(pParseData, "vec3", 0 /* isConst */, 0 /* isReference */);
+        Ast * pFuncArgs = ast_create_with_str(kAST_FunctionDecl, funcName, pParseData);
+        {
+            SymRec * pTypeSymRec = parsedata_find_type_symbol(pParseData, "mat43", 1 /* isConst */, 1 /* isReference */);
+            ast_add_child(pFuncArgs, ast_create_function_arg("transform", pTypeSymRec, pParseData));
+        }
+        size_t mangledLen = mangle_function_len(funcName, pFuncArgs->pChildren);
+        char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
+        mangle_function(mangledName, kMaxCmpId, funcName, pFuncArgs->pChildren);
+
+        Ast * pAst = ast_create_with_str(kAST_FunctionDef, mangledName, pParseData);
+        pAst->pSymRec = symrec_create(kSYMT_Function,
+                                      pRetTypeSymRec->pSymDataType,
+                                      mangledName,
+                                      pAst,
+                                      nullptr,
+                                      pParseData);
+        pAst->pSymRec->flags |= kSRFL_BuiltInFunction;
+        pAst->pLhs = pFuncArgs;
+        parsedata_add_root_symbol(pParseData, pAst->pSymRec);
+        }
+
     }
 
     ParseData * parse_file(const char * fullPath,

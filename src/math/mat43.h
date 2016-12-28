@@ -80,8 +80,6 @@ struct tmat43
 
     // inverse
     tmat43 operator~() const;
-
-    const tvec3<T> & pos() const { return cols[3]; }
 };
 
 typedef tmat43<f32> mat43;

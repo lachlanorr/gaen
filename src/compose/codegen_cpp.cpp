@@ -1248,7 +1248,8 @@ static S codegen_helper_funcs(const Ast * pAst)
 
 static bool is_top_level_function(const Ast * pFuncAst)
 {
-    return pFuncAst->pParent && pFuncAst->pParent->type == kAST_Root;
+    return ((pFuncAst->pParent && pFuncAst->pParent->type == kAST_Root) ||
+            (pFuncAst->pSymRec && (pFuncAst->pSymRec->flags & kSRFL_BuiltInFunction)));
 }
 
 static S function_prototype(const Ast * pFuncAst)
@@ -2033,7 +2034,12 @@ static S codegen_recurse(const Ast * pAst,
             code += S("compose_funcs::");
         }
 
-        code += S(pAst->pSymRecRef->fullName) + S("(");
+        if (pAst->pSymRecRef->flags & kSRFL_BuiltInFunction)
+            code += S(pAst->pSymRecRef->pAst->str);
+        else
+            code += S(pAst->pSymRecRef->fullName);
+
+        code += S("(");
         u32 paramIdx = 0;
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
@@ -2634,6 +2640,7 @@ CodeCpp codegen_cpp(ParseData * pParseData)
     codeCpp.code += S("#include \"math/math.h\"\n");
     codeCpp.code += S("#include \"engine/Block.h\"\n");
     codeCpp.code += S("#include \"engine/BlockMemory.h\"\n");
+    codeCpp.code += S("#include \"engine/compose_funcs.h\"\n");
     codeCpp.code += S("#include \"engine/MessageWriter.h\"\n");
     codeCpp.code += S("#include \"engine/TaskMaster.h\"\n");
     codeCpp.code += S("#include \"engine/InputMgr.h\"\n");

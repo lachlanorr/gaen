@@ -46,6 +46,7 @@ SET (engine_SOURCES
   CmpString.cpp
   CmpString.h
   Component.h
+  compose_funcs.h
   Entity.cpp
   Entity.h
   EntityInit.h

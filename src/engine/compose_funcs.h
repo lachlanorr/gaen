@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// matrices.cpp - Common matrix routines
+// compose_funcs.h - Built in compose scripts
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,47 +24,35 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "math/stdafx.h"
-
-#include <glm/gtc/matrix_transform.hpp>
+#ifndef GAEN_ENGINE_COMPOSE_FUNCS_H
+#define GAEN_ENGINE_COMPOSE_FUNCS_H
 
 #include "math/matrices.h"
+
+#include "engine/Handle.h"
+#include "engine/Entity.h"
+#include "engine/BlockMemory.h"
 
 namespace gaen
 {
 
-mat4 perspective(f32 fovy,
-                 f32 aspect,
-                 f32 near,
-                 f32 far)
+// This file gets parsed by codegen.py to create system_api_meta.cpp, which
+// is used by Compose to compile type safe system calls.
+
+// All parameters must be references or const references.
+
+namespace compose_funcs
 {
-    return mat4(glm::perspective(fovy, aspect, near, far));
+
+inline vec3 position(const mat43 & transform, Entity * pCaller)
+{
+    return gaen::position(transform);
 }
 
-mat4 ortho(f32 left,
-           f32 right,
-           f32 bottom,
-           f32 top,
-           f32 zNear,
-           f32 zFar)
-{
-    return mat4(glm::ortho(left, right, bottom, top, zNear, zFar));
-}
+//void activate_entity(task_id id, Entity & caller);
 
-mat4 ortho(f32 left,
-           f32 right,
-           f32 bottom,
-           f32 top)
-{
-    return mat4(glm::ortho(left, right, bottom, top));
-}
-
-mat43 look_at(const vec3 & eye,
-              const vec3 & center,
-              const vec3 & up)
-{
-    return mat43(mat4(glm::lookAt((vec3::glm_t)eye, (vec3::glm_t)center, (vec3::glm_t)up)));
-}
-
+} // namespace compose_funcs
 
 } // namespace gaen
+
+#endif // #ifndef GAEN_ENGINE_COMPOSE_FUNCS_H

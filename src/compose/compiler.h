@@ -485,6 +485,7 @@ namespace gaen
 {
 
 void register_basic_types(ParseData * pParseData);
+void register_builtin_functions(ParseData * pParseData);
 void register_system_apis(ParseData * pParseData);
 
 ParseData * parse_file(const char * fullPath,
