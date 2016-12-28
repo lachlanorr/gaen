@@ -2972,160 +2972,147 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 namespace gaen
 {
-    RelatedTypes register_basic_type(DataType dt,
-                                     const char * name,
-                                     const char * cppName,
-                                     u32 cellCount,
-                                     ParseData * pParseData)
+RelatedTypes register_basic_type(DataType dt,
+                                 const char * name,
+                                 const char * cppName,
+                                 u32 cellCount,
+                                 ParseData * pParseData)
+{
+    RelatedTypes rt;
+
+    // normal
+    rt.pNormal = symdatatype_create(dt, name, cppName, cellCount, 0, 0, pParseData);
+    parsedata_register_basic_type(pParseData, rt.pNormal);
+    parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pNormal, rt.pNormal->mangledType, nullptr, nullptr, pParseData));
+
+    // const
+    rt.pConst = symdatatype_create(dt, name, cppName, cellCount, 1, 0, pParseData);
+    parsedata_register_basic_type(pParseData, rt.pConst);
+    parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConst, rt.pConst->mangledType, nullptr, nullptr, pParseData));
+
+    // reference
+    rt.pReference = symdatatype_create(dt, name, cppName, cellCount, 0, 1, pParseData);
+    parsedata_register_basic_type(pParseData, rt.pReference);
+    parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pReference, rt.pReference->mangledType, nullptr, nullptr, pParseData));
+
+    // const reference
+    rt.pConstReference = symdatatype_create(dt, name, cppName, cellCount, 1, 1, pParseData);
+    parsedata_register_basic_type(pParseData, rt.pConstReference);
+    parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConstReference, rt.pConstReference->mangledType, nullptr, nullptr, pParseData));
+
+    return rt;
+}
+
+void register_basic_types(ParseData * pParseData)
+{
+    RelatedTypes voidRt = register_basic_type(kDT_void,  "void", "void", 0, pParseData);
+    RelatedTypes boolRt = register_basic_type(kDT_bool,  "bool", "bool", 1, pParseData);
+    RelatedTypes intRt = register_basic_type(kDT_int,   "int",  "i32",  1, pParseData);
+    RelatedTypes colorRt = register_basic_type(kDT_color, "color", "Color", 1, pParseData);
+
+    // Save float related types since we need them to register fields of each
+    // composite type.
+    RelatedTypes floatRt = register_basic_type(kDT_float, "float", "f32", 1, pParseData);
+
+    RelatedTypes vec2Rt = register_basic_type(kDT_vec2, "vec2", "vec2", 2, pParseData);
+    symdatatype_add_field_related(&vec2Rt, floatRt.pNormal, "x", kSRFL_None);
+    symdatatype_add_field_related(&vec2Rt, floatRt.pNormal, "y", kSRFL_None);
+
+    RelatedTypes vec3Rt = register_basic_type(kDT_vec3, "vec3", "vec3", 3, pParseData);
+    symdatatype_add_field_related(&vec3Rt, floatRt.pNormal, "x", kSRFL_None);
+    symdatatype_add_field_related(&vec3Rt, floatRt.pNormal, "y", kSRFL_None);
+    symdatatype_add_field_related(&vec3Rt, floatRt.pNormal, "z", kSRFL_None);
+
+    RelatedTypes vec4Rt = register_basic_type(kDT_vec4, "vec4", "vec4", 4, pParseData);
+    symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "x", kSRFL_None);
+    symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "y", kSRFL_None);
+    symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "z", kSRFL_None);
+    symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "w", kSRFL_None);
+
+    RelatedTypes ivec2Rt = register_basic_type(kDT_ivec2, "ivec2", "ivec2", 2, pParseData);
+    symdatatype_add_field_related(&ivec2Rt, intRt.pNormal, "x", kSRFL_None);
+    symdatatype_add_field_related(&ivec2Rt, intRt.pNormal, "y", kSRFL_None);
+
+    RelatedTypes ivec3Rt = register_basic_type(kDT_ivec3, "ivec3", "ivec3", 3, pParseData);
+    symdatatype_add_field_related(&ivec3Rt, intRt.pNormal, "x", kSRFL_None);
+    symdatatype_add_field_related(&ivec3Rt, intRt.pNormal, "y", kSRFL_None);
+    symdatatype_add_field_related(&ivec3Rt, intRt.pNormal, "z", kSRFL_None);
+
+    RelatedTypes ivec4Rt = register_basic_type(kDT_ivec4, "ivec4", "ivec4", 4, pParseData);
+    symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "x", kSRFL_None);
+    symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "y", kSRFL_None);
+    symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "z", kSRFL_None);
+    symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "w", kSRFL_None);
+
+    RelatedTypes quatRt = register_basic_type(kDT_quat, "quat", "quat", 4, pParseData);
+    symdatatype_add_field_related(&quatRt, floatRt.pNormal, "x", kSRFL_None);
+    symdatatype_add_field_related(&quatRt, floatRt.pNormal, "y", kSRFL_None);
+    symdatatype_add_field_related(&quatRt, floatRt.pNormal, "z", kSRFL_None);
+    symdatatype_add_field_related(&quatRt, floatRt.pNormal, "w", kSRFL_None);
+
+    RelatedTypes mat3Rt = register_basic_type(kDT_mat3,  "mat3",  "mat3",    9, pParseData);
+
+    RelatedTypes mat43Rt = register_basic_type(kDT_mat43, "mat43", "mat43", 12, pParseData);
+    symdatatype_add_field_related(&mat43Rt, vec3Rt.pNormal, "pos", kSRFL_NeedsCppParens);
+
+    RelatedTypes mat4Rt = register_basic_type(kDT_mat4, "mat4", "mat4",   16, pParseData);
+
+    RelatedTypes handleRt = register_basic_type(kDT_handle,       "handle", "HandleP", 2, pParseData);
+    RelatedTypes asset_handleRt = register_basic_type(kDT_asset_handle, "asset_handle", "AssetHandleP", 2, pParseData);
+
+    RelatedTypes entityRt = register_basic_type(kDT_entity, "entity", "task_id", 1, pParseData);
+    RelatedTypes stringRt = register_basic_type(kDT_string, "string", "CmpString", 2, pParseData);
+    RelatedTypes assetRt = register_basic_type(kDT_asset,  "asset",  "CmpStringAsset", 2, pParseData);
+}
+
+Ast * register_builtin_function(const char * funcName, SymRec * pRetType, Ast * pFuncArgs, ParseData * pParseData)
+{
+    size_t mangledLen = mangle_function_len(funcName, pFuncArgs->pChildren);
+    char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
+    mangle_function(mangledName, kMaxCmpId, funcName, pFuncArgs->pChildren);
+    Ast * pAst = ast_create_with_str(kAST_FunctionDef, mangledName, pParseData);
+    pAst->pSymRec = symrec_create(kSYMT_Function,
+                                  pRetType->pSymDataType,
+                                  mangledName,
+                                  pAst,
+                                  nullptr,
+                                  pParseData);
+    pAst->pSymRec->flags |= kSRFL_BuiltInFunction;
+    pAst->str = funcName;
+    pAst->pLhs = pFuncArgs;
+    parsedata_add_root_symbol(pParseData, pAst->pSymRec);
+    return pAst;
+}
+
+void register_builtin_functions(ParseData * pParseData)
+{
+    // vec3 position(mat43)
     {
-        RelatedTypes rt;
-
-        // normal
-        rt.pNormal = symdatatype_create(dt, name, cppName, cellCount, 0, 0, pParseData);
-        parsedata_register_basic_type(pParseData, rt.pNormal);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pNormal, rt.pNormal->mangledType, nullptr, nullptr, pParseData));
-
-        // const
-        rt.pConst = symdatatype_create(dt, name, cppName, cellCount, 1, 0, pParseData);
-        parsedata_register_basic_type(pParseData, rt.pConst);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConst, rt.pConst->mangledType, nullptr, nullptr, pParseData));
-
-        // reference
-        rt.pReference = symdatatype_create(dt, name, cppName, cellCount, 0, 1, pParseData);
-        parsedata_register_basic_type(pParseData, rt.pReference);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pReference, rt.pReference->mangledType, nullptr, nullptr, pParseData));
-
-        // const reference
-        rt.pConstReference = symdatatype_create(dt, name, cppName, cellCount, 1, 1, pParseData);
-        parsedata_register_basic_type(pParseData, rt.pConstReference);
-        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_Type, rt.pConstReference, rt.pConstReference->mangledType, nullptr, nullptr, pParseData));
-
-        return rt;
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("transform", parsedata_find_type_symbol(pParseData, "mat43", 1, 1), pParseData));
+        register_builtin_function("position",
+                                  parsedata_find_type_symbol(pParseData, "vec3", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
     }
 
-    void register_basic_types(ParseData * pParseData)
+    // vec3 rotation(mat43)
     {
-        RelatedTypes voidRt = register_basic_type(kDT_void,  "void", "void", 0, pParseData);
-        RelatedTypes boolRt = register_basic_type(kDT_bool,  "bool", "bool", 1, pParseData);
-        RelatedTypes intRt = register_basic_type(kDT_int,   "int",  "i32",  1, pParseData);
-        RelatedTypes colorRt = register_basic_type(kDT_color, "color", "Color", 1, pParseData);
-
-        // Save float related types since we need them to register fields of each
-        // composite type.
-        RelatedTypes floatRt = register_basic_type(kDT_float, "float", "f32", 1, pParseData);
-
-        RelatedTypes vec2Rt = register_basic_type(kDT_vec2, "vec2", "vec2", 2, pParseData);
-        symdatatype_add_field_related(&vec2Rt, floatRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&vec2Rt, floatRt.pNormal, "y", kSRFL_None);
-
-        RelatedTypes vec3Rt = register_basic_type(kDT_vec3, "vec3", "vec3", 3, pParseData);
-        symdatatype_add_field_related(&vec3Rt, floatRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&vec3Rt, floatRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&vec3Rt, floatRt.pNormal, "z", kSRFL_None);
-
-        RelatedTypes vec4Rt = register_basic_type(kDT_vec4, "vec4", "vec4", 4, pParseData);
-        symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "z", kSRFL_None);
-        symdatatype_add_field_related(&vec4Rt, floatRt.pNormal, "w", kSRFL_None);
-
-        RelatedTypes ivec2Rt = register_basic_type(kDT_ivec2, "ivec2", "ivec2", 2, pParseData);
-        symdatatype_add_field_related(&ivec2Rt, intRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&ivec2Rt, intRt.pNormal, "y", kSRFL_None);
-
-        RelatedTypes ivec3Rt = register_basic_type(kDT_ivec3, "ivec3", "ivec3", 3, pParseData);
-        symdatatype_add_field_related(&ivec3Rt, intRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&ivec3Rt, intRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&ivec3Rt, intRt.pNormal, "z", kSRFL_None);
-
-        RelatedTypes ivec4Rt = register_basic_type(kDT_ivec4, "ivec4", "ivec4", 4, pParseData);
-        symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "z", kSRFL_None);
-        symdatatype_add_field_related(&ivec4Rt, intRt.pNormal, "w", kSRFL_None);
-
-        RelatedTypes quatRt = register_basic_type(kDT_quat, "quat", "quat", 4, pParseData);
-        symdatatype_add_field_related(&quatRt, floatRt.pNormal, "x", kSRFL_None);
-        symdatatype_add_field_related(&quatRt, floatRt.pNormal, "y", kSRFL_None);
-        symdatatype_add_field_related(&quatRt, floatRt.pNormal, "z", kSRFL_None);
-        symdatatype_add_field_related(&quatRt, floatRt.pNormal, "w", kSRFL_None);
-
-        RelatedTypes mat3Rt = register_basic_type(kDT_mat3,  "mat3",  "mat3",    9, pParseData);
-
-        RelatedTypes mat43Rt = register_basic_type(kDT_mat43, "mat43", "mat43", 12, pParseData);
-        symdatatype_add_field_related(&mat43Rt, vec3Rt.pNormal, "pos", kSRFL_NeedsCppParens);
-
-        RelatedTypes mat4Rt = register_basic_type(kDT_mat4, "mat4", "mat4",   16, pParseData);
-
-        RelatedTypes handleRt = register_basic_type(kDT_handle,       "handle", "HandleP", 2, pParseData);
-        RelatedTypes asset_handleRt = register_basic_type(kDT_asset_handle, "asset_handle", "AssetHandleP", 2, pParseData);
-
-        RelatedTypes entityRt = register_basic_type(kDT_entity, "entity", "task_id", 1, pParseData);
-        RelatedTypes stringRt = register_basic_type(kDT_string, "string", "CmpString", 2, pParseData);
-        RelatedTypes assetRt = register_basic_type(kDT_asset,  "asset",  "CmpStringAsset", 2, pParseData);
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("transform", parsedata_find_type_symbol(pParseData, "mat43", 1, 1), pParseData));
+        register_builtin_function("rotation",
+                                  parsedata_find_type_symbol(pParseData, "vec3", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
     }
+}
 
-    void register_builtin_functions(ParseData * pParseData)
-    {
-        // position(mat43)
-        {
-        const char * funcName = "position";
-        SymRec * pRetTypeSymRec = parsedata_find_type_symbol(pParseData, "vec3", 0 /* isConst */, 0 /* isReference */);
-        Ast * pFuncArgs = ast_create_with_str(kAST_FunctionDecl, funcName, pParseData);
-        {
-            SymRec * pTypeSymRec = parsedata_find_type_symbol(pParseData, "mat43", 1 /* isConst */, 1 /* isReference */);
-            ast_add_child(pFuncArgs, ast_create_function_arg("transform", pTypeSymRec, pParseData));
-        }
-        size_t mangledLen = mangle_function_len(funcName, pFuncArgs->pChildren);
-        char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
-        mangle_function(mangledName, kMaxCmpId, funcName, pFuncArgs->pChildren);
-
-        Ast * pAst = ast_create_with_str(kAST_FunctionDef, mangledName, pParseData);
-        pAst->pSymRec = symrec_create(kSYMT_Function,
-                                      pRetTypeSymRec->pSymDataType,
-                                      mangledName,
-                                      pAst,
-                                      nullptr,
-                                      pParseData);
-        pAst->pSymRec->flags |= kSRFL_BuiltInFunction;
-        pAst->str = funcName;
-        pAst->pLhs = pFuncArgs;
-        parsedata_add_root_symbol(pParseData, pAst->pSymRec);
-        }
-
-        // rotation(mat43)
-        {
-        const char * funcName = "rotation";
-        SymRec * pRetTypeSymRec = parsedata_find_type_symbol(pParseData, "vec3", 0 /* isConst */, 0 /* isReference */);
-        Ast * pFuncArgs = ast_create_with_str(kAST_FunctionDecl, funcName, pParseData);
-        {
-            SymRec * pTypeSymRec = parsedata_find_type_symbol(pParseData, "mat43", 1 /* isConst */, 1 /* isReference */);
-            ast_add_child(pFuncArgs, ast_create_function_arg("transform", pTypeSymRec, pParseData));
-        }
-        size_t mangledLen = mangle_function_len(funcName, pFuncArgs->pChildren);
-        char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);
-        mangle_function(mangledName, kMaxCmpId, funcName, pFuncArgs->pChildren);
-
-        Ast * pAst = ast_create_with_str(kAST_FunctionDef, mangledName, pParseData);
-        pAst->pSymRec = symrec_create(kSYMT_Function,
-                                      pRetTypeSymRec->pSymDataType,
-                                      mangledName,
-                                      pAst,
-                                      nullptr,
-                                      pParseData);
-        pAst->pSymRec->flags |= kSRFL_BuiltInFunction;
-        pAst->pLhs = pFuncArgs;
-        parsedata_add_root_symbol(pParseData, pAst->pSymRec);
-        }
-
-    }
-
-    ParseData * parse_file(const char * fullPath,
-                           u32 apiIncludesCount,
-                           const char ** pApiIncludes,
-                           MessageHandler messageHandler)
-    {
-        return parse(nullptr, 0, fullPath, apiIncludesCount, pApiIncludes, messageHandler);
-    }
+ParseData * parse_file(const char * fullPath,
+                       u32 apiIncludesCount,
+                       const char ** pApiIncludes,
+                       MessageHandler messageHandler)
+{
+    return parse(nullptr, 0, fullPath, apiIncludesCount, pApiIncludes, messageHandler);
+}
 
 } // namespace gaen
