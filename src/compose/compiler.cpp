@@ -29,7 +29,6 @@
 
 #include "core/hashing.h"
 #include "core/thread_local.h"
-#include "engine/system_api.h"
 
 #include "compose/compiler.h"
 #include "compose/comp_string.h"
@@ -3086,6 +3085,46 @@ Ast * register_builtin_function(const char * funcName, SymRec * pRetType, Ast * 
 
 void register_builtin_functions(ParseData * pParseData)
 {
+    // void print(CmpString)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("str", parsedata_find_type_symbol(pParseData, "string", 0, 0), pParseData));
+        register_builtin_function("print",
+                                  parsedata_find_type_symbol(pParseData, "void", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // CmpString hashstr(i32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("hash", parsedata_find_type_symbol(pParseData, "int", 0, 0), pParseData));
+        register_builtin_function("hashstr",
+                                  parsedata_find_type_symbol(pParseData, "string", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // f32 radians(f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("degrees", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));
+        register_builtin_function("radians",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // f32 radians(f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("radians", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));
+        register_builtin_function("degrees",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
     // vec3 position(mat43)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
@@ -3105,6 +3144,47 @@ void register_builtin_functions(ParseData * pParseData)
                                   pFuncArgs,
                                   pParseData);
     }
+
+    // vec2 normalize(vec2)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("v", parsedata_find_type_symbol(pParseData, "vec2", 1, 1), pParseData));
+        register_builtin_function("normalize",
+                                  parsedata_find_type_symbol(pParseData, "vec2", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // vec3 normalize(vec3)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("v", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        register_builtin_function("normalize",
+                                  parsedata_find_type_symbol(pParseData, "vec3", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // vec4 normalize(vec4)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("v", parsedata_find_type_symbol(pParseData, "vec4", 1, 1), pParseData));
+        register_builtin_function("normalize",
+                                  parsedata_find_type_symbol(pParseData, "vec4", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // quat normalize(quat)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("v", parsedata_find_type_symbol(pParseData, "quat", 1, 1), pParseData));
+        register_builtin_function("normalize",
+                                  parsedata_find_type_symbol(pParseData, "quat", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+    
 }
 
 ParseData * parse_file(const char * fullPath,

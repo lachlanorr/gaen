@@ -27,6 +27,7 @@
 #ifndef GAEN_ENGINE_COMPOSE_FUNCS_H
 #define GAEN_ENGINE_COMPOSE_FUNCS_H
 
+#include "math/common.h"
 #include "math/matrices.h"
 
 #include "engine/Handle.h"
@@ -44,9 +45,49 @@ namespace gaen
 namespace compose_funcs
 {
 
+inline void print(CmpString str, Entity * pCaller)
+{
+    LOG_INFO(str.c_str());
+}
+
+inline CmpString hashstr(i32 hash, Entity * pCaller)
+{
+    return pCaller->blockMemory().stringAlloc(HASH::reverse_hash(hash));
+}
+
+inline f32 radians(f32 degrees, Entity * pCaller)
+{
+    return gaen::radians(degrees);
+}
+
+inline f32 degrees(f32 radians, Entity * pCaller)
+{
+    return gaen::degrees(radians);
+}
+
 inline vec3 position(const mat43 & transform, Entity * pCaller)
 {
     return gaen::position(transform);
+}
+
+inline vec2 normalize(const vec2 & v, Entity * pCaller)
+{
+    return gaen::normalize(v);
+}
+
+inline vec3 normalize(const vec3 & v, Entity * pCaller)
+{
+    return gaen::normalize(v);
+}
+
+inline vec4 normalize(const vec4 & v, Entity * pCaller)
+{
+    return gaen::normalize(v);
+}
+
+inline quat normalize(const quat & q, Entity * pCaller)
+{
+    return gaen::normalize(q);
 }
 
 } // namespace compose_funcs

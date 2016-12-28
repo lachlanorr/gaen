@@ -35,8 +35,6 @@ SET (math_SOURCES
   math.h
   matrices.cpp
   matrices.h
-  system_api.cpp
-  system_api.h
   quat.h
   vec2.h
   vec3.cpp

@@ -66,8 +66,6 @@ SET (engine_SOURCES
   messages_def.py
   Registry.cpp
   Registry.h
-  system_api.cpp
-  system_api.h
   Task.cpp
   Task.h
   TaskMaster.cpp
