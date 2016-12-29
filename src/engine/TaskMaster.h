@@ -27,6 +27,9 @@
 #ifndef GAEN_ENGINE_TASKMASTER_H
 #define GAEN_ENGINE_TASKMASTER_H
 
+#include <random>
+#include <limits>
+
 #include "core/base_defines.h"
 #include "core/threading.h"
 #include "core/HashMap.h"
@@ -150,6 +153,8 @@ public:
     thread_id threadId() { return mThreadId; }
     bool isPrimary() { return mIsPrimary; }
 
+    f32 rand() { return (f32)(mRandom() / (f64)std::numeric_limits<u32>::max()); }
+
 private:
     enum TaskMasterStatus
     {
@@ -190,6 +195,8 @@ private:
     Task mRendererTask;
 
     FrameTime mFrameTime;
+
+    std::mt19937 mRandom;
 
     // Maps mutable data paths to the set of task_ids that depend on it
     // We maintain a reference count the data path has to the task

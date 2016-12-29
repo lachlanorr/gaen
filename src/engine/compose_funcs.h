@@ -33,6 +33,7 @@
 #include "engine/Handle.h"
 #include "engine/Entity.h"
 #include "engine/BlockMemory.h"
+#include "engine/TaskMaster.h"
 
 namespace gaen
 {
@@ -48,6 +49,11 @@ namespace compose_funcs
 inline void print(CmpString str, Entity * pCaller)
 {
     LOG_INFO(str.c_str());
+}
+
+inline f32 random(Entity * pCaller)
+{
+    return TaskMaster::task_master_for_active_thread().rand();
 }
 
 inline CmpString hashstr(i32 hash, Entity * pCaller)

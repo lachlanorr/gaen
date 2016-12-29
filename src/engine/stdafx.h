@@ -44,6 +44,7 @@
 #include <memory>
 #include <mutex>
 #include <new>
+#include <random>
 #include <string>
 #include <thread>
 #include <type_traits>

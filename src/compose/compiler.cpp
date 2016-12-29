@@ -3095,6 +3095,15 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
+    // f32 rand()
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        register_builtin_function("rand",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
     // CmpString hashstr(i32)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);

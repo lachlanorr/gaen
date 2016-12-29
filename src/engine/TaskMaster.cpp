@@ -458,10 +458,8 @@ void TaskMaster::runPrimaryGameLoop()
 
         if (mStatus == kTMS_Initialized)
         {
-            // LORRTODO - Do physics
             mpModelMgr->update(delta);
             mpSpriteMgr->update(delta);
-
 
             // call update on each task owned by this TaskMaster
             for (Task & task : mOwnedTasks)
