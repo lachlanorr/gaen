@@ -202,6 +202,20 @@ inline vec3 tri_normal(const vec3 & p0, const vec3 & p1, const vec3 & p2)
     return normalize(cross(vecA, vecB));
 }
 
+inline vec3 radians(vec3 degrees)
+{
+    return vec3(radians(degrees.x),
+                radians(degrees.y),
+                radians(degrees.z));
+}
+
+inline vec3 degrees(vec3 radians)
+{
+    return vec3(degrees(radians.x),
+                degrees(radians.y),
+                degrees(radians.z));
+}
+
 } // namespace gaen
 
 namespace std

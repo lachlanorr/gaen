@@ -61,28 +61,16 @@ inline CmpString hashstr(i32 hash, Entity * pCaller)
     return pCaller->blockMemory().stringAlloc(HASH::reverse_hash(hash));
 }
 
-inline f32 radians(f32 degrees, Entity * pCaller)
+template <typename T>
+inline T radians(T degrees, Entity * pCaller)
 {
     return gaen::radians(degrees);
 }
 
-inline f32 degrees(f32 radians, Entity * pCaller)
+template <typename T>
+inline T degrees(T radians, Entity * pCaller)
 {
     return gaen::degrees(radians);
-}
-
-inline vec3 radians(vec3 degrees, Entity * pCaller)
-{
-    return vec3(gaen::radians(degrees.x),
-                gaen::radians(degrees.y),
-                gaen::radians(degrees.z));
-}
-
-inline vec3 degrees(vec3 radians, Entity * pCaller)
-{
-    return vec3(gaen::degrees(radians.x),
-                gaen::degrees(radians.y),
-                gaen::degrees(radians.z));
 }
 
 inline vec3 position(const mat43 & transform, Entity * pCaller)
