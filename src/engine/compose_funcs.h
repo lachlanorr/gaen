@@ -103,6 +103,21 @@ inline quat normalize(const quat & q, Entity * pCaller)
     return gaen::normalize(q);
 }
 
+inline vec3 cross(const vec3 & lhs, const vec3 & rhs, Entity * pCaller)
+{
+    return gaen::cross(lhs, rhs);
+}
+
+inline f32 dot(const vec3 & lhs, const vec3 & rhs, Entity * pCaller)
+{
+    return gaen::dot(lhs, rhs);
+}
+
+inline f32 length(const vec3 & v, Entity * pCaller)
+{
+    return gaen::length(v);
+}
+
 } // namespace compose_funcs
 
 } // namespace gaen

@@ -3214,6 +3214,37 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
     
+    // vec3 cross(vec3, vec3)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("lhs", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("rhs", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        register_builtin_function("cross",
+                                  parsedata_find_type_symbol(pParseData, "vec3", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // f32 dot(vec3, vec3)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("lhs", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("rhs", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        register_builtin_function("dot",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // f32 length(vec3)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("v", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        register_builtin_function("dot",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
 }
 
 ParseData * parse_file(const char * fullPath,

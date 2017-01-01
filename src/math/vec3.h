@@ -130,6 +130,12 @@ inline tvec3<T> operator*(const tvec3<T> & lhs, const tvec3<T> & rhs)
 }
 
 template <typename T>
+inline tvec3<T> operator*(T lhs, const tvec3<T> & rhs)
+{
+    return tvec3<T>(lhs * rhs.x, lhs * rhs.y, lhs * rhs.z);
+}
+
+template <typename T>
 inline tvec3<T> operator/(const tvec3<T> & lhs, T rhs)
 {
     return tvec3<T>(lhs.x / rhs, lhs.y / rhs, lhs.z / rhs);
