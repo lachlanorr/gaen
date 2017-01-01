@@ -71,9 +71,28 @@ inline f32 degrees(f32 radians, Entity * pCaller)
     return gaen::degrees(radians);
 }
 
+inline vec3 radians(vec3 degrees, Entity * pCaller)
+{
+    return vec3(gaen::radians(degrees.x),
+                gaen::radians(degrees.y),
+                gaen::radians(degrees.z));
+}
+
+inline vec3 degrees(vec3 radians, Entity * pCaller)
+{
+    return vec3(gaen::degrees(radians.x),
+                gaen::degrees(radians.y),
+                gaen::degrees(radians.z));
+}
+
 inline vec3 position(const mat43 & transform, Entity * pCaller)
 {
     return gaen::position(transform);
+}
+
+inline vec3 rotation(const mat43 & transform, Entity * pCaller)
+{
+    return gaen::rotation(transform);
 }
 
 inline vec2 normalize(const vec2 & v, Entity * pCaller)

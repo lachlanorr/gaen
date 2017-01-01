@@ -3134,6 +3134,26 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
+    // vec3 radians(vec3)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("degrees", parsedata_find_type_symbol(pParseData, "vec3", 0, 0), pParseData));
+        register_builtin_function("radians",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // vec3 radians(vec3)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("radians", parsedata_find_type_symbol(pParseData, "vec3", 0, 0), pParseData));
+        register_builtin_function("degrees",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
     // vec3 position(mat43)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);

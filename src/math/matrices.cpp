@@ -28,10 +28,37 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "math/common.h"
 #include "math/matrices.h"
 
 namespace gaen
 {
+
+vec3 rotation(const mat43 & transform)
+{
+    vec3 rot;
+
+    rot.y = asin(transform[2][0]);  // Calculate Y-axis angle
+    f32 c = cos(rot.y);
+    if (abs(c) > 0.005) // No Gimball lock
+    {
+        rot.x = atan2(-transform[2][1] / c, transform[2][2] / c);
+        rot.z = atan2(-transform[1][0] / c, transform[0][0] / c);
+    }
+    else // Gimball lock
+    {
+        rot.x = 0;
+        rot.z  = atan2(transform[0][1], transform[1][1]);
+    }
+
+    // return only positive angles in [0,2pi]
+    if (rot.x < 0) rot.x += k2Pi;
+    if (rot.y < 0) rot.y += k2Pi;
+    if (rot.z < 0) rot.z += k2Pi;
+
+    return rot;
+}
+
 
 mat4 perspective(f32 fovy,
                  f32 aspect,

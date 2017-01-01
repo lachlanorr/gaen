@@ -52,17 +52,17 @@ T rotation_from_euler(f32 x, f32 y, f32 z)
     f32 ad  =  a * d;
     f32 bd  =  b * d;
 
-    mat[0].x  =  c * e;
-    mat[1].x  = -c * f;
-    mat[2].x  =  d;
+    mat[0][0]  =  c * e;
+    mat[1][0]  = -c * f;
+    mat[2][0]  =  d;
 
-    mat[0].y  =  bd * e + a * f;
-    mat[1].y  = -bd * f + a * e;
-    mat[2].y  = -b * c;
+    mat[0][1]  =  bd * e + a * f;
+    mat[1][1]  = -bd * f + a * e;
+    mat[2][1]  = -b * c;
 
-    mat[0].z  = -ad * e + b * f;
-    mat[1].z  =  ad * f + b * e;
-    mat[2].z  =  a * c;
+    mat[0][2]  = -ad * e + b * f;
+    mat[1][2]  =  ad * f + b * e;
+    mat[2][2]  =  a * c;
 
     return mat;
 }
@@ -76,6 +76,9 @@ inline vec3 position(const mat4 & transform)
 {
     return vec3(transform[3]);
 }
+
+vec3 rotation(const mat43 & transform);
+
 
 mat4 perspective(f32 fovy,
                  f32 aspect,

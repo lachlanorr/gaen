@@ -38,6 +38,13 @@ namespace gaen
 static const f32 kFpErrThreshold = 0.00000001f;
 inline bool is_fp_eq(f32 actual, f32 expected) { return (actual >= expected - kFpErrThreshold) && (actual <= expected + kFpErrThreshold); }
 
+static const f32 kPi = 3.1415927f;
+static const f32 k2Pi = 2.0f * kPi;
+inline f32 radians(f32 deg) { return deg * (kPi / 180.0f); }
+inline f32 degrees(f32 rad) { return rad * (180.0f / kPi); }
+
+inline i32 round(f32 val) { return (i32)(val + 0.5f); }
+
 template<typename T>
 inline T min(const T & lhs, const T & rhs)
 {
@@ -60,18 +67,6 @@ template<typename T>
 inline T abs(T x)
 {
     return glm::abs(x);
-}
-
-template<typename T>
-inline T radians(T x)
-{
-    return glm::radians(x);
-}
-
-template<typename T>
-inline T degrees(T x)
-{
-    return glm::degrees(x);
 }
 
 inline f32 uintBitsToFloat(u32 x)
