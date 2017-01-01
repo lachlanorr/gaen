@@ -298,7 +298,19 @@ MessageResult Entity::message(const T & msgAcc)
         // going through at any stage of an Entity's life.
         else if (msgId == HASH::set_property)
         {
-            mScriptTask.message(msgAcc);
+            MessageResult res = mScriptTask.message(msgAcc);
+
+            if (res == MessageResult::Propagate)
+            {
+                // Property not consumed, send to components
+                for (u32 i = 0; i < mComponentCount; ++i)
+                {
+                    res = mpComponents[i].scriptTask().message(msgAcc);
+                    if (res == MessageResult::Consumed)
+                        break;
+                }
+            }
+
             return MessageResult::Consumed;
         }
 
