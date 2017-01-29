@@ -75,10 +75,11 @@ public:
 
     ruid uid() const { return mpModel->uid(); }
 
+    void registerTransformListener(task_id taskId);
+
     void destroyModel();
 
     static void model_insert(task_id source, task_id target, ModelInstance * pModelInst);
-    static void model_transform(task_id source, task_id target, u32 uid, const mat43 & transform);
     static void model_remove(task_id source, task_id target, u32 uid);
 
     vec3 position() { return gaen::position(mTransform); }

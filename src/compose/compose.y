@@ -85,7 +85,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS UPDATE INPUT_ ANY NONE USING AS CONST_ SELF PRE POST VALUE
 %right ELSE THEN
 
-%right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN TRANSFORM READY
+%right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN TRANSFORM READY PARENT
 
 %left <pAst> OR
 %left <pAst> AND
@@ -217,6 +217,7 @@ prop_init
     : IDENTIFIER '=' expr  { $$ = ast_create_prop_init($1, $3, pParseData); }
     | TRANSFORM '=' expr   { $$ = ast_create_transform_init($3, pParseData); }
     | READY '=' expr       { $$ = ast_create_ready_init($3, pParseData); }
+    | PARENT '=' expr      { $$ = ast_create_parent_init($3, pParseData); }
     ;
 
 property_decl

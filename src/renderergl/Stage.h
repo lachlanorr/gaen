@@ -239,6 +239,7 @@ public:
             {
                 mItems.reorder(uid);
             }
+
             return true;
         }
         return false;

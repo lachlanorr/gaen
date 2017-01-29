@@ -93,6 +93,16 @@ void broadcast_targeted_message(u32 msgId,
                                 u32 blockCount,
                                 const Block * pBlocks);
 
+void broadcast_insert_task(task_id source, thread_id owner, const Task & task);
+void broadcast_remove_task(task_id source, task_id taskToRemove);
+void broadcast_request_set_parent(task_id source,
+                                  task_id parentTaskId,
+                                  Entity * pChild);
+void broadcast_confirm_set_parent(task_id source,
+                                  thread_id parentOwner,
+                                  task_id parentTaskId,
+                                  Entity * pChild);
+
 class TaskMaster
 {
 public:
@@ -153,6 +163,8 @@ public:
     thread_id threadId() { return mThreadId; }
     bool isPrimary() { return mIsPrimary; }
 
+    bool isOwnedTask(task_id taskId);
+
     f32 rand() { return (f32)(mRandom() / (f64)std::numeric_limits<u32>::max()); }
 
 private:
@@ -171,6 +183,7 @@ private:
     
     void insertTask(thread_id threadOwner, const Task & task);
     void removeTask(task_id taskId);
+    void setTaskOwner(thread_id newOwner, const Task & task);
 
     MessageQueue * mpMainMessageQueue; // messages from main queue here
     Vector<kMEM_Engine, MessageQueue*> mTaskMasterMessageQueues; // message from other task masters queue here

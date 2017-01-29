@@ -50,6 +50,7 @@ public:
            u32 childrenMax,
            u32 componentsMax,
            u32 blocksMax,
+           task_id initParentTask,
            task_id creatorTask,
            u32 readyMessage);
     ~Entity();
@@ -77,12 +78,19 @@ public:
 
     const mat43 & transform() const { return mTransform; }
     void setTransform(const mat43 & mat);
-    void applyTransform(bool isLocal, const mat43 & mat);
+    void applyTransform(const mat43 & mat);
+    void updateTransform();
+
+    void registerTransformListener(task_id taskId, u32 uid);
 
     u32 player() const { return mPlayer; }
 
     Entity * parent() { return mpParent; }
+
+    void requestSetParent(task_id parentTaskId);
+
     void setParent(Entity * pEntity);
+    void unParent();
     const mat43 & parentTransform() const;
 
     BlockMemory & blockMemory();
@@ -146,11 +154,22 @@ protected:
     // entity Compose script.
     Task mScriptTask;
 
+    u32 mNameHash;
+
     bool mIsFinSelfSent;
     bool mIsDead;
 
     bool mIsTransformDirty;
     mat43 mTransform;
+    mat43 mLocalTransform;
+
+    static const u32 kMaxTransformListeners = 4;
+    struct TransformListener
+    {
+        task_id taskId;
+        i32 uid;
+    };
+    TransformListener mTransformListeners[kMaxTransformListeners];
 
     u32 mPlayer;
 
@@ -178,6 +197,8 @@ protected:
 
     EntityInit * mpEntityInit;
 
+    // Optional initial parent
+    task_id mInitParentTask;
 
     // Ready notification members
     task_id mCreatorTask;

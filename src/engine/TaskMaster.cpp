@@ -34,6 +34,7 @@
 #include "engine/Entity.h"
 #include "engine/messages/OwnerTask.h"
 #include "engine/messages/TaskStatus.h"
+#include "engine/messages/TaskEntity.h"
 #include "engine/InputMgr.h"
 #include "engine/AssetMgr.h"
 #include "render_support/ModelMgr.h"
@@ -253,6 +254,58 @@ void broadcast_targeted_message(u32 msgId,
             msgAcc[i] = pBlocks[i];
         }
     }
+}
+
+void broadcast_insert_task(task_id source, thread_id owner, const Task & task)
+{
+    // Insert Entity into the TaskMasters
+    messages::OwnerTaskBW msgInsertTask(HASH::insert_task__,
+                                        kMessageFlag_None,
+                                        source,
+                                        active_thread_id(),
+                                        owner);
+    msgInsertTask.setTask(task);
+    broadcast_message(msgInsertTask.accessor());
+}
+
+void broadcast_remove_task(task_id source, task_id taskToRemove)
+{
+    broadcast_message(HASH::remove_task__, kMessageFlag_None, source, to_cell(taskToRemove));
+}
+
+void broadcast_request_set_parent(task_id source,
+                                  task_id parentTaskId,
+                                  Entity * pChild)
+{
+    // Request for parenting to occur.
+    //
+    // We must first broadcast a request_set_parent so that every
+    // TaskMaster is aware of the parenting, and move the child to the
+    // parents TaskMaster if necessary.
+    //
+    // Then, the TaskMaster that owns us will send a
+    // HASH::insert_child__ so we can complete the parenting.
+    messages::TaskEntityBW msg(HASH::request_set_parent__,
+                               kMessageFlag_None,
+                               source,
+                               active_thread_id(),
+                               parentTaskId);
+    msg.setEntity(pChild);
+    broadcast_message(msg.accessor());
+}
+
+void broadcast_confirm_set_parent(task_id source,
+                                  thread_id parentOwner,
+                                  task_id parentTaskId,
+                                  Entity * pChild)
+{
+    messages::TaskEntityBW msgw(HASH::confirm_set_parent__,
+                                kMessageFlag_None,
+                                source,
+                                parentOwner,
+                                parentTaskId);
+    msgw.setEntity(pChild);
+    broadcast_message(msgw.accessor());
 }
 
 void broadcast_message(const MessageBlockAccessor & msgAcc)
@@ -586,6 +639,11 @@ void TaskMaster::deregisterMutableDependency(task_id taskId, u32 path)
     ASSERT(mStatus == kTMS_Initialized);
 }
 
+bool TaskMaster::isOwnedTask(task_id taskId)
+{
+    return mOwnedTaskMap.find(taskId) != mOwnedTaskMap.end();
+}
+
 void TaskMaster::processMessages(MessageQueue & msgQueue)
 {
     MessageQueueAccessor msgAcc;
@@ -616,13 +674,38 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
                 fin(msgAcc);
                 return MessageResult::Consumed;
             }
-            case HASH::insert_task:
+            case HASH::insert_task__:
             {
                 messages::OwnerTaskR<MessageQueueAccessor> msgr(msgAcc);
                 insertTask(msgr.owner(), msgr.task());
                 return MessageResult::Consumed;
             }
-            case HASH::remove_task:
+            case HASH::request_set_task_owner__:
+            {
+                messages::OwnerTaskR<MessageQueueAccessor> msgr(msgAcc);
+
+                // If we own it, remove it and send the confirm_set_task_owner
+                auto ownedIt = mOwnedTaskMap.find(msgr.task().id());
+                if (ownedIt != mOwnedTaskMap.end())
+                {
+                    removeTask(msgr.task().id());
+                    messages::OwnerTaskBW msgw(HASH::confirm_set_task_owner__,
+                                               kMessageFlag_None,
+                                               threadId(),
+                                               threadId(),
+                                               msgr.owner());
+                    msgw.setTask(mOwnedTasks[ownedIt->second]);
+                    broadcast_message(msgw.accessor());
+                }
+                return MessageResult::Consumed;
+            }
+            case HASH::confirm_set_task_owner__:
+            {
+                messages::OwnerTaskR<MessageQueueAccessor> msgr(msgAcc);
+                setTaskOwner(msgr.owner(), msgr.task());
+                return MessageResult::Consumed;
+            }
+            case HASH::remove_task__:
             {
                 task_id taskIdToRemove = msg.payload.u;
 
@@ -630,7 +713,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
                 if (ownedIt != mOwnedTaskMap.end())
                 {
                     // Send an immediate fin__ to the task so it can delete itself
-                    StackMessageBlockWriter<0> finw(HASH::fin__, kMessageFlag_Editor, active_thread_id(), taskIdToRemove, to_cell(0));
+                    StackMessageBlockWriter<0> finw(HASH::fin__, kMessageFlag_Editor, threadId(), taskIdToRemove, to_cell(0));
                     mOwnedTasks[ownedIt->second].message(finw.accessor());
                 }
 
@@ -642,6 +725,80 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
 
                 removeTask(taskIdToRemove);
 
+                return MessageResult::Consumed;
+            }
+            case HASH::request_set_parent__:
+            {
+                messages::TaskEntityR<MessageQueueAccessor> msgr(msgAcc);
+                
+                task_id parentTaskId = msgr.taskId();
+                Entity * pChild = msgr.entity();
+                task_id childTaskId = pChild->task().id();
+
+                thread_id parentOwner = mTaskOwnerMap[parentTaskId];
+                thread_id childOwner = mTaskOwnerMap[childTaskId];
+
+                // In all cases, if child and parent don't share an
+                // owner, we need to get them out of our tracking
+                // structures.
+                if (parentOwner != childOwner)
+                {
+                    removeTask(childTaskId);
+                }
+                
+                // This message is only relevant if we own the child
+                if (childOwner == threadId())
+                {
+                    // If we also own the parent, things are simple
+                    if (parentOwner == threadId())
+                    {
+                        messages::TaskEntityBW msgw(HASH::insert_child,
+                                                    kMessageFlag_None,
+                                                    msg.source,
+                                                    parentTaskId,
+                                                    parentTaskId);
+                        msgw.setEntity(pChild);
+
+                        auto ownedParentIt = mOwnedTaskMap.find(parentTaskId);
+                        mOwnedTasks[ownedParentIt->second].message(msgw.accessor());
+                    }
+
+                    // We don't own the parent, so we must send the
+                    // child to the parent's owning taskmaster.
+                    else
+                    {
+                        broadcast_confirm_set_parent(msg.source,
+                                                     parentOwner,
+                                                     parentTaskId,
+                                                     pChild);
+                    }
+                }
+                return MessageResult::Consumed;
+            }
+            case HASH::confirm_set_parent__:
+            {
+                messages::TaskEntityR<MessageQueueAccessor> msgr(msgAcc);
+                
+                task_id parentTaskId = msgr.taskId();
+                Entity * pChild = msgr.entity();
+                thread_id parentOwner = msg.target;
+                
+                insertTask(parentOwner, pChild->task());
+
+                // If we own the parent, conduct parenting
+                if (parentOwner == threadId())
+                {
+                    messages::TaskEntityBW msgw(HASH::insert_child,
+                                                kMessageFlag_None,
+                                                msg.source,
+                                                parentTaskId,
+                                                parentTaskId);
+                    msgw.setEntity(pChild);
+
+                    auto ownedParentIt = mOwnedTaskMap.find(parentTaskId);
+                    ASSERT(ownedParentIt != mOwnedTaskMap.end());
+                    mOwnedTasks[ownedParentIt->second].message(msgw.accessor());
+                }
                 return MessageResult::Consumed;
             }
             default:
@@ -774,7 +931,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
 
         // We may get some other messages here, but we ignore them.
         // Examples include cleanup messages related to shutting down, like:
-        // HASH::remove_task
+        // HASH::remove_task__
         // HASH::release_asset__
     }
     else
@@ -800,6 +957,22 @@ void TaskMaster::insertTask(thread_id threadOwner, const Task & task)
     }
 
     //LOG_INFO("Task Count(%u): %u", threadId(), (u32)mOwnedTaskMap.size());
+}
+
+void TaskMaster::setTaskOwner(thread_id newOwner, const Task & task)
+{
+    auto itTOM = mTaskOwnerMap.find(task.id());
+    PANIC_IF(itTOM == mTaskOwnerMap.end(), "setTaskOwner: task not found: %u", task.id());
+
+    if (itTOM != mTaskOwnerMap.end() &&
+        itTOM->second != threadId()) // only need to do something if we don't already own task
+    {
+        // Send remove message
+        broadcast_remove_task(task.id(), task.id());
+
+        // Send insert message
+        broadcast_insert_task(threadId(), newOwner, task);
+    }
 }
 
 void TaskMaster::removeTask(task_id taskId)

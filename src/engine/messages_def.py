@@ -17,14 +17,20 @@ class TaskStatus(FieldHandler):
                       type_name='TaskStatus',
                       includes=['engine/Task.h'])
 
+class TaskEntity(FieldHandler):
+    taskId  = i32Field(payload=True,
+                       type_name='task_id',
+                       includes=['engine/Task.h'])
+    pEntity = PointerField(type_name='Entity *',
+                           includes=['engine/Entity.h'])
+
 # Instantiate and insert a component
 class ComponentIndex(FieldHandler):
     nameHash = i32Field(payload=True)
-    index = i32Field()
+    index    = i32Field()
 
 # Transform and entity
 class Transform(FieldHandler):
-    isLocal   = boolField(payload=True)
     transform = mat43Field()
 
 # Transform and entity

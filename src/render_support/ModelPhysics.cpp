@@ -78,14 +78,9 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
     {
         mModelInstance.mTransform = newTrans;
 
-        if (mModelInstance.mIsRenderable)
-        {
-            ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, mModelInstance.model().uid(), mModelInstance.mTransform);
-        }
-
         // Send transform to entity
         {
-            messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), false);
+            messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner());
             msgw.setTransform(mModelInstance.mTransform);
         }
     }
@@ -234,15 +229,6 @@ void ModelPhysics::setTransform(u32 uid, const mat43 & transform)
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
     {
-        // update the instance
-        it->second->mpMotionState->mModelInstance.mTransform = transform;
-
-        // update the renderer
-        if (it->second->mpMotionState->mModelInstance.mIsRenderable)
-        {
-            ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, it->second->mpMotionState->mModelInstance.model().uid(), transform);
-        }
-
         // Update bullet
         btTransform btTrans;
         gaen_to_bullet_transform(btTrans, transform);

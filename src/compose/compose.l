@@ -126,6 +126,7 @@ ParseData * pParseData = yyextra;
 
 "transform"  { return TRANSFORM; }
 "ready"      { return READY; }
+"parent"     { return PARENT; }
 
 
 "true"   { return TRUE_; }

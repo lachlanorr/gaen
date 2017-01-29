@@ -34,7 +34,7 @@
 namespace gaen
 {
 
-vec3 rotation(const mat43 & transform)
+vec3 euler(const mat43 & transform)
 {
     vec3 rot;
 

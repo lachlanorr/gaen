@@ -77,7 +77,7 @@ inline vec3 position(const mat4 & transform)
     return vec3(transform[3]);
 }
 
-vec3 rotation(const mat43 & transform);
+vec3 euler(const mat43 & transform);
 
 
 mat4 perspective(f32 fovy,

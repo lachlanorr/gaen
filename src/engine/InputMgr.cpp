@@ -212,15 +212,21 @@ u32 InputMgr::queryState(const ivec4 & keys)
 
 void InputMgr::processKeyInput(const KeyInput & keyInput)
 {
-    ASSERT(keyInput.key < kKEY_NOKEY);
-    u32 idx = keyInput.key / 32;
-    u32 bit = keyInput.key % 32;
-    u32 mask = 1 << bit;
+    if (keyInput.key < kKEY_NOKEY)
+    {
+        u32 idx = keyInput.key / 32;
+        u32 bit = keyInput.key % 32;
+        u32 mask = 1 << bit;
 
-    if (keyInput.action == kKACT_Release)
-        mPressedKeys[idx] &= ~mask;
-    else // kKACT_Press || kKACT_Repeat
-        mPressedKeys[idx] |= mask;
+        if (keyInput.action == kKACT_Release)
+            mPressedKeys[idx] &= ~mask;
+        else // kKACT_Press || kKACT_Repeat
+            mPressedKeys[idx] |= mask;
+    }
+    else
+    {
+        ERR("Unknown keyInput.key: %u", keyInput.key);
+    }
 }
 
 void InputMgr::processMouseMoveInput(const MouseInput::Movement & moveInput)

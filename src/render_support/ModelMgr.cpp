@@ -38,6 +38,7 @@
 #include "engine/messages/CameraPersp.h"
 #include "engine/messages/CameraOrtho.h"
 #include "engine/messages/UidTransform.h"
+#include "engine/messages/Transform.h"
 
 #include "render_support/ModelMgr.h"
 
@@ -66,6 +67,14 @@ MessageResult ModelMgr::message(const T & msgAcc)
 
     switch (msg.msgId)
     {
+    case HASH::notify_transform:
+    {
+        messages::UidTransformR<T> msgr(msgAcc);
+
+        transformModel(msgr.uid(), msgr.transform());
+
+        return MessageResult::Consumed;
+    }
     case HASH::model_insert:
     {
         messages::ModelInstanceR<T> msgr(msgAcc);
@@ -88,6 +97,8 @@ MessageResult ModelMgr::message(const T & msgAcc)
                                                       pModelInst->mIsRenderable);
             ModelInstance::model_insert(kModelMgrTaskId, kRendererTaskId, pModelInstRenderer);
         }
+
+        pModelInst->registerTransformListener(kModelMgrTaskId);
 
         return MessageResult::Consumed;
     }
@@ -130,28 +141,6 @@ MessageResult ModelMgr::message(const T & msgAcc)
         else
         {
             ERR("model_set_angular_velocity for unknown model, uid: %u", msgr.uid());
-        }
-        return MessageResult::Consumed;
-    }
-    case HASH::model_transform:
-    {
-        messages::UidTransformR<T> msgr(msgAcc);
-        auto modelPair = mModelMap.find(msgr.uid());
-        if (modelPair != mModelMap.end())
-        {
-            if (modelPair->second->mHasBody)
-            {
-                mPhysics.setTransform(msgr.uid(), msgr.transform());
-            }
-            else
-            {
-                if (modelPair->second->mIsRenderable)
-                    ModelInstance::model_transform(kModelMgrTaskId, kRendererTaskId, msgr.uid(), msgr.transform());
-            }
-        }
-        else
-        {
-            ERR("model_transform for unknown model, uid: %u", msgr.uid());
         }
         return MessageResult::Consumed;
     }
@@ -221,6 +210,29 @@ MessageResult ModelMgr::message(const T & msgAcc)
     return MessageResult::Consumed;
 }
 
+void ModelMgr::transformModel(i32 modelUid, const mat43 & transform)
+{
+    auto modelPair = mModelMap.find(modelUid);
+    if (modelPair != mModelMap.end())
+    {
+        if (modelPair->second->mTransform != transform)
+        {
+
+            // update the instance
+            modelPair->second->mTransform = transform;
+
+            if (modelPair->second->mHasBody)
+            {
+                mPhysics.setTransform(modelUid, transform);
+            }
+        }
+    }
+    else
+    {
+        ERR("transformModel for unknown model, uid: %u", modelUid);
+    }
+}
+
 // Template decls so we can define message func here in the .cpp
 template MessageResult ModelMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
 
@@ -251,12 +263,6 @@ void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity * pC
 {
     messages::UidVec3QW msgw(HASH::model_set_angular_velocity, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
     msgw.setVector(velocity);
-}
-
-void model_transform(i32 modelUid, const mat43 & transform, Entity * pCaller)
-{
-    messages::UidTransformQW msgw(HASH::model_transform, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
-    msgw.setTransform(transform);
 }
 
 void model_init_body(i32 modelUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity * pCaller)

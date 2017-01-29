@@ -35,11 +35,13 @@
 #include "engine/Registry.h"
 #include "engine/Asset.h"
 
-#include "engine/messages/Handle.h"
 #include "engine/messages/ComponentIndex.h"
+#include "engine/messages/Handle.h"
 #include "engine/messages/OwnerTask.h"
+#include "engine/messages/TaskEntity.h"
 #include "engine/messages/TaskStatus.h"
 #include "engine/messages/Transform.h"
+#include "engine/messages/UidTransform.h"
 
 #include "engine/Entity.h"
 
@@ -50,15 +52,20 @@ Entity::Entity(u32 nameHash,
                u32 childrenMax,
                u32 componentsMax,
                u32 blocksMax,
+               task_id initParentTask,
                task_id creatorTask,
                u32 readyMessage)
   : mpParent(nullptr)
   , mpBlockMemory(nullptr)
+  , mInitParentTask(initParentTask)
   , mCreatorTask(creatorTask)
   , mReadyMessage(readyMessage)
 {
     mTransform = mat43(1.0f);
+    mLocalTransform = mat43(1.0f);
     mIsTransformDirty = false;
+
+    memset(mTransformListeners, 0, sizeof(mTransformListeners));
 
     mPlayer = 0;
 
@@ -122,13 +129,12 @@ void Entity::activate()
     ASSERT(mTask.status() == TaskStatus::Initializing);
 
     // Insert Entity into the TaskMasters
-    messages::OwnerTaskBW msgInsertTask(HASH::insert_task,
-                                        kMessageFlag_None,
-                                        mTask.id(),
-                                        active_thread_id(),
-                                        active_thread_id());
-    msgInsertTask.setTask(mTask);
-    broadcast_message(msgInsertTask.accessor());
+    broadcast_insert_task(mTask.id(), active_thread_id(), mTask);
+
+    if (mInitParentTask != 0)
+    {
+        broadcast_request_set_parent(mTask.id(), mInitParentTask, this);
+    }
 
     // Start initialization sequence with #init__
     // Entity will progress through initialization stages on its
@@ -148,7 +154,7 @@ void Entity::finSelf()
 
 Entity * Entity::activate_start_entity(u32 entityHash)
 {
-    Entity * pEntity = get_registry().constructEntity(entityHash, 32, 0, 0);
+    Entity * pEntity = get_registry().constructEntity(entityHash, 32, 0, 0, 0);
 
     if (pEntity)
     {
@@ -186,10 +192,6 @@ void Entity::update(f32 delta)
     for (u32 i = 0; i < mComponentCount; ++i)
         mpComponents[i].scriptTask().update(delta);
 
-    // send update to our child entities
-    for (u32 i = 0; i < mChildCount; ++i)
-        mpChildren[i]->update(delta);
-
     // Now, if there has been any change to the transform,
     // notify components and child entities.
     // This has to happen in a separate stage to the update
@@ -197,27 +199,27 @@ void Entity::update(f32 delta)
     // our transform.
     if (mIsTransformDirty)
     {
-        // send update our components
+        // send update_transform our components
         for (u32 i = 0; i < mComponentCount; ++i)
         {
             Task & t = mpComponents[i].scriptTask();
             StackMessageBlockWriter<0> msgw(HASH::update_transform,
-                kMessageFlag_ForcePropagate,
-                mTask.id(),
-                t.id(),
-                to_cell(0));
+                                            kMessageFlag_ForcePropagate,
+                                            mTask.id(),
+                                            t.id(),
+                                            to_cell(0));
             t.message(msgw.accessor());
         }
 
-        // send update to our child entities
+        // send update_transform to our child entities
         for (u32 i = 0; i < mChildCount; ++i)
         {
             Entity * pEnt = mpChildren[i];
             StackMessageBlockWriter<0> msgw(HASH::update_transform,
-                kMessageFlag_ForcePropagate,
-                mTask.id(),
-                pEnt->task().id(),
-                to_cell(0));
+                                            kMessageFlag_ForcePropagate,
+                                            mTask.id(),
+                                            pEnt->task().id(),
+                                            to_cell(0));
             pEnt->message(msgw.accessor());
         }
 
@@ -247,6 +249,20 @@ MessageResult Entity::message(const T & msgAcc)
     {
         if (msgId == HASH::fin)
         {
+            // If we are a child, only accept HASH::fin from our
+            // parent, otherwise request our parent sends it to use.
+            if (mpParent && mpParent->mTask.id() != msgAcc.message().source)
+            {
+                ASSERT(TaskMaster::task_master_for_active_thread().isOwnedTask(mpParent->mTask.id()));
+                StackMessageBlockWriter<0> msgw(HASH::request_fin,
+                                                kMessageFlag_None,
+                                                mTask.id(),
+                                                mpParent->task().id(),
+                                                to_cell(0));
+                mpParent->message(msgw.accessor());
+                return MessageResult::Consumed;
+            }
+
             mIsDead = true;
             
             // fin messages are like destructors and should be handled specially.
@@ -271,12 +287,6 @@ MessageResult Entity::message(const T & msgAcc)
 
             StackMessageBlockWriter<0> finMsgW(HASH::fin__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
 
-            // Send fin__ message to all children entities
-            for (u32 i = 0; i < mChildCount; ++i)
-            {
-                mpChildren[i]->message(finMsgW.accessor());
-            }
-
             // Now, send fin__ to our components
             for (u32 i = 0; i < mComponentCount; ++i)
             {
@@ -287,9 +297,37 @@ MessageResult Entity::message(const T & msgAcc)
             mScriptTask.message(finMsgW.accessor());
 
             // Remove us from TaskMasters
-            broadcast_message(HASH::remove_task, kMessageFlag_None, mTask.id(), to_cell(mTask.id()));
+            broadcast_remove_task(mTask.id(), mTask.id());
 
             return MessageResult::Consumed;
+        }
+        if (msgId == HASH::request_fin)
+        {
+            // Verify this is one of our children
+            for (u32 i = 0; i < mChildCount; ++i)
+            {
+                Entity * pEnt = mpChildren[i];
+
+                if (pEnt->task().id() == msgAcc.message().source)
+                {
+                    ASSERT_MSG(TaskMaster::task_master_for_active_thread().isOwnedTask(pEnt->mTask.id()), "Parent/child entities must reside on same TaskMaster");
+
+                    // Remove the child
+                    removeChild(pEnt);
+
+                    // Send the child fin from us, so it respects the message.
+                    // Child entities will only conduct fin logic if message is
+                    // sent from their parent.
+                    StackMessageBlockWriter<0> msgw(HASH::fin,
+                                                    kMessageFlag_None,
+                                                    mTask.id(),
+                                                    pEnt->task().id(),
+                                                    to_cell(0));
+                    pEnt->message(msgw.accessor());
+                    return MessageResult::Consumed;
+                }
+            }
+            PANIC("HASH::request_fin sent from a non-child entitty");
         }
 
         // Always pass set_property through to our mScriptTask
@@ -311,6 +349,16 @@ MessageResult Entity::message(const T & msgAcc)
                 }
             }
 
+            return MessageResult::Consumed;
+        }
+        else if (msgId == HASH::reparent)
+        {
+            requestSetParent(msgAcc.message().payload.u);
+            return MessageResult::Consumed;
+        }
+        else if (msgId == HASH::register_transform_listener)
+        {
+            registerTransformListener(msgAcc.message().source, msgAcc.message().payload.u);
             return MessageResult::Consumed;
         }
 
@@ -350,7 +398,23 @@ MessageResult Entity::message(const T & msgAcc)
             case HASH::transform:
             {
                 messages::TransformR<T> msgr(msgAcc);
-                applyTransform(msgr.isLocal(), msgr.transform());
+                applyTransform(msgr.transform());
+                return MessageResult::Consumed;
+            }
+            case HASH::update_transform:
+            {
+                updateTransform();
+                return MessageResult::Consumed;
+            }
+            case HASH::insert_child:
+            {
+                messages::TaskEntityR<T> msgr(msgAcc);
+                
+                Entity * pChild = msgr.entity();
+
+                // We should only become parent to Entities that are managed by our TaskMaster
+                ASSERT(TaskMaster::task_master_for_active_thread().isOwnedTask(pChild->task().id()));
+                insertChild(pChild);
                 return MessageResult::Consumed;
             }
             }
@@ -545,40 +609,93 @@ MessageResult Entity::message(const T & msgAcc)
 
 void Entity::setTransform(const mat43 & mat)
 {
-    mIsTransformDirty = true;
-    mTransform = mat;
-}
+    if (mat != mTransform)
+    {
+        mIsTransformDirty = true;
+        mTransform = mat;
 
-void Entity::applyTransform(bool isLocal, const mat43 & mat)
-{
-    if (isLocal)
-    {
-        mat43 invTrans = ~mTransform;
-        setTransform(invTrans * mat * mTransform);
-    }
-    else
-    {
-        if (!mpParent)
-            setTransform(mat);
-        else
+        // call transform listeners
+        for (u32 i = 0; i < kMaxTransformListeners; ++i)
         {
-            mat43 invParent = ~mpParent->transform();
-            setTransform(mTransform * mat * invParent);
+            TransformListener & tl = mTransformListeners[i];
+            if (tl.taskId != 0)
+            {
+                messages::UidTransformQW msgW(HASH::notify_transform, kMessageFlag_Editor, mTask.id(), tl.taskId, tl.uid);
+                msgW.setTransform(mTransform);
+            }
+            else
+            {
+                break;
+            }
         }
     }
 }
 
-void Entity::setParent(Entity * pEntity)
+void Entity::applyTransform(const mat43 & mat)
 {
-    ASSERT(!mpParent);
-
-    if (pEntity)
+    if (!mpParent)
     {
-        // Convert our global transform into local coords relative to parent
-        mpParent = pEntity;
-        mat43 invParent = ~mpParent->transform();
-        setTransform(mTransform * invParent);
+        setTransform(mat);
     }
+    else
+    {
+        mLocalTransform = mat;
+        setTransform(parentTransform() * mLocalTransform);
+    }
+}
+
+void Entity::updateTransform()
+{
+    if (mpParent)
+    {
+        setTransform(parentTransform() * mLocalTransform);
+    }
+}
+
+void Entity::registerTransformListener(task_id taskId, u32 uid)
+{
+    for (u32 i = 0; i < kMaxTransformListeners; ++i)
+    {
+        if (mTransformListeners[i].taskId == 0)
+        {
+            mTransformListeners[i].taskId = taskId;
+            mTransformListeners[i].uid = uid;
+
+            // Send current state of transform
+            {
+            messages::UidTransformQW msgW(HASH::notify_transform, kMessageFlag_Editor, mTask.id(), taskId, uid);
+            msgW.setTransform(mTransform);
+            }
+
+            return;
+        }
+    }
+    ERR("Too many TransformListeners registered");
+}
+
+void Entity::requestSetParent(task_id parentTaskId)
+{
+    broadcast_request_set_parent(mTask.id(), parentTaskId, this);
+}
+
+void Entity::setParent(Entity * pParent)
+{
+    ASSERT(pParent);
+
+    if (mpParent)
+        unParent();
+
+    // Convert our global transform into local coords relative to parent
+    mpParent = pParent;
+    mat43 invParent = ~mpParent->transform();
+    mLocalTransform = mTransform * invParent;
+}
+
+void Entity::unParent()
+{
+    ASSERT(mpParent);
+    mLocalTransform = mat43{1.0f};
+    mpParent = nullptr;
 }
 
 const mat43 & Entity::parentTransform() const
@@ -737,7 +854,7 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
     // HASH::init__ will be sent to component in codegen'd .cpp for component/entity
 
     // LORRTEMP
-    //LOG_INFO("Component inserted: entityId: %u, entityName: %s, taskId: %u, taskName: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()), pComp->scriptTask().id(), HASH::reverse_hash(pComp->scriptTask().nameHash()));
+    //LOG_INFO("Component inserted: entityId: %u, entityName: %s, taskId: %u, taskName: %s", mTask.id(), HASH::reverse_hash(mTask.nameHash()), pComp->scriptTask().id(), HASH::reverse_hash(pComp->nameHash()));
 
     // Activate our component's task so it can perform updates
     pComp->scriptTask().setStatus(TaskStatus::Running);
@@ -889,7 +1006,7 @@ void Entity::removeChild(task_id taskId)
         {
             if (mpChildren[i]->task().id() == taskId)
             {
-                mpChildren[i]->setParent(nullptr);
+                mpChildren[i]->unParent();
                 if (i < mChildCount - 1)
                 {
                     // item in middle, swap with the last item

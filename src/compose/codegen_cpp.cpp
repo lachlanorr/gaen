@@ -527,6 +527,8 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
     case kDT_string:
     case kDT_asset:
         return S("pThis->self().blockMemory().stringAlloc(\"\")");
+    case kDT_entity:
+        return S("-1");
     default:
         COMP_ERROR(pParseData, "Unknown initial value for datatype: %d", pSdt->typeDesc.dataType);
         return S("");
@@ -722,7 +724,7 @@ static S initialization_message_handlers(const Ast * pAst, const S& postInit, co
     code += I + S("        case HASH::transform:\n");
     code += I + S("        {\n");
     code += I + S("            messages::TransformR<T> msgr(msgAcc);\n");
-    code += I + S("            pThis->self().applyTransform(msgr.isLocal(), msgr.transform());\n");
+    code += I + S("            pThis->self().applyTransform(msgr.transform());\n");
     code += I + S("            return MessageResult::Consumed;\n");
     code += I + S("        } // HASH::transform\n");
 
@@ -832,7 +834,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                     code += I + S("{\n");
                     snprintf(scratch,
                              kScratchSize,
-                             "    messages::TransformBW msgw(HASH::transform, kMessageFlag_None, %s.id(), %s.id(), false);\n",
+                             "    messages::TransformBW msgw(HASH::transform, kMessageFlag_None, %s.id(), %s.id());\n",
                              scriptTaskName,
                              taskName);
                     code += I + S(scratch);
@@ -842,6 +844,10 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                 }
             }
             else if (pPropInit->type == kAST_ReadyInit)
+            {
+                // This is a no-op. Calling codegen_ready_message utilizes the ready initializer
+            }
+            else if (pPropInit->type == kAST_ParentInit)
             {
                 // This is a no-op. Calling codegen_ready_message utilizes the ready initializer
             }
@@ -893,6 +899,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                             code += I + S("    msgw[0].cells[0].f = ") + codegen_recurse(pPropInit->pRhs, 0);
                             break;
                         case kDT_int:
+                        case kDT_entity:
                             code += I + S("    msgw[0].cells[0].i = ") + codegen_recurse(pPropInit->pRhs, 0);
                             break;
                         case kDT_color:
@@ -945,12 +952,28 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
     return code;
 }
 
-static S codegen_ready_message(Ast * pAst)
+static S codegen_init_parent_task(const Ast * pAst)
+{
+    S code = S("0"); // default to 0 if no parent
+    if (pAst && pAst->pChildren)
+    {
+        for (const Ast * pPropInit : pAst->pChildren->nodes)
+        {
+            if (pPropInit->type == kAST_ParentInit)
+            {
+                code = codegen_recurse(pPropInit->pRhs, 0);
+            }
+        }
+    }
+    return code;
+}
+
+static S codegen_ready_message(const Ast * pAst)
 {
     S code = S("0"); // default to 0 if no ready message was specified
     if (pAst && pAst->pChildren)
     {
-        for (Ast * pPropInit : pAst->pChildren->nodes)
+        for (const Ast * pPropInit : pAst->pChildren->nodes)
         {
             if (pPropInit->type == kAST_ReadyInit)
             {
@@ -1193,9 +1216,13 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
         code += I + S("}; // class ") + S(entity_init_class(pAst->str)) + LF;
         code += LF;
 
-        code += I + S("task_id ") + entity_init_func(pAst->str) + S("(") + closureParams + S(")") + LF;
+        S thisParam = "Entity * pThis";
+        if (closureParams.size() > 0)
+            thisParam += S(", ");
+
+        code += I + S("task_id ") + entity_init_func(pAst->str) + S("(") + thisParam + closureParams + S(")") + LF;
         code += I + S("{") + LF;
-        code += I + S("    Entity * pEntity = get_registry().constructEntity(") + hash_literal(pAst->pSymRecRef->fullName) + S(", 8, self().task().id(), ") + codegen_ready_message(pAst->pRhs) + (");") + LF;
+        code += I + S("    Entity * pEntity = get_registry().constructEntity(") + hash_literal(pAst->pSymRecRef->fullName) + S(", 8, ") + codegen_init_parent_task(pAst->pRhs) + S(", self().task().id(), ") + codegen_ready_message(pAst->pRhs) + S(");") + LF;
         code += I + S("    ") + entity_init_class(pAst->str) + S(" * pEntityInit = GNEW(kMEM_Engine, ") + entity_init_class(pAst->str) + S(", this, pEntity");
         S closureArgs = closure_args(pClosure);
         if (closureArgs.size() > 0)
@@ -1513,9 +1540,9 @@ static S codegen_recurse(const Ast * pAst,
         code += codegen_helper_funcs(pAst);
 
         code += I + S("public:\n");
-        code += I + S("    static Entity * construct(u32 childCount, task_id creatorTask, u32 readyMessage)\n");
+        code += I + S("    static Entity * construct(u32 childCount, task_id initParentTask, task_id creatorTask, u32 readyMessage)\n");
         code += I + S("    {\n");
-        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount, creatorTask, readyMessage);\n");
+        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount, initParentTask, creatorTask, readyMessage);\n");
         code += I + S("    }\n");
         code += I + S("\n");
 
@@ -1611,8 +1638,8 @@ static S codegen_recurse(const Ast * pAst,
         code += I + S("private:\n");
 
         // Constructor
-        code += I + S("    ") + entName + S("(u32 childCount, task_id creatorTask, u32 readyMessage)\n");
-        code += I + S("      : Entity(") + hash_literal(entName.c_str()) + S(", childCount, 36, 36, creatorTask, readyMessage) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
+        code += I + S("    ") + entName + S("(u32 childCount, task_id initParentTask, task_id creatorTask, u32 readyMessage)\n");
+        code += I + S("      : Entity(") + hash_literal(entName.c_str()) + S(", childCount, 36, 36, initParentTask, creatorTask, readyMessage) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
         code += I + S("    {\n");
 
         // Initialize mBlockSize
@@ -2305,9 +2332,12 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_EntityInit:
     {
         S code = I + entity_init_func(pAst->str);
-        code += S("(");
+        code += S("(&self()");
         const SymTab * pClosure = find_closure_symbols(pAst);
-        code += closure_args(pClosure);
+        S closureArgs = closure_args(pClosure);
+        if (closureArgs.size() > 0)
+            code += S(", ");
+        code += closureArgs;
         code += S(")");
         return code;
     }

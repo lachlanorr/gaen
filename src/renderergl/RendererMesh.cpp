@@ -398,7 +398,7 @@ MessageResult RendererMesh::message(const T & msgAcc)
         modelInsert(msgr.modelInstance());
         break;
     }
-    case HASH::model_transform:
+    case HASH::notify_transform:
     {
         messages::UidTransformR<T> msgr(msgAcc);
         modelTransform(msgr.uid(), msgr.transform());
@@ -608,6 +608,7 @@ void RendererMesh::modelInsert(ModelInstance * pModelInst)
 {
     ModelStage * pStage = modelStageFindOrCreate(pModelInst->stageHash());
     pStage->insertItem(pModelInst);
+    pModelInst->registerTransformListener(kRendererTaskId);
 }
 
 void RendererMesh::modelTransform(u32 uid, const mat43 & transform)

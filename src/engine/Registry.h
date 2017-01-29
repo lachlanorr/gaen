@@ -42,13 +42,13 @@ class Registry
 {
 public:
     typedef Component * (*ComponentConstructor)(void * place, Entity * pEntity);
-    typedef Entity * (*EntityConstructor)(u32 childCount, task_id creatorTask, u32 readyMessage);
+    typedef Entity * (*EntityConstructor)(u32 childCount, task_id initParentTask, task_id creatorTask, u32 readyMessage);
 
     bool registerComponentConstructor(u32 nameHash, ComponentConstructor constructor);
     Component * constructComponent(u32 nameHash, void * place, Entity * pEntity);
 
     bool registerEntityConstructor(u32 nameHash, EntityConstructor constructor);
-    Entity * constructEntity(u32 nameHash, u32 childCount, task_id creatorTask, u32 readyMessage);
+    Entity * constructEntity(u32 nameHash, u32 childCount, task_id initParentTask, task_id creatorTask, u32 readyMessage);
 
 private:
     HashMap<kMEM_Engine, u32, ComponentConstructor> mComponentConstructors;

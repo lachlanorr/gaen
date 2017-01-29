@@ -30,7 +30,6 @@
 #include "engine/AssetMgr.h"
 
 #include "engine/messages/ModelInstance.h"
-#include "engine/messages/UidTransform.h"
 
 #include "render_support/Model.h"
 
@@ -92,6 +91,11 @@ ModelInstance::ModelInstance(Model * pModel, u32 stageHash, const mat43 & transf
   , mIsRenderable(isRenderable)
 {}
 
+void ModelInstance::registerTransformListener(task_id taskId)
+{
+    MessageQueueWriter msgw(HASH::register_transform_listener, kMessageFlag_None, taskId, mpModel->owner(), to_cell(mpModel->uid()), 0);
+}
+
 void ModelInstance::destroyModel()
 {
     if (mpModel)
@@ -105,12 +109,6 @@ void ModelInstance::model_insert(task_id source, task_id target, ModelInstance *
 {
     messages::ModelInstanceQW msgw(HASH::model_insert, kMessageFlag_None, source, target);
     msgw.setModelInstance(pModelInst);
-}
-
-void ModelInstance::model_transform(task_id source, task_id target, u32 uid, const mat43 & transform)
-{
-    messages::UidTransformQW msgw(HASH::model_transform, kMessageFlag_None, source, target, uid);
-    msgw.setTransform(transform);
 }
 
 void ModelInstance::model_remove(task_id source, task_id target, u32 uid)

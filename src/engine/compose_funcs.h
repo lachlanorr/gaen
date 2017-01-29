@@ -78,9 +78,9 @@ inline vec3 position(const mat43 & transform, Entity * pCaller)
     return gaen::position(transform);
 }
 
-inline vec3 rotation(const mat43 & transform, Entity * pCaller)
+inline vec3 euler(const mat43 & transform, Entity * pCaller)
 {
-    return gaen::rotation(transform);
+    return gaen::euler(transform);
 }
 
 inline vec2 normalize(const vec2 & v, Entity * pCaller)

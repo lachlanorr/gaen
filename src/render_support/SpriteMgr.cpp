@@ -65,7 +65,7 @@ void SpriteMgr::update(f32 delta)
             pSpriteInst->mTransform = to_mat4x3(translate(mat4(1.0f), offset) * mat4(pSpriteInst->mTransform));
             SpriteInstance::send_sprite_transform(kSpriteMgrTaskId, kRendererTaskId, pSpriteInst->sprite().uid(), pSpriteInst->mTransform);
             {
-                messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, pSpriteInst->sprite().mOwner, false);
+                messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, pSpriteInst->sprite().mOwner);
                 msgw.setTransform(pSpriteInst->mTransform);
             }
         }
@@ -156,7 +156,7 @@ MessageResult SpriteMgr::message(const T & msgAcc)
         }
         return MessageResult::Consumed;
     }
-	case HASH::remove_task:
+	case HASH::remove_task__:
 	{
         task_id taskIdToRemove = msg.payload.u;
         auto itL = mSpriteOwners.find(taskIdToRemove);

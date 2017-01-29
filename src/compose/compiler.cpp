@@ -1225,6 +1225,19 @@ Ast * ast_create_ready_init(Ast * pVal, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_parent_init(Ast * pVal, ParseData * pParseData)
+{
+    const SymDataType * pSdt = ast_data_type(pVal);
+    if (pSdt->typeDesc.dataType != kDT_entity)
+    {
+        COMP_ERROR(pParseData, "'parent' initialization only valid with entity");
+        return nullptr;
+    }
+    Ast * pAst = ast_create(kAST_ParentInit, pParseData);
+    ast_set_rhs(pAst, pVal);
+    return pAst;
+}
+
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData)
 {
     ASSERT(pParseData);
@@ -2246,9 +2259,11 @@ const SymDataType * ast_data_type(const Ast * pAst)
     switch (pAst->type)
     {
     case kAST_Hash:
-    case kAST_Self:
     case kAST_IntLiteral:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "int", 0, 0);
+        break;
+    case kAST_Self:
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "entity", 0, 0);
         break;
     case kAST_FloatLiteral:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "float", 0, 0);

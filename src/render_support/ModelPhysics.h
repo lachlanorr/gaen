@@ -57,8 +57,8 @@ public:
         mModelInstance.mHasBody = true;
     }
 
-    void getWorldTransform(btTransform& worldTrans) const;
-    void setWorldTransform(const btTransform& worldTrans);
+    virtual void getWorldTransform(btTransform& worldTrans) const;
+    virtual void setWorldTransform(const btTransform& worldTrans);
 
 private:
     UniquePtr<btRigidBody> mpRigidBody;

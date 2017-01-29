@@ -70,8 +70,8 @@ void light_distant_color(i32 uid,
                          Entity * pCaller);
 
 void light_distant_ambient(i32 uid,
-                             f32 ambient,
-                             Entity * pCaller);
+                           f32 ambient,
+                           Entity * pCaller);
 
 void light_distant_remove(i32 uid, Entity * pCaller);
 
