@@ -135,12 +135,6 @@ ThreadInfo & init_thread()
     return ti;
 }
 
-void fin_thread()
-{
-    // LORRTODO - determine if we need this method
-    LOG_INFO("fin_thread() currently does nothing");
-}
-
 void join_all_threads()
 {
     for (thread_id tid = 0; tid < num_threads(); ++tid)

@@ -54,7 +54,7 @@ static const char * kShaderCode_shv =
     "\n"
     "void main()\n"
     "{\n"
-    "    vec3 normalTrans = vNormal; // normalize(uNormal * vNormal);\n"
+    "    vec3 normalTrans = normalize(uNormal * vNormal);\n"
     "\n"
     "    float intensity = max(dot(normalTrans, uLight0_Incidence), 0.0);\n"
     "    vec3 surfaceColor = intensity * vColor.rgb * uLight0_Color;\n"
@@ -176,6 +176,11 @@ Shader * faceted::construct()
     pShader->mUniforms[6].index = 6;
     pShader->mUniforms[6].location = 6;
     pShader->mUniforms[6].type = GL_FLOAT_MAT4;
+
+    pShader->mUniforms[7].nameHash = 0x4b2c9b13; /* HASH::uNormal */
+    pShader->mUniforms[7].index = 7;
+    pShader->mUniforms[7].location = 7;
+    pShader->mUniforms[7].type = GL_FLOAT_MAT3;
 
 
     // Attributes

@@ -40,7 +40,7 @@ private:
     faceted() : Shader(0x09352ef9 /* HASH::faceted */) {}
 
     static const u32 kCodeCount = 2;
-    static const u32 kUniformCount = 7;
+    static const u32 kUniformCount = 8;
     static const u32 kAttributeCount = 3;
 
     Shader::ShaderCode mCodes[kCodeCount];

@@ -373,6 +373,82 @@ Gmdl * build_cylinder(const vec3 & size, u32 slices, Color color, const mat43 & 
     return pGmdl;
 }
 
+Gmdl * build_hex(f32 width, f32 height, Color color, const mat43 & transform)
+{
+    ASSERT(width > 0 && height > 0);
+    width = abs(width);
+    height = abs(height);
+
+    f32 radius = width / 2.0f;
+    f32 radiusHalf = radius / 2.0f;
+    f32 radiusShort = radius * (sqrt(3.0f) / 2.0f);
+    f32 heightHalf = height / 2.0f;
+
+    // 4 triangles each on top and bottom, 2 per side
+    u32 triCount = 4 * 2 + 2 * 6;
+
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, triCount * 3, kPRIM_Triangle, triCount);
+
+    ShapeBuilder builder(pGmdl);
+
+    // top points, starting on rightmost and going counter clockwise, as viewed from top
+    vec3 topP[6];
+    topP[0] = vec3{ radius,     heightHalf,  0.0f};
+    topP[1] = vec3{ radiusHalf, heightHalf, -radiusShort};
+    topP[2] = vec3{-radiusHalf, heightHalf, -radiusShort};
+    topP[3] = vec3{-radius,     heightHalf,  0.0f};
+    topP[4] = vec3{-radiusHalf, heightHalf,  radiusShort};
+    topP[5] = vec3{ radiusHalf, heightHalf,  radiusShort};
+
+    // bottom points, starting on rightmost and going counter clockwise, as viewed from top
+    vec3 botP[6];
+    botP[0] = vec3{ radius,     -heightHalf,  0.0f};
+    botP[1] = vec3{ radiusHalf, -heightHalf, -radiusShort};
+    botP[2] = vec3{-radiusHalf, -heightHalf, -radiusShort};
+    botP[3] = vec3{-radius,     -heightHalf,  0.0f};
+    botP[4] = vec3{-radiusHalf, -heightHalf,  radiusShort};
+    botP[5] = vec3{ radiusHalf, -heightHalf,  radiusShort};
+
+
+    // Add top triangles
+    builder.addTri(topP[0], topP[1], topP[5], color);
+    builder.addTri(topP[1], topP[2], topP[5], color);
+    builder.addTri(topP[2], topP[4], topP[5], color);
+    builder.addTri(topP[2], topP[3], topP[4], color);
+
+
+    // Add sides
+    builder.addTri(topP[0], botP[0], topP[1], color);
+    builder.addTri(topP[1], botP[0], botP[1], color);
+
+    builder.addTri(topP[1], botP[1], topP[2], color);
+    builder.addTri(topP[2], botP[1], botP[2], color);
+
+    builder.addTri(topP[2], botP[2], topP[3], color);
+    builder.addTri(topP[3], botP[2], botP[3], color);
+
+    builder.addTri(topP[3], botP[3], topP[4], color);
+    builder.addTri(topP[4], botP[3], botP[4], color);
+
+    builder.addTri(topP[4], botP[4], topP[5], color);
+    builder.addTri(topP[5], botP[4], botP[5], color);
+
+    builder.addTri(topP[5], botP[5], topP[0], color);
+    builder.addTri(topP[0], botP[5], botP[0], color);
+
+
+    // Add bottom triangles
+    builder.addTri(botP[0], botP[5], botP[1], color);
+    builder.addTri(botP[1], botP[5], botP[2], color);
+    builder.addTri(botP[2], botP[5], botP[4], color);
+    builder.addTri(botP[2], botP[4], botP[3], color);
+
+
+    transform_gmdl<VertPosNormCol>(pGmdl, transform);
+
+    return pGmdl;
+}
+
 Gmdl * build_sphere(const vec3 & size, u32 slices, u32 sections, Color color, const mat43 & transform)
 {
     // build a 2d set of points to lathe
@@ -516,6 +592,16 @@ i32 shape_cylinder(i32 stageHash, const vec3 & size, i32 slices, Color color, co
 {
     slices = slices > 0 ? slices : 0;
     Gmdl * pGmdl = build_cylinder(size, slices, color, transform);
+
+    Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pGmdl);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, mat43(1.0f), true);
+    ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
+    return pModel->uid();
+}
+
+i32 shape_hex(i32 stageHash, f32 width, f32 height, Color color, const mat43 & transform, Entity * pCaller)
+{
+    Gmdl * pGmdl = build_hex(width, height, color, transform);
 
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pGmdl);
     ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, mat43(1.0f), true);

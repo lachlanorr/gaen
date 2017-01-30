@@ -84,6 +84,7 @@ private:
 Gmdl * build_box(const vec3 & size, Color color, const mat43 & transform);
 Gmdl * build_cone(const vec3 & size, u32 slices, Color color, const mat43 & transform);
 Gmdl * build_cylinder(const vec3 & size, u32 slices, Color color, const mat43 & transform);
+Gmdl * build_hex(f32 width, f32 height, Color color, const mat43 & transform);
 Gmdl * build_sphere(const vec3 & size, u32 slices, u32 sections, Color color, const mat43 & transform);
 Gmdl * build_quad_sphere(const vec3 & size, u32 sections, Color color, const mat43 & transform);
 
@@ -95,6 +96,7 @@ namespace system_api
 i32 shape_box(i32 stageHash, const vec3 & size, Color color, const mat43 & transform, Entity * pCaller);
 i32 shape_cone(i32 stageHash, const vec3 & size, i32 slices, Color color, const mat43 & transform, Entity * pCaller);
 i32 shape_cylinder(i32 stageHash, const vec3 & size, i32 slices, Color color, const mat43 & transform, Entity * pCaller);
+i32 shape_hex(i32 stageHash, f32 width, f32 height, Color color, const mat43 & transform, Entity * pCaller);
 i32 shape_sphere(i32 stageHash, const vec3 & size, i32 slices, i32 sections, Color color, const mat43 & transform, Entity * pCaller);
 i32 shape_quad_sphere(i32 stageHash, const vec3 & size, i32 sections, Color color, const mat43 & transform, Entity * pCaller);
 } // namespace system_api

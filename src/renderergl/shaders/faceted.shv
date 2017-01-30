@@ -19,7 +19,7 @@ out vec4 oiColor;
 
 void main()
 {
-    vec3 normalTrans = vNormal; // normalize(uNormal * vNormal);
+    vec3 normalTrans = normalize(uNormal * vNormal);
 
     float intensity = max(dot(normalTrans, uLight0_Incidence), 0.0);
     vec3 surfaceColor = intensity * vColor.rgb * uLight0_Color;

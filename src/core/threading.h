@@ -101,7 +101,6 @@ inline bool is_active_main_thread() { return thread_id() == 0; }
 // Internal funcs, clients don't call these.
 ThreadInfo & init_main_thread();
 ThreadInfo & init_thread();
-void fin_thread();
 
 void join_all_threads();
 
@@ -116,7 +115,6 @@ void thread_wrapper(thread_id tid,
     set_active_thread_id(tid);
 
     threadFunc(std::forward<Args>(args)...);
-    fin_thread();
 }
 
 // Clients call this to start a new Gaen thread

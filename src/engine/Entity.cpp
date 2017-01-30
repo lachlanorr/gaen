@@ -361,6 +361,11 @@ MessageResult Entity::message(const T & msgAcc)
             registerTransformListener(msgAcc.message().source, msgAcc.message().payload.u);
             return MessageResult::Consumed;
         }
+        else if (msgId == HASH::update_transform)
+        {
+            updateTransform();
+            return MessageResult::Consumed;
+        }
 
         // Interesting messages are handled here, initialization
         // messages are below
@@ -399,11 +404,6 @@ MessageResult Entity::message(const T & msgAcc)
             {
                 messages::TransformR<T> msgr(msgAcc);
                 applyTransform(msgr.transform());
-                return MessageResult::Consumed;
-            }
-            case HASH::update_transform:
-            {
-                updateTransform();
                 return MessageResult::Consumed;
             }
             case HASH::insert_child:
