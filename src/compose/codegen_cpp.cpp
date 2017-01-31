@@ -655,7 +655,8 @@ static S fin(const Ast * pAst, int indentLevel)
         if (is_prop_or_field(pSymRec))
         {
             if (is_block_memory_type(pSymRec->pSymDataType) ||
-                pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
+                pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle ||
+                pSymRec->pSymDataType->typeDesc.dataType == kDT_handle)
             {
                 code += I + S(pSymRec->name) + S("__release();") + LF;
             }
@@ -1907,7 +1908,8 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("}\n");
         }
         else if (ast_data_type(pAst)->typeDesc.dataType == kDT_asset || 
-                 ast_data_type(pAst)->typeDesc.dataType == kDT_asset_handle)
+                 ast_data_type(pAst)->typeDesc.dataType == kDT_asset_handle ||
+                 ast_data_type(pAst)->typeDesc.dataType == kDT_handle)
         {
             code += I + S("void ") + releaseFunc + LF;
             code += I + S("{\n");

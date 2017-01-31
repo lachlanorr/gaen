@@ -48,21 +48,18 @@ ShapeBuilder::ShapeBuilder(Gmdl * pGmdl)
 }
 
 
-void ShapeBuilder::addTri(const vec3 & p0,
+void ShapeBuilder::setTri(u32 * pVertIdx,
+                          u32 * pPrimIdx,
+                          const vec3 & p0,
                           const vec3 & p1,
                           const vec3 & p2,
                           Color color)
 {
-    if (mCurrVertex + 3 > mGmdl.vertCount())
-        PANIC("Vertex array overrun during pushTri");
-    if (mCurrPrimitive + 1 > mGmdl.primCount())
-        PANIC("Index array overrun during pushTri");
-
     VertPosNormCol * pVert = mGmdl;
-    pVert += mCurrVertex;
+    pVert += *pVertIdx;
 
     PrimTriangle * pTris = mGmdl;
-    PrimTriangle & tri = pTris[mCurrPrimitive];
+    PrimTriangle & tri = pTris[*pPrimIdx];
 
     vec3 vecNorm = tri_normal(p0, p1, p2);
 
@@ -78,12 +75,25 @@ void ShapeBuilder::addTri(const vec3 & p0,
     pVert[2].normal = vecNorm;
     pVert[2].color = color;
     
-    tri.p0 = mCurrVertex + 0;
-    tri.p1 = mCurrVertex + 1;
-    tri.p2 = mCurrVertex + 2;
+    tri.p0 = *pVertIdx + 0;
+    tri.p1 = *pVertIdx + 1;
+    tri.p2 = *pVertIdx + 2;
 
-    mCurrVertex += 3;
-    mCurrPrimitive += 1;
+    *pVertIdx += 3;
+    *pPrimIdx += 1;
+}
+
+void ShapeBuilder::addTri(const vec3 & p0,
+                          const vec3 & p1,
+                          const vec3 & p2,
+                          Color color)
+{
+    if (mCurrVertex + 3 > mGmdl.vertCount())
+        PANIC("Vertex array overrun during pushTri");
+    if (mCurrPrimitive + 1 > mGmdl.primCount())
+        PANIC("Index array overrun during pushTri");
+
+    setTri(&mCurrVertex, &mCurrPrimitive, p0, p1, p2, color);
 }
 
 void ShapeBuilder::addTri(const vec3 * pPoints, Color color)
@@ -105,23 +115,20 @@ void ShapeBuilder::addTri(const vec4 & p0,
            color);
 }
 
-void ShapeBuilder::addQuad(const vec3 & p0,
+void ShapeBuilder::setQuad(u32 * pVertIdx,
+                           u32 * pPrimIdx,
+                           const vec3 & p0,
                            const vec3 & p1,
                            const vec3 & p2,
                            const vec3 & p3,
                            Color color)
 {
-    if (mCurrVertex + 4 > mGmdl.vertCount())
-        PANIC("Vertex array overrun during pushQuad");
-    if (mCurrPrimitive + 2 > mGmdl.primCount())
-        PANIC("Index array overrun during pushQuad");
-
     VertPosNormCol * pVert = mGmdl;
-    pVert += mCurrVertex;
+    pVert += *pVertIdx;
 
     PrimTriangle * pTris = mGmdl;
-    PrimTriangle & tri0 = pTris[mCurrPrimitive];
-    PrimTriangle & tri1 = pTris[mCurrPrimitive+1];
+    PrimTriangle & tri0 = pTris[*pPrimIdx];
+    PrimTriangle & tri1 = pTris[*pPrimIdx+1];
 
     vec3 vecNorm = tri_normal(p0, p1, p2);
     vec3 vecNorm2 = tri_normal(p3, p0, p2);
@@ -144,16 +151,36 @@ void ShapeBuilder::addQuad(const vec3 & p0,
     pVert[3].normal = vecNorm;
     pVert[3].color = color;
 
-    tri0.p0 = mCurrVertex + 0;
-    tri0.p1 = mCurrVertex + 1;
-    tri0.p2 = mCurrVertex + 2;
+    tri0.p0 = *pVertIdx + 0;
+    tri0.p1 = *pVertIdx + 1;
+    tri0.p2 = *pVertIdx + 2;
 
-    tri1.p0 = mCurrVertex + 3;
-    tri1.p1 = mCurrVertex + 0;
-    tri1.p2 = mCurrVertex + 2;
+    tri1.p0 = *pVertIdx + 3;
+    tri1.p1 = *pVertIdx + 0;
+    tri1.p2 = *pVertIdx + 2;
 
-    mCurrVertex += 4;
-    mCurrPrimitive += 2;
+    *pVertIdx += 4;
+    *pPrimIdx += 2;
+}
+
+void ShapeBuilder::addQuad(const vec3 & p0,
+                           const vec3 & p1,
+                           const vec3 & p2,
+                           const vec3 & p3,
+                           Color color)
+{
+    if (mCurrVertex + 4 > mGmdl.vertCount())
+        PANIC("Vertex array overrun during pushQuad");
+    if (mCurrPrimitive + 2 > mGmdl.primCount())
+        PANIC("Index array overrun during pushQuad");
+
+    setQuad(&mCurrVertex,
+            &mCurrPrimitive,
+            p0,
+            p1,
+            p2,
+            p3,
+            color);
 }
 
 void ShapeBuilder::addQuad(const vec3 * pPoints, Color color)
@@ -176,6 +203,144 @@ void ShapeBuilder::addQuad(const vec4 & p0,
             vec3(p2),
             vec3(p3),
             color);
+}
+
+void ShapeBuilder::setHex(u32 * pVertIdx,
+                          u32 * pPrimIdx,
+                          f32 height,
+                          f32 length,
+                          Color * pColors,
+                          u32 colorsSize,
+                          const vec3 & offset)
+{
+    // Hexes are pointy topped.
+    // Height is point to point
+    // Width is edge to edge
+    // Length is the "height" of the 3d hex
+    f32 heightHalf = height / 2.0f;
+    f32 heightQuarter = heightHalf / 2.0f;
+    f32 widthHalf = heightHalf * (sqrt(3.0f) / 2.0f);
+    f32 lengthHalf = length / 2.0f;
+
+    // Support for multicolored hexes, there are 8 possible colors
+    Color colors[6];
+    if (colorsSize == 1)
+    {
+        // Single color hex
+        for (u32 i = 0; i < 8; ++i)
+            colors[0] = pColors[0];
+    }
+    else if (colorsSize == 2)
+    {
+        // Two color hex, vertical split in middle (pointy top and bottom)
+        colors[0] = pColors[0];
+        colors[1] = pColors[1];
+        colors[2] = pColors[0];
+        colors[3] = pColors[1];
+        colors[4] = pColors[0];
+        colors[5] = pColors[1];
+    }
+    else if (colorsSize == 3)
+    {
+        // Three color hex, tri on top, horizontal strip in middle, tri on bottom
+        colors[0] = pColors[0];
+        colors[1] = pColors[0];
+        colors[2] = pColors[1];
+        colors[3] = pColors[1];
+        colors[4] = pColors[2];
+        colors[5] = pColors[2];
+    }
+    else if (colorsSize == 6)
+    {
+        // Eight custom colors
+        colors[0] = pColors[0];
+        colors[1] = pColors[1];
+        colors[2] = pColors[2];
+        colors[3] = pColors[3];
+        colors[4] = pColors[4];
+        colors[5] = pColors[5];
+    }
+    else
+    {
+        PANIC("Invalid colors size for hex: %u", colorsSize);
+    }
+
+
+    // top points, starting on topmost (pointy) counter clockwise, as viewed from top
+    vec3 topP[8];
+    topP[0] = vec3{  0.0f,      lengthHalf, -heightHalf}    + offset;  // Top Point
+    topP[1] = vec3{ -widthHalf, lengthHalf, -heightQuarter} + offset;  // Upper Left Point
+    topP[2] = vec3{ -widthHalf, lengthHalf,  heightQuarter} + offset;  // Lower Left Point
+    topP[3] = vec3{  0.0f,      lengthHalf,  heightHalf}    + offset;  // Bottom Point
+    topP[4] = vec3{  widthHalf, lengthHalf,  heightQuarter} + offset;  // Lower Right Point
+    topP[5] = vec3{  widthHalf, lengthHalf, -heightQuarter} + offset;  // Upper Right Point
+
+    // Auxiliary top points to support multi color hexes
+    topP[6] = vec3{  0.0f, lengthHalf, -heightQuarter} + offset;
+    topP[7] = vec3{  0.0f, lengthHalf,  heightQuarter} + offset;
+
+
+    // bottom points, starting on topmost (pointy) counter clockwise, as viewed from top
+    vec3 botP[8];
+    botP[0] = vec3{  0.0f,      -lengthHalf, -heightHalf}    + offset;
+    botP[1] = vec3{ -widthHalf, -lengthHalf, -heightQuarter} + offset;
+    botP[2] = vec3{ -widthHalf, -lengthHalf,  heightQuarter} + offset;
+    botP[3] = vec3{  0.0f,      -lengthHalf,  heightHalf}    + offset;
+    botP[4] = vec3{  widthHalf, -lengthHalf,  heightQuarter} + offset;
+    botP[5] = vec3{  widthHalf, -lengthHalf, -heightQuarter} + offset;
+
+    // Auxiliary bottom points to support multi color hexes
+    botP[6] = vec3{  0.0f, -lengthHalf, -heightQuarter} + offset;
+    botP[7] = vec3{  0.0f, -lengthHalf,  heightQuarter} + offset;
+
+
+    // Add top triangles
+    setTri(pVertIdx, pPrimIdx, topP[0], topP[1], topP[6], colors[0]);
+    setTri(pVertIdx, pPrimIdx, topP[0], topP[6], topP[5], colors[1]);
+
+    setTri(pVertIdx, pPrimIdx, topP[1], topP[2], topP[6], colors[2]);
+    setTri(pVertIdx, pPrimIdx, topP[6], topP[2], topP[7], colors[2]);
+
+    setTri(pVertIdx, pPrimIdx, topP[6], topP[7], topP[5], colors[3]);
+    setTri(pVertIdx, pPrimIdx, topP[5], topP[7], topP[4], colors[3]);
+
+    setTri(pVertIdx, pPrimIdx, topP[2], topP[3], topP[7], colors[4]);
+    setTri(pVertIdx, pPrimIdx, topP[7], topP[3], topP[4], colors[5]);
+
+
+    // Add sides
+    setTri(pVertIdx, pPrimIdx, topP[0], botP[0], topP[1], colors[0]); // top left
+    setTri(pVertIdx, pPrimIdx, topP[1], botP[0], botP[1], colors[0]); // top left
+
+    setTri(pVertIdx, pPrimIdx, topP[1], botP[1], topP[2], colors[2]); // left
+    setTri(pVertIdx, pPrimIdx, topP[2], botP[1], botP[2], colors[2]); // left
+
+    setTri(pVertIdx, pPrimIdx, topP[2], botP[2], topP[3], colors[4]); // bottom left
+    setTri(pVertIdx, pPrimIdx, topP[3], botP[2], botP[3], colors[4]); // bottom left
+
+    setTri(pVertIdx, pPrimIdx, topP[3], botP[3], topP[4], colors[5]); // bottom right
+    setTri(pVertIdx, pPrimIdx, topP[4], botP[3], botP[4], colors[5]); // bottom right
+
+    setTri(pVertIdx, pPrimIdx, topP[4], botP[4], topP[5], colors[3]); // right
+    setTri(pVertIdx, pPrimIdx, topP[5], botP[4], botP[5], colors[3]); // right
+
+    setTri(pVertIdx, pPrimIdx, topP[5], botP[5], topP[0], colors[1]); // top right
+    setTri(pVertIdx, pPrimIdx, topP[0], botP[5], botP[0], colors[1]); // top right
+
+
+    // Add bottom triangles
+    setTri(pVertIdx, pPrimIdx, botP[0], botP[6], botP[1], colors[0]);
+    setTri(pVertIdx, pPrimIdx, botP[0], botP[5], botP[6], colors[1]);
+
+    setTri(pVertIdx, pPrimIdx, botP[1], botP[6], botP[2], colors[2]);
+    setTri(pVertIdx, pPrimIdx, botP[6], botP[7], botP[2], colors[2]);
+
+    setTri(pVertIdx, pPrimIdx, botP[6], botP[5], botP[7], colors[3]);
+    setTri(pVertIdx, pPrimIdx, botP[5], botP[4], botP[7], colors[3]);
+
+    setTri(pVertIdx, pPrimIdx, botP[2], botP[7], botP[3], colors[4]);
+    setTri(pVertIdx, pPrimIdx, botP[7], botP[4], botP[3], colors[5]);
+
 }
 
 void ShapeBuilder::addGmdl(const Gmdl & gmdl)
@@ -234,6 +399,25 @@ void transform_gmdl(Gmdl * pGmdl, const mat43 & transform)
 
         ++pVert;
     }
+}
+
+Gmdl * build_hex(f32 height, f32 length, Color * pColors, u32 colorsSize, const mat43 & transform)
+{
+    ASSERT(height > 0 && length > 0);
+    height = abs(height);
+    length = abs(length);
+
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, kHexTriCount * 3, kPRIM_Triangle, kHexTriCount);
+
+    ShapeBuilder builder(pGmdl);
+
+    u32 vertIdx = 0;
+    u32 primIdx = 0;
+    builder.setHex(&vertIdx, &primIdx, height, length, pColors, colorsSize, vec3{0.0});
+
+    transform_gmdl<VertPosNormCol>(pGmdl, transform);
+
+    return pGmdl;
 }
 
 Gmdl * build_box(const vec3 & size, Color color, const mat43 & transform)
@@ -370,82 +554,6 @@ Gmdl * build_cylinder(const vec3 & size, u32 slices, Color color, const mat43 & 
     Gmdl * pGmdl = lathe_points(points, 4, slices, color);
 
     transform_gmdl<VertPosNormCol>(pGmdl, transform);
-    return pGmdl;
-}
-
-Gmdl * build_hex(f32 width, f32 height, Color color, const mat43 & transform)
-{
-    ASSERT(width > 0 && height > 0);
-    width = abs(width);
-    height = abs(height);
-
-    f32 radius = width / 2.0f;
-    f32 radiusHalf = radius / 2.0f;
-    f32 radiusShort = radius * (sqrt(3.0f) / 2.0f);
-    f32 heightHalf = height / 2.0f;
-
-    // 4 triangles each on top and bottom, 2 per side
-    u32 triCount = 4 * 2 + 2 * 6;
-
-    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, triCount * 3, kPRIM_Triangle, triCount);
-
-    ShapeBuilder builder(pGmdl);
-
-    // top points, starting on rightmost and going counter clockwise, as viewed from top
-    vec3 topP[6];
-    topP[0] = vec3{ radius,     heightHalf,  0.0f};
-    topP[1] = vec3{ radiusHalf, heightHalf, -radiusShort};
-    topP[2] = vec3{-radiusHalf, heightHalf, -radiusShort};
-    topP[3] = vec3{-radius,     heightHalf,  0.0f};
-    topP[4] = vec3{-radiusHalf, heightHalf,  radiusShort};
-    topP[5] = vec3{ radiusHalf, heightHalf,  radiusShort};
-
-    // bottom points, starting on rightmost and going counter clockwise, as viewed from top
-    vec3 botP[6];
-    botP[0] = vec3{ radius,     -heightHalf,  0.0f};
-    botP[1] = vec3{ radiusHalf, -heightHalf, -radiusShort};
-    botP[2] = vec3{-radiusHalf, -heightHalf, -radiusShort};
-    botP[3] = vec3{-radius,     -heightHalf,  0.0f};
-    botP[4] = vec3{-radiusHalf, -heightHalf,  radiusShort};
-    botP[5] = vec3{ radiusHalf, -heightHalf,  radiusShort};
-
-
-    // Add top triangles
-    builder.addTri(topP[0], topP[1], topP[5], color);
-    builder.addTri(topP[1], topP[2], topP[5], color);
-    builder.addTri(topP[2], topP[4], topP[5], color);
-    builder.addTri(topP[2], topP[3], topP[4], color);
-
-
-    // Add sides
-    builder.addTri(topP[0], botP[0], topP[1], color);
-    builder.addTri(topP[1], botP[0], botP[1], color);
-
-    builder.addTri(topP[1], botP[1], topP[2], color);
-    builder.addTri(topP[2], botP[1], botP[2], color);
-
-    builder.addTri(topP[2], botP[2], topP[3], color);
-    builder.addTri(topP[3], botP[2], botP[3], color);
-
-    builder.addTri(topP[3], botP[3], topP[4], color);
-    builder.addTri(topP[4], botP[3], botP[4], color);
-
-    builder.addTri(topP[4], botP[4], topP[5], color);
-    builder.addTri(topP[5], botP[4], botP[5], color);
-
-    builder.addTri(topP[5], botP[5], topP[0], color);
-    builder.addTri(topP[0], botP[5], botP[0], color);
-
-
-    // Add bottom triangles
-    builder.addTri(botP[0], botP[5], botP[1], color);
-    builder.addTri(botP[1], botP[5], botP[2], color);
-    builder.addTri(botP[2], botP[5], botP[4], color);
-    builder.addTri(botP[2], botP[4], botP[3], color);
-
-
-    transform_gmdl<VertPosNormCol>(pGmdl, transform);
-
     return pGmdl;
 }
 
@@ -599,14 +707,37 @@ i32 shape_cylinder(i32 stageHash, const vec3 & size, i32 slices, Color color, co
     return pModel->uid();
 }
 
-i32 shape_hex(i32 stageHash, f32 width, f32 height, Color color, const mat43 & transform, Entity * pCaller)
+i32 shape_hex(i32 stageHash, f32 height, f32 length, Color color0, Color color1, Color color2, Color color3, Color color4, Color color5, const mat43 & transform, Entity * pCaller)
 {
-    Gmdl * pGmdl = build_hex(width, height, color, transform);
+    Color colors[6];
+    colors[0] = color0;
+    colors[1] = color1;
+    colors[2] = color2;
+    colors[3] = color3;
+    colors[4] = color4;
+    colors[5] = color5;
+
+    Gmdl * pGmdl = build_hex(height, length, colors, 6, transform);
 
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pGmdl);
     ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, mat43(1.0f), true);
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
     return pModel->uid();
+}
+
+i32 shape_hex(i32 stageHash, f32 height, f32 length, Color color, const mat43 & transform, Entity * pCaller)
+{
+    return shape_hex(stageHash, height, length, color, color, color, color, color, color, transform, pCaller);
+}
+
+i32 shape_hex(i32 stageHash, f32 height, f32 length, Color color0, Color color1, const mat43 & transform, Entity * pCaller)
+{
+    return shape_hex(stageHash, height, length, color0, color1, color0, color1, color0, color1, transform, pCaller);
+}
+
+i32 shape_hex(i32 stageHash, f32 height, f32 length, Color color0, Color color1, Color color2, const mat43 & transform, Entity * pCaller)
+{
+    return shape_hex(stageHash, height, length, color0, color0, color1, color1, color2, color2, transform, pCaller);
 }
 
 i32 shape_sphere(i32 stageHash, const vec3 & size, i32 slices, i32 sections, Color color, const mat43 & transform, Entity * pCaller)
