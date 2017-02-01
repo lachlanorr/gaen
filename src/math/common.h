@@ -57,6 +57,16 @@ inline T max(const T & lhs, const T & rhs)
     return lhs >= rhs ? lhs : rhs;
 }
 
+template <typename T>
+inline T clamp(T val, T min, T max)
+{
+    if (val < min)
+        return min;
+    else if (val > max)
+        return max;
+    return val;
+}
+
 template<typename T>
 inline T sqrt(T x)
 {

@@ -43,6 +43,7 @@ public:
     Color() = default;
     Color(u32 value) { mColorValue.value = value; }
     Color(u8 r, u8 g, u8 b, u8 a) { setChannels(r, g, b, a); }
+    Color(u8 r, u8 g, u8 b) { setChannels(r, g, b, 255); }
 
     void setChannels(u8 r, u8 g, u8 b, u8 a)
     {

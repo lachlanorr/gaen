@@ -105,6 +105,13 @@ inline tvec2<T> operator+(const tvec2<T> & lhs, const tvec2<T> & rhs)
 {
     return tvec2<T>(lhs.x + rhs.x, lhs.y + rhs.y);
 }
+
+
+template <typename T>
+inline tvec2<T> operator*(const tvec2<T> & lhs, T rhs)
+{
+    return tvec2<T>(lhs.x * rhs, lhs.y * rhs);
+}
     
 template <>
 inline vec2 min<vec2>(const vec2 & lhs, const vec2 & rhs)

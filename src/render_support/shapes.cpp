@@ -227,8 +227,8 @@ void ShapeBuilder::setHex(u32 * pVertIdx,
     if (colorsSize == 1)
     {
         // Single color hex
-        for (u32 i = 0; i < 8; ++i)
-            colors[0] = pColors[0];
+        for (u32 i = 0; i < 6; ++i)
+            colors[i] = pColors[0];
     }
     else if (colorsSize == 2)
     {
