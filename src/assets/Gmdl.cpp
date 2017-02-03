@@ -140,5 +140,27 @@ Gmdl * Gmdl::create(VertType vertType,
     return pGmdl;
 }
 
+void Gmdl::compact(u32 newVertCount, u32 newPrimCount)
+{
+    ASSERT(newVertCount < mVertCount);
+    ASSERT(newPrimCount < mPrimCount);
+
+    // Get current start of prims before we muck up our counts, etc.
+    index * oldPrims = prims();
+
+    mSize = required_size((VertType)mVertType, newVertCount, (PrimType)mPrimType, newPrimCount);;
+    mVertCount = newVertCount;
+    mPrimCount = newPrimCount;
+    mPrimOffset = vertOffset() + vert_stride((VertType)mVertType) * mVertCount;
+
+    index * newPrims = prims();
+    u32 primStride = prim_stride((PrimType)mPrimType);
+
+    // Shift prims to correct new location
+    memmove(newPrims, oldPrims, newPrimCount * primStride);
+
+    ASSERT(is_valid(this, mSize));
+}
+
 } // namespace gaen
 

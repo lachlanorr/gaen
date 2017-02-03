@@ -356,6 +356,8 @@ public:
                          PrimType primType,
                          u32 primCount);
 
+    void compact(u32 newVertCount, u32 newPrimCount);
+
     VertType vertType() const { return static_cast<VertType>(mVertType); }
     PrimType primType() const { return static_cast<PrimType>(mPrimType); }
 

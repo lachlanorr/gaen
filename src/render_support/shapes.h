@@ -41,6 +41,20 @@ namespace gaen
 static const u32 kHexTriCount = 8 * 2 + 2 * 6;
 static const u32 kHexVertCount = kHexTriCount * 3;
 
+enum HexSides
+{
+    kHXS_Top         = 0x01,
+    kHXS_TopLeft     = 0x02,
+    kHXS_Left        = 0x04,
+    kHXS_BottomLeft  = 0x08,
+    kHXS_BottomRight = 0x10,
+    kHXS_Right       = 0x20,
+    kHXS_TopRight    = 0x40,
+    kHXS_Bottom      = 0x80,
+
+    kHXS_All         = 0xff
+};
+
 class ShapeBuilder
 {
 public:
@@ -91,7 +105,8 @@ public:
                 f32 length,
                 Color * pColors,
                 u32 colorsSize,
-                const vec3 & offset);
+                const vec3 & offset,
+                HexSides sides = kHXS_All);
 
     void addGmdl(const Gmdl & gmdl);
 

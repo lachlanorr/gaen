@@ -105,6 +105,16 @@ public:
         return static_cast<u8>(r * 0.299 + g * 0.587 + b * 0.114 + 0.5);
     }
 
+    bool operator==(Color rhs)
+    {
+        return mColorValue.value == rhs.mColorValue.value;
+    }
+
+    bool operator!=(Color rhs)
+    {
+        return mColorValue.value != rhs.mColorValue.value;
+    }
+
 private:
     union ColorValue_
     {

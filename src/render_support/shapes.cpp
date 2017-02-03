@@ -211,7 +211,8 @@ void ShapeBuilder::setHex(u32 * pVertIdx,
                           f32 length,
                           Color * pColors,
                           u32 colorsSize,
-                          const vec3 & offset)
+                          const vec3 & offset,
+                          HexSides sides)
 {
     // Hexes are pointy topped.
     // Height is point to point
@@ -265,7 +266,6 @@ void ShapeBuilder::setHex(u32 * pVertIdx,
         PANIC("Invalid colors size for hex: %u", colorsSize);
     }
 
-
     // top points, starting on topmost (pointy) counter clockwise, as viewed from top
     vec3 topP[8];
     topP[0] = vec3{  0.0f,      lengthHalf, -heightHalf}    + offset;  // Top Point
@@ -295,51 +295,120 @@ void ShapeBuilder::setHex(u32 * pVertIdx,
 
 
     // Add top triangles
-    setTri(pVertIdx, pPrimIdx, topP[0], topP[1], topP[6], colors[0]);
-    setTri(pVertIdx, pPrimIdx, topP[0], topP[6], topP[5], colors[1]);
+    if (sides & kHXS_Top)
+    {
+        if (colors[0] != colors[1])
+        {
+            setTri(pVertIdx, pPrimIdx, topP[0], topP[1], topP[6], colors[0]);
+            setTri(pVertIdx, pPrimIdx, topP[0], topP[6], topP[5], colors[1]);
+        }
+        else
+        {
+            setTri(pVertIdx, pPrimIdx, topP[0], topP[1], topP[5], colors[0]);
+        }
 
-    setTri(pVertIdx, pPrimIdx, topP[1], topP[2], topP[6], colors[2]);
-    setTri(pVertIdx, pPrimIdx, topP[6], topP[2], topP[7], colors[2]);
+        if (colors[2] != colors[3])
+        {
+            setTri(pVertIdx, pPrimIdx, topP[1], topP[2], topP[6], colors[2]);
+            setTri(pVertIdx, pPrimIdx, topP[6], topP[2], topP[7], colors[2]);
 
-    setTri(pVertIdx, pPrimIdx, topP[6], topP[7], topP[5], colors[3]);
-    setTri(pVertIdx, pPrimIdx, topP[5], topP[7], topP[4], colors[3]);
+            setTri(pVertIdx, pPrimIdx, topP[6], topP[7], topP[5], colors[3]);
+            setTri(pVertIdx, pPrimIdx, topP[5], topP[7], topP[4], colors[3]);
+        }
+        else
+        {
+            setTri(pVertIdx, pPrimIdx, topP[1], topP[2], topP[5], colors[2]);
+            setTri(pVertIdx, pPrimIdx, topP[5], topP[2], topP[4], colors[2]);
+        }
 
-    setTri(pVertIdx, pPrimIdx, topP[2], topP[3], topP[7], colors[4]);
-    setTri(pVertIdx, pPrimIdx, topP[7], topP[3], topP[4], colors[5]);
+        if (colors[4] != colors[5])
+        {
+            setTri(pVertIdx, pPrimIdx, topP[2], topP[3], topP[7], colors[4]);
+            setTri(pVertIdx, pPrimIdx, topP[7], topP[3], topP[4], colors[5]);
+        }
+        else
+        {
+            setTri(pVertIdx, pPrimIdx, topP[2], topP[3], topP[4], colors[4]);
+        }
+    }
 
 
     // Add sides
-    setTri(pVertIdx, pPrimIdx, topP[0], botP[0], topP[1], colors[0]); // top left
-    setTri(pVertIdx, pPrimIdx, topP[1], botP[0], botP[1], colors[0]); // top left
+    if (sides & kHXS_TopLeft)
+    {
+        setTri(pVertIdx, pPrimIdx, topP[0], botP[0], topP[1], colors[0]); // top left
+        setTri(pVertIdx, pPrimIdx, topP[1], botP[0], botP[1], colors[0]); // top left
+    }
 
-    setTri(pVertIdx, pPrimIdx, topP[1], botP[1], topP[2], colors[2]); // left
-    setTri(pVertIdx, pPrimIdx, topP[2], botP[1], botP[2], colors[2]); // left
+    if (sides & kHXS_Left)
+    {
+        setTri(pVertIdx, pPrimIdx, topP[1], botP[1], topP[2], colors[2]); // left
+        setTri(pVertIdx, pPrimIdx, topP[2], botP[1], botP[2], colors[2]); // left
+    }
 
-    setTri(pVertIdx, pPrimIdx, topP[2], botP[2], topP[3], colors[4]); // bottom left
-    setTri(pVertIdx, pPrimIdx, topP[3], botP[2], botP[3], colors[4]); // bottom left
+    if (sides & kHXS_BottomLeft)
+    {
+        setTri(pVertIdx, pPrimIdx, topP[2], botP[2], topP[3], colors[4]); // bottom left
+        setTri(pVertIdx, pPrimIdx, topP[3], botP[2], botP[3], colors[4]); // bottom left
+    }
 
-    setTri(pVertIdx, pPrimIdx, topP[3], botP[3], topP[4], colors[5]); // bottom right
-    setTri(pVertIdx, pPrimIdx, topP[4], botP[3], botP[4], colors[5]); // bottom right
+    if (sides & kHXS_BottomRight)
+    {
+        setTri(pVertIdx, pPrimIdx, topP[3], botP[3], topP[4], colors[5]); // bottom right
+        setTri(pVertIdx, pPrimIdx, topP[4], botP[3], botP[4], colors[5]); // bottom right
+    }
 
-    setTri(pVertIdx, pPrimIdx, topP[4], botP[4], topP[5], colors[3]); // right
-    setTri(pVertIdx, pPrimIdx, topP[5], botP[4], botP[5], colors[3]); // right
+    if (sides & kHXS_Right)
+    {
+        setTri(pVertIdx, pPrimIdx, topP[4], botP[4], topP[5], colors[3]); // right
+        setTri(pVertIdx, pPrimIdx, topP[5], botP[4], botP[5], colors[3]); // right
+    }
 
-    setTri(pVertIdx, pPrimIdx, topP[5], botP[5], topP[0], colors[1]); // top right
-    setTri(pVertIdx, pPrimIdx, topP[0], botP[5], botP[0], colors[1]); // top right
+    if (sides & kHXS_TopRight)
+    {
+        setTri(pVertIdx, pPrimIdx, topP[5], botP[5], topP[0], colors[1]); // top right
+        setTri(pVertIdx, pPrimIdx, topP[0], botP[5], botP[0], colors[1]); // top right
+    }
 
 
     // Add bottom triangles
-    setTri(pVertIdx, pPrimIdx, botP[0], botP[6], botP[1], colors[0]);
-    setTri(pVertIdx, pPrimIdx, botP[0], botP[5], botP[6], colors[1]);
+    if (sides & kHXS_Bottom)
+    {
+        
+        if (colors[0] != colors[1])
+        {
+            setTri(pVertIdx, pPrimIdx, botP[0], botP[6], botP[1], colors[0]);
+            setTri(pVertIdx, pPrimIdx, botP[0], botP[5], botP[6], colors[1]);
+        }
+        else
+        {
+            setTri(pVertIdx, pPrimIdx, botP[0], botP[5], botP[1], colors[0]);
+        }
 
-    setTri(pVertIdx, pPrimIdx, botP[1], botP[6], botP[2], colors[2]);
-    setTri(pVertIdx, pPrimIdx, botP[6], botP[7], botP[2], colors[2]);
+        if (colors[2] != colors[3])
+        {
+            setTri(pVertIdx, pPrimIdx, botP[1], botP[6], botP[2], colors[2]);
+            setTri(pVertIdx, pPrimIdx, botP[6], botP[7], botP[2], colors[2]);
 
-    setTri(pVertIdx, pPrimIdx, botP[6], botP[5], botP[7], colors[3]);
-    setTri(pVertIdx, pPrimIdx, botP[5], botP[4], botP[7], colors[3]);
+            setTri(pVertIdx, pPrimIdx, botP[6], botP[5], botP[7], colors[3]);
+            setTri(pVertIdx, pPrimIdx, botP[5], botP[4], botP[7], colors[3]);
+        }
+        else
+        {
+            setTri(pVertIdx, pPrimIdx, botP[1], botP[5], botP[2], colors[2]);
+            setTri(pVertIdx, pPrimIdx, botP[5], botP[4], botP[2], colors[2]);
+        }
 
-    setTri(pVertIdx, pPrimIdx, botP[2], botP[7], botP[3], colors[4]);
-    setTri(pVertIdx, pPrimIdx, botP[7], botP[4], botP[3], colors[5]);
+        if (colors[4] != colors[5])
+        {
+            setTri(pVertIdx, pPrimIdx, botP[2], botP[7], botP[3], colors[4]);
+            setTri(pVertIdx, pPrimIdx, botP[7], botP[4], botP[3], colors[5]);
+        }
+        else
+        {
+            setTri(pVertIdx, pPrimIdx, botP[2], botP[4], botP[3], colors[4]);
+        }
+    }
 
 }
 
