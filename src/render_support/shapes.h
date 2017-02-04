@@ -60,6 +60,16 @@ class ShapeBuilder
 public:
     ShapeBuilder(Gmdl * pGmdl);
 
+    u16 setVert(u32 * pVertIdx,
+                const vec3 & pos,
+                const vec3 & norm,
+                Color color);
+
+    void setTri(u32 * pPrimIdx,
+                u16 idx0,
+                u16 idx1,
+                u16 idx2);
+
     void setTri(u32 * pVertIdx,
                 u32 * pPrimIdx,
                 const vec3 & p0,
@@ -84,6 +94,7 @@ public:
                  const vec3 & p1,
                  const vec3 & p2,
                  const vec3 & p3,
+                 const vec3 & norm,
                  Color color);
 
     void addQuad(const vec3 & p0,

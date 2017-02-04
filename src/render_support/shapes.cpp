@@ -47,6 +47,38 @@ ShapeBuilder::ShapeBuilder(Gmdl * pGmdl)
         PANIC("ShapeBuilder only builds gmdls with indices of type kIND_Triangle");
 }
 
+u16 ShapeBuilder::setVert(u32 * pVertIdx,
+                          const vec3 & pos,
+                          const vec3 & norm,
+                          Color color)
+{
+    VertPosNormCol * pVert = mGmdl;
+    pVert += *pVertIdx;
+
+    pVert->position = pos;
+    pVert->normal = norm;
+    pVert->color = color;
+
+    u16 idx = *pVertIdx;
+    *pVertIdx += 1;
+
+    return idx;
+}
+
+void ShapeBuilder::setTri(u32 * pPrimIdx,
+                          u16 idx0,
+                          u16 idx1,
+                          u16 idx2)
+{
+    PrimTriangle * pTris = mGmdl;
+    PrimTriangle & tri = pTris[*pPrimIdx];
+
+    tri.p0 = idx0;
+    tri.p1 = idx1;
+    tri.p2 = idx2;
+
+    *pPrimIdx += 1;
+}
 
 void ShapeBuilder::setTri(u32 * pVertIdx,
                           u32 * pPrimIdx,
@@ -121,6 +153,7 @@ void ShapeBuilder::setQuad(u32 * pVertIdx,
                            const vec3 & p1,
                            const vec3 & p2,
                            const vec3 & p3,
+                           const vec3 & norm,
                            Color color)
 {
     VertPosNormCol * pVert = mGmdl;
@@ -130,25 +163,20 @@ void ShapeBuilder::setQuad(u32 * pVertIdx,
     PrimTriangle & tri0 = pTris[*pPrimIdx];
     PrimTriangle & tri1 = pTris[*pPrimIdx+1];
 
-    vec3 vecNorm = tri_normal(p0, p1, p2);
-    vec3 vecNorm2 = tri_normal(p3, p0, p2);
-
-    //ASSERT(vecNorm == vecNorm2);
-
     pVert[0].position = p0;
-    pVert[0].normal = vecNorm;
+    pVert[0].normal = norm;
     pVert[0].color = color;
 
     pVert[1].position = p1;
-    pVert[1].normal = vecNorm;
+    pVert[1].normal = norm;
     pVert[1].color = color;
 
     pVert[2].position = p2;
-    pVert[2].normal = vecNorm;
+    pVert[2].normal = norm;
     pVert[2].color = color;
 
     pVert[3].position = p3;
-    pVert[3].normal = vecNorm;
+    pVert[3].normal = norm;
     pVert[3].color = color;
 
     tri0.p0 = *pVertIdx + 0;
@@ -174,12 +202,15 @@ void ShapeBuilder::addQuad(const vec3 & p0,
     if (mCurrPrimitive + 2 > mGmdl.primCount())
         PANIC("Index array overrun during pushQuad");
 
+    vec3 norm = tri_normal(p0, p1, p2);
+
     setQuad(&mCurrVertex,
             &mCurrPrimitive,
             p0,
             p1,
             p2,
             p3,
+            norm,
             color);
 }
 
@@ -266,6 +297,19 @@ void ShapeBuilder::setHex(u32 * pVertIdx,
         PANIC("Invalid colors size for hex: %u", colorsSize);
     }
 
+    // Normals coords of angled sides
+    static const f32 kNormX = 0.86602540378443871;
+    static const f32 kNormZ = 0.5;
+
+    static const vec3 kTopNorm         {   0.0f,  1.0f,    0.0f};
+    static const vec3 kTopLeftNorm     {-kNormX,  0.0f, -kNormZ};
+    static const vec3 kLeftNorm        {  -1.0f,  0.0f,    0.0f};
+    static const vec3 kBottomLeftNorm  {-kNormX,  0.0f,  kNormZ};
+    static const vec3 kBottomRightNorm { kNormX,  0.0f,  kNormZ};
+    static const vec3 kRightNorm       {   1.0f,  0.0f,    0.0f};
+    static const vec3 kTopRightNorm    { kNormX,  0.0f, -kNormZ};
+    static const vec3 kBottomNorm      {   0.0f, -1.0f,    0.0f};
+
     // top points, starting on topmost (pointy) counter clockwise, as viewed from top
     vec3 topP[8];
     topP[0] = vec3{  0.0f,      lengthHalf, -heightHalf}    + offset;  // Top Point
@@ -280,7 +324,7 @@ void ShapeBuilder::setHex(u32 * pVertIdx,
     topP[7] = vec3{  0.0f, lengthHalf,  heightQuarter} + offset;
 
 
-    // bottom points, starting on topmost (pointy) counter clockwise, as viewed from top
+    // bottom points, starting on topmost (pointy) counter clockwise, as viewed from bottom
     vec3 botP[8];
     botP[0] = vec3{  0.0f,      -lengthHalf, -heightHalf}    + offset;
     botP[1] = vec3{ -widthHalf, -lengthHalf, -heightQuarter} + offset;
@@ -297,84 +341,230 @@ void ShapeBuilder::setHex(u32 * pVertIdx,
     // Add top triangles
     if (sides & kHXS_Top)
     {
+        u16 triTopL[3];
+        u16 triTopR[3];
+
+        u16 triBotL[3];
+        u16 triBotR[3];
+
+        // Top Triangle
         if (colors[0] != colors[1])
         {
-            setTri(pVertIdx, pPrimIdx, topP[0], topP[1], topP[6], colors[0]);
-            setTri(pVertIdx, pPrimIdx, topP[0], topP[6], topP[5], colors[1]);
+            // make two distinct triangles
+            triTopL[0] = setVert(pVertIdx, topP[0], kTopNorm, colors[0]);
+            triTopL[1] = setVert(pVertIdx, topP[1], kTopNorm, colors[0]);
+            triTopL[2] = setVert(pVertIdx, topP[6], kTopNorm, colors[0]);
+
+            triTopR[0] = setVert(pVertIdx, topP[5], kTopNorm, colors[1]);
+            triTopR[1] = setVert(pVertIdx, topP[0], kTopNorm, colors[1]);
+            triTopR[2] = setVert(pVertIdx, topP[6], kTopNorm, colors[1]);
+
+            setTri(pPrimIdx, triTopL[0], triTopL[1], triTopL[2]);
+            setTri(pPrimIdx, triTopL[3], triTopL[4], triTopL[5]);
         }
         else
         {
-            setTri(pVertIdx, pPrimIdx, topP[0], topP[1], topP[5], colors[0]);
+            // make one triangle
+            triTopL[0] = setVert(pVertIdx, topP[0], kTopNorm, colors[0]);
+            triTopL[1] = setVert(pVertIdx, topP[1], kTopNorm, colors[0]);
+            triTopL[2] = setVert(pVertIdx, topP[5], kTopNorm, colors[0]);
+
+            // Set triTopR indices to simplify logic below with rects between the triangles
+            triTopR[0] = triTopL[2];
+            triTopR[1] = triTopL[0];
+            triTopR[2] = triTopL[1];
+
+            setTri(pPrimIdx, triTopL[0], triTopL[1], triTopL[2]);
         }
 
-        if (colors[2] != colors[3])
-        {
-            setTri(pVertIdx, pPrimIdx, topP[1], topP[2], topP[6], colors[2]);
-            setTri(pVertIdx, pPrimIdx, topP[6], topP[2], topP[7], colors[2]);
 
-            setTri(pVertIdx, pPrimIdx, topP[6], topP[7], topP[5], colors[3]);
-            setTri(pVertIdx, pPrimIdx, topP[5], topP[7], topP[4], colors[3]);
-        }
-        else
-        {
-            setTri(pVertIdx, pPrimIdx, topP[1], topP[2], topP[5], colors[2]);
-            setTri(pVertIdx, pPrimIdx, topP[5], topP[2], topP[4], colors[2]);
-        }
-
+        // Bottom Triangle
         if (colors[4] != colors[5])
         {
-            setTri(pVertIdx, pPrimIdx, topP[2], topP[3], topP[7], colors[4]);
-            setTri(pVertIdx, pPrimIdx, topP[7], topP[3], topP[4], colors[5]);
+            // make two distinct triangles
+            triBotL[0] = setVert(pVertIdx, topP[2], kTopNorm, colors[4]);
+            triBotL[1] = setVert(pVertIdx, topP[3], kTopNorm, colors[4]);
+            triBotL[2] = setVert(pVertIdx, topP[7], kTopNorm, colors[4]);
+
+            triBotR[0] = setVert(pVertIdx, topP[3], kTopNorm, colors[5]);
+            triBotR[1] = setVert(pVertIdx, topP[4], kTopNorm, colors[5]);
+            triBotR[2] = setVert(pVertIdx, topP[7], kTopNorm, colors[5]);
+
+            setTri(pPrimIdx, triBotL[0], triBotL[1], triBotL[2]);
+            setTri(pPrimIdx, triBotL[3], triBotL[4], triBotL[5]);
         }
         else
         {
-            setTri(pVertIdx, pPrimIdx, topP[2], topP[3], topP[4], colors[4]);
+            // make one triangle
+            triBotL[0] = setVert(pVertIdx, topP[2], kTopNorm, colors[4]);
+            triBotL[1] = setVert(pVertIdx, topP[3], kTopNorm, colors[4]);
+            triBotL[2] = setVert(pVertIdx, topP[4], kTopNorm, colors[4]);
+
+            // Set triBotR indices to simplify logic below with rects between the triangles
+            triBotR[0] = triBotL[1];
+            triBotR[1] = triBotL[2];
+            triBotR[2] = triBotL[0];
+
+            setTri(pPrimIdx, triBotL[0], triBotL[1], triBotL[2]);
         }
+
+        u16 rectL[4];
+        u16 rectR[4];
+
+        // Rects (or Rect) between the two triangles
+        if (colors[2] != colors[3])
+        {
+            //
+            // Left Rect
+            //
+            // If rect matches to left triangle, re-use the vert from the top triangle
+            if (colors[2] == colors[0])
+            {
+                rectL[0] = triTopL[0];
+
+                // If top is split between two colors, re-use the vert in the middle
+                if (colors[0] != colors[1])
+                    rectL[3] = triTopL[2];
+                else
+                    rectL[3] = setVert(pVertIdx, topP[6], kTopNorm, colors[2]);
+            }
+            else
+            {
+                rectL[0] = setVert(pVertIdx, topP[1], kTopNorm, colors[2]);
+                rectL[3] = setVert(pVertIdx, topP[6], kTopNorm, colors[2]);
+            }
+
+            // If rect matches bottom left triangle, re-use the vert from the bottom triangle
+            if (colors[2] == colors[4])
+            {
+                rectL[1] = triBotL[0];
+
+                // If bottom is split between two colors, re-use the vert in the middle
+                if (colors[4] != colors[5])
+                    rectL[2] = triBotL[2];
+                else
+                    rectL[2] = setVert(pVertIdx, topP[7], kTopNorm, colors[2]);
+            }
+            else
+            {
+                rectL[1] = setVert(pVertIdx, topP[2], kTopNorm, colors[2]);
+                rectL[2] = setVert(pVertIdx, topP[7], kTopNorm, colors[2]);
+            }
+
+            setTri(pPrimIdx, rectL[0], rectL[1], rectL[3]);
+            setTri(pPrimIdx, rectL[3], rectL[1], rectL[2]);
+
+
+            //
+            // Right Rect
+            //
+            // If rect matches to right triangle, re-use the vert from the top triangle
+            if (colors[3] == colors[1])
+            {
+                rectR[3] = triTopR[0];
+
+                // If top is split between two colors, re-use the vert in the middle
+                if (colors[0] != colors[1])
+                    rectR[0] = triTopR[2];
+                else
+                    rectR[0] = setVert(pVertIdx, topP[6], kTopNorm, colors[3]);
+            }
+            else
+            {
+                rectR[3] = setVert(pVertIdx, topP[5], kTopNorm, colors[3]);
+                rectR[0] = setVert(pVertIdx, topP[6], kTopNorm, colors[3]);
+            }
+
+            // If rect matches bottom left triangle, re-use the vert from the bottom triangle
+            if (colors[3] == colors[5])
+            {
+                rectR[2] = triBotR[1];
+
+                // If bottom is split between two colors, re-use the vert in the middle
+                if (colors[4] != colors[5])
+                    rectR[1] = triBotR[2];
+                else
+                    rectR[1] = setVert(pVertIdx, topP[7], kTopNorm, colors[3]);
+            }
+            else
+            {
+                rectR[2] = setVert(pVertIdx, topP[4], kTopNorm, colors[3]);
+                rectR[1] = setVert(pVertIdx, topP[7], kTopNorm, colors[3]);
+            }
+
+            setTri(pPrimIdx, rectR[0], rectR[1], rectR[3]);
+            setTri(pPrimIdx, rectR[3], rectR[1], rectR[2]);
+        }
+        else // same color so one big rect
+        {
+            // If rect matches top left triangle, we can re-use the vert from the top triangle
+            if (colors[2] == colors[0])
+                rectL[0] = triTopL[1];
+            else
+                rectL[0] = setVert(pVertIdx, topP[1], kTopNorm, colors[2]);
+
+            // If rect matches bottom left triangle, re-use the vert from the bottom triangle
+            if (colors[2] == colors[4])
+                rectL[1] = triBotL[0];
+            else
+                rectL[1] = setVert(pVertIdx, topP[2], kTopNorm, colors[2]);
+
+            // If rect matches bottom right triangle
+            if (colors[2] == colors[5])
+                rectL[2] = triBotR[1];
+            else
+                rectL[2] = setVert(pVertIdx, topP[4], kTopNorm, colors[2]);
+
+            // If rect matches top right triangle
+            if (colors[2] == colors[1])
+                rectL[3] = triTopR[0];
+            else
+                rectL[3] = setVert(pVertIdx, topP[5], kTopNorm, colors[2]);
+
+
+            setTri(pPrimIdx, rectL[0], rectL[1], rectL[3]);
+            setTri(pPrimIdx, rectL[3], rectL[1], rectL[2]);
+        }
+
     }
 
 
     // Add sides
     if (sides & kHXS_TopLeft)
     {
-        setTri(pVertIdx, pPrimIdx, topP[0], botP[0], topP[1], colors[0]); // top left
-        setTri(pVertIdx, pPrimIdx, topP[1], botP[0], botP[1], colors[0]); // top left
+        setQuad(pVertIdx, pPrimIdx, topP[0], botP[0], botP[1], topP[1], kTopLeftNorm, colors[0]);
     }
 
     if (sides & kHXS_Left)
     {
-        setTri(pVertIdx, pPrimIdx, topP[1], botP[1], topP[2], colors[2]); // left
-        setTri(pVertIdx, pPrimIdx, topP[2], botP[1], botP[2], colors[2]); // left
+        setQuad(pVertIdx, pPrimIdx, topP[1], botP[1], botP[2], topP[2], kLeftNorm, colors[2]);
     }
 
     if (sides & kHXS_BottomLeft)
     {
-        setTri(pVertIdx, pPrimIdx, topP[2], botP[2], topP[3], colors[4]); // bottom left
-        setTri(pVertIdx, pPrimIdx, topP[3], botP[2], botP[3], colors[4]); // bottom left
+        setQuad(pVertIdx, pPrimIdx, topP[2], botP[2], botP[3], topP[3], kBottomLeftNorm, colors[4]);
     }
 
     if (sides & kHXS_BottomRight)
     {
-        setTri(pVertIdx, pPrimIdx, topP[3], botP[3], topP[4], colors[5]); // bottom right
-        setTri(pVertIdx, pPrimIdx, topP[4], botP[3], botP[4], colors[5]); // bottom right
+        setQuad(pVertIdx, pPrimIdx, topP[3], botP[3], botP[4], topP[4], kBottomRightNorm, colors[5]);
     }
 
     if (sides & kHXS_Right)
     {
-        setTri(pVertIdx, pPrimIdx, topP[4], botP[4], topP[5], colors[3]); // right
-        setTri(pVertIdx, pPrimIdx, topP[5], botP[4], botP[5], colors[3]); // right
+        setQuad(pVertIdx, pPrimIdx, topP[4], botP[4], botP[5], topP[5], kRightNorm, colors[3]);
     }
 
     if (sides & kHXS_TopRight)
     {
-        setTri(pVertIdx, pPrimIdx, topP[5], botP[5], topP[0], colors[1]); // top right
-        setTri(pVertIdx, pPrimIdx, topP[0], botP[5], botP[0], colors[1]); // top right
+        setQuad(pVertIdx, pPrimIdx, topP[5], botP[5], botP[0], topP[0], kTopRightNorm, colors[1]);
     }
 
 
     // Add bottom triangles
     if (sides & kHXS_Bottom)
     {
-        
+        LOG(kLS_Error, "WARNING: kHHX_Bottom not optimized geometry");
         if (colors[0] != colors[1])
         {
             setTri(pVertIdx, pPrimIdx, botP[0], botP[6], botP[1], colors[0]);
