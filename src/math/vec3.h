@@ -40,6 +40,8 @@ namespace gaen
 
 template <typename T>
 struct tvec4;
+template <typename T>
+struct tvec2;
 
 template <typename T>
 struct tvec3
@@ -69,6 +71,8 @@ struct tvec3
     {}
     
     tvec3(const tvec4<T> & v);
+    tvec3(const tvec2<T> & v, T s);
+    tvec3(T s, const tvec2<T> & v);
 
     u32 length() const { return sizeof(*this) / sizeof(T); }
 

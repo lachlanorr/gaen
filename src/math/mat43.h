@@ -115,6 +115,18 @@ inline tmat43<T> operator*(const tmat43<T> & lhs, const tmat4<T> & rhs)
     return tmat43<T>((tmat4<T>::glm_t)tmat4<T>(lhs) * (tmat4<T>::glm_t)rhs);
 }
 
+template <typename T>
+inline tvec4<T> operator*(const tmat43<T> & lhs, const tvec4<T> & rhs)
+{
+    return tvec4<T>((tmat4<T>::glm_t)tmat4<T>(lhs) * (tvec4<T>::glm_t)rhs);
+}
+
+template <typename T>
+inline tvec3<T> operator*(const tmat43<T> & lhs, const tvec3<T> & rhs)
+{
+    return tvec3<T>((tmat4<T>::glm_t)tmat4<T>(lhs) * (tvec4<T>::glm_t)tvec4<T>(rhs, 1.0f));
+}
+
 template<typename T>
 inline T* value_ptr(tmat43<T> & x)
 {

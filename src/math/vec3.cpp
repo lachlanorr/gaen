@@ -38,6 +38,16 @@ tvec3<T>::tvec3(const tvec4<T> & v)
   : x(v.x), y(v.y), z(v.z)
 {}
 
+template <typename T>
+tvec3<T>::tvec3(const tvec2<T> & v, T s)
+  : x(v.x), y(v.y), z(s)
+{}
+
+template <typename T>
+tvec3<T>::tvec3(T s, const tvec2<T> & v)
+  : x(s), y(v.x), z(v.y)
+{}
+
 // Template definitions for linker
 template struct tvec3<f32>;
 template struct tvec3<u32>;

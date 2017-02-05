@@ -1414,6 +1414,18 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
             COMP_ERROR(pParseData, "Invalid data type in vec3 initialization");
         break;
     }
+    case 2:
+    {
+        const SymDataType * pSdt0 = ast_data_type(pParams->pChildren->nodes.front());
+        const SymDataType * pSdt1 = ast_data_type(pParams->pChildren->nodes.back());
+
+        if (!(pSdt0->typeDesc.dataType == kDT_float && pSdt1->typeDesc.dataType == kDT_vec2 ||
+              pSdt1->typeDesc.dataType == kDT_float && pSdt0->typeDesc.dataType == kDT_vec2))
+        {
+            COMP_ERROR(pParseData, "Invalid data type in vec3 initialization");
+        }
+        break;
+    }
     case 3:
     {
         for (Ast * pParam : pParams->pChildren->nodes)
@@ -1439,6 +1451,18 @@ Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData)
 
     switch (pParams->pChildren->nodes.size())
     {
+    case 2:
+    {
+        const SymDataType * pSdt0 = ast_data_type(pParams->pChildren->nodes.front());
+        const SymDataType * pSdt1 = ast_data_type(pParams->pChildren->nodes.back());
+
+        if (!(pSdt0->typeDesc.dataType == kDT_float && pSdt1->typeDesc.dataType == kDT_vec3 ||
+              pSdt1->typeDesc.dataType == kDT_float && pSdt0->typeDesc.dataType == kDT_vec3))
+        {
+            COMP_ERROR(pParseData, "Invalid data type in vec4 initialization");
+        }
+        break;
+    }
     case 4:
     {
         for (Ast * pParam : pParams->pChildren->nodes)
