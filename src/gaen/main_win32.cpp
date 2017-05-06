@@ -67,6 +67,14 @@ void glfw_key_callback(GLFWwindow * pWindow, int key, int scancode, int action, 
     process_key_input(keyInput);
 }
 
+static int sConnectedJoysticks[GLFW_JOYSTICK_LAST];
+
+void glfw_joystick_callback(int joy, int event)
+{
+    if (joy < GLFW_JOYSTICK_LAST)
+        sConnectedJoysticks[joy] = event == GLFW_CONNECTED;
+}
+
 int CALLBACK WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPSTR lpCmdLine,
@@ -99,6 +107,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     glfwSetWindowFocusCallback(pWindow, glfw_focus_callback);
     glfwSetKeyCallback(pWindow, glfw_key_callback);
 
+    glfwSetJoystickCallback(glfw_joystick_callback);
+
     RendererType renderer;
     renderer.init(pWindow, kScreenWidth, kScreenHeight);
     Task rendererTask = Task::create(&renderer, HASH::renderer);
@@ -110,9 +120,28 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     start_game_loops();
 
+    for (u32 i = 0; i < GLFW_JOYSTICK_LAST; ++i)
+    {
+        sConnectedJoysticks[i] = glfwJoystickPresent(i);
+    }
+
     while (!glfwWindowShouldClose(pWindow))
     {
-        glfwWaitEvents();
+        glfwWaitEventsTimeout(0.010);
+        for (u32 i = 0; i < GLFW_JOYSTICK_LAST; ++i)
+        {
+            if (sConnectedJoysticks[i])
+            {
+                u32 gaenBtns = 0;
+                i32 count;
+                const u8 * btns = glfwGetJoystickButtons(i, &count);
+                for (i32 j = 0; j < count; ++j)
+                {
+                    if (btns[j])
+                       LOG(gaen::kLS_Info, "JOY %d: BTN %d: %d", i, j, btns[j]);
+                }
+            }
+        }
     }
 
     fin_gaen();

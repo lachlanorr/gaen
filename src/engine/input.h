@@ -205,28 +205,28 @@ static_assert(sizeof(KeyInput) == sizeof(u32), "KeyInput unexpected size");
 
 enum ControllerButton
 {
-    kCTRL_DpadUp     = 0,
-    kCTRL_DpadDown   = 1,
-    kCTRL_DpadLeft   = 2,
-    kCTRL_DpadRight  = 3,
+    kCTRL_A          = 0x00001,
+    kCTRL_B          = 0x00002,
+    kCTRL_X          = 0x00004,
+    kCTRL_Y          = 0x00008,
 
-    kCTRL_BtnA       = 4,
-    kCTRL_BtnB       = 5,
-    kCTRL_BtnX       = 6,
-    kCTRL_BtnY       = 7,
+    kCTRL_L1         = 0x00010,
+    kCTRL_L2         = 0x00020,
+    kCTRL_L3         = 0x00040,
 
-    kCTRL_R1         = 8,
-    kCTRL_R2         = 9,
-    kCTRL_R3         = 10,
+    kCTRL_R1         = 0x00080,
+    kCTRL_R2         = 0x00100,
+    kCTRL_R3         = 0x00200,
 
-    kCTRL_L1         = 11,
-    kCTRL_L2         = 12,
-    kCTRL_L3         = 13,
+    kCTRL_DUp        = 0x00400,
+    kCTRL_DDown      = 0x00800,
+    kCTRL_DLeft      = 0x01000,
+    kCTRL_DRight     = 0x02000,
 
-    kCTRL_Opt0       = 14,
-    kCTRL_Opt1       = 15,
-    kCTRL_Opt2       = 16,
-    kCTRL_Opt3       = 17
+    kCTRL_Opt0       = 0x04000,
+    kCTRL_Opt1       = 0x08000,
+    kCTRL_Opt2       = 0x10000,
+    kCTRL_Opt3       = 0x20000
 };
 
 inline cell to_cell(KeyInput val)
@@ -251,6 +251,7 @@ void process_key_input(KeyInput keyInput);
 Key convert_glfw_key(int glfwKey);
 void kill_focus();
 
+u32 convert_glfw_joy_buttons();
 
 // Mouse stuff
 

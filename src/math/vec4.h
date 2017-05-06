@@ -66,7 +66,6 @@ struct tvec4
     {}
     
     tvec4(const tvec3<T> & v, T w);
-    tvec4(const tvec3<T> & v);
 
     u32 length() const { return sizeof(*this) / sizeof(T); }
 
