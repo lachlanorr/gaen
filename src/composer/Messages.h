@@ -45,6 +45,8 @@ public:
     Messages(nana::size size);
     virtual ~Messages();
 
+    void operator()(const char * time, const char * sev, const char * msg);
+
 private:
     struct LogMessage
     {
@@ -58,8 +60,6 @@ private:
           , msg(msg)
         {}
     };
-
-    void operator()(const char * time, const char * sev, const char * msg);
 
     nana::textbox mText{*this};
     nana::timer mTimer;

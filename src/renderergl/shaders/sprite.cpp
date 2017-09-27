@@ -35,7 +35,8 @@ namespace shaders
 static const char * kShaderCode_shv =
     "layout(location = 0) in vec4 vPosUv;\n"
     "\n"
-    "uniform mat4 uMvp;\n"
+    "layout(location = 1) uniform mat4 uMvp;\n"
+    "layout(location = 2) uniform mat3 uNormal;\n"
     "\n"
     "out vec2 oiUv;\n"
     "\n"
@@ -51,7 +52,7 @@ static const char * kShaderCode_shf =
     "\n"
     "out vec4 color;\n"
     "\n"
-    "layout(binding=0) uniform sampler2D imageSampler;\n"
+    "layout(location=0, binding=0) uniform sampler2D imageSampler;\n"
     "\n"
     "void main()\n"
     "{\n"
@@ -74,15 +75,15 @@ Shader * sprite::construct()
 
 
     // Uniforms
-    pShader->mUniforms[0].nameHash = 0xdc50cc66; /* HASH::imageSampler */
+    pShader->mUniforms[0].nameHash = 0xce837dc9; /* HASH::uMvp */
     pShader->mUniforms[0].index = 0;
-    pShader->mUniforms[0].location = 0;
-    pShader->mUniforms[0].type = GL_SAMPLER_2D;
+    pShader->mUniforms[0].location = 1;
+    pShader->mUniforms[0].type = GL_FLOAT_MAT4;
 
-    pShader->mUniforms[1].nameHash = 0xce837dc9; /* HASH::uMvp */
+    pShader->mUniforms[1].nameHash = 0xdc50cc66; /* HASH::imageSampler */
     pShader->mUniforms[1].index = 1;
-    pShader->mUniforms[1].location = 1;
-    pShader->mUniforms[1].type = GL_FLOAT_MAT4;
+    pShader->mUniforms[1].location = 0;
+    pShader->mUniforms[1].type = GL_SAMPLER_2D;
 
 
     // Attributes

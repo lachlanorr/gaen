@@ -35,9 +35,9 @@ namespace shaders
 static const char * kShaderCode_shv =
     "#ifdef OPENGL3\n"
     "\n"
-    "in vec4 vPosition;\n"
-    "in vec3 vNormal;\n"
-    "in vec4 vColor;\n"
+    "layout(location = 0) in vec4 vPosition;\n"
+    "layout(location = 1) in vec3 vNormal;\n"
+    "layout(location = 2) in vec4 vColor;\n"
     "\n"
     "uniform mat4 uMvp;\n"
     "uniform mat3 uNormal;\n"

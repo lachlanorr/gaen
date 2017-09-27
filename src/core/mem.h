@@ -361,6 +361,7 @@ public:
         GFREE(p);
     }
     bool operator==(const Allocator& rhs) const { return true; }
+    bool operator!=(const Allocator& rhs) const { return false; }
 };
 
 

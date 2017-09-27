@@ -59,6 +59,13 @@ void renderer_end_frame(Task & rendererTask)
 {
     RendererType * pRenderer = reinterpret_cast<RendererType*>(rendererTask.that());
     pRenderer->endFrame();
+
+    // Check for errors
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR)
+    {
+        LOG_ERROR("glGetError returned %d", err);
+    }
 }
 
 } // namespace gaen
