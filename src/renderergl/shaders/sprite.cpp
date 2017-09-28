@@ -36,7 +36,6 @@ static const char * kShaderCode_shv =
     "layout(location = 0) in vec4 vPosUv;\n"
     "\n"
     "layout(location = 1) uniform mat4 uMvp;\n"
-    "layout(location = 2) uniform mat3 uNormal;\n"
     "\n"
     "out vec2 oiUv;\n"
     "\n"
