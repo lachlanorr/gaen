@@ -28,6 +28,7 @@
 #define GAEN_COMPOSER_MENUBAR_H
 
 #include <nana/gui.hpp>
+#include <nana/gui/timer.hpp>
 
 namespace gaen
 {

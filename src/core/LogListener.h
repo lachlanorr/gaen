@@ -57,6 +57,8 @@ public:
 private:
     void listenProc()
     {
+        init_time();
+
         static const char * sLogSeverityText[] = {"ERR ",
                                                   "WARN",
                                                   "INFO"};
