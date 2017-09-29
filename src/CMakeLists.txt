@@ -43,11 +43,10 @@ SET (packaged_dir ${CMAKE_BINARY_DIR}/packaged)
 EXECUTE_PROCESS (COMMAND ${CMAKE_COMMAND} -E make_directory ${packaged_dir})
 
 MACRO (package target)
-  GET_PROPERTY(target_location TARGET ${target} PROPERTY LOCATION)
   ADD_CUSTOM_COMMAND(
     TARGET ${target}
     POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${target_location} ${packaged_dir}/
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${target}> ${packaged_dir}/
     )
 ENDMACRO (package)
 

@@ -36,18 +36,21 @@ if not exist "%BUILD_DIR%" (
 cd %BUILD_DIR%
 
 if "%PLAT%"=="win64" (
-    cmake -G "Visual Studio 14 Win64" %GAEN_ROOT%
+    cmake -G "Visual Studio 15 Win64" %GAEN_ROOT%
 )
 if "%PLAT%"=="win32" (
-    cmake -G "Visual Studio 14" %GAEN_ROOT%
+    cmake -G "Visual Studio 15" %GAEN_ROOT%
 )
 
+
+
+set VSDIR=c:\Program Files (x86)\Microsoft Visual Studio\2017\Community
 
 :: Build scripts for the first time to ensure codegen happens
 :: before VS is loaded. Otherwise the first build in VS will
 :: not compile the scripts (it will generate them though)
 if not exist "%BUILD_DIR%\src\scripts\registration.cpp" (
-  call "%VS140COMNTOOLS%\vsvars32.bat"
+  call "%VSDIR%\VC\Auxiliary\Build\vcvars64.bat"
   if %errorlevel% neq 0 exit /b %errorlevel%
   msbuild "%BUILD_DIR%\src\scripts\scripts.vcxproj"
   if %errorlevel% neq 0 exit /b %errorlevel%

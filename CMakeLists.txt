@@ -29,7 +29,14 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8.12)
 PROJECT (gaen)
 
 CMAKE_POLICY(SET CMP0054 NEW)
+
+IF (WIN32)
+# Rpavlik CreateLauncher still requires this policy for use of LOCATION
+# https://github.com/rpavlik/cmake-modules/issues/25
 CMAKE_POLICY(SET CMP0026 OLD)
+ENDIF (WIN32)
+
+
 
 SET (cmake_dir ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 SET (ext_dir ${CMAKE_CURRENT_SOURCE_DIR}/external)
@@ -208,7 +215,7 @@ SET (ASSIMP_LIBS
 #-------------------------------------------------------------------------------
 
 # Support for creating launch params in Visual Studio
-LIST (APPEND CMAKE_MODULE_PATH "${ext_dir}/rpavlik-cmake")
+LIST (APPEND CMAKE_MODULE_PATH "${ext_dir}/cmake-modules")
 INCLUDE (CreateLaunchers)
 
 ADD_DEFINITIONS("-DNANA_ENABLE_PNG=1")
