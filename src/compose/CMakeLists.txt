@@ -65,5 +65,6 @@ ADD_LIBRARY (compose
   )
 
 ADD_DEPENDENCIES(compose
+  nana
   CODEGEN_API
   )

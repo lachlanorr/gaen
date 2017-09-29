@@ -214,6 +214,10 @@ INCLUDE (CreateLaunchers)
 ADD_DEFINITIONS("-DNANA_ENABLE_PNG=1")
 ADD_SUBDIRECTORY (${ext_dir}/nana)
 INCLUDE_DIRECTORIES (${ext_dir}/nana/include)
+ADD_DEPENDENCIES(nana
+  libpng
+  )
+
 
 INCLUDE_DIRECTORIES (${ext_dir}/tiny_obj_loader-1.0.2)
 
