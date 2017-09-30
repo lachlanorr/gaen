@@ -45,9 +45,10 @@
 ;; Syntax highlighting using keywords
 (defconst compose-font-lock-keywords-1
   (list
+   '("\\(#[a-zA-Z_][a-zA-Z0-9_]+\\)" . font-lock-constant-face)
    '("\\<\\(as\\|b\\(?:ool\\|reak\\|yte\\)\\|c\\(?:ase\\|har\\|o\\(?:lor\\|mponents?\\|nst\\)\\)\\|d\\(?:efault\\|o\\(?:uble\\)?\\)\\|e\\(?:lse\\|ntity\\)\\|f\\(?:alse\\|loat\\|or\\)\\|ha\\(?:lf\\|ndle\\)\\|i\\(?:f\\|nt\\)\\|long\\|mat\\(?:34\\|[34]\\)\\|none\\|return\\|s\\(?:hort\\|tring\\|witch\\)\\|t\\(?:his\\|r\\(?:ansform\\|ue\\)\\)\\|u\\(?:int\\|long\\|s\\(?:hort\\|ing\\)\\)\\|v\\(?:ec[234]\\|oid\\)\\|while\\)\\>" . font-lock-keyword-face)
-   '("\\(#[a-zA-Z_][a-zA-Z0-9_]+\\)" . font-lock-constant-face))
    ;'("\\(\\w*\\)" . font-lock-variable-name-face))
+   )
   "Highlighting expressions for Compose mode")
 
 (defvar compose-font-lock-keywords compose-font-lock-keywords-1
