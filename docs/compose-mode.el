@@ -44,6 +44,11 @@
 
 ;; Syntax highlighting using keywords
 (defconst compose-font-lock-keywords-1
+  ;; Candiates to add to keywords
+  ;;  update
+  ;;  ready
+  ;;  post
+
   (list
    '("\\(#[a-zA-Z_][a-zA-Z0-9_]+\\)" . font-lock-constant-face)
    '("\\<\\(as\\|b\\(?:ool\\|reak\\|yte\\)\\|c\\(?:ase\\|har\\|o\\(?:lor\\|mponents?\\|nst\\)\\)\\|d\\(?:efault\\|o\\(?:uble\\)?\\)\\|e\\(?:lse\\|ntity\\)\\|f\\(?:alse\\|loat\\|or\\)\\|ha\\(?:lf\\|ndle\\)\\|i\\(?:f\\|nt\\)\\|long\\|mat\\(?:43\\|[43]\\)\\|none\\|return\\|s\\(?:hort\\|tring\\|witch\\)\\|t\\(?:his\\|r\\(?:ansform\\|ue\\)\\)\\|u\\(?:int\\|long\\|s\\(?:hort\\|ing\\)\\)\\|v\\(?:ec[234]\\|oid\\)\\|while\\|asset\\)\\>" . font-lock-keyword-face)
