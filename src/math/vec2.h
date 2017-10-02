@@ -106,6 +106,13 @@ inline tvec2<T> operator+(const tvec2<T> & lhs, const tvec2<T> & rhs)
     return tvec2<T>(lhs.x + rhs.x, lhs.y + rhs.y);
 }
 
+template <typename T>
+inline tvec2<T> operator+=(tvec2<T> & lhs, const tvec2<T> & rhs)
+{
+    lhs.x += rhs.x;
+    lhs.y += rhs.y;
+    return lhs;
+}
 
 template <typename T>
 inline tvec2<T> operator*(const tvec2<T> & lhs, T rhs)

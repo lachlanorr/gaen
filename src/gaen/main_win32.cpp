@@ -86,8 +86,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     glfwSetErrorCallback(glfw_error_callback);
 
-    const u32 kScreenWidth = 1280;
-    const u32 kScreenHeight = 720;
+    const u32 kScreenWidth  = 1920;
+    const u32 kScreenHeight = 1080;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
