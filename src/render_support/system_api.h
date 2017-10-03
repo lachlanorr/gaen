@@ -52,6 +52,7 @@ void camera_move(i32 uid,
 
 mat43 view_look_at(const vec3 & position,
                    const vec3 & target,
+                   const vec3 & up,
                    Entity * pCaller);
 
 void light_distant_insert(i32 uid,

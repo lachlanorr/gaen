@@ -70,9 +70,9 @@ void camera_move(i32 uid,
 
 mat43 view_look_at(const vec3 & position,
                    const vec3 & target,
+                   const vec3 & up,
                    Entity * pCaller)
 {
-    static vec3 up(0.0f, 1.0f, 0.0f);
     return mat43(look_at(position, target, up));
 }
 
