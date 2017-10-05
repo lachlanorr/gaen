@@ -41,6 +41,7 @@ SpriteStage::SpriteStage(u32 stageHash, RendererMesh * pRenderer)
           pRenderer,
           Camera(kRendererTaskId,
                  stageHash,
+                 1.0f,
                  ortho(pRenderer->screenWidth() * -0.5f,
                        pRenderer->screenWidth() * 0.5f,
                        pRenderer->screenHeight() * -0.5f,

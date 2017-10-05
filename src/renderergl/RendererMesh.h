@@ -128,7 +128,9 @@ private:
                                      f32 nearClip,
                                      f32 farClip,
                                      const mat43 & view);
+    void modelStageCameraScale(u32 uid, f32 scale);
     void modelStageCameraView(u32 uid, const mat43 & view);
+    void modelStageCameraScaleAndView(u32 uid, f32 scale, const mat43 & view);
     void modelStageCameraActivate(u32 uid);
     void modelStageCameraRemove(u32 uid);
 

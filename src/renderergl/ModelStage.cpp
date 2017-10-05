@@ -42,6 +42,7 @@ ModelStage::ModelStage(u32 stageHash, RendererMesh * pRenderer)
           pRenderer,
           Camera(kRendererTaskId,
                  stageHash,
+                 1.0f,
                  perspective(radians(60.0f),
                              pRenderer->screenWidth() / (f32)pRenderer->screenHeight(),
                              0.1f,

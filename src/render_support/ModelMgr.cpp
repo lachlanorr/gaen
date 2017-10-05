@@ -37,7 +37,9 @@
 #include "engine/messages/ModelBody.h"
 #include "engine/messages/CameraPersp.h"
 #include "engine/messages/CameraOrtho.h"
+#include "engine/messages/UidScalar.h"
 #include "engine/messages/UidTransform.h"
+#include "engine/messages/UidScalarTransform.h"
 #include "engine/messages/Transform.h"
 
 #include "render_support/ModelMgr.h"
@@ -323,6 +325,14 @@ i32 model_stage_camera_create_ortho(i32 stageHash,
     return uid;
 }
 
+void model_stage_camera_scale(i32 cameraUid,
+                              f32 scale,
+                              Entity * pCaller)
+{
+    messages::UidScalarQW msgw(HASH::model_stage_camera_scale, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, cameraUid);
+    msgw.setScalar(scale);
+}
+
 void model_stage_camera_view(i32 cameraUid,
                              const mat43 & view,
                              Entity * pCaller)
@@ -330,6 +340,17 @@ void model_stage_camera_view(i32 cameraUid,
     messages::UidTransformQW msgw(HASH::model_stage_camera_view, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, cameraUid);
     msgw.setTransform(view);
 }
+
+void model_stage_camera_scale_and_view(i32 cameraUid,
+                                       f32 scale,
+                                       const mat43 & view,
+                                       Entity * pCaller)
+{
+    messages::UidScalarTransformQW msgw(HASH::model_stage_camera_scale_and_view, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, cameraUid);
+    msgw.setScalar(scale);
+    msgw.setTransform(view);
+}
+
 
 void model_stage_camera_activate(i32 cameraUid, Entity * pCaller)
 {

@@ -89,9 +89,18 @@ i32 model_stage_camera_create_ortho(i32 stageHash,
                                     const mat43 & view,
                                     Entity * pCaller);
 
+void model_stage_camera_scale(i32 cameraUid,
+                              f32 scale,
+                              Entity * pCaller);
+
 void model_stage_camera_view(i32 cameraUid,
                              const mat43 & view,
                              Entity * pCaller);
+
+void model_stage_camera_scale_and_view(i32 cameraUid,
+                                       f32 scale,
+                                       const mat43 & view,
+                                       Entity * pCaller);
 
 void model_stage_camera_activate(i32 cameraUid, Entity * pCaller);
 void model_stage_camera_remove(i32 cameraUid, Entity * pCaller);

@@ -71,19 +71,28 @@ private:
 class Camera : public RenderObject
 {
 public:
-    Camera(task_id owner, ruid uid, u32 stageHash, const mat4 & projection, const mat43 & view)
+    Camera(task_id owner, ruid uid, u32 stageHash, f32 scale, const mat4 & projection, const mat43 & view)
       : RenderObject(owner, uid)
       , mStageHash(stageHash)
+      , mScale(scale)
       , mProjection(projection)
+      , mView(view)
     {
-        setView(view);
+        updateViewProjection();
     }
 
-    Camera(task_id owner, u32 stageHash, mat4 & projection, mat43 & view)
-      : Camera(owner, RenderObject::next_uid(), stageHash, projection, view)
+    Camera(task_id owner, u32 stageHash, f32 scale, mat4 & projection, mat43 & view)
+      : Camera(owner, RenderObject::next_uid(), stageHash, scale, projection, view)
     {}
 
     u32 stageHash() { return mStageHash; }
+
+    const mat43 & scale() { return mScale; }
+    void setScale(f32 scale)
+    {
+        mScale = scale;
+        updateViewProjection();
+    }
 
     const mat4 & projection() const { return mProjection; }
 
@@ -91,13 +100,26 @@ public:
     void setView(const mat43 & view)
     {
         mView = view;
-        mViewProjection = mProjection * mView;
+        updateViewProjection();
+    }
+
+    void setScaleAndView(f32 scale, const mat43 & view)
+    {
+        mScale = scale;
+        mView = view;
+        updateViewProjection();
     }
     
     const mat4 & viewProjection() const { return mViewProjection; }
 
 private:
+    void updateViewProjection()
+    {
+        mViewProjection = mat4::from_scale(mScale) * mProjection * mView;
+    }
+
     u32 mStageHash;
+    f32 mScale;
     mat4 mProjection;
     mat43 mView;
     mat4 mViewProjection;

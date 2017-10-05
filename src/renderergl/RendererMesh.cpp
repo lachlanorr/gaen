@@ -37,6 +37,7 @@
 
 #include "engine/messages/LightDistant.h"
 #include "engine/messages/UidTransform.h"
+#include "engine/messages/UidScalarTransform.h"
 #include "engine/messages/UidColor.h"
 #include "engine/messages/UidVec3.h"
 #include "engine/messages/UidScalar.h"
@@ -451,11 +452,26 @@ MessageResult RendererMesh::message(const T & msgAcc)
                                     msgr.view());
         break;
     }
+    case HASH::model_stage_camera_scale:
+    {
+        messages::UidScalarR<T> msgr(msgAcc);
+        modelStageCameraScale(msgr.uid(),
+                              msgr.scalar());
+        break;
+    }
     case HASH::model_stage_camera_view:
     {
         messages::UidTransformR<T> msgr(msgAcc);
         modelStageCameraView(msgr.uid(),
                              msgr.transform());
+        break;
+    }
+    case HASH::model_stage_camera_scale_and_view:
+    {
+        messages::UidScalarTransformR<T> msgr(msgAcc);
+        modelStageCameraScaleAndView(msgr.uid(),
+                                     msgr.scalar(),
+                                     msgr.transform());
         break;
     }
     case HASH::model_stage_camera_activate:
@@ -694,6 +710,7 @@ void RendererMesh::modelStageCameraInsertPersp(u32 uid,
     Camera cam(kRendererTaskId,
                uid,
                stageHash,
+               1.0f,
                perspective(fov,
                            screenWidth() / (f32)screenHeight(),
                            nearClip,
@@ -718,16 +735,29 @@ void RendererMesh::modelStageCameraInsertOrtho(u32 uid,
                       nearClip,
                       farClip);
 
-    proj = mat4::from_scale(scale) * proj;
-    
     Camera cam(kRendererTaskId,
                uid,
                stageHash,
+               scale,
                proj,
                view);
 
     ModelStage * pStage = modelStageFindOrCreate(stageHash);
     pStage->cameraInsert(uid, cam);
+}
+
+void RendererMesh::modelStageCameraScale(u32 uid, f32 scale)
+{
+    for (auto & stagePair : mModelStages)
+    {
+        Camera * pCam = stagePair.second->camera(uid);
+        if (pCam)
+        {
+            pCam->setScale(scale);
+            return;
+        }
+    }
+    ERR("RendererMesh::modelStageCameraView unknown camera, uid: %u", uid);
 }
 
 void RendererMesh::modelStageCameraView(u32 uid, const mat43 & view)
@@ -738,6 +768,20 @@ void RendererMesh::modelStageCameraView(u32 uid, const mat43 & view)
         if (pCam)
         {
             pCam->setView(view);
+            return;
+        }
+    }
+    ERR("RendererMesh::modelStageCameraView unknown camera, uid: %u", uid);
+}
+
+void RendererMesh::modelStageCameraScaleAndView(u32 uid, f32 scale, const mat43 & view)
+{
+    for (auto & stagePair : mModelStages)
+    {
+        Camera * pCam = stagePair.second->camera(uid);
+        if (pCam)
+        {
+            pCam->setScaleAndView(scale, view);
             return;
         }
     }

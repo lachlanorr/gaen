@@ -38,6 +38,11 @@ class UidTransform(FieldHandler):
     uid       = i32Field(payload=True)
     transform = mat43Field()
 
+class UidScalarTransform(FieldHandler):
+    uid       = i32Field(payload=True)
+    scalar    = f32Field()
+    transform = mat43Field()
+
 class UidColor(FieldHandler):
     uid       = i32Field(payload=True)
     color     = ColorField()
