@@ -78,7 +78,7 @@ public:
 
     const mat43 & transform() const { return mTransform; }
     void setTransform(const mat43 & mat);
-    void applyTransform(const mat43 & mat);
+    void applyTransform(bool isLocal, const mat43 & mat);
     void updateTransform();
 
     void registerTransformListener(task_id taskId, u32 uid);
@@ -159,7 +159,6 @@ protected:
     bool mIsFinSelfSent;
     bool mIsDead;
 
-    bool mIsTransformDirty;
     mat43 mTransform;
     mat43 mLocalTransform;
 

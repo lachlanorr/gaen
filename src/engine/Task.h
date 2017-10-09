@@ -41,17 +41,17 @@ static const task_id kMaxTaskId = (1 << 28) - 1;
 
 // Note: Target task id's less than kMaxThreads are implicitly considered as thread ids
 
-static const task_id kInvalidTaskId      = kMaxTaskId - 0; // 536870911
-static const task_id kMainThreadTaskId   = kMaxTaskId - 1; // 536870910, special task id used to refer to the main thread as a task
+static const task_id kInvalidTaskId      = kMaxTaskId - 0; // 268435455
+static const task_id kMainThreadTaskId   = kMaxTaskId - 1; // 268435454, special task id used to refer to the main thread as a task
 
 // Reserved primary task master task ids
-static const task_id kPrimaryTaskIdMax   = kMaxTaskId - 3; // 536870908 -- Change as appropriate if we add more "primary" task ids
-static const task_id kRendererTaskId     = kMaxTaskId - 3; // 536870908
-static const task_id kInputMgrTaskId     = kMaxTaskId - 4; // 536870907
-static const task_id kAssetMgrTaskId     = kMaxTaskId - 5; // 536870906
-static const task_id kSpriteMgrTaskId    = kMaxTaskId - 6; // 536870905
-static const task_id kModelMgrTaskId     = kMaxTaskId - 7; // 536870904
-static const task_id kPrimaryTaskIdMin   = kMaxTaskId - 7; // 536870904 -- Change as appropriate if we add more "primary" task ids
+static const task_id kPrimaryTaskIdMax   = kMaxTaskId - 3; // 268435452 -- Change as appropriate if we add more "primary" task ids
+static const task_id kRendererTaskId     = kMaxTaskId - 3; // 268435452
+static const task_id kInputMgrTaskId     = kMaxTaskId - 4; // 268435451
+static const task_id kAssetMgrTaskId     = kMaxTaskId - 5; // 268435450
+static const task_id kSpriteMgrTaskId    = kMaxTaskId - 6; // 268435449
+static const task_id kModelMgrTaskId     = kMaxTaskId - 7; // 268435448
+static const task_id kPrimaryTaskIdMin   = kMaxTaskId - 7; // 268435448 -- Change as appropriate if we add more "primary" task ids
 
 // If another "special" task id is added, update this function appropriately.
 static inline bool is_primary_task(task_id taskId)

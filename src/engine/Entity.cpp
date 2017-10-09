@@ -63,7 +63,6 @@ Entity::Entity(u32 nameHash,
 {
     mTransform = mat43(1.0f);
     mLocalTransform = mat43(1.0f);
-    mIsTransformDirty = false;
 
     memset(mTransformListeners, 0, sizeof(mTransformListeners));
 
@@ -191,40 +190,6 @@ void Entity::update(f32 delta)
     // send update our components
     for (u32 i = 0; i < mComponentCount; ++i)
         mpComponents[i].scriptTask().update(delta);
-
-    // Now, if there has been any change to the transform,
-    // notify components and child entities.
-    // This has to happen in a separate stage to the update
-    // loops above since one of the updates may have altered
-    // our transform.
-    if (mIsTransformDirty)
-    {
-        // send update_transform our components
-        for (u32 i = 0; i < mComponentCount; ++i)
-        {
-            Task & t = mpComponents[i].scriptTask();
-            StackMessageBlockWriter<0> msgw(HASH::update_transform,
-                                            kMessageFlag_ForcePropagate,
-                                            mTask.id(),
-                                            t.id(),
-                                            to_cell(0));
-            t.message(msgw.accessor());
-        }
-
-        // send update_transform to our child entities
-        for (u32 i = 0; i < mChildCount; ++i)
-        {
-            Entity * pEnt = mpChildren[i];
-            StackMessageBlockWriter<0> msgw(HASH::update_transform,
-                                            kMessageFlag_ForcePropagate,
-                                            mTask.id(),
-                                            pEnt->task().id(),
-                                            to_cell(0));
-            pEnt->message(msgw.accessor());
-        }
-
-        mIsTransformDirty = false;
-    }
 
     // Collect any unused BlockMemory
     collect();
@@ -403,7 +368,7 @@ MessageResult Entity::message(const T & msgAcc)
             case HASH::transform:
             {
                 messages::TransformR<T> msgr(msgAcc);
-                applyTransform(msgr.transform());
+                applyTransform(msgr.isLocal(), msgr.transform());
                 return MessageResult::Consumed;
             }
             case HASH::insert_child:
@@ -611,8 +576,34 @@ void Entity::setTransform(const mat43 & mat)
 {
     if (mat != mTransform)
     {
-        mIsTransformDirty = true;
         mTransform = mat;
+
+
+        // send update_transform our components
+        for (u32 i = 0; i < mComponentCount; ++i)
+        {
+            Task & t = mpComponents[i].scriptTask();
+            StackMessageBlockWriter<0> msgw(HASH::update_transform,
+                                            kMessageFlag_ForcePropagate,
+                                            mTask.id(),
+                                            t.id(),
+                                            to_cell(0));
+            t.message(msgw.accessor());
+        }
+
+        // send update_transform to our child entities
+        for (u32 i = 0; i < mChildCount; ++i)
+        {
+            Entity * pEnt = mpChildren[i];
+            StackMessageBlockWriter<0> msgw(HASH::update_transform,
+                                            kMessageFlag_ForcePropagate,
+                                            mTask.id(),
+                                            pEnt->task().id(),
+                                            to_cell(0));
+            pEnt->message(msgw.accessor());
+        }
+
+
 
         // call transform listeners
         for (u32 i = 0; i < kMaxTransformListeners; ++i)
@@ -631,16 +622,32 @@ void Entity::setTransform(const mat43 & mat)
     }
 }
 
-void Entity::applyTransform(const mat43 & mat)
+void Entity::applyTransform(bool isLocal, const mat43 & mat)
 {
-    if (!mpParent)
+    if (!isLocal)
     {
-        setTransform(mat);
+        if (!mpParent)
+        {
+            setTransform(mat);
+        }
+        else
+        {
+            mLocalTransform = mat;
+            setTransform(parentTransform() * mLocalTransform);
+        }
     }
-    else
+    else // isLocal
     {
-        mLocalTransform = mat;
-        setTransform(parentTransform() * mLocalTransform);
+        if (!mpParent)
+        {
+            setTransform(mat * mTransform);
+        }
+        else
+        {
+//            mLocalTransform = mat * mLocalTransform;
+            mLocalTransform = mat;
+            setTransform(parentTransform() * mLocalTransform);
+        }
     }
 }
 

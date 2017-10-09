@@ -80,7 +80,7 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 
         // Send transform to entity
         {
-            messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner());
+            messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), false);
             msgw.setTransform(mModelInstance.mTransform);
         }
     }

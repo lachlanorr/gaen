@@ -68,7 +68,7 @@ void SpriteMotionState::setWorldTransform(const btTransform& worldTrans)
 
     SpriteInstance::sprite_transform(kSpriteMgrTaskId, kRendererTaskId, mSpriteInstance.sprite().uid(), mSpriteInstance.mTransform);
     {
-        messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, mSpriteInstance.sprite().owner());
+        messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, mSpriteInstance.sprite().owner(), false);
         msgw.setTransform(mSpriteInstance.mTransform);
     }
 }

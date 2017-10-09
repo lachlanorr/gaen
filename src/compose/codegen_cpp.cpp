@@ -188,6 +188,8 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
             return S(scratch);
         case kDT_vec3:
         case kDT_vec4:
+        case kDT_ivec3:
+        case kDT_ivec4:
         case kDT_quat:
         case kDT_mat3:
         case kDT_mat43:
@@ -199,6 +201,7 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
                 snprintf(scratch, kScratchSize, "*reinterpret_cast<const %s*>(&%s[%u].qCell)", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex);
             return S(scratch);
         case kDT_vec2:
+        case kDT_ivec2:
         case kDT_string:
         case kDT_asset:
         case kDT_handle:
@@ -725,7 +728,7 @@ static S initialization_message_handlers(const Ast * pAst, const S& postInit, co
     code += I + S("        case HASH::transform:\n");
     code += I + S("        {\n");
     code += I + S("            messages::TransformR<T> msgr(msgAcc);\n");
-    code += I + S("            pThis->self().applyTransform(msgr.transform());\n");
+    code += I + S("            pThis->self().applyTransform(msgr.isLocal(), msgr.transform());\n");
     code += I + S("            return MessageResult::Consumed;\n");
     code += I + S("        } // HASH::transform\n");
 
@@ -835,7 +838,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                     code += I + S("{\n");
                     snprintf(scratch,
                              kScratchSize,
-                             "    messages::TransformBW msgw(HASH::transform, kMessageFlag_None, %s.id(), %s.id());\n",
+                             "    messages::TransformBW msgw(HASH::transform, kMessageFlag_None, %s.id(), %s.id(), false);\n",
                              scriptTaskName,
                              taskName);
                     code += I + S(scratch);

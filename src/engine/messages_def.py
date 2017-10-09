@@ -31,6 +31,7 @@ class ComponentIndex(FieldHandler):
 
 # Transform and entity
 class Transform(FieldHandler):
+    isLocal   = boolField(payload=True)
     transform = mat43Field()
 
 # Transform and entity
