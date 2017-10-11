@@ -318,6 +318,19 @@ void broadcast_message(const MessageBlockAccessor & msgAcc)
                       &msgAcc[0]);
 }
 
+void notify_next_frame()
+{
+    ASSERT(sIsInit);
+    for (thread_id tid = 0; tid < num_threads(); ++tid)
+    {
+        TaskMaster & tm = TaskMaster::task_master_for_thread(tid);
+        if (!tm.isPrimary())
+        {
+            tm.notifyNextFrame();
+        }
+    }
+}
+
 void TaskMaster::init(thread_id tid)
 {
     ASSERT(mStatus == kTMS_Uninitialized);
@@ -368,6 +381,9 @@ void TaskMaster::fin(const MessageQueueAccessor& msgAcc)
     ASSERT(mShutdownCount == 0);
     mShutdownCount = 0;
     broadcast_message(HASH::shutdown__, kMessageFlag_None, threadId());
+
+    if (isPrimary())
+        notify_next_frame();
 }
 
 
@@ -448,6 +464,17 @@ MessageQueue * TaskMaster::messageQueueForTarget(task_id target)
     return &targetTaskMaster.taskMasterMessageQueue();
 }
 
+void TaskMaster::notifyNextFrame()
+{
+    mNextFrameCV.notify_one();
+}
+
+void TaskMaster::waitForNextFrame()
+{
+    std::unique_lock<std::mutex> lk(mNextFrameMtx);
+    mNextFrameCV.wait(lk);
+}
+
 void TaskMaster::runPrimaryGameLoop()
 {
     ASSERT(mStatus == kTMS_Initialized);
@@ -526,13 +553,11 @@ void TaskMaster::runPrimaryGameLoop()
             mpAssetMgr->process();
         }
 
-        renderer_end_frame(mRendererTask);
+        // Notify other task masters, they will wake up and process
+        // messages and update tasks while we render.
+        notify_next_frame();
 
-        // If we're not full of work, sleep a bit.
-        // Don't sleep too aggressively since Windows
-        // time slice is 10ms.
-        if (mFrameTime.deltaMeanLast10() < 0.06)
-            sleep(10);
+        renderer_end_frame(mRendererTask);
     };
 }
 
@@ -582,11 +607,9 @@ void TaskMaster::runAuxiliaryGameLoop()
             task.update(delta);
         }
 
-        // If we're not full of work, sleep a bit
-        // Don't sleep too aggressively since Windows
-        // time slice is 10ms.
-        if (mFrameTime.deltaMeanLast10() < 0.06)
-            sleep(10);
+        // Wait until primary game loop completes next frame
+        if (mStatus == kTMS_Initialized)
+            waitForNextFrame();
     };
 }
 

@@ -37,6 +37,7 @@ void RENDERER_TYPE::initRenderDevice()
     ASSERT(mIsInit);
 
     glfwMakeContextCurrent((GLFWwindow*)mpRenderDevice);
+    glfwSwapInterval(1);
 
     // Prepare our GL function pointers.
     // We have to wait until here to do this since if you call it too

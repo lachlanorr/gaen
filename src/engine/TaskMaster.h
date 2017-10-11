@@ -29,6 +29,8 @@
 
 #include <random>
 #include <limits>
+#include <thread>
+#include <condition_variable>
 
 #include "core/base_defines.h"
 #include "core/threading.h"
@@ -102,6 +104,8 @@ void broadcast_confirm_set_parent(task_id source,
                                   thread_id parentOwner,
                                   task_id parentTaskId,
                                   Entity * pChild);
+void notify_next_frame();
+
 
 class TaskMaster
 {
@@ -134,6 +138,8 @@ public:
     }
 
     MessageQueue * messageQueueForTarget(task_id target);
+
+    void notifyNextFrame();
 
     Registry & registry() { return mRegistry; }
 
@@ -187,6 +193,10 @@ private:
 
     MessageQueue * mpMainMessageQueue; // messages from main queue here
     Vector<kMEM_Engine, MessageQueue*> mTaskMasterMessageQueues; // message from other task masters queue here
+
+    void waitForNextFrame();
+    std::condition_variable mNextFrameCV;
+    std::mutex mNextFrameMtx;
 
     // List of tasks owned by this TaskMaster
     typedef Vector<kMEM_Engine, Task> TaskVec;
