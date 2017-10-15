@@ -148,17 +148,17 @@ Gmdl * build_quad_sphere(const vec3 & size, u32 sections, Color color, const mat
 class Entity;
 namespace system_api
 {
-i32 shape_box(i32 stageHash, const vec3 & size, Color color, const mat43 & transform, Entity * pCaller);
-i32 shape_cone(i32 stageHash, const vec3 & size, i32 slices, Color color, const mat43 & transform, Entity * pCaller);
-i32 shape_cylinder(i32 stageHash, const vec3 & size, i32 slices, Color color, const mat43 & transform, Entity * pCaller);
+i32 shape_box(i32 stageHash, i32 passHash, const vec3 & size, Color color, const mat43 & transform, Entity * pCaller);
+i32 shape_cone(i32 stageHash, i32 passHash, const vec3 & size, i32 slices, Color color, const mat43 & transform, Entity * pCaller);
+i32 shape_cylinder(i32 stageHash, i32 passHash, const vec3 & size, i32 slices, Color color, const mat43 & transform, Entity * pCaller);
 
-i32 shape_hex(i32 stageHash, f32 height, f32 length, Color color0, Color color1, Color color2, Color color3, Color color4, Color color5, const mat43 & transform, Entity * pCaller);
-i32 shape_hex(i32 stageHash, f32 height, f32 length, Color color, const mat43 & transform, Entity * pCaller);
-i32 shape_hex(i32 stageHash, f32 height, f32 length, Color color0, Color color1, const mat43 & transform, Entity * pCaller);
-i32 shape_hex(i32 stageHash, f32 height, f32 length, Color color0, Color color1, Color color2, const mat43 & transform, Entity * pCaller);
+i32 shape_hex(i32 stageHash, i32 passHash, f32 height, f32 length, Color color0, Color color1, Color color2, Color color3, Color color4, Color color5, const mat43 & transform, Entity * pCaller);
+i32 shape_hex(i32 stageHash, i32 passHash, f32 height, f32 length, Color color, const mat43 & transform, Entity * pCaller);
+i32 shape_hex(i32 stageHash, i32 passHash, f32 height, f32 length, Color color0, Color color1, const mat43 & transform, Entity * pCaller);
+i32 shape_hex(i32 stageHash, i32 passHash, f32 height, f32 length, Color color0, Color color1, Color color2, const mat43 & transform, Entity * pCaller);
 
-i32 shape_sphere(i32 stageHash, const vec3 & size, i32 slices, i32 sections, Color color, const mat43 & transform, Entity * pCaller);
-i32 shape_quad_sphere(i32 stageHash, const vec3 & size, i32 sections, Color color, const mat43 & transform, Entity * pCaller);
+i32 shape_sphere(i32 stageHash, i32 passHash, const vec3 & size, i32 slices, i32 sections, Color color, const mat43 & transform, Entity * pCaller);
+i32 shape_quad_sphere(i32 stageHash, i32 passHash, const vec3 & size, i32 sections, Color color, const mat43 & transform, Entity * pCaller);
 } // namespace system_api
 
 } // namespace gaen

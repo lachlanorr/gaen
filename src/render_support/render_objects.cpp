@@ -38,4 +38,22 @@ ruid RenderObject::next_uid()
     return sNextRuid.fetch_add(1, std::memory_order_relaxed);
 }
 
+RenderPass pass_from_hash(i32 hash)
+{
+    switch (hash)
+    {
+    case HASH::opaque:
+        return kRP_Opaque;
+    case HASH::alpha:
+        return kRP_Alpha;
+    case HASH::engine:
+        return kRP_Engine;
+    case HASH::debug:
+        return kRP_Debug;
+    default:
+        ERR("Invalid pass hash, defaulting to opaque, hash: %d", hash);
+        return kRP_Opaque;
+    }
+}
+
 } // namespace gaen

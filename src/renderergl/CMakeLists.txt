@@ -32,8 +32,6 @@ SET (renderergl_SOURCES
   gaen_opengl.h
   ModelGL.cpp
   ModelGL.h
-  ModelStage.cpp
-  ModelStage.h
   RenderCollection.h
   Renderer.h
   RendererMesh.h
@@ -46,9 +44,8 @@ SET (renderergl_SOURCES
   ShaderRegistry.h
   SpriteGL.cpp
   SpriteGL.h
-  SpriteStage.cpp
-  SpriteStage.h
   Stage.h
+  StageMgr.h
   ${shaders_codegen_SOURCES}
   )
 

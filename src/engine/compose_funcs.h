@@ -118,6 +118,20 @@ inline f32 length(const vec3 & v, Entity * pCaller)
     return gaen::length(v);
 }
 
+template <typename T>
+inline T acos(T x, Entity * pCaller)
+{
+    return gaen::acos(x);
+}
+
+template <typename T>
+inline T atan(T x, Entity * pCaller)
+{
+    return gaen::atan(x);
+}
+
+
+
 } // namespace compose_funcs
 
 } // namespace gaen

@@ -44,6 +44,18 @@ namespace gaen
 
 typedef i32 ruid;
 
+enum RenderPass
+{
+    kRP_Opaque      = 0,
+    kRP_Alpha       = 1,
+    kRP_Engine      = 2,
+    kRP_Debug       = 3,
+
+    kRP_COUNT
+};
+
+RenderPass pass_from_hash(i32 hash);
+
 class RenderObject
 {
 protected:
@@ -81,13 +93,13 @@ public:
         updateViewProjection();
     }
 
-    Camera(task_id owner, u32 stageHash, f32 scale, mat4 & projection, mat43 & view)
+    Camera(task_id owner, u32 stageHash, f32 scale, const mat4 & projection, const mat43 & view)
       : Camera(owner, RenderObject::next_uid(), stageHash, scale, projection, view)
     {}
 
-    u32 stageHash() { return mStageHash; }
+    u32 stageHash() const { return mStageHash; }
 
-    const mat43 & scale() { return mScale; }
+    const f32 scale() const { return mScale; }
     void setScale(f32 scale)
     {
         mScale = scale;
@@ -96,7 +108,7 @@ public:
 
     const mat4 & projection() const { return mProjection; }
 
-    const mat43 & view() { return mView; }
+    const mat43 & view() const { return mView; }
     void setView(const mat43 & view)
     {
         mView = view;
@@ -125,15 +137,15 @@ private:
     mat4 mViewProjection;
 };
 
-class LightDistant : public RenderObject
+class Light : public RenderObject
 {
 public:
-    LightDistant(task_id owner,
-                 ruid uid,
-                 u32 stageHash,
-                 Color color,
-                 f32 ambient,
-                 const vec3 & direction)
+    Light(task_id owner,
+          ruid uid,
+          u32 stageHash,
+          Color color,
+          f32 ambient,
+          const vec3 & direction)
       : RenderObject(owner, uid)
       , mStageHash(stageHash)
       , mColor(Color::build_vec4(color))
@@ -142,17 +154,17 @@ public:
         setDirection(direction);
     }
 
-    LightDistant(task_id owner,
-                 u32 stageHash,
-                 Color color,
-                 f32 ambient,
-                 const vec3 & direction)
-      : LightDistant(owner,
-                     RenderObject::next_uid(),
-                     stageHash,
-                     color,
-                     ambient,
-                     direction)
+    Light(task_id owner,
+          u32 stageHash,
+          Color color,
+          f32 ambient,
+          const vec3 & direction)
+      : Light(owner,
+              RenderObject::next_uid(),
+              stageHash,
+              color,
+              ambient,
+              direction)
     {}
 
     const vec3 & direction() const { return mDirection; }

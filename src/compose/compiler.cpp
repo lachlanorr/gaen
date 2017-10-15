@@ -3183,7 +3183,7 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
-    // vec3 radians(vec3)
+    // vec3 degrees(vec3)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
         ast_add_child(pFuncArgs, ast_create_function_arg("radians", parsedata_find_type_symbol(pParseData, "vec3", 0, 0), pParseData));
@@ -3279,11 +3279,33 @@ void register_builtin_functions(ParseData * pParseData)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
         ast_add_child(pFuncArgs, ast_create_function_arg("v", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
-        register_builtin_function("dot",
+        register_builtin_function("length",
                                   parsedata_find_type_symbol(pParseData, "float", 0, 0),
                                   pFuncArgs,
                                   pParseData);
     }
+
+
+    // f32 acos(f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("x", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));
+        register_builtin_function("acos",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // f32 atan(f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("x", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));
+        register_builtin_function("atan",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
 }
 
 ParseData * parse_file(const char * fullPath,

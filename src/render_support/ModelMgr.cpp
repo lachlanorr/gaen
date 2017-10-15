@@ -95,6 +95,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
                                                       ModelInstance,
                                                       pModelRenderer,
                                                       pModelInst->stageHash(),
+                                                      pModelInst->pass(),
                                                       pModelInst->mTransform,
                                                       pModelInst->mIsRenderable);
             ModelInstance::model_insert(kModelMgrTaskId, kRendererTaskId, pModelInstRenderer);
@@ -242,13 +243,15 @@ template MessageResult ModelMgr::message<MessageQueueAccessor>(const MessageQueu
 namespace system_api
 {
 
-i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, const mat43 & transform, Entity * pCaller)
+i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, i32 passHash, const mat43 & transform, Entity * pCaller)
 {
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
     const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
 
+    RenderPass pass = pass_from_hash(passHash);
+
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pAsset);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, transform, true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass, transform, true);
 
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
 
@@ -286,9 +289,19 @@ void model_stage_hide(i32 stageHash, Entity * pCaller)
     MessageQueueWriter msgw(HASH::model_stage_hide, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(stageHash), 0);
 }
 
+void model_stage_hide_all(Entity * pCaller)
+{
+    MessageQueueWriter msgw(HASH::model_stage_hide_all, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(0), 0);
+}
+
 void model_stage_remove(i32 stageHash, Entity * pCaller)
 {
     MessageQueueWriter msgw(HASH::model_stage_remove, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(stageHash), 0);
+}
+
+void model_stage_remove_all(Entity * pCaller)
+{
+    MessageQueueWriter msgw(HASH::model_stage_remove_all, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(0), 0);
 }
 
 i32 model_stage_camera_create_persp(i32 stageHash,

@@ -41,7 +41,7 @@ class RendererMesh;
 class ModelGL
 {
 public:
-    typedef ModelInstance InstanceT;
+    typedef ModelInstance InstanceType;
     
     ModelGL(ModelInstance * pModelInstance, RendererMesh * pRenderer)
       : mpModelInstance(pModelInstance)

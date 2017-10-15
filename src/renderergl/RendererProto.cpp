@@ -385,7 +385,7 @@ void RendererProto::render()
 
 
 #if RENDERTYPE == RENDERTYPE_CPUFRAGVOXEL || RENDERTYPE == RENDERTYPE_CPUCOMPVOXEL
-    mShaderSim.render(mRaycastCamera, mLightDistants);
+    mShaderSim.render(mRaycastCamera, mLights);
 
     mpPresentShader->use();
 

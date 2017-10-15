@@ -68,10 +68,11 @@ class ModelInstance
     friend class ModelMotionState;
     friend class ModelPhysics;
 public:
-    ModelInstance(Model * pModel, u32 stageHash, const mat43 & transform, bool isRenderable);
+    ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, const mat43 & transform, bool isRenderable);
 
     const Model & model() { return *mpModel; }
     u32 stageHash() { return mStageHash; }
+    RenderPass pass() { return mPass; }
 
     ruid uid() const { return mpModel->uid(); }
 
@@ -96,6 +97,7 @@ private:
 
     Model * mpModel;
     u32 mStageHash;
+    RenderPass mPass;
 
     bool mHasBody;
     bool mIsRenderable;

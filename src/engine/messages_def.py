@@ -61,7 +61,7 @@ class LightDistant(FieldHandler):
     stageHash = i32Field()
     direction = vec3Field()
     color     = ColorField()
-    ambient = f32Field()
+    ambient   = f32Field()
 
 class SpriteInstance(FieldHandler):
     pSpriteInstance = PointerField(type_name='SpriteInstance *',

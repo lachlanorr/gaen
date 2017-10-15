@@ -33,6 +33,6 @@ component Distant
 
     #init()
     {
-        $.light_distant_insert(lightUid, dir, col);
+        $.light_insert(lightUid, dir, col);
     }
 }

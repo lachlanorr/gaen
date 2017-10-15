@@ -24,6 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include <algorithm>
+
 #include "core/base_defines.h"
 
 #include "math/matrices.h"
@@ -56,6 +58,10 @@
 namespace gaen
 {
 
+RendererMesh::RendererMesh()
+  : mModelStages(this)
+  , mSpriteStages(this)
+{}
 
 void RendererMesh::init(void * pRenderDevice,
                         u32 screenWidth,
@@ -64,6 +70,26 @@ void RendererMesh::init(void * pRenderDevice,
     mpRenderDevice = pRenderDevice;
     mScreenWidth = screenWidth;
     mScreenHeight = screenHeight;
+
+    Camera defaultModelCamera(kRendererTaskId,
+                              HASH::main,
+                              1.0f,
+                              perspective(radians(60.0f),
+                                          mScreenWidth / (f32)mScreenHeight,
+                                          0.1f,
+                                          100000.0f),
+                              mat43(1.0f));
+    mModelStages.cameraSetDefault(defaultModelCamera);
+
+    Camera defaultSpriteCamera(kRendererTaskId,
+                               HASH::main,
+                               1.0f,
+                               ortho(mScreenWidth * -0.5f,
+                                     mScreenWidth * 0.5f,
+                                     mScreenHeight * -0.5f,
+                                     mScreenHeight * 0.5f),
+                               mat43(1.0f));
+    mSpriteStages.cameraSetDefault(defaultSpriteCamera);
 
     mIsInit = true;
 }
@@ -97,9 +123,9 @@ void RendererMesh::initViewport()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    // Make sure we don't divide by zero
 
-    if (mScreenHeight==0)
+    if (mScreenHeight == 0)
     {
-        mScreenHeight=1;
+        mScreenHeight = 1;
     }
 
     // reset viewport
@@ -152,7 +178,7 @@ u32 RendererMesh::loadTexture(u32 textureUnit, const Gimg * pGimg)
                      GL_RGBA,
                      GL_UNSIGNED_BYTE,
                      pGimg->scanline(0));
-    
+
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -333,18 +359,10 @@ void RendererMesh::render()
     ASSERT(mIsInit);
 
     glClear(GL_COLOR_BUFFER_BIT);
+    mModelStages.render();
 
-    for (auto & stagePair : mModelStages)
-    {
-        glClear(GL_DEPTH_BUFFER_BIT);
-        stagePair.second->render();
-    }
-
-    for (auto & stagePair : mSpriteStages)
-    {
-        glClear(GL_DEPTH_BUFFER_BIT);
-        stagePair.second->render();
-    }
+    glClear(GL_DEPTH_BUFFER_BIT);
+    mSpriteStages.render();
 }
 
 template <typename T>
@@ -352,43 +370,43 @@ MessageResult RendererMesh::message(const T & msgAcc)
 {
     const Message & msg = msgAcc.message();
 
-    switch(msg.msgId)
+    switch (msg.msgId)
     {
-    case HASH::light_distant_insert:
+    case HASH::light_insert:
     {
         messages::LightDistantR<T> msgr(msgAcc);
-        lightDistantInsert(msgr.uid(),
-                           msgr.stageHash(),
-                           msgr.color(),
-                           msgr.ambient(),
-                           msgr.direction());
+        mModelStages.lightInsert(msgr.uid(),
+                                 msgr.stageHash(),
+                                 msgr.color(),
+                                 msgr.ambient(),
+                                 msgr.direction());
         break;
     }
-    case HASH::light_distant_direction:
+    case HASH::light_direction:
     {
         messages::UidVec3R<T> msgr(msgAcc);
-        lightDistantDirection(msgr.uid(),
-                              msgr.vector());
+        mModelStages.lightDirection(msgr.uid(),
+                                    msgr.vector());
         break;
     }
-    case HASH::light_distant_color:
+    case HASH::light_color:
     {
         messages::UidColorR<T> msgr(msgAcc);
-        lightDistantColor(msgr.uid(),
-                          msgr.color());
+        mModelStages.lightColor(msgr.uid(),
+                                msgr.color());
         break;
     }
-    case HASH::light_distant_ambient:
+    case HASH::light_ambient:
     {
         messages::UidScalarR<T> msgr(msgAcc);
-        lightDistantAmbient(msgr.uid(),
-                              msgr.scalar());
+        mModelStages.lightAmbient(msgr.uid(),
+                                  msgr.scalar());
         break;
     }
-    case HASH::light_distant_remove:
+    case HASH::light_remove:
     {
         u32 uid = msg.payload.u;
-        lightDistantRemove(uid);
+        mModelStages.lightRemove(uid);
         break;
     }
 
@@ -396,94 +414,108 @@ MessageResult RendererMesh::message(const T & msgAcc)
     case HASH::model_insert:
     {
         messages::ModelInstanceR<T> msgr(msgAcc);
-        modelInsert(msgr.modelInstance());
+        mModelStages.itemInsert(msgr.modelInstance());
         break;
     }
     case HASH::notify_transform:
     {
         messages::UidTransformR<T> msgr(msgAcc);
-        modelTransform(msgr.uid(), msgr.transform());
+        mModelStages.itemTransform(msgr.uid(), msgr.transform());
         break;
     }
     case HASH::model_remove:
     {
         u32 uid = msg.payload.u;
-        modelRemove(uid);
+        mModelStages.itemRemove(uid);
         break;
     }
 
     case HASH::model_stage_show:
     {
         u32 stageHash = msg.payload.u;
-        modelStageShow(stageHash);
+        mModelStages.show(stageHash);
         break;
     }
     case HASH::model_stage_hide:
     {
         u32 stageHash = msg.payload.u;
-        modelStageHide(stageHash);
+        mModelStages.hide(stageHash);
+        break;
+    }
+    case HASH::model_stage_hide_all:
+    {
+        mModelStages.hideAll();
         break;
     }
     case HASH::model_stage_remove:
     {
         u32 stageHash = msg.payload.u;
-        modelStageRemove(stageHash);
+        mModelStages.remove(stageHash);
+        break;
+    }
+    case HASH::model_stage_remove_all:
+    {
+        mModelStages.removeAll();
         break;
     }
     case HASH::model_stage_camera_insert_persp:
     {
         messages::CameraPerspR<T> msgr(msgAcc);
-        modelStageCameraInsertPersp(msgr.uid(),
-                                    msgr.stageHash(),
-                                    msgr.fov(),
-                                    msgr.nearClip(),
-                                    msgr.farClip(),
-                                    msgr.view());
+        mModelStages.cameraInsertPersp(msgr.uid(),
+                                       msgr.stageHash(),
+                                       screenWidth(),
+                                       screenHeight(),
+                                       msgr.fov(),
+                                       msgr.nearClip(),
+                                       msgr.farClip(),
+                                       msgr.view());
         break;
     }
     case HASH::model_stage_camera_insert_ortho:
     {
         messages::CameraOrthoR<T> msgr(msgAcc);
-        modelStageCameraInsertOrtho(msgr.uid(),
-                                    msgr.stageHash(),
-                                    msgr.scale(),
-                                    msgr.nearClip(),
-                                    msgr.farClip(),
-                                    msgr.view());
+        mModelStages.cameraInsertOrtho(msgr.uid(),
+                                       msgr.stageHash(),
+                                       screenWidth(),
+                                       screenHeight(),
+                                       msgr.scale(),
+                                       msgr.nearClip(),
+                                       msgr.farClip(),
+                                       msgr.view());
         break;
     }
     case HASH::model_stage_camera_scale:
     {
         messages::UidScalarR<T> msgr(msgAcc);
-        modelStageCameraScale(msgr.uid(),
-                              msgr.scalar());
+        mModelStages.cameraScale(msgr.uid(),
+                                 msgr.scalar());
         break;
     }
     case HASH::model_stage_camera_view:
     {
         messages::UidTransformR<T> msgr(msgAcc);
-        modelStageCameraView(msgr.uid(),
-                             msgr.transform());
+        mModelStages.cameraView(msgr.uid(),
+                                msgr.transform());
         break;
     }
     case HASH::model_stage_camera_scale_and_view:
     {
         messages::UidScalarTransformR<T> msgr(msgAcc);
-        modelStageCameraScaleAndView(msgr.uid(),
-                                     msgr.scalar(),
-                                     msgr.transform());
+        mModelStages.cameraScaleAndView(msgr.uid(),
+                                        msgr.scalar(),
+                                        msgr.transform());
         break;
     }
     case HASH::model_stage_camera_activate:
     {
         u32 uid = msg.payload.u;
-        modelStageCameraActivate(uid);
+        mModelStages.cameraActivate(uid);
         break;
     }
     case HASH::model_stage_camera_remove:
     {
         u32 uid = msg.payload.u;
-        modelStageCameraRemove(uid);
+        mModelStages.cameraRemove(uid);
         break;
     }
 
@@ -491,44 +523,44 @@ MessageResult RendererMesh::message(const T & msgAcc)
     case HASH::sprite_insert:
     {
         messages::SpriteInstanceR<T> msgr(msgAcc);
-        spriteInsert(msgr.spriteInstance());
+        mSpriteStages.itemInsert(msgr.spriteInstance());
         break;
     }
     case HASH::sprite_anim:
     {
         messages::SpriteAnimR<T> msgr(msgAcc);
-        spriteAnim(msgr.uid(), msgr.animHash(), msgr.animFrameIdx());
+        mSpriteStages.itemAnimate(msgr.uid(), msgr.animHash(), msgr.animFrameIdx());
         break;
     }
     case HASH::sprite_transform:
     {
         messages::UidTransformR<T> msgr(msgAcc);
-        spriteTransform(msgr.uid(), msgr.transform());
+        mSpriteStages.itemTransform(msgr.uid(), msgr.transform());
         break;
     }
     case HASH::sprite_remove:
     {
         u32 uid = msg.payload.u;
-        spriteRemove(uid);
+        mSpriteStages.itemRemove(uid);
         break;
     }
 
     case HASH::sprite_stage_show:
     {
         u32 stageHash = msg.payload.u;
-        spriteStageShow(stageHash);
+        mSpriteStages.show(stageHash);
         break;
     }
     case HASH::sprite_stage_hide:
     {
         u32 stageHash = msg.payload.u;
-        spriteStageHide(stageHash);
+        mSpriteStages.hide(stageHash);
         break;
     }
     case HASH::sprite_stage_remove:
     {
         u32 stageHash = msg.payload.u;
-        spriteStageRemove(stageHash);
+        mSpriteStages.remove(stageHash);
         break;
     }
 
@@ -557,345 +589,6 @@ shaders::Shader * RendererMesh::getShader(u32 nameHash)
     shaders::Shader* pShader = mShaderRegistry.constructShader(nameHash);
     mShaders[nameHash] = pShader;
     return pShader;
-}
-
-
-void RendererMesh::lightDistantInsert(u32 uid,
-                                      u32 stageHash,
-                                      Color color,
-                                      f32 ambient,
-                                      const vec3 & direction)
-{
-    ModelStage * pStage = modelStageFindOrCreate(stageHash);
-
-    LightDistant light(kRendererTaskId,
-                       uid,
-                       stageHash,
-                       color,
-                       ambient,
-                       direction);
-                       
-    pStage->lightDistantInsert(light);
-}
-
-void RendererMesh::lightDistantDirection(u32 uid, const vec3 & direction)
-{
-    for (auto & stagePair : mModelStages)
-    {
-        if (stagePair.second->lightDistantDirection(uid, direction))
-            return;
-    }
-    ERR("RendererMesh::lightDistantDirection unknown light, uid: %u", uid);
-}
-
-void RendererMesh::lightDistantColor(u32 uid, Color color)
-{
-    for (auto & stagePair : mModelStages)
-    {
-        if (stagePair.second->lightDistantColor(uid, color))
-            return;
-    }
-    ERR("RendererMesh::lightDistantColor unknown light, uid: %u", uid);
-}
-
-void RendererMesh::lightDistantAmbient(u32 uid, f32 ambient)
-{
-    for (auto & stagePair : mModelStages)
-    {
-        if (stagePair.second->lightDistantAmbient(uid, ambient))
-            return;
-    }
-    ERR("RendererMesh::lightDistantAmbient unknown light, uid: %u", uid);
-}
-
-void RendererMesh::lightDistantRemove(u32 uid)
-{
-    for (auto & stagePair : mModelStages)
-    {
-        if (stagePair.second->lightDistantRemove(uid))
-            return;
-    }
-    ERR("RendererMesh::lightDistantRemove unknown light, uid: %u", uid);
-}
-
-
-
-void RendererMesh::modelInsert(ModelInstance * pModelInst)
-{
-    ModelStage * pStage = modelStageFindOrCreate(pModelInst->stageHash());
-    pStage->insertItem(pModelInst);
-    pModelInst->registerTransformListener(kRendererTaskId);
-}
-
-void RendererMesh::modelTransform(u32 uid, const mat43 & transform)
-{
-    for (auto & stagePair : mModelStages)
-    {
-        if (stagePair.second->transformItem(uid, transform))
-            return;
-    }
-    ERR("RendererMesh::modelTransform unknown model, uid: %u", uid);
-}
-
-void RendererMesh::modelRemove(u32 uid)
-{
-    for (auto & stagePair : mModelStages)
-    {
-        if (stagePair.second->destroyItem(uid))
-            return;
-    }
-    ERR("RendererMesh::modelRemove unknown model, uid: %u", uid);
-}
-
-ModelStage * RendererMesh::modelStageFindOrCreate(u32 stageHash)
-{
-    auto it = mModelStages.find(stageHash);
-    if (it == mModelStages.end())
-    {
-        auto empIt = mModelStages.emplace(stageHash,
-                                           GNEW(kMEM_Renderer, ModelStage, stageHash, this));
-        ASSERT(empIt.second == true);
-        it = empIt.first;
-    }
-    return it->second.get();
-}
-
-void RendererMesh::modelStageShow(u32 stageHash)
-{
-    // hide all other stages, show the one specified
-    for (auto & stagePair : mModelStages)
-    {
-        if (stagePair.first != stageHash)
-            stagePair.second->hide();
-    }
-
-    auto it = mModelStages.find(stageHash);
-    if (it != mModelStages.end())
-    {
-        it->second->show();
-    }
-    else
-        ERR("modelStageShow unknown stage: %u", stageHash);
-}
-
-void RendererMesh::modelStageHide(u32 stageHash)
-{
-    auto it = mModelStages.find(stageHash);
-    if (it != mModelStages.end())
-    {
-        it->second->hide();
-    }
-    else
-        ERR("modelStageHide unknown stage: %u", stageHash);
-}
-
-void RendererMesh::modelStageRemove(u32 stageHash)
-{
-    auto it = mModelStages.find(stageHash);
-    if (it != mModelStages.end())
-    {
-        mModelStages.erase(it);
-    }
-    else
-        ERR("modelStageRemove unknown stage: %u", stageHash);
-}
-
-void RendererMesh::modelStageCameraInsertPersp(u32 uid,
-                                               u32 stageHash,
-                                               f32 fov,
-                                               f32 nearClip,
-                                               f32 farClip,
-                                               const mat43 & view)
-{
-    Camera cam(kRendererTaskId,
-               uid,
-               stageHash,
-               1.0f,
-               perspective(fov,
-                           screenWidth() / (f32)screenHeight(),
-                           nearClip,
-                           farClip),
-               view);
-
-    ModelStage * pStage = modelStageFindOrCreate(stageHash);
-    pStage->cameraInsert(uid, cam);
-}
-
-void RendererMesh::modelStageCameraInsertOrtho(u32 uid,
-                                               u32 stageHash,
-                                               f32 scale,
-                                               f32 nearClip,
-                                               f32 farClip,
-                                               const mat43 & view)
-{
-    mat4 proj = ortho(screenWidth() * -0.5f,
-                      screenWidth() * 0.5f,
-                      screenHeight() * -0.5f,
-                      screenHeight() * 0.5f,
-                      nearClip,
-                      farClip);
-
-    Camera cam(kRendererTaskId,
-               uid,
-               stageHash,
-               scale,
-               proj,
-               view);
-
-    ModelStage * pStage = modelStageFindOrCreate(stageHash);
-    pStage->cameraInsert(uid, cam);
-}
-
-void RendererMesh::modelStageCameraScale(u32 uid, f32 scale)
-{
-    for (auto & stagePair : mModelStages)
-    {
-        Camera * pCam = stagePair.second->camera(uid);
-        if (pCam)
-        {
-            pCam->setScale(scale);
-            return;
-        }
-    }
-    ERR("RendererMesh::modelStageCameraView unknown camera, uid: %u", uid);
-}
-
-void RendererMesh::modelStageCameraView(u32 uid, const mat43 & view)
-{
-    for (auto & stagePair : mModelStages)
-    {
-        Camera * pCam = stagePair.second->camera(uid);
-        if (pCam)
-        {
-            pCam->setView(view);
-            return;
-        }
-    }
-    ERR("RendererMesh::modelStageCameraView unknown camera, uid: %u", uid);
-}
-
-void RendererMesh::modelStageCameraScaleAndView(u32 uid, f32 scale, const mat43 & view)
-{
-    for (auto & stagePair : mModelStages)
-    {
-        Camera * pCam = stagePair.second->camera(uid);
-        if (pCam)
-        {
-            pCam->setScaleAndView(scale, view);
-            return;
-        }
-    }
-    ERR("RendererMesh::modelStageCameraView unknown camera, uid: %u", uid);
-}
-
-void RendererMesh::modelStageCameraActivate(u32 uid)
-{
-    for (auto & stagePair : mModelStages)
-    {
-        if (stagePair.second->cameraActivate(uid))
-            return;
-    }
-    ERR("RendererMesh::modelStageCameraActivate unknown camera, uid: %u", uid);
-}
-
-void RendererMesh::modelStageCameraRemove(u32 uid)
-{
-    for (auto & stagePair : mModelStages)
-    {
-        if (stagePair.second->cameraRemove(uid))
-            return;
-    }
-    ERR("RendererMesh::modelStageCameraRemove unknown camera, uid: %u", uid);
-}
-
-
-void RendererMesh::spriteInsert(SpriteInstance * pSpriteInst)
-{
-    SpriteStage * pStage = spriteStageFindOrCreate(pSpriteInst->stageHash());
-    pStage->insertItem(pSpriteInst);
-}
-
-void RendererMesh::spriteAnim(u32 uid, u32 animHash, u32 animFrameIdx)
-{
-    for (auto & stagePair : mSpriteStages)
-    {
-        if (stagePair.second->animateItem(uid, animHash, animFrameIdx))
-            return;
-    }
-    ERR("RendererMesh::spriteAnim unknown sprite, uid: %u", uid);
-}
-
-void RendererMesh::spriteTransform(u32 uid, const mat43 & transform)
-{
-    for (auto & stagePair : mSpriteStages)
-    {
-        if (stagePair.second->transformItem(uid, transform))
-            return;
-    }
-    ERR("RendererMesh::spriteTransform unknown sprite, uid: %u", uid);
-}
-
-void RendererMesh::spriteRemove(u32 uid)
-{
-    for (auto & stagePair : mSpriteStages)
-    {
-        if (stagePair.second->destroyItem(uid))
-            return;
-    }
-    ERR("RendererMesh::spriteRemove unknown sprite, uid: %u", uid);
-}
-
-SpriteStage * RendererMesh::spriteStageFindOrCreate(u32 stageHash)
-{
-    auto it = mSpriteStages.find(stageHash);
-    if (it == mSpriteStages.end())
-    {
-        auto empIt = mSpriteStages.emplace(stageHash,
-                                           GNEW(kMEM_Renderer, SpriteStage, stageHash, this));
-        ASSERT(empIt.second == true);
-        it = empIt.first;
-    }
-    return it->second.get();
-}
-
-void RendererMesh::spriteStageShow(u32 stageHash)
-{
-    // hide all other stages, show the one specified
-    for (auto & stagePair : mSpriteStages)
-    {
-        if (stagePair.first != stageHash)
-            stagePair.second->hide();
-    }
-
-    auto it = mSpriteStages.find(stageHash);
-    if (it != mSpriteStages.end())
-    {
-        it->second->show();
-    }
-    else
-        ERR("RendererMesh::spriteStageShow unknown stage: %u", stageHash);
-}
-
-void RendererMesh::spriteStageHide(u32 stageHash)
-{
-    auto it = mSpriteStages.find(stageHash);
-    if (it != mSpriteStages.end())
-    {
-        it->second->hide();
-    }
-    else
-        ERR("RendererMesh::spriteStageHide unknown stage: %u", stageHash);
-}
-
-void RendererMesh::spriteStageRemove(u32 stageHash)
-{
-    auto it = mSpriteStages.find(stageHash);
-    if (it != mSpriteStages.end())
-    {
-        mSpriteStages.erase(it);
-    }
-    else
-        ERR("RendererMesh::spriteStageRemove unknown stage: %u", stageHash);
 }
 
 

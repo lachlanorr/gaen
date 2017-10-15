@@ -120,7 +120,7 @@ private:
     mat4 mProjection;
     mat4 mGuiProjection;
 
-    List<kMEM_Renderer, LightDistant> mLightDistants;
+    List<kMEM_Renderer, Light> mLights;
 
     shaders::Shader * mpActiveShader = nullptr;
 

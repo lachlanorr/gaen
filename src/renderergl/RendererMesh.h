@@ -39,12 +39,15 @@
 #include "render_support/render_objects.h"
 
 #include "renderergl/gaen_opengl.h"
-#include "renderergl/ModelStage.h"
-#include "renderergl/SpriteStage.h"
+#include "renderergl/ModelGL.h"
+#include "renderergl/SpriteGL.h"
+#include "renderergl/Stage.h"
+#include "renderergl/StageMgr.h"
 #include "renderergl/ShaderRegistry.h"
 
 namespace gaen
 {
+class Gimg;
 
 class RendererMesh
 {
@@ -55,6 +58,8 @@ public:
         kMSHR_VertBuffer = 1,
         kMSHR_PrimBuffer = 2
     };
+
+    RendererMesh();
 
     void init(void * pRenderDevice,
               u32 screenWidth,
@@ -96,53 +101,8 @@ private:
 
     static void prepare_gmdl_attributes(const Gmdl & gmdl);
 
-
     shaders::Shader * getShader(u32 nameHash);
 
-    void lightDistantInsert(u32 uid,
-                            u32 stageHash,
-                            Color color,
-                            f32 ambient,
-                            const vec3 & direction);
-    void lightDistantDirection(u32 uid, const vec3 & direction);
-    void lightDistantColor(u32 uid, Color color);
-    void lightDistantAmbient(u32 uid, f32 ambient);
-    void lightDistantRemove(u32 uid);
-
-    void modelInsert(ModelInstance * pModelInst);
-    void modelTransform(u32 uid, const mat43 & transform);
-    void modelRemove(u32 uid);
-    ModelStage * modelStageFindOrCreate(u32 stageHash);
-    void modelStageShow(u32 stageHash);
-    void modelStageHide(u32 stageHash);
-    void modelStageRemove(u32 stageHash);
-    void modelStageCameraInsertPersp(u32 uid,
-                                     u32 stageHash,
-                                     f32 fov,
-                                     f32 nearClip,
-                                     f32 farClip,
-                                     const mat43 & view);
-    void modelStageCameraInsertOrtho(u32 uid,
-                                     u32 stageHash,
-                                     f32 scale,
-                                     f32 nearClip,
-                                     f32 farClip,
-                                     const mat43 & view);
-    void modelStageCameraScale(u32 uid, f32 scale);
-    void modelStageCameraView(u32 uid, const mat43 & view);
-    void modelStageCameraScaleAndView(u32 uid, f32 scale, const mat43 & view);
-    void modelStageCameraActivate(u32 uid);
-    void modelStageCameraRemove(u32 uid);
-
-    void spriteInsert(SpriteInstance * pSpriteInst);
-    void spriteAnim(u32 uid, u32 animHash, u32 animFrameIdx);
-    void spriteTransform(u32 uid, const mat43 & transform);
-    void spriteRemove(u32 uid);
-    SpriteStage * spriteStageFindOrCreate(u32 stageHash);
-    void spriteStageShow(u32 stageHash);
-    void spriteStageHide(u32 stageHash);
-    void spriteStageRemove(u32 stageHash);
-    
     bool mIsInit = false;
     
     void * mpRenderDevice = nullptr;
@@ -154,12 +114,9 @@ private:
     GLint mMaxTextureImageUnits = 0;
     GLint mMaxTextureSize = 0;
 
-    typedef HashMap<kMEM_Renderer, u32, ModelStageUP> ModelStageMap;
-    ModelStageMap mModelStages;
+    StageMgr<Stage<ModelGL>> mModelStages;
+    StageMgr<Stage<SpriteGL>> mSpriteStages;
 
-    typedef HashMap<kMEM_Renderer, u32, SpriteStageUP> SpriteStageMap;
-    SpriteStageMap mSpriteStages;
-    
     shaders::Shader * mpActiveShader = nullptr;
 
     ShaderRegistry mShaderRegistry;

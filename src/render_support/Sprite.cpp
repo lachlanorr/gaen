@@ -132,9 +132,10 @@ const Gimg & Sprite::gimg() const
 
 // SpriteInstance methods
 
-SpriteInstance::SpriteInstance(Sprite * pSprite, u32 stageHash, const mat43 & transform)
+SpriteInstance::SpriteInstance(Sprite * pSprite, u32 stageHash, RenderPass pass, const mat43 & transform)
   : mpSprite(pSprite)
   , mStageHash(stageHash)
+  , mPass(pass)
   , mHasBody(false)
   , mTransform(transform)
   , mIsAnimating(false)
@@ -145,6 +146,11 @@ SpriteInstance::SpriteInstance(Sprite * pSprite, u32 stageHash, const mat43 & tr
     mDurationSinceFrameChange = 0.0f;
     mAnimHash = 0;
     animate(mpSprite->mpGspr->defaultAnimHash(), 0);
+}
+
+void SpriteInstance::registerTransformListener(task_id taskId)
+{
+    MessageQueueWriter msgw(HASH::register_transform_listener, kMessageFlag_None, taskId, mpSprite->owner(), to_cell(mpSprite->uid()), 0);
 }
 
 void SpriteInstance::destroySprite()

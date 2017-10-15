@@ -35,11 +35,12 @@ namespace gaen
 
 class RendererMesh;
 
-template <class ItemGLT>
+template <class ItemT>
 class Stage
 {
 public:
-    const u32 kMaxLightDistantVecSize = 4;
+    typedef ItemT ItemType;
+    const u32 kMaxLightVecSize = 4;
 
     Stage(u32 stageHash, RendererMesh * pRenderer, const Camera & defaultCamera)
       : mStageHash(stageHash)
@@ -50,7 +51,7 @@ public:
         mpDefaultCamera = &pair.first->second;
         mpCamera = mpDefaultCamera;
 
-        mLightDistants.reserve(kMaxLightDistantVecSize);
+        mLights.reserve(kMaxLightVecSize);
     }
 
     u32 stageHash() { return mStageHash; }
@@ -59,48 +60,56 @@ public:
 
     void render()
     {
-        if (isShown() && itemsSize() > 0)
+        if (isShown())
         {
             const mat4 & viewProj = cameraActive()->viewProjection();
 
-            for(auto it = beginItems();
-                it != endItems();
-                /* no increment so we can remove while iterating */)
+            for (u32 i = 0; i < kRP_COUNT; ++i)
             {
-                ItemGLT * pItemGL = *it;
-                mpRenderer->setActiveShader(pItemGL->shaderHash());
-
-                if (pItemGL->status() == kRIS_Active)
+                for(auto it = mItems[i].begin();
+                    it != mItems[i].end();
+                    /* no increment so we can remove while iterating */)
                 {
-                    mat4 mvp = viewProj * mat4(pItemGL->transform());
-                    mpRenderer->activeShader().setUniformMat4(HASH::uMvp, mvp);
-                    mpRenderer->activeShader().setUniformMat3(HASH::uNormal, mat3(pItemGL->transform()));
+                    ItemT * pItem = *it;
+                    mpRenderer->setActiveShader(pItem->shaderHash());
 
-                    if (mLightDistants.size() > 0)
+                    if (pItem->status() == kRIS_Active)
                     {
-                        mpRenderer->activeShader().setUniformVec3(HASH::uLight0_Incidence, mLightDistants[0].incidence());
-                        mpRenderer->activeShader().setUniformVec3(HASH::uLight0_Color, mLightDistants[0].color());
-                        mpRenderer->activeShader().setUniformFloat(HASH::uLight0_Ambient, mLightDistants[0].ambient());
+                        mat4 mvp = viewProj * mat4(pItem->transform());
+                        mpRenderer->activeShader().setUniformMat4(HASH::uMvp, mvp);
+                        mpRenderer->activeShader().setUniformMat3(HASH::uNormal, mat3(pItem->transform()));
 
-                        if (mLightDistants.size() > 1)
+                        if (mLights.size() > 0)
                         {
-                            mpRenderer->activeShader().setUniformVec3(HASH::uLight1_Incidence, mLightDistants[1].incidence());
-                            mpRenderer->activeShader().setUniformVec3(HASH::uLight1_Color, mLightDistants[1].color());
-                            mpRenderer->activeShader().setUniformFloat(HASH::uLight1_Ambient, mLightDistants[1].ambient());
+                            mpRenderer->activeShader().setUniformVec3(HASH::uLight0_Incidence, mLights[0].incidence());
+                            mpRenderer->activeShader().setUniformVec3(HASH::uLight0_Color, mLights[0].color());
+                            mpRenderer->activeShader().setUniformFloat(HASH::uLight0_Ambient, mLights[0].ambient());
+
+                            if (mLights.size() > 1)
+                            {
+                                mpRenderer->activeShader().setUniformVec3(HASH::uLight1_Incidence, mLights[1].incidence());
+                                mpRenderer->activeShader().setUniformVec3(HASH::uLight1_Color, mLights[1].color());
+                                mpRenderer->activeShader().setUniformFloat(HASH::uLight1_Ambient, mLights[1].ambient());
+                            }
                         }
+
+                        pItem->render();
+                        ++it;
                     }
+                    else if (pItem->status() == kRIS_Destroyed)
+                    {
+                        pItem->unloadGpu();
 
-                    pItemGL->render();
-                    ++it;
-                }
-                else if (pItemGL->status() == kRIS_Destroyed)
-                {
-                    pItemGL->unloadGpu();
-
-                    eraseItem(it++);
+                        mItems[i].erase(it++);
+                    }
                 }
             }
         }
+    }
+
+    u32 camerasSize()
+    {
+        return mCameraMap.size();
     }
 
     Camera * camera(u32 uid)
@@ -148,31 +157,31 @@ public:
         return false;
     }
 
-    void lightDistantInsert(const LightDistant & light)
+    void lightInsert(const Light & light)
     {
-        if (mLightDistants.size() < kMaxLightDistantVecSize)
+        if (mLights.size() < kMaxLightVecSize)
         {
-            mLightDistants.emplace_back(light);
+            mLights.emplace_back(light);
             return;
         }
     }
 
-    Vector<kMEM_Renderer, LightDistant>::iterator lightDistantFind(u32 uid)
+    Vector<kMEM_Renderer, Light>::iterator lightFind(u32 uid)
     {
-        for (auto it = mLightDistants.begin();
-             it != mLightDistants.end();
+        for (auto it = mLights.begin();
+             it != mLights.end();
              ++it)
         {
             if (it->uid() == uid)
                 return it;
         }
-        return mLightDistants.end();
+        return mLights.end();
     }
 
-    bool lightDistantDirection(u32 uid, const vec3 & direction)
+    bool lightDirection(u32 uid, const vec3 & direction)
     {
-        auto it = lightDistantFind(uid);
-        if (it != mLightDistants.end())
+        auto it = lightFind(uid);
+        if (it != mLights.end())
         {
             it->setDirection(direction);
             return true;
@@ -180,10 +189,10 @@ public:
         return false;
     }
 
-    bool lightDistantColor(u32 uid, Color color)
+    bool lightColor(u32 uid, Color color)
     {
-        auto it = lightDistantFind(uid);
-        if (it != mLightDistants.end())
+        auto it = lightFind(uid);
+        if (it != mLights.end())
         {
             it->setColor(color);
             return true;
@@ -191,10 +200,10 @@ public:
         return false;
     }
 
-    bool lightDistantAmbient(u32 uid, f32 ambient)
+    bool lightAmbient(u32 uid, f32 ambient)
     {
-        auto it = lightDistantFind(uid);
-        if (it != mLightDistants.end())
+        auto it = lightFind(uid);
+        if (it != mLights.end())
         {
             it->setAmbient(ambient);
             return true;
@@ -202,12 +211,12 @@ public:
         return false;
     }
 
-    bool lightDistantRemove(u32 uid)
+    bool lightRemove(u32 uid)
     {
-        auto it = lightDistantFind(uid);
-        if (it != mLightDistants.end())
+        auto it = lightFind(uid);
+        if (it != mLights.end())
         {
-            mLightDistants.erase(it);
+            mLights.erase(it);
             return true;
         }
         return false;
@@ -217,54 +226,69 @@ public:
     void show() { mIsShown = true; }
     void hide() { mIsShown = false; }
 
-    u32 itemsSize() { return mItems.size(); }
-
-    void insertItem(typename ItemGLT::InstanceT * pInst)
+    void itemInsert(typename ItemT::InstanceType * pInst)
     {
+        ASSERT(pInst->pass() >= 0 && pInst->pass() < kRP_COUNT);
         ASSERT(pInst);
-        ASSERT(mItems.find(pInst->uid()) == mItems.end());
+        ASSERT(mItems[pInst->pass()].find(pInst->uid()) == mItems[pInst->pass()].end());
 
-        UniquePtr<ItemGLT> pItemGL(GNEW(kMEM_Renderer, ItemGLT, pInst, mpRenderer));
-        pItemGL->loadGpu();
-        mItems.insert(std::move(pItemGL));
+        UniquePtr<ItemT> pItem(GNEW(kMEM_Renderer, ItemT, pInst, mpRenderer));
+        pItem->loadGpu();
+        mItems[pInst->pass()].insert(std::move(pItem));
     }
     
-    bool transformItem(u32 uid, const mat43 & transform)
+    bool itemTransform(u32 uid, const mat43 & transform)
     {
-        auto it = mItems.find(uid);
-        if (it != mItems.end())
+        for (u32 i = 0; i < kRP_COUNT; ++i)
         {
-            f32 oldOrder = it->order();
-            it->setTransform(transform);
-            if (oldOrder != it->order())
+            auto it = mItems[i].find(uid);
+            if (it != mItems[i].end())
             {
-                mItems.reorder(uid);
+                f32 oldOrder = it->order();
+                it->setTransform(transform);
+                if (oldOrder != it->order())
+                {
+                    mItems[i].reorder(uid);
+                }
+
+                return true;
             }
-
-            return true;
         }
         return false;
     }
 
-    bool destroyItem(u32 uid)
+    bool itemAnimate(u32 uid, u32 animHash, u32 animFrameIdx)
     {
-        auto it = mItems.find(uid);
-        if (it != mItems.end())
+        for (u32 i = 0; i < kRP_COUNT; ++i)
         {
-            // Mark destroyed, it will get pulled from maps during next render pass.
-            it->setStatus(kRIS_Destroyed);
-            it->reportDestruction();
-
-            return true;
+            auto it = mItems[i].find(uid);
+            if (it != mItems[i].end())
+            {
+                it->animate(animHash, animFrameIdx);
+                return true;
+            }
         }
         return false;
     }
 
-    typename RenderCollection<ItemGLT>::Iter beginItems()       { return mItems.begin(); }
-    typename RenderCollection<ItemGLT>::Iter endItems()         { return mItems.end(); }
-    void eraseItem(typename RenderCollection<ItemGLT>::Iter it) { mItems.erase(it); }
+    bool itemDestroy(u32 uid)
+    {
+        for (u32 i = 0; i < kRP_COUNT; ++i)
+        {
+            auto it = mItems[i].find(uid);
+            if (it != mItems[i].end())
+            {
+                // Mark destroyed, it will get pulled from maps during next render pass.
+                it->setStatus(kRIS_Destroyed);
+                it->reportDestruction();
 
-protected:
+                return true;
+            }
+        }
+        return false;
+    }
+
+private:
     u32 mStageHash;
     RendererMesh * mpRenderer;
     bool mIsShown;
@@ -273,10 +297,9 @@ protected:
     const Camera * mpDefaultCamera;
     HashMap<kMEM_Renderer, u32, Camera> mCameraMap;
 
-    Vector<kMEM_Renderer, LightDistant> mLightDistants;
+    Vector<kMEM_Renderer, Light> mLights;
 
-    RenderCollection<ItemGLT> mItems;
-
+    RenderCollection<ItemT> mItems[kRP_COUNT];
 }; // class Stage
 
 } // namespace gaen

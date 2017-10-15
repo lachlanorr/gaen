@@ -79,6 +79,18 @@ inline T abs(T x)
     return glm::abs(x);
 }
 
+template<typename T>
+inline T acos(T x)
+{
+    return glm::acos(x);
+}
+
+template<typename T>
+inline T atan(T x)
+{
+    return glm::atan(x);
+}
+
 inline f32 uintBitsToFloat(u32 x)
 {
     return glm::uintBitsToFloat(x);

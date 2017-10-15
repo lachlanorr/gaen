@@ -62,7 +62,7 @@ private:
 class Entity;
 namespace system_api
 {
-i32 sprite_create(AssetHandleP pAssetHandle, i32 stageHash, const mat43 & transform, Entity * pCaller);
+i32 sprite_create(AssetHandleP pAssetHandle, i32 stageHash, i32 passHash, const mat43 & transform, Entity * pCaller);
 void sprite_play_anim(i32 spriteUid, i32 animHash, f32 duration, bool loop, i32 doneMessage, Entity * pCaller);
 void sprite_set_velocity(i32 spriteUid, const vec2 & velocity, Entity * pCaller);
 void sprite_init_body(i32 spriteUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity * pCaller);

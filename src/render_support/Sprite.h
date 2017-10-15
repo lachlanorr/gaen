@@ -88,12 +88,15 @@ class SpriteInstance
     friend class SpriteMotionState;
     friend class SpritePhysics;
 public:
-    SpriteInstance(Sprite * pSprite, u32 stageHash, const mat43 & transform);
+    SpriteInstance(Sprite * pSprite, u32 stageHash, RenderPass pass, const mat43 & transform);
 
     const Sprite & sprite() { return *mpSprite; }
     u32 stageHash() { return mStageHash; }
+    RenderPass pass() { return mPass; }
 
     ruid uid() const { return mpSprite->uid(); }
+
+    void registerTransformListener(task_id taskId);
 
     void destroySprite();
 
@@ -123,6 +126,7 @@ private:
 
     Sprite * mpSprite;
     u32 mStageHash;
+    RenderPass mPass;
 
     bool mHasBody;
     

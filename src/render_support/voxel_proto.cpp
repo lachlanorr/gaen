@@ -139,9 +139,9 @@ void ComputeShaderSimulator::init(uvec3 workGroupSize,
     gl_NumWorkGroups = numWorkGroups;
 }
 
-void ComputeShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, LightDistant> & lights)
+void ComputeShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, Light> & lights)
 {
-    // prpare uniforms
+    // prepare uniforms
     un_CameraPos = camera.position();
     un_CameraDir = camera.direction();
     un_CameraProjectionInv = camera.projectionInv();
@@ -393,7 +393,7 @@ void FragmentShaderSimulator::init(u32 outputImageSize, RaycastCamera * pRaycast
     voxelRoot = set_shape_generic(voxelWorld, 0, 0, 3, vec3(1.0f, 2.0f, -20.0f), kRad, mat3(1.0f), SphereHitTest(kRad));
 }
 
-void FragmentShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, LightDistant> & lights)
+void FragmentShaderSimulator::render(const RaycastCamera & camera, const List<kMEM_Renderer, Light> & lights)
 {
     projectionInv = camera.projectionInv();
 

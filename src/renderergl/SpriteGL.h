@@ -41,7 +41,7 @@ class RendererMesh;
 class SpriteGL
 {
 public:
-    typedef SpriteInstance InstanceT;
+    typedef SpriteInstance InstanceType;
     
     SpriteGL(SpriteInstance * pSpriteInstance, RendererMesh * pRenderer)
       : mpSpriteInstance(pSpriteInstance)

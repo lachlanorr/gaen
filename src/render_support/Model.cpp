@@ -83,10 +83,11 @@ const Gmdl & Model::gmdl() const
 
 // ModelInstance methods
 
-ModelInstance::ModelInstance(Model * pModel, u32 stageHash, const mat43 & transform, bool isRenderable)
+ModelInstance::ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, const mat43 & transform, bool isRenderable)
   : mTransform(transform)
   , mpModel(pModel)
   , mStageHash(stageHash)
+  , mPass(pass)
   , mHasBody(false)
   , mIsRenderable(isRenderable)
 {}
