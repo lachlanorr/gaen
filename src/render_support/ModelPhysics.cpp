@@ -38,9 +38,9 @@ namespace gaen
 
 void gaen_to_bullet_transform(btTransform & bT, const mat43 & gT)
 {
-    bT.setBasis(btMatrix3x3(gT[0][0], gT[0][1], gT[0][2],
-                            gT[1][0], gT[1][1], gT[1][2],
-                            gT[2][0], gT[2][1], gT[2][2]));
+    bT.setBasis(btMatrix3x3(gT[0][0], gT[1][0], gT[2][0],
+                            gT[0][1], gT[1][1], gT[2][1],
+                            gT[0][2], gT[1][2], gT[2][2]));
 
     bT.setOrigin(btVector3(gT[3][0], gT[3][1], gT[3][2]));
 }
@@ -48,15 +48,15 @@ void gaen_to_bullet_transform(btTransform & bT, const mat43 & gT)
 void bullet_to_gaen_transform(mat43 & gT, const btTransform & bT)
 {
     gT[0][0] = bT.getBasis()[0][0];
-    gT[0][1] = bT.getBasis()[0][1];
-    gT[0][2] = bT.getBasis()[0][2];
+    gT[0][1] = bT.getBasis()[1][0];
+    gT[0][2] = bT.getBasis()[2][0];
 
-    gT[1][0] = bT.getBasis()[1][0];
+    gT[1][0] = bT.getBasis()[0][1];
     gT[1][1] = bT.getBasis()[1][1];
-    gT[1][2] = bT.getBasis()[1][2];
+    gT[1][2] = bT.getBasis()[2][1];
 
-    gT[2][0] = bT.getBasis()[2][0];
-    gT[2][1] = bT.getBasis()[2][1];
+    gT[2][0] = bT.getBasis()[0][2];
+    gT[2][1] = bT.getBasis()[1][2];
     gT[2][2] = bT.getBasis()[2][2];
 
     gT[3][0] = bT.getOrigin()[0];
@@ -76,6 +76,8 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 
     if (newTrans != mModelInstance.mTransform)
     {
+        LOG_INFO("setWorldTransform uid = %u, pos = {%f, %f, %f}", mModelInstance.uid(), newTrans.cols[3][0], newTrans.cols[3][1], newTrans.cols[3][2]);
+
         mModelInstance.mTransform = newTrans;
 
         // Send transform to entity
@@ -157,6 +159,9 @@ void ModelPhysics::update(f32 delta)
 
 void ModelPhysics::insert(ModelInstance & modelInst,
                           f32 mass,
+                          f32 friction,
+                          vec3 linearFactor,
+                          vec3 angularFactor,
                           u32 group,
                           const ivec4 & mask03,
                           const ivec4 & mask47)
@@ -182,6 +187,7 @@ void ModelPhysics::insert(ModelInstance & modelInst,
 
         ModelMotionState * pMotionState = GNEW(kMEM_Physics, ModelMotionState, modelInst);
         btRigidBody::btRigidBodyConstructionInfo constrInfo(mass, pMotionState, pCollisionShape);
+        constrInfo.m_friction = friction;
 
 //        constrInfo.m_angularDamping = 0.1;
 //        constrInfo.m_localInertia = btExtents;
@@ -189,8 +195,8 @@ void ModelPhysics::insert(ModelInstance & modelInst,
         ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, pMotionState, group, constrInfo);
         mBodies.emplace(modelInst.model().uid(), pBody);
 
-        pBody->setLinearFactor(btVector3(1, 1, 1));
-        pBody->setAngularFactor(btVector3(1, 0, 1));
+        pBody->setLinearFactor(btVector3(linearFactor.x, linearFactor.y, linearFactor.z));
+        pBody->setAngularFactor(btVector3(angularFactor.x, angularFactor.y, angularFactor.z));
 
         if (group == 0)
         {
@@ -229,6 +235,8 @@ void ModelPhysics::setTransform(u32 uid, const mat43 & transform)
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
     {
+        LOG_INFO("setTransform uid = %u, pos = {%f, %f, %f}", uid, transform.cols[3][0], transform.cols[3][1], transform.cols[3][2]);
+
         // Update bullet
         btTransform btTrans;
         gaen_to_bullet_transform(btTrans, transform);

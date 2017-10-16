@@ -136,6 +136,35 @@ inline f32 length(const vec4 & v)
     return glm::length((vec4::glm_t)v);
 }
 
+template <>
+inline vec4 abs<vec4>(const vec4 & v)
+{
+    return vec4(abs(v.x),
+                abs(v.y),
+                abs(v.z),
+                abs(v.w));
+}
+
+template <>
+inline vec4 min<vec4>(const vec4 & lhs, const vec4 & rhs)
+{
+    return vec4(min(lhs.x, rhs.x),
+                min(lhs.y, rhs.y),
+                min(lhs.z, rhs.z),
+                min(lhs.w, rhs.w));
+}
+
+template <>
+inline vec4 max<vec4>(const vec4 & lhs, const vec4 & rhs)
+{
+    return vec4(max(lhs.x, rhs.x),
+                max(lhs.y, rhs.y),
+                max(lhs.z, rhs.z),
+                max(lhs.w, rhs.w));
+}
+
+
+
 } // namespace gaen
 
 #endif // #ifndef GAEN_MATH_VEC4_H

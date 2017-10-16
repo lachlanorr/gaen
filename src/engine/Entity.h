@@ -81,6 +81,9 @@ public:
     void applyTransform(bool isLocal, const mat43 & mat);
     void updateTransform();
 
+    void constrainPosition(const vec3 & min, const vec3 & max);
+    mat43 applyPositionConstraint(const mat43 & mat) const;
+
     void registerTransformListener(task_id taskId, u32 uid);
 
     u32 player() const { return mPlayer; }
@@ -161,6 +164,9 @@ protected:
 
     mat43 mTransform;
     mat43 mLocalTransform;
+
+    vec3 mPosMin;
+    vec3 mPosMax;
 
     static const u32 kMaxTransformListeners = 4;
     struct TransformListener

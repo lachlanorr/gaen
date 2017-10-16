@@ -96,6 +96,9 @@ public:
 
     void insert(ModelInstance & modelInst,
                 f32 mass,
+                f32 friction,
+                vec3 linearFactor,
+                vec3 angularFactor,
                 u32 group,
                 const ivec4 & mask03,
                 const ivec4 & mask47);

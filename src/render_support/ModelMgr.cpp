@@ -153,7 +153,14 @@ MessageResult ModelMgr::message(const T & msgAcc)
         auto modelPair = mModelMap.find(msgr.uid());
         if (modelPair != mModelMap.end())
         {
-            mPhysics.insert(*modelPair->second, msgr.mass(), msgr.group(), msgr.mask03(), msgr.mask47());
+            mPhysics.insert(*modelPair->second,
+                            msgr.mass(),
+                            msgr.friction(),
+                            msgr.linearFactor(),
+                            msgr.angularFactor(),
+                            msgr.group(),
+                            msgr.mask03(),
+                            msgr.mask47());
         }
         else
         {
@@ -270,10 +277,21 @@ void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity * pC
     msgw.setVector(velocity);
 }
 
-void model_init_body(i32 modelUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity * pCaller)
+void model_init_body(i32 modelUid,
+                     f32 mass,
+                     f32 friction,
+                     vec3 linearFactor,
+                     vec3 angularFactor,
+                     i32 group,
+                     ivec4 mask03,
+                     ivec4 mask47,
+                     Entity * pCaller)
 {
     messages::ModelBodyQW msgw(HASH::model_init_body, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
     msgw.setMass(mass);
+    msgw.setFriction(friction);
+    msgw.setLinearFactor(linearFactor);
+    msgw.setAngularFactor(angularFactor);
     msgw.setGroup(group);
     msgw.setMask03(mask03);
     msgw.setMask47(mask47);

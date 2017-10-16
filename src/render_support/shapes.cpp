@@ -658,6 +658,8 @@ void transform_gmdl(Gmdl * pGmdl, const mat43 & transform)
 
         ++pVert;
     }
+
+    pGmdl->updateHalfExtents();
 }
 
 Gmdl * build_hex(f32 height, f32 length, Color * pColors, u32 colorsSize, const mat43 & transform)
@@ -936,10 +938,10 @@ namespace system_api
 {
 i32 shape_box(i32 stageHash, i32 passHash, const vec3 & size, Color color, const mat43 & transform, Entity * pCaller)
 {
-    Gmdl * pGmdl = build_box(size, color, transform);
+    Gmdl * pGmdl = build_box(size, color, mat43(1.0f));
 
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pGmdl);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), mat43(1.0f), true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), transform, true);
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
     return pModel->uid();
 }
@@ -947,10 +949,10 @@ i32 shape_box(i32 stageHash, i32 passHash, const vec3 & size, Color color, const
 i32 shape_cone(i32 stageHash, i32 passHash, const vec3 & size, i32 slices, Color color, const mat43 & transform, Entity * pCaller)
 {
     slices = slices > 0 ? slices : 0;
-    Gmdl * pGmdl = build_cone(size, slices, color, transform);
+    Gmdl * pGmdl = build_cone(size, slices, color, mat43(1.0f));
 
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pGmdl);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), mat43(1.0f), true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), transform, true);
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
     return pModel->uid();
 }
@@ -958,10 +960,10 @@ i32 shape_cone(i32 stageHash, i32 passHash, const vec3 & size, i32 slices, Color
 i32 shape_cylinder(i32 stageHash, i32 passHash, const vec3 & size, i32 slices, Color color, const mat43 & transform, Entity * pCaller)
 {
     slices = slices > 0 ? slices : 0;
-    Gmdl * pGmdl = build_cylinder(size, slices, color, transform);
+    Gmdl * pGmdl = build_cylinder(size, slices, color, mat43(1.0f));
 
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pGmdl);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), mat43(1.0f), true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), transform, true);
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
     return pModel->uid();
 }
@@ -976,10 +978,10 @@ i32 shape_hex(i32 stageHash, i32 passHash, f32 height, f32 length, Color color0,
     colors[4] = color4;
     colors[5] = color5;
 
-    Gmdl * pGmdl = build_hex(height, length, colors, 6, transform);
+    Gmdl * pGmdl = build_hex(height, length, colors, 6, mat43(1.0f));
 
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pGmdl);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), mat43(1.0f), true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), transform, true);
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
     return pModel->uid();
 }
@@ -1003,10 +1005,10 @@ i32 shape_sphere(i32 stageHash, i32 passHash, const vec3 & size, i32 slices, i32
 {
     slices = slices > 0 ? slices : 0;
     sections = sections > 0 ? sections : 0;
-    Gmdl * pGmdl = build_sphere(size, slices, sections, color, transform);
+    Gmdl * pGmdl = build_sphere(size, slices, sections, color, mat43(1.0f));
 
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pGmdl);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), mat43(1.0f), true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), transform, true);
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
     return pModel->uid();
 }
@@ -1014,10 +1016,10 @@ i32 shape_sphere(i32 stageHash, i32 passHash, const vec3 & size, i32 slices, i32
 i32 shape_quad_sphere(i32 stageHash, i32 passHash, const vec3 & size, i32 sections, Color color, const mat43 & transform, Entity * pCaller)
 {
     sections = sections > 0 ? sections : 0;
-    Gmdl * pGmdl = build_quad_sphere(size, sections, color, transform);
+    Gmdl * pGmdl = build_quad_sphere(size, sections, color, mat43(1.0f));
 
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pGmdl);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), mat43(1.0f), true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass_from_hash(passHash), transform, true);
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
     return pModel->uid();
 }

@@ -67,7 +67,16 @@ namespace system_api
 {
 i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, i32 passHash, const mat43 & transform, Entity * pCaller);
 
-void model_init_body(i32 modelUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity * pCaller);
+void model_init_body(i32 modelUid,
+                     f32 mass,
+                     f32 friction,
+                     vec3 linearFactor,
+                     vec3 angularFactor,
+                     i32 group,
+                     ivec4 mask03,
+                     ivec4 mask47,
+                     Entity * pCaller);
+
 void model_set_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller);
 void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller);
 

@@ -29,6 +29,10 @@ class ComponentIndex(FieldHandler):
     nameHash = i32Field(payload=True)
     index    = i32Field()
 
+class BoundingBox(FieldHandler):
+    max = vec3Field()
+    min = vec3Field()
+
 # Transform and entity
 class Transform(FieldHandler):
     isLocal   = boolField(payload=True)
@@ -95,11 +99,14 @@ class ModelInstance(FieldHandler):
                                   includes=['render_support/Model.h'])
 
 class ModelBody(FieldHandler):
-    uid          = i32Field(payload=True)
-    mass         = f32Field()
-    group        = i32Field()
-    mask03       = ivec4Field()
-    mask47       = ivec4Field()
+    uid           = i32Field(payload=True)
+    mass          = f32Field()
+    friction      = f32Field()
+    linearFactor  = vec3Field()
+    angularFactor = vec3Field()
+    group         = i32Field()
+    mask03        = ivec4Field()
+    mask47        = ivec4Field()
 
 class Collision(FieldHandler):
     group        = i32Field(payload=True)

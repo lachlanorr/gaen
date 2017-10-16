@@ -121,6 +121,13 @@ inline tvec2<T> operator*(const tvec2<T> & lhs, T rhs)
 }
     
 template <>
+inline vec2 abs<vec2>(const vec2 & v)
+{
+    return vec2(abs(v.x),
+                abs(v.y));
+}
+
+template <>
 inline vec2 min<vec2>(const vec2 & lhs, const vec2 & rhs)
 {
     return vec2(min(lhs.x, rhs.x),

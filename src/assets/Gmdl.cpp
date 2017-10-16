@@ -162,5 +162,24 @@ void Gmdl::compact(u32 newVertCount, u32 newPrimCount)
     ASSERT(is_valid(this, mSize));
 }
 
+void Gmdl::updateHalfExtents()
+{
+    vec3 maxPos = vec3(std::numeric_limits<f32>::lowest());
+    vec3 minPos = vec3(std::numeric_limits<f32>::max());
+
+    const u8 * pVert = reinterpret_cast<const u8*>(verts());
+    for (u32 i = 0; i < vertCount(); ++i)
+    {
+        const vec3 * pPos = reinterpret_cast<const vec3*>(pVert);
+
+        maxPos = max(maxPos, *pPos);
+        minPos = min(minPos, *pPos);
+
+        pVert += vertStride();
+    }
+
+    mHalfExtents = max(abs(minPos), abs(maxPos));
+}
+
 } // namespace gaen
 

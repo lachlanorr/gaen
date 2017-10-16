@@ -48,13 +48,13 @@ inline i32 round(f32 val) { return (i32)(val + 0.5f); }
 template<typename T>
 inline T min(const T & lhs, const T & rhs)
 {
-    return lhs <= rhs ? lhs : rhs;
+    return glm::min(lhs, rhs);
 }
 
 template<typename T>
 inline T max(const T & lhs, const T & rhs)
 {
-    return lhs >= rhs ? lhs : rhs;
+    return glm::max(lhs, rhs);
 }
 
 template <typename T>
@@ -74,7 +74,7 @@ inline T sqrt(T x)
 }
 
 template<typename T>
-inline T abs(T x)
+inline T abs(const T & x)
 {
     return glm::abs(x);
 }

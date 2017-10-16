@@ -35,6 +35,7 @@
 #include "engine/Registry.h"
 #include "engine/Asset.h"
 
+#include "engine/messages/BoundingBox.h"
 #include "engine/messages/ComponentIndex.h"
 #include "engine/messages/Handle.h"
 #include "engine/messages/OwnerTask.h"
@@ -63,6 +64,9 @@ Entity::Entity(u32 nameHash,
 {
     mTransform = mat43(1.0f);
     mLocalTransform = mat43(1.0f);
+
+    mPosMin = vec3(std::numeric_limits<f32>::lowest());
+    mPosMax = vec3(std::numeric_limits<f32>::max());
 
     memset(mTransformListeners, 0, sizeof(mTransformListeners));
 
@@ -331,7 +335,12 @@ MessageResult Entity::message(const T & msgAcc)
             updateTransform();
             return MessageResult::Consumed;
         }
-
+        else if (msgId == HASH::constrain_position)
+        {
+            messages::BoundingBoxR<T> msgr(msgAcc);
+            constrainPosition(msgr.min(), msgr.max());
+            return MessageResult::Consumed;
+        }
         // Interesting messages are handled here, initialization
         // messages are below
         if (mInitStatus == kIS_Activated)
@@ -576,8 +585,7 @@ void Entity::setTransform(const mat43 & mat)
 {
     if (mat != mTransform)
     {
-        mTransform = mat;
-
+        mTransform = applyPositionConstraint(mat);
 
         // send update_transform our components
         for (u32 i = 0; i < mComponentCount; ++i)
@@ -657,6 +665,20 @@ void Entity::updateTransform()
     {
         setTransform(parentTransform() * mLocalTransform);
     }
+}
+
+void Entity::constrainPosition(const vec3 & posMin, const vec3 & posMax)
+{
+    mPosMin = posMin;
+    mPosMax = posMax;
+}
+
+mat43 Entity::applyPositionConstraint(const mat43 & mat) const
+{
+    mat43 cmat = mat;
+    cmat.cols[3] = max(cmat.cols[3], mPosMin);
+    cmat.cols[3] = min(cmat.cols[3], mPosMax);
+    return cmat;
 }
 
 void Entity::registerTransformListener(task_id taskId, u32 uid)

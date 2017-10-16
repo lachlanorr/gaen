@@ -367,6 +367,7 @@ public:
 
     vec3 & halfExtents() { return mHalfExtents; }
     const vec3 & halfExtents() const { return mHalfExtents; }
+    void updateHalfExtents();
 
     f32 * verts()
     {

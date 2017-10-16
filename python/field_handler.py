@@ -196,14 +196,16 @@ class FieldHandlerType(type):
                     'attrs': Attributes()}
 
         field_attrs = []
+        field_id = 0
         for attrname, attrvalue in attrs.iteritems():
             if isinstance(attrvalue, BaseField):
-                field_attrs.append((attrname, attrvalue))
+                field_attrs.append((attrname, attrvalue, field_id))
+                field_id += 1
             elif not attrname.startswith('_'):
                 setattr(newattrs['attrs'], attrname, attrvalue)
 
         # sort the fields in descending order by cell count
-        field_attrs = sorted(field_attrs, key=lambda f: f[1].cell_count, reverse=True)
+        field_attrs = sorted(field_attrs, key=lambda f: (f[1].cell_count, f[2]), reverse=True)
 
         # LORRTODO - Fix field packing, make it tighter
         # In some cases we're not packing as efficiently as we can.
@@ -212,7 +214,7 @@ class FieldHandlerType(type):
         # The Compose compiler does a nice job of this, and we should be
         # using that algorithm here.
 
-        for fieldname, field in field_attrs:
+        for fieldname, field, field_id in field_attrs:
             field_class_name = field.__class__.__name__
             if not field_class_name.endswith('Field'):
                 raise Exception('Field class must end in "Field"')

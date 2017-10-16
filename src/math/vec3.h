@@ -178,6 +178,14 @@ inline f32 length(const vec3 & v)
 }
 
 template <>
+inline vec3 abs<vec3>(const vec3 & v)
+{
+    return vec3(abs(v.x),
+                abs(v.y),
+                abs(v.z));
+}
+
+template <>
 inline vec3 min<vec3>(const vec3 & lhs, const vec3 & rhs)
 {
     return vec3(min(lhs.x, rhs.x),
