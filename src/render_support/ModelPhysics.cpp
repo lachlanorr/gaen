@@ -76,7 +76,7 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 
     if (newTrans != mModelInstance.mTransform)
     {
-        LOG_INFO("setWorldTransform uid = %u, pos = {%f, %f, %f}", mModelInstance.uid(), newTrans.cols[3][0], newTrans.cols[3][1], newTrans.cols[3][2]);
+        //LOG_INFO("setWorldTransform uid = %u, pos = {%f, %f, %f}", mModelInstance.uid(), newTrans.cols[3][0], newTrans.cols[3][1], newTrans.cols[3][2]);
 
         mModelInstance.mTransform = newTrans;
 
@@ -235,7 +235,7 @@ void ModelPhysics::setTransform(u32 uid, const mat43 & transform)
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
     {
-        LOG_INFO("setTransform uid = %u, pos = {%f, %f, %f}", uid, transform.cols[3][0], transform.cols[3][1], transform.cols[3][2]);
+        //LOG_INFO("setTransform uid = %u, pos = {%f, %f, %f}", uid, transform.cols[3][0], transform.cols[3][1], transform.cols[3][2]);
 
         // Update bullet
         btTransform btTrans;

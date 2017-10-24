@@ -489,7 +489,7 @@ public:
     //    VertPosNorm * pVerts = reinterpret_cast<VertPosNorm*>(mesh.prims);
     // use instead:
     //    VertPosNorm * pVerts = mesh
-    // 
+    //
     // The second form will call one of the cast operators below.
     //--------------------------------------------------------------------------
     operator VertPos*()

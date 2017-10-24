@@ -26,6 +26,8 @@
 
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8.12)
 
+SET_PROPERTY (GLOBAL PROPERTY USE_FOLDERS ON)
+
 PROJECT (gaen)
 
 CMAKE_POLICY(SET CMP0054 NEW)
@@ -252,6 +254,16 @@ ADD_DEPENDENCIES(nana
   libpng
   )
 
+SET (BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
+SET (cxx OFF CACHE BOOL "Build c++ lib" FORCE)
+INCLUDE_DIRECTORIES (${ext_dir}/libtiff/libtiff)
+INCLUDE_DIRECTORIES ("${CMAKE_CURRENT_BINARY_DIR}/external/libtiff/libtiff")
+ADD_SUBDIRECTORY (${ext_dir}/libtiff external/libtiff)
+SET_TARGET_PROPERTIES (
+    tiff
+    port
+    PROPERTIES FOLDER ExternalSubmoduleTargets/libtiff
+)
 
 INCLUDE_DIRECTORIES (${ext_dir}/tiny_obj_loader-1.0.2)
 

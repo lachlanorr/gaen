@@ -41,7 +41,9 @@ namespace gaen
 class Cooker;
 
 typedef Config<kMEM_Chef> Recipe;
+typedef UniquePtr<Recipe> RecipeUP;
 typedef List<kMEM_Chef, ChefString> RecipeList;
+typedef UniquePtr<RecipeList> RecipeListUP;
 
 class Chef;
 
@@ -105,14 +107,14 @@ public:
              const Cooker * pCooker,
              bool force,
              const ChefString & rawPath,
-             const RecipeList & recipes,
-             const Recipe & fullRecipe)
+             RecipeListUP & pRecipes,
+             RecipeUP & pFullRecipe)
       : mpChef(pChef)
       , mpCooker(pCooker)
       , mForce(force)
       , mRawPath(rawPath)
-      , mRecipes(recipes)
-      , mFullRecipe(fullRecipe)
+      , mpRecipes(std::move(pRecipes))
+      , mpFullRecipe(std::move(pFullRecipe))
      {}
 
     Chef & chef() { return *mpChef; }
@@ -120,8 +122,8 @@ public:
     bool force() const { return mForce; }
 
     const ChefString & rawPath() const { return mRawPath; }
-    const RecipeList & recipes() const { return mRecipes; }
-    const Recipe & fullRecipe() const { return mFullRecipe; }
+    const RecipeList & recipes() const { return *mpRecipes; }
+    const Recipe & fullRecipe() const { return *mpFullRecipe; }
 
     const CookResultList & results() const { return mResults; }
     const DependencySet & dependencies() const { return mDependencies; }
@@ -148,8 +150,8 @@ private:
 
     ChefString mRawPath;
 
-    RecipeList mRecipes;
-    Recipe mFullRecipe; // overlaid recipes
+    RecipeListUP mpRecipes;
+    RecipeUP mpFullRecipe; // overlaid recipes
 
     mutable CookResultList mResults;
     mutable DependencySet mDependencies;

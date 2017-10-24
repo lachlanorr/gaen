@@ -139,10 +139,10 @@ UniquePtr<CookInfo> Chef::prepCookInfo(const char * rawPath, bool force)
     // check if file exists
     PANIC_IF(!file_exists(rawPathStr.c_str()), "Raw file does not exist: %s", rawPathStr.c_str());
 
-    RecipeList recipes = findRecipes(rawPathStr);
-    Recipe fullRecipe = overlayRecipes(recipes);
+    RecipeListUP pRecipes = findRecipes(rawPathStr);
+    RecipeUP pFullRecipe = overlayRecipes(*pRecipes);
 
-    UniquePtr<CookInfo> pCi(GNEW(kMEM_Chef, CookInfo, this, pCooker, force, rawPathStr, recipes, fullRecipe));
+    UniquePtr<CookInfo> pCi(GNEW(kMEM_Chef, CookInfo, this, pCooker, force, rawPathStr, pRecipes, pFullRecipe));
 
     for (const ChefString & cookedExt : pCooker->cookedExts())
     {
@@ -387,49 +387,49 @@ List<kMEM_Chef, ChefString> Chef::readDependencyFile(const ChefString & rawPath)
     return deps;
 }
 
-RecipeList Chef::findRecipes(const ChefString & rawPath)
+RecipeListUP Chef::findRecipes(const ChefString & rawPath)
 {
     ASSERT(isRawPath(rawPath));
 
     static const char * kRcpExt = ".rcp";
-    
-    RecipeList recipes;
+
+    RecipeListUP pRecipes(GNEW(kMEM_Chef, RecipeList));
 
     ChefString ext = get_ext(rawPath.c_str());
     ChefString dir = parent_dir(rawPath);
 
     ChefString rcpFile = rawPath + kRcpExt;
     if (file_exists(rcpFile.c_str()))
-        recipes.push_front(rcpFile);
+        pRecipes->push_front(rcpFile);
 
     while (is_parent_dir(mAssetsRawDir, dir))
     {
         // check for file type override, e.g. .tga.rcp
         ChefString rcpFile = dir + "/" + ext + kRcpExt;
         if (file_exists(rcpFile.c_str()))
-            recipes.push_front(rcpFile);
+            pRecipes->push_front(rcpFile);
 
         // check for directory override, e.g. .rcp
         rcpFile = dir + "/" + kRcpExt;
         if (file_exists(rcpFile.c_str()))
-            recipes.push_front(rcpFile);
+            pRecipes->push_front(rcpFile);
 
         // move on to parent directory
         parent_dir(dir);
     }
 
-    return recipes;
+    return pRecipes;
 }
 
-Recipe Chef::overlayRecipes(const RecipeList & recipes)
+RecipeUP Chef::overlayRecipes(const RecipeList & recipes)
 {
-    Recipe recipe;
+    RecipeUP pRecipe(GNEW(kMEM_Chef, Recipe));
     for (ChefString rcp : recipes)
     {
-        if (!recipe.read(rcp.c_str()))
+        if (!pRecipe->read(rcp.c_str()))
             PANIC("Failure reading recipe: %s", rcp.c_str());
     }
-    return recipe;
+    return pRecipe;
 }
 
 

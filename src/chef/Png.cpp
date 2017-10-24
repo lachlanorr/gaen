@@ -62,7 +62,7 @@ Png::~Png()
 void Png::readInfo(const char * path)
 {
     ASSERT(!mFp && !mpPng && !mpInfo && !mppRows);
-    
+
     mFp = fopen(path, "rb");
     PANIC_IF(mFp == 0, "Unable to read png file: %s", path);
 
@@ -71,7 +71,7 @@ void Png::readInfo(const char * path)
 
     mpInfo = png_create_info_struct(mpPng);
     PANIC_IF(!mpInfo, "png_create_info_struct failed");
-    
+
     if (setjmp(png_jmpbuf(mpPng)))
         PANIC("Unable to setup libpng error handlers");
 
@@ -111,7 +111,7 @@ void Png::write_gimg(const char * path, const Gimg * pGimg)
 {
     ASSERT(path);
     ASSERT(pGimg);
-    
+
     Png png;
 
     png.mFp = fopen(path, "wb");
@@ -123,7 +123,7 @@ void Png::write_gimg(const char * path, const Gimg * pGimg)
 
     png.mpInfo = png_create_info_struct(png.mpPng);
     PANIC_IF(!png.mpInfo, "png_create_info_struct failed");
-    
+
     if (setjmp(png_jmpbuf(png.mpPng)))
         PANIC("Unable to setup libpng error handlers");
 

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Png.h - Png image processing
+// Tiff.h - Tiff image processing
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2016 Lachlan Orr
@@ -24,66 +24,62 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_PNG_H
-#define GAEN_CHEF_PNG_H
-
-#include <cstdio>
+#ifndef GAEN_CHEF_TIFF_H
+#define GAEN_CHEF_TIFF_H
 
 #include "core/mem.h"
-#include "assets/Gimg.h"
 #include "chef/cooker_utils.h"
+#include "core/String.h"
+#include "core/Vector.h"
+
+struct tiff;
 
 namespace gaen
 {
-class Png
+class Tiff
 {
 public:
-    static UniquePtr<Png> read(const char * path);
+    struct LayerInfo
+    {
+        u16 top;
+        u16 left;
+        u16 bottom;
+        u16 right;
+
+        ChefString name;
+    };
+
+    static UniquePtr<Tiff> read(const char * path);
     static ImageInfo read_image_info(const char * path);
-    static void write_gimg(const char * path, const Gimg * pGimg);
-    static PixelFormat color_type_to_pixel_format(int colorType);
-    static int pixel_format_to_color_type(PixelFormat pixelFormat);
 
-    ~Png();
+    ~Tiff();
 
+    u32 origin() { return mOrigin; }
     u32 width() { return mWidth; }
     u32 height() { return mHeight; }
-    u8 colorType() { return mColorType; }
-    u8 bitDepth() { return mBitDepth; }
-    u32 bytesPerPixel();
 
-    u8 * scanline(u32 idx);
-
-    // Callers should GFREE pGimg
-    void convertToGimg(Gimg ** pGimgOut);
+    const Vector<kMEM_Chef, LayerInfo> & layers();
 
 private:
-    Png();
-    Png(const Png&)              = delete;
-    Png(Png&&)                   = delete;
-    Png & operator=(const Png&)  = delete;
-    Png & operator=(Png&&)       = delete;
+    Tiff();
+    Tiff(const Tiff&)              = delete;
+    Tiff(Tiff&&)                   = delete;
+    Tiff & operator=(const Tiff&)  = delete;
+    Tiff & operator=(Tiff&&)       = delete;
 
-    void readInfo(const char * path);
-    void readData();
+    void init(const char * path);
 
-    FILE * mFp;
-    png_structp mpPng;
-    png_infop mpInfo;
-    png_bytep * mppRows;
+    ChefString mPath;
+    tiff * mpTif;
 
-    bool mIsWriting;
-
+    ImageOrigin mOrigin;
     u32 mWidth;
     u32 mHeight;
-    i32 mBitDepth;
-    i32 mColorType;
-    i32 mInterlaceMethod;
-    i32 mCompressionMethod;
-    i32 mFilterMethod;
+
+    Vector<kMEM_Chef, LayerInfo> mLayers;
 };
 
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_PNG_H
+#endif // #ifndef GAEN_CHEF_TIFF_H

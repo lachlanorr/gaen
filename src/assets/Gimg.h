@@ -58,7 +58,7 @@ public:
     static bool is_valid(const void * pBuffer, u64 size);
     static Gimg * instance(void * pBuffer, u64 size);
     static const Gimg * instance(const void * pBuffer, u64 size);
-    
+
     static u64 required_size(PixelFormat pixelFormat, u32 width, u32 height);
 
     static Gimg * create(PixelFormat pixelFormat, u32 width, u32 height);
@@ -82,7 +82,7 @@ private:
     Gimg & operator=(const Gimg&) = delete;
 
     PixelFormat mPixelFormat;
-    
+
     u32 mWidth;
     u32 mHeight;
 

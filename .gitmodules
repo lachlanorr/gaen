@@ -13,3 +13,6 @@
 [submodule "external/cmake-modules"]
 	path = external/cmake-modules
 	url = https://github.com/lachlanorr/cmake-modules.git
+[submodule "external/libtiff"]
+	path = external/libtiff
+	url = https://github.com/lachlanorr/libtiff.git

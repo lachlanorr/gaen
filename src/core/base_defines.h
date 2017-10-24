@@ -248,8 +248,10 @@ typedef double          f64;
 
 #if IS_LITTLE_ENDIAN
 #define FOURCC(s) ((s[3]) << 24 | (s[2]) << 16 | (s[1]) << 8 | (s[0]))
+#define FOURCCSW(s) ((s[0]) << 24 | (s[1]) << 16 | (s[2]) << 8 | (s[3]))
 #else // little endian
 #define FOURCC(s) ((s[0]) << 24 | (s[1]) << 16 | (s[2]) << 8 | (s[3]))
+#define FOURCCSW(s) ((s[3]) << 24 | (s[2]) << 16 | (s[1]) << 8 | (s[0]))
 #endif
 
 // Use this function at runtime with strings.

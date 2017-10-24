@@ -54,6 +54,8 @@ SET (chef_SOURCES
   Png.h
   Tga.cpp
   Tga.h
+  Tiff.cpp
+  Tiff.h
   ${cooker_SOURCES}
   )
 
@@ -72,6 +74,7 @@ ADD_DEPENDENCIES(chef
   zlib
   libpng
   assimp
+  tiff
   )
 
 TARGET_LINK_LIBRARIES (chef
@@ -86,6 +89,7 @@ TARGET_LINK_LIBRARIES (chef
   optimized ${ZLIB_LIB}
   debug     ${ZLIB_LIBD}
   ${ASSIMP_LIBS}
+  tiff
   ${PLATFORM_LINK_LIBS}
   )
 

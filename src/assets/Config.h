@@ -47,6 +47,10 @@ template <MemType memType>
 class Config
 {
 public:
+    Config() = default;
+    Config(const Config &) = delete;
+    Config & operator=(const Config &) = delete;
+
     typedef Vector<memType, const char*> StringVec;
     typedef Vector<memType, i32> IntVec;
     typedef Vector<memType, f32> FloatVec;

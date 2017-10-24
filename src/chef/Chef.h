@@ -43,7 +43,7 @@ class Chef
     friend class CookInfo;
 public:
     Chef(u32 id, const char * platform, const char * assetsDir);
-    
+
     u32 id() { return mId; }
     const ChefString & platform() { return mPlatform; }
 
@@ -71,8 +71,8 @@ private:
     bool isCookedPath(const ChefString & path);
     bool isGamePath(const ChefString & path);
 
-    RecipeList findRecipes(const ChefString & rawPath);
-    Recipe overlayRecipes(const RecipeList & recipes);
+    RecipeListUP findRecipes(const ChefString & rawPath);
+    RecipeUP overlayRecipes(const RecipeList & recipes);
 
     void writeDependencyFile(const CookInfo & ci);
     List<kMEM_Chef, ChefString> readDependencyFile(const ChefString & rawPath);

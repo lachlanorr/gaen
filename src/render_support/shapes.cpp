@@ -106,7 +106,7 @@ void ShapeBuilder::setTri(u32 * pVertIdx,
     pVert[2].position = p2;
     pVert[2].normal = vecNorm;
     pVert[2].color = color;
-    
+
     tri.p0 = *pVertIdx + 0;
     tri.p1 = *pVertIdx + 1;
     tri.p2 = *pVertIdx + 2;
@@ -284,7 +284,7 @@ void ShapeBuilder::setHex(u32 * pVertIdx,
     }
     else if (colorsSize == 6)
     {
-        // Eight custom colors
+        // Six custom colors
         colors[0] = pColors[0];
         colors[1] = pColors[1];
         colors[2] = pColors[2];
