@@ -4,7 +4,7 @@
 # bad_copyrights.py - Check for copyright headers in source files
 #
 # Gaen Concurrency Engine - http://gaen.org
-# Copyright (c) 2014-2016 Lachlan Orr
+# Copyright (c) 2014-2017 Lachlan Orr
 #
 # This software is provided 'as-is', without any express or implied
 # warranty. In no event will the authors be held liable for any damages
@@ -40,7 +40,7 @@ SCRIPT_HEADER = (r"#------------------------------------------------------------
                  r"# %s - .+[^\.]\n"
                  r"#\n"
                  r"# Gaen Concurrency Engine - http://gaen\.org\n"
-                 r"# Copyright \(c\) 2014-2016 Lachlan Orr\n"
+                 r"# Copyright \(c\) 2014-2017 Lachlan Orr\n"
                  r"#\n"
                  r"# This software is provided 'as-is', without any express or implied\n"
                  r"# warranty\. In no event will the authors be held liable for any damages\n"
@@ -67,7 +67,7 @@ C_HEADER = (r"/\*---------------------------------------------------------------
             r"%s - .+[^\.]\n"
             r"\n"
             r"Gaen Concurrency Engine - http://gaen\.org\n"
-            r"Copyright \(c\) 2014-2016 Lachlan Orr\n"
+            r"Copyright \(c\) 2014-2017 Lachlan Orr\n"
             r"\n"
             r"This software is provided 'as-is', without any express or implied\n"
             r"warranty\. In no event will the authors be held liable for any damages\n"
@@ -94,7 +94,7 @@ CPP_HEADER = (r"//--------------------------------------------------------------
               r"// %s - .+[^\.]\n"
               r"//\n"
               r"// Gaen Concurrency Engine - http://gaen\.org\n"
-              r"// Copyright \(c\) 2014-2016 Lachlan Orr\n"
+              r"// Copyright \(c\) 2014-2017 Lachlan Orr\n"
               r"//\n"
               r"// This software is provided 'as-is', without any express or implied\n"
               r"// warranty\. In no event will the authors be held liable for any damages\n"

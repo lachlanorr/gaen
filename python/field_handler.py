@@ -4,7 +4,7 @@
 # field_handler.py - Parse field meta defintions
 #
 # Gaen Concurrency Engine - http://gaen.org
-# Copyright (c) 2014-2016 Lachlan Orr
+# Copyright (c) 2014-2017 Lachlan Orr
 #
 # This software is provided 'as-is', without any express or implied
 # warranty. In no event will the authors be held liable for any damages
@@ -40,7 +40,7 @@ class BaseField(object):
 
     def __str__(self):
         return self.name + ' : ' + repr(self.__dict__)
-            
+
     payload = False
     includes = ['"engine/MessageWriter.h"']
 
@@ -60,11 +60,11 @@ class u32Field(cellField):
 class f32Field(cellField):
     raw_type = 'f32'
     union_type = 'f'
-    
+
 class boolField(cellField):
     raw_type = 'bool'
     union_type = 'b'
-    
+
 class ColorField(cellField):
     raw_type = 'Color'
     union_type = 'color'
@@ -81,15 +81,15 @@ class dcellField(BaseField):
 class i64Field(dcellField):
     raw_type = 'i64'
     union_type = 'i'
-    
+
 class u64Field(dcellField):
     raw_type = 'u64'
     union_type = 'u'
-    
+
 class f64Field(dcellField):
     raw_type = 'f64'
     union_type = 'f'
-    
+
 class PointerField(dcellField):
     union_type = 'p'
     type_name = 'void *'
@@ -99,7 +99,7 @@ class vec2Field(BaseField):
     type_name = 'vec2'
     union_type = 'vec2'
     includes = BaseField.includes + ['"math/vec2.h"']
-    
+
 class vec3Field(BaseField):
     cell_count = 3
     type_name = 'vec3'
@@ -139,10 +139,10 @@ class mat43Field(BaseField):
 def fields_string(self):
     lines = []
     lines.append(msg.object_name + ':')
-    
+
     lines.append('block_count: ' + str(self.block_count))
     lines.append('attrs: ' + str(self.attrs.__dict__))
-    
+
     s = '%s:\n  %s\n Fields:\n  ' % (msg.object_name, repr(msg.__dict__))
     s += '\n  '.join([str(f) for f in msg.fields])
     return s
@@ -218,7 +218,7 @@ class FieldHandlerType(type):
             field_class_name = field.__class__.__name__
             if not field_class_name.endswith('Field'):
                 raise Exception('Field class must end in "Field"')
-                
+
             field.name = fieldname
 
             if not hasattr(field, 'type_name'):
@@ -274,7 +274,7 @@ class FieldHandlerType(type):
 
             fields.append(field)
 
-                
+
         newattrs['block_count'] = curr_block + (0 if curr_byte == 0 else 1)
         return super(FieldHandlerType, cls).__new__(cls, name, bases, newattrs)
 
@@ -282,7 +282,7 @@ class FieldHandlerType(type):
         super(FieldHandlerType, self).__init__(name, bases, attrs)
 
         setattr(self.__class__, '__str__', fields_string)
-        
+
         if len(self.fields) > 0:
             FIELD_HANDLERS.append(self)
 
