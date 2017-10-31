@@ -360,7 +360,7 @@ void ShapeBuilder::setHex(u32 * pVertIdx,
             triTopR[2] = setVert(pVertIdx, topP[6], kTopNorm, colors[1]);
 
             setTri(pPrimIdx, triTopL[0], triTopL[1], triTopL[2]);
-            setTri(pPrimIdx, triTopL[3], triTopL[4], triTopL[5]);
+            setTri(pPrimIdx, triTopR[0], triTopR[1], triTopR[2]);
         }
         else
         {
@@ -391,7 +391,7 @@ void ShapeBuilder::setHex(u32 * pVertIdx,
             triBotR[2] = setVert(pVertIdx, topP[7], kTopNorm, colors[5]);
 
             setTri(pPrimIdx, triBotL[0], triBotL[1], triBotL[2]);
-            setTri(pPrimIdx, triBotL[3], triBotL[4], triBotL[5]);
+            setTri(pPrimIdx, triBotR[0], triBotR[1], triBotR[2]);
         }
         else
         {
@@ -420,7 +420,7 @@ void ShapeBuilder::setHex(u32 * pVertIdx,
             // If rect matches to left triangle, re-use the vert from the top triangle
             if (colors[2] == colors[0])
             {
-                rectL[0] = triTopL[0];
+                rectL[0] = triTopL[1];
 
                 // If top is split between two colors, re-use the vert in the middle
                 if (colors[0] != colors[1])
