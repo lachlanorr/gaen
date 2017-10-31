@@ -217,7 +217,7 @@ namespace system_api
 i32 sprite_create(AssetHandleP pAssetHandle, i32 stageHash, i32 passHash, const mat43 & transform, Entity * pCaller)
 {
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
-    const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
+    const Asset * pAsset = pAssetHandle->data<Asset>();
 
     Sprite * pSprite = GNEW(kMEM_Engine, Sprite, pCaller->task().id(), pAsset);
     SpriteInstance * pSpriteInst = GNEW(kMEM_Engine, SpriteInstance, pSprite, stageHash, pass_from_hash(passHash), transform);

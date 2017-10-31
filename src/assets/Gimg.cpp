@@ -170,9 +170,9 @@ Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
 u8 * Gimg::scanline(u32 idx)
 {
     PANIC_IF(idx + 1 > mHeight, "Invalid scanline %d, for image with height %d", idx, mHeight);
-    
+
     u8 * pScanline = (u8*)this + sizeof(Gimg);
-    
+
     switch (mPixelFormat)
     {
     case kPXL_R8:

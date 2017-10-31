@@ -51,6 +51,8 @@ AssetTypes::AssetTypes()
 
     registerAssetType("gatl", kMEM_Engine,   Asset::construct<AssetWithDep<Gatl,Gimg>>);
     registerAssetType("gspr", kMEM_Engine,   Asset::construct<AssetWithDep<Gspr,Gatl>>);
+
+    registerProjectAssetTypes();
 }
 
 void AssetTypes::registerAssetType(const char * extension,

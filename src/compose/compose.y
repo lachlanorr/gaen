@@ -168,7 +168,7 @@ message_list
     : message_prop              { $$ = ast_append(kAST_Block, NULL, $1, pParseData); }
     | message_list message_prop { $$ = ast_append(kAST_Block, $1, $2, pParseData); }
     ;
- 
+
 message_prop
     : HASH '(' param_list ')' block                 { $$ = ast_create_message_def($1, $3, $5, pParseData); }
     | property_decl property_block                  { $$ = ast_create_property_complex_def($1, $2, pParseData); }

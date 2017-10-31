@@ -376,12 +376,23 @@ struct deleter
         GDELETE(ptr);
     }
 };
+template <class T>
+struct deleterFr
+{
+    inline void operator() (T * ptr)
+    {
+        GFREE(ptr);
+    }
+};
 
 // unique_ptr that uses our mem management functions
 template <class T>
 using UniquePtr = std::unique_ptr<T, deleter<T>>;
+template <class T>
+using UniquePtrFr = std::unique_ptr<T, deleterFr<T>>;
 
 static_assert(sizeof(UniquePtr<int>) == sizeof(int*), "UnqiuePtr<T> size should be size of normal pointer");
+static_assert(sizeof(UniquePtrFr<int>) == sizeof(int*), "UnqiuePtrFr<T> size should be size of normal pointer");
 
 
 // Returns number of memPoolInits parsed, or 0 if there was an error.
@@ -393,7 +404,7 @@ size_t parse_mem_init_str(const char * memInitStr,
                           MemPoolInit * pMemPoolInits,
                           size_t memPoolInitsCount);
 bool is_mem_init_str_valid(const char * memInitStr);
-                        
+
 
 
 } // namespace gaen

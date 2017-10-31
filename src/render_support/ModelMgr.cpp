@@ -253,7 +253,7 @@ namespace system_api
 i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, i32 passHash, const mat43 & transform, Entity * pCaller)
 {
     ASSERT(pAssetHandle->typeHash() == HASH::asset);
-    const Asset * pAsset = reinterpret_cast<const Asset*>(pAssetHandle->data());
+    const Asset * pAsset = pAssetHandle->data<Asset>();
 
     RenderPass pass = pass_from_hash(passHash);
 

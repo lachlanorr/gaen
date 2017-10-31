@@ -33,6 +33,7 @@
 #include "core/Vector.h"
 
 struct tiff;
+class Gimg;
 
 namespace gaen
 {
@@ -46,6 +47,9 @@ public:
         u16 bottom;
         u16 right;
 
+        u16 width() const { return right - left; }
+        u16 height() const { return bottom - top; }
+
         ChefString name;
     };
 
@@ -58,7 +62,10 @@ public:
     u32 width() { return mWidth; }
     u32 height() { return mHeight; }
 
+    u8 * scanline(u32 idx);
+
     const Vector<kMEM_Chef, LayerInfo> & layers();
+    UniquePtrFr<Color> extractLayerPixels(const LayerInfo & li);
 
 private:
     Tiff();
@@ -71,6 +78,8 @@ private:
 
     ChefString mPath;
     tiff * mpTif;
+
+    UniquePtr<Color> mpPixels;
 
     ImageOrigin mOrigin;
     u32 mWidth;

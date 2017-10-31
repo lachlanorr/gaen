@@ -53,6 +53,17 @@ public:
     u32 typeHash() const { return mTypeHash; }
     u32 nameOrId() const { return mNameOrId; }
 
+    template <typename T>
+    T * data()
+    {
+        return reinterpret_cast<T*>(mpData);
+    }
+    template <typename T>
+    const T * data() const
+    {
+        return reinterpret_cast<const T*>(mpData);
+    }
+
     void * data() { return mpData; }
     const void * data() const { return mpData; }
 

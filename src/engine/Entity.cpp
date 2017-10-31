@@ -436,7 +436,7 @@ MessageResult Entity::message(const T & msgAcc)
                     mInitStatus = kIS_Init;
                     // LORRTEMP
                     //LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
-        
+
                     // Send ourself #request_assets__
                     StackMessageBlockWriter<0> msg(HASH::request_assets__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
                     mTask.message(msg.accessor());
@@ -481,7 +481,7 @@ MessageResult Entity::message(const T & msgAcc)
                     task_id subTask = msgr.taskId();
                     u32 nameHash = msgr.nameHash();
                     const Handle * pHandle = msgr.handle();
-                    const Asset * pAsset = reinterpret_cast<const Asset*>(pHandle->data());
+                    const Asset * pAsset = pHandle->data<Asset>();
 
 
                     if (!pAsset->hadError())

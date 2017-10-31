@@ -84,6 +84,11 @@ Tiff::~Tiff()
     }
 }
 
+u8 * Tiff::scanline(u32 idx)
+{
+    return reinterpret_cast<u8*>(mpPixels.get() + (idx * mWidth));
+}
+
 static const u32 k8BIM = FOURCCSW("8BIM");
 static const u32 kLayr = FOURCCSW("Layr");
 static const u32 knorm = FOURCCSW("norm");
@@ -164,6 +169,23 @@ const Vector<kMEM_Chef, Tiff::LayerInfo> & Tiff::layers()
     return mLayers;
 }
 
+UniquePtrFr<Color> Tiff::extractLayerPixels(const Tiff::LayerInfo & li)
+{
+    UniquePtrFr<Color> pOut((Color*)GALLOC(kMEM_Chef, sizeof(Color) * li.width() * li.height()));
+
+    Color * pSL = mpPixels.get() + li.top * mWidth + li.left;
+    Color * pSLD = pOut.get();
+    for (u16 line = li.top; line < li.bottom; ++line)
+    {
+        memcpy(pSLD, pSL, li.width() * sizeof(Color));
+
+        pSL += mWidth;
+        pSLD += li.width();
+    }
+
+    return pOut;
+}
+
 void Tiff::init(const char * path)
 {
     PANIC_IF(mpTif != nullptr, "Tiff::init called after already initialized");
@@ -178,6 +200,11 @@ void Tiff::init(const char * path)
         mOrigin = kORIG_TopLeft;
         TIFFGetField(mpTif, TIFFTAG_IMAGEWIDTH, &mWidth);
         TIFFGetField(mpTif, TIFFTAG_IMAGELENGTH, &mHeight);
+
+        mpPixels.reset((Color*)GALLOC(kMEM_Chef, mWidth * mHeight * sizeof(Color)));
+
+        int ret = TIFFReadRGBAImageOriented(mpTif, mWidth, mHeight, (u32*)mpPixels.get(), ORIENTATION_TOPLEFT, 0);
+        PANIC_IF(ret != 1, "Tiff::init, TIFFReadRGBAImage failed to read tif data: %s", path);
     }
 }
 

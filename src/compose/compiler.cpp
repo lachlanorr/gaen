@@ -967,7 +967,7 @@ static Ast * ast_create_top_level_def(const char * name, AstType astType, SymTyp
     // Assets are handles, but also strings for that path.
     // Only the path can be set explicitly in code, the Handle
     // is set automatically through asset loading code.
-    // Thus, declaring an "asset" property or field will creat
+    // Thus, declaring an "asset" property or field will create
     // two Ast*'s.
     if (specialCaseAssets && pDataType->typeDesc.dataType == kDT_asset_handle)
     {
@@ -985,6 +985,7 @@ static Ast * ast_create_top_level_def(const char * name, AstType astType, SymTyp
 
         Ast * pAssetHandleAst = ast_create_top_level_def(name, kAST_FieldDef, kSYMT_Field, pDataType, nullptr, false, pParseData);
         pAssetHandleAst->pSymRec->flags |= kSRFL_AssetRelated;
+        pAssetHandleAst->pRhs = pAst; // record the __path ast so we can use it when appropriate later on
 
         const SymDataType * pBoolType = parsedata_find_type(pParseData, "bool", 0, 0);
         Ast * pRefcountedAssigned = ast_create_top_level_def(refcounted_assigned_name(assetPathName), kAST_FieldDef, kSYMT_Field, pBoolType, nullptr, false, pParseData);
@@ -1051,10 +1052,14 @@ Ast * ast_create_property_def(Ast * pPropDecl, Ast * pInitVal, ParseData * pPars
         // it's an asset, make sure pInitVal goes on the right place
         for (const Ast * pChild : pPropDecl->pChildren->nodes)
         {
-            if (pChild->pSymRec && pChild->pSymRec->type == kSYMT_Property && strstr(pChild->pSymRec->name, kAssetPathSuffix))
+            if (pChild->pSymRec && pChild->pSymRec->type == kSYMT_Property)// && strstr(pChild->pSymRec->name, kAssetPathSuffix))
             {
                 pChild->pSymRec->pInitVal = pInitVal;
                 break;
+            }
+            if (pChild == pPropDecl->pChildren->nodes.back())
+            {
+                printf("foo\n");
             }
         }
     }
@@ -1199,6 +1204,15 @@ Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseDat
 
 Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData)
 {
+    if (pVal->type == kAST_SymbolRef && pVal->pSymRecRef->pAst->pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
+    {
+        // If we set a property equal to one of our own assets, rather
+        // set the property to the asset path so the target can load
+        // the asset through the AssetMgr and acquire proper ref
+        // counts and such.
+        pVal->pSymRecRef = pVal->pSymRecRef->pAst->pRhs->pSymRec;
+    }
+
     Ast * pAst = ast_create(kAST_PropInit, pParseData);
     pAst->str = name;
     ast_set_rhs(pAst, pVal);
@@ -1309,7 +1323,11 @@ Ast * ast_create_assign_op(AstType astType, Ast * pDottedId, Ast * pRhs, ParseDa
             COMP_ERROR(pParseData, "Invalid use of symbol in assignment: %s", pDottedId->str);
             return pAst;
         }
-
+        if (pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
+        {
+            COMP_ERROR(pParseData, "Cannot assign 'asset' type, it is only valid to set value during initialization.");
+            return pAst;
+        }
         pAst->pSymRecRef = pSymRec;
     }
 

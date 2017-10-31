@@ -27,6 +27,8 @@
 #ifndef GAEN_ASSETS_COLOR_H
 #define GAEN_ASSETS_COLOR_H
 
+#include <type_traits>
+
 #include "math/vec3.h"
 #include "math/vec4.h"
 
@@ -66,7 +68,7 @@ public:
         setChannels(vec.x, vec.y, vec.z, vec.w);
     }
 
-    u32 value() { return mColorValue.value; }
+    u32 value() const { return mColorValue.value; }
     void setValue(u32 value) { mColorValue.value = value; }
 
     u8 r() const { return mColorValue.channel.r; }
@@ -95,7 +97,7 @@ public:
     vec4 toVec4() const { return build_vec4(*this); }
     static vec4 build_vec4(const Color & col) { return vec4(col.rf(), col.gf(), col.bf(), col.af()); }
 
-    u8 luminance()
+    u8 luminance() const
     {
         return luminance(r(), g(), b()) * a();
     }
@@ -105,12 +107,12 @@ public:
         return static_cast<u8>(r * 0.299 + g * 0.587 + b * 0.114 + 0.5);
     }
 
-    bool operator==(Color rhs)
+    bool operator==(Color rhs) const
     {
         return mColorValue.value == rhs.mColorValue.value;
     }
 
-    bool operator!=(Color rhs)
+    bool operator!=(Color rhs) const
     {
         return mColorValue.value != rhs.mColorValue.value;
     }
@@ -132,5 +134,17 @@ private:
 static_assert(sizeof(Color)==4,"");
 
 } // namespace gaen
+
+namespace std
+{
+    template <>
+    struct hash<gaen::Color> : public unary_function<gaen::Color, size_t>
+    {
+        size_t operator()(const gaen::Color& value) const
+        {
+            return value.value();
+        }
+    };
+} // namespace std
 
 #endif // #ifndef GAEN_ASSETS_COLOR_H
