@@ -50,9 +50,7 @@ struct tquat
     };
 
     tquat() = default;
-	tquat(T w, tvec3<T> const & v)
-      : w(w), x(v.x), y(v.y), z(v.z)
-    {}
+	tquat(T angle, tvec3<T> const & axis);
 
 	tquat(T w, T x, T y, T z)
       : w(w), x(x), y(y), z(z)
@@ -65,6 +63,19 @@ typedef tquat<f32> quat;
 static_assert(sizeof(quat) == sizeof(glm::tquat<f32, glm::highp>), "quat differs in size from glm::quat");
 
 template <typename T>
+tquat<T>::tquat(T angle, tvec3<T> const & axis)
+{
+    tvec3<T> axisN = normalize(axis);
+    T sin_a = sin(angle / 2);
+    T cos_a = cos(angle / 2);
+    x = axisN.x * sin_a;
+    y = axisN.y * sin_a;
+    z = axisN.z * sin_a;
+    w = cos_a;
+}
+
+
+template <typename T>
 inline tvec3<T> operator*(const tquat<T> & lhs, const tvec3<T> & rhs)
 {
     return tvec3<T>((tquat<T>::glm_t)lhs * (tvec3<T>::glm_t)rhs);
@@ -74,6 +85,13 @@ template <typename T>
 inline tquat<T> operator*(const tquat<T> & lhs, const tquat<T> & rhs)
 {
     return tquat<T>((tquat<T>::glm_t)lhs * (tquat<T>::glm_t)rhs);
+}
+
+template <typename T>
+inline tquat<T> slerp(const tquat<T> & x, const tquat<T> & y, T a)
+{
+    tquat<T> ret = tquat<T>(glm::slerp((tquat<T>::glm_t)x, (tquat<T>::glm_t)y, a));
+    return ret;
 }
 
 

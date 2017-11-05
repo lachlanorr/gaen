@@ -30,6 +30,7 @@
 #include <glm/mat4x3.hpp>
 
 #include "math/vec3.h"
+#include "math/quat.h"
 
 #include "core/base_defines.h"
 
@@ -64,6 +65,7 @@ struct tmat43
     }
 
     explicit tmat43(const tvec3<T> & pos);
+    explicit tmat43(const tquat<T> & q);
     tmat43(const tvec3<T> & pos, const tvec3<T> & rot);
     static tmat43 from_pos(T x, T y, T z);
     static tmat43 from_rot(T x, T y, T z);
@@ -74,7 +76,7 @@ struct tmat43
 
     tvec3<T> & operator[](u32 i) { ASSERT(i < sizeof(cols) / sizeof(tvec3<T>)); return cols[i]; }
     const tvec3<T> & operator[](u32 i) const { ASSERT(i < sizeof(cols) / sizeof(tvec3<T>)); return cols[i]; }
-    
+
     tmat43 & operator=(const tmat4<T> & rhs);
     tmat43 & operator=(const tmat3<T> & rhs);
 

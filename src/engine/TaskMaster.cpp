@@ -530,6 +530,13 @@ void TaskMaster::runPrimaryGameLoop()
         // process messages accumulated since last frame
         processMessages(*mpMainMessageQueue); // messages from main thread
 
+        // Update physics (inside the Mgrs) before processing messages
+        if (mStatus == kTMS_Initialized)
+        {
+            mpModelMgr->update(delta);
+            mpSpriteMgr->update(delta);
+        }
+
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
         {
@@ -538,9 +545,6 @@ void TaskMaster::runPrimaryGameLoop()
 
         if (mStatus == kTMS_Initialized)
         {
-            mpModelMgr->update(delta);
-            mpSpriteMgr->update(delta);
-
             // call update on each task owned by this TaskMaster
             for (Task & task : mOwnedTasks)
             {
@@ -654,7 +658,7 @@ void TaskMaster::registerMutableDependency(task_id taskId, u32 path)
         pNewMap->emplace(path, 1); // refcount of 1 to start
         mMutableData.emplace(rootTaskId, std::move(pNewMap));
     }
-*/  
+*/
 }
 
 void TaskMaster::deregisterMutableDependency(task_id taskId, u32 path)
@@ -753,7 +757,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             case HASH::request_set_parent__:
             {
                 messages::TaskEntityR<MessageQueueAccessor> msgr(msgAcc);
-                
+
                 task_id parentTaskId = msgr.taskId();
                 Entity * pChild = msgr.entity();
                 task_id childTaskId = pChild->task().id();
@@ -768,7 +772,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
                 {
                     removeTask(childTaskId);
                 }
-                
+
                 // This message is only relevant if we own the child
                 if (childOwner == threadId())
                 {
@@ -801,11 +805,11 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             case HASH::confirm_set_parent__:
             {
                 messages::TaskEntityR<MessageQueueAccessor> msgr(msgAcc);
-                
+
                 task_id parentTaskId = msgr.taskId();
                 Entity * pChild = msgr.entity();
                 thread_id parentOwner = msg.target;
-                
+
                 insertTask(parentOwner, pChild->task());
 
                 // If we own the parent, conduct parenting
@@ -961,7 +965,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
     {
         PANIC("Message received in invalid state, msgid: %u, status: %u", msg.msgId, mStatus);
     }
-    
+
     return MessageResult::Consumed;
 }
 

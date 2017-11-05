@@ -76,7 +76,7 @@ struct tmat4
 
     tvec4<T> & operator[](u32 i) { ASSERT(i < sizeof(cols) / sizeof(tvec4<T>)); return cols[i]; }
     const tvec4<T> & operator[](u32 i) const { ASSERT(i < sizeof(cols) / sizeof(tvec4<T>)); return cols[i]; }
-    
+
     tmat4 & operator=(const tmat43<T> & rhs);
     tmat4 & operator=(const tmat3<T> & rhs);
 

@@ -221,7 +221,7 @@ public:
         }
         return false;
     }
-    
+
     bool isShown() { return mIsShown; }
     void show() { mIsShown = true; }
     void hide() { mIsShown = false; }
@@ -236,7 +236,7 @@ public:
         pItem->loadGpu();
         mItems[pInst->pass()].insert(std::move(pItem));
     }
-    
+
     bool itemTransform(u32 uid, const mat43 & transform)
     {
         for (u32 i = 0; i < kRP_COUNT; ++i)
@@ -245,6 +245,7 @@ public:
             if (it != mItems[i].end())
             {
                 f32 oldOrder = it->order();
+
                 it->setTransform(transform);
                 if (oldOrder != it->order())
                 {

@@ -43,6 +43,12 @@ tmat43<T>::tmat43(const tvec3<T> & pos)
 }
 
 template <typename T>
+tmat43<T>::tmat43(const tquat<T> & q)
+{
+    *this = tmat43<T>(tmat4<T>(glm::mat4_cast((tquat<T>::glm_t)q)));
+}
+
+template <typename T>
 tmat43<T>::tmat43(const tvec3<T> & pos, const tvec3<T> & rot)
 {
     *this = rotation_from_euler<tmat43<T>>(rot.x, rot.y, rot.z);

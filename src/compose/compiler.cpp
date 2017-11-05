@@ -1318,7 +1318,8 @@ Ast * ast_create_assign_op(AstType astType, Ast * pDottedId, Ast * pRhs, ParseDa
     {
         if (pSymRec->type != kSYMT_Param &&
             pSymRec->type != kSYMT_Local &&
-            pSymRec->type != kSYMT_Field)
+            pSymRec->type != kSYMT_Field &&
+            pSymRec->type != kSYMT_Property)
         {
             COMP_ERROR(pParseData, "Invalid use of symbol in assignment: %s", pDottedId->str);
             return pAst;
@@ -1638,6 +1639,7 @@ Ast * ast_create_mat43_init(Ast * pParams, ParseData * pParseData)
         const SymDataType * pSdt = ast_data_type(pParam);
         if (pSdt->typeDesc.dataType != kDT_float &&
             pSdt->typeDesc.dataType != kDT_vec3 && // position
+            pSdt->typeDesc.dataType != kDT_quat &&
             pSdt->typeDesc.dataType != kDT_mat43)
             COMP_ERROR(pParseData, "Invalid data type in mat43 initialization");
         break;
@@ -3211,6 +3213,42 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
+    // float clamp(f32, f32, f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("x", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("min", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("max", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        register_builtin_function("clamp",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // quat lerp(f32, f32, f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("x", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("y", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("a", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        register_builtin_function("lerp",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // quat slerp(quat, quat, f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("x", parsedata_find_type_symbol(pParseData, "quat", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("y", parsedata_find_type_symbol(pParseData, "quat", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("a", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        register_builtin_function("slerp",
+                                  parsedata_find_type_symbol(pParseData, "quat", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
     // vec3 position(mat43)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
@@ -3270,7 +3308,7 @@ void register_builtin_functions(ParseData * pParseData)
                                   pFuncArgs,
                                   pParseData);
     }
-    
+
     // vec3 cross(vec3, vec3)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);

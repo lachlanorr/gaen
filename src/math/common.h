@@ -29,6 +29,7 @@
 
 #include <glm/common.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/compatibility.hpp>
 
 #include "core/base_defines.h"
 
@@ -58,13 +59,21 @@ inline T max(const T & lhs, const T & rhs)
 }
 
 template <typename T>
-inline T clamp(T val, T min, T max)
+inline T clamp(const T & x, const T & min, const T & max)
 {
-    if (val < min)
-        return min;
-    else if (val > max)
-        return max;
-    return val;
+    return glm::clamp(x, min, max);
+}
+
+template <typename T, typename U>
+inline T lerp(const T & x, const T & y, const U & a)
+{
+    return glm::lerp(x, y, a);
+}
+
+template <typename T, typename U>
+inline T slerp(const T & x, const T & y, const U & a)
+{
+    return quat::slerp(x, y, a);
 }
 
 template<typename T>

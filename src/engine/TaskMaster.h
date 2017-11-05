@@ -186,7 +186,7 @@ private:
     void processMessages(MessageQueue & msgQueue);
 
     MessageResult message(const MessageQueueAccessor& msgAcc);
-    
+
     void insertTask(thread_id threadOwner, const Task & task);
     void removeTask(task_id taskId);
     void setTaskOwner(thread_id newOwner, const Task & task);

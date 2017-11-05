@@ -73,6 +73,35 @@ inline T degrees(T radians, Entity * pCaller)
     return gaen::degrees(radians);
 }
 
+template <typename T>
+inline T min(T lhs, T rhs, Entity * pCaller)
+{
+    return gaen::min(lhs, rhs);
+}
+template <typename T>
+inline T max(T lhs, T rhs, Entity * pCaller)
+{
+    return gaen::max(lhs, rhs);
+}
+
+template <typename T>
+inline T clamp(const T & x, const T & min, const T & max, Entity * pCaller)
+{
+    return gaen::clamp(x, min, max);
+}
+
+template <typename T, typename U>
+inline T lerp(const T & x, const T & y, const U & a, Entity * pCaller)
+{
+    return gaen::lerp(x, y, a);
+}
+
+template <typename T, typename U>
+inline T slerp(const T & x, const T & y, const U & a, Entity * pCaller)
+{
+    return gaen::slerp(x, y, a);
+}
+
 inline vec3 position(const mat43 & transform, Entity * pCaller)
 {
     return gaen::position(transform);

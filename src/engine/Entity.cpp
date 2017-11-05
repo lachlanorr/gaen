@@ -233,7 +233,7 @@ MessageResult Entity::message(const T & msgAcc)
             }
 
             mIsDead = true;
-            
+
             // fin messages are like destructors and should be handled specially.
             // fin method will propagate fin to all tasks/entity children
             // and delete this entity.
@@ -383,7 +383,7 @@ MessageResult Entity::message(const T & msgAcc)
             case HASH::insert_child:
             {
                 messages::TaskEntityR<T> msgr(msgAcc);
-                
+
                 Entity * pChild = msgr.entity();
 
                 // We should only become parent to Entities that are managed by our TaskMaster
@@ -395,11 +395,11 @@ MessageResult Entity::message(const T & msgAcc)
 
             MessageResult res;
 
-            // Call our subclassed message routine
+            // Call our sub-classed message routine
             res = mScriptTask.message(msgAcc);
             if (res == MessageResult::Consumed && !msgAcc.message().ForcePropagate())
                 return MessageResult::Consumed;
-    
+
             // Send the message to all components
             for (u32 i = 0; i < mComponentCount; ++i)
             {
@@ -411,7 +411,7 @@ MessageResult Entity::message(const T & msgAcc)
             return MessageResult::Propagate;
 
         }
-        else
+        else // (mInitStatus != kIS_Activated)
         {
             // Entity initialization has a very strict ordering,
             // and specific messages must arrive in the correct
@@ -467,7 +467,7 @@ MessageResult Entity::message(const T & msgAcc)
 
                     // HandleMgr will send us asset_ready__ messages as assets
                     // are loaded.
-            
+
                     return MessageResult::Consumed;
                 }
                 break;
@@ -586,6 +586,17 @@ void Entity::setTransform(const mat43 & mat)
     if (mat != mTransform)
     {
         mTransform = applyPositionConstraint(mat);
+
+        // send update_transform to our script task
+        {
+            StackMessageBlockWriter<0> msgw(HASH::update_transform,
+                                            kMessageFlag_ForcePropagate,
+                                            mTask.id(),
+                                            mScriptTask.id(),
+                                            to_cell(0));
+            mScriptTask.message(msgw.accessor());
+        }
+
 
         // send update_transform our components
         for (u32 i = 0; i < mComponentCount; ++i)

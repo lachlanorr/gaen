@@ -33,6 +33,33 @@
 namespace gaen
 {
 
+template <typename T, typename U>
+void copy_message_blocks(T * target, const U & msgAcc, u32 blockIndex)
+{
+    static_assert(kBlockSize == 16, "kBlockSize must be 16 bytes"); // we do some optimized math here, and it requires 16 byte blocks
+    u32 targetSize = (u32)sizeof(T);
+    ASSERT_MSG(targetSize >> 4 << 4 == targetSize, "Target must be a multiple of 16 bytes");
+    Block * pBlocks = reinterpret_cast<Block*>(target);
+    u32 blockCount = targetSize >> 4; // divide by 16
+    for (u32 i = 0; i < blockCount; ++i)
+    {
+        pBlocks[i] = msgAcc[i + blockIndex];
+    }
+}
+template <typename T, typename U>
+void copy_message_cells(T * target, const U & msgAcc, u32 blockIndex, u32 cellIndex)
+{
+    u32 targetSize = (u32)sizeof(T);
+    ASSERT_MSG(targetSize <= kBlockSize - (cellIndex * kCellsPerBlock), "Target cells not contained within a single block");
+    cell * pCells = reinterpret_cast<cell*>(target);
+    u32 cellCount = cell_count(targetSize);
+    for (u32 i = 0; i < cellCount; ++i)
+    {
+        pCells[i] = msgAcc[blockIndex].cells[i + cellIndex];
+    }
+}
+
+
 // Provides cell access to message.  Message Header contains one 32 bit cell,
 // each subsequent "Message Header" contains 4 more cells.
 class MessageQueueAccessor
@@ -69,6 +96,22 @@ public:
     u32 available() const
     {
         return mAccessor.available();
+    }
+
+    template <typename T>
+    T extract(u32 blockIndex) const
+    {
+        T val;
+        copy_message_blocks<T>(&val, *this, blockIndex);
+        return val;
+    }
+
+    template <typename T>
+    T extract(u32 blockIndex, u32 cellIndex) const
+    {
+        T val;
+        copy_message_cells<T>(&val, *this, blockIndex, cellIndex);
+        return val;
     }
 
 private:
@@ -116,6 +159,22 @@ public:
     u32 available() const
     {
         return mBlockCount;
+    }
+
+    template <typename T>
+    T extract(u32 blockIndex) const
+    {
+        T val;
+        copy_message_blocks<T>(&val, *this, blockIndex);
+        return val;
+    }
+
+    template <typename T>
+    T extract(u32 blockIndex, u32 cellIndex) const
+    {
+        T val;
+        copy_message_cells<T>(&val, *this, blockIndex, cellIndex);
+        return val;
     }
 
 private:

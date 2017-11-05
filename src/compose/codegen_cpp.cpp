@@ -49,6 +49,7 @@ namespace gaen
 static S indent(u32 level);
 static const char * cell_field_str(const SymDataType * pSdt, ParseData * pParseData);
 static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blockInfo, const char * blockVarName, bool isConst, ParseData * pParseData);
+static S message_block_accessor(const SymDataType * pSdt, const BlockInfo & blockInfo, const char * blockVarName, bool isConst, ParseData * pParseData);
 static S binary_op(const Ast * pAst, const char * op);
 static S unary_op(const Ast * pAst, const char* op);
 static S unary_op_post(const Ast * pAst, const char* op);
@@ -166,6 +167,52 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
     char scratch[kScratchSize+1];
     scratch[kScratchSize] = '\0';
 
+    switch (pSdt->typeDesc.dataType)
+    {
+    case kDT_int:
+    case kDT_float:
+    case kDT_bool:
+    case kDT_color:
+    case kDT_entity:
+        snprintf(scratch, kScratchSize, "%s[%u].cells[%u].%s", blockVarName, blockInfo.blockIndex, blockInfo.cellIndex, cell_field_str(pSdt, pParseData));
+        return S(scratch);
+    case kDT_vec3:
+    case kDT_vec4:
+    case kDT_ivec3:
+    case kDT_ivec4:
+    case kDT_quat:
+    case kDT_mat3:
+    case kDT_mat43:
+    case kDT_mat4:
+        ASSERT(blockInfo.cellIndex == 0);
+        if (!isConst)
+            snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].qCell)", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex);
+        else
+            snprintf(scratch, kScratchSize, "*reinterpret_cast<const %s*>(&%s[%u].qCell)", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex);
+        return S(scratch);
+    case kDT_vec2:
+    case kDT_ivec2:
+    case kDT_string:
+    case kDT_asset:
+    case kDT_handle:
+    case kDT_asset_handle:
+        if (!isConst)
+            snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].cells[%u])", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex, blockInfo.cellIndex);
+        else
+            snprintf(scratch, kScratchSize, "*reinterpret_cast<const %s*>(&%s[%u].cells[%u])", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex, blockInfo.cellIndex);
+        return S(scratch);
+    default:
+        COMP_ERROR(pParseData, "Invalid dataType: %d", pSdt->typeDesc.dataType);
+        return S("");
+    }
+}
+
+static S message_block_accessor(const SymDataType * pSdt, const BlockInfo & blockInfo, const char * blockVarName, bool isConst, ParseData * pParseData)
+{
+    static const u32 kScratchSize = 255;
+    char scratch[kScratchSize+1];
+    scratch[kScratchSize] = '\0';
+
     if (blockInfo.isPayload)
     {
         snprintf(scratch,
@@ -177,43 +224,16 @@ static S property_block_accessor(const SymDataType * pSdt, const BlockInfo & blo
     }
     else
     {
-        switch (pSdt->typeDesc.dataType)
+        if (pSdt->cellCount < kCellsPerBlock)
         {
-        case kDT_int:
-        case kDT_float:
-        case kDT_bool:
-        case kDT_color:
-        case kDT_entity:
-            snprintf(scratch, kScratchSize, "%s[%u].cells[%u].%s", blockVarName, blockInfo.blockIndex, blockInfo.cellIndex, cell_field_str(pSdt, pParseData));
+            snprintf(scratch, kScratchSize, "%s.extract<%s>(%u, %u)", blockVarName, pSdt->cppTypeStr, blockInfo.blockIndex, blockInfo.cellIndex);
             return S(scratch);
-        case kDT_vec3:
-        case kDT_vec4:
-        case kDT_ivec3:
-        case kDT_ivec4:
-        case kDT_quat:
-        case kDT_mat3:
-        case kDT_mat43:
-        case kDT_mat4:
+        }
+        else // 4 cells or more
+        {
             ASSERT(blockInfo.cellIndex == 0);
-            if (!isConst)
-                snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].qCell)", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex);
-            else
-                snprintf(scratch, kScratchSize, "*reinterpret_cast<const %s*>(&%s[%u].qCell)", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex);
+            snprintf(scratch, kScratchSize, "%s.extract<%s>(%u)", blockVarName, pSdt->cppTypeStr, blockInfo.blockIndex);
             return S(scratch);
-        case kDT_vec2:
-        case kDT_ivec2:
-        case kDT_string:
-        case kDT_asset:
-        case kDT_handle:
-        case kDT_asset_handle:
-            if (!isConst)
-                snprintf(scratch, kScratchSize, "*reinterpret_cast<%s*>(&%s[%u].cells[%u])", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex, blockInfo.cellIndex);
-            else
-                snprintf(scratch, kScratchSize, "*reinterpret_cast<const %s*>(&%s[%u].cells[%u])", pSdt->cppTypeStr, blockVarName, blockInfo.blockIndex, blockInfo.cellIndex);
-            return S(scratch);
-        default:
-            COMP_ERROR(pParseData, "Invalid dataType: %d", pSdt->typeDesc.dataType);
-            return S("");
         }
     }
 }
@@ -272,7 +292,7 @@ static S message_param_symref(SymRec * pSymRec)
     {
         if (!pSymRec->pStructSymRec)
         {
-            code = S("/*") + S(pSymRec->name) + S("*/") + property_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc", true, pSymRec->pAst->pParseData);
+            code = S("/*") + S(pSymRec->name) + S("*/") + message_block_accessor(ast_data_type(pSymRec->pAst), *pBlockInfo, "msgAcc", true, pSymRec->pAst->pParseData);
         }
         else
         {
@@ -281,7 +301,7 @@ static S message_param_symref(SymRec * pSymRec)
             ASSERT(fieldName != nullptr);
             const BlockInfo * pStructBlockInfo = pSymRec->pAst->pBlockInfos->find(pSymRec->pStructSymRec->pAst);
             code = S("/*") + S(pSymRec->name) + S("*/(");
-            code += property_block_accessor(ast_data_type(pSymRec->pStructSymRec->pAst), *pStructBlockInfo, "msgAcc", true, pSymRec->pAst->pParseData);
+            code += message_block_accessor(ast_data_type(pSymRec->pStructSymRec->pAst), *pStructBlockInfo, "msgAcc", true, pSymRec->pAst->pParseData);
             code += S(")") + S(fieldName);
         }
     }
@@ -805,7 +825,7 @@ static S message_def(const Ast * pAst, int indentLevel)
             }
             code += LF;
         }
-        
+
 
         code += I1 + S("// Message body follows\n");
         for (Ast * pChild : pAst->pChildren->nodes)
@@ -883,7 +903,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                     code += I + S("{\n");
                     const SymDataType * pRhsSdt = ast_data_type(pPropInit->pRhs);
 
-                    if (!is_block_memory_type(pRhsSdt))
+                    if (!is_block_memory_type(pRhsSdt) && pRhsSdt->typeDesc.dataType != kDT_asset_handle)
                     {
                         u32 valCellCount = pRhsSdt->cellCount;
                         u32 blockCount = block_count(valCellCount);
@@ -930,11 +950,27 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                     {
                         static const u32 kScratchSize = 256;
                         char scratch[kScratchSize+1];
-                        snprintf(scratch,
-                                 kScratchSize,
-                                 "    %s val = %s;\n",
-                                 pRhsSdt->cppTypeStr,
-                                 codegen_recurse(pPropInit->pRhs, 0).c_str());
+
+                        if (pRhsSdt->typeDesc.dataType != kDT_asset_handle)
+                        {
+                            snprintf(scratch,
+                                     kScratchSize,
+                                     "    %s val = %s;\n",
+                                     pRhsSdt->cppTypeStr,
+                                     codegen_recurse(pPropInit->pRhs, 0).c_str());
+                        }
+                        else
+                        {
+                            // In the case of passing assets, we
+                            // actually just want to pass the asset
+                            // path so that ref counting and such is
+                            // taken into account when target loads
+                            // the asset normally.
+                            snprintf(scratch,
+                                     kScratchSize,
+                                     "    CmpStringAsset val = %s__path;\n",
+                                     codegen_recurse(pPropInit->pRhs, 0).c_str());
+                        }
                         code += I + S(scratch);
 
                         snprintf(scratch,
@@ -1220,12 +1256,9 @@ static S codegen_helper_funcs_recurse(const Ast * pAst)
         code += I + S("}; // class ") + S(entity_init_class(pAst->str)) + LF;
         code += LF;
 
-        S thisParam = "Entity * pThis";
-        if (closureParams.size() > 0)
-            thisParam += S(", ");
-
-        code += I + S("task_id ") + entity_init_func(pAst->str) + S("(") + thisParam + closureParams + S(")") + LF;
+        code += I + S("task_id ") + entity_init_func(pAst->str) + S("(") + closureParams + S(")") + LF;
         code += I + S("{") + LF;
+        code += I + S("    auto pThis = this;") + LF;
         code += I + S("    Entity * pEntity = get_registry().constructEntity(") + hash_literal(pAst->pSymRecRef->fullName) + S(", 8, ") + codegen_init_parent_task(pAst->pRhs) + S(", self().task().id(), ") + codegen_ready_message(pAst->pRhs) + S(");") + LF;
         code += I + S("    ") + entity_init_class(pAst->str) + S(" * pEntityInit = GNEW(kMEM_Engine, ") + entity_init_class(pAst->str) + S(", this, pEntity");
         S closureArgs = closure_args(pClosure);
@@ -1496,7 +1529,7 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_FunctionDef:
     {
         S code;
-        
+
         if (is_top_level_function(pAst))
         {
             code += "namespace compose_funcs\n";
@@ -1505,7 +1538,7 @@ static S codegen_recurse(const Ast * pAst,
 
         code += I + function_prototype(pAst);
         code += LF;
-        
+
         code += I + S("{\n");
 
         if (!is_top_level_function(pAst))
@@ -1700,7 +1733,7 @@ static S codegen_recurse(const Ast * pAst,
         S reg_func_name = S("register_entity__") + entName;
         code += I + S("void ") + reg_func_name + S("(Registry & registry)\n");
         code += I + "{\n";
-        code += (I + S("    if (!registry.registerEntityConstructor(") + 
+        code += (I + S("    if (!registry.registerEntityConstructor(") +
                  hash_literal(entName.c_str()) + S(", ent::") + entName + S("::construct))\n"));
         code += (I + S("        PANIC(\"Unable to register entity: ") +
                  entName + S("\");\n"));
@@ -1825,7 +1858,7 @@ static S codegen_recurse(const Ast * pAst,
         }
 
         code += S("\n");
-        
+
         code += I + S("}; // class ") + compName + S("\n");
         code += I + S("static_assert(sizeof(Component) == sizeof(") + compName + S("), \"Component subclass has data members!\");\n");
 
@@ -1910,7 +1943,7 @@ static S codegen_recurse(const Ast * pAst,
             code += I + S("    ") + assignedFunc + S(" = true;\n");
             code += I + S("}\n");
         }
-        else if (ast_data_type(pAst)->typeDesc.dataType == kDT_asset || 
+        else if (ast_data_type(pAst)->typeDesc.dataType == kDT_asset ||
                  ast_data_type(pAst)->typeDesc.dataType == kDT_asset_handle ||
                  ast_data_type(pAst)->typeDesc.dataType == kDT_handle)
         {
@@ -2080,7 +2113,7 @@ static S codegen_recurse(const Ast * pAst,
                 code += S(", ");
             paramIdx++;
         }
-        
+
         // If it's a top level function call, add in our Entity
         // pointer to serve as the pThis pointer so the function can
         // make system_api calls.
@@ -2180,7 +2213,7 @@ static S codegen_recurse(const Ast * pAst,
         code += codegen_recurse(pAst->pChildren->nodes.front(), indentLevel + 1);
         return code;
     }
-    
+
     case kAST_Add:
     {
         return binary_op(pAst, "+");
@@ -2337,11 +2370,9 @@ static S codegen_recurse(const Ast * pAst,
     case kAST_EntityInit:
     {
         S code = I + entity_init_func(pAst->str);
-        code += S("(&self()");
+        code += S("(");
         const SymTab * pClosure = find_closure_symbols(pAst);
         S closureArgs = closure_args(pClosure);
-        if (closureArgs.size() > 0)
-            code += S(", ");
         code += closureArgs;
         code += S(")");
         return code;
@@ -2447,7 +2478,7 @@ static S codegen_recurse(const Ast * pAst,
         code += I1 + S("// Compute block size, incorporating any BlockMemory parameters dynamically\n");
         snprintf(scratch, kScratchSize, "u32 blockCount = %u;\n", pAst->pBlockInfos->blockCount);
         code += I1 + S(scratch);
-        
+
         // Add in blocks for BlockMemory params
         u32 bmId = 0;
         for (const BlockInfo & bi : pAst->pBlockInfos->items)
@@ -2509,7 +2540,7 @@ static S codegen_recurse(const Ast * pAst,
                      pAst->pBlockInfos->blockCount);
             code += I1 + S(scratch);
         }
-        
+
         // Set non-payload message data into message body
         code += I1 + S("// Write parameters to message\n");
         bmId = 0;
@@ -2656,12 +2687,12 @@ static void extract_filenames(const S & cmpFullPath,
 
     codeCpp.cmpRelPath = relPath + codeCpp.cmpFilename;
     codeCpp.cppRelPath = relPath + codeCpp.cppFilename;
-    
+
     codeCpp.cppFullPath = cmpFullPath.substr(0, scriptsComposePos);
     codeCpp.cppFullPath += "/scripts/cpp/";
     codeCpp.cppFullPath += codeCpp.cppRelPath;
 }
-                       
+
 
 CodeCpp codegen_cpp(ParseData * pParseData)
 {
@@ -2670,7 +2701,7 @@ CodeCpp codegen_cpp(ParseData * pParseData)
     CodeCpp codeCpp;
 
     extract_filenames(pParseData->fullPath, codeCpp, pParseData);
-    
+
     codeCpp.code += S("#include \"hashes/hashes.h\"\n");
     codeCpp.code += S("#include \"math/math.h\"\n");
     codeCpp.code += S("#include \"engine/Block.h\"\n");

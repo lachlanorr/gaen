@@ -59,7 +59,7 @@ struct tvec3
         struct{ T r, g, b; };
         struct{ T s, t, p; };
     };
-    
+
     tvec3() = default;
 
     tvec3(T x, T y, T z)
@@ -69,7 +69,7 @@ struct tvec3
     explicit tvec3(T x)
       : x(x), y(x), z(x)
     {}
-    
+
     tvec3(const tvec4<T> & v);
     tvec3(const tvec2<T> & v, T s);
     tvec3(T s, const tvec2<T> & v);
