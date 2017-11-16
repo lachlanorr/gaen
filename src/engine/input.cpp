@@ -312,7 +312,7 @@ static HashMap<kMEM_Engine, i32, Key> sGlfwKeyMap =
     {GLFW_KEY_UNKNOWN,       kKEY_NOKEY}
 };
 
-    
+
 Key convert_glfw_key(int glfwKey)
 {
     auto it = sGlfwKeyMap.find(glfwKey);
@@ -333,8 +333,8 @@ void kill_focus()
                                nullptr);
 }
 
-static const f32 kMouseUpdateInterval = 1.0f / 60.0f;
-static f32 sLastUpdateTime = 0.0f;
+static const f64 kMouseUpdateInterval = 1.0f / 60.0f;
+static f64 sLastUpdateTime = 0.0f;
 static i32 sMouseDeltaX;
 static i32 sMouseDeltaY;
 
@@ -343,7 +343,7 @@ void send_mouse_input()
     // send mouse movements if timeout expired
     if (sMouseDeltaX != 0 || sMouseDeltaY != 0)
     {
-        f32 nowTime = now();
+        f64 nowTime = now();
         if (nowTime - sLastUpdateTime >= kMouseUpdateInterval)
         {
             MouseInput::Movement movement;

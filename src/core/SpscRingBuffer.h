@@ -200,7 +200,7 @@ private:
 
     std::atomic<T*> mpHead;
     std::atomic<T*> mpTail;
-    
+
 
 
 #if HAS(DEV_BUILD)

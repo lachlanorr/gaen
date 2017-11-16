@@ -748,7 +748,7 @@ static S initialization_message_handlers(const Ast * pAst, const S& postInit, co
     code += I + S("        case HASH::transform:\n");
     code += I + S("        {\n");
     code += I + S("            messages::TransformR<T> msgr(msgAcc);\n");
-    code += I + S("            pThis->self().applyTransform(msgr.isLocal(), msgr.transform());\n");
+    code += I + S("            pThis->self().applyTransform(msgAcc.message().source, msgr.isLocal(), msgr.transform());\n");
     code += I + S("            return MessageResult::Consumed;\n");
     code += I + S("        } // HASH::transform\n");
 

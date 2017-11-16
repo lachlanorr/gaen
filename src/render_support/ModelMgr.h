@@ -48,7 +48,7 @@ public:
 
     ~ModelMgr();
 
-    void update(f32 delta);
+    void update();
 
     template <typename T>
     MessageResult message(const T& msgAcc);

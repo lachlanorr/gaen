@@ -77,9 +77,9 @@ public:
     MessageResult message(const T& msgAcc);
 
     const mat43 & transform() const { return mTransform; }
-    void setTransform(const mat43 & mat);
-    void applyTransform(bool isLocal, const mat43 & mat);
-    void updateTransform();
+    void setTransform(task_id source, const mat43 & mat);
+    void applyTransform(task_id source, bool isLocal, const mat43 & mat);
+    void updateTransform(task_id source);
 
     void constrainPosition(const vec3 & min, const vec3 & max);
     mat43 applyPositionConstraint(const mat43 & mat) const;
@@ -129,7 +129,7 @@ protected:
 
     void moveComponentUp(u32 nameHash);
     void moveComponentDown(u32 nameHash);
-    
+
     void removeBlocks(Block * pStart, u32 count);
     void removeComponent(u32 nameHash);
 

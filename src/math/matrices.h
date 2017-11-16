@@ -77,6 +77,16 @@ inline vec3 position(const mat4 & transform)
     return vec3(transform[3]);
 }
 
+inline void set_position(mat43 & transform, const vec3 & position)
+{
+    transform[3] = position;
+}
+
+inline void set_position(mat4 & transform, const vec3 & position)
+{
+    transform[3] = vec4(position, 0.0f);
+}
+
 vec3 euler(const mat43 & transform);
 
 

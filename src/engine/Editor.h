@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// platutils.h - Misc platform specific code
+// Editor.h - Game editor
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2017 Lachlan Orr
@@ -24,42 +24,30 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-//------------------------------------------------------------------------------
-// Various platform specific stuff
-//
-// We implement our own since these are pretty simple we avoid pulling
-// in more external cruft.
-//------------------------------------------------------------------------------
+#ifndef GAEN_ENGINE_EDITOR_H
+#define GAEN_ENGINE_EDITOR_H
 
-#ifndef GAEN_CORE_PLATUTILS_H
-#define GAEN_CORE_PLATUTILS_H
-
-#include "core/base_defines.h"
+#include "engine/Task.h"
 
 namespace gaen
 {
 
-// Initialize any platform specific stuff required for calling time funcs
-void init_time();
+class Editor
+{
+public:
+    Editor(bool isActive);
 
-// Get time in secs since init_time was called
-f64 now();
+    template <typename T>
+    MessageResult message(const T& msgAcc);
 
-// Converts time to string.
-// E.g.  2:15:30.123456   is 2 hours, 15 minutes, 30 secs, 123456 microsecs
-bool time_to_str(char * str, size_t strLen, f32 timeSecs);
+private:
+    void processKeyPress(const ivec4 & keys);
 
-// Sleep the specified number of milliseconds
-void sleep(u32 milliSecs);
+    Task mTask;
 
-// Number of cores on system.  Hyperthreads count as a core.
-u32 platform_core_count();
-
-// Set affinity of the calling thread to the core Id specified.
-void set_thread_affinity(u32 coreId);
+    bool mIsActive;
+}; // class Engine
 
 } // namespace gaen
 
-
-
-#endif
+#endif // #ifndef GAEN_ENGINE_EDITOR_H

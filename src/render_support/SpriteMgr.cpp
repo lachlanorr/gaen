@@ -42,6 +42,14 @@
 namespace gaen
 {
 
+static const u32 kMaxMessages = 4096;
+
+SpriteMgr::SpriteMgr()
+{
+    mTimePrev = mTimeCurr = now();
+}
+
+
 SpriteMgr::~SpriteMgr()
 {
     // LORRTODO: Cleanup is causing crash on exit... need to redesign how we release assets
@@ -51,9 +59,11 @@ SpriteMgr::~SpriteMgr()
     //}
 }
 
-void SpriteMgr::update(f32 delta)
+void SpriteMgr::update()
 {
-    mPhysics.update(delta);
+    mTimeCurr = now();
+    f32 delta = (f32)(mTimeCurr - mTimePrev);
+    mPhysics.update();
 
     for (auto & spritePair : mSpriteMap)
     {
@@ -65,8 +75,8 @@ void SpriteMgr::update(f32 delta)
             pSpriteInst->mTransform = to_mat4x3(translate(mat4(1.0f), offset) * mat4(pSpriteInst->mTransform));
             SpriteInstance::send_sprite_transform(kSpriteMgrTaskId, kRendererTaskId, pSpriteInst->sprite().uid(), pSpriteInst->mTransform);
             {
-                messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, pSpriteInst->sprite().mOwner);
-                msgw.setTransform(pSpriteInst->mTransform);
+                messages::PropertyMat43QW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, pSpriteInst->sprite().mOwner, HASH::transform);
+                msgw.setValue(pSpriteInst->mTransform);
             }
         }
         */
@@ -80,6 +90,7 @@ void SpriteMgr::update(f32 delta)
                                         pSpriteInst->mAnimFrameIdx);
         }
     }
+    mTimePrev = mTimeCurr;
 }
 
 template <typename T>

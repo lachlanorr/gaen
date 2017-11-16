@@ -50,13 +50,14 @@ class InputMgr;
 class AssetMgr;
 class ModelMgr;
 class SpriteMgr;
+class Editor;
 
 class MessageQueue;
 class Entity;
 
 // Call this from main to prep one task master per thread and
 // get them running.
-void init_task_masters();
+void init_task_masters(bool isEditorActive);
 
 // Once main TaskMaster quits (i.e. runGameLoop exits)
 // you should call this from main thread.
@@ -110,7 +111,7 @@ void notify_next_frame();
 class TaskMaster
 {
 public:
-    void init(thread_id tid);
+    void init(thread_id tid, bool isEditorActive);
     void fin(const MessageQueueAccessor& msgAcc);
     void cleanup();
 
@@ -205,7 +206,7 @@ private:
     // Maps task_id to its index in mOwnedTasks
     typedef HashMap<kMEM_Engine, task_id, size_t> TaskMap;
     TaskMap mOwnedTaskMap;
-    
+
     // Maps task_id to the TaskMaster's thread_id that owns it
     typedef HashMap<kMEM_Engine, task_id, thread_id> TaskOwnerMap;
     TaskOwnerMap mTaskOwnerMap;
@@ -214,6 +215,10 @@ private:
     UniquePtr<AssetMgr> mpAssetMgr;
     UniquePtr<ModelMgr> mpModelMgr;
     UniquePtr<SpriteMgr> mpSpriteMgr;
+
+    UniquePtr<Editor> mpEditor;
+    bool mIsEditorEnabled = false;
+    bool mIsEditorActive = false;
 
     Task mRendererTask;
 

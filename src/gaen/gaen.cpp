@@ -51,7 +51,9 @@ static const char * kDefaultMemInitStr = "16:100,64:100,256:100,1024:100,4096:10
 static const size_t kMaxMemInitStrLen = 256;
 static char sMemInitStr[kMaxMemInitStrLen] = {0};
 
-static thread_id sNumThreads = platform_core_count();
+// LORRTODO: Initialize to 1 thread for now
+//static thread_id sNumThreads = platform_core_count();
+static thread_id sNumThreads = 1;
 
 static const u32 kMaxEntityName = 64;
 static char sStartEntity[kMaxEntityName+1] = "init.Start";
@@ -59,6 +61,12 @@ static char sStartEntity[kMaxEntityName+1] = "init.Start";
 static const size_t kMaxIpLen = 16;
 static char sLoggingServerIp[kMaxIpLen] = {0};
 static bool sIsLoggingEnabled = false;
+
+#if HAS(DEV_BUILD)
+static bool sIsEditorActive = true;
+#else
+static bool sIsEditorActive = false;
+#endif
 
 static const char * sHelpMsg =
     "Gaen Concurrency Engine"
@@ -70,7 +78,8 @@ static const char * sHelpMsg =
     "  -t num     Set number of engine threads\n"
     "             Min:     1\n"
     "             Max:     num cores (this system has %d)\n"
-    "             Default: num cores\n"
+    "             0:       num cores\n"
+    "             Default: 1\n"
     "  -l ip      Enable logging and send logs to this IPV4 address\n"
     "  -m memStr  Initialize per-thread mempools to this string\n"
     "             Default: %s\n"
@@ -86,6 +95,9 @@ static const char * sHelpMsg =
     "             When pool memory is freed, it is load balanced across threads,\n"
     "             applying the freed pool block to hungry threads first.\n"
     "  -s entity  Entity to start. Defaults to \"init.start\".\n"
+#if HAS(DEV_BUILD)
+    "  -e         Start in editor mode. Toggle with `\n"
+#endif
     "\n"
     "Initializers: Override gamevar default values with the form gamevar=value\n"
     "              E.g.: godMode=true\n"
@@ -93,7 +105,7 @@ static const char * sHelpMsg =
     "                    regenRate=0.25\n"
     "\n";
 
-    
+
 //------------------------------------------------------------------------------
 // Arg Parsing
 //------------------------------------------------------------------------------
@@ -126,6 +138,8 @@ static void parse_args(int argc,
             case 't':
             {
                 u32 numThreads = (u32)strtoul(argv[i+1], nullptr, 10);
+                if (numThreads == 0)
+                    numThreads = platform_core_count();
                 if (numThreads < kMinThreads ||
                     numThreads > platform_core_count())
                 {
@@ -163,6 +177,13 @@ static void parse_args(int argc,
                 ++i;
                 break;
             }
+#if HAS(DEV_BUILD)
+            case 'e':
+            {
+                sIsEditorActive = true;
+                break;
+            }
+#endif
             default:
                 printHelpAndExit();
             }
@@ -203,8 +224,12 @@ void init_gaen(int argc, char ** argv)
 
     init_memory_manager(sMemInitStr);
 
+    LOG_INFO("StartEntity: %s", sStartEntity);
+    if (sIsEditorActive)
+        LOG_INFO("Editor Activated");
+
     set_start_entity(sStartEntity);
-    init_task_masters();
+    init_task_masters(sIsEditorActive);
 }
 
 void set_renderer(const Task & rendererTask)

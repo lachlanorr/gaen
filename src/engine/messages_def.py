@@ -64,6 +64,10 @@ class Transform(FieldHandler):
     isLocal   = boolField(payload=True)
     transform = mat43Field()
 
+class PropertyMat43(FieldHandler):
+    prop   = u32Field(payload=True)
+    value  = mat43Field()
+
 # Transform and entity
 class UidTransform(FieldHandler):
     uid       = i32Field(payload=True)
@@ -171,3 +175,6 @@ class Asset(FieldHandler):
     nameHash  = i32Field()
     pAsset    = PointerField(type_name='Asset *',
                              includes=['engine/Asset.h'])
+
+class KeyPress(FieldHandler):
+    keys = ivec4Field()

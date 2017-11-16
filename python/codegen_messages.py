@@ -79,7 +79,7 @@ def camel_to_underscores(s):
 class Templates:
     MessageClass   = read_file_data(posixpath.join(python_path(), 'templates/message_template.cpp'))
     CmakeFileList  = read_file_data(posixpath.join(python_path(), 'templates/filelist_template.cmake'))
-    
+
 def output_path():
     return posixpath.join(sys.argv[1], 'messages')
 
@@ -123,7 +123,7 @@ def gen_reader_member_init(field_handler):
             lines.append('            %s = &%s;' % (f.member_pvar, f.member_var))
             lines.append('        }')
             lines.append('')
-            
+
     return '\n'.join(lines)
 
 def gen_reader_getters(field_handler):
@@ -143,7 +143,7 @@ def gen_reader_getters(field_handler):
         else:
             lines.append('    const %s & %s() const { return *%s; }' % (f.type_name, f.name, f.member_pvar))
     return '\n'.join(lines)
-    
+
 def gen_reader_data_members(field_handler):
     lines = []
     for f in field_handler.fields:
@@ -171,7 +171,7 @@ def gen_payload_value(field_handler):
                 # add explicit casting as it's probably necessary for this type
                 return "*reinterpret_cast<const u32*>(&%s)" % f.name
     return '0'
-    
+
 
 def gen_writer_setters(field_handler):
     lines = []
@@ -196,7 +196,7 @@ def gen_writer_setters(field_handler):
             lines.append('        }')
             lines.append('    }')
     return '\n'.join(lines)
-    
+
 def gen_message_class(field_handler):
     repl = {'message_name_caps'      : field_handler.object_name.upper(),
             'message_name'           : field_handler.object_name,
@@ -229,7 +229,7 @@ def gen_message_classes():
         # touch the engine/CMakeLists.txt file since we generated
         # messages.cmake and want to poke cmake to reprocess
         os.utime(posixpath.join(dirs.GAEN_SRC_DIR, 'engine/CMakeLists.txt'), None)
-        
+
 
 if __name__ == '__main__':
     gen_message_classes()

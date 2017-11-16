@@ -240,6 +240,16 @@ inline cell to_cell(KeyInput val)
 // Convert string to KeyCode, useful when parsing config files
 Key lookup_key_code(const char * str);
 
+inline u32 key_vec_idx(Key key) { return key / 32; }
+inline u32 key_vec_mask(Key key) { return 1 << (key % 32); }
+
+inline void set_key_vec_bit(ivec4 & vec, Key key) { vec[key_vec_idx(key)] |= key_vec_mask(key); }
+inline void unset_key_vec_bit(ivec4 & vec, Key key) { vec[key_vec_idx(key)] &= ~key_vec_mask(key); }
+inline ivec4 key_vec(Key key) { ivec4 vec(0); set_key_vec_bit(vec, key); return vec; }
+inline ivec4 key_vec(Key key0, Key key1) { ivec4 vec = key_vec(key0); set_key_vec_bit(vec, key1); return vec; }
+inline ivec4 key_vec(Key key0, Key key1, Key key2) { ivec4 vec = key_vec(key0, key1); set_key_vec_bit(vec, key2); return vec; }
+inline ivec4 key_vec(Key key0, Key key1, Key key2, Key key3) { ivec4 vec = key_vec(key0, key1, key2); set_key_vec_bit(vec, key3); return vec; }
+
 // KeyInput is 4 bytes to simplify passing it around as a message payload.
 // We have 16 unused bits, maybe find something interesting for them
 // in the future.

@@ -26,13 +26,15 @@
 
 #include "render_support/stdafx.h"
 
-#include "engine/messages/Transform.h"
+#include "engine/messages/PropertyMat43.h"
 #include "engine/messages/Collision.h"
 #include "render_support/SpritePhysics.h"
 
 
 namespace gaen
 {
+
+static const u32 kMaxMessages = 4096;
 
 void SpriteMotionState::getWorldTransform(btTransform& worldTrans) const
 {
@@ -68,8 +70,8 @@ void SpriteMotionState::setWorldTransform(const btTransform& worldTrans)
 
     SpriteInstance::sprite_transform(kSpriteMgrTaskId, kRendererTaskId, mSpriteInstance.sprite().uid(), mSpriteInstance.mTransform);
     {
-        messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, mSpriteInstance.sprite().owner(), false);
-        msgw.setTransform(mSpriteInstance.mTransform);
+        messages::PropertyMat43QW msgw(HASH::set_property, kMessageFlag_None, kSpriteMgrTaskId, mSpriteInstance.sprite().owner(), HASH::transform);
+        msgw.setValue(mSpriteInstance.mTransform);
     }
 }
 
@@ -77,6 +79,8 @@ void SpriteMotionState::setWorldTransform(const btTransform& worldTrans)
 
 SpritePhysics::SpritePhysics()
 {
+    mTimePrev = mTimeCurr = now();
+
     mpBroadphase = GNEW(kMEM_Physics, btDbvtBroadphase);
     mpCollisionConfiguration = GNEW(kMEM_Physics, btDefaultCollisionConfiguration);
 
@@ -101,9 +105,12 @@ SpritePhysics::~SpritePhysics()
     GDELETE(mpBroadphase);
 }
 
-void SpritePhysics::update(f32 delta)
+void SpritePhysics::update()
 {
-    mpDynamicsWorld->stepSimulation(delta);
+    mTimeCurr = now();
+    f64 delta = mTimeCurr - mTimePrev;
+    mpDynamicsWorld->stepSimulation(delta, 4);
+    mTimePrev = mTimeCurr;
 
     // Check for collisions
     int numManifolds = mpDynamicsWorld->getDispatcher()->getNumManifolds();

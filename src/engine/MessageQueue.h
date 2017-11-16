@@ -57,7 +57,7 @@ public:
     explicit MessageQueue(u32 messageCount)
       : mRingBuffer(messageCount, kMEM_Engine)
     {}
-    
+
     // Convenience functions for single Message 16 byte messages
     void push(u32 msgId,
               u32 flags,
@@ -66,7 +66,7 @@ public:
     {
         push(msgId, source, target, 0);
     }
-    
+
     void push(u32 msgId,
               u32 flags,
               task_id source,
@@ -153,9 +153,9 @@ private:
                msgBlockCount < (2 << 4)  &&
                source        < (2 << 28) &&
                target        < (2 << 28));
-        
+
         mRingBuffer.pushBegin(&pMsgAcc->mAccessor, msgBlockCount+1); // + 1 for header
-        
+
         Message & msg = pMsgAcc->mAccessor[0];
         msg.msgId = msgId;
         msg.flags = flags;

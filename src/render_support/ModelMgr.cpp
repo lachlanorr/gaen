@@ -57,9 +57,9 @@ ModelMgr::~ModelMgr()
     //}
 }
 
-void ModelMgr::update(f32 delta)
+void ModelMgr::update()
 {
-    mPhysics.update(delta);
+    mPhysics.update();
 }
 
 template <typename T>

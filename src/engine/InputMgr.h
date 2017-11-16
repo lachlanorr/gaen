@@ -51,6 +51,8 @@ public:
 
     u32 queryState(u32 player, u32 stateHash, vec4 * pMeasure);
 
+    static void register_key_press_listener(u32 mode, task_id target);
+    static void deregister_key_press_listener(u32 mode, task_id target);
 private:
     struct CtrlState
     {
@@ -110,6 +112,12 @@ private:
 
     void zeroState();
 
+    void registerKeyPressListener(u32 mode, task_id target);
+    void deregisterKeyPressListener(u32 mode, task_id target);
+    void deregisterKeyPressListener(task_id target);
+    void notifyKeyPressListeners(u32 mode, const ivec4 & keys);
+    void notifyKeyPressListeners(const ivec4 & keys);
+
     bool mIsPrimary;
 
     ivec4 mPressedKeys;
@@ -121,7 +129,17 @@ private:
 
     InputMode * mpActiveMode;
     HashMap<kMEM_Engine, u32, InputMode> mModes;
+
+    HashMap<kMEM_Engine, u32, Vector<kMEM_Engine, task_id>> mKeyPressListeners;
 };
+
+// Compose API
+class Entity;
+namespace system_api
+{
+void register_key_press_listener(i32 modeHash, Entity * pCaller);
+void deregister_key_press_listener(i32 modeHash, Entity * pCaller);
+} // namespace system_api
 
 } // namespace gaen
 

@@ -63,7 +63,6 @@ void glfw_key_callback(GLFWwindow * pWindow, int key, int scancode, int action, 
     keyInput.action = action;
     keyInput.mods = mods;
     keyInput.deviceId = 0;
-
     process_key_input(keyInput);
 }
 

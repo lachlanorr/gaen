@@ -41,7 +41,7 @@ namespace gaen
 {
 
 TL(i64, sStartTimeTicks) = 0;
-TL(f32, sFrequencyRatio) = 0.0f;
+TL(f64, sFrequencyRatio) = 0.0;
 
 void init_time()
 {
@@ -51,7 +51,7 @@ void init_time()
     BOOL ret = QueryPerformanceFrequency(&freq);
     ASSERT(ret);
 
-    sFrequencyRatio = 1.0f / freq.QuadPart;
+    sFrequencyRatio = 1.0 / freq.QuadPart;
 
     LARGE_INTEGER startTime;
     ret = QueryPerformanceCounter(&startTime);
@@ -59,7 +59,7 @@ void init_time()
     sStartTimeTicks = startTime.QuadPart;
 }
 
-f32 now()
+f64 now()
 {
     ASSERT_MSG(sStartTimeTicks != 0 && sFrequencyRatio != 0.0f, "init_time must be called first");
     

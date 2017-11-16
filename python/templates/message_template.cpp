@@ -44,7 +44,7 @@ public:
     }
 
 <<reader_getters>>
-        
+
 private:
     <<message_name>>R(const <<message_name>>R &)              = delete;
     <<message_name>>R(const <<message_name>>R &&)             = delete;
@@ -87,7 +87,7 @@ public:
                            <<block_count>>,
                            pMsgQueue)
     {}
-    
+
 <<writer_setters>>
 private:
     <<message_name>>QW(const <<message_name>>QW &)              = delete;

@@ -27,6 +27,9 @@
 #ifndef GAEN_ENGINE_FRAME_TIME_H
 #define GAEN_ENGINE_FRAME_TIME_H
 
+//#define GLFW_INCLUDE_NONE
+//#include <GLFW/glfw3.h>
+
 #include "core/base_defines.h"
 #include "core/platutils.h"
 
@@ -73,7 +76,7 @@ public:
         else
             return mSum / mFrameCount;
     }
-    
+
     f32 fps()
     {
         return 1.0f / deltaMean();
@@ -94,6 +97,7 @@ public:
     {
         mFrameCount = 0;
         mLastFrameTime = now();
+//        mLastFrameTime = glfwGetTime();
 
         mFrameStats10.init();
         mFrameStats100.init();
@@ -104,13 +108,14 @@ public:
     }
 
     u32 frameCount() { return mFrameCount; }
-        
+
     f32 calcDelta()
     {
         ASSERT(mIsInit);
-        
-        f32 startFrameTime = now();
-        f32 delta = startFrameTime - mLastFrameTime;
+
+        f64 startFrameTime = now();
+//        f64 startFrameTime = glfwGetTime();
+        f32 delta = (f32)(startFrameTime - mLastFrameTime);
         mLastFrameTime = startFrameTime;
 
         mFrameStats10.addFrame(delta);
@@ -183,7 +188,7 @@ private:
     bool mIsInit = false;
 
     u32 mFrameCount = 0;
-    f32 mLastFrameTime;
+    f64 mLastFrameTime;
 
     FrameStats<10>    mFrameStats10;
     FrameStats<100>   mFrameStats100;

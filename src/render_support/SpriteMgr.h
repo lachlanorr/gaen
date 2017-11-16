@@ -44,14 +44,18 @@ public:
     typedef HashMap<kMEM_Engine, u32, SpriteInstanceUP> SpriteMap;
     typedef HashMap<kMEM_Engine, task_id, List<kMEM_Engine, u32>> SpriteOwners;
 
+    SpriteMgr();
     ~SpriteMgr();
 
-    void update(f32 delta);
+    void update();
 
     template <typename T>
     MessageResult message(const T& msgAcc);
 
 private:
+    f64 mTimePrev;
+    f64 mTimeCurr;
+
     SpriteMap mSpriteMap;
     SpriteOwners mSpriteOwners;
 
@@ -71,7 +75,7 @@ void sprite_stage_show(i32 stageHash, Entity * pCaller);
 void sprite_stage_hide(i32 stageHash, Entity * pCaller);
 void sprite_stage_remove(i32 stageHash, Entity * pCaller);
 
-}
+} // namespace system_api
 
 } // namespace gaen
 

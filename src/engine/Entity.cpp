@@ -39,6 +39,7 @@
 #include "engine/messages/ComponentIndex.h"
 #include "engine/messages/Handle.h"
 #include "engine/messages/OwnerTask.h"
+#include "engine/messages/PropertyMat43.h"
 #include "engine/messages/TaskEntity.h"
 #include "engine/messages/TaskStatus.h"
 #include "engine/messages/Transform.h"
@@ -305,20 +306,36 @@ MessageResult Entity::message(const T & msgAcc)
         // going through at any stage of an Entity's life.
         else if (msgId == HASH::set_property)
         {
-            MessageResult res = mScriptTask.message(msgAcc);
-
-            if (res == MessageResult::Propagate)
+            // special case setting transform, since that is always
+            // a virtual property of the Entity, not the ScriptTask.
+            if (msgAcc.message().payload.u == HASH::transform)
             {
-                // Property not consumed, send to components
-                for (u32 i = 0; i < mComponentCount; ++i)
-                {
-                    res = mpComponents[i].scriptTask().message(msgAcc);
-                    if (res == MessageResult::Consumed)
-                        break;
-                }
+                messages::PropertyMat43R<T> msgr(msgAcc);
+                vec3 oldPos = position(mTransform);
+                vec3 msgPos = position(msgr.value());
+                vec3 diff = msgPos - oldPos;
+                setTransform(msgAcc.message().source, msgr.value());
+                vec3 newPos = position(mTransform);
+                LOG_INFO("@transform = diff(%f, %f, %f)", diff.x, diff.y, diff.z);
+//                ASSERT(abs(newPos.x) < abs(oldPos.x) + 100.0f);
+                return MessageResult::Consumed;
             }
+            else
+            {
+                MessageResult res = mScriptTask.message(msgAcc);
 
-            return MessageResult::Consumed;
+                if (res == MessageResult::Propagate)
+                {
+                    // Property not consumed, send to components
+                    for (u32 i = 0; i < mComponentCount; ++i)
+                    {
+                        res = mpComponents[i].scriptTask().message(msgAcc);
+                        if (res == MessageResult::Consumed)
+                            break;
+                    }
+                }
+                return MessageResult::Consumed;
+            }
         }
         else if (msgId == HASH::reparent)
         {
@@ -332,7 +349,7 @@ MessageResult Entity::message(const T & msgAcc)
         }
         else if (msgId == HASH::update_transform)
         {
-            updateTransform();
+            updateTransform(msgAcc.message().source);
             return MessageResult::Consumed;
         }
         else if (msgId == HASH::constrain_position)
@@ -377,7 +394,11 @@ MessageResult Entity::message(const T & msgAcc)
             case HASH::transform:
             {
                 messages::TransformR<T> msgr(msgAcc);
-                applyTransform(msgr.isLocal(), msgr.transform());
+                vec3 oldPos = position(mTransform);
+                vec3 msgPos = position(msgr.transform());
+                applyTransform(msgAcc.message().source, msgr.isLocal(), msgr.transform());
+                vec3 newPos = position(mTransform);
+                LOG_INFO("@transform() oldPos(%f, %f, %f) -- msgPos(%f, %f, %f) --> newPos(%f, %f, %f), isLocal: %d, task: %d", oldPos.x, oldPos.y, oldPos.z, msgPos.x, msgPos.y, msgPos.z, newPos.x, newPos.y, newPos.z, msgr.isLocal(),  mTask.id());
                 return MessageResult::Consumed;
             }
             case HASH::insert_child:
@@ -581,7 +602,7 @@ MessageResult Entity::message(const T & msgAcc)
 }
 
 
-void Entity::setTransform(const mat43 & mat)
+void Entity::setTransform(task_id source, const mat43 & mat)
 {
     if (mat != mTransform)
     {
@@ -591,7 +612,7 @@ void Entity::setTransform(const mat43 & mat)
         {
             StackMessageBlockWriter<0> msgw(HASH::update_transform,
                                             kMessageFlag_ForcePropagate,
-                                            mTask.id(),
+                                            source,
                                             mScriptTask.id(),
                                             to_cell(0));
             mScriptTask.message(msgw.accessor());
@@ -604,7 +625,7 @@ void Entity::setTransform(const mat43 & mat)
             Task & t = mpComponents[i].scriptTask();
             StackMessageBlockWriter<0> msgw(HASH::update_transform,
                                             kMessageFlag_ForcePropagate,
-                                            mTask.id(),
+                                            source,
                                             t.id(),
                                             to_cell(0));
             t.message(msgw.accessor());
@@ -616,7 +637,7 @@ void Entity::setTransform(const mat43 & mat)
             Entity * pEnt = mpChildren[i];
             StackMessageBlockWriter<0> msgw(HASH::update_transform,
                                             kMessageFlag_ForcePropagate,
-                                            mTask.id(),
+                                            source,
                                             pEnt->task().id(),
                                             to_cell(0));
             pEnt->message(msgw.accessor());
@@ -628,12 +649,12 @@ void Entity::setTransform(const mat43 & mat)
         for (u32 i = 0; i < kMaxTransformListeners; ++i)
         {
             TransformListener & tl = mTransformListeners[i];
-            if (tl.taskId != 0)
+            if (tl.taskId != 0 && tl.taskId != source) // don't send update to originator, causing a feedback loop
             {
                 messages::UidTransformQW msgW(HASH::notify_transform, kMessageFlag_Editor, mTask.id(), tl.taskId, tl.uid);
                 msgW.setTransform(mTransform);
             }
-            else
+            else if (tl.taskId == 0)
             {
                 break;
             }
@@ -641,40 +662,24 @@ void Entity::setTransform(const mat43 & mat)
     }
 }
 
-void Entity::applyTransform(bool isLocal, const mat43 & mat)
+void Entity::applyTransform(task_id source, bool isLocal, const mat43 & mat)
 {
-    if (!isLocal)
+    if (!isLocal || !mpParent)
     {
-        if (!mpParent)
-        {
-            setTransform(mat);
-        }
-        else
-        {
-            mLocalTransform = mat;
-            setTransform(parentTransform() * mLocalTransform);
-        }
+        setTransform(source, mat * mTransform);
     }
     else // isLocal
     {
-        if (!mpParent)
-        {
-            setTransform(mat * mTransform);
-        }
-        else
-        {
-//            mLocalTransform = mat * mLocalTransform;
-            mLocalTransform = mat;
-            setTransform(parentTransform() * mLocalTransform);
-        }
+        mLocalTransform = mat;
+        setTransform(source, parentTransform() * mLocalTransform);
     }
 }
 
-void Entity::updateTransform()
+void Entity::updateTransform(task_id source)
 {
     if (mpParent)
     {
-        setTransform(parentTransform() * mLocalTransform);
+        setTransform(source, parentTransform() * mLocalTransform);
     }
 }
 

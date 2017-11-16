@@ -35,6 +35,7 @@
 
 #include "engine/TaskMaster.h"
 #include "engine/MessageWriter.h"
+#include "engine/messages/KeyPress.h"
 #include "engine/messages/MouseMove.h"
 
 #include "engine/InputMgr.h"
@@ -81,7 +82,7 @@ InputMgr::InputMgr(bool isPrimary)
 
     char inputConfPath[kMaxPath+1];
     find_input_conf(inputConfPath);
-    
+
     if (keyConf.read(inputConfPath))
     {
         for (auto secIt = keyConf.sectionsBegin();
@@ -134,6 +135,80 @@ void InputMgr::zeroState()
     {
         cs.zeroState();
     }
+}
+
+void InputMgr::registerKeyPressListener(u32 mode, task_id target)
+{
+    auto & listenerVec = mKeyPressListeners[mode];
+    listenerVec.push_back(target);
+}
+
+void InputMgr::deregisterKeyPressListener(u32 mode, task_id target)
+{
+    auto it = mKeyPressListeners.find(mode);
+    if (it != mKeyPressListeners.end())
+    {
+        std::remove(it->second.begin(), it->second.end(), target);
+    }
+}
+
+void InputMgr::deregisterKeyPressListener(task_id target)
+{
+    // remove from all modes
+    for (auto & pair : mKeyPressListeners)
+    {
+        std::remove(pair.second.begin(), pair.second.end(), target);
+    }
+}
+
+void InputMgr::notifyKeyPressListeners(u32 mode, const ivec4 & keys)
+{
+    auto it = mKeyPressListeners.find(mode);
+    if (it != mKeyPressListeners.end())
+    {
+        for (const auto & target : it->second)
+        {
+            messages::KeyPressQW msgQW(HASH::key_press, kMessageFlag_None, kInputMgrTaskId, target);
+            msgQW.setKeys(keys);
+        }
+    }
+}
+
+void InputMgr::notifyKeyPressListeners(const ivec4 & keys)
+{
+    if (mpActiveMode)
+    {
+        notifyKeyPressListeners(mpActiveMode->nameHash, keys);
+    }
+
+    // Always send to the editor task, but only if mpActiveMode is not
+    // HASH::editor__.
+    if (!mpActiveMode || mpActiveMode->nameHash != HASH::editor__)
+    {
+        notifyKeyPressListeners(HASH::editor__, keys);
+    }
+}
+
+void InputMgr::register_key_press_listener(u32 mode, task_id target)
+{
+    broadcast_targeted_message(HASH::register_key_press_listener,
+                               kMessageFlag_None,
+                               target,
+                               kInputMgrTaskId,
+                               to_cell(mode),
+                               0,
+                               nullptr);
+}
+
+void InputMgr::deregister_key_press_listener(u32 mode, task_id target)
+{
+    broadcast_targeted_message(HASH::deregister_key_press_listener,
+                               kMessageFlag_None,
+                               target,
+                               kInputMgrTaskId,
+                               to_cell(mode),
+                               0,
+                               nullptr);
 }
 
 void InputMgr::setMode(u32 modeHash)
@@ -189,39 +264,25 @@ u32 InputMgr::queryState(const ivec4 & keys)
                     ret += (Key)keys[3] != kKEY_NOKEY ? 1 : 0;
                     return ret;
                 }
-                else
-                {
-                    return 0;
-                }
-            }
-            else
-            {
-                return 0;
             }
         }
-        else
-        {
-            return 0;
-        }
     }
-    else
-    {
-        return 0;
-    }
+    return 0;
 }
 
 void InputMgr::processKeyInput(const KeyInput & keyInput)
 {
     if (keyInput.key < kKEY_NOKEY)
     {
-        u32 idx = keyInput.key / 32;
-        u32 bit = keyInput.key % 32;
-        u32 mask = 1 << bit;
-
         if (keyInput.action == kKACT_Release)
-            mPressedKeys[idx] &= ~mask;
+            unset_key_vec_bit(mPressedKeys, (Key)keyInput.key);
         else // kKACT_Press || kKACT_Repeat
-            mPressedKeys[idx] |= mask;
+            set_key_vec_bit(mPressedKeys, (Key)keyInput.key);
+
+        if (mIsPrimary)
+        {
+            notifyKeyPressListeners(mPressedKeys);
+        }
     }
     else
     {
@@ -260,6 +321,12 @@ MessageResult InputMgr::message(const T& msgAcc)
     case HASH::mouse_wheel:
         processMouseWheelInput(msg.payload.i);
         break;
+    case HASH::register_key_press_listener:
+        registerKeyPressListener(msg.payload.u, msg.source);
+        break;
+    case HASH::deregister_key_press_listener:
+        deregisterKeyPressListener(msg.payload.u, msg.source);
+        break;
     default:
         PANIC("Unknown InputMgr message: %d", msg.msgId);
     }
@@ -270,5 +337,19 @@ MessageResult InputMgr::message(const T& msgAcc)
 // Template decls so we can define message func here in the .cpp
 template MessageResult InputMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
 template MessageResult InputMgr::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
+
+namespace system_api
+{
+void register_key_press_listener(i32 modeHash, Entity * pCaller)
+{
+    InputMgr::register_key_press_listener(modeHash, pCaller->task().id());
+}
+
+void deregister_key_press_listener(i32 modeHash, Entity * pCaller)
+{
+    InputMgr::deregister_key_press_listener(modeHash, pCaller->task().id());
+}
+} // namespace system_api
+
 
 } // namespace gaen

@@ -37,6 +37,7 @@
 #include "engine/messages/TaskEntity.h"
 #include "engine/InputMgr.h"
 #include "engine/AssetMgr.h"
+#include "engine/Editor.h"
 #include "render_support/ModelMgr.h"
 #include "render_support/SpriteMgr.h"
 #include "render_support/renderer_api.h"
@@ -56,14 +57,14 @@ static u32 sStartEntityHash = HASH::init__Start;
 
 static bool sIsInit = false;
 
-void init_task_masters()
+void init_task_masters(bool isEditorActive)
 {
     ASSERT(!sIsInit);
 
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
         TaskMaster & tm = TaskMaster::task_master_for_thread(tid);
-        tm.init(tid);
+        tm.init(tid, isEditorActive);
     }
 
     sIsInit = true;
@@ -331,11 +332,13 @@ void notify_next_frame()
     }
 }
 
-void TaskMaster::init(thread_id tid)
+void TaskMaster::init(thread_id tid, bool isEditorActive)
 {
     ASSERT(mStatus == kTMS_Uninitialized);
     mThreadId = tid;
     mIsPrimary = tid == kPrimaryThreadId;
+
+    mIsEditorEnabled = mIsEditorActive = isEditorActive;
 
     // initialize mRenderTask to be blank for now
     mRendererTask = Task::blank();
@@ -490,6 +493,9 @@ void TaskMaster::runPrimaryGameLoop()
     mpModelMgr.reset(GNEW(kMEM_Engine, ModelMgr));
     mpSpriteMgr.reset(GNEW(kMEM_Engine, SpriteMgr));
 
+    if (mIsEditorEnabled)
+        mpEditor.reset(GNEW(kMEM_Engine, Editor, mIsEditorActive));
+
     renderer_init_device(mRendererTask);
     renderer_init_viewport(mRendererTask);
 
@@ -510,9 +516,6 @@ void TaskMaster::runPrimaryGameLoop()
         // Render through the render adapter
         renderer_render(mRendererTask);
 
-        // Get delta since the last time we ran
-        f32 delta = mFrameTime.calcDelta();
-
 #if HAS(LOG_FPS)
         if (mFrameTime.frameCount() % 100 == 0)
         {
@@ -530,12 +533,21 @@ void TaskMaster::runPrimaryGameLoop()
         // process messages accumulated since last frame
         processMessages(*mpMainMessageQueue); // messages from main thread
 
-        // Update physics (inside the Mgrs) before processing messages
+        // messages from other TaskMasters or ourself
+        for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
+        {
+            processMessages(*pMessageQueue);
+        }
+
+        // Update physics (inside the Mgrs)
         if (mStatus == kTMS_Initialized)
         {
-            mpModelMgr->update(delta);
-            mpSpriteMgr->update(delta);
+            mpModelMgr->update();
+            mpSpriteMgr->update();
         }
+
+        // process messages accumulated since last frame
+        processMessages(*mpMainMessageQueue); // messages from main thread
 
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
@@ -543,6 +555,10 @@ void TaskMaster::runPrimaryGameLoop()
             processMessages(*pMessageQueue);
         }
 
+        // Get delta since the last time we ran.
+        // Use a min value to avoid issues when we are debugging for several seconds
+        // within a frame, 0.5s should be a reasonable max for a frame.
+        f32 delta = mFrameTime.calcDelta(); // glm::min(0.5f, mFrameTime.calcDelta());
         if (mStatus == kTMS_Initialized)
         {
             // call update on each task owned by this TaskMaster
@@ -555,6 +571,15 @@ void TaskMaster::runPrimaryGameLoop()
 
             // Give AssetMgr an opportunity to process messages
             mpAssetMgr->process();
+        }
+
+        // process messages accumulated since last frame
+        processMessages(*mpMainMessageQueue); // messages from main thread
+
+        // messages from other TaskMasters or ourself
+        for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
+        {
+            processMessages(*pMessageQueue);
         }
 
         // Notify other task masters, they will wake up and process
@@ -578,9 +603,6 @@ void TaskMaster::runAuxiliaryGameLoop()
 
     while(mIsRunning)
     {
-        // Get delta since the last time we ran
-        f32 delta = mFrameTime.calcDelta();
-
 #if HAS(LOG_FPS)
         if (mFrameTime.frameCount() % 100 == 0)
         {
@@ -605,6 +627,9 @@ void TaskMaster::runAuxiliaryGameLoop()
             processMessages(*pMessageQueue);
         }
 
+        // Get delta since the last time we ran
+        f32 delta = mFrameTime.calcDelta();
+
         // call update on each task owned by this TaskMaster
         for(Task & task : mOwnedTasks)
         {
@@ -614,6 +639,7 @@ void TaskMaster::runAuxiliaryGameLoop()
         // Wait until primary game loop completes next frame
         if (mStatus == kTMS_Initialized)
             waitForNextFrame();
+
     };
 }
 
@@ -686,6 +712,18 @@ void TaskMaster::processMessages(MessageQueue & msgQueue)
 MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
 {
     const Message & msg = msgAcc.message();
+
+    // Check for editor messages
+    if (mIsEditorEnabled)
+    {
+        switch (msg.msgId)
+        {
+        case HASH::editor_activate__:
+            mIsEditorActive = msg.payload.b;
+            LOG_INFO("Editor activated: %d", mIsEditorActive);
+            return MessageResult::Consumed;
+        }
+    }
 
     if (mStatus == kTMS_Initialized)
     {
@@ -889,6 +927,11 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
 
                 // send message to task
                 MessageResult mr = mOwnedTasks[taskIdx].message(msgAcc);
+
+                if (mr != MessageResult::Consumed)
+                {
+                    int i = 0;
+                }
 #if HAS(TRACK_HASHES)
                 EXPECT_MSG(mr == MessageResult::Consumed,
                            "Task did not consume a message intended for it, task name: %s, message: %s",

@@ -98,7 +98,7 @@ void Logger::log(LogSeverity severity, const char * message)
     // will become un-necessary.
     LogMessage &lm = tLogMessage;
 
-    lm.header.time = now();
+    lm.header.time = (f32)now();
     lm.header.sev = severity;
 
     size_t msgLen = max(kMaxLogMessageSize-1, strlen(message) + 1);

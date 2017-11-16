@@ -93,7 +93,7 @@ task_id next_task_id();
 //
 // E.g.
 //   Task t = Task::create(pObj);
-//   
+//
 //
 // Instead of an object hierarchy with virtual methods for update and
 // message functions, we opt for this delegate'ish approach. It
@@ -166,7 +166,7 @@ public:
         UpdateStub updateStub = &update_stub<T>;
         std::intptr_t iptrUpdateStub = reinterpret_cast<std::intptr_t>(updateStub);
         task.mUpdateStubOffset = static_cast<i32>(iptrUpdateStub - iptrMessageQueueStub);
-        
+
         return task;
     }
 

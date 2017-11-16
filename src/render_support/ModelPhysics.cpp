@@ -28,7 +28,7 @@
 
 #include "assets/Gmdl.h"
 
-#include "engine/messages/Transform.h"
+#include "engine/messages/PropertyMat43.h"
 #include "engine/messages/Collision.h"
 #include "render_support/ModelPhysics.h"
 
@@ -66,8 +66,12 @@ void bullet_to_gaen_transform(mat43 & gT, const btTransform & bT)
 
 void ModelMotionState::getWorldTransform(btTransform& worldTrans) const
 {
+    vec3 pos = position(mModelInstance.mTransform);
+    LOG_INFO("getWorldTra    pos(%f, %f, %f)", pos.x, pos.y, pos.z);
     gaen_to_bullet_transform(worldTrans, mModelInstance.mTransform);
 }
+
+static bool MOVE_FRAME = false;
 
 void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 {
@@ -76,14 +80,28 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 
     if (newTrans != mModelInstance.mTransform)
     {
+        MOVE_FRAME = true;
         //LOG_INFO("setWorldTransform uid = %u, pos = {%f, %f, %f}", mModelInstance.uid(), newTrans.cols[3][0], newTrans.cols[3][1], newTrans.cols[3][2]);
+        vec3 oldPos = position(mModelInstance.mTransform);
+        vec3 newPos = position(newTrans);
+        vec3 diff = newPos - oldPos;
+        static u32 badCount = 0;
+        if (abs(diff.x) < 10.0f)
+        {
+            badCount++;
+            if (badCount > 10)
+            {
+                int i = 0;
+            }
+        }
+//        LOG_INFO("setWorldTra oldPos(%f, %f, %f) --> newPos(%f, %f, %f)", oldPos.x, oldPos.y, oldPos.z, newPos.x, newPos.y, newPos.z);
 
         mModelInstance.mTransform = newTrans;
 
         // Send transform to entity
         {
-            messages::TransformQW msgw(HASH::transform, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), false);
-            msgw.setTransform(mModelInstance.mTransform);
+            messages::PropertyMat43QW msgw(HASH::set_property, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), HASH::transform);
+            msgw.setValue(mModelInstance.mTransform);
         }
     }
 }
@@ -92,6 +110,8 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 
 ModelPhysics::ModelPhysics()
 {
+    mTimePrev = mTimeCurr = now();
+
     mpBroadphase = GNEW(kMEM_Physics, btDbvtBroadphase);
     mpCollisionConfiguration = GNEW(kMEM_Physics, btDefaultCollisionConfiguration);
 
@@ -116,10 +136,21 @@ ModelPhysics::~ModelPhysics()
     GDELETE(mpBroadphase);
 }
 
-void ModelPhysics::update(f32 delta)
+void ModelPhysics::update()
 {
-    mpDynamicsWorld->stepSimulation(delta);
+    mTimeCurr = now();
+    f64 delta = mTimeCurr - mTimePrev;
+    mpDynamicsWorld->stepSimulation(delta, 2, 1.0/60.0);
+    mTimePrev = mTimeCurr;
+    //LOG_INFO("deltal = %f", delta);
 
+    if (MOVE_FRAME)
+    {
+        LOG_INFO("EOF: %f", delta);
+        MOVE_FRAME = false;
+    }
+
+    return;
     // Check for collisions
     int numManifolds = mpDynamicsWorld->getDispatcher()->getNumManifolds();
     for (int i = 0; i < numManifolds; ++i)
@@ -235,7 +266,7 @@ void ModelPhysics::setTransform(u32 uid, const mat43 & transform)
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
     {
-        //LOG_INFO("setTransform uid = %u, pos = {%f, %f, %f}", uid, transform.cols[3][0], transform.cols[3][1], transform.cols[3][2]);
+        LOG_INFO("setTransform uid = %u, pos = {%f, %f, %f}", uid, transform.cols[3][0], transform.cols[3][1], transform.cols[3][2]);
 
         // Update bullet
         btTransform btTrans;
