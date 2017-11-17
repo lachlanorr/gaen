@@ -131,8 +131,8 @@ class TaskField(BaseField):
     includes = BaseField.includes + ['"engine/Task.h"']
 
 class mat3Field(BaseField):
-    cell_count = 9
-    type_name = 'mat3'
+    cell_count = 12
+    type_name = 'mat3a' # block aligned mat3 (with padding)
     includes = BaseField.includes + ['"math/mat3.h"']
 
 class mat43Field(BaseField):

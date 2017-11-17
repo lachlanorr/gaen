@@ -68,6 +68,12 @@ class PropertyMat43(FieldHandler):
     prop   = u32Field(payload=True)
     value  = mat43Field()
 
+class PropertyMat3(FieldHandler):
+    prop   = u32Field(payload=True)
+    value  = mat3Field()
+    prop2  = u32Field()
+    vec    = vec2Field()
+
 class PropertyVec3(FieldHandler):
     prop   = u32Field(payload=True)
     value  = vec3Field()

@@ -539,7 +539,7 @@ static S data_type_init_value(const SymDataType * pSdt, ParseData * pParseData)
     case kDT_quat:
         return S("quat(0.0, 0.0f, 0.0f, 1.0f)");
     case kDT_mat3:
-        return S("mat3(1.0f)");
+        return S("mat3a(1.0f)");
     case kDT_mat43:
         return S("mat43(1.0f)");
     case kDT_mat4:

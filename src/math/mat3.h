@@ -43,6 +43,9 @@ template <typename T>
 struct tmat43;
 
 template <typename T>
+struct tmat3a;
+
+template <typename T>
 struct tmat3
 {
     typedef glm::tmat3x3<T, glm::highp> glm_t;
@@ -65,6 +68,7 @@ struct tmat3
 
     explicit tmat3(const tvec3<T> & rot);
 
+    explicit tmat3(const tmat3a<T> & rhs);
     explicit tmat3(const tmat4<T> & rhs);
     explicit tmat3(const tmat43<T> & rhs);
 
@@ -80,6 +84,30 @@ struct tmat3
 
 typedef tmat3<f32> mat3;
 static_assert(sizeof(mat3) == sizeof(glm::tmat3x3<f32, glm::highp>), "mat3 differs in size from glm::mat3x3");
+
+template <typename T>
+struct tmat3a : tmat3<T>
+{
+    tmat3a() = default;
+    explicit tmat3a(const tmat3<T> & rhs)
+    {
+        cols[0] = rhs[0];
+        cols[1] = rhs[1];
+        cols[2] = rhs[2];
+    }
+    explicit tmat3a(const tvec3<T> & rot)
+    {
+        tmat3<T> m(rot);
+        cols[0] = m[0];
+        cols[1] = m[1];
+        cols[2] = m[2];
+    }
+private:
+    vec3 padding__;
+};
+typedef tmat3a<f32> mat3a;
+static_assert(sizeof(mat3a) % 16 == 0, "mat3a not aligned to 16 bytes");
+
 
 template <typename T>
 inline tmat3<T> operator*(const tmat3<T> & lhs, const tmat3<T> & rhs)

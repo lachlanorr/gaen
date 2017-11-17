@@ -40,6 +40,7 @@
 #include "engine/messages/Handle.h"
 #include "engine/messages/OwnerTask.h"
 #include "engine/messages/PropertyMat43.h"
+#include "engine/messages/PropertyMat3.h"
 #include "engine/messages/PropertyVec3.h"
 #include "engine/messages/TaskEntity.h"
 #include "engine/messages/TaskStatus.h"
@@ -329,7 +330,7 @@ MessageResult Entity::message(const T & msgAcc)
             }
             else if (msgAcc.message().payload.u == HASH::rotation)
             {
-                messages::PropertyMat43R<T> msgr(msgAcc);
+                messages::PropertyMat3R<T> msgr(msgAcc);
                 setRotation(msgAcc.message().source, mat3(msgr.value()));
                 return MessageResult::Consumed;
             }

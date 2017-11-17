@@ -3109,7 +3109,8 @@ void register_basic_types(ParseData * pParseData)
     symdatatype_add_field_related(&quatRt, floatRt.pNormal, "z", kSRFL_None);
     symdatatype_add_field_related(&quatRt, floatRt.pNormal, "w", kSRFL_None);
 
-    RelatedTypes mat3Rt = register_basic_type(kDT_mat3,  "mat3",  "mat3",    9, pParseData);
+
+    RelatedTypes mat3Rt = register_basic_type(kDT_mat3, "mat3", "mat3a", 12, pParseData);
 
     RelatedTypes mat43Rt = register_basic_type(kDT_mat43, "mat43", "mat43", 12, pParseData);
     symdatatype_add_field_related(&mat43Rt, vec3Rt.pNormal, "pos", kSRFL_NeedsCppParens);
