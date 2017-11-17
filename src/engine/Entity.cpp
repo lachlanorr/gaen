@@ -40,6 +40,7 @@
 #include "engine/messages/Handle.h"
 #include "engine/messages/OwnerTask.h"
 #include "engine/messages/PropertyMat43.h"
+#include "engine/messages/PropertyVec3.h"
 #include "engine/messages/TaskEntity.h"
 #include "engine/messages/TaskStatus.h"
 #include "engine/messages/Transform.h"
@@ -278,6 +279,12 @@ MessageResult Entity::message(const T & msgAcc)
             {
                 Entity * pEnt = mpChildren[i];
 
+            if (msgAcc.message().payload.u == HASH::position)
+            {
+                messages::PropertyMat43R<T> msgr(msgAcc);
+                setTransform(msgAcc.message().source, msgr.value());
+                return MessageResult::Consumed;
+            }
                 if (pEnt->task().id() == msgAcc.message().source)
                 {
                     ASSERT_MSG(TaskMaster::task_master_for_active_thread().isOwnedTask(pEnt->mTask.id()), "Parent/child entities must reside on same TaskMaster");
@@ -311,13 +318,19 @@ MessageResult Entity::message(const T & msgAcc)
             if (msgAcc.message().payload.u == HASH::transform)
             {
                 messages::PropertyMat43R<T> msgr(msgAcc);
-                vec3 oldPos = position(mTransform);
-                vec3 msgPos = position(msgr.value());
-                vec3 diff = msgPos - oldPos;
                 setTransform(msgAcc.message().source, msgr.value());
-                vec3 newPos = position(mTransform);
-                LOG_INFO("@transform = diff(%f, %f, %f)", diff.x, diff.y, diff.z);
-//                ASSERT(abs(newPos.x) < abs(oldPos.x) + 100.0f);
+                return MessageResult::Consumed;
+            }
+            else if (msgAcc.message().payload.u == HASH::position)
+            {
+                messages::PropertyVec3R<T> msgr(msgAcc);
+                setPosition(msgAcc.message().source, msgr.value());
+                return MessageResult::Consumed;
+            }
+            else if (msgAcc.message().payload.u == HASH::rotation)
+            {
+                messages::PropertyMat43R<T> msgr(msgAcc);
+                setRotation(msgAcc.message().source, mat3(msgr.value()));
                 return MessageResult::Consumed;
             }
             else
@@ -394,11 +407,19 @@ MessageResult Entity::message(const T & msgAcc)
             case HASH::transform:
             {
                 messages::TransformR<T> msgr(msgAcc);
-                vec3 oldPos = position(mTransform);
-                vec3 msgPos = position(msgr.transform());
                 applyTransform(msgAcc.message().source, msgr.isLocal(), msgr.transform());
-                vec3 newPos = position(mTransform);
-                LOG_INFO("@transform() oldPos(%f, %f, %f) -- msgPos(%f, %f, %f) --> newPos(%f, %f, %f), isLocal: %d, task: %d", oldPos.x, oldPos.y, oldPos.z, msgPos.x, msgPos.y, msgPos.z, newPos.x, newPos.y, newPos.z, msgr.isLocal(),  mTask.id());
+                return MessageResult::Consumed;
+            }
+            case HASH::move:
+            {
+                messages::PropertyVec3R<T> msgr(msgAcc);
+                move(msgAcc.message().source, msgr.value());
+                return MessageResult::Consumed;
+            }
+            case HASH::rotate:
+            {
+                messages::PropertyMat43R<T> msgr(msgAcc);
+                rotate(msgAcc.message().source, mat3(msgr.value()));
                 return MessageResult::Consumed;
             }
             case HASH::insert_child:
@@ -681,6 +702,33 @@ void Entity::updateTransform(task_id source)
     {
         setTransform(source, parentTransform() * mLocalTransform);
     }
+}
+
+void Entity::setPosition(task_id source, const vec3 & pos)
+{
+    mat43 trans = mTransform;
+    trans[3] = pos;
+    setTransform(source, trans);
+}
+
+void Entity::move(task_id source, const vec3 & pos)
+{
+    mat43 trans = mTransform;
+    trans[3] += pos;
+    setTransform(source, trans);
+}
+
+void Entity::setRotation(task_id source, const mat3 & rot)
+{
+    mat43 trans(mTransform[3], rot);
+    setTransform(source, trans);
+}
+
+void Entity::rotate(task_id source, const mat3 & rot)
+{
+    mat3 r(mTransform);
+    r = rot * r;
+    setRotation(source, r);
 }
 
 void Entity::constrainPosition(const vec3 & posMin, const vec3 & posMax)

@@ -68,6 +68,10 @@ class PropertyMat43(FieldHandler):
     prop   = u32Field(payload=True)
     value  = mat43Field()
 
+class PropertyVec3(FieldHandler):
+    prop   = u32Field(payload=True)
+    value  = vec3Field()
+
 # Transform and entity
 class UidTransform(FieldHandler):
     uid       = i32Field(payload=True)

@@ -109,7 +109,7 @@ void SpritePhysics::update()
 {
     mTimeCurr = now();
     f64 delta = mTimeCurr - mTimePrev;
-    mpDynamicsWorld->stepSimulation(delta, 4);
+    mpDynamicsWorld->stepSimulation((f32)delta, 4);
     mTimePrev = mTimeCurr;
 
     // Check for collisions

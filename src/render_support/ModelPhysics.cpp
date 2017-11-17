@@ -140,7 +140,7 @@ void ModelPhysics::update()
 {
     mTimeCurr = now();
     f64 delta = mTimeCurr - mTimePrev;
-    mpDynamicsWorld->stepSimulation(delta, 2, 1.0/60.0);
+    mpDynamicsWorld->stepSimulation((f32)delta, 2);
     mTimePrev = mTimeCurr;
     //LOG_INFO("deltal = %f", delta);
 

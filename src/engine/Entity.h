@@ -30,6 +30,7 @@
 #include "core/Vector.h"
 #include "core/List.h"
 #include "math/mat43.h"
+#include "math/mat3.h"
 
 #include "engine/Task.h"
 #include "engine/Component.h"
@@ -80,6 +81,12 @@ public:
     void setTransform(task_id source, const mat43 & mat);
     void applyTransform(task_id source, bool isLocal, const mat43 & mat);
     void updateTransform(task_id source);
+
+    void setPosition(task_id source, const vec3 & pos);
+    void move(task_id source, const vec3 & pos);
+
+    void setRotation(task_id source, const mat3 & rot);
+    void rotate(task_id source, const mat3 & rot);
 
     void constrainPosition(const vec3 & min, const vec3 & max);
     mat43 applyPositionConstraint(const mat43 & mat) const;

@@ -130,6 +130,11 @@ class TaskField(BaseField):
     cell_count = 8
     includes = BaseField.includes + ['"engine/Task.h"']
 
+class mat3Field(BaseField):
+    cell_count = 9
+    type_name = 'mat3'
+    includes = BaseField.includes + ['"math/mat3.h"']
+
 class mat43Field(BaseField):
     cell_count = 12
     type_name = 'mat43'

@@ -1640,6 +1640,7 @@ Ast * ast_create_mat43_init(Ast * pParams, ParseData * pParseData)
         if (pSdt->typeDesc.dataType != kDT_float &&
             pSdt->typeDesc.dataType != kDT_vec3 && // position
             pSdt->typeDesc.dataType != kDT_quat &&
+            pSdt->typeDesc.dataType != kDT_mat3 &&
             pSdt->typeDesc.dataType != kDT_mat43)
             COMP_ERROR(pParseData, "Invalid data type in mat43 initialization");
         break;
