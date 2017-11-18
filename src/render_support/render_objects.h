@@ -68,7 +68,7 @@ protected:
       , mUid(uid)
     {}
 
-public:    
+public:
     task_id owner() const { return mOwner; }
     ruid uid() const { return mUid; }
 
@@ -121,7 +121,7 @@ public:
         mView = view;
         updateViewProjection();
     }
-    
+
     const mat4 & viewProjection() const { return mViewProjection; }
 
 private:

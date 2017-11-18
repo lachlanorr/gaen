@@ -64,14 +64,14 @@ component WasdCamera
 
     float moveDelta = 5.0;
     float rotDelta = 0.0005;
-    
+
     float forwardBackward = 0.0;
     float leftRight = 0.0;
 
     bool mouseLooking = false;
     float mouseDeltaX = 0.0;
     float mouseDeltaY = 0.0;
-    
+
     int mouseWheelDelta = 0;
 
     #init()
@@ -105,7 +105,7 @@ component WasdCamera
     update
     {
         bool hasMoved = false;
-        
+
         if (mouseWheelDelta != 0)
         {
             pos += dirForward * (mouseWheelDelta * delta * 0.01);
@@ -135,7 +135,7 @@ component WasdCamera
             if (hasRotated)
             {
                 orientation = $.normalize(orientation);
-                
+
                 dirForward = orientation * dirForwardInit;
                 dirRight = orientation * dirRightInit;
 
@@ -149,7 +149,7 @@ component WasdCamera
 
                 hasMoved = true;
             }
-            
+
             mouseDeltaX = 0.0;
             mouseDeltaY = 0.0;
         }
@@ -222,7 +222,7 @@ component WasdRot
         }
     }
 
-    
+
     update
     {
         if (rot != vec2{0.0})

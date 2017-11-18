@@ -69,7 +69,6 @@ public:
         }
         else
         {
-            ERR("StageMgr::find unknown stage: %u", stageHash);
             return nullptr;
         }
     }
@@ -99,14 +98,26 @@ public:
     {
         StageT * pStage = find(stageHash);
         if (pStage)
+        {
             pStage->show();
+        }
+        else
+        {
+            ERR("StageMgr::show unknown stage: %u", stageHash);
+        }
     }
 
     void hide(u32 stageHash)
     {
         StageT * pStage = find(stageHash);
         if (pStage)
+        {
             pStage->hide();
+        }
+        else
+        {
+            ERR("StageMgr::hide unknown stage: %u", stageHash);
+        }
     }
 
     void hideAll()
@@ -125,7 +136,7 @@ public:
             mStages.erase(it);
         }
         else
-            ERR("RendererMesh::StageRemove unknown stage: %u", stageHash);
+            ERR("StageMgr::remove unknown stage: %u", stageHash);
     }
 
     void removeAll()
@@ -163,7 +174,7 @@ public:
     }
 
     void itemAnimate(u32 uid, u32 animHash, u32 animFrameIdx)
-    {        
+    {
         for (auto & stage : mStages)
         {
             if (stage->itemAnimate(uid, animHash, animFrameIdx))
@@ -232,7 +243,7 @@ public:
         ERR("StageMgr::lightRemove unknown light, uid: %u", uid);
     }
 
-    
+
     void cameraSetDefault(const Camera & camera)
     {
         mDefaultCamera = camera;
@@ -330,7 +341,7 @@ public:
         }
         ERR("StageMgr::cameraView unknown camera, uid: %u", uid);
     }
-    
+
     void cameraActivate(u32 uid)
     {
         for (auto & stage : mStages)

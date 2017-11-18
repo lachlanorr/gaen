@@ -107,15 +107,15 @@ inline tmat43<T> operator*(const tmat43<T> & lhs, const tmat43<T> & rhs)
 }
 
 template <typename T>
-inline tmat43<T> operator*(const tmat4<T> & lhs, const tmat43<T> & rhs)
+inline tmat4<T> operator*(const tmat4<T> & lhs, const tmat43<T> & rhs)
 {
-    return tmat43<T>((tmat4<T>::glm_t)lhs * (tmat4<T>::glm_t)tmat4<T>(rhs));
+    return tmat4<T>((tmat4<T>::glm_t)lhs * (tmat4<T>::glm_t)tmat4<T>(rhs));
 }
 
 template <typename T>
-inline tmat43<T> operator*(const tmat43<T> & lhs, const tmat4<T> & rhs)
+inline tmat4<T> operator*(const tmat43<T> & lhs, const tmat4<T> & rhs)
 {
-    return tmat43<T>((tmat4<T>::glm_t)tmat4<T>(lhs) * (tmat4<T>::glm_t)rhs);
+    return tmat4<T>((tmat4<T>::glm_t)tmat4<T>(lhs) * (tmat4<T>::glm_t)rhs);
 }
 
 template <typename T>

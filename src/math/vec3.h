@@ -42,6 +42,8 @@ template <typename T>
 struct tvec4;
 template <typename T>
 struct tvec2;
+template <typename T>
+struct tmat43;
 
 template <typename T>
 struct tvec3
@@ -69,6 +71,8 @@ struct tvec3
     explicit tvec3(T x)
       : x(x), y(x), z(x)
     {}
+
+    explicit tvec3(const tmat43<T> & rhs);
 
     tvec3(const tvec4<T> & v);
     tvec3(const tvec2<T> & v, T s);

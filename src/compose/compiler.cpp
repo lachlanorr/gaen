@@ -1429,7 +1429,10 @@ Ast * ast_create_vec3_init(Ast * pParams, ParseData * pParseData)
     {
         Ast * pParam = pParams->pChildren->nodes.front();
         const SymDataType * pSdt = ast_data_type(pParam);
-        if (pSdt->typeDesc.dataType != kDT_float && pSdt->typeDesc.dataType != kDT_vec3)
+        if (pSdt->typeDesc.dataType != kDT_float &&
+            pSdt->typeDesc.dataType != kDT_vec3 &&
+            pSdt->typeDesc.dataType != kDT_mat3 && // extract euler angles
+            pSdt->typeDesc.dataType != kDT_mat43)  // extract position
             COMP_ERROR(pParseData, "Invalid data type in vec3 initialization");
         break;
     }
@@ -3247,26 +3250,6 @@ void register_builtin_functions(ParseData * pParseData)
         ast_add_child(pFuncArgs, ast_create_function_arg("a", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
         register_builtin_function("slerp",
                                   parsedata_find_type_symbol(pParseData, "quat", 0, 0),
-                                  pFuncArgs,
-                                  pParseData);
-    }
-
-    // vec3 position(mat43)
-    {
-        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
-        ast_add_child(pFuncArgs, ast_create_function_arg("transform", parsedata_find_type_symbol(pParseData, "mat43", 1, 1), pParseData));
-        register_builtin_function("position",
-                                  parsedata_find_type_symbol(pParseData, "vec3", 0, 0),
-                                  pFuncArgs,
-                                  pParseData);
-    }
-
-    // vec3 rotation(mat43)
-    {
-        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
-        ast_add_child(pFuncArgs, ast_create_function_arg("transform", parsedata_find_type_symbol(pParseData, "mat43", 1, 1), pParseData));
-        register_builtin_function("rotation",
-                                  parsedata_find_type_symbol(pParseData, "vec3", 0, 0),
                                   pFuncArgs,
                                   pParseData);
     }

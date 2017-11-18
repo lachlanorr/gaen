@@ -29,9 +29,17 @@
 #include "math/vec2.h"
 #include "math/vec4.h"
 #include "math/vec3.h"
+#include "math/mat43.h"
 
 namespace gaen
 {
+
+template <typename T>
+tvec3<T>::tvec3(const tmat43<T> & rhs)
+{
+    // extract position
+    *this = rhs[3];
+}
 
 template <typename T>
 tvec3<T>::tvec3(const tvec4<T> & v)

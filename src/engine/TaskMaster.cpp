@@ -532,7 +532,6 @@ void TaskMaster::runPrimaryGameLoop()
 #endif
         // process messages accumulated since last frame
         processMessages(*mpMainMessageQueue); // messages from main thread
-
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
         {
@@ -548,7 +547,6 @@ void TaskMaster::runPrimaryGameLoop()
 
         // process messages accumulated since last frame
         processMessages(*mpMainMessageQueue); // messages from main thread
-
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
         {
@@ -575,7 +573,6 @@ void TaskMaster::runPrimaryGameLoop()
 
         // process messages accumulated since last frame
         processMessages(*mpMainMessageQueue); // messages from main thread
-
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
         {
@@ -620,7 +617,6 @@ void TaskMaster::runAuxiliaryGameLoop()
 
         // process messages accumulated since last frame
         processMessages(*mpMainMessageQueue); // messages from main thread
-
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
         {
@@ -634,6 +630,14 @@ void TaskMaster::runAuxiliaryGameLoop()
         for(Task & task : mOwnedTasks)
         {
             task.update(delta);
+        }
+
+        // process messages accumulated since last frame
+        processMessages(*mpMainMessageQueue); // messages from main thread
+        // messages from other TaskMasters or ourself
+        for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
+        {
+            processMessages(*pMessageQueue);
         }
 
         // Wait until primary game loop completes next frame
