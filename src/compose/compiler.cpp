@@ -3178,7 +3178,7 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
-    // f32 radians(f32)
+    // f32 degrees(f32)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
         ast_add_child(pFuncArgs, ast_create_function_arg("degrees", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));
@@ -3198,7 +3198,7 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
-    // vec3 radians(vec3)
+    // vec3 degrees(vec3)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
         ast_add_child(pFuncArgs, ast_create_function_arg("degrees", parsedata_find_type_symbol(pParseData, "vec3", 0, 0), pParseData));
@@ -3218,6 +3218,28 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
+    // float min(f32, f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("x", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("y", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        register_builtin_function("min",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // float max(f32, f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("x", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("y", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        register_builtin_function("max",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
     // float clamp(f32, f32, f32)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
@@ -3230,7 +3252,30 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
-    // quat lerp(f32, f32, f32)
+    // float step(f32, f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("edge", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("x", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        register_builtin_function("step",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // float smoothstep(f32, f32, f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("edge0", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("edge1", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("x", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        register_builtin_function("smoothstep",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // float lerp(f32, f32, f32)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
         ast_add_child(pFuncArgs, ast_create_function_arg("x", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
@@ -3238,6 +3283,18 @@ void register_builtin_functions(ParseData * pParseData)
         ast_add_child(pFuncArgs, ast_create_function_arg("a", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
         register_builtin_function("lerp",
                                   parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // vec3 lerp(vec3, vec3, f32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("x", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("y", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("a", parsedata_find_type_symbol(pParseData, "float", 1, 1), pParseData));
+        register_builtin_function("lerp",
+                                  parsedata_find_type_symbol(pParseData, "vec3", 0, 0),
                                   pFuncArgs,
                                   pParseData);
     }

@@ -74,20 +74,32 @@ inline T degrees(T radians, Entity * pCaller)
 }
 
 template <typename T>
-inline T min(T lhs, T rhs, Entity * pCaller)
+inline T min(const T & x, const T & y, Entity * pCaller)
 {
-    return gaen::min(lhs, rhs);
+    return gaen::min(x, y);
 }
 template <typename T>
-inline T max(T lhs, T rhs, Entity * pCaller)
+inline T max(const T & x, const T & y, Entity * pCaller)
 {
-    return gaen::max(lhs, rhs);
+    return gaen::max(x, y);
 }
 
 template <typename T>
-inline T clamp(const T & x, const T & min, const T & max, Entity * pCaller)
+inline T clamp(const T & x, const T & minVal, const T & maxVal, Entity * pCaller)
 {
-    return gaen::clamp(x, min, max);
+    return gaen::clamp(x, minVal, maxVal);
+}
+
+template <typename T>
+inline T step(const T & edge, const T & x, Entity * pCaller)
+{
+    return gaen::step(edge, x);
+}
+
+template <typename T>
+inline T smoothstep(const T & edge0, const T & edge1, const T & x, Entity * pCaller)
+{
+    return gaen::smoothstep(edge0, edge1, x);
 }
 
 template <typename T, typename U>

@@ -30,6 +30,8 @@
 #include <glm/common.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/compatibility.hpp>
+#include <glm/vector_relational.hpp>
+#include <glm/gtx/scalar_relational.hpp>
 
 #include "core/base_defines.h"
 
@@ -47,15 +49,15 @@ inline f32 degrees(f32 rad) { return rad * (180.0f / kPi); }
 inline i32 round(f32 val) { return (i32)(val + 0.5f); }
 
 template<typename T>
-inline T min(const T & lhs, const T & rhs)
+inline T min(const T & x, const T & y)
 {
-    return glm::min(lhs, rhs);
+    return glm::min(x, y);
 }
 
 template<typename T>
-inline T max(const T & lhs, const T & rhs)
+inline T max(const T & x, const T & y)
 {
-    return glm::max(lhs, rhs);
+    return glm::max(x, y);
 }
 
 template <typename T>
@@ -64,10 +66,22 @@ inline T clamp(const T & x, const T & min, const T & max)
     return glm::clamp(x, min, max);
 }
 
+template <typename T>
+inline T step(const T & edge, const T & x)
+{
+    return glm::step(edge, x);
+}
+
+template <typename T>
+inline T smoothstep(const T & edge0, const T & edge1, const T & x)
+{
+    return glm::smoothstep(edge0, edge1, x);
+}
+
 template <typename T, typename U>
 inline T lerp(const T & x, const T & y, const U & a)
 {
-    return glm::lerp(x, y, a);
+    return vec3(glm::lerp((vec3::glm_t)x, (vec3::glm_t)y, a));
 }
 
 template <typename T, typename U>
