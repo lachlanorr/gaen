@@ -63,8 +63,10 @@ protected:
     PAD_IF_32BIT_A
     Block *mpBlocks;
     PAD_IF_32BIT_B
+    void * mpLastInputHandler = nullptr;
+    PAD_IF_32BIT_C;
+    f32 mLastInputHandlerDelta = 0.0f;
     u32 mBlockCount;
-    u8 PADDING__[12];
 };
 
 static_assert(sizeof(Component) == 64, "Component unexpected size");

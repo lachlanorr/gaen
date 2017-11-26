@@ -275,7 +275,7 @@ static S assign(const Ast * pAst, const char * op)
             return S("");
         }
         // call set function for ref counted types so addref/release can be done properly
-        return S("set_") + S(pAst->pSymRecRef->name) + S("(") + codegen_recurse(pAst->pRhs, 0) + S(")");
+        return S("pThis->set_") + S(pAst->pSymRecRef->name) + S("(") + codegen_recurse(pAst->pRhs, 0) + S(")");
     }
 }
 
@@ -390,6 +390,14 @@ static S hash_literal(const char * str)
     snprintf(scratch, kScratchSize, "0x%08x/*#%s,%u*/", hashVal, str, hashVal);
     scratch[kScratchSize] = '\0';
 
+    return S(scratch);
+}
+
+static S float_literal(f32 val)
+{
+    static const u32 kScratchSize = 32;
+    char scratch[kScratchSize+1];
+    snprintf(scratch, kScratchSize, "%1.8ef", val);
     return S(scratch);
 }
 
@@ -1399,7 +1407,8 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
     procCode += I1 + S("u32 maxInputMatch = 0;") + LF;
     procCode += I1 + S("u32 inputMatch = 0;") + LF;
     procCode += I1 + S("vec4 measure = vec4(0.0f);") + LF;
-    procCode += I1 + S("void (DefiningType::*pHandler)(f32, const vec4&) = nullptr;") + LF;
+    procCode += I1 + S("void (*pHandler)(DefiningType *, f32, const vec4&) = nullptr;") + LF;
+    procCode += I1 + S("f32 repeatDelay = 0.0f;") + LF;
     procCode += LF;
 
     const Ast * pInput;
@@ -1429,7 +1438,7 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
             {
                 ASSERT(pInputDef->type == kAST_InputDef);
 
-                code += I + S("void ");
+                code += I + S("static void ");
                 if (pInputDef->pSymRec->type == kSYMT_Input)
                 {
                     code += input_handler_name(pInput->str, pInputDef->str);
@@ -1451,9 +1460,8 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
                     }
                     code += input_handler_special_name(pInput->str, pInputDef->str);
                 }
-                code += S("(f32 delta, const vec4 & measure)") + LF;
+                code += S("(DefiningType * pThis, f32 delta, const vec4 & measure)") + LF;
                 code += I + S("{") + LF;
-                code += I + S("    auto pThis = this; // maintain consistency in this pointer name so we can refer to pThis in static funcs") + LF;
                 for (const Ast * pChild : pInputDef->pChildren->nodes)
                 {
                     code += codegen_recurse(pChild, indentLevel + 1);
@@ -1469,6 +1477,7 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
                     procCode += I2 + S("{") + LF;
                     procCode += I2 + S("    // Highest priority input match we've found so far, switch to it") + LF;
                     procCode += I2 + S("    pHandler = &DefiningType::") + input_handler_name(pInput->str, pInputDef->str) + S(";") + LF;
+                    procCode += I2 + S("    repeatDelay = ") + float_literal(pInputDef->numf) + S(";") + LF;
                     procCode += I2 + S("    maxInputMatch = inputMatch;") + LF;
                     procCode += I2 + S("}") + LF;
                     procCode += I2 + S("else if (inputMatch == maxInputMatch)") + LF;
@@ -1486,21 +1495,33 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
             procCode += I1 + S("    // If we found a match with uniquely high priority (i.e. no duplicate priorities) call handler.") + LF;
             procCode += I1 + S("    if (pHandler != nullptr)") + LF;
             procCode += I1 + S("    {") + LF;
-            procCode += I1 + S("        (this->*pHandler)(delta, measure);") + LF;
+            procCode += I1 + S("        if ((void*)pHandler == mpLastInputHandler)") + LF;
+            procCode += I1 + S("            mLastInputHandlerDelta += delta;") + LF;
+            procCode += I1 + S("        else") + LF;
+            procCode += I1 + S("            mLastInputHandlerDelta = 0.0;") + LF;
+            procCode += I1 + S("        if ((void*)pHandler != mpLastInputHandler || (repeatDelay > 0.0f && mLastInputHandlerDelta > repeatDelay))") + LF;
+            procCode += I1 + S("        {") + LF;
+            procCode += I1 + S("            mLastInputHandlerDelta = 0.0;") + LF;
+            procCode += I1 + S("            pHandler(this, delta, measure);") + LF;
             if (pAnyDef != nullptr)
             {
-                procCode += I1 + S("        // At least one input match, and an 'any' handler was specified so call it") + LF;
-                procCode += I1 + S("        ") + input_handler_special_name(pInput->str, pAnyDef->str) + S("(delta, measure);") + LF;
+                procCode += LF;
+                procCode += I1 + S("            // At least one input match, and an 'any' handler was specified so call it") + LF;
+                procCode += I1 + S("            ") + input_handler_special_name(pInput->str, pAnyDef->str) + S("(this, delta, measure);") + LF;
             }
+            procCode += I1 + S("        }") + LF;
             procCode += I1 + S("    }") + LF;
             if (pNoneDef != nullptr)
             {
-                procCode += I1 + S("    else") + LF;
+                procCode += LF;
+                procCode += I1 + S("    if (pHandler == nullptr && mpLastInputHandler != nullptr)") + LF;
                 procCode += I1 + S("    {") + LF;
                 procCode += I1 + S("        // No input matches, and a 'none' handler was specified so call it") + LF;
-                procCode += I1 + S("        ") + input_handler_special_name(pInput->str, pNoneDef->str) + S("(delta, measure);") + LF;
+                procCode += I1 + S("        ") + input_handler_special_name(pInput->str, pNoneDef->str) + S("(this, delta, measure);") + LF;
                 procCode += I1 + S("    }") + LF;
             }
+            procCode += LF;
+            procCode += I1 + S("    mpLastInputHandler = (void*)pHandler;") + LF;
             procCode += I1 + S("} // #") + S(pInput->str) + LF;
         }
     }
@@ -2098,6 +2119,10 @@ static S codegen_recurse(const Ast * pAst,
         {
             code += S("compose_funcs::");
         }
+        else if (!(pAst->pSymRecRef->flags & kSRFL_BuiltInFunction))
+        {
+            code += S("pThis->");
+        }
 
         if (pAst->pSymRecRef->flags & kSRFL_BuiltInFunction)
             code += S(pAst->pSymRecRef->pAst->str);
@@ -2407,9 +2432,7 @@ static S codegen_recurse(const Ast * pAst,
     }
     case kAST_FloatLiteral:
     {
-        scratch[kScratchSize] = '\0'; // sanity null terminator
-        snprintf(scratch, kScratchSize, "%1.8ef", pAst->numf);
-        return S(scratch);
+        return float_literal(pAst->numf);
     }
     case kAST_StringLiteral:
     {
@@ -2517,14 +2540,14 @@ static S codegen_recurse(const Ast * pAst,
 
         S target;
         if (pAst->pLhs == 0)
-            target = S("self().task().id()");
+            target = S("pThis->self().task().id()");
         else
             target = codegen_recurse(pAst->pLhs, 0);
 
         code += I1 + S("// Prepare the queue writer\n");
         snprintf(scratch,
                  kScratchSize,
-                 "MessageQueueWriter msgw(%s, kMessageFlag_None, self().task().id(), %s, to_cell(%s), blockCount);\n",
+                 "MessageQueueWriter msgw(%s, kMessageFlag_None, pThis->self().task().id(), %s, to_cell(%s), blockCount);\n",
                  codegen_recurse(pAst->pMid, 0).c_str(),
                  target.c_str(),
                  payload.c_str());

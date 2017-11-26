@@ -250,9 +250,10 @@ input_def_list
     ;
 
 input_def
-    : HASH block { $$ = ast_create_input_def($1, $2, pParseData); }
-    | ANY block  { $$ = ast_create_input_special_def("any", $2, pParseData); }
-    | NONE block { $$ = ast_create_input_special_def("none", $2, pParseData); }
+    : HASH block                   { $$ = ast_create_input_def($1, 0.0, $2, pParseData); }
+    | HASH ':' FLOAT_LITERAL block { $$ = ast_create_input_def($1, $3, $4, pParseData); }
+    | ANY block                    { $$ = ast_create_input_special_def("any", $2, pParseData); }
+    | NONE block                   { $$ = ast_create_input_special_def("none", $2, pParseData); }
     ;
 
 block
@@ -264,7 +265,7 @@ stmt_list
     : stmt            { $$ = ast_append(kAST_Block, NULL, $1, pParseData); }
     | stmt_list stmt  { $$ = ast_append(kAST_Block, $1, $2, pParseData); }
     ;
- 
+
 stmt
     : IF '(' expr ')' stmt %prec THEN         { $$ = ast_create_if($3, $5, NULL, pParseData); }
     | IF '(' expr ')' stmt ELSE stmt { $$ = ast_create_if($3, $5, $7,   pParseData); }
@@ -283,7 +284,7 @@ stmt
     | RETURN expr ';'  { $$ = ast_create_return($2, pParseData); }
 
     | block     { $$ = $1; }
-    
+
     | expr ';'  { $$ = ast_create_simple_stmt($1, pParseData); }
 
     | INPUT_ '=' expr ';' { $$ = ast_create_input_assign($3, pParseData); }
@@ -308,11 +309,11 @@ expr
 
     | type_ent IDENTIFIER          { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL, NULL, pParseData)); }
     | type_ent IDENTIFIER '=' expr { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL, $4, pParseData)); }
-    
+
     | STRING_LITERAL { $$ = ast_create_string_literal($1, pParseData); }
 
     | cond_expr        { $$ = $1; }
-    
+
     | expr '+' expr    { $$ = ast_create_binary_op(kAST_Add,    $1, $3, pParseData); }
     | expr '-' expr    { $$ = ast_create_binary_op(kAST_Sub,    $1, $3, pParseData); }
     | expr '*' expr    { $$ = ast_create_binary_op(kAST_Mul,    $1, $3, pParseData); }

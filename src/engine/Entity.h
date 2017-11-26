@@ -200,6 +200,9 @@ protected:
     u32 mChildrenMax;
     u32 mChildCount;
 
+    void * mpLastInputHandler = nullptr;
+    f32 mLastInputHandlerDelta = 0.0f;
+
     // Dynamic memory for scripts
     BlockMemory * mpBlockMemory;
 

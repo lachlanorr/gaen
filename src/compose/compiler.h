@@ -120,7 +120,7 @@ typedef enum
     kAST_While,
     kAST_DoWhile,
     kAST_For,
-    
+
     kAST_Add,
     kAST_Sub,
     kAST_Mul,
@@ -179,7 +179,7 @@ typedef enum
 
     kAST_EntityInit,
     kAST_StructInit,
-    
+
     kAST_IntLiteral,
     kAST_BoolLiteral,
     kAST_FloatLiteral,
@@ -339,7 +339,7 @@ void ast_create_using_list(Ast * pUsingList, ParseData * pParseData);
 Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData * pParseData);
 Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_update_def(Ast * pBlock, ParseData * pParseData);
-Ast * ast_create_input_def(const char * name, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_input_def(const char * name, float repeatDelay, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_input_special_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);

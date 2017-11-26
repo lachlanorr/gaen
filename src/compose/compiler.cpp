@@ -86,7 +86,7 @@ const char * parse_identifier(const char * str, ParseData * pParseData)
                 COMP_ERROR(pParseData, "Invalid identifier with trailing underscore: %s", str);
         }
     }
-    
+
     return parsedata_add_string(pParseData, str);
 }
 
@@ -155,7 +155,7 @@ size_t mangle_type_len(const char * name)
 void mangle_type(char * mangledName, size_t mangledNameSize, const char * name, int isConst, int isReference)
 {
     ASSERT(mangledNameSize > mangle_type_len(name));
-    
+
     char * p = mangledName;
 
     strcpy(p, "t");
@@ -175,7 +175,7 @@ void mangle_type(char * mangledName, size_t mangledNameSize, const char * name, 
 
     strcpy(p, "__");
     p += 2;
-        
+
     strcpy(p, name);
 }
 
@@ -317,7 +317,7 @@ SymRec * symrec_create(SymType symType,
     // This is necessary when components or entities are being
     // initialized with property values, we want to be able to
     // error on invalid property names.
-    if (symType == kSYMT_Entity || 
+    if (symType == kSYMT_Entity ||
         symType == kSYMT_Component)
     {
         ASSERT(pParseData->scopeStack.size() > 0);
@@ -665,7 +665,7 @@ Ast * ast_create(AstType astType, ParseData * pParseData)
 Ast * ast_create_with_child_list(AstType astType, ParseData * pParseData)
 {
     Ast * pAst = ast_create(astType, pParseData);
-    pAst->pChildren = astlist_create(); 
+    pAst->pChildren = astlist_create();
     return pAst;
 }
 
@@ -690,7 +690,7 @@ Ast * ast_create_dotted_id(Ast * pItems, ParseData * pParseData)
     ASSERT(pItems->pChildren->nodes.size() > 0);
 
     // Add the reconstituted name as str member
-    
+
     size_t len = 0;
     for (Ast * pAst : pItems->pChildren->nodes)
     {
@@ -794,7 +794,7 @@ void ast_create_using_list(Ast * pUsingList, ParseData * pParseData)
 Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData * pParseData)
 {
     ASSERT(pUsingDottedId->str);
-    
+
     Ast * pAst = ast_create(kAST_UsingStmt, pParseData);
     ast_set_lhs(pAst, pUsingDottedId);
     ast_set_rhs(pAst, pAsDottedId);
@@ -804,7 +804,7 @@ Ast * ast_create_using_stmt(Ast * pUsingDottedId, Ast * pAsDottedId, ParseData *
     {
         COMP_ERROR(pParseData, "Failed to find using: %s", pUsingDottedId->str);
     }
-    
+
     // Do the using
     parsedata_parse_using(pParseData, pAsDottedId->str, path);
 
@@ -841,7 +841,7 @@ Ast * ast_create_function_def(const char * name, const SymDataType * pReturnType
     return pAst;
 }
 
-Ast * ast_create_input_def(const char * name, Ast * pBlock, ParseData * pParseData)
+Ast * ast_create_input_def(const char * name, float repeatDelay, Ast * pBlock, ParseData * pParseData)
 {
     Ast * pAst = ast_create_block_def(name,
                                       kAST_InputDef,
@@ -851,7 +851,7 @@ Ast * ast_create_input_def(const char * name, Ast * pBlock, ParseData * pParseDa
                                       NULL,
                                       false,
                                       pParseData);
-
+    pAst->numf = repeatDelay;
     return pAst;
 }
 
@@ -865,7 +865,6 @@ Ast * ast_create_input_special_def(const char * name, Ast * pBlock, ParseData * 
                                       NULL,
                                       false,
                                       pParseData);
-
     return pAst;
 }
 
@@ -2001,7 +2000,7 @@ Ast * ast_create_string_literal(const char * str, ParseData * pParseData)
             default:
                 *d = '\\';
                 d++;
-                *d = s[1]; 
+                *d = s[1];
                 break;
             }
             s++; // extra ++ to get past '\'
@@ -2108,10 +2107,10 @@ Ast * ast_create_symbol_ref(Ast * pDottedId, ParseData * pParseData)
     {
         COMP_ERROR(pParseData, "Invalid use of symbol: %s", pDottedId->str);
         return pAst;
-    }   
+    }
 
     pAst->pSymRecRef = pSymRec;
-    
+
     return pAst;
 }
 
@@ -2122,7 +2121,7 @@ Ast * ast_create_if(Ast * pCondition, Ast * pIfBody, Ast * pElseBody, ParseData 
     ast_set_lhs(pAst, pCondition);
     ast_set_mid(pAst, pIfBody);
     ast_set_rhs(pAst, pElseBody);
-    
+
     return pAst;
 }
 
@@ -2285,7 +2284,7 @@ void ast_set_rhs(Ast * pParent, Ast * pRhs)
 {
     pParent->pRhs = pRhs;
     if (pRhs)
-        pRhs->pParent = pParent;    
+        pRhs->pParent = pParent;
 }
 
 const SymDataType * ast_data_type(const Ast * pAst)
@@ -2867,7 +2866,7 @@ const Using * parsedata_parse_using(ParseData * pParseData,
         COMP_ERROR(pParseData, "Failed to parse using: %s", fullPath);
         return nullptr;
     }
-    
+
     Using imp;
     imp.pParseData = pUsingParseData;
     if (!namespace_ || namespace_[0] == '\0')
@@ -2881,7 +2880,7 @@ const Using * parsedata_parse_using(ParseData * pParseData,
         strcat(pref, ".");
         imp.namespace_ = pref;
     }
-        
+
     pParseData->usings.push_back(imp);
 
     return &pParseData->usings.back();
@@ -2986,7 +2985,7 @@ ParseData * parse(const char * source,
         return nullptr;
     }
 
-    yy_scan_bytes(source, length, pParseData->pScanner);
+    yy_scan_bytes(source, (int)length, pParseData->pScanner);
 
     ret = yyparse(pParseData);
 
@@ -3004,7 +3003,7 @@ ParseData * parse(const char * source,
     ASSERT(pParseData->scopeStack.size() == 1);
 
     return pParseData;
-}   
+}
 
 void yyerror(YYLTYPE * pLoc, ParseData * pParseData, const char * format, ...)
 {
