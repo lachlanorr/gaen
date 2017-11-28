@@ -2298,7 +2298,9 @@ const SymDataType * ast_data_type(const Ast * pAst)
     else if (pAst->pSymRecRef)
         return pAst->pSymRecRef->pSymDataType;
 
-    SymRec * pSymRec = nullptr;
+    const SymRec * pSymRec = nullptr;
+    const SymDataType * pSdtLhs = nullptr;
+    const SymDataType * pSdtRhs = nullptr;
 
     if (pAst->pSymDataType)
         return pAst->pSymDataType;
@@ -2370,7 +2372,26 @@ const SymDataType * ast_data_type(const Ast * pAst)
     case kAST_BitAnd:
     case kAST_BitOr:
     case kAST_BitXor:
-        return ast_data_type(pAst->pLhs);
+        pSdtLhs = ast_data_type(pAst->pLhs);
+        pSdtRhs = ast_data_type(pAst->pRhs);
+
+        // special case multiply mat * vec
+        if (pAst->type == kAST_Mul &&
+            ((pSdtLhs->typeDesc.dataType == kDT_mat43 ||
+              pSdtLhs->typeDesc.dataType == kDT_mat4) &&
+             (pSdtRhs->typeDesc.dataType == kDT_vec3 ||
+              pSdtRhs->typeDesc.dataType == kDT_vec4)))
+        {
+            return pSdtLhs;
+        }
+        else
+        {
+            // return the larger of the lhs/rhs
+            if (pSdtLhs->cellCount >= pSdtRhs->cellCount)
+                return pSdtLhs;
+            else
+                return pSdtRhs;
+        }
     case kAST_Negate:
     case kAST_Complement:
         return ast_data_type(pAst->pRhs);
@@ -2815,7 +2836,7 @@ void parsedata_formatted_message(ParseData * pParseData,
                                  const char * format, ...)
 {
     ASSERT(pParseData);
-    
+
     static const size_t kMessageMax = 1024;
     TLARRAY(char, tMessage, kMessageMax);
 
