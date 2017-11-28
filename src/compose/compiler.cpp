@@ -3331,6 +3331,16 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
+    // vec3 euler(mat43)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("m", parsedata_find_type_symbol(pParseData, "mat43", 1, 1), pParseData));
+        register_builtin_function("euler",
+                                  parsedata_find_type_symbol(pParseData, "vec3", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
     // vec2 normalize(vec2)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
