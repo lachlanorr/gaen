@@ -102,6 +102,7 @@ struct tmat3a : tmat3<T>
         cols[1] = m[1];
         cols[2] = m[2];
     }
+    explicit tmat3a(const tmat43<T> & rhs);
 private:
     vec3 padding__;
 };

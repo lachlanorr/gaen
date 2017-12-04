@@ -54,7 +54,7 @@ struct tvec4
         struct{ T r, g, b, a; };
         struct{ T s, t, p, q; };
     };
-    
+
     tvec4() = default;
 
     tvec4(T x, T y, T z, T w)
@@ -64,7 +64,7 @@ struct tvec4
     explicit tvec4(T x)
       : x(x), y(x), z(x), w(x)
     {}
-    
+
     tvec4(const tvec3<T> & v, T w);
 
     u32 length() const { return sizeof(*this) / sizeof(T); }
@@ -108,7 +108,7 @@ inline tvec4<T> operator+(const tvec4<T> & lhs, const tvec4<T> & rhs)
 {
     return tvec4<T>(lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z, lhs.w + rhs.w);
 }
-    
+
 template<typename T>
 inline T* value_ptr(tvec4<T> & x)
 {

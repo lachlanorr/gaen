@@ -86,7 +86,16 @@ tmat3<T> tmat3<T>::operator~() const
     return tmat3<T>(glm::inverse((tmat3<T>::glm_t)*this));
 }
 
+template <typename T>
+tmat3a<T>::tmat3a(const tmat43<T> & rhs)
+{
+    cols[0] = rhs[0];
+    cols[1] = rhs[1];
+    cols[2] = rhs[2];
+}
+
 // Template definitions for linker
 template struct tmat3<f32>;
+template struct tmat3a<f32>;
 
 } // namespace gaen

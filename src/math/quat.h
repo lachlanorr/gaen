@@ -74,6 +74,17 @@ tquat<T>::tquat(T angle, tvec3<T> const & axis)
     w = cos_a;
 }
 
+template <typename T>
+inline tquat<T> operator-(const tquat<T> & rhs)
+{
+    return tquat<T>(glm::conjugate((tquat<T>::glm_t)rhs));
+}
+
+template <typename T>
+inline tquat<T> operator~(const tquat<T> & rhs)
+{
+    return tquat<T>(glm::inverse((tquat<T>::glm_t)rhs));
+}
 
 template <typename T>
 inline tvec3<T> operator*(const tquat<T> & lhs, const tvec3<T> & rhs)

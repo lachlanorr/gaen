@@ -34,7 +34,29 @@
 namespace gaen
 {
 
-vec3 euler(const mat43 & transform)
+vec3 euler(const mat43 & t)
+{
+    vec3 rot{ 0.0f };
+
+    if (t[0][1] == 1.0f)
+    {
+        rot.y = atan2(t[2][0], t[2][2]);
+    }
+    else if (t[0][1] == -1.0f)
+    {
+        rot.y = atan2(t[2][0], t[2][2]);
+    }
+    else
+    {
+        rot.x = asin(t[0][1]);
+        rot.y = atan2(-t[0][2], t[0][0]);
+        rot.z = atan2(-t[2][1], t[1][1]);
+    }
+
+    return rot;
+}
+
+vec3 eulerOld(const mat43 & transform)
 {
     vec3 rot;
 
