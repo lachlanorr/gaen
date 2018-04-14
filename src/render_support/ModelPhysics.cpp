@@ -32,6 +32,7 @@
 #include "engine/messages/Collision.h"
 #include "render_support/ModelPhysics.h"
 
+#define LOG_TRANS_INFO HAS__
 
 namespace gaen
 {
@@ -76,6 +77,42 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 
     if (newTrans != mModelInstance.mTransform)
     {
+#if HAS(LOG_TRANS_INFO)
+        vec3 v1{1.0, 2.0, 0.0};
+        vec3 v2{1.0, 2.0, -0.0};
+
+        bool eq = v1 == v2;
+
+
+        LOG_INFO("sWT newTrans:    %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef",
+                 newTrans[0][0],
+                 newTrans[0][1],
+                 newTrans[0][2],
+                 newTrans[1][0],
+                 newTrans[1][1],
+                 newTrans[1][2],
+                 newTrans[2][0],
+                 newTrans[2][1],
+                 newTrans[2][2],
+                 newTrans[3][0],
+                 newTrans[3][1],
+                 newTrans[3][2]
+            );
+        LOG_INFO("sWT mTransform:  %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef",
+                 mModelInstance.mTransform[0][0],
+                 mModelInstance.mTransform[0][1],
+                 mModelInstance.mTransform[0][2],
+                 mModelInstance.mTransform[1][0],
+                 mModelInstance.mTransform[1][1],
+                 mModelInstance.mTransform[1][2],
+                 mModelInstance.mTransform[2][0],
+                 mModelInstance.mTransform[2][1],
+                 mModelInstance.mTransform[2][2],
+                 mModelInstance.mTransform[3][0],
+                 mModelInstance.mTransform[3][1],
+                 mModelInstance.mTransform[3][2]
+            );
+#endif // #if HAS(LOG_TRANS_INFO)
         mModelInstance.mTransform = newTrans;
 
         // Send transform to entity

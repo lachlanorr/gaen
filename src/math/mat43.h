@@ -91,7 +91,18 @@ static_assert(sizeof(mat43) == sizeof(glm::tmat4x3<f32, glm::highp>), "mat43 dif
 template <typename T>
 inline bool operator==(const tmat43<T> & lhs, const tmat43<T> & rhs)
 {
+    ASSERT ((0 == memcmp(&lhs, &rhs, sizeof(tmat43<T>))) ==
+            (lhs[0] == rhs[0] &&
+             lhs[1] == rhs[1] &&
+             lhs[2] == rhs[2] &&
+             lhs[3] == rhs[3]));
+
     return 0 == memcmp(&lhs, &rhs, sizeof(tmat43<T>));
+
+//    return (lhs[0] == rhs[0] &&
+//            lhs[1] == rhs[1] &&
+//            lhs[2] == rhs[2] &&
+//            lhs[3] == rhs[3]);
 }
 
 template <typename T>
