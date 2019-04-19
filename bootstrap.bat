@@ -36,15 +36,15 @@ if not exist "%BUILD_DIR%" (
 cd %BUILD_DIR%
 
 if "%PLAT%"=="win64" (
-    cmake -G "Visual Studio 15 Win64" %GAEN_ROOT%
+    cmake -G "Visual Studio 16" -A x64  %GAEN_ROOT%
 )
 if "%PLAT%"=="win32" (
-    cmake -G "Visual Studio 15" %GAEN_ROOT%
+    cmake -G "Visual Studio 16" -A Win32 %GAEN_ROOT%
 )
 
 
 
-set VSDIR=c:\Program Files (x86)\Microsoft Visual Studio\2017\Community
+set VSDIR=c:\Program Files (x86)\Microsoft Visual Studio\2019\Community
 
 :: Build scripts for the first time to ensure codegen happens
 :: before VS is loaded. Otherwise the first build in VS will

@@ -80,7 +80,7 @@ def write_file(out_f, data):
     dirname = os.path.split(out_f)[0]
     if not os.path.exists(dirname):
         os.makedirs(dirname)
-        
+
     f = open(out_f, 'wb')
     f.write(data)
     f.close()
@@ -148,7 +148,7 @@ def main():
         print
         print "Gaen project '%s' created in current directory." % project_name()
         print bootstrap_msg()
-    
+
 if __name__=='__main__':
     main()
-    
+
