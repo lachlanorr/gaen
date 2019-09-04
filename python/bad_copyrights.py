@@ -4,7 +4,7 @@
 # bad_copyrights.py - Check for copyright headers in source files
 #
 # Gaen Concurrency Engine - http://gaen.org
-# Copyright (c) 2014-2017 Lachlan Orr
+# Copyright (c) 2014-2019 Lachlan Orr
 #
 # This software is provided 'as-is', without any express or implied
 # warranty. In no event will the authors be held liable for any damages
@@ -34,13 +34,13 @@ copyright/license message.
 import os
 import posixpath
 import re
-
+import datetime as dt
 
 SCRIPT_HEADER = (r"#-------------------------------------------------------------------------------\n"
                  r"# %s - .+[^\.]\n"
                  r"#\n"
                  r"# Gaen Concurrency Engine - http://gaen\.org\n"
-                 r"# Copyright \(c\) 2014-2017 Lachlan Orr\n"
+                 r"# Copyright \(c\) 2014-%d Lachlan Orr\n"
                  r"#\n"
                  r"# This software is provided 'as-is', without any express or implied\n"
                  r"# warranty\. In no event will the authors be held liable for any damages\n"
@@ -67,7 +67,7 @@ C_HEADER = (r"/\*---------------------------------------------------------------
             r"%s - .+[^\.]\n"
             r"\n"
             r"Gaen Concurrency Engine - http://gaen\.org\n"
-            r"Copyright \(c\) 2014-2017 Lachlan Orr\n"
+            r"Copyright \(c\) 2014-%d Lachlan Orr\n"
             r"\n"
             r"This software is provided 'as-is', without any express or implied\n"
             r"warranty\. In no event will the authors be held liable for any damages\n"
@@ -94,7 +94,7 @@ CPP_HEADER = (r"//--------------------------------------------------------------
               r"// %s - .+[^\.]\n"
               r"//\n"
               r"// Gaen Concurrency Engine - http://gaen\.org\n"
-              r"// Copyright \(c\) 2014-2017 Lachlan Orr\n"
+              r"// Copyright \(c\) 2014-%d Lachlan Orr\n"
               r"//\n"
               r"// This software is provided 'as-is', without any express or implied\n"
               r"// warranty\. In no event will the authors be held liable for any damages\n"
@@ -117,19 +117,22 @@ CPP_HEADER = (r"//--------------------------------------------------------------
               r"//------------------------------------------------------------------------------\n")
 
 
+def current_year():
+    return dt.datetime.now().year
+
 HEADERS = [(re.compile(r'^.*\.(h|c|cpp|cmp|m|mm)$'),       CPP_HEADER),
            (re.compile(r'^.*\.(y|l)$'),                    C_HEADER),
            (re.compile(r'^.*\.py$'),                       SCRIPT_HEADER),
            (re.compile(r'^.*(CMakeLists.txt|\.cmake)$'),   SCRIPT_HEADER),
           ]
-           
+
 EXCLUDE_DIR_RE = re.compile(r'^.*(/external/|/build/|/python/templates/|/compose/compose_(parser|scanner)\.).*$')
 
 def expected_header(path):
     fname = posixpath.split(path)[1]
     for pattern, header in HEADERS:
         if re.match(pattern, path):
-            return header % fname
+            return header % (fname, current_year())
     return None
 
 def verify_header(path, exphdr):

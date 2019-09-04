@@ -2,7 +2,7 @@
 // DUMMY.cpp - Dummy file to tell cmake what type of project this is
 //
 // Gaen Concurrency Engine - http://gaen.org
-// Copyright (c) 2014-2017 Lachlan Orr
+// Copyright (c) 2014-2019 Lachlan Orr
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
