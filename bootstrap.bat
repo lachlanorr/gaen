@@ -6,9 +6,13 @@ SETLOCAL
 :: Change to root dir
 CD /d %~dp0
 
+:: Make sure we're in a clean state
+call .\clean.bat
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 :: Pull down our submodules
 git submodule init
-git submodule update
+git submodule update --remote --recursive
 
 :: Write root directory to main GAEN_ROOT env var
 FOR /f "tokens=1" %%B in ('CHDIR') do set GAEN_ROOT=%%B
@@ -31,18 +35,19 @@ set BUILD_DIR=%GAEN_ROOT%\build\%PLAT%
 
 if not exist "%BUILD_DIR%" (
    mkdir "%BUILD_DIR%"
+   if %errorlevel% neq 0 exit /b %errorlevel%
 )
 
+:: Issue cmake command
 cd %BUILD_DIR%
-
 if "%PLAT%"=="win64" (
     cmake -G "Visual Studio 16" -A x64  %GAEN_ROOT%
+    if %errorlevel% neq 0 exit /b %errorlevel%
 )
 if "%PLAT%"=="win32" (
     cmake -G "Visual Studio 16" -A Win32 %GAEN_ROOT%
+    if %errorlevel% neq 0 exit /b %errorlevel%
 )
-
-
 
 set VSDIR=c:\Program Files (x86)\Microsoft Visual Studio\2019\Community
 
@@ -55,3 +60,9 @@ if not exist "%BUILD_DIR%\src\scripts\registration.cpp" (
   msbuild "%BUILD_DIR%\src\scripts\scripts.vcxproj"
   if %errorlevel% neq 0 exit /b %errorlevel%
 )
+
+echo.
+echo Bootstrapping complete.
+echo Visual Studio solution: %BUILD_DIR%\gaen.sln
+echo.
+
