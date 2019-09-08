@@ -1,12 +1,98 @@
 * Overview
 Several open source projects are utilized in Gaen.
 
-If Gaen is distributed as part of another product or project,
+If Gaen is distributed as part of another product or project, whether
 commercial or non-commercial, portions of these credits should be
 included in some form of documentation or readme file based on the
 licenses outlined below.
 
 Please review carefully.
+
+* assimp
+Official Open Asset Import Library Repository. Loads 40+ 3D file
+formats into one unified and clean data structure.
+
+http://www.assimp.org
+
+** License
+Open Asset Import Library (assimp)
+
+Copyright (c) 2006-2016, assimp team
+All rights reserved.
+
+Redistribution and use of this software in source and binary forms,
+with or without modification, are permitted provided that the
+following conditions are met:
+
+- Redistributions of source code must retain the above
+  copyright notice, this list of conditions and the
+  following disclaimer.
+
+- Redistributions in binary form must reproduce the above
+  copyright notice, this list of conditions and the
+  following disclaimer in the documentation and/or other
+  materials provided with the distribution.
+
+- Neither the name of the assimp team, nor the names of its
+  contributors may be used to endorse or promote products
+  derived from this software without specific prior
+  written permission of the assimp team.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+
+******************************************************************************
+
+AN EXCEPTION applies to all files in the ./test/models-nonbsd folder.
+These are 3d models for testing purposes, from various free sources
+on the internet. They are - unless otherwise stated - copyright of
+their respective creators, which may impose additional requirements
+on the use of their work. For any of these models, see
+<model-name>.source.txt for more legal information. Contact us if you
+are a copyright holder and believe that we credited you inproperly or
+if you don't want your files to appear in the repository.
+
+
+******************************************************************************
+
+Poly2Tri Copyright (c) 2009-2010, Poly2Tri Contributors
+http://code.google.com/p/poly2tri/
+
+All rights reserved.
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+- Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+- Redistributions in binary form must reproduce the above copyright notice,
+  this list of conditions and the following disclaimer in the documentation
+  and/or other materials provided with the distribution.
+- Neither the name of Poly2Tri nor the names of its contributors may be
+  used to endorse or promote products derived from this software without specific
+  prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 * Bullet
 Bullet Collision Detection and Physics Library
@@ -519,35 +605,44 @@ Glenn Randers-Pehrson
 glennrp at users.sourceforge.net
 October 20, 2016
 
-* Nana
-Nana is a cross-platform library for GUI programming in modern C++ style.
-http://nanapro.org/en-us/
+* libtiff
+libtiff for loading tiff files, which provide some interesting features
+like floating point pixel values.
+
+https://gitlab.com/libtiff/libtiff
+
 
 ** License
-Boost Software License - Version 1.0 - August 17th, 2003
+Silicon Graphics has seen fit to allow us to give this work away. It
+is free. There is no support or guarantee of any sort as to its
+operations, correctness, or whatever. If you do anything useful with
+all or parts of it you need to honor the copyright notices. I would
+also be interested in knowing about it and, hopefully, be
+acknowledged.
 
-Permission is hereby granted, free of charge, to any person or organization
-obtaining a copy of the software and accompanying documentation covered by
-this license (the "Software") to use, reproduce, display, distribute,
-execute, and transmit the Software, and to prepare derivative works of the
-Software, and to permit third-parties to whom the Software is furnished to
-do so, all subject to the following:
+The legal way of saying that is:
 
-The copyright notices in the Software and this entire statement, including
-the above license grant, this restriction and the following disclaimer,
-must be included in all copies of the Software, in whole or in part, and
-all derivative works of the Software, unless such copies or derivative
-works are solely in the form of machine-executable object code generated by
-a source language processor.
+Copyright (c) 1988-1997 Sam Leffler Copyright (c) 1991-1997 Silicon Graphics, Inc.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
-SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
-FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
+Permission to use, copy, modify, distribute, and sell this software
+and its documentation for any purpose is hereby granted without fee,
+provided that (i) the above copyright notices and this permission
+notice appear in all copies of the software and related documentation,
+and (ii) the names of Sam Leffler and Silicon Graphics may not be used
+in any advertising or publicity relating to the software without the
+specific, prior written permission of Sam Leffler and Silicon
+Graphics.
 
+THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+IN NO EVENT SHALL SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR ANY
+SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR
+ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY
+OF LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
 * NanoVG
 Antialiased 2D vector drawing library on top of OpenGL for UI and visualizations.
 https://github.com/memononen/nanovg
