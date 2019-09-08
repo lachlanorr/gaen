@@ -69,28 +69,39 @@ ADD_EXECUTABLE (chef
   ${chef_SOURCES}
   )
 
+TARGET_INCLUDE_DIRECTORIES (chef PRIVATE ${PNG_INCLUDE_DIR})
+TARGET_INCLUDE_DIRECTORIES (chef PRIVATE ${FREETYPE_INCLUDE_DIR})
+TARGET_INCLUDE_DIRECTORIES (chef PRIVATE ${ASSIMP_INCLUDE_DIR})
+
 ADD_DEPENDENCIES(chef
+  png_static
   freetype
-  zlib
-  libpng
   assimp
-  tiff
+##--#  freetype
+##  zlibstatic
+##--#  libpng
+##--#  assimp
+##--#  tiff
   )
 
 TARGET_LINK_LIBRARIES (chef
-  core
-  assets
-  ${PROJECT_ASSETS_LIB}
-  ${PROJECT_COOKERS_LIB}
-  optimized ${FREETYPE_LIB}
-  debug     ${FREETYPE_LIBD}
-  optimized ${LIBPNG_LIB}
-  debug     ${LIBPNG_LIBD}
-  optimized ${ZLIB_LIB}
-  debug     ${ZLIB_LIBD}
-  ${ASSIMP_LIBS}
-  tiff
-  ${PLATFORM_LINK_LIBS}
+#  core
+#  assets
+#  ${PROJECT_ASSETS_LIB}
+#  ${PROJECT_COOKERS_LIB}
+#--#  optimized ${FREETYPE_LIB}
+#--#  debug     ${FREETYPE_LIBD}
+#--#  optimized ${LIBPNG_LIB}
+#--#  debug     ${LIBPNG_LIBD}
+png_static
+freetype
+assimp
+
+#  freetype2
+#  zlib
+#--#  ${ASSIMP_LIBS}
+#--#  tiff
+#  ${PLATFORM_LINK_LIBS}
   )
 
 package (chef)

@@ -50,6 +50,8 @@ ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)
 ADD_DEFINITIONS(/D _SCL_SECURE_NO_WARNINGS)
 ADD_DEFINITIONS(/D NOMINMAX)
 
+SET_PROPERTY (GLOBAL PROPERTY USE_FOLDERS ON)
+
 # Preps MSVC filters
 MACRO (IDE_SOURCE_PROPERTIES source_path sources)
 IF (MSVC)
@@ -71,7 +73,7 @@ MACRO (MSVC_PRECOMPILED_HEADER target_name sources)
                                             OBJECT_OUTPUTS "${pch_file}")
     SET_SOURCE_FILES_PROPERTIES (${sources_ref}
                                  PROPERTIES COMPILE_FLAGS "/Yu\"${stdafx_h}\" /FI\"${pch_file}\" /Fp\"${pch_file}\""
-                                            OBJECT_DEPENDS "${pch_file}")  
+                                            OBJECT_DEPENDS "${pch_file}")
     # Add precompiled header to sources
     LIST (APPEND ${sources} "${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h")
     LIST (APPEND ${sources} ${stdafx_cpp})

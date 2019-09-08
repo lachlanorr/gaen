@@ -101,10 +101,10 @@ def read_cpp_file(filename):
     f.close()
 
     hashloc = d.find('// HASH: ') + len('// HASH: ')
-    
+
     hashval = d[hashloc:hashloc+32]
     source = d[hashloc+33:]
-    
+
     return d, source, hashval
 
 def read_file(filename):
@@ -117,11 +117,11 @@ def write_file(filename, data):
     dirname = posixpath.split(filename)[0]
     if not os.path.exists(dirname):
         os.makedirs(dirname)
-        
+
     f = open(filename, 'wb')
     f.write(data)
     f.close()
-    
+
 def bindir():
     return sys.argv[1].replace('\\', '/')
 
@@ -134,7 +134,7 @@ class ScriptInfo(object):
         self.cmpFilename = posixpath.split(self.cmpFullPath)[1]
         self.cppFilename = posixpath.split(self.cppFullPath)[1]
         self.hFilename = posixpath.split(self.hFullPath)[1]
-        
+
         self.cppExists, self.cppModTime = check_file(self.cppFullPath)
         self.cmpExists, self.cmpModTime = check_file(self.cmpFullPath)
         self.hExists, self.hModTime = check_file(self.hFullPath)
@@ -197,7 +197,7 @@ class ScriptInfo(object):
         if self.hOutput == self.hOutputOld:
             return False
         return True
-            
+
 
     def write_cpp(self):
         if (self.cppExists and
@@ -218,8 +218,8 @@ class ScriptInfo(object):
             elif self._should_write_h():
                 print self.hFilename
                 write_file(self.hFullPath, self.hOutput)
-            
-        
+
+
 
 def find_cmpc():
     for root, _, files in os.walk(dirs.BUILD_DIR_P):
@@ -237,8 +237,8 @@ def license_text(comment_chars, file_path):
     else:
         lines = [(comment_chars + ' ' + line).rstrip() for line in open(lic_path)]
         return '\n' + comment_chars + '\n' + '\n'.join(lines)
-        
-        
+
+
 def registration_cpp_path():
     return posixpath.join(sys.argv[1], "registration.cpp")
 
@@ -340,7 +340,7 @@ def main():
     if not has_errors:
         write_registration_cpp(script_infos)
         write_cmake(cmp_files, cpp_files, h_files)
-    
+
 
 if __name__=='__main__':
     main()

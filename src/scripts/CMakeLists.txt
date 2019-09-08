@@ -32,6 +32,8 @@ SET (scripts_SOURCES
   ${scripts_codegen_SOURCES}
   )
 
+MESSAGE(${scripts_SOURCES})
+
 ADD_LIBRARY (scripts
   DUMMY.cpp
   ${scripts_SOURCES}

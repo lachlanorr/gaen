@@ -66,7 +66,7 @@ ADD_SUBDIRECTORY (shader_gen)
 ADD_SUBDIRECTORY (renderergl)
 ADD_SUBDIRECTORY (compose)
 ADD_SUBDIRECTORY (composer)
-ADD_SUBDIRECTORY (scripts)
+#ADD_SUBDIRECTORY (scripts)
 ADD_SUBDIRECTORY (gaen)
 
 #exes

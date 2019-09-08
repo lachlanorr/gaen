@@ -64,7 +64,14 @@ ENDIF ()
 #-------------------------------------------------------------------------------
 # External dependencies
 #-------------------------------------------------------------------------------
-INCLUDE (ExternalProject)
+# Support for creating launch params in Visual Studio
+LIST (APPEND CMAKE_MODULE_PATH "${ext_dir}/cmake-modules")
+INCLUDE (CreateLaunchers)
+
+ADD_SUBDIRECTORY(external)
+
+
+
 
 ## zlib
 #SET (ZLIB_VER "1.2.8")
@@ -88,6 +95,14 @@ INCLUDE (ExternalProject)
 #INCLUDE_DIRECTORIES (ZLIB_INCLUDE)
 #SET (ZLIB_LIB "${ZLIB_PATH}/lib/zlibstatic.lib")
 #SET (ZLIB_LIBD "${ZLIB_PATH}/lib/zlibstaticd.lib")
+
+#SET (SKIP_INSTALL_ALL "${ZLIB_PATH}/include")
+#SET (ZLIB_INCLUDE "${ext_dir}/zlib")
+#ADD_SUBDIRECTORY (${ext_dir}/zlib)
+#INCLUDE_DIRECTORIES (${ext_dir}/zlib)
+
+
+
 
 ## libpng
 #SET (LIBPNG_VER "1.6.25")
@@ -119,6 +134,27 @@ INCLUDE (ExternalProject)
 #INCLUDE_DIRECTORIES (${LIBPNG_PATH}/include)
 #SET (LIBPNG_LIB "${LIBPNG_PATH}/lib/libpng16_static.lib")
 #SET (LIBPNG_LIBD "${LIBPNG_PATH}/lib/libpng16_staticd.lib")
+
+#ADD_SUBDIRECTORY (${ext_dir}/libpng)
+#INCLUDE_DIRECTORIES (${ext_dir}/libpng)
+#ADD_DEPENDENCIES(libpng
+#  zlib
+#  )
+
+
+
+#SET (NANA_CMAKE_INSTALL_INCLUDES OFF CACHE BOOL "Install nana includes when compile the library" FORCE)
+#SET (NANA_CMAKE_ENABLE_PNG ON CACHE BOOL "Enable the use of PNG" FORCE)
+#SET (NANA_CMAKE_LIBPNG_FROM_OS OFF CACHE BOOL "Use libpng from operating system." FORCE)
+
+##SET (ZLIB_INCLUDE_DIR ${ZLIB_INCLUDE})
+##SET (ZLIB_LIBRARY_RELEASE ${ZLIB_LIB})
+##SET (ZLIB_LIBRARY_DEBUG ${ZLIB_LIBD})
+##SET (BUILD_ZLIB "ON")
+##SET (PNG_SHARED "OFF")
+##SET (PNG_TESTS "OFF")
+##
+
 
 ## FreeType
 #SET (FREETYPE_VER "2.6.5")
@@ -241,31 +277,27 @@ INCLUDE (ExternalProject)
 ## External dependencies (END)
 ##-------------------------------------------------------------------------------
 
-# Support for creating launch params in Visual Studio
-LIST (APPEND CMAKE_MODULE_PATH "${ext_dir}/cmake-modules")
-INCLUDE (CreateLaunchers)
+##SET (NANA_CMAKE_INSTALL_INCLUDES OFF CACHE BOOL "Install nana includes when compile the library" FORCE)
+##SET (NANA_CMAKE_ENABLE_PNG ON CACHE BOOL "Enable the use of PNG" FORCE)
+##SET (NANA_CMAKE_LIBPNG_FROM_OS OFF CACHE BOOL "Use libpng from operating system." FORCE)
+##ADD_SUBDIRECTORY (${ext_dir}/nana)
+##INCLUDE_DIRECTORIES (${ext_dir}/nana/include)
+##ADD_DEPENDENCIES(nana
+##  libpng
+##  )
 
-SET (NANA_CMAKE_INSTALL_INCLUDES OFF CACHE BOOL "Install nana includes when compile the library" FORCE)
-SET (NANA_CMAKE_ENABLE_PNG ON CACHE BOOL "Enable the use of PNG" FORCE)
-SET (NANA_CMAKE_LIBPNG_FROM_OS OFF CACHE BOOL "Use libpng from operating system." FORCE)
-ADD_SUBDIRECTORY (${ext_dir}/nana)
-INCLUDE_DIRECTORIES (${ext_dir}/nana/include)
-ADD_DEPENDENCIES(nana
-  libpng
-  )
-
-SET (BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
-SET (cxx OFF CACHE BOOL "Build c++ lib" FORCE)
-INCLUDE_DIRECTORIES (${ext_dir}/libtiff/libtiff)
-INCLUDE_DIRECTORIES ("${CMAKE_CURRENT_BINARY_DIR}/external/libtiff/libtiff")
-ADD_SUBDIRECTORY (${ext_dir}/libtiff external/libtiff)
-SET_TARGET_PROPERTIES (
-    tiff
-    port
-    PROPERTIES FOLDER ExternalSubmoduleTargets/libtiff
-)
-
-INCLUDE_DIRECTORIES (${ext_dir}/tiny_obj_loader-1.0.2)
+##SET (BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
+##SET (cxx OFF CACHE BOOL "Build c++ lib" FORCE)
+##INCLUDE_DIRECTORIES (${ext_dir}/libtiff/libtiff)
+##INCLUDE_DIRECTORIES ("${CMAKE_CURRENT_BINARY_DIR}/external/libtiff/libtiff")
+##ADD_SUBDIRECTORY (${ext_dir}/libtiff external/libtiff)
+##SET_TARGET_PROPERTIES (
+##    tiff
+##    port
+##    PROPERTIES FOLDER ExternalSubmoduleTargets/libtiff
+##)
+##
+##INCLUDE_DIRECTORIES (${ext_dir}/tiny_obj_loader-1.0.2)
 
 ADD_SUBDIRECTORY(src)
 
