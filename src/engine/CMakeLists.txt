@@ -83,10 +83,14 @@ ADD_LIBRARY (engine
   ${engine_SOURCES}
   )
 
-#--#ADD_DEPENDENCIES(engine
-#--#  bullet
-#--#  glfw
-#--#  )
+TARGET_INCLUDE_DIRECTORIES (engine PRIVATE
+  ${BULLET_INCLUDE_DIR}
+  ${GLFW_INCLUDE_DIR}
+)
+
+ADD_DEPENDENCIES(engine
+  glfw
+  )
 
 # Run each time we build.
 ADD_CUSTOM_TARGET (

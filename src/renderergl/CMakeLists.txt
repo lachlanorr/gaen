@@ -63,7 +63,12 @@ ADD_LIBRARY (renderergl
   ${glad_SOURCES}
   )
 
+TARGET_INCLUDE_DIRECTORIES (renderergl PRIVATE
+  ${GLFW_INCLUDE_DIR}
+)
+
 ADD_DEPENDENCIES(renderergl
   hashes
   engine
+  glfw
   )

@@ -66,7 +66,13 @@ ADD_LIBRARY (render_support
   ${render_support_SOURCES}
   )
 
+TARGET_INCLUDE_DIRECTORIES (render_support PRIVATE
+  ${BULLET_INCLUDE_DIR}
+  ${GLFW_INCLUDE_DIR}
+)
+
 ADD_DEPENDENCIES(render_support
   hashes
   CODEGEN_MESSAGES
+  glfw
   )

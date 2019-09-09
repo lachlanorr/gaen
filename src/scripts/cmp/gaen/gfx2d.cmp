@@ -26,8 +26,9 @@
 
 component Sprite
 {
+    int #stage = #default;
     asset #sprAsset = "/dummy.gspr";
-    int sprite = $.sprite_create(sprAsset, transform);
+    int sprite = $.sprite_create(sprAsset, #stage, #opaque, transform);
 
     #init()
     {

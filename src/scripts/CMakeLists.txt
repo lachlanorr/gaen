@@ -32,12 +32,14 @@ SET (scripts_SOURCES
   ${scripts_codegen_SOURCES}
   )
 
-MESSAGE(${scripts_SOURCES})
-
 ADD_LIBRARY (scripts
   DUMMY.cpp
   ${scripts_SOURCES}
   )
+
+TARGET_INCLUDE_DIRECTORIES (scripts PRIVATE
+  ${BULLET_INCLUDE_DIR}
+)
 
 IDE_SOURCE_PROPERTIES( "/" "DUMMY.cpp" )
 

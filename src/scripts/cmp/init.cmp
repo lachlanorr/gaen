@@ -48,7 +48,7 @@ entity Shape
 
 	#init()
 	{
-        $.print("Shape init");
+        print("Shape init");
 	}
 
 }
@@ -57,7 +57,7 @@ entity Light
 {
     components
     {
-        gaen.lights.Directional{dir = vec3{1.2, -0.7, -0.5},
+        gaen.lights.Distant{dir = vec3{1.2, -0.7, -0.5},
                                 col = color{50, 50, 50, 255}}
     }
 }

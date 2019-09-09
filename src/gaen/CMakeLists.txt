@@ -73,10 +73,20 @@ ELSE(IOS)
 
   IDE_SOURCE_PROPERTIES( "/" "${gaen_SOURCES}")
 
-#--#  ADD_DEPENDENCIES(${CMAKE_PROJECT_NAME}
-#--#    bullet
-#--#    glfw
-#--#    )
+  SET (deps
+    BulletCollision
+    BulletDynamics
+    LinearMath
+    glfw
+    )
+
+  ADD_DEPENDENCIES(${CMAKE_PROJECT_NAME}
+    ${deps}
+    )
+
+  TARGET_INCLUDE_DIRECTORIES (${CMAKE_PROJECT_NAME} PRIVATE
+    ${GLFW_INCLUDE_DIR}
+  )
 
   TARGET_LINK_LIBRARIES (${CMAKE_PROJECT_NAME}
     core
@@ -87,11 +97,10 @@ ELSE(IOS)
     render_support
     renderergl
     scripts
+    ${deps}
     ${PROJECT_ASSETS_LIB}
     ${PROJECT_LINK_LIBS}
     ${PLATFORM_LINK_LIBS}
-#--#    ${BULLET_LIBS}
-#--#    ${GLFW_LIBS}
     )
 
   # Set debugging params for ALL_BUILD

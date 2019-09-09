@@ -114,8 +114,56 @@ SET (ASSIMP_BUILD_ZLIB OFF CACHE BOOL "Build your own zlib" FORCE)
 SET (ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "If the supplementary tools for Assimp are built in addition to the library." FORCE)
 SET (ASSIMP_BUILD_TESTS OFF CACHE BOOL "If the test suite for Assimp is built in addition to the library." FORCE)
 ADD_SUBDIRECTORY (${CMAKE_CURRENT_SOURCE_DIR}/assimp)
-SET_TARGET_PROPERTIES (assimp PROPERTIES FOLDER external/assimp)
-SET_TARGET_PROPERTIES (IrrXML PROPERTIES FOLDER external/assimp)
-SET_TARGET_PROPERTIES (uninstall PROPERTIES FOLDER external/assimp)
-SET_TARGET_PROPERTIES (UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER external/assimp)
+SET_TARGET_PROPERTIES (
+  assimp
+  IrrXML
+  uninstall
+  UpdateAssimpLibsDebugSymbolsAndDLLs
+  PROPERTIES FOLDER external/assimp
+  )
 SET (ASSIMP_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assimp/include" "${CMAKE_CURRENT_BINARY_DIR}/assimp/include" CACHE INTERNAL "")
+
+
+# bullet3
+MESSAGE ("**************** bullet3 external submodule ****************")
+SET (BUILD_CPU_DEMOS OFF CACHE BOOL "Build original Bullet CPU examples" FORCE)
+SET (USE_GLUT OFF CACHE BOOL "Use Glut" FORCE)
+SET (BUILD_PYBULLET OFF CACHE BOOL "Set when you want to build pybullet (Python bindings for Bullet)")
+SET (BUILD_ENET OFF CACHE BOOL "Set when you want to build apps with enet UDP networking support" FORCE)
+SET (BUILD_CLSOCKET OFF CACHE BOOL "Set when you want to build apps with enet TCP networking support" FORCE)
+SET (BUILD_BULLET2_DEMOS OFF CACHE BOOL "Set when you want to build the Bullet 2 demos" FORCE)
+SET (BUILD_EXTRAS OFF CACHE BOOL "Set when you want to build the extras" FORCE)
+SET (BUILD_UNIT_TESTS OFF CACHE BOOL "Build Unit Tests"	FORCE)
+SET (INSTALL_LIBS OFF CACHE BOOL "Set when you want to install libraries" FORCE)
+SET (INSTALL_CMAKE_FILES OFF CACHE BOOL "Install generated CMake files" FORCE)
+ADD_SUBDIRECTORY (${CMAKE_CURRENT_SOURCE_DIR}/bullet3)
+SET_TARGET_PROPERTIES (
+  Bullet2FileLoader
+  Bullet3Collision
+  Bullet3Common
+  Bullet3Dynamics
+  Bullet3Geometry
+  Bullet3OpenCL_clew
+  BulletCollision
+  BulletDynamics
+  BulletInverseDynamics
+  BulletSoftBody
+  LinearMath
+  PROPERTIES FOLDER external/bullet
+  )
+SET (BULLET_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bullet3/src" CACHE INTERNAL "")
+
+# glfw
+MESSAGE ("**************** glfw external submodule ****************")
+SET (BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libraries" FORCE)
+SET (GLFW_BUILD_EXAMPLES OFF CACHE BOOL "Build the GLFW example programs" FORCE)
+SET (GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs" FORCE)
+SET (GLFW_BUILD_DOCS OFF CACHE BOOL "Build the GLFW documentation" FORCE)
+SET (GLFW_INSTALL OFF CACHE BOOL "Generate installation target" FORCE)
+SET (USE_MSVC_RUNTIME_LIBRARY_DLL OFF CACHE BOOL "Use MSVC runtime library DLL" FORCE)
+ADD_SUBDIRECTORY (${CMAKE_CURRENT_SOURCE_DIR}/glfw)
+SET_TARGET_PROPERTIES (
+  glfw
+  PROPERTIES FOLDER external/glfw
+  )
+SET (GLFW_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/glfw/include" "${CMAKE_CURRENT_BINARY_DIR}/glfw/src" CACHE INTERNAL "")

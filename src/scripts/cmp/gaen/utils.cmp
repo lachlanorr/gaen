@@ -119,7 +119,7 @@ component WasdCamera
             if (mouseDeltaX != 0.0)
             {
                 float angle = -mouseDeltaX * rotDelta;
-                quat orientDelta = $.quat_from_axis_angle(dirUp, angle);
+                quat orientDelta = quat{angle, dirUp};
                 orientation = orientDelta * orientation;
                 hasRotated = true;
             }
@@ -127,14 +127,14 @@ component WasdCamera
             if (mouseDeltaY != 0.0)
             {
                 float angle = mouseDeltaY * rotDelta;
-                quat orientDelta = $.quat_from_axis_angle(dirRight, angle);
+                quat orientDelta = quat{angle, dirRight};
                 orientation = orientDelta * orientation;
                 hasRotated = true;
             }
 
             if (hasRotated)
             {
-                orientation = $.normalize(orientation);
+                orientation = normalize(orientation);
 
                 dirForward = orientation * dirForwardInit;
                 dirRight = orientation * dirRightInit;
@@ -166,7 +166,8 @@ component WasdCamera
         }
         if (hasMoved)
         {
-            $.renderer_move_camera(pos, orientation);
+            // LORRTODO: support uid camera/stage system
+            $.camera_move(0, pos, orientation);
         }
     }
 
@@ -175,8 +176,8 @@ component WasdCamera
         //short xDelta = delta >> 16;
         //short yDelta = delta << 16 >> 16;
 
-        //$.print(string{"delta: %x, xDelta: %d %x, yDelta: %d %x", delta, xDelta, xDelta, yDelta, yDelta});
-        //$.print(string{"xDelta: %d, yDelta: %d", xDelta, yDelta});
+        //print(string{"delta: %x, xDelta: %d %x, yDelta: %d %x", delta, xDelta, xDelta, yDelta, yDelta});
+        //print(string{"xDelta: %d, yDelta: %d", xDelta, yDelta});
         if (mouseLooking)
         {
             mouseDeltaX += xDelta;
@@ -193,46 +194,93 @@ component WasdCamera
 // Rotate a model when wasd keys are pressed
 component WasdRot
 {
-    vec2 rot = vec2{0.0};
-    vec2 newRot = vec2{0.0};
-    vec2 orient = vec2{0.0};
+    float yawing = 0.0;
+    float yaw = 0.0;
 
-    input #demo
+    float pitching = 0.0;
+    float pitch = 0.0;
+
+    #init()
     {
-        #move_e  { newRot = vec2{ 0.0,  1.0}; }
-        #move_ne { newRot = vec2{-1.0,  1.0}; }
-        #move_n  { newRot = vec2{-1.0,  0.0}; }
-        #move_nw { newRot = vec2{-1.0, -1.0}; }
-        #move_w  { newRot = vec2{ 0.0, -1.0}; }
-        #move_sw { newRot = vec2{ 1.0, -1.0}; }
-        #move_s  { newRot = vec2{ 1.0,  0.0}; }
-        #move_se { newRot = vec2{ 1.0,  1.0}; }
-
-        none
-        {
-            rot = vec2{0.0};
-        }
-
-        any
-        {
-            if (newRot != rot)
-            {
-                rot = newRot;
-            }
-        }
+        //$.watch_input_state(#mouse_look, 0, #mouse_look);
+        //$.watch_mouse(#mouse_move, #mouse_wheel);
+/*
+        $.watch_input_state(#forward, 0, #set_pitch,  1, #set_pitch, 0);
+        $.watch_input_state(#back,    0, #set_pitch, -1, #set_pitch, 0);
+        $.watch_input_state(#left,    0, #set_yaw,   -1, #set_yaw,   0);
+        $.watch_input_state(#right,   0, #set_yaw,   -1, #set_yaw,   0);
+*/
     }
 
+    #set_pitch(int value)
+    {
+        pitching = 1.0 * value;
+    }
+
+    #set_yaw(int value)
+    {
+        yawing = 1.0 * value;
+    }
 
     update
     {
-        if (rot != vec2{0.0})
+        if (pitching != 0.0 || yawing != 0.0)
         {
-            orient += rot * 1.5 * delta;
-            mat43 trans = $.rotation(vec3{orient.x, orient.y, 0.0});
-            @#transform(false, trans);
+            pitch += pitching * delta * 100.0;
+            yaw += yawing * delta * 100.0;
+            mat43 trans = mat43{vec3{0.0,0.0,0.0},
+                                vec3{radians(pitch), radians(yaw), 0.0}};
+            @#transform = trans;
         }
     }
 
+    #forward(bool status)
+    {
+        if (status)
+        {
+            pitching = 1.0;
+        }
+        else
+        {
+            pitching = 0.0;
+        }
+    }
+
+    #back(bool status)
+    {
+        if (status)
+        {
+            pitching = -1.0;
+        }
+        else
+        {
+            pitching = 0.0;
+        }
+    }
+
+    #left(bool status)
+    {
+        if (status)
+        {
+            yawing = 1.0;
+        }
+        else
+        {
+            yawing = 0.0;
+        }
+    }
+
+    #right(bool status)
+    {
+        if (status)
+        {
+            yawing = -1.0;
+        }
+        else
+        {
+            yawing = 0.0;
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
