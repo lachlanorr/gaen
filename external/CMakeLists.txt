@@ -1,5 +1,6 @@
 
 # zlib
+MESSAGE ("**************** zlib external submodule ****************")
 SET (SKIP_INSTALL_ALL ON)
 ADD_SUBDIRECTORY (${CMAKE_CURRENT_SOURCE_DIR}/zlib)
 SET_TARGET_PROPERTIES (
@@ -17,6 +18,7 @@ SET (ZLIB_LIBRARY
   )
 
 # brotli
+MESSAGE ("**************** brotli external submodule ****************")
 SET (BROTLI_DISABLE_TESTS ON)
 ADD_SUBDIRECTORY (${CMAKE_CURRENT_SOURCE_DIR}/brotli)
 SET_TARGET_PROPERTIES (
@@ -41,6 +43,7 @@ SET (BROTLI_LIBRARY
   )
 
 # libpng
+MESSAGE ("**************** libpng external submodule ****************")
 SET (PNG_BUILD_ZLIB ON CACHE BOOL "Custom zlib Location, else find_package is used" FORCE)
 SET (PNG_SHARED OFF CACHE BOOL "Build shared lib" FORCE)
 SET (PNG_TESTS OFF CACHE BOOL "Build libpng tests" FORCE)
@@ -55,7 +58,7 @@ SET_TARGET_PROPERTIES (
   PROPERTIES FOLDER external/libpng
   )
 ADD_DEPENDENCIES(png_static
-  zlib
+  zlibstatic
   )
 SET (PNG_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libpng" "${CMAKE_CURRENT_BINARY_DIR}/libpng" CACHE INTERNAL "")
 SET (PNG_PNG_INCLUDE_DIR "${PNG_INCLUDE_DIR}" CACHE INTERNAL "") # freetype wants this var name
@@ -66,6 +69,7 @@ SET (PNG_LIBRARY
   )
 
 #libtiff
+MESSAGE ("**************** libtiff external submodule ****************")
 SET (BUILD_PORT OFF CACHE BOOL "build port" FORCE)
 SET (BUILD_TOOLS OFF CACHE BOOL "build tools" FORCE)
 SET (BUILD_TEST OFF CACHE BOOL "build test" FORCE)
@@ -76,47 +80,13 @@ SET (BUILD_HTML OFF CACHE BOOL "build html" FORCE)
 ADD_SUBDIRECTORY (${CMAKE_CURRENT_SOURCE_DIR}/libtiff)
 SET_TARGET_PROPERTIES (tiff PROPERTIES FOLDER external/libtiff)
 SET_TARGET_PROPERTIES (tiffxx PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (addtiffo PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (ascii_tag PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (custom_dir PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (defer_strile_loading PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (defer_strile_writing PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (fax2ps PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (fax2tiff PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (htmldoc PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (iptcutil PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (long_tag PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (pal2rgb PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (port PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (ppm2tiff PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (raw2tiff PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (rewrite PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (rgb2ycbcr PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (short_tag PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (strip_rw PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (testtypes PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (thumbnail PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiff2bw PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiff2pdf PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiff2ps PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiff2rgba PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiff-bi PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiffcmp PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiffcp PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiffcrop PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiffdither PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiffdump PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiff-grayscale PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiffinfo PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiffmedian PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiff-palette PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiff-rgb PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiffset PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiffsplit PROPERTIES FOLDER external/libtiff)
-#SET_TARGET_PROPERTIES (tiffxx PROPERTIES FOLDER external/libtiff)
+ADD_DEPENDENCIES(tiff
+  zlibstatic
+  )
 SET (TIFF_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libtiff/libtiff" "${CMAKE_CURRENT_BINARY_DIR}/libtiff/libtiff" CACHE INTERNAL "")
 
 # freetype2
+MESSAGE ("**************** freetype2 external submodule ****************")
 SET (BUILD_FRAMEWORK OFF)
 SET (BUILD_SHARED_LIBS OFF)
 ADD_SUBDIRECTORY (${CMAKE_CURRENT_SOURCE_DIR}/freetype2)
@@ -124,7 +94,7 @@ TARGET_INCLUDE_DIRECTORIES (freetype PRIVATE ${BROTLI_INCLUDE_DIR})
 SET_TARGET_PROPERTIES (freetype PROPERTIES FOLDER external/freetype)
 ADD_DEPENDENCIES(freetype
   png_static
-  zlib
+  zlibstatic
   brotlienc-static
   brotlidec-static
   brotlicommon-static
@@ -137,7 +107,9 @@ SET (FREETYPE_LIBRARY
   )
 
 # assimp
+MESSAGE ("**************** assimp external submodule ****************")
 SET (BUILD_SHARED_LIBS OFF CACHE BOOL "Build package with shared libraries." FORCE)
+SET (BUILD_FRAMEWORK OFF CACHE BOOL "Build package as Mac OS X Framework bundle." FORCE)
 SET (ASSIMP_BUILD_ZLIB OFF CACHE BOOL "Build your own zlib" FORCE)
 SET (ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "If the supplementary tools for Assimp are built in addition to the library." FORCE)
 SET (ASSIMP_BUILD_TESTS OFF CACHE BOOL "If the test suite for Assimp is built in addition to the library." FORCE)
