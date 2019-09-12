@@ -61,9 +61,6 @@ ELSE ()
     )
 ENDIF ()
 
-#-------------------------------------------------------------------------------
-# External dependencies
-#-------------------------------------------------------------------------------
 # Support for creating launch params in Visual Studio
 LIST (APPEND CMAKE_MODULE_PATH "${ext_dir}/cmake-modules")
 INCLUDE (CreateLaunchers)
