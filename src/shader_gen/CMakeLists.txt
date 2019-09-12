@@ -43,6 +43,10 @@ ADD_EXECUTABLE (shader_gen
   ${glad_SOURCES}
   )
 
+TARGET_INCLUDE_DIRECTORIES (shader_gen PRIVATE
+  ${GLFW_INCLUDE}
+)
+
 TARGET_LINK_LIBRARIES (shader_gen
   core
   assets

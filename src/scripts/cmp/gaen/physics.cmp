@@ -1,0 +1,129 @@
+//------------------------------------------------------------------------------
+// physics.cmp - Physics components
+//
+// Gaen Concurrency Engine - http://gaen.org
+// Copyright (c) 2014-2019 Lachlan Orr
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+//   1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+//
+//   2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+//
+//   3. This notice may not be removed or altered from any source
+//   distribution.
+//------------------------------------------------------------------------------
+
+component SpriteBody
+{
+    int #spriteUid = 0;
+    float #mass = 0.0;
+
+    // Collision group
+    int #group = 0;
+
+    // Collision masks
+    int #mask0 = 0;
+    int #mask1 = 0;
+    int #mask2 = 0;
+    int #mask3 = 0;
+    int #mask4 = 0;
+    int #mask5 = 0;
+    int #mask6 = 0;
+    int #mask7 = 0;
+
+    #init()
+    {
+        if (spriteUid != 0)
+            $.sprite_init_body(spriteUid,
+                               mass,
+                               group,
+                               ivec4{mask0, mask1, mask2, mask3},
+                               ivec4{mask4, mask5, mask6, mask7});
+    }
+}
+
+component ModelBody
+{
+    int #modelUid = 0;
+    float #mass = 0.0;
+    float #friction = 0.5;
+    vec3 #linearFactor = vec3{1.0, 1.0, 1.0};
+    vec3 #angularFactor = vec3{1.0, 1.0, 1.0};
+
+    // Collision group
+    int #group = 0;
+
+    // Collision masks
+    int #mask0 = 0;
+    int #mask1 = 0;
+    int #mask2 = 0;
+    int #mask3 = 0;
+    int #mask4 = 0;
+    int #mask5 = 0;
+    int #mask6 = 0;
+    int #mask7 = 0;
+
+    #init()
+    {
+        if (modelUid != 0)
+            $.model_init_body(modelUid,
+                              mass,
+                              friction,
+                              linearFactor,
+                              angularFactor,
+                              group,
+                              ivec4{mask0, mask1, mask2, mask3},
+                              ivec4{mask4, mask5, mask6, mask7});
+    }
+}
+
+component HingeConstraint
+{
+    int #modelUid = 0;
+    float #mass = 0.0;
+    float #friction = 0.5;
+    vec3 #linearFactor = vec3{1.0, 1.0, 1.0};
+    vec3 #angularFactor = vec3{1.0, 1.0, 1.0};
+
+    // Collision group
+    int #group = 0;
+
+    // Collision masks
+    int #mask0 = 0;
+    int #mask1 = 0;
+    int #mask2 = 0;
+    int #mask3 = 0;
+    int #mask4 = 0;
+    int #mask5 = 0;
+    int #mask6 = 0;
+    int #mask7 = 0;
+
+    #init()
+    {
+        if (modelUid != 0)
+            $.model_init_body(modelUid,
+                              mass,
+                              friction,
+                              linearFactor,
+                              angularFactor,
+                              group,
+                              ivec4{mask0, mask1, mask2, mask3},
+                              ivec4{mask4, mask5, mask6, mask7});
+    }
+
+    #update_transform()
+    {
+        
+    }
+}

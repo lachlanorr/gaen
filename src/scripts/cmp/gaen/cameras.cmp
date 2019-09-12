@@ -1,0 +1,126 @@
+//------------------------------------------------------------------------------
+// Camera.cmp - Camera entities
+//
+// Gaen Concurrency Engine - http://gaen.org
+// Copyright (c) 2014-2019 Lachlan Orr
+//
+// This software is provided 'as-is', without any express or implied
+// warranty. In no event will the authors be held liable for any damages
+// arising from the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+//   1. The origin of this software must not be misrepresented; you must not
+//   claim that you wrote the original software. If you use this software
+//   in a product, an acknowledgment in the product documentation would be
+//   appreciated but is not required.
+//
+//   2. Altered source versions must be plainly marked as such, and must not be
+//   misrepresented as being the original software.
+//
+//   3. This notice may not be removed or altered from any source
+//   distribution.
+//------------------------------------------------------------------------------
+
+component Persp
+{
+    int uid = 0;
+
+    int #stage  = #default;
+    float #fov      = radians(60.0);
+    float #nearClip = 0.0;
+    float #farClip  = 100000.0;
+
+    mat43 #view
+    {
+        default = mat43{1.0};
+
+        post
+        {
+            if (uid != 0)
+                $.model_stage_camera_view(uid, view);
+        }
+    }
+
+    #init()
+    {
+        uid = $.model_stage_camera_create_persp(stage, fov, nearClip, farClip, mat43{1.0});
+    }
+
+    #fin()
+    {
+        $.model_stage_camera_remove(uid);
+    }
+    
+    #look_at(vec3 position, vec3 target, vec3 up)
+    {
+        @#view = $.view_look_at(position, target, up);
+    }
+
+    #activate()
+    {
+        $.model_stage_camera_activate(uid);
+    }
+}
+
+component Ortho
+{
+    int uid = 0;
+
+    int #stage  = #default;
+    float #nearClip = 0.1;
+    float #farClip  = 10000.0;
+
+    bool dirty = false;
+
+    float #scale
+    {
+        default = 1.0;
+
+        post
+        {
+            dirty = true;
+        }
+    }
+
+    mat43 #view
+    {
+        default = mat43{1.0};
+
+        post
+        {
+            dirty = true;
+        }
+    }
+
+    update
+    {
+        if (dirty)
+        {
+            $.model_stage_camera_scale_and_view(uid, scale, view);
+            dirty = false;
+        }
+    }
+
+    #init()
+    {
+        uid = $.model_stage_camera_create_ortho(stage, scale, nearClip, farClip, view);
+    }
+    
+    #fin()
+    {
+        $.model_stage_camera_remove(uid);
+    }
+    
+    #look_at(vec3 position, vec3 target, vec3 up)
+    {
+        @#view = $.view_look_at(position, target, up);
+    }
+
+    #activate()
+    {
+        $.model_stage_camera_activate(uid);
+    }
+}

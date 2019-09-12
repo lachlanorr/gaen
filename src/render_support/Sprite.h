@@ -68,7 +68,7 @@ private:
     Sprite(Sprite&&)                  = delete;
     Sprite & operator=(const Sprite&) = delete;
     Sprite & operator=(Sprite&&)      = delete;
-    
+
     const void * triOffset(u32 idx) const;
 
     const Asset * mpGsprAsset;
@@ -120,7 +120,7 @@ private:
     SpriteInstance(SpriteInstance&&)                  = delete;
     SpriteInstance & operator=(const SpriteInstance&) = delete;
     SpriteInstance & operator=(SpriteInstance&&)      = delete;
-    
+
     void playAnim(u32 animHash, f32 duration, bool loop, u32 doneMessage);
     bool advanceAnim(f32 delta);
 
@@ -129,7 +129,7 @@ private:
     RenderPass mPass;
 
     bool mHasBody;
-    
+
     const AnimInfo * mpAnimInfo;
     const void * mpCurrentFrameElemsOffset;
 

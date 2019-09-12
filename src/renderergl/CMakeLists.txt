@@ -63,7 +63,11 @@ ADD_LIBRARY (renderergl
   ${glad_SOURCES}
   )
 
+TARGET_INCLUDE_DIRECTORIES (renderergl PRIVATE
+  ${GLFW_INCLUDE}
+)
+
 ADD_DEPENDENCIES(renderergl
   hashes
-  engine
+  CODEGEN_MESSAGES
   )

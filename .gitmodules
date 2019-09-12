@@ -7,12 +7,30 @@
 [submodule "external/stb"]
 	path = external/stb
 	url = https://github.com/lachlanorr/stb.git
-[submodule "external/nana"]
-	path = external/nana
-	url = https://github.com/lachlanorr/nana.git
 [submodule "external/cmake-modules"]
 	path = external/cmake-modules
 	url = https://github.com/lachlanorr/cmake-modules.git
 [submodule "external/libtiff"]
 	path = external/libtiff
 	url = https://github.com/lachlanorr/libtiff.git
+[submodule "external/assimp"]
+	path = external/assimp
+	url = https://github.com/lachlanorr/assimp.git
+[submodule "external/glfw"]
+	path = external/glfw
+	url = https://github.com/lachlanorr/glfw.git
+[submodule "external/bullet3"]
+	path = external/bullet3
+	url = https://github.com/lachlanorr/bullet3.git
+[submodule "external/freetype2"]
+	path = external/freetype2
+	url = https://github.com/lachlanorr/freetype2.git
+[submodule "external/libpng"]
+	path = external/libpng
+	url = https://github.com/lachlanorr/libpng.git
+[submodule "external/zlib"]
+	path = external/zlib
+	url = https://github.com/lachlanorr/zlib.git
+[submodule "external/brotli"]
+	path = external/brotli
+	url = https://github.com/lachlanorr/brotli.git

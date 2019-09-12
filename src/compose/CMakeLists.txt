@@ -64,7 +64,7 @@ ADD_LIBRARY (compose
   ${compose_SOURCES}
   )
 
-ADD_DEPENDENCIES(compose
-  nana
-  CODEGEN_API
-  )
+#--#ADD_DEPENDENCIES(compose
+#--#  nana
+#--#  CODEGEN_API
+#--#  )

@@ -33,13 +33,15 @@ SET(PLATFORM_LINK_LIBS
   opengl32.lib
   )
 
-#SET(CMAKE_CXX_FLAGS                "-Wall -std=c++11 -fno-exceptions -framework Cocoa")
-SET(CMAKE_CXX_FLAGS_DEBUG  "${CMAKE_CXX_FLAGS_DEBUG} /DIS_BUILD_Debug=1 /MTd")
-#SET(CMAKE_CXX_FLAGS_MINSIZEREL     "-Os -DNDEBUG")
-SET(CMAKE_CXX_FLAGS_RELEASE  "${CMAKE_CXX_FLAGS_RELEASE} /DIS_BUILD_Release=1 /MT")
+SET(CMAKE_CXX_FLAGS_DEBUG  "/MTd /MP /Zi /Ob0 /Od /RTC1 /D_DEBUG /DIS_BUILD_Debug=1")
+SET(CMAKE_CXX_FLAGS_RELEASE  "/MT /MP /O2 /Ob2 /DNDEBUG /DIS_BUILD_Release=1")
+SET(CMAKE_CXX_FLAGS_MINSIZEREL "/MT /MP /O1 /Ob1 /DNDEBUG /DIS_BUILD_Release=1")
+SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MT /MP /Zi /O2 /Ob1 /DNDEBUG /DIS_BUILD_Release=1")
 
-SET(CMAKE_C_FLAGS_DEBUG  "${CMAKE_C_FLAGS_DEBUG} /DIS_BUILD_Debug=1 /MTd")
-SET(CMAKE_C_FLAGS_RELEASE  "${CMAKE_C_FLAGS_RELEASE} /DIS_BUILD_Release=1 /MT")
+SET(CMAKE_C_FLAGS_DEBUG  "/MTd /MP /Zi /Ob0 /Od /RTC1 /D_DEBUG /DIS_BUILD_Debug=1")
+SET(CMAKE_C_FLAGS_RELEASE  "/MT /MP /O2 /Ob2 /DNDEBUG /DIS_BUILD_Release=1")
+SET(CMAKE_C_FLAGS_MINSIZEREL "/MT /MP /O1 /Ob1 /DNDEBUG /DIS_BUILD_Release=1")
+SET(CMAKE_C_FLAGS_RELWITHDEBINFO "/MT /MP /Zi /O2 /Ob1 /DNDEBUG /DIS_BUILD_Release=1")
 
 
 OPTION(USE_MSVC_FAST_FLOATINGPOINT "Use MSVC /fp:fast option" ON)
@@ -49,6 +51,8 @@ ENDIF(USE_MSVC_FAST_FLOATINGPOINT)
 ADD_DEFINITIONS(/D _CRT_SECURE_NO_WARNINGS)
 ADD_DEFINITIONS(/D _SCL_SECURE_NO_WARNINGS)
 ADD_DEFINITIONS(/D NOMINMAX)
+
+SET_PROPERTY (GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Preps MSVC filters
 MACRO (IDE_SOURCE_PROPERTIES source_path sources)
@@ -71,7 +75,7 @@ MACRO (MSVC_PRECOMPILED_HEADER target_name sources)
                                             OBJECT_OUTPUTS "${pch_file}")
     SET_SOURCE_FILES_PROPERTIES (${sources_ref}
                                  PROPERTIES COMPILE_FLAGS "/Yu\"${stdafx_h}\" /FI\"${pch_file}\" /Fp\"${pch_file}\""
-                                            OBJECT_DEPENDS "${pch_file}")  
+                                            OBJECT_DEPENDS "${pch_file}")
     # Add precompiled header to sources
     LIST (APPEND ${sources} "${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h")
     LIST (APPEND ${sources} ${stdafx_cpp})

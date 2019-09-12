@@ -24,15 +24,22 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-component Distant
+entity Distant
 {
-    int lightUid = $.renderer_gen_uid();
+    int uid = $.gen_uid();
 
-    vec3 #dir = vec3{0.1, 0.1, 0.2};
+    int #stage  = #default;
+    vec3 #dir = vec3{0.0, 0.0, 0.0};
     color #col = color{255, 255, 255, 255};
+    float #ambient = 0.0;
 
     #init()
     {
-        $.light_insert(lightUid, dir, col);
+        $.light_insert(uid, stage, col, ambient, dir);
+    }
+
+    #fin()
+    {
+        $.light_remove(uid);
     }
 }

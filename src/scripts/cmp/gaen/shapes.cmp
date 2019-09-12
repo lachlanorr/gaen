@@ -26,110 +26,51 @@
 
 component Box
 {
+    int #stage = #default;
+    int #pass = #opaque;
     vec3 #size = vec3{1.0, 1.0, 1.0};
     color #diffuse = color{255, 0, 0, 255};
-    handle model;
-    int modelUid = $.renderer_gen_uid();
-
-    #init()
-    {
-        model = $.shape_box(size, diffuse);
-        // LORRTODO: Use gmdl and new Model code
-        //$.renderer_insert_model_instance(modelUid, model);
-    }
-
-    #update_transform()
-    {
-        // LORRTODO: Use gmdl and new Model code
-        //$.renderer_transform_model_instance(modelUid, transform);
-    }
+    int modelUid = $.shape_box(stage, pass, size, diffuse, mat43{1.0});
 }
 
 component Cone
 {
+    int #stage = #default;
+    int #pass = #opaque;
     vec3 #size = vec3{1.0, 1.0, 1.0};
     int #slices = 16;
     color #diffuse = color{255, 0, 0, 255};
-    handle model;
-    int modelUid = $.renderer_gen_uid();
-
-    #init()
-    {
-        model = $.shape_cone(size, slices, diffuse);
-        // LORRTODO: Use gmdl and new Model code
-        //$.renderer_insert_model_instance(modelUid, model);
-    }
-
-    #update_transform()
-    {
-        // LORRTODO: Use gmdl and new Model code
-        //$.renderer_transform_model_instance(modelUid, transform);
-    }
+    int modelUid = $.shape_cone(stage, pass, size, slices, diffuse, mat43{1.0});
 }
 
 component Cylinder
 {
+    int #stage = #default;
+    int #pass = #opaque;
     vec3 #size = vec3{1.0, 1.0, 1.0};
     int #slices = 16;
     color #diffuse = color{255, 0, 0, 255};
-    handle model;
-    int modelUid = $.renderer_gen_uid();
-
-    #init()
-    {
-        model = $.shape_cylinder(size, slices, diffuse);
-        // LORRTODO: Use gmdl and new Model code
-        //$.renderer_insert_model_instance(modelUid, model);
-    }
-
-    #update_transform()
-    {
-        // LORRTODO: Use gmdl and new Model code
-        //$.renderer_transform_model_instance(modelUid, transform);
-    }
+    int modelUid = $.shape_cylinder(stage, pass, size, slices, diffuse, mat43{1.0});
 }
 
 component Sphere
 {
+    int #stage = #default;
+    int #pass = #opaque;
     vec3 #size = vec3{1.0, 1.0, 1.0};
     int #sections = 16;
     int #slices = 16;
     color #diffuse = color{255, 0, 0, 255};
-    handle model;
-    int modelUid = $.renderer_gen_uid();
-
-    #init()
-    {
-        model = $.shape_sphere(size, slices, sections, diffuse);
-        // LORRTODO: Use gmdl and new Model code
-        //$.renderer_insert_model_instance(modelUid, model);
-    }
-
-    #update_transform()
-    {
-        // LORRTODO: Use gmdl and new Model code
-        //$.renderer_transform_model_instance(modelUid, transform);
-    }
+    int modelUid = $.shape_sphere(stage, pass, size, slices, sections, diffuse, mat43{1.0});
 }
 
 component QuadSphere
 {
+    int #stage = #default;
+    int #pass = #opaque;
     vec3 #size = vec3{1.0, 1.0, 1.0};
     int #sections = 16;
     color #diffuse = color{255, 0, 0, 255};
     handle model;
-    int modelUid = $.renderer_gen_uid();
-
-    #init()
-    {
-        model = $.shape_quad_sphere(size, sections, diffuse);
-        // LORRTODO: Use gmdl and new Model code
-        //$.renderer_insert_model_instance(modelUid, model);
-    }
-
-    #update_transform()
-    {
-        // LORRTODO: Use gmdl and new Model code
-        //$.renderer_transform_model_instance(modelUid, transform);
-    }
+    int modelUid = $.shape_quad_sphere(stage, pass, size, sections, diffuse, mat43{1.0});
 }
