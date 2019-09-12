@@ -70,25 +70,27 @@ ADD_EXECUTABLE (chef
   )
 
 TARGET_INCLUDE_DIRECTORIES (chef PRIVATE
-  ${PNG_INCLUDE_DIR}
-  ${TIFF_INCLUDE_DIR}
-  ${FREETYPE_INCLUDE_DIR}
-  ${ASSIMP_INCLUDE_DIR}
+  ${LIBPNG_INCLUDE}
+  ${LIBTIFF_INCLUDE}
+  ${FREETYPE_INCLUDE}
+  ${ASSIMP_INCLUDE}
 )
 
 SET (deps
   core
   assets
-  zlibstatic
-  png_static
-  tiff
-  freetype
-  brotlidec-static
-  assimp
   )
 
-ADD_DEPENDENCIES(chef ${deps})
-TARGET_LINK_LIBRARIES (chef ${deps})
+TARGET_LINK_LIBRARIES (chef
+  core
+  assets
+  ${ZLIB_LIBRARY}
+  ${LIBPNG_LIBRARY}
+  ${LIBTIFF_LIBRARY}
+  ${FREETYPE_LIBRARY}
+  ${BROTLI_LIBRARY}
+  ${ASSIMP_LIBRARY}
+  )
 
 package (chef)
 

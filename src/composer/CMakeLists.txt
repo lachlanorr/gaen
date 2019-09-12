@@ -43,16 +43,8 @@ ADD_EXECUTABLE (composer WIN32
   ${composer_SOURCES}
   )
 
-ADD_DEPENDENCIES(composer
-  zlib
-#--#  libpng
-  )
-
 TARGET_LINK_LIBRARIES (composer
   core
-#--#  nana
-#--#  optimized ${LIBPNG_LIB}
-#--#  debug     ${LIBPNG_LIBD}
   ${ZLIB_LIBRARY}
   ${PLATFORM_LINK_LIBS}
   )

@@ -53,15 +53,6 @@ entity Shape
 
 }
 
-entity Light
-{
-    components
-    {
-        gaen.lights.Distant{dir = vec3{1.2, -0.7, -0.5},
-                                col = color{50, 50, 50, 255}}
-    }
-}
-
 entity Camera
 {
     components
@@ -72,10 +63,14 @@ entity Camera
 
 entity Start
 {
+    entity light = gaen.lights.Distant { stage = #main,
+                                         dir = vec3{-1.0, -1.0, 0.5},
+                                         ambient = 0.7 };
+
+
+    entity cam = Camera{};
+    entity shape = Shape{};
     #init()
     {
-        entity cam = Camera{};
-        entity light = Light{};
-        entity shape = Shape{};
     }
 }

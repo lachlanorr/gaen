@@ -44,12 +44,8 @@ ADD_EXECUTABLE (shader_gen
   )
 
 TARGET_INCLUDE_DIRECTORIES (shader_gen PRIVATE
-  ${GLFW_INCLUDE_DIR}
+  ${GLFW_INCLUDE}
 )
-
-ADD_DEPENDENCIES(shader_gen
-  glfw
-  )
 
 TARGET_LINK_LIBRARIES (shader_gen
   core
