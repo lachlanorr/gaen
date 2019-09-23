@@ -368,7 +368,7 @@ BlockInfos * block_pack_message_def_params(SymTab * pSymTab, ParseData * pParseD
 
         for (SymRec * pSymRec : pSymTab->orderedSymRecs)
         {
-            if (pSymRec->type == kSYMT_Param)
+            if (pSymRec->type == kSYMT_Param && !(pSymRec->flags & kSRFL_Member))
             {
                 // Till now, parsing is ambiguous as to the param list.
                 // Now we know this is a message param, so set it as such.

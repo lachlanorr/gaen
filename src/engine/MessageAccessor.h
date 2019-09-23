@@ -66,40 +66,40 @@ class MessageQueueAccessor
 {
     friend class MessageQueue;
 public:
-    Message & message()
+    inline Message & message()
     {
         ASSERT(mAccessor.available() > 0);
         return mAccessor[0];
     }
 
-    const Message & message() const
+    inline const Message & message() const
     {
         ASSERT(mAccessor.available() > 0);
         return mAccessor[0];
     }
 
     // Access blocks of message
-    Block & operator[] (u32 index)
+    inline Block & operator[] (u32 index)
     {
         ASSERT(mAccessor.available() > 0);
         ASSERT(index < mAccessor[0].blockCount);
         return message_to_block(mAccessor[index+1]); // +1 to skip past header
     }
 
-    const Block & operator[] (u32 index) const
+    inline const Block & operator[] (u32 index) const
     {
         ASSERT(mAccessor.available() > 0);
         ASSERT(index < mAccessor[0].blockCount);
         return message_to_block(mAccessor[index+1]); // +1 to skip past header
     }
 
-    u32 available() const
+    inline u32 available() const
     {
         return mAccessor.available();
     }
 
     template <typename T>
-    T extract(u32 blockIndex) const
+    inline T extract(u32 blockIndex) const
     {
         T val;
         copy_message_blocks<T>(&val, *this, blockIndex);
@@ -107,7 +107,7 @@ public:
     }
 
     template <typename T>
-    T extract(u32 blockIndex, u32 cellIndex) const
+    inline T extract(u32 blockIndex, u32 cellIndex) const
     {
         T val;
         copy_message_cells<T>(&val, *this, blockIndex, cellIndex);
@@ -133,36 +133,36 @@ public:
         ASSERT(blockCount <= kMaxBlockCount);
     }
 
-    Message & message()
+    inline Message & message()
     {
         return block_to_message(mpBlocks[0]);
     }
 
-    const Message & message() const
+    inline const Message & message() const
     {
         return block_to_message(mpBlocks[0]);
     }
 
     // Access blocks of message
-    Block & operator[] (u32 index)
+    inline Block & operator[] (u32 index)
     {
         ASSERT(index < mBlockCount);
         return mpBlocks[index+1]; // +1 to skip past header
     }
 
-    const Block & operator[] (u32 index) const
+    inline const Block & operator[] (u32 index) const
     {
         ASSERT(index < mBlockCount);
         return mpBlocks[index+1]; // +1 to skip past header
     }
 
-    u32 available() const
+    inline u32 available() const
     {
         return mBlockCount;
     }
 
     template <typename T>
-    T extract(u32 blockIndex) const
+    inline T extract(u32 blockIndex) const
     {
         T val;
         copy_message_blocks<T>(&val, *this, blockIndex);
@@ -170,7 +170,7 @@ public:
     }
 
     template <typename T>
-    T extract(u32 blockIndex, u32 cellIndex) const
+    inline T extract(u32 blockIndex, u32 cellIndex) const
     {
         T val;
         copy_message_cells<T>(&val, *this, blockIndex, cellIndex);

@@ -2499,7 +2499,7 @@ static S codegen_recurse(const Ast * pAst,
         // If we have BlockMemory params, those have to be
         // added in at runtime.
         code += I1 + S("// Compute block size, incorporating any BlockMemory parameters dynamically\n");
-        snprintf(scratch, kScratchSize, "u32 blockCount = %u;\n", pAst->pBlockInfos->blockCount);
+        snprintf(scratch, kScratchSize, "const u32 blockCount = %u;\n", pAst->pBlockInfos->blockCount);
         code += I1 + S(scratch);
 
         // Add in blocks for BlockMemory params
@@ -2539,18 +2539,27 @@ static S codegen_recurse(const Ast * pAst,
             payload =  S("0 /* no payload */");
 
         S target;
-        if (pAst->pLhs == 0)
+        code += I1 + S("// Prepare the writer\n");
+        if (pAst->pLhs == 0) // Sending message to self
+        {
             target = S("pThis->self().task().id()");
+            snprintf(scratch,
+                     kScratchSize,
+                     "StackMessageBlockWriter<blockCount> msgw(%s, kMessageFlag_None, pThis->self().task().id(), %s, to_cell(%s));\n",
+                     codegen_recurse(pAst->pMid, 0).c_str(),
+                     target.c_str(),
+                     payload.c_str());
+        }
         else
+        {
             target = codegen_recurse(pAst->pLhs, 0);
-
-        code += I1 + S("// Prepare the queue writer\n");
-        snprintf(scratch,
-                 kScratchSize,
-                 "MessageQueueWriter msgw(%s, kMessageFlag_None, pThis->self().task().id(), %s, to_cell(%s), blockCount);\n",
-                 codegen_recurse(pAst->pMid, 0).c_str(),
-                 target.c_str(),
-                 payload.c_str());
+            snprintf(scratch,
+                     kScratchSize,
+                     "MessageQueueWriter msgw(%s, kMessageFlag_None, pThis->self().task().id(), %s, to_cell(%s), blockCount);\n",
+                     codegen_recurse(pAst->pMid, 0).c_str(),
+                     target.c_str(),
+                     payload.c_str());
+        }
 
         code += I1 + S(scratch);
         code += LF;
@@ -2618,8 +2627,14 @@ static S codegen_recurse(const Ast * pAst,
 
         code += LF;
 
-        // Send stack message bock directly to our entity
-        code += I1 + S("// MessageQueueWriter will send message through RAII when this scope is exited\n");
+        if (pAst->pLhs == 0) // Sending message to self
+        {
+            code += I1 + S("pThis->self().message(msgw.accessor());\n");
+        }
+        else
+        {
+            code += I1 + S("// MessageQueueWriter will send message through RAII when this scope is exited\n");
+        }
 
         code += I + S("}\n");
         return code;

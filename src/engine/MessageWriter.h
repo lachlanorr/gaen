@@ -82,20 +82,20 @@ public:
             commit();
     }
 
-    void commit()
+    inline void commit()
     {
         mpMsgQueue->pushCommit(mMsgAcc);
         mIsCommitted = true;
     }
 
-    MessageQueueAccessor & accessor() { return mMsgAcc; }
+    inline MessageQueueAccessor & accessor() { return mMsgAcc; }
 
-    Block & operator[] (u32 index)
+    inline Block & operator[] (u32 index)
     {
         return mMsgAcc[index];
     }
 
-    const Block & operator[] (u32 index) const
+    inline const Block & operator[] (u32 index) const
     {
         return mMsgAcc[index];
     }
@@ -136,17 +136,29 @@ public:
         mMsgAcc.message() = Message(msgId, flags, source, target, payload, blockCount);
     }
 
-    MessageBlockAccessor & accessor() { return mMsgAcc; }
+    inline MessageBlockAccessor & accessor() { return mMsgAcc; }
 
     // Access blocks of message
-    Block & operator[] (u32 index)
+    inline Block & operator[] (u32 index)
     {
         return mMsgAcc[index];
     }
 
-    const Block & operator[] (u32 index) const
+    inline const Block & operator[] (u32 index) const
     {
         return mMsgAcc[index];
+    }
+
+    template<typename T>
+    void insertBlocks(u32 startIndex, const T& val)
+    {
+        ASSERT_MSG(sizeof(T) >= kBlockSize, "insertBlocks only valid for values larger than one block size");
+        u32 blockCount = (sizeof(T) / kBlockSize) + (sizeof(T) % kBlockSize > 0 ? 1 : 0);
+        const Block* pValBlocks = reinterpret_cast<const Block*>(&val);
+        for (u32 i = 0; i < blockCount; ++i)
+        {
+            mMsgAcc[startIndex + i] = pValBlocks[i];
+        }
     }
 
 protected:
@@ -165,19 +177,6 @@ public:
                             cell payload)
       : MessageBlockWriter(msgId, flags, source, target, payload, blockCount, mBlocks)
     {
-    }
-
-    // Access blocks of message
-    Block & operator[] (u32 index)
-    {
-        ASSERT(index < blockCount);
-        return mBlocks[index+1]; // +1 to skip past header
-    }
-
-    const Block & operator[] (u32 index) const
-    {
-        ASSERT(index < blockCount);
-        return mBlocks[index+1]; // +1 to skip past header
     }
 
 private:
