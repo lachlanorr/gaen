@@ -64,7 +64,7 @@ public:
     const Gimg & gimg() const;
 
 private:
-    // Delete these to make sure w construct through the asset->addref path
+    // Delete these to make sure we construct through the asset->addref path
     Sprite(Sprite&&)                  = delete;
     Sprite & operator=(const Sprite&) = delete;
     Sprite & operator=(Sprite&&)      = delete;

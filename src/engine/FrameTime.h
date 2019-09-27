@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// FrameTime.h - Calculates timee deltas ans tracks frame rate stats
+// FrameTime.h - Calculates time deltas and tracks frame rate stats
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2019 Lachlan Orr
