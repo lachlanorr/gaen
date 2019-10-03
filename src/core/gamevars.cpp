@@ -97,12 +97,14 @@ bool set_gamevar_with_command(const char * command)
     case GameVarType::Bool:
     {
         if (0 == strcmp("true", val) ||
-            0 == strcmp("t", val))
+            0 == strcmp("t", val) ||
+            0 == strcmp("1", val))
         {
             pGameVar->setVal(true);
         }
         else if (0 == strcmp("false", val) ||
-                 0 == strcmp("f", val))
+                 0 == strcmp("f", val) ||
+                 0 == strcmp("0", val))
         {
             pGameVar->setVal(false);
         }

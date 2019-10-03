@@ -32,15 +32,16 @@
 #include "engine/Asset.h"
 #include "engine/Entity.h"
 
-#include "engine/messages/ModelInstance.h"
-#include "engine/messages/UidVec3.h"
-#include "engine/messages/ModelBody.h"
-#include "engine/messages/CameraPersp.h"
 #include "engine/messages/CameraOrtho.h"
-#include "engine/messages/UidScalar.h"
-#include "engine/messages/UidTransform.h"
-#include "engine/messages/UidScalarTransform.h"
+#include "engine/messages/CameraPersp.h"
+#include "engine/messages/ModelBody.h"
+#include "engine/messages/ModelInstance.h"
+#include "engine/messages/NotifyWatcherMat43.h"
 #include "engine/messages/Transform.h"
+#include "engine/messages/UidScalar.h"
+#include "engine/messages/UidScalarTransform.h"
+#include "engine/messages/UidTransform.h"
+#include "engine/messages/UidVec3.h"
 
 #include "render_support/ModelMgr.h"
 
@@ -69,11 +70,11 @@ MessageResult ModelMgr::message(const T & msgAcc)
 
     switch (msg.msgId)
     {
-    case HASH::notify_transform:
+    case HASH::model_transform:
     {
-        messages::UidTransformR<T> msgr(msgAcc);
-
-        transformModel(msgr.uid(), msgr.transform());
+        messages::NotifyWatcherMat43R<T> msgr(msgAcc);
+        ASSERT(msgr.valueType() == HASH::mat43);
+        transformModel(msgr.uid(), msgr.value());
 
         return MessageResult::Consumed;
     }
@@ -101,7 +102,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
             ModelInstance::model_insert(kModelMgrTaskId, kRendererTaskId, pModelInstRenderer);
         }
 
-        pModelInst->registerTransformListener(kModelMgrTaskId);
+        pModelInst->registerTransformWatcher(kModelMgrTaskId);
 
         return MessageResult::Consumed;
     }

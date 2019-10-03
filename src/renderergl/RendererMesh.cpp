@@ -26,6 +26,11 @@
 
 #include <algorithm>
 
+#include "renderergl/gaen_opengl.h"
+#include <nanovg.h>
+#define NANOVG_GL3_IMPLEMENTATION
+#include <nanovg_gl.h>
+
 #include "core/base_defines.h"
 
 #include "math/matrices.h"
@@ -37,21 +42,23 @@
 #include "engine/Asset.h"
 #include "engine/AssetMgr.h"
 
+#include "engine/messages/CameraOrtho.h"
+#include "engine/messages/CameraPersp.h"
 #include "engine/messages/LightDistant.h"
+#include "engine/messages/ModelInstance.h"
+#include "engine/messages/NotifyWatcherMat43.h"
+#include "engine/messages/SpriteAnim.h"
+#include "engine/messages/SpriteInstance.h"
 #include "engine/messages/UidTransform.h"
 #include "engine/messages/UidScalarTransform.h"
 #include "engine/messages/UidColor.h"
 #include "engine/messages/UidVec3.h"
 #include "engine/messages/UidScalar.h"
-#include "engine/messages/ModelInstance.h"
-#include "engine/messages/SpriteInstance.h"
-#include "engine/messages/SpriteAnim.h"
-#include "engine/messages/CameraPersp.h"
-#include "engine/messages/CameraOrtho.h"
 
-#include "renderergl/gaen_opengl.h"
 #include "renderergl/shaders/Shader.h"
 #include "renderergl/ShaderRegistry.h"
+
+#include "cara/Cara.h"
 
 #include "renderergl/RendererMesh.h"
 
@@ -114,14 +121,20 @@ void RendererMesh::initViewport()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    // Make sure we don't divide by zero
+
+
     glEnable(GL_MULTISAMPLE);
 
     glClearDepth(1.0f);
     glDepthFunc(GL_LEQUAL);    // The Type Of Depth Testing To Do
     glEnable(GL_DEPTH_TEST);   // Enables Depth Testing
+    glDisable(GL_SCISSOR_TEST);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    // Make sure we don't divide by zero
 
     if (mScreenHeight == 0)
     {
@@ -153,17 +166,23 @@ u32 RendererMesh::texture_unit(u32 nameHash)
 
 void RendererMesh::set_texture(u32 nameHash, u32 glId, void * pContext)
 {
+    RendererMesh * pRenderer = (RendererMesh*)pContext;
+    pRenderer->setTexture(nameHash, glId);
+}
+
+void RendererMesh::setTexture(u32 nameHash, u32 glId)
+{
     glActiveTexture(GL_TEXTURE0 + texture_unit(nameHash));
     glBindTexture(GL_TEXTURE_2D, glId);
 }
 
-u32 RendererMesh::loadTexture(u32 textureUnit, const Gimg * pGimg)
+u32 RendererMesh::loadTexture(u32 nameHash, const Gimg * pGimg)
 {
     auto it = mLoadedTextures.find(pGimg);
     if (it == mLoadedTextures.end())
     {
         u32 glId = 0;
-        glActiveTexture(GL_TEXTURE0 + textureUnit);
+        glActiveTexture(GL_TEXTURE0 + texture_unit(nameHash));
         glGenTextures(1, &glId);
         glBindTexture(GL_TEXTURE_2D, glId);
 
@@ -320,7 +339,7 @@ void RendererMesh::unbindBuffers()
 u32 RendererMesh::load_texture(u32 nameHash, const Gimg * pGimg, void * pContext)
 {
     RendererMesh * pRenderer = (RendererMesh*)pContext;
-    return pRenderer->loadTexture(texture_unit(nameHash), pGimg);
+    return pRenderer->loadTexture(nameHash, pGimg);
 }
 
 void RendererMesh::prepare_gmdl_attributes(const Gmdl & gmdl)
@@ -354,15 +373,36 @@ void RendererMesh::prepare_gmdl_attributes(const Gmdl & gmdl)
     }
 }
 
+static void render_test_nanovg()
+{
+    static struct NVGcontext* vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
+    nvgBeginFrame(vg, 1024, 728, 1.0);
+    nvgBeginPath(vg);
+    nvgRect(vg, 100,100, 120,30);
+    nvgFillColor(vg, nvgRGBA(255,192,255,100));
+    nvgFill(vg);
+    nvgEndFrame(vg);
+}
+
 void RendererMesh::render()
 {
     ASSERT(mIsInit);
 
+    // Undo nanovg stuff
+    mpActiveShader = nullptr; // force us to re-load one of our shaders
+    glEnable(GL_DEPTH_TEST);   // Enables Depth Testing
+    glEnable(GL_CULL_FACE);
+    glClear(GL_DEPTH_BUFFER_BIT);
     glClear(GL_COLOR_BUFFER_BIT);
+
     mModelStages.render();
 
+    glClear(GL_STENCIL_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
     mSpriteStages.render();
+
+    glClear(GL_STENCIL_BUFFER_BIT);
+    render_test_nanovg();
 }
 
 template <typename T>
@@ -417,10 +457,11 @@ MessageResult RendererMesh::message(const T & msgAcc)
         mModelStages.itemInsert(msgr.modelInstance());
         break;
     }
-    case HASH::notify_transform:
+    case HASH::model_transform:
     {
-        messages::UidTransformR<T> msgr(msgAcc);
-        mModelStages.itemTransform(msgr.uid(), msgr.transform());
+        messages::NotifyWatcherMat43R<T> msgr(msgAcc);
+        ASSERT(msgr.valueType() == HASH::mat43);
+        mModelStages.itemTransform(msgr.uid(), msgr.value());
         break;
     }
     case HASH::model_remove:
@@ -534,8 +575,9 @@ MessageResult RendererMesh::message(const T & msgAcc)
     }
     case HASH::sprite_transform:
     {
-        messages::UidTransformR<T> msgr(msgAcc);
-        mSpriteStages.itemTransform(msgr.uid(), msgr.transform());
+        messages::NotifyWatcherMat43R<T> msgr(msgAcc);
+        ASSERT(msgr.valueType() == HASH::mat43);
+        mSpriteStages.itemTransform(msgr.uid(), msgr.value());
         break;
     }
     case HASH::sprite_remove:

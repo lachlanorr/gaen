@@ -150,7 +150,7 @@ public:
     {
         StageT * pStage = findOrCreate(pInst->stageHash());
         pStage->itemInsert(pInst);
-        pInst->registerTransformListener(kRendererTaskId);
+        pInst->registerTransformWatcher(kRendererTaskId);
     }
 
     void itemRemove(u32 uid)

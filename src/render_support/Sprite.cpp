@@ -32,6 +32,8 @@
 #include "math/common.h"
 
 #include "engine/AssetMgr.h"
+#include "engine/messages/NotifyWatcherMat43.h"
+#include "engine/messages/RegisterWatcher.h"
 #include "engine/messages/SpriteInstance.h"
 #include "engine/messages/SpriteAnim.h"
 #include "engine/messages/UidTransform.h"
@@ -148,9 +150,11 @@ SpriteInstance::SpriteInstance(Sprite * pSprite, u32 stageHash, RenderPass pass,
     animate(mpSprite->mpGspr->defaultAnimHash(), 0);
 }
 
-void SpriteInstance::registerTransformListener(task_id taskId)
+void SpriteInstance::registerTransformWatcher(task_id taskId)
 {
-    MessageQueueWriter msgw(HASH::register_transform_listener, kMessageFlag_None, taskId, mpSprite->owner(), to_cell(mpSprite->uid()), 0);
+    messages::RegisterWatcherQW msgw(HASH::register_watcher, kMessageFlag_None, taskId, mpSprite->owner(), HASH::sprite_transform);
+    msgw.setProperty(HASH::transform);
+    msgw.setUid(mpSprite->uid());
 }
 
 void SpriteInstance::destroySprite()
@@ -248,8 +252,10 @@ void SpriteInstance::sprite_anim(task_id source, task_id target, u32 uid, u32 an
 
 void SpriteInstance::sprite_transform(task_id source, task_id target, u32 uid, const mat43 & transform)
 {
-    messages::UidTransformQW msgw(HASH::sprite_transform, kMessageFlag_None, source, target, uid);
-    msgw.setTransform(transform);
+    messages::NotifyWatcherMat43QW msgw(HASH::sprite_transform, kMessageFlag_None, source, target, uid);
+    msgw.setProperty(HASH::transform);
+    msgw.setValueType(HASH::mat43);
+    msgw.setValue(transform);
 }
 
 void SpriteInstance::sprite_remove(task_id source, task_id target, u32 uid)

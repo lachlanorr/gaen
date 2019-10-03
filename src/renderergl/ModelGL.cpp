@@ -37,8 +37,8 @@ namespace gaen
 void ModelGL::loadGpu()
 {
     // Load model's verts and tris
-    if (mpRenderer->loadVerts(&vertArrayId,
-                              &vertBufferId,
+    if (mpRenderer->loadVerts(&mVertArrayId,
+                              &mVertBufferId,
                               mpModelInstance->model().gmdl().verts(),
                               mpModelInstance->model().gmdl().vertsSize()))
     {
@@ -47,7 +47,7 @@ void ModelGL::loadGpu()
 #endif
     }
 
-    mpRenderer->loadPrims(&primBufferId,
+    mpRenderer->loadPrims(&mPrimBufferId,
                           mpModelInstance->model().gmdl().prims(),
                           mpModelInstance->model().gmdl().primsSize());
 
@@ -64,13 +64,13 @@ void ModelGL::unloadGpu()
 void ModelGL::render()
 {
 #if HAS(OPENGL3)
-    glBindVertexArray(vertArrayId);
+    glBindVertexArray(mVertArrayId);
 #else
     glBindBuffer(GL_ARRAY_BUFFER, mpModelInstance->vertBufferId);
 
     prepareMeshAttributes();
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primBufferId);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mPrimBufferId);
 #endif
     glDrawElements(GL_TRIANGLES, mpModelInstance->model().gmdl().indexCount(), GL_UNSIGNED_SHORT, (void*)(uintptr_t)0);
 

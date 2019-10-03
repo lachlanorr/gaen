@@ -96,7 +96,7 @@ public:
 
     ruid uid() const { return mpSprite->uid(); }
 
-    void registerTransformListener(task_id taskId);
+    void registerTransformWatcher(task_id taskId);
 
     void destroySprite();
 

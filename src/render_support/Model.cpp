@@ -29,6 +29,7 @@
 #include "assets/Gmdl.h"
 #include "engine/AssetMgr.h"
 
+#include "engine/messages/RegisterWatcher.h"
 #include "engine/messages/ModelInstance.h"
 
 #include "render_support/Model.h"
@@ -92,9 +93,11 @@ ModelInstance::ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, con
   , mIsRenderable(isRenderable)
 {}
 
-void ModelInstance::registerTransformListener(task_id taskId)
+void ModelInstance::registerTransformWatcher(task_id taskId)
 {
-    MessageQueueWriter msgw(HASH::register_transform_listener, kMessageFlag_None, taskId, mpModel->owner(), to_cell(mpModel->uid()), 0);
+    messages::RegisterWatcherQW msgw(HASH::register_watcher, kMessageFlag_None, taskId, mpModel->owner(), HASH::model_transform);
+    msgw.setProperty(HASH::transform);
+    msgw.setUid(mpModel->uid());
 }
 
 void ModelInstance::destroyModel()

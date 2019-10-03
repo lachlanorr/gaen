@@ -58,13 +58,27 @@ SET (glad_SOURCES
   )
 IDE_SOURCE_PROPERTIES( "/glad" "${glad_SOURCES}")
 
+SET (NANOVG_SRC "${ext_dir}/nanovg/src")
+
+SET (nanovg_SOURCES
+  ${NANOVG_SRC}/fontstash.h
+  ${NANOVG_SRC}/nanovg.c
+  ${NANOVG_SRC}/nanovg_gl.h
+  ${NANOVG_SRC}/nanovg_gl_utils.h
+  ${NANOVG_SRC}/nanovg.h
+  ${NANOVG_SRC}/stb_image.h
+  ${NANOVG_SRC}/stb_truetype.h
+  )
+
 ADD_LIBRARY (renderergl
   ${renderergl_SOURCES}
   ${glad_SOURCES}
+  ${nanovg_SOURCES}
   )
 
 TARGET_INCLUDE_DIRECTORIES (renderergl PRIVATE
   ${GLFW_INCLUDE}
+  ${NANOVG_SRC}
 )
 
 ADD_DEPENDENCIES(renderergl

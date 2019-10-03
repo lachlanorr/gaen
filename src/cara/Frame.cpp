@@ -26,6 +26,10 @@
 
 #include "cara/stdafx.h"
 
+#include "assets/Gatl.h"
+
+#include "engine/AssetMgr.h"
+
 #include "cara/Frame.h"
 
 namespace gaen
@@ -36,11 +40,20 @@ Frame::Frame(task_id owner,
              const char * text,
              Color textColor,
              Color backgroundColor)
-  : mText(text)
+  : RenderObject(owner)
+  , mpGatlFont(pGatlFont)
+  , mText(text)
   , mTextColor(textColor)
   , mBackgroundColor(backgroundColor)
 {
-    
+    mpGatl = Gatl::instance(mpGatlFont->buffer(), mpGatlFont->size());
+    // create quads for each letter
+    //pGatlFont->
+}
+
+const Gimg & Frame::gimg() const
+{
+    return *mpGatl->gimg();
 }
 
 } // namespace gaen

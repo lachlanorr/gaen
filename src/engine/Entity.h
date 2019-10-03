@@ -91,7 +91,29 @@ public:
     void constrainPosition(const vec3 & min, const vec3 & max);
     mat43 applyPositionConstraint(const mat43 & mat) const;
 
-    void registerTransformListener(task_id taskId, u32 uid);
+    void registerWatcher(task_id watcher, u32 message, u32 property, u32 uid);
+
+    template<class MessageType, class ValType, u32 ValTypeHash>
+    void notifyWatchers(task_id source, const ValType & val, u32 property)
+    {
+        for (u32 i = 0; i < kMaxWatchers; ++i)
+        {
+            const Watcher& pw = mWatchers[i];
+            if (pw.watcher != 0 && pw.watcher != source) // don't send update to originator, causing a feedback loop
+            {
+                MessageType msgW(pw.message, kMessageFlag_Editor, mTask.id(), pw.watcher, pw.uid);
+                msgW.setValue(val);
+                msgW.setValueType(ValTypeHash);
+                msgW.setProperty(pw.property);
+            }
+            else if (pw.watcher == 0)
+            {
+                break;
+            }
+        }
+    }
+
+    void notifyWatchersMat43(task_id source, u32 property, const mat43& val);
 
     u32 player() const { return mPlayer; }
 
@@ -175,13 +197,15 @@ protected:
     vec3 mPosMin;
     vec3 mPosMax;
 
-    static const u32 kMaxTransformListeners = 4;
-    struct TransformListener
+    static const u32 kMaxWatchers = 4;
+    struct Watcher
     {
-        task_id taskId;
+        task_id watcher;
+        u32 message;
+        u32 property;
         i32 uid;
     };
-    TransformListener mTransformListeners[kMaxTransformListeners];
+    Watcher mWatchers[kMaxWatchers];
 
     u32 mPlayer;
 

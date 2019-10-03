@@ -100,7 +100,7 @@ static const char * sHelpMsg =
 #endif
     "\n"
     "Initializers: Override gamevar default values with the form gamevar=value\n"
-    "              E.g.: godMode=true\n"
+    "              E.g.: vsync=true\n"
     "                    lifeCount=8\n"
     "                    regenRate=0.25\n"
     "\n";

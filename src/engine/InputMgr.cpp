@@ -33,6 +33,7 @@
 #include "assets/Config.h"
 #include "assets/file_utils.h"
 
+#include "engine/Entity.h"
 #include "engine/TaskMaster.h"
 #include "engine/MessageWriter.h"
 #include "engine/messages/KeyPress.h"

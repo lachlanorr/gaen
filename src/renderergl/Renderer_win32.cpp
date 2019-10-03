@@ -26,18 +26,24 @@
 
 #include "core/base_defines.h"
 
+#include "core/gamevars.h"
+
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/Renderer.h"
 
 namespace gaen
 {
 
+GAMEVAR_DECL_BOOL(vsync, false);
+
 void RENDERER_TYPE::initRenderDevice()
 {
     ASSERT(mIsInit);
 
     glfwMakeContextCurrent((GLFWwindow*)mpRenderDevice);
-    glfwSwapInterval(1);
+
+    if (vsync)
+        glfwSwapInterval(1);
 
     // Prepare our GL function pointers.
     // We have to wait until here to do this since if you call it too

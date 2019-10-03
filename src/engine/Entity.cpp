@@ -38,10 +38,12 @@
 #include "engine/messages/BoundingBox.h"
 #include "engine/messages/ComponentIndex.h"
 #include "engine/messages/Handle.h"
+#include "engine/messages/NotifyWatcherMat43.h"
 #include "engine/messages/OwnerTask.h"
 #include "engine/messages/PropertyMat43.h"
 #include "engine/messages/PropertyMat3.h"
 #include "engine/messages/PropertyVec3.h"
+#include "engine/messages/RegisterWatcher.h"
 #include "engine/messages/TaskEntity.h"
 #include "engine/messages/TaskStatus.h"
 #include "engine/messages/Transform.h"
@@ -71,7 +73,7 @@ Entity::Entity(u32 nameHash,
     mPosMin = vec3(std::numeric_limits<f32>::lowest());
     mPosMax = vec3(std::numeric_limits<f32>::max());
 
-    memset(mTransformListeners, 0, sizeof(mTransformListeners));
+    memset(mWatchers, 0, sizeof(mWatchers));
 
     mPlayer = 0;
 
@@ -356,9 +358,10 @@ MessageResult Entity::message(const T & msgAcc)
             requestSetParent(msgAcc.message().payload.u);
             return MessageResult::Consumed;
         }
-        else if (msgId == HASH::register_transform_listener)
+        else if (msgId == HASH::register_watcher)
         {
-            registerTransformListener(msgAcc.message().source, msgAcc.message().payload.u);
+            messages::RegisterWatcherR<T> msgr(msgAcc);
+            registerWatcher(msgAcc.message().source, msgr.property(), msgr.message(), msgr.uid());
             return MessageResult::Consumed;
         }
         else if (msgId == HASH::update_transform)
@@ -395,14 +398,6 @@ MessageResult Entity::message(const T & msgAcc)
                 messages::ComponentIndexR<T> msgr(msgAcc);
                 u32 index = msgr.index() == (u32)-1 ? mComponentCount : msgr.index();
                 insertComponent(msgr.nameHash(), index);
-                return MessageResult::Consumed;
-            }
-            case HASH::register_watcher:
-            {
-                // register a property watcher for some combination of:
-                // - component type
-                // - property id
-                PANIC("TODO");
                 return MessageResult::Consumed;
             }
             case HASH::transform:
@@ -599,13 +594,15 @@ MessageResult Entity::message(const T & msgAcc)
                         }
                     }
 
+                    notifyWatchersMat43(mTask.id(), HASH::transform, mTransform);
+
                     return MessageResult::Consumed;
                 }
                 break;
             }
         }
 
-        if (mInitStatus != kIS_Activated)
+        if (mInitStatus < kIS_AssetsReady)
         {
 #if HAS(TRACK_HASHES)
             ERR("Message received in invalid state, task name: %s, message: %s, state: %d",
@@ -665,21 +662,10 @@ void Entity::setTransform(task_id source, const mat43 & mat)
             pEnt->message(msgw.accessor());
         }
 
-
-
         // call transform listeners
-        for (u32 i = 0; i < kMaxTransformListeners; ++i)
+        if (mInitStatus == kIS_Activated)
         {
-            TransformListener & tl = mTransformListeners[i];
-            if (tl.taskId != 0 && tl.taskId != source) // don't send update to originator, causing a feedback loop
-            {
-                messages::UidTransformQW msgW(HASH::notify_transform, kMessageFlag_Editor, mTask.id(), tl.taskId, tl.uid);
-                msgW.setTransform(mTransform);
-            }
-            else if (tl.taskId == 0)
-            {
-                break;
-            }
+            notifyWatchersMat43(source, HASH::transform, mTransform);
         }
     }
 }
@@ -746,26 +732,41 @@ mat43 Entity::applyPositionConstraint(const mat43 & mat) const
     return cmat;
 }
 
-void Entity::registerTransformListener(task_id taskId, u32 uid)
+void Entity::registerWatcher(task_id watcher, u32 property, u32 message, u32 uid)
 {
-    for (u32 i = 0; i < kMaxTransformListeners; ++i)
+    for (u32 i = 0; i < kMaxWatchers; ++i)
     {
-        if (mTransformListeners[i].taskId == 0)
+        if (mWatchers[i].watcher == 0)
         {
-            mTransformListeners[i].taskId = taskId;
-            mTransformListeners[i].uid = uid;
+            mWatchers[i].watcher= watcher;
+            mWatchers[i].message = message;
+            mWatchers[i].uid = uid;
+            mWatchers[i].property = property;
 
-            // Send current state of transform
+            if (property == HASH::transform)
             {
-            messages::UidTransformQW msgW(HASH::notify_transform, kMessageFlag_Editor, mTask.id(), taskId, uid);
-            msgW.setTransform(mTransform);
+                // We special case transform here, other properties are defined in the scripts
+                messages::NotifyWatcherMat43QW msgW(message, kMessageFlag_Editor, mTask.id(), watcher, uid);
+                msgW.setProperty(property);
+                msgW.setValue(mTransform);
+                msgW.setValueType(HASH::mat43);
+            }
+            else
+            {
+                PANIC("Need to propogate this request into script entity and components in case they can respond to the property.");
             }
 
             return;
         }
     }
-    ERR("Too many TransformListeners registered");
+    ERR("Too many Watchers registered");
 }
+
+void Entity::notifyWatchersMat43(task_id source, u32 property, const mat43& val)
+{
+    notifyWatchers<::gaen::messages::NotifyWatcherMat43QW, mat43, HASH::mat43>(source, val, property);
+}
+
 
 void Entity::requestSetParent(task_id parentTaskId)
 {
@@ -914,7 +915,7 @@ Task& Entity::insertComponent(u32 nameHash, u32 index)
 
     if (index > mComponentCount)
         index = mComponentCount;
-    
+
     // Resize buffer if necessary
     if (mComponentCount == mComponentsMax)
         growComponents();

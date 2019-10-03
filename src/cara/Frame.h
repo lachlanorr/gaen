@@ -31,14 +31,18 @@
 #include "assets/Color.h"
 
 #include "engine/Task.h"
-
+#include "render_support/render_objects.h"
 
 namespace gaen
 {
 
 class Asset;
+class Gatl;
+class Gimg;
+struct GlyphVert;
+struct GlyphTri;
 
-class Frame
+class Frame : public RenderObject
 {
 public:
     Frame(task_id owner,
@@ -47,12 +51,30 @@ public:
           Color textColor,
           Color backgroundColor);
 
+    const GlyphVert* verts() const;
+    u64 vertsSize() const;
+
+    const GlyphTri* tris() const;
+    u64 trisSize() const;
+
+    const Gimg& gimg() const;
+
 private:
+    // Delete these to make sure we construct through the asset->addref path
+    Frame(Frame&&) = delete;
+    Frame& operator=(const Frame&) = delete;
+    Frame& operator=(Frame&&) = delete;
+
+    const Asset* mpGatlFont;
+
+    // pointers into mpGatlFont, no need to clean up
+    const Gatl * mpGatl;
+
     CaraString mText;
 
     Color mTextColor;
     Color mBackgroundColor;
-    
+
 };
 
 } // namespace gaen
