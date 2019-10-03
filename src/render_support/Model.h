@@ -76,7 +76,7 @@ public:
 
     ruid uid() const { return mpModel->uid(); }
 
-    void registerTransformListener(task_id taskId);
+    void registerTransformWatcher(task_id taskId);
 
     void destroyModel();
 
