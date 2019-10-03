@@ -87,14 +87,14 @@ class GameVar
 {
 public:
     static const size_t kMaxNameLen = 31;
-    
+
     GameVar(const char * name, i32 val, i32 step=1,   i32 min=INT32_MIN, i32 max=INT32_MAX);
     GameVar(const char * name, f32 val, f32 step=1.0f, f32 min=-FLT_MAX, f32 max=FLT_MAX);
     GameVar(const char * name, bool val);
 
     const char * name() const { return mName; }
     GameVarType type() const { return mType; }
-    
+
     volatile i32 & intRef() volatile;
     volatile f32 & floatRef() volatile;
     volatile bool & boolRef() volatile;
@@ -112,7 +112,7 @@ public:
 
 private:
     void setName(const char * name);
-    
+
     // NOTE: Val must be first data member.
     // We cast its address back into the GameVar, so
     // don't every put stuff before this union.
@@ -137,7 +137,7 @@ private:
                 i32 i;
                 f32 f;
             } min;
-            
+
             union max_
             {
                 i32 i;
@@ -198,7 +198,7 @@ public:
 
     size_t gameVarCount() const { return mGameVarCount; }
     size_t maxGameVarCount() const { return kMaxGameVarCount; }
-    
+
     template<typename T, class... Args>
     GameVar & allocGameVar(const char * name, T val, Args&&... args)
     {
@@ -225,7 +225,7 @@ public:
 
     Iterator begin();
     Iterator end();
-    
+
     GameVar * findGameVar(const char * name);
 
 private:
