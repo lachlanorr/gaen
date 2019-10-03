@@ -47,11 +47,11 @@ public:
       : mpModelInstance(pModelInstance)
       , mpRenderer(pRenderer)
       , mStatus(kRIS_Active)
-      , vertArrayId(0)
-      , vertBufferId(0)
-      , primBufferId(0)
-      , textureId(0)
-      , textureUnit(0)
+      , mVertArrayId(0)
+      , mVertBufferId(0)
+      , mPrimBufferId(0)
+      , mTextureId(0)
+      , mTextureUnit(0)
     {}
 
     void loadGpu();
@@ -73,18 +73,20 @@ public:
     RenderItemStatus status() { return mStatus; }
     void setStatus(RenderItemStatus status) { mStatus = status; }
 
+    bool hasNormal() { return true; }
+
 private:
     UniquePtr<ModelInstance> mpModelInstance;
     RendererMesh * mpRenderer;
 
     RenderItemStatus mStatus;
 
-    u32 vertArrayId;
-    u32 vertBufferId;
-    u32 primBufferId;
+    u32 mVertArrayId;
+    u32 mVertBufferId;
+    u32 mPrimBufferId;
 
-    u32 textureId;
-    u32 textureUnit;
+    u32 mTextureId;
+    u32 mTextureUnit;
 };
 
 typedef UniquePtr<ModelGL> ModelGLUP;

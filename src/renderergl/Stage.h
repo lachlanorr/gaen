@@ -77,7 +77,9 @@ public:
                     {
                         mat4 mvp = viewProj * mat4(pItem->transform());
                         mpRenderer->activeShader().setUniformMat4(HASH::uMvp, mvp);
-                        mpRenderer->activeShader().setUniformMat3(HASH::uNormal, mat3(pItem->transform()));
+
+                        if (pItem->hasNormal())
+                            mpRenderer->activeShader().setUniformMat3(HASH::uNormal, mat3(pItem->transform()));
 
                         if (mLights.size() > 0)
                         {

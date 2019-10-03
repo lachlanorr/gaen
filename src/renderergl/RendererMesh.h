@@ -79,8 +79,9 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    u32 loadTexture(u32 textureUnit, const Gimg * pGimg);
-    void unloadTexture(const Gimg * pGimg);
+    u32 loadTexture(u32 nameHash, const Gimg * pGimg);
+    void setTexture(u32 nameHash, u32 glId);
+    void unloadTexture(const Gimg* pGimg);
 
     bool loadVerts(u32 * pVertArrayId, u32 * pVertBufferId, const void * pVerts, u64 vertsSize);
     void unloadVerts(const void * pVerts);
@@ -104,7 +105,7 @@ private:
     shaders::Shader * getShader(u32 nameHash);
 
     bool mIsInit = false;
-    
+
     void * mpRenderDevice = nullptr;
     u32 mScreenWidth = 0;
     u32 mScreenHeight = 0;

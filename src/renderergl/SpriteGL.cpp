@@ -37,12 +37,11 @@ namespace gaen
 void SpriteGL::loadGpu()
 {
     // Load images if they're not loaded yet
-    textureUnit = 0;
-    textureId = mpRenderer->loadTexture(textureUnit, &mpSpriteInstance->sprite().gimg());
+    mTextureId = mpRenderer->loadTexture(HASH::diffuse, &mpSpriteInstance->sprite().gimg());
 
     // Load sprite's verts and prims
-    if (mpRenderer->loadVerts(&vertArrayId,
-                              &vertBufferId,
+    if (mpRenderer->loadVerts(&mVertArrayId,
+                              &mVertBufferId,
                               mpSpriteInstance->sprite().verts(),
                               mpSpriteInstance->sprite().vertsSize()))
     {
@@ -51,7 +50,7 @@ void SpriteGL::loadGpu()
 #endif
     }
 
-    mpRenderer->loadPrims(&primBufferId,
+    mpRenderer->loadPrims(&mPrimBufferId,
                           mpSpriteInstance->sprite().tris(),
                           mpSpriteInstance->sprite().trisSize());
 
@@ -68,19 +67,25 @@ void SpriteGL::unloadGpu()
 
 void SpriteGL::render()
 {
+    mpRenderer->setTexture(HASH::diffuse, mTextureId);
 #if HAS(OPENGL3)
-    glBindVertexArray(vertArrayId);
+    int err = glGetError();
+    glBindVertexArray(mVertArrayId);
 #else
     glBindBuffer(GL_ARRAY_BUFFER, mpSpriteInstance->vertBufferId);
 
     prepareMeshAttributes();
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primBufferId);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mPrimBufferId);
 #endif
+    err = glGetError();
     const void * pOffset = mpSpriteInstance->currentFrameElemsOffset();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, mpSpriteInstance->currentFrameElemsOffset());
+    err = glGetError();
 
     mpRenderer->unbindBuffers();
+
+    err = glGetError();
 }
 
 void SpriteGL::animate(u32 animHash, u32 animFrameIdx)
