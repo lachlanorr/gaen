@@ -1,0 +1,94 @@
+
+i32:
+  cell_count: 1
+  union_type: i
+
+u32:
+  cell_count: 1
+  union_type: u
+
+f32:
+  cell_count: 1
+  union_type: f
+
+bool:
+  cell_count: 1
+  union_type: b
+
+Color:
+  cell_count: 1
+  union_type: color
+  includes:
+    - assets/Color.h
+
+# dcell fields
+i64:
+  cell_count: 2
+  union_type: i
+
+u64:
+  cell_count: 2
+  union_type: u
+
+f64:
+  cell_count: 2
+  union_type: f
+
+pointer:
+  cell_count: 2
+  union_type: p
+  type_name: void *
+
+vec2:
+  cell_count: 2
+  type_name: vec2
+  union_type: vec2
+  includes:
+    - math/vec2.h
+
+vec3:
+  cell_count: 3
+  type_name: vec3
+  includes:
+    - math/vec3.h
+
+# qcell fields
+vec4:
+  cell_count: 4
+  union_type: vec4
+  type_name: vec4
+  includes:
+    - math/vec4.h
+
+ivec4:
+  cell_count: 4
+  union_type: ivec4
+  type_name: ivec4
+  includes:
+    - math/vec4.h
+
+quat:
+  cell_count: 4
+  union_type: quat
+  type_name: quat
+  includes:
+    - math/quat.h
+
+
+# multi-block fields
+Task:
+  cell_count: 8
+  includes:
+    - engine/Task.h
+
+mat3:
+  cell_count: 12
+  type_name: mat3a # block aligned mat3 (with padding)
+  includes:
+    - math/mat3.h
+
+mat43:
+  cell_count: 12
+  type_name: mat43
+  includes:
+    - math/mat43.h
