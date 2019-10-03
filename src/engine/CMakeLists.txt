@@ -65,13 +65,14 @@ SET (engine_SOURCES
   MessageQueue.h
   MessageWriter.cpp
   MessageWriter.h
-  messages_def.py
   Registry.cpp
   Registry.h
   Task.cpp
   Task.h
   TaskMaster.cpp
   TaskMaster.h
+  field_types.yaml
+  messages_def.yaml
   ${engine_messages_SOURCES}
   )
 
