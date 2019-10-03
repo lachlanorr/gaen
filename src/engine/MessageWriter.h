@@ -136,15 +136,15 @@ public:
         mMsgAcc.message() = Message(msgId, flags, source, target, payload, blockCount);
     }
 
-    inline MessageBlockAccessor & accessor() { return mMsgAcc; }
+    MessageBlockAccessor & accessor() { return mMsgAcc; }
 
     // Access blocks of message
-    inline Block & operator[] (u32 index)
+    Block & operator[] (u32 index)
     {
         return mMsgAcc[index];
     }
 
-    inline const Block & operator[] (u32 index) const
+    const Block & operator[] (u32 index) const
     {
         return mMsgAcc[index];
     }
