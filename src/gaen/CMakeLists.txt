@@ -85,6 +85,7 @@ ELSE(IOS)
     engine
     render_support
     renderergl
+    cara
     scripts
     ${BULLET_LIBRARY}
     ${GLFW_LIBRARY}

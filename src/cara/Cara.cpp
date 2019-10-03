@@ -26,7 +26,7 @@
 
 #include "cara/stdafx.h"
 
-#include "cara/cara.h"
+#include "cara/Cara.h"
 
 namespace gaen
 {
