@@ -34,9 +34,8 @@ namespace gaen
 namespace cookers
 {
 
-static const char * kExtFbx = "fbx";
 static const char * kExtObj = "obj";
-static const char * kExtPly = "ply";
+static const char * kExtGltf = "gltf";
 static const char * kExtGmdl = "gmdl";
 
 class Model : public Cooker

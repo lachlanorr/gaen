@@ -42,13 +42,15 @@ typedef u16 index;
 
 enum VertType
 {
-    kVERT_Unknown      = 0,
+    kVERT_Unknown           = 0,
 
-    kVERT_Pos          = 1,
-    kVERT_PosNorm      = 2,
-    kVERT_PosNormCol   = 3,
-    kVERT_PosNormUv    = 4,
-    kVERT_PosNormUvTan = 5,
+    kVERT_Pos               = 1,
+    kVERT_PosNorm           = 2,
+    kVERT_PosNormCol        = 3,
+    kVERT_PosNormUv         = 4,
+    kVERT_PosNormUvBone     = 5,
+    kVERT_PosNormUvTan      = 6,
+    kVERT_PosNormUvTanBones = 7,
 
     kVERT_END
 };
@@ -98,6 +100,16 @@ struct VertPosNormUv
     f32 v;
 };
 
+struct VertPosNormUvBone
+{
+    static const VertType kVertType = kVERT_PosNormUvBone;
+    vec3 position;
+    vec3 normal;
+    f32 u;
+    f32 v;
+    i32 boneId; // for simple voxel style meshes where all points map to exactly one bone
+};
+
 struct VertPosNormUvTan
 {
     static const VertType kVertType = kVERT_PosNormUvTan;
@@ -106,6 +118,17 @@ struct VertPosNormUvTan
     f32 u;
     f32 v;
     vec4 tangent;
+};
+struct VertPosNormUvTanBones
+{
+    static const VertType kVertType = kVERT_PosNormUvTanBones;
+    vec3 position;
+    vec3 normal;
+    f32 u;
+    f32 v;
+    vec4 tangent;
+    ivec4 boneIds;
+    vec4 boneWeights;
 };
 #pragma pack(pop)
 
@@ -202,8 +225,12 @@ inline u32 vert_stride(VertType vertType)
         return sizeof(VertPosNormCol);
     case kVERT_PosNormUv:
         return sizeof(VertPosNormUv);
+    case kVERT_PosNormUvBone:
+        return sizeof(VertPosNormUvBone);
     case kVERT_PosNormUvTan:
         return sizeof(VertPosNormUvTan);
+    case kVERT_PosNormUvTanBones:
+        return sizeof(VertPosNormUvTanBones);
     default:
         PANIC("Invalid VertexType: %d", vertType);
         return 0;
@@ -472,15 +499,36 @@ public:
         return sizeof(VertPosNorm);
     }
 
+    bool hasVertBone() const
+    {
+        return (mVertType == kVERT_PosNormUvBone);
+    }
+
+    u32 vertBoneOffset() const
+    {
+        return sizeof(VertPosNormUv);
+    }
+
     bool hasVertTan() const
     {
-        return (mVertType == kVERT_PosNormUvTan);
+        return (mVertType >= kVERT_PosNormUvTan);
     }
 
     u32 vertTanOffset() const
     {
         return sizeof(VertPosNormUv);
     }
+
+    bool hasVertBones() const
+    {
+        return (mVertType == kVERT_PosNormUvTanBones);
+    }
+
+    u32 vertBonesOffset() const
+    {
+        return sizeof(VertPosNormUvTan);
+    }
+
 
     //--------------------------------------------------------------------------
     // Cast operators which provide a convenient way to get to vertices
@@ -532,6 +580,16 @@ public:
         ASSERT(mVertType == kVERT_PosNormUv);
         return reinterpret_cast<const VertPosNormUv*>(verts());
     }
+    operator VertPosNormUvBone*()
+    {
+        ASSERT(mVertType == kVERT_PosNormUvBone);
+        return reinterpret_cast<VertPosNormUvBone*>(verts());
+    }
+    operator const VertPosNormUvBone*() const
+    {
+        ASSERT(mVertType == kVERT_PosNormUvBone);
+        return reinterpret_cast<const VertPosNormUvBone*>(verts());
+    }
     operator VertPosNormUvTan*()
     {
         ASSERT(mVertType == kVERT_PosNormUvTan);
@@ -541,6 +599,16 @@ public:
     {
         ASSERT(mVertType == kVERT_PosNormUvTan);
         return reinterpret_cast<const VertPosNormUvTan*>(verts());
+    }
+    operator VertPosNormUvTanBones*()
+    {
+        ASSERT(mVertType == kVERT_PosNormUvTanBones);
+        return reinterpret_cast<VertPosNormUvTanBones*>(verts());
+    }
+    operator const VertPosNormUvTanBones*() const
+    {
+        ASSERT(mVertType == kVERT_PosNormUvTanBones);
+        return reinterpret_cast<const VertPosNormUvTanBones*>(verts());
     }
 
     operator PrimPoint*()
