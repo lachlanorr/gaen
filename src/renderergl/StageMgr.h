@@ -96,7 +96,7 @@ public:
 
     void show(u32 stageHash)
     {
-        StageT * pStage = find(stageHash);
+        StageT * pStage = findOrCreate(stageHash);
         if (pStage)
         {
             pStage->show();
