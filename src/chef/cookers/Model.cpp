@@ -174,12 +174,17 @@ void Model::cook(CookInfo * pCookInfo) const
         aiColor3D diffuse(1.0f, 1.0f, 1.0f);
         aiReturn ret = pAiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
 
+        // Check for .rcp scale
+        f32 scale = 1.0f;
+        if (pCookInfo->fullRecipe().hasKey("scale"))
+            scale = pCookInfo->fullRecipe().getFloat("scale");
+
         for (u32 v = 0; v < pAiMesh->mNumVertices; ++v)
         {
             VertPos * pVertPos = (VertPos*)pVert;
-            pVertPos->position.x = pAiMesh->mVertices[v].x;
-            pVertPos->position.y = pAiMesh->mVertices[v].y;
-            pVertPos->position.z = pAiMesh->mVertices[v].z;
+            pVertPos->position.x = pAiMesh->mVertices[v].x * scale;
+            pVertPos->position.y = pAiMesh->mVertices[v].y * scale;
+            pVertPos->position.z = pAiMesh->mVertices[v].z * scale;
 
             // Calculate extents as we are iterating verts
             halfExtents.x = max(halfExtents.x, abs(pVertPos->position.x));
