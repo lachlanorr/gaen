@@ -91,6 +91,7 @@ private:
 #pragma pack(pop)
 
 static_assert(sizeof(Gimg) == 32, "Gimg unexpected size");
+static_assert(sizeof(Gimg) % 16 == 0, "Gimg size not 16 byte aligned");
 
 } // namespace gaen
 

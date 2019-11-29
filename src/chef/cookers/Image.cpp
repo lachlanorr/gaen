@@ -68,21 +68,28 @@ void Image::cook(CookInfo * pCookInfo) const
     }
 }
 
-void Image::cookPng(CookInfo * pCookInfo) const
+Gimg * Image::load_png(const char * path, PixelFormat pixFmt)
 {
-    UniquePtr<Png> pPng = Png::read(pCookInfo->rawPath().c_str());
-    PANIC_IF(!pPng, "Failed to read png: %s", pCookInfo->rawPath().c_str());
+    UniquePtr<Png> pPng = Png::read(path);
+    PANIC_IF(!pPng, "Failed to read png: %s", path);
 
     // Convert to a Gimg with same-ish pixel format
     Gimg * pGimgPng;
     pPng->convertToGimg(&pGimgPng);
     Scoped_GFREE<Gimg> pGimg_sp(pGimgPng);
 
-    PixelFormat pixFmt = pixel_format_from_str(pCookInfo->fullRecipe().getWithDefault("pixel_format", "RGBA8"));
-
     // Convert the pixel format if necessary
     Gimg * pGimg;
     pGimgPng->convertFormat(&pGimg, kMEM_Chef, pixFmt);
+
+    ASSERT(pGimg);
+    return pGimg;
+}
+
+void Image::cookPng(CookInfo * pCookInfo) const
+{
+    PixelFormat pixFmt = pixel_format_from_str(pCookInfo->fullRecipe().getWithDefault("pixel_format", "RGBA8"));
+    Gimg * pGimg = Image::load_png(pCookInfo->rawPath().c_str(), pixFmt);
 
     ASSERT(pGimg);
     pCookInfo->setCookedBuffer(pGimg);

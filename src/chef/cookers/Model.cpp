@@ -29,12 +29,17 @@
 #include "math/common.h"
 #include "math/vec3.h"
 
+#include "core/Vector.h"
+
 #include "assets/file_utils.h"
 #include "assets/Config.h"
 #include "assets/Gmdl.h"
+#include "assets/Gmat.h"
 
 #include "chef/cooker_utils.h"
 #include "chef/CookInfo.h"
+#include "chef/Chef.h"
+#include "chef/cookers/Image.h"
 #include "chef/cookers/Model.h"
 
 namespace gaen
@@ -104,6 +109,9 @@ void Model::cook(CookInfo * pCookInfo) const
 
     PANIC_IF(!pScene, "Failure in aiImportFile, %s", pCookInfo->rawPath().c_str());
 
+    Vector<kMEM_Chef, Gimg*> textures;
+    textures.reserve(kTXTY_COUNT);
+
     ChefString texDiffusePath;
 
     for (u32 i = 0; i < pScene->mNumMaterials; ++i)
@@ -115,6 +123,9 @@ void Model::cook(CookInfo * pCookInfo) const
             texDiffusePath.assign(path.C_Str());
             normalize_path(texDiffusePath);
             pCookInfo->recordDependency(texDiffusePath.c_str());
+
+            ChefString fullTexDiffusePath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), texDiffusePath);
+            textures.push_back(Image::load_png(fullTexDiffusePath.c_str()));
         }
     }
 
@@ -151,7 +162,13 @@ void Model::cook(CookInfo * pCookInfo) const
         }
     }
 
-    Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount);
+    Gmat * pMat = nullptr;
+    if (textures.size() > 0)
+    {
+        pMat = Gmat::create(textures);
+    }
+
+    Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount, pMat);
 
     PANIC_IF(!pGmdl, "Failure in Gmdl::create, %s", pCookInfo->rawPath().c_str());
 

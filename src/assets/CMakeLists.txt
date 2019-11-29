@@ -36,6 +36,8 @@ SET (assets_SOURCES
   Gatl.h
   Gimg.cpp
   Gimg.h
+  Gmat.h
+  Gmat.cpp
   Gmdl.h
   Gmdl.cpp
   Gspr.cpp

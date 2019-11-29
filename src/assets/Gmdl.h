@@ -34,6 +34,7 @@
 
 #include "assets/Color.h"
 #include "assets/AssetHeader.h"
+#include "assets/Gmat.h"
 
 namespace gaen
 {
@@ -376,12 +377,14 @@ public:
     static u64 required_size(VertType vertType,
                              u32 vertCount,
                              PrimType primType,
-                             u32 primCount);
+                             u32 primCount,
+                             const Gmat * pMat);
 
     static Gmdl * create(VertType vertType,
                          u32 vertCount,
                          PrimType primType,
-                         u32 primCount);
+                         u32 primCount,
+                         const Gmat * pMat = nullptr);
 
     void compact(u32 newVertCount, u32 newPrimCount);
 
@@ -416,6 +419,20 @@ public:
         return reinterpret_cast<const index*>(reinterpret_cast<const u8*>(this) + primOffset());
     }
 
+    Gmat * mat()
+    {
+        if (matOffset())
+            return reinterpret_cast<Gmat*>(reinterpret_cast<u8*>(this) + matOffset());
+        return nullptr;
+    }
+
+    const Gmat * mat() const
+    {
+        if (matOffset())
+            return reinterpret_cast<const Gmat*>(reinterpret_cast<const u8*>(this) + matOffset());
+        return nullptr;
+    }
+
     u32 vertOffset() const
     {
         return sizeof(Gmdl);
@@ -426,6 +443,11 @@ public:
         return mPrimOffset;
     }
 
+    u32 matOffset() const
+    {
+        return mMatOffset;
+    }
+
     u32 vertStride() const
     {
         // if there are morph targets, multiply by that count
@@ -434,7 +456,7 @@ public:
 
     u32 vertsSize() const
     {
-        return vertStride() * mVertCount;
+        return verts_size_aligned(vertStride(), mVertCount);
     }
 
     u32 primStride() const
@@ -445,18 +467,19 @@ public:
 
     u32 primsSize() const
     {
-        return primStride() * mPrimCount;
+        return prims_size_aligned(primStride(), mPrimCount);
+    }
+
+    u32 matSize() const
+    {
+        if (mat())
+            return (u32)mat()->size();
+        return 0;
     }
 
     u32 totalSize() const
     {
-        return sizeof(Gmdl) + vertsSize() + primsSize();
-    }
-
-    u32& rendererReserved(u32 idx)
-    {
-        ASSERT(idx < kRendererReservedCount);
-        return mRendererReserved[idx];
+        return sizeof(Gmdl) + vertsSize() + primsSize() + matSize();
     }
 
     bool hasVertPosition() const
@@ -646,6 +669,16 @@ public:
     //--------------------------------------------------------------------------
 
 private:
+    static u32 verts_size_aligned(u32 vertStride, u32 vertCount)
+    {
+        return (u32)align(vertStride * (size_t)vertCount, 16);
+    }
+
+    static inline u32 prims_size_aligned(u32 primStride, u32 primCount)
+    {
+        return (u32)align(primStride * (size_t)primCount, 16);
+    }
+
     // Class should not be constructed directly.  Use cast and create static methods.
     Gmdl() = default;
     Gmdl(const Gmdl&) = delete;
@@ -661,10 +694,9 @@ private:
     u32 mPrimCount;
     // VertOffset is sizeof(Gmdl), they start immediately after the header
     u32 mPrimOffset;  // offset from start of struct
+    u32 mMatOffset; // offset to start of gmat
 
     vec3 mHalfExtents;
-
-    u32 mRendererReserved[kRendererReservedCount];
 
     // LORRTODO: Add material, bone, anim support
 };
@@ -679,7 +711,8 @@ static_assert(sizeof(VertPosNormUvTan) == 48, "VertPosNormUvTan geometry struct 
 static_assert(sizeof(PrimPoint) == 2,         "PrimLine geometry struct has unexpected size");
 static_assert(sizeof(PrimLine) == 4,          "PrimLine geometry struct has unexpected size");
 static_assert(sizeof(PrimTriangle) == 6,      "PrimTriangle geometry struct has unexpected size");
-static_assert(sizeof(Gmdl) == 60,             "Gmdl has unexpected size");
+static_assert(sizeof(Gmdl) == 48,             "Gmdl has unexpected size");
+static_assert(sizeof(Gmdl) % 16 == 0,         "Gmdl size not 16 byte aligned");
 
 } // namespace gaen
 

@@ -77,6 +77,7 @@ private:
     AssetHeader & operator=(AssetHeader&&)       = delete;
 };
 static_assert(sizeof(AssetHeader) == 16, "AssetHeader unexpected size");
+static_assert(sizeof(AssetHeader) % 16 == 0, "AssetHeader size not 16 byte aligned");
 
 template <u32 FCC>
 class AssetHeader4CC : public AssetHeader

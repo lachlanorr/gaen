@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Image.h - Image cooker
+// Gmat.h - Material containing multiple textures
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2019 Lachlan Orr
@@ -24,34 +24,56 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKERS_IMAGE_H
-#define GAEN_CHEF_COOKERS_IMAGE_H
+#ifndef GAEN_ASSETS_GMAT_H
+#define GAEN_ASSETS_GMAT_H
 
-#include "assets/Gimg.h"
-#include "chef/Cooker.h"
+#include "core/base_defines.h"
+#include "core/mem.h"
+#include "core/Vector.h"
+
+#include "assets/AssetHeader.h"
 
 namespace gaen
 {
-namespace cookers
+
+class Gimg;
+
+// These correspond directly to OpenGL pixel formats
+enum TextureType
 {
+    kTXTY_Diffuse = 0,
 
-static const char * kExtPng = "png";
-static const char * kExtTga = "tga";
-static const char * kExtGimg = "gimg";
-
-class Image : public Cooker
-{
-public:
-    Image();
-    virtual void cook(CookInfo * pCookInfo) const;
-
-    static Gimg * load_png(const char * path, PixelFormat pixFmt = kPXL_RGBA8);
-private:
-    void cookPng(CookInfo * pCookInfo) const;
-    void cookTga(CookInfo * pCookInfo) const;
+    kTXTY_COUNT
 };
 
-}
+#pragma pack(push, 1)
+class Gmat : public AssetHeader4CC<FOURCC("gmat")>
+{
+public:
+    static bool is_valid(const void * pBuffer, u64 size);
+    static Gmat * instance(void * pBuffer, u64 size);
+    static const Gmat * instance(const void * pBuffer, u64 size);
+
+    static u64 required_size(const Vector<kMEM_Chef, Gimg*> & textures);
+
+    static Gmat * create(const Vector<kMEM_Chef, Gimg*> & textures);
+
+    const Gimg * texture(TextureType textureType) const;
+
+private:
+    // Class should not be constructed directly.  Use cast and create static methods.
+    Gmat() = default;
+    Gmat(const Gmat&) = delete;
+    Gmat & operator=(const Gmat&) = delete;
+
+    u64 mTextureOffsets[kTXTY_COUNT];
+
+    char PADDING__[8];
+};
+#pragma pack(pop)
+
+static_assert(sizeof(Gmat) % 16 == 0, "Gmat size not 16 byte aligned");
+
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKERS_IMAGE_H
+#endif // #ifndef GAEN_ASSETS_GMAT_H

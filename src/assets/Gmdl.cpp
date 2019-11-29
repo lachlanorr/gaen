@@ -33,11 +33,6 @@
 namespace gaen
 {
 
-static u32 calc_size(u32 vertStride, u32 vertCount, u32 primitiveStride, u32 primitiveCount)
-{
-    return (sizeof(Gmdl) + vertStride * vertCount + primitiveStride * primitiveCount);
-}
-
 bool Gmdl::is_valid(const void * pBuffer, u64 size)
 {
     if (size < sizeof(Gmdl))
@@ -59,7 +54,8 @@ bool Gmdl::is_valid(const void * pBuffer, u64 size)
     u64 reqSize = required_size(pAssetData->vertType(),
                                 pAssetData->mVertCount,
                                 pAssetData->primType(),
-                                pAssetData->mPrimCount);
+                                pAssetData->mPrimCount,
+                                pAssetData->mat());
     if (reqSize != size)
         return false;
 
@@ -99,29 +95,33 @@ const Gmdl * Gmdl::instance(const void * pBuffer, u64 size)
 u64 Gmdl::required_size(VertType vertType,
                         u32 vertCount,
                         PrimType primType,
-                        u32 primCount)
+                        u32 primCount,
+                        const Gmat * pMat)
 {
     u32 vertStride = vert_stride(vertType);
     u32 primStride = prim_stride(primType);
 
-    return calc_size(vertStride, vertCount, primStride, primCount);
+    u32 matSize = pMat ? (u32)pMat->size() : 0;
+    return (sizeof(Gmdl) + Gmdl::verts_size_aligned(vertStride, vertCount) + Gmdl::prims_size_aligned(primStride, primCount) + matSize);
 }
 
 Gmdl * Gmdl::create(VertType vertType,
                     u32 vertCount,
                     PrimType primType,
-                    u32 primCount)
+                    u32 primCount,
+                    const Gmat * pMat)
 {
     u64 size = Gmdl::required_size(vertType,
                                    vertCount,
                                    primType,
-                                   primCount);
+                                   primCount,
+                                   pMat);
 
     Gmdl * pGmdl = alloc_asset<Gmdl>(kMEM_Model, size);
 
     PANIC_IF(!is_valid_vert_type(vertType), "Invalid vertType, %d", vertType);
     PANIC_IF(!is_valid_prim_type(primType), "Invalid primTYpe, %d", primType);
-    
+
     u32 vertStride = vert_stride(vertType);
     u32 primStride = prim_stride(primType);
 
@@ -129,13 +129,16 @@ Gmdl * Gmdl::create(VertType vertType,
     pGmdl->mPrimType = primType;
     pGmdl->mVertCount = vertCount;
     pGmdl->mPrimCount = primCount;
-    pGmdl->mPrimOffset = pGmdl->vertOffset() + vertStride * vertCount;
-
-    for (u32 i = 0; i < kRendererReservedCount; ++i)
-        pGmdl->mRendererReserved[i] = -1;
+    pGmdl->mPrimOffset = pGmdl->vertOffset() + verts_size_aligned(vertStride, vertCount);
+    pGmdl->mMatOffset = pMat ? pGmdl->primOffset() + prims_size_aligned(primStride, primCount) : 0;
 
     pGmdl->mHas32BitIndices = 0;
     pGmdl->mMorphTargetCount = 0; // no targets, just one set of verts
+
+    if (pMat)
+    {
+        memcpy(pGmdl->mat(), pMat, pMat->size());
+    }
 
     return pGmdl;
 }
@@ -147,17 +150,28 @@ void Gmdl::compact(u32 newVertCount, u32 newPrimCount)
 
     // Get current start of prims before we muck up our counts, etc.
     index * oldPrims = prims();
+    Gmat * oldMat = mat();
 
-    mSize = required_size((VertType)mVertType, newVertCount, (PrimType)mPrimType, newPrimCount);;
-    mVertCount = newVertCount;
-    mPrimCount = newPrimCount;
-    mPrimOffset = vertOffset() + vert_stride((VertType)mVertType) * mVertCount;
-
-    index * newPrims = prims();
+    u32 vertStride = vert_stride((VertType)mVertType);
     u32 primStride = prim_stride((PrimType)mPrimType);
 
+    mSize = required_size((VertType)mVertType, newVertCount, (PrimType)mPrimType, newPrimCount, oldMat);;
+    mVertCount = newVertCount;
+    mPrimCount = newPrimCount;
+    mPrimOffset = align(vertOffset() + vertStride * mVertCount, 16);
+    mMatOffset = oldMat ? align(primOffset() + primStride * mPrimCount, 16) : 0;
+
+    index * newPrims = prims();
+
     // Shift prims to correct new location
-    memmove(newPrims, oldPrims, newPrimCount * primStride);
+    memmove(newPrims, oldPrims, newPrimCount * (size_t)primStride);
+
+    // Shift material to correct new location
+    if (oldMat)
+    {
+        Gmat * newMat = mat();
+        memmove(newMat, oldMat, oldMat->size());
+    }
 
     ASSERT(is_valid(this, mSize));
 }
