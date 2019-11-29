@@ -372,7 +372,7 @@ public:
     static bool is_valid(const void * pBuffer, u64 size);
     static Gmdl * instance(void * pBuffer, u64 size);
     static const Gmdl * instance(const void * pBuffer, u64 size);
-    
+
     static u64 required_size(VertType vertType,
                              u32 vertCount,
                              PrimType primType,

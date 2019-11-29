@@ -72,7 +72,7 @@ static_assert(sizeof(GlyphAlias) == 6, "GlyphAlias unexpected size");
 
 class Gatl : public AssetHeader4CC<FOURCC("gatl")>
 {
-    template <typename T, typename BT>
+    template <typename T, typename DT>
     friend class AssetWithDep;
 public:
     static bool is_valid(const void * pBuffer, u64 size);
@@ -93,7 +93,7 @@ public:
         // imagePath is null terminated string immediately after header
         return reinterpret_cast<const char*>(this+1);
     }
-    
+
     const Gimg * gimg() const
     {
         ASSERT(mpGimg);
@@ -136,7 +136,7 @@ public:
     {
         return reinterpret_cast<const void*>((pTri - tris()) * sizeof(GlyphTri));
     }
-    
+
     GlyphVert & vert(u16 idx)
     {
         return verts()[idx];

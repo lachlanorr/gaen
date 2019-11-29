@@ -55,13 +55,13 @@ public:
     virtual DependentVecUP dependents() const
     {
         const T * pAsset = T::instance(mpBuffer, mSize);
-        
+
         DependentVecUP deps(GNEW(kMEM_Engine, DependentVec));
         deps->reserve(1);
         deps->emplace_back(HASH::dep0, pAsset->dep0Path());
         return deps;
     }
-    
+
     virtual void setDependent(u32 nameHash,
                               Asset * pDependent)
     {

@@ -47,7 +47,7 @@ static_assert(sizeof(AnimInfo) == 8, "AnimInfo has unexpected size");
 
 class Gspr : public AssetHeader4CC<FOURCC("gspr")>
 {
-    template <typename T, typename BT>
+    template <typename T, typename DT>
     friend class AssetWithDep;
 public:
     static bool is_valid(const void * pBuffer, u64 size);
