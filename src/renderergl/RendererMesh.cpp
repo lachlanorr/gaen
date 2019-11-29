@@ -32,6 +32,7 @@
 #include <nanovg_gl.h>
 
 #include "core/base_defines.h"
+#include "core/gamevars.h"
 
 #include "math/matrices.h"
 
@@ -64,6 +65,8 @@
 
 namespace gaen
 {
+
+GAMEVAR_DECL_BOOL(testui, false);
 
 RendererMesh::RendererMesh()
   : mModelStages(this)
@@ -511,8 +514,11 @@ void RendererMesh::render()
     glClear(GL_DEPTH_BUFFER_BIT);
     mSpriteStages.render();
 
-    glClear(GL_STENCIL_BUFFER_BIT);
-    render_test_nanovg();
+    if (testui)
+    {
+        glClear(GL_STENCIL_BUFFER_BIT);
+        render_test_nanovg();
+    }
 }
 
 template <typename T>
