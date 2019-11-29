@@ -172,6 +172,7 @@ int main(int argc, char ** argv)
                 // prepend our raw directory
                 strcpy(path, assetsRawDir);
                 append_path(path, argv[i]);
+                normalize_path(path);
             }
             hasInputPath = true;
         }
