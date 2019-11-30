@@ -1,3 +1,2 @@
 vertex_shader=faceted.shv
 fragment_shader=faceted.shf
-
