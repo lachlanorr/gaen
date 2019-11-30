@@ -1,0 +1,56 @@
+#ifdef OPENGL3
+
+layout(location = 0) in vec4 vPosition;
+layout(location = 1) in vec3 vNormal;
+layout(location = 2) in vec2 vVertUv;
+
+uniform mat4 uMvp;
+uniform mat3 uNormal;
+
+uniform vec3 uLight0_Incidence;
+uniform vec3 uLight0_Color;
+uniform float uLight0_Ambient;
+
+uniform vec3 uLight1_Incidence;
+uniform vec3 uLight1_Color;
+uniform float uLight1_Ambient;
+
+out vec2 vFragUv;
+out vec3 vLight0;
+out vec3 vLight1;
+
+void main()
+{
+    vec3 normalTrans = normalize(uNormal * vNormal);
+    vLight0 = max(dot(normalTrans, uLight0_Incidence), 0.0) * uLight0_Color + uLight0_Ambient * uLight0_Color;
+    vLight1 = max(dot(normalTrans, uLight1_Incidence), 0.0) * uLight1_Color + uLight1_Ambient * uLight1_Color;
+
+    vFragUv = vVertUv;
+    gl_Position = uMvp * vPosition;
+};
+
+
+#else //#ifdef OPENGL3
+#ifdef PLATFORM_IOS
+precision mediump float;
+#endif
+attribute vec4 vPosition;
+attribute vec3 vNormal;
+
+uniform mat4 uMvp;
+uniform mat3 uNormal;
+uniform vec4 uColor;
+uniform vec3 uLightIncidence;
+uniform vec4 uLightColor;
+
+varying vec4 vColor
+
+void main()
+{
+    vec3 normalTrans = normalize(uNormal * vNormal);
+    float intensity = max(dot(normalTrans, uLightIncidence), 0.0);
+    intensity += min(intensity + 0.3, 1.0);
+    vColor = intensity * uColor;
+    gl_Position = mvp * vPosition;
+};
+#endif //#else //#ifdef OPENGL3
