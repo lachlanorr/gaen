@@ -30,6 +30,7 @@
 #include "math/vec3.h"
 
 #include "core/Vector.h"
+#include "hashes/hashes.h"
 
 #include "assets/file_utils.h"
 #include "assets/Config.h"
@@ -165,7 +166,7 @@ void Model::cook(CookInfo * pCookInfo) const
     Gmat * pMat = nullptr;
     if (textures.size() > 0)
     {
-        pMat = Gmat::create(textures);
+        pMat = Gmat::create(textures, HASH::voxchar); // LORRTODO: allow shader specification in the .rcp file
     }
 
     Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount, pMat);
@@ -219,8 +220,8 @@ void Model::cook(CookInfo * pCookInfo) const
             if (pGmdl->hasVertUv())
             {
                 VertPosNormUv * pVertPosNormUv = (VertPosNormUv*)pVert;
-                pVertPosNormUv->u = pAiMesh->mTextureCoords[0]->x;
-                pVertPosNormUv->v = pAiMesh->mTextureCoords[0]->y;
+                pVertPosNormUv->u = pAiMesh->mTextureCoords[0][v].x;
+                pVertPosNormUv->v = pAiMesh->mTextureCoords[0][v].y;
             }
 
             if (pGmdl->hasVertColor())
