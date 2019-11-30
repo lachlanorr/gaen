@@ -51,6 +51,10 @@ void ModelGL::loadGpu()
                           mpModelInstance->model().gmdl().prims(),
                           mpModelInstance->model().gmdl().primsSize());
 
+    if (mpModelInstance->model().gmdl().mat())
+    {
+        mTextureId = mpRenderer->loadTexture(HASH::diffuse, mpModelInstance->model().gmdl().mat()->texture(kTXTY_Diffuse));
+    }
 
     mpRenderer->unbindBuffers();
 }
@@ -59,10 +63,12 @@ void ModelGL::unloadGpu()
 {
     mpRenderer->unloadVerts(mpModelInstance->model().gmdl().verts());
     mpRenderer->unloadPrims(mpModelInstance->model().gmdl().prims());
+    mpRenderer->unloadTexture(mpModelInstance->model().gmdl().mat()->texture(kTXTY_Diffuse));
 }
 
 void ModelGL::render()
 {
+    mpRenderer->setTexture(HASH::diffuse, mTextureId);
 #if HAS(OPENGL3)
     glBindVertexArray(mVertArrayId);
 #else

@@ -29,6 +29,7 @@
 
 #include "core/mem.h"
 #include "math/mat43.h"
+#include "assets/Gmdl.h"
 #include "render_support/Model.h"
 
 #include "renderergl/RenderCollection.h"
@@ -51,7 +52,6 @@ public:
       , mVertBufferId(0)
       , mPrimBufferId(0)
       , mTextureId(0)
-      , mTextureUnit(0)
     {}
 
     void loadGpu();
@@ -63,7 +63,7 @@ public:
     u32 uid() const { return mpModelInstance->model().uid(); }
     f32 order() const { return 0; } // LORRTODO: Decide what to do with this ordering for models, only make sense for sprites
 
-    u32 shaderHash() const { return HASH::faceted; } // LORTODO: allow shader to be specified in ModelInstance and use that
+    u32 shaderHash() const { return mpModelInstance->model().gmdl().mat() ? mpModelInstance->model().gmdl().mat()->shaderHash() : HASH::faceted; }
 
     void reportDestruction();
     
@@ -86,7 +86,6 @@ private:
     u32 mPrimBufferId;
 
     u32 mTextureId;
-    u32 mTextureUnit;
 };
 
 typedef UniquePtr<ModelGL> ModelGLUP;

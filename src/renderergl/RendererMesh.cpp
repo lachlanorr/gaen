@@ -225,7 +225,7 @@ void RendererMesh::unloadTexture(const Gimg * pGimg)
         it->second.refCount--;
         if (it->second.refCount == 0)
         {
-            LOG_ERROR("TODO: Add code to unloadTexture");
+            glDeleteTextures(1, &it->second.glId0);
             mLoadedTextures.erase(it);
         }
     }
