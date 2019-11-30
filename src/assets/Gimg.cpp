@@ -153,7 +153,8 @@ u64 Gimg::required_size(PixelFormat pixelFormat, u32 width, u32 height)
 Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
 {
     // adjust width and height to ensure power of 2 and equal size
-    width = height = next_power_of_two(max(width, height));
+    PANIC_IF(width != next_power_of_two(width), "Width not a power of 2");
+    PANIC_IF(height != next_power_of_two(height), "Height not a power of 2");
 
     u64 size = Gimg::required_size(pixelFormat, width, height);
     Gimg * pGimg = alloc_asset<Gimg>(kMEM_Texture, size);
