@@ -34,3 +34,6 @@
 [submodule "external/brotli"]
 	path = external/brotli
 	url = https://github.com/lachlanorr/brotli.git
+[submodule "external/rapidjson"]
+	path = external/rapidjson
+	url = https://github.com/lachlanorr/rapidjson.git

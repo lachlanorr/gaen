@@ -214,6 +214,8 @@ SET (ASSIMP_LIBRARY
   CACHE INTERNAL ""
   )
 
+# rapidjson
+SET (RAPIDJSON_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include" CACHE INTERNAL "")
 
 add_custom_target (external_build_all)
 add_custom_command (TARGET external_build_all
