@@ -99,6 +99,51 @@ static VertType choose_vert_type(aiMesh* pMesh, CookInfo * pCookInfo, bool legac
     return kVERT_Unknown;
 }
 
+static Vector<kMEM_Chef, Bone> read_skl(CookInfo * pCookInfo)
+{
+    ChefString mdlpath = pCookInfo->rawPath();
+    Vector<kMEM_Chef, Bone> bones;
+
+    ChefString sklpath = mdlpath;
+    change_ext(sklpath, ChefString("skl"));
+
+    if (file_exists(sklpath.c_str()))
+    {
+        pCookInfo->recordDependency(get_filename(sklpath));
+        FileReader rdr(sklpath.c_str());
+        Scoped_GFREE<char> jsonStr((char*)GALLOC(kMEM_Chef, rdr.size()+1)); // +1 for null we'll add to end
+        rdr.read(jsonStr.get(), rdr.size());
+        jsonStr.get()[rdr.size()] = '\0';
+        rdr.ifs.close();
+
+        rapidjson::Document d;
+        d.Parse(jsonStr.get());
+        bones.reserve(d.Size());
+        for (u32 i = 0; i < d.Size(); ++i)
+        {
+            const rapidjson::Value & b = d[i];
+            bones.emplace_back(HASH::hash_func(b["name"].GetString()),
+                               b["parent"].IsNull() ? 0 : HASH::hash_func(b["parent"].GetString()),
+                               vec3(b["local"][0].GetFloat(), b["local"][1].GetFloat(), b["local"][2].GetFloat()),
+                               vec3(b["world"][0].GetFloat(), b["world"][1].GetFloat(), b["world"][2].GetFloat()));
+        }
+    }
+
+    return bones;
+}
+
+static u32 bone_id(const Vector<kMEM_Chef, Bone> & bones, const char * name)
+{
+    u32 nameHash = HASH::hash_func(name);
+    for (u32 i = 0; i < bones.size(); ++i)
+    {
+        if (bones[i].nameHash == nameHash)
+            return i;
+    }
+    PANIC("Bone %s not found in skeleton", name);
+    return 0;
+}
+
 void Model::cook(CookInfo * pCookInfo) const
 {
     const struct aiScene * pScene = aiImportFile(pCookInfo->rawPath().c_str(),
@@ -163,15 +208,29 @@ void Model::cook(CookInfo * pCookInfo) const
         }
     }
 
+    // check for voxel skeleton
+    Vector<kMEM_Chef, Bone> bones = read_skl(pCookInfo);
+    if (vertType == kVERT_PosNormUv && bones.size() > 0)
+    {
+        vertType = kVERT_PosNormUvBone;
+    }
+
     Gmat * pMat = nullptr;
     if (textures.size() > 0)
     {
         pMat = Gmat::create(textures, HASH::voxchar); // LORRTODO: allow shader specification in the .rcp file
     }
 
-    Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount, pMat);
+    Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount, (u32)bones.size(), pMat);
 
     PANIC_IF(!pGmdl, "Failure in Gmdl::create, %s", pCookInfo->rawPath().c_str());
+
+    // copy bones into gmdl
+    if (vertType == kVERT_PosNormUvBone && bones.size() > 0)
+    {
+        Bone * pBones = pGmdl->bones();
+        memcpy(pBones, bones.data(), sizeof(Bone) * bones.size());
+    }
 
     f32 * pVert = pGmdl->verts();
     u32 vertIdxOffset = 0;
@@ -222,6 +281,12 @@ void Model::cook(CookInfo * pCookInfo) const
                 VertPosNormUv * pVertPosNormUv = (VertPosNormUv*)pVert;
                 pVertPosNormUv->u = pAiMesh->mTextureCoords[0][v].x;
                 pVertPosNormUv->v = pAiMesh->mTextureCoords[0][v].y;
+            }
+
+            if (pGmdl->hasVertBone())
+            {
+                VertPosNormUvBone * pVertPosNormUvBone = (VertPosNormUvBone*)pVert;
+                pVertPosNormUvBone->boneId = bone_id(bones, pAiMesh->mName.C_Str());
             }
 
             if (pGmdl->hasVertColor())

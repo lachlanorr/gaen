@@ -150,9 +150,8 @@ void upper(char * str);
 
 void append_path(char * path, const char * append);
 
-
 template <class T>
-T get_filename_root(const T & path)
+T get_filename(const T & path)
 {
     size_t lastSlash = path.find_last_of('/');
     T fname;
@@ -164,6 +163,13 @@ T get_filename_root(const T & path)
     {
         fname = path;
     }
+    return fname;
+}
+
+template <class T>
+T get_filename_root(const T & path)
+{
+    T fname = get_filename(path);
     strip_ext(fname);
     return fname;
 }
@@ -244,7 +250,8 @@ enum FileStatusFlag
 struct FileReader
 {
     FileReader(const char * path)
-      : mStatusFlags(kFSFL_None)
+      : mSize(0)
+      , mStatusFlags(kFSFL_None)
     {
         ifs.open(path, std::ifstream::in | std::ifstream::binary);
         auto flags = ifs.flags();

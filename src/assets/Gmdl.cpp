@@ -55,6 +55,7 @@ bool Gmdl::is_valid(const void * pBuffer, u64 size)
                                 pAssetData->mVertCount,
                                 pAssetData->primType(),
                                 pAssetData->mPrimCount,
+                                pAssetData->mBoneCount,
                                 pAssetData->mat());
     if (reqSize != size)
         return false;
@@ -64,7 +65,7 @@ bool Gmdl::is_valid(const void * pBuffer, u64 size)
     if (size != pAssetData->totalSize())
         return false;
 
-    if (pAssetData->primOffset() != sizeof(Gmdl) + vertStride * pAssetData->mVertCount)
+    if (pAssetData->primOffset() != sizeof(Gmdl) + size_aligned(vertStride, pAssetData->mVertCount))
         return false;
 
     return true;
@@ -96,25 +97,32 @@ u64 Gmdl::required_size(VertType vertType,
                         u32 vertCount,
                         PrimType primType,
                         u32 primCount,
+                        u32 boneCount,
                         const Gmat * pMat)
 {
     u32 vertStride = vert_stride(vertType);
     u32 primStride = prim_stride(primType);
 
     u32 matSize = pMat ? (u32)pMat->size() : 0;
-    return (sizeof(Gmdl) + Gmdl::verts_size_aligned(vertStride, vertCount) + Gmdl::prims_size_aligned(primStride, primCount) + matSize);
+    return (sizeof(Gmdl) +
+            size_aligned(vertStride, vertCount) +
+            size_aligned(primStride, primCount) +
+            size_aligned(sizeof(Bone), boneCount) +
+            matSize);
 }
 
 Gmdl * Gmdl::create(VertType vertType,
                     u32 vertCount,
                     PrimType primType,
                     u32 primCount,
+                    u32 boneCount,
                     const Gmat * pMat)
 {
     u64 size = Gmdl::required_size(vertType,
                                    vertCount,
                                    primType,
                                    primCount,
+                                   boneCount,
                                    pMat);
 
     Gmdl * pGmdl = alloc_asset<Gmdl>(kMEM_Model, size);
@@ -129,8 +137,10 @@ Gmdl * Gmdl::create(VertType vertType,
     pGmdl->mPrimType = primType;
     pGmdl->mVertCount = vertCount;
     pGmdl->mPrimCount = primCount;
-    pGmdl->mPrimOffset = pGmdl->vertOffset() + verts_size_aligned(vertStride, vertCount);
-    pGmdl->mMatOffset = pMat ? pGmdl->primOffset() + prims_size_aligned(primStride, primCount) : 0;
+    pGmdl->mPrimOffset = pGmdl->vertOffset() + size_aligned(vertStride, vertCount);
+    pGmdl->mBoneCount = boneCount;
+    pGmdl->mBoneOffset = pGmdl->primOffset() + size_aligned(sizeof(Bone), boneCount);
+    pGmdl->mMatOffset = pMat ? pGmdl->boneOffset() + size_aligned(primStride, primCount) : 0;
 
     pGmdl->mHas32BitIndices = 0;
     pGmdl->mMorphTargetCount = 0; // no targets, just one set of verts
@@ -151,20 +161,22 @@ void Gmdl::compact(u32 newVertCount, u32 newPrimCount)
     // Get current start of prims before we muck up our counts, etc.
     index * oldPrims = prims();
     Gmat * oldMat = mat();
+    u32 oldBoneCount = boneCount();
 
     u32 vertStride = vert_stride((VertType)mVertType);
     u32 primStride = prim_stride((PrimType)mPrimType);
 
-    mSize = required_size((VertType)mVertType, newVertCount, (PrimType)mPrimType, newPrimCount, oldMat);;
+    mSize = required_size((VertType)mVertType, newVertCount, (PrimType)mPrimType, newPrimCount, oldBoneCount, oldMat);;
     mVertCount = newVertCount;
     mPrimCount = newPrimCount;
-    mPrimOffset = align(vertOffset() + vertStride * mVertCount, 16);
-    mMatOffset = oldMat ? align(primOffset() + primStride * mPrimCount, 16) : 0;
+    mPrimOffset = vertOffset() + size_aligned(vertStride, mVertCount);
+    mBoneOffset = primOffset() + size_aligned(primStride, mPrimCount);
+    mMatOffset = oldMat ? boneOffset() + size_aligned(sizeof(Bone), mBoneCount) : 0;
 
     index * newPrims = prims();
 
     // Shift prims to correct new location
-    memmove(newPrims, oldPrims, newPrimCount * (size_t)primStride);
+    memmove(newPrims, oldPrims, size_aligned(primStride, newPrimCount) + (size_t)size_aligned(sizeof(Bone), mBoneCount));
 
     // Shift material to correct new location
     if (oldMat)

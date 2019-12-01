@@ -28,6 +28,7 @@
 #define GAEN_CHEF_STDAFX_H
 
 #include <codecvt>
+#include <cstring>
 
 #define PNG_DEBUG 3
 #include <png.h>
@@ -38,5 +39,7 @@
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+
+#include <rapidjson/document.h>
 
 #endif // #ifndef GAEN_CHEF_STDAFX_H

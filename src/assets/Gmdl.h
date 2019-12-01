@@ -108,7 +108,7 @@ struct VertPosNormUvBone
     vec3 normal;
     f32 u;
     f32 v;
-    i32 boneId; // for simple voxel style meshes where all points map to exactly one bone
+    u32 boneId; // for simple voxel style meshes where all points map to exactly one bone
 };
 
 struct VertPosNormUvTan
@@ -128,7 +128,7 @@ struct VertPosNormUvTanBones
     f32 u;
     f32 v;
     vec4 tangent;
-    ivec4 boneIds;
+    uvec4 boneIds;
     vec4 boneWeights;
 };
 #pragma pack(pop)
@@ -270,6 +270,25 @@ inline u32 index_count(PrimType primType)
     }
 }
 
+
+#pragma pack(push, 1)
+struct Bone
+{
+    Bone(u32 nameHash, u32 parentHash, const vec3 & posLocal, const vec3 & posGlobal)
+      : nameHash(nameHash)
+      , parentHash(parentHash)
+      , posLocal(posLocal)
+      , posGlobal(posGlobal)
+    {}
+
+    u32 nameHash;
+    u32 parentHash;
+    vec3 posLocal;
+    vec3 posGlobal;
+};
+
+#pragma pack(pop)
+
 //-------------------------------------------
 // Comparison operators for Polygon and Line
 //-------------------------------------------
@@ -378,12 +397,14 @@ public:
                              u32 vertCount,
                              PrimType primType,
                              u32 primCount,
+                             u32 boneCount,
                              const Gmat * pMat);
 
     static Gmdl * create(VertType vertType,
                          u32 vertCount,
                          PrimType primType,
                          u32 primCount,
+                         u32 boneCount = 0,
                          const Gmat * pMat = nullptr);
 
     void compact(u32 newVertCount, u32 newPrimCount);
@@ -394,6 +415,7 @@ public:
     u32 vertCount() const { return mVertCount; }
     u32 primCount() const { return mPrimCount; }
     u32 indexCount() const { return mPrimCount * index_count(primType()); }
+    u32 boneCount() const { return mBoneCount; }
 
     vec3 & halfExtents() { return mHalfExtents; }
     const vec3 & halfExtents() const { return mHalfExtents; }
@@ -417,6 +439,20 @@ public:
     const index * prims() const
     {
         return reinterpret_cast<const index*>(reinterpret_cast<const u8*>(this) + primOffset());
+    }
+
+    Bone * bones()
+    {
+        if (boneOffset())
+            return reinterpret_cast<Bone*>(reinterpret_cast<u8*>(this) + boneOffset());
+        return nullptr;
+    }
+
+    const Bone * bones() const
+    {
+        if (boneOffset())
+            return reinterpret_cast<const Bone*>(reinterpret_cast<const u8*>(this) + boneOffset());
+        return nullptr;
     }
 
     Gmat * mat()
@@ -443,6 +479,11 @@ public:
         return mPrimOffset;
     }
 
+    u32 boneOffset() const
+    {
+        return mBoneOffset;
+    }
+
     u32 matOffset() const
     {
         return mMatOffset;
@@ -456,7 +497,7 @@ public:
 
     u32 vertsSize() const
     {
-        return verts_size_aligned(vertStride(), mVertCount);
+        return size_aligned(vertStride(), mVertCount);
     }
 
     u32 primStride() const
@@ -467,7 +508,17 @@ public:
 
     u32 primsSize() const
     {
-        return prims_size_aligned(primStride(), mPrimCount);
+        return size_aligned(primStride(), mPrimCount);
+    }
+
+    u32 boneStride() const
+    {
+        return sizeof(Bone);
+    }
+
+    u32 bonesSize() const
+    {
+        return size_aligned(boneStride(), boneCount());
     }
 
     u32 matSize() const
@@ -479,7 +530,7 @@ public:
 
     u32 totalSize() const
     {
-        return sizeof(Gmdl) + vertsSize() + primsSize() + matSize();
+        return sizeof(Gmdl) + vertsSize() + primsSize() + bonesSize() + matSize();
     }
 
     bool hasVertPosition() const
@@ -669,14 +720,9 @@ public:
     //--------------------------------------------------------------------------
 
 private:
-    static u32 verts_size_aligned(u32 vertStride, u32 vertCount)
+    static u32 size_aligned(u32 stride, u32 count)
     {
-        return (u32)align(vertStride * (size_t)vertCount, 16);
-    }
-
-    static inline u32 prims_size_aligned(u32 primStride, u32 primCount)
-    {
-        return (u32)align(primStride * (size_t)primCount, 16);
+        return (u32)align(stride * (size_t)count, 16);
     }
 
     // Class should not be constructed directly.  Use cast and create static methods.
@@ -692,13 +738,16 @@ private:
 
     u32 mVertCount;
     u32 mPrimCount;
+    u32 mBoneCount;
+
     // VertOffset is sizeof(Gmdl), they start immediately after the header
     u32 mPrimOffset;  // offset from start of struct
-    u32 mMatOffset; // offset to start of gmat
+    u32 mBoneOffset;
+    u32 mMatOffset;
 
     vec3 mHalfExtents;
 
-    // LORRTODO: Add material, bone, anim support
+    char PADDING__[8];
 };
 #pragma pack(pop)
 
@@ -711,7 +760,7 @@ static_assert(sizeof(VertPosNormUvTan) == 48, "VertPosNormUvTan geometry struct 
 static_assert(sizeof(PrimPoint) == 2,         "PrimLine geometry struct has unexpected size");
 static_assert(sizeof(PrimLine) == 4,          "PrimLine geometry struct has unexpected size");
 static_assert(sizeof(PrimTriangle) == 6,      "PrimTriangle geometry struct has unexpected size");
-static_assert(sizeof(Gmdl) == 48,             "Gmdl has unexpected size");
+static_assert(sizeof(Gmdl) == 64,             "Gmdl has unexpected size");
 static_assert(sizeof(Gmdl) % 16 == 0,         "Gmdl size not 16 byte aligned");
 
 } // namespace gaen
