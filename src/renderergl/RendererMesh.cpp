@@ -199,7 +199,7 @@ u32 RendererMesh::loadTexture(u32 nameHash, const Gimg * pGimg)
                      0,
                      GL_RGBA,
                      GL_UNSIGNED_BYTE,
-                     pGimg->scanline(0));
+                     pGimg->pixels());
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
