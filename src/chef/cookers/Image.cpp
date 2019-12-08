@@ -54,11 +54,11 @@ void Image::cook(CookInfo * pCookInfo) const
 {
     const char * ext = get_ext(pCookInfo->rawPath().c_str());
 
-    if (0 == strcmp(ext, "png"))
+    if (0 == strcmp(ext, kExtPng))
     {
         cookPng(pCookInfo);
     }
-    else if (0 == strcmp(ext, "tga"))
+    else if (0 == strcmp(ext, kExtTga))
     {
         cookTga(pCookInfo);
     }
