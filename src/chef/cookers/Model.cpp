@@ -33,7 +33,6 @@
 #include "hashes/hashes.h"
 
 #include "assets/file_utils.h"
-#include "assets/Config.h"
 #include "assets/Gmdl.h"
 #include "assets/Gmat.h"
 
