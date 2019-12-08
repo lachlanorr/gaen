@@ -32,6 +32,8 @@ SET (assets_SOURCES
   file_utils.cpp
   file_utils.h
   file_utils_${platform}.cpp
+  Gaim.cpp
+  Gaim.h
   Gatl.cpp
   Gatl.h
   Gimg.cpp

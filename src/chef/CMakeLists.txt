@@ -25,6 +25,8 @@
 #-------------------------------------------------------------------------------
 
 SET (cooker_SOURCES
+  cookers/AnimImage.cpp
+  cookers/AnimImage.h
   cookers/Atlas.cpp
   cookers/Atlas.h
   cookers/Font.cpp
@@ -86,6 +88,7 @@ TARGET_LINK_LIBRARIES (chef
   core
   assets
   hashes
+  math
   ${ZLIB_LIBRARY}
   ${LIBPNG_LIBRARY}
   ${LIBTIFF_LIBRARY}

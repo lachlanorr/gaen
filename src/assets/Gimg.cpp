@@ -36,6 +36,7 @@ namespace gaen
 {
 typedef HashMap<kMEM_Const, PixelFormat, String<kMEM_Const>> PixelFormatToStrMap;
 typedef HashMap<kMEM_Const, String<kMEM_Const>, PixelFormat> PixelFormatFromStrMap;
+typedef HashMap<kMEM_Const, PixelFormat, u32> PixelFormatToU32Map;
 
 const char * pixel_format_to_str(PixelFormat pixelFormat)
 {
@@ -46,7 +47,9 @@ const char * pixel_format_to_str(PixelFormat pixelFormat)
          { kPXL_RGB_DXT1,  "RGB_DXT1"  },
          { kPXL_RGBA_DXT1, "RGBA_DXT1" },
          { kPXL_RGBA_DXT3, "RGBA_DXT3" },
-         { kPXL_RGBA_DXT5, "RGBA_DXT5" }
+         { kPXL_RGBA_DXT5, "RGBA_DXT5" },
+         { kPXL_RGB32F,    "RGB32F"    },
+         { kPXL_RGBA32F,   "RGBA32F"   }
         };
 
     auto it = map.find(pixelFormat);
@@ -63,7 +66,9 @@ const PixelFormat pixel_format_from_str(const char * str)
          { "RGB_DXT1",  kPXL_RGB_DXT1 },
          { "RGBA_DXT1", kPXL_RGBA_DXT1 },
          { "RGBA_DXT3", kPXL_RGBA_DXT3 },
-         { "RGBA_DXT5", kPXL_RGBA_DXT5 }
+         { "RGBA_DXT5", kPXL_RGBA_DXT5 },
+         { "RGB32F",    kPXL_RGB32F },
+         { "RGBA32F",   kPXL_RGBA32F }
         };
 
     auto it = map.find(str);
@@ -71,6 +76,20 @@ const PixelFormat pixel_format_from_str(const char * str)
     return it->second;
 }
 
+u32 bytes_per_pixel(PixelFormat pixelFormat)
+{
+    static const PixelFormatToU32Map map =
+        {{ kPXL_R8,         1 },
+         { kPXL_RGB8,       3 },
+         { kPXL_RGBA8,      4 },
+         { kPXL_RGB32F,    12 },
+         { kPXL_RGBA32F,   16 }
+        };
+
+    auto it = map.find(pixelFormat);
+    PANIC_IF(it == map.end(), "Invalid PixelFormat: %d", pixelFormat);
+    return it->second;
+}
 
 bool Gimg::is_valid(const void * pBuffer, u64 size)
 {
@@ -123,31 +142,32 @@ const Gimg * Gimg::instance(const void * pBuffer, u64 size)
 u64 Gimg::required_size(PixelFormat pixelFormat, u32 width, u32 height)
 {
     u64 size = sizeof(Gimg);
-    
+
     switch (pixelFormat)
     {
-    case kPXL_R8:
-        size += width * height;
-        break;
-    case kPXL_RGB8:
-        size += width * height * 3;
-        break;
-    case kPXL_RGBA8:
-        size += width * height * 4;
-        break;
     case kPXL_RGB_DXT1:
     case kPXL_RGBA_DXT1:
         PANIC_IF(width % 4 != 0 || height % 4 != 0, "DXT1 texture with width or height not a multiple of 4");
-        size += width * height / 2; // every block of 16 pixels becomes 8 bytes
+        size += (u64)width * height / 2; // every block of 16 pixels becomes 8 bytes
         break;
     case kPXL_RGBA_DXT3:
     case kPXL_RGBA_DXT5:
         PANIC_IF(width % 4 != 0 || height % 4 != 0, "DXT texture with width or height not a multiple of 4");
-        size += width * height; // every block of 16 pixels becomes 16 bytes
+        size += (u64)width * height; // every block of 16 pixels becomes 16 bytes
+        break;
+    default:
+        size += (u64)width * height * bytes_per_pixel(pixelFormat);
         break;
     }
 
     return size;
+}
+
+void Gimg::init(Gimg * pGimg, PixelFormat pixelFormat, u32 width, u32 height)
+{
+    pGimg->mPixelFormat = pixelFormat;
+    pGimg->mWidth = width;
+    pGimg->mHeight = height;
 }
 
 Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
@@ -159,36 +179,30 @@ Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
     u64 size = Gimg::required_size(pixelFormat, width, height);
     Gimg * pGimg = alloc_asset<Gimg>(kMEM_Texture, size);
 
-    pGimg->mPixelFormat = pixelFormat;
-    pGimg->mWidth = width;
-    pGimg->mHeight = height;
+    init(pGimg, pixelFormat, width, height);
 
     ASSERT(is_valid(pGimg, required_size(pixelFormat, width, height)));
 
     return pGimg;
 }
 
+u8 * Gimg::pixels()
+{
+    return (u8*)this + sizeof(Gimg);
+}
+
+const u8 * Gimg::pixels() const
+{
+    return (const u8*)this + sizeof(Gimg);
+}
+
 u8 * Gimg::scanline(u32 idx)
 {
     PANIC_IF(idx + 1 > mHeight, "Invalid scanline %d, for image with height %d", idx, mHeight);
 
-    u8 * pScanline = (u8*)this + sizeof(Gimg);
+    u8 * pScanline = pixels();
 
-    switch (mPixelFormat)
-    {
-    case kPXL_R8:
-        pScanline += idx * mWidth;
-        break;
-    case kPXL_RGB8:
-        pScanline += idx * mWidth * 3;
-        break;
-    case kPXL_RGBA8:
-        pScanline += idx * mWidth * 4;
-        break;
-    default:
-        PANIC("Unable to return scanline for this PixelFormat: %s", pixel_format_to_str(mPixelFormat));
-        break;
-    }
+    pScanline += (u64)idx * mWidth * bytes_per_pixel(mPixelFormat);
 
     return pScanline;
 }

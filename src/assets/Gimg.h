@@ -45,11 +45,14 @@ enum PixelFormat
     kPXL_RGB_DXT1  = 0x8C4C, // GL_COMPRESSED_SRGB_S3TC_DXT1_EXT
     kPXL_RGBA_DXT1 = 0x8C4D, // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT
     kPXL_RGBA_DXT3 = 0x8C4E, // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT
-    kPXL_RGBA_DXT5 = 0x8C4F  // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+    kPXL_RGBA_DXT5 = 0x8C4F, // GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT5_EXT
+    kPXL_RGB32F    = 0x8815, // GL_RGB32F
+    kPXL_RGBA32F   = 0x8814  // GL_RGBA32F
 };
 
-const char * pixel_format_to_str(PixelFormat pixelType);
+const char * pixel_format_to_str(PixelFormat pixelFormat);
 const PixelFormat pixel_format_from_str(const char * str);
+u32 bytes_per_pixel(PixelFormat pixelFormat);
 
 #pragma pack(push, 1)
 class Gimg : public AssetHeader4CC<FOURCC("gimg")>
@@ -61,9 +64,11 @@ public:
 
     static u64 required_size(PixelFormat pixelFormat, u32 width, u32 height);
 
+    static void init(Gimg * pGimg, PixelFormat pixelFormat, u32 width, u32 height);
     static Gimg * create(PixelFormat pixelFormat, u32 width, u32 height);
-    static Gimg * load(const char * rawPath);
 
+    u8 * pixels();
+    const u8 * pixels() const;
     u8 * scanline(u32 idx);
     const u8 * scanline(u32 idx) const;
 
