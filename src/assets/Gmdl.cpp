@@ -139,8 +139,8 @@ Gmdl * Gmdl::create(VertType vertType,
     pGmdl->mPrimCount = primCount;
     pGmdl->mPrimOffset = pGmdl->vertOffset() + size_aligned(vertStride, vertCount);
     pGmdl->mBoneCount = boneCount;
-    pGmdl->mBoneOffset = pGmdl->primOffset() + size_aligned(sizeof(Bone), boneCount);
-    pGmdl->mMatOffset = pMat ? pGmdl->boneOffset() + size_aligned(primStride, primCount) : 0;
+    pGmdl->mBoneOffset = pGmdl->primOffset() + size_aligned(primStride, primCount);
+    pGmdl->mMatOffset = pMat ? pGmdl->boneOffset() + size_aligned(sizeof(Bone), boneCount) : 0;
 
     pGmdl->mHas32BitIndices = 0;
     pGmdl->mMorphTargetCount = 0; // no targets, just one set of verts
