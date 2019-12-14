@@ -64,7 +64,7 @@ void renderer_end_frame(Task & rendererTask)
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR)
     {
-        LOG_ERROR("glGetError returned %d", err);
+        LOG_ERROR("glGetError returned %d, 0x%x", err, err);
     }
 }
 
