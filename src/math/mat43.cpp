@@ -63,6 +63,15 @@ tmat43<T>::tmat43(const tvec3<T> & pos, const tmat3<T> & rot)
 }
 
 template <typename T>
+tmat43<T>::tmat43(const tvec3<T> & col0, const tvec3<T> & col1, const tvec3<T> & col2, const tvec3<T> & col3)
+{
+    cols[0] = col0;
+    cols[1] = col1;
+    cols[2] = col2;
+    cols[3] = col3;
+}
+
+template <typename T>
 tmat43<T>::tmat43(const tmat4<T> & rhs)
 {
     *this = rhs;
