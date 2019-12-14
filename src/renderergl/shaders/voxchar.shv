@@ -1,27 +1,28 @@
 #ifdef OPENGL3
 
-layout(location = 0) in vec4 vPosition;
-layout(location = 1) in vec3 vNormal;
-layout(location = 2) in vec2 vVertUv;
-layout(location = 3) in uint vBoneId;
+layout(location = 0) in vec4 position;
+layout(location = 1) in vec3 normal;
+layout(location = 2) in vec2 vert_uv;
+layout(location = 3) in uint bone_id;
 
-uniform mat4 uMvp;
-uniform mat3 uNormal;
+uniform mat4 mvp;
+uniform mat3 rot;
 
-uniform vec3 uLight0_Incidence;
-uniform vec3 uLight0_Color;
-uniform float uLight0_Ambient;
+uniform uint frame_offset;
 
-uniform vec3 uLight1_Incidence;
-uniform vec3 uLight1_Color;
-uniform float uLight1_Ambient;
+uniform vec3 light0_incidence;
+uniform vec3 light0_color;
+uniform float light0_ambient;
+
+uniform vec3 light1_incidence;
+uniform vec3 light1_color;
+uniform float light1_ambient;
 
 uniform sampler2D animations;
 
-out vec2 vFragUv;
-out vec3 vLight0;
-out vec3 vLight1;
-out vec4 colorTemp;
+out vec2 frag_uv;
+out vec3 light0;
+out vec3 light1;
 
 vec2 trans_coords(uint offset)
 {
@@ -31,22 +32,22 @@ vec2 trans_coords(uint offset)
 
 void main()
 {
-    vec3 normalTrans = normalize(uNormal * vNormal);
-    vLight0 = max(dot(normalTrans, uLight0_Incidence), 0.0) * uLight0_Color + uLight0_Ambient * uLight0_Color;
-    vLight1 = max(dot(normalTrans, uLight1_Incidence), 0.0) * uLight1_Color + uLight1_Ambient * uLight1_Color;
+    vec3 normalTrans = normalize(rot * normal);
+    light0 = max(dot(normalTrans, light0_incidence), 0.0) * light0_color + light0_ambient * light0_color;
+    light1 = max(dot(normalTrans, light1_incidence), 0.0) * light1_color + light1_ambient * light1_color;
 
-    vFragUv = vVertUv;
+    frag_uv = vert_uv;
 
-    vec4 anim0 = texture(animations, trans_coords(vBoneId * 3));
-    vec4 anim1 = texture(animations, trans_coords(vBoneId * 3 + 1));
-    vec4 anim2 = texture(animations, trans_coords(vBoneId * 3 + 2));
+    vec4 anim0 = texture(animations, trans_coords(bone_id * 3));
+    vec4 anim1 = texture(animations, trans_coords(bone_id * 3 + 1));
+    vec4 anim2 = texture(animations, trans_coords(bone_id * 3 + 2));
 
     mat4 boneTrans = mat4(vec4(anim0.x, anim0.y, anim0.z, 0),
                          vec4(anim0.w, anim1.x, anim1.y, 0),
                          vec4(anim1.z, anim1.w, anim2.x, 0),
                          vec4(anim2.y, anim2.z, anim2.w, 1));
 
-    gl_Position = uMvp * boneTrans * vPosition;
+    gl_Position = mvp * boneTrans * position;
 };
 
 
@@ -54,23 +55,23 @@ void main()
 #ifdef PLATFORM_IOS
 precision mediump float;
 #endif
-attribute vec4 vPosition;
-attribute vec3 vNormal;
+attribute vec4 position;
+attribute vec3 normal;
 
-uniform mat4 uMvp;
-uniform mat3 uNormal;
-uniform vec4 uColor;
-uniform vec3 uLightIncidence;
-uniform vec4 uLightColor;
+uniform mat4 mvp;
+uniform mat3 rot;
+uniform vec4 ucolor;
+uniform vec3 light0_incidence;
+uniform vec4 light0_color;
 
-varying vec4 vColor
+varying vec4 vcolor
 
 void main()
 {
-    vec3 normalTrans = normalize(uNormal * vNormal);
-    float intensity = max(dot(normalTrans, uLightIncidence), 0.0);
+    vec3 normalTrans = normalize(rot * normal);
+    float intensity = max(dot(normalTrans, light0_incidence), 0.0);
     intensity += min(intensity + 0.3, 1.0);
-    vColor = intensity * uColor;
-    gl_Position = mvp * vPosition;
+    vcolor = intensity * ucolor;
+    gl_Position = mvp * position;
 };
 #endif //#else //#ifdef OPENGL3

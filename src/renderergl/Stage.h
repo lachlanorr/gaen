@@ -77,22 +77,22 @@ public:
                     if (pItem->status() == kRIS_Active)
                     {
                         mat4 mvp = viewProj * mat4(pItem->transform());
-                        mpRenderer->activeShader().setUniformMat4(HASH::uMvp, mvp);
+                        mpRenderer->activeShader().setUniformMat4(HASH::mvp, mvp);
 
                         if (pItem->hasNormal())
-                            mpRenderer->activeShader().setUniformMat3(HASH::uNormal, mat3(pItem->transform()));
+                            mpRenderer->activeShader().setUniformMat3(HASH::rot, mat3(pItem->transform()));
 
                         if (mLights.size() > 0)
                         {
-                            mpRenderer->activeShader().setUniformVec3(HASH::uLight0_Incidence, mLights[0].incidence());
-                            mpRenderer->activeShader().setUniformVec3(HASH::uLight0_Color, mLights[0].color());
-                            mpRenderer->activeShader().setUniformFloat(HASH::uLight0_Ambient, mLights[0].ambient());
+                            mpRenderer->activeShader().setUniformVec3(HASH::light0_incidence, mLights[0].incidence());
+                            mpRenderer->activeShader().setUniformVec3(HASH::light0_color, mLights[0].color());
+                            mpRenderer->activeShader().setUniformFloat(HASH::light0_ambient, mLights[0].ambient());
 
                             if (mLights.size() > 1)
                             {
-                                mpRenderer->activeShader().setUniformVec3(HASH::uLight1_Incidence, mLights[1].incidence());
-                                mpRenderer->activeShader().setUniformVec3(HASH::uLight1_Color, mLights[1].color());
-                                mpRenderer->activeShader().setUniformFloat(HASH::uLight1_Ambient, mLights[1].ambient());
+                                mpRenderer->activeShader().setUniformVec3(HASH::light1_incidence, mLights[1].incidence());
+                                mpRenderer->activeShader().setUniformVec3(HASH::light1_color, mLights[1].color());
+                                mpRenderer->activeShader().setUniformFloat(HASH::light1_ambient, mLights[1].ambient());
                             }
                         }
 
