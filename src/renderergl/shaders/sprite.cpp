@@ -92,6 +92,13 @@ Shader * sprite::construct()
     pShader->mAttributes[0].type = GL_FLOAT_VEC4;
 
 
+    // Textures
+    pShader->mTextures[0].nameHash = 0xdc50cc66; /* HASH::imageSampler */
+    pShader->mTextures[0].index = 0;
+    pShader->mTextures[0].location = 0;
+    pShader->mTextures[0].type = GL_SAMPLER_2D;
+
+
     // Set base Shader members to our arrays and counts
     pShader->mCodeCount = kCodeCount;
     pShader->mpCodes = pShader->mCodes;
@@ -99,6 +106,8 @@ Shader * sprite::construct()
     pShader->mpUniforms = pShader->mUniforms;
     pShader->mAttributeCount = kAttributeCount;
     pShader->mpAttributes = pShader->mAttributes;
+    pShader->mTextureCount = kTextureCount;
+    pShader->mpTextures = pShader->mTextures;
 
     return pShader;
 }

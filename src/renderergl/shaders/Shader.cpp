@@ -35,7 +35,6 @@ namespace gaen
 
 namespace shaders
 {
-
 Shader::Shader(u32 nameHash)
   : mNameHash(nameHash)
   , mProgramId(0)
@@ -126,6 +125,28 @@ Shader::VariableInfo * Shader::findUniform(u32 nameHash, u32 type)
     return nullptr;
 }
 
+Shader::VariableInfo * Shader::findTexture(u32 nameHash)
+{
+    for (u32 i = 0; i < mTextureCount; ++i)
+    {
+        if (mpTextures[i].nameHash == nameHash)
+        {
+            return &mpTextures[i];
+        }
+    }
+    return nullptr;
+}
+
+void Shader::setUniformInt(u32 nameHash, i32 value)
+{
+    ASSERT(mIsLoaded);
+    VariableInfo * pUniform = findUniform(nameHash, GL_INT);
+    if (pUniform)
+        glUniform1i(pUniform->location, value);
+    else
+        ERR("UniformUint does not exist in shader");
+}
+
 void Shader::setUniformUint(u32 nameHash, u32 value)
 {
     ASSERT(mIsLoaded);
@@ -186,14 +207,21 @@ void Shader::setUniformMat4(u32 nameHash, const mat4 & value)
         ERR("UniformMat4 does not exist in shader");
 }
 
-u32 Shader::textureLocation(u32 nameHash, u32 type)
+void Shader::setTextureUniforms()
 {
-    VariableInfo * pUniform = findUniform(nameHash, type);
-    if(pUniform)
-        return pUniform->location;
+    for (u32 i = 0; i < mTextureCount; ++i)
+    {
+        glUniform1i(mpTextures[i].location, mpTextures[i].index);
+    }
+}
+
+i32 Shader::textureUnit(i32 nameHash)
+{
+    VariableInfo * pTexture = findTexture(nameHash);
+    if(pTexture)
+        return pTexture->index;
     else
     {
-        ERR("Texture does not exist in shader");
         return -1;
     }
 }

@@ -3,6 +3,7 @@
 layout(location = 0) in vec4 vPosition;
 layout(location = 1) in vec3 vNormal;
 layout(location = 2) in vec2 vVertUv;
+layout(location = 3) in uint vBoneId;
 
 uniform mat4 uMvp;
 uniform mat3 uNormal;
@@ -15,9 +16,18 @@ uniform vec3 uLight1_Incidence;
 uniform vec3 uLight1_Color;
 uniform float uLight1_Ambient;
 
+uniform sampler2D animations;
+
 out vec2 vFragUv;
 out vec3 vLight0;
 out vec3 vLight1;
+out vec4 colorTemp;
+
+vec2 trans_coords(uint offset)
+{
+    uvec2 sz = textureSize(animations, 0);
+    return vec2((offset % sz.x) / float(sz.x), (offset / sz.x) / float(sz.y));
+}
 
 void main()
 {
@@ -26,7 +36,17 @@ void main()
     vLight1 = max(dot(normalTrans, uLight1_Incidence), 0.0) * uLight1_Color + uLight1_Ambient * uLight1_Color;
 
     vFragUv = vVertUv;
-    gl_Position = uMvp * vPosition;
+
+    vec4 anim0 = texture(animations, trans_coords(vBoneId * 3));
+    vec4 anim1 = texture(animations, trans_coords(vBoneId * 3 + 1));
+    vec4 anim2 = texture(animations, trans_coords(vBoneId * 3 + 2));
+
+    mat4 boneTrans = mat4(vec4(anim0.x, anim0.y, anim0.z, 0),
+                         vec4(anim0.w, anim1.x, anim1.y, 0),
+                         vec4(anim1.z, anim1.w, anim2.x, 0),
+                         vec4(anim2.y, anim2.z, anim2.w, 1));
+
+    gl_Position = uMvp * boneTrans * vPosition;
 };
 
 

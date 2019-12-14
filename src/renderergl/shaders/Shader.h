@@ -52,6 +52,7 @@ public:
 
     void use();
 
+    void setUniformInt(u32 nameHash, i32 value);
     void setUniformUint(u32 nameHash, u32 value);
     void setUniformFloat(u32 nameHash, f32 value);
 
@@ -61,7 +62,8 @@ public:
     void setUniformMat3(u32 nameHash, const mat3 & value);
     void setUniformMat4(u32 nameHash, const mat4 & value);
 
-    u32 textureLocation(u32 nameHash, u32 type);
+    void setTextureUniforms();
+    i32 textureUnit(i32 nameHash);
 
     static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode = nullptr);
 
@@ -83,6 +85,7 @@ protected:
 
     Shader(u32 nameHash);
     VariableInfo * findUniform(u32 nameHash, u32 type);
+    VariableInfo * findTexture(u32 nameHash);
 
     u32 mNameHash;
     GLuint mProgramId;
@@ -90,10 +93,12 @@ protected:
     u32 mCodeCount;
     u32 mUniformCount;
     u32 mAttributeCount;
+    u32 mTextureCount;
 
     ShaderCode * mpCodes;
     VariableInfo * mpUniforms;
     VariableInfo * mpAttributes;
+    VariableInfo * mpTextures;
 
     bool mIsLoaded = false;
 

@@ -1004,6 +1004,8 @@ Shader * voxel_cast::construct()
 
     // Attributes
 
+    // Textures
+
     // Set base Shader members to our arrays and counts
     pShader->mCodeCount = kCodeCount;
     pShader->mpCodes = pShader->mCodes;

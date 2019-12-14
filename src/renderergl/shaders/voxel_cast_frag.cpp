@@ -1014,6 +1014,8 @@ Shader * voxel_cast_frag::construct()
     pShader->mAttributes[1].type = GL_FLOAT_VEC2;
 
 
+    // Textures
+
     // Set base Shader members to our arrays and counts
     pShader->mCodeCount = kCodeCount;
     pShader->mpCodes = pShader->mCodes;

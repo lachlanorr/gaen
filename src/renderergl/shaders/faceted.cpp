@@ -200,6 +200,8 @@ Shader * faceted::construct()
     pShader->mAttributes[2].type = GL_FLOAT_VEC4;
 
 
+    // Textures
+
     // Set base Shader members to our arrays and counts
     pShader->mCodeCount = kCodeCount;
     pShader->mpCodes = pShader->mCodes;

@@ -3,18 +3,19 @@
 in vec2 vFragUv;
 in vec3 vLight0;
 in vec3 vLight1;
+in vec4 colorTemp;
 out vec4 vColor;
 
-layout(location=0, binding=0) uniform sampler2D texDiffuse;
+uniform sampler2D animations;
+uniform sampler2D diffuse;
 
 void main()
 {
     const vec3 gamma = vec3(1.0/2.2);
 
-    vec4 texColor = texture(texDiffuse, vFragUv).rgba;
-    vec3 linearColor = vLight0 * texColor.rgb; // + vLight1 * texColor.rgb;
+    vec4 texColor = texture(diffuse, vFragUv).rgba;
+    vec3 linearColor = vLight0 * texColor.rgb;
     vColor = vec4(linearColor, texColor.a);
-    //vColor = vec4(pow(linearColor, gamma), texColor.a);
 };
 
 

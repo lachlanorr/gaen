@@ -188,6 +188,8 @@ Shader * voxel27::construct()
     pShader->mAttributes[0].type = GL_UNSIGNED_INT;
 
 
+    // Textures
+
     // Set base Shader members to our arrays and counts
     pShader->mCodeCount = kCodeCount;
     pShader->mpCodes = pShader->mCodes;

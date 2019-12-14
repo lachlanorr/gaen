@@ -73,6 +73,7 @@ struct ShaderInfo
     S outPathH;
     List<kMEM_Renderer, ShaderVarInfo> attributes;
     List<kMEM_Renderer, ShaderVarInfo> uniforms;
+    List<kMEM_Renderer, ShaderVarInfo> textures;
     List<kMEM_Renderer, ShaderSource> sources;
 };
 
@@ -468,6 +469,11 @@ void process_shader_program(ShaderInfo & si)
         si.uniforms.back().location = glGetUniformLocation(programId, name);
         si.uniforms.back().name = name;
         si.uniforms.back().type = type;
+
+        if (type == GL_SAMPLER_2D)
+        {
+            si.textures.push_back(si.uniforms.back());
+        }
     }
 
     // Release vertex and fragment shaders
@@ -521,6 +527,11 @@ S generate_shader_h(const ShaderInfo & si)
         snprintf(scratch, kMaxPath, "    static const u32 kAttributeCount = %u;\n", (u32)si.attributes.size());
         code += scratch;
     }
+    if (si.textures.size() > 0)
+    {
+        snprintf(scratch, kMaxPath, "    static const u32 kTextureCount = %u;\n", (u32)si.textures.size());
+        code += scratch;
+    }
 
     code += LF;
 
@@ -532,6 +543,10 @@ S generate_shader_h(const ShaderInfo & si)
     if (si.attributes.size() > 0)
     {
         code += S("    Shader::VariableInfo mAttributes[kAttributeCount];\n");
+    }
+    if (si.textures.size() > 0)
+    {
+        code += S("    Shader::VariableInfo mTextures[kTextureCount];\n");
     }
 
     code += S("}; // class ") + si.name + LF;
@@ -664,6 +679,25 @@ S generate_shader_cpp(const ShaderInfo & si)
 
     code += LF;
 
+    code += S("    // Textures\n");
+    i = 0;
+    for (const ShaderVarInfo & svi : si.textures)
+    {
+        snprintf(scratch, kMaxPath, "    pShader->mTextures[%u].nameHash = 0x%08x; /* HASH::%s */\n", i, gaen_hash(svi.name.c_str()), svi.name.c_str());
+        code += scratch;
+        snprintf(scratch, kMaxPath, "    pShader->mTextures[%u].index = %u;\n", i, i);
+        code += scratch;
+        snprintf(scratch, kMaxPath, "    pShader->mTextures[%u].location = %u;\n", i, svi.location);
+        code += scratch;
+        snprintf(scratch, kMaxPath, "    pShader->mTextures[%u].type = %s;\n", i, get_type_name(svi.type));
+        code += scratch;
+        code += LF;
+
+        ++i;
+    }
+
+    code += LF;
+
     code += S("    // Set base Shader members to our arrays and counts\n");
     code += S("    pShader->mCodeCount = kCodeCount;\n");
     code += S("    pShader->mpCodes = pShader->mCodes;\n");
@@ -676,6 +710,11 @@ S generate_shader_cpp(const ShaderInfo & si)
     {
         code += S("    pShader->mAttributeCount = kAttributeCount;\n");
         code += S("    pShader->mpAttributes = pShader->mAttributes;\n");
+    }
+    if (si.textures.size() > 0)
+    {
+        code += S("    pShader->mTextureCount = kTextureCount;\n");
+        code += S("    pShader->mpTextures = pShader->mTextures;\n");
     }
 
     code += LF;

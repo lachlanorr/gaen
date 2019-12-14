@@ -42,10 +42,12 @@ private:
     static const u32 kCodeCount = 2;
     static const u32 kUniformCount = 1;
     static const u32 kAttributeCount = 2;
+    static const u32 kTextureCount = 1;
 
     Shader::ShaderCode mCodes[kCodeCount];
     Shader::VariableInfo mUniforms[kUniformCount];
     Shader::VariableInfo mAttributes[kAttributeCount];
+    Shader::VariableInfo mTextures[kTextureCount];
 }; // class compute_present
 
 } // namespace shaders
