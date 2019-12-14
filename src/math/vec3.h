@@ -88,6 +88,12 @@ struct tvec3
         *this = *this + rhs;
         return *this;
     }
+
+    const tvec3 & operator-=(const tvec3 & rhs)
+    {
+        *this = *this - rhs;
+        return *this;
+    }
 }; // struct tvec3
 
 typedef tvec3<f32> vec3;
