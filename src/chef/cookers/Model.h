@@ -27,6 +27,7 @@
 #ifndef GAEN_CHEF_COOKERS_MODEL_H
 #define GAEN_CHEF_COOKERS_MODEL_H
 
+#include "assets/Gmdl.h"
 #include "chef/Cooker.h"
 
 namespace gaen
@@ -43,6 +44,9 @@ class Model : public Cooker
 public:
     Model();
     virtual void cook(CookInfo * pCookInfo) const;
+
+    static Vector<kMEM_Chef, Bone> read_skl(const char * path);
+    static u32 bone_id(const Vector<kMEM_Chef, Bone> & bones, const char * name);
 };
 
 }

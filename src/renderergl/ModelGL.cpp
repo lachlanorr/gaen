@@ -25,6 +25,7 @@
 //------------------------------------------------------------------------------
 
 #include "assets/Gmdl.h"
+#include "assets/Gaim.h"
 
 #include "renderergl/gaen_opengl.h"
 #include "renderergl/RendererMesh.h"
@@ -53,7 +54,11 @@ void ModelGL::loadGpu()
 
     if (mpModelInstance->model().gmdl().mat())
     {
-        mTextureId = mpRenderer->loadTexture(HASH::diffuse, mpModelInstance->model().gmdl().mat()->texture(kTXTY_Diffuse));
+        mTextureId_diffuse = mpRenderer->loadTexture(HASH::diffuse, mpModelInstance->model().gmdl().mat()->texture(kTXTY_Diffuse));
+    }
+    if (mpModelInstance->model().hasGaim())
+    {
+        mTextureId_animations = mpRenderer->loadTexture(HASH::animations, mpModelInstance->model().gaim().image());
     }
 
     mpRenderer->unbindBuffers();
@@ -68,7 +73,7 @@ void ModelGL::unloadGpu()
 
 void ModelGL::render()
 {
-    mpRenderer->setTexture(HASH::diffuse, mTextureId);
+    mpRenderer->setTexture(HASH::diffuse, mTextureId_diffuse);
 #if HAS(OPENGL3)
     glBindVertexArray(mVertArrayId);
 #else
@@ -103,7 +108,12 @@ void ModelGL::prepareMeshAttributes()
             glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, vertStride, (void*)(uintptr_t)gmdl.vertUvOffset());
             glEnableVertexAttribArray(2);
 
-            if (gmdl.hasVertTan())
+            if (gmdl.hasVertBone())
+            {
+                glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, vertStride, (void*)(uintptr_t)gmdl.vertBoneOffset());
+                glEnableVertexAttribArray(3);
+            }
+            else if (gmdl.hasVertTan())
             {
                 glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, vertStride, (void*)(uintptr_t)gmdl.vertTanOffset());
                 glEnableVertexAttribArray(3);
@@ -115,7 +125,7 @@ void ModelGL::prepareMeshAttributes()
             glEnableVertexAttribArray(2);
         }
     }
-    
+
 }
 
 void ModelGL::reportDestruction()

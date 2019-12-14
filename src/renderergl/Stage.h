@@ -72,6 +72,7 @@ public:
                 {
                     ItemT * pItem = *it;
                     mpRenderer->setActiveShader(pItem->shaderHash());
+                    mpRenderer->activeShader().setTextureUniforms();
 
                     if (pItem->status() == kRIS_Active)
                     {

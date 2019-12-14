@@ -274,17 +274,15 @@ inline u32 index_count(PrimType primType)
 #pragma pack(push, 1)
 struct Bone
 {
-    Bone(u32 nameHash, u32 parentHash, const vec3 & posLocal, const vec3 & posGlobal)
+    Bone(u32 nameHash, u32 parentHash, const vec3 & pos)
       : nameHash(nameHash)
       , parentHash(parentHash)
-      , posLocal(posLocal)
-      , posGlobal(posGlobal)
+      , pos(pos)
     {}
 
     u32 nameHash;
     u32 parentHash;
-    vec3 posLocal;
-    vec3 posGlobal;
+    vec3 pos;
 };
 
 #pragma pack(pop)

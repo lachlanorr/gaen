@@ -27,6 +27,7 @@
 #include "render_support/stdafx.h"
 
 #include "assets/Gmdl.h"
+#include "assets/Gaim.h"
 #include "engine/AssetMgr.h"
 
 #include "engine/messages/RegisterWatcher.h"
@@ -37,27 +38,45 @@
 namespace gaen
 {
 
-Model::Model(task_id owner, const Asset * pGmdlAsset)
+Model::Model(task_id owner, const Asset * pGmdlAsset, const Asset * pGaimAsset)
   : RenderObject(owner)
   , mpGmdlAsset(pGmdlAsset)
+  , mpGaimAsset(pGaimAsset)
 {
     VALIDATE_ASSET(Gmdl, pGmdlAsset);
     AssetMgr::addref_asset(0, mpGmdlAsset);
     mpGmdl = Gmdl::instance(mpGmdlAsset->buffer(), mpGmdlAsset->size());
+    if (pGaimAsset)
+    {
+        VALIDATE_ASSET(Gaim, pGaimAsset);
+        AssetMgr::addref_asset(0, mpGaimAsset);
+        mpGaim = Gaim::instance(mpGaimAsset->buffer(), mpGaimAsset->size());
+    }
+    else
+    {
+        mpGaim = nullptr;
+    }
 }
 
-Model::Model(task_id owner, const Gmdl* pGmdl)
+Model::Model(task_id owner, const Gmdl* pGmdl, const Gaim* pGaim)
   : RenderObject(owner)
   , mpGmdlAsset(nullptr)
-{
-    mpGmdl = pGmdl;
-}
+  , mpGaimAsset(nullptr)
+  , mpGmdl(pGmdl)
+  , mpGaim(pGaim)
+{}
 
 Model::Model(const Model& rhs)
   : RenderObject(rhs.owner(), rhs.uid())
   , mpGmdlAsset(rhs.mpGmdlAsset)
+  , mpGaimAsset(rhs.mpGaimAsset)
   , mpGmdl(rhs.mpGmdl)
-{}
+  , mpGaim(rhs.mpGaim)
+{
+    LOG_INFO("Model copied without asset addref");
+    // LORRTODO: Probably need to addref here to assets too.
+    // See note below and dig into this idea when looking into crash on cleanup.
+}
 
 Model::~Model()
 {
@@ -65,6 +84,8 @@ Model::~Model()
     {
        // LORRTODO: Cleanup is causing crash on exit... need to redesign how we release assets
        //AssetMgr::release_asset(0, mpGmdlAsset);
+       //if (mpGaimAsset)
+       //    AssetMgr::release_asset(0, mpGaimAsset);
     }
     else
     {
@@ -73,12 +94,28 @@ Model::~Model()
         // do we force deletion and must strip const to do so.
         GDELETE(const_cast<Gmdl*>(mpGmdl));
         mpGmdl = nullptr;
+        if (mpGaim)
+        {
+            GDELETE(const_cast<Gaim*>(mpGaim));
+            mpGaim = nullptr;
+        }
     }
 }
 
 const Gmdl & Model::gmdl() const
 {
     return *mpGmdl;
+}
+
+bool Model::hasGaim() const
+{
+    return mpGaim != nullptr;
+}
+
+const Gaim & Model::gaim() const
+{
+    ASSERT(hasGaim());
+    return *mpGaim;
 }
 
 

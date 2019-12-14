@@ -251,19 +251,40 @@ template MessageResult ModelMgr::message<MessageQueueAccessor>(const MessageQueu
 namespace system_api
 {
 
-i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, i32 passHash, const mat43 & transform, Entity * pCaller)
+i32 model_anim_create(AssetHandleP pAssetHandleGmdl,
+                      AssetHandleP pAssetHandleGaim,
+                      i32 stageHash,
+                      i32 passHash,
+                      const mat43 & transform,
+                      Entity * pCaller)
 {
-    ASSERT(pAssetHandle->typeHash() == HASH::asset);
-    const Asset * pAsset = pAssetHandle->data<Asset>();
+    ASSERT(pAssetHandleGmdl->typeHash() == HASH::asset);
+    const Asset * pAssetGmdl = pAssetHandleGmdl->data<Asset>();
+
+    const Asset * pAssetGaim = nullptr;
+    if (pAssetHandleGaim)
+    {
+        ASSERT(pAssetHandleGaim->typeHash() == HASH::asset);
+        pAssetGaim = pAssetHandleGaim->data<Asset>();
+    }
 
     RenderPass pass = pass_from_hash(passHash);
 
-    Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pAsset);
+    Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pAssetGmdl, pAssetGaim);
     ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass, transform, true);
 
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
 
     return pModel->uid();
+}
+
+i32 model_create(AssetHandleP pAssetHandleGmdl,
+                 i32 stageHash,
+                 i32 passHash,
+                 const mat43 & transform,
+                 Entity * pCaller)
+{
+    return model_anim_create(pAssetHandleGmdl, nullptr, stageHash, passHash, transform, pCaller);
 }
 
 void model_set_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller)

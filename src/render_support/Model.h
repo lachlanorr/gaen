@@ -34,6 +34,7 @@
 
 class Asset;
 class Gmdl;
+class Gaim;
 
 namespace gaen
 {
@@ -41,12 +42,14 @@ namespace gaen
 class Model : public RenderObject
 {
 public:
-    Model(task_id owner, const Asset* pGmdlAsset);
-    Model(task_id owner, const Gmdl* pGmdl);
+    Model(task_id owner, const Asset* pGmdlAsset, const Asset* pGaimAsset);
+    Model(task_id owner, const Gmdl* pGmdl, const Gaim* pGaim);
     Model(const Model& rhs);
     ~Model();
 
     const Gmdl & gmdl() const;
+    bool hasGaim() const;
+    const Gaim & gaim() const;
 
 private:
     // Delete these to make sure w construct through the asset->addref path
@@ -55,9 +58,11 @@ private:
     Model & operator=(Model&&)      = delete;
 
     const Asset * mpGmdlAsset;
+    const Asset * mpGaimAsset;
 
     // pointers into mpGmdlAsset, no need to clean up
     const Gmdl * mpGmdl;
+    const Gaim * mpGaim;
 };
 
 class ModelBody;

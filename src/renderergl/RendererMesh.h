@@ -93,14 +93,12 @@ public:
 
     void setActiveShader(u32 nameHash);
     shaders::Shader & activeShader() { return *mpActiveShader; }
+
 private:
     static void set_shader_vec4_var(u32 nameHash, const vec4 & val, void * pContext);
-    static u32 texture_unit(u32 nameHash);
     static void set_texture(u32 nameHash, u32 glId, void * pContext);
 
     static u32 load_texture(u32 nameHash, const Gimg * pGimg, void * pContext);
-
-    static void prepare_gmdl_attributes(const Gmdl & gmdl);
 
     shaders::Shader * getShader(u32 nameHash);
 

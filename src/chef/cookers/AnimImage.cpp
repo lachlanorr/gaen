@@ -29,12 +29,15 @@
 #include "core/Vector.h"
 #include "hashes/hashes.h"
 
+#include "math/mat3.h"
+
 #include "assets/file_utils.h"
 #include "assets/Config.h"
 #include "assets/Gaim.h"
 
 #include "chef/CookInfo.h"
 #include "chef/Chef.h"
+#include "chef/cookers/Model.h"
 #include "chef/cookers/AnimImage.h"
 
 namespace gaen
@@ -49,7 +52,10 @@ AnimImage::AnimImage()
     addCookedExtExclusive(kExtGaim);
 }
 
-static void readRawAni(Gaim::AnimRaw & animRaw, const char * animName, const char * path)
+static void readAni(Gaim::AnimRaw & animRaw,
+                    const char * animName,
+                    const char * path,
+                    const Vector<kMEM_Chef, Bone> & bones)
 {
     FileReader rdr(path);
     PANIC_IF(!rdr.isOk(), "Unable to load ani file: %s", path);
@@ -71,15 +77,17 @@ static void readRawAni(Gaim::AnimRaw & animRaw, const char * animName, const cha
     animRaw.info.isLoopable = d["isLoopable"].GetBool();
 
     u32 boneCount = d["boneCount"].GetInt();
+    PANIC_IF(boneCount != bones.size(), "Incompatible .skl and .ani files");
     u32 transformCount = animRaw.info.frameCount * boneCount;
 
     animRaw.transforms.reserve(transformCount);
     for (u32 i = 0; i < transforms.Size(); i++)
     {
         const rapidjson::Value & transItem = transforms[i];
-        for (u32 j = 0; j < transItem["transforms"].Size(); ++j)
+        for (u32 j = 0; j < transItem["bones"].Size(); ++j)
         {
-            const rapidjson::Value & trans = transItem["transforms"][j];
+            const rapidjson::Value & trans = transItem["bones"][j];
+            PANIC_IF(HASH::hash_func(trans["name"].GetString()) != bones[j].nameHash, "Bones out of order between .skl and .ani");
             vec3 pos = vec3(trans["pos"][0].GetFloat(),
                             trans["pos"][1].GetFloat(),
                             trans["pos"][2].GetFloat());
@@ -87,7 +95,10 @@ static void readRawAni(Gaim::AnimRaw & animRaw, const char * animName, const cha
                             trans["rot"][1].GetFloat(),
                             trans["rot"][2].GetFloat());
             PANIC_IF(animRaw.transforms.capacity() == animRaw.transforms.size(), "About to resize transforms vector, all space should have been reserved.");
-            animRaw.transforms.emplace_back(pos, rot);
+
+            rot = radians(rot);
+            mat43 t(pos, rot);
+            animRaw.transforms.push_back(t);
         }
     }
 }
@@ -102,15 +113,20 @@ void AnimImage::cook(CookInfo * pCookInfo) const
         PANIC_IF(!rdr.isOk(), "Unable to load file: %s", pCookInfo->rawPath().c_str());
         aim.read(rdr.ifs);
     }
-    for (auto it = aim.keysBegin();
-         it != aim.keysEnd();
+
+    ChefString fullSklPath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), aim.get("skeleton"));
+    Vector<kMEM_Chef, Bone> bones = Model::read_skl(fullSklPath.c_str());
+
+    auto itend = aim.keysEnd("animations");
+    for (auto it = aim.keysBegin("animations");
+         it != itend;
          ++it)
     {
-        ChefString aniPath(aim.get(*it));
+        ChefString aniPath(aim.get("animations", *it));
         pCookInfo->recordDependency(aniPath);
         ChefString fullAniPath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), aniPath);
         animsRaw.push_back(Gaim::AnimRaw());
-        readRawAni(animsRaw.back(), *it, fullAniPath.c_str());
+        readAni(animsRaw.back(), *it, fullAniPath.c_str(), bones);
     }
 
     Gaim * pGaim = Gaim::create(animsRaw);

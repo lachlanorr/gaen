@@ -51,7 +51,7 @@ public:
       , mVertArrayId(0)
       , mVertBufferId(0)
       , mPrimBufferId(0)
-      , mTextureId(0)
+      , mTextureId_diffuse(0)
     {}
 
     void loadGpu();
@@ -85,7 +85,8 @@ private:
     u32 mVertBufferId;
     u32 mPrimBufferId;
 
-    u32 mTextureId;
+    u32 mTextureId_animations;
+    u32 mTextureId_diffuse;
 };
 
 typedef UniquePtr<ModelGL> ModelGLUP;

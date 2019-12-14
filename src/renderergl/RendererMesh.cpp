@@ -155,18 +155,6 @@ void RendererMesh::set_shader_vec4_var(u32 nameHash, const vec4 & val, void * pC
     pShader->setUniformVec4(nameHash, val);
 }
 
-u32 RendererMesh::texture_unit(u32 nameHash)
-{
-    switch (nameHash)
-    {
-    case HASH::diffuse:
-        return 0;
-    default:
-        PANIC("Unknown texture nameHash: %u", nameHash);
-        return 0;
-    };
-}
-
 void RendererMesh::set_texture(u32 nameHash, u32 glId, void * pContext)
 {
     RendererMesh * pRenderer = (RendererMesh*)pContext;
@@ -175,8 +163,28 @@ void RendererMesh::set_texture(u32 nameHash, u32 glId, void * pContext)
 
 void RendererMesh::setTexture(u32 nameHash, u32 glId)
 {
-    glActiveTexture(GL_TEXTURE0 + texture_unit(nameHash));
+    int textureUnit = activeShader().textureUnit(nameHash);
+    ASSERT(textureUnit >= 0);
+
+    glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_2D, glId);
+}
+
+static void image_format_and_type(u32 &pixelFormat, u32 &pixelType, PixelFormat format)
+{
+    switch (format)
+    {
+    case kPXL_RGBA32F:
+        pixelFormat = GL_RGBA;
+        pixelType = GL_FLOAT;
+        break;
+    case kPXL_RGBA8:
+        pixelFormat = GL_RGBA;
+        pixelType = GL_UNSIGNED_BYTE;
+        break;
+    default:
+        PANIC("Unsupported PixelFormat: %d", format);
+    }
 }
 
 u32 RendererMesh::loadTexture(u32 nameHash, const Gimg * pGimg)
@@ -185,24 +193,32 @@ u32 RendererMesh::loadTexture(u32 nameHash, const Gimg * pGimg)
     if (it == mLoadedTextures.end())
     {
         u32 glId = 0;
-        glActiveTexture(GL_TEXTURE0 + texture_unit(nameHash));
+        glActiveTexture(GL_TEXTURE0);
         glGenTextures(1, &glId);
         glBindTexture(GL_TEXTURE_2D, glId);
 
-        ASSERT(pGimg->pixelFormat() == GL_RGBA8);
+        u32 pixelFormat = 0;
+        u32 pixelType = 0;
+        image_format_and_type(pixelFormat, pixelType, pGimg->pixelFormat());
+
+        int err = glGetError();
 
         glTexImage2D(GL_TEXTURE_2D,
                      0,
-                     GL_RGBA,
+                     pGimg->pixelFormat(),
                      pGimg->width(),
                      pGimg->height(),
                      0,
-                     GL_RGBA,
-                     GL_UNSIGNED_BYTE,
+                     pixelFormat,
+                     pixelType,
                      pGimg->pixels());
+
+        err = glGetError();
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+        err = glGetError();
 
         mLoadedTextures.emplace(std::piecewise_construct,
                                 std::forward_as_tuple(pGimg),
@@ -343,37 +359,6 @@ u32 RendererMesh::load_texture(u32 nameHash, const Gimg * pGimg, void * pContext
 {
     RendererMesh * pRenderer = (RendererMesh*)pContext;
     return pRenderer->loadTexture(nameHash, pGimg);
-}
-
-void RendererMesh::prepare_gmdl_attributes(const Gmdl & gmdl)
-{
-    // position
-    if (gmdl.hasVertPosition())
-    {
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertPositionOffset());
-        glEnableVertexAttribArray(0);
-
-        // normal
-        if (gmdl.hasVertNormal())
-        {
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertNormalOffset());
-            glEnableVertexAttribArray(1);
-
-            // uv
-            if (gmdl.hasVertUv())
-            {
-                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertUvOffset());
-                glEnableVertexAttribArray(2);
-
-                // uv tangents
-                if (gmdl.hasVertTan())
-                {
-                    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, gmdl.vertStride(), (void*)(uintptr_t)gmdl.vertTanOffset());
-                    glEnableVertexAttribArray(3);
-                }
-            }
-        }
-    }
 }
 
 void drawColorwheel(NVGcontext* vg, float x, float y, float w, float h, float t)

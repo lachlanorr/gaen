@@ -65,7 +65,18 @@ private:
 class Entity;
 namespace system_api
 {
-i32 model_create(AssetHandleP pAssetHandle, i32 stageHash, i32 passHash, const mat43 & transform, Entity * pCaller);
+i32 model_anim_create(AssetHandleP pAssetHandleGmdl,
+                      AssetHandleP pAssetHandleGaim,
+                      i32 stageHash,
+                      i32 passHash,
+                      const mat43 & transform,
+                      Entity * pCaller);
+
+i32 model_create(AssetHandleP pAssetHandleGmdl,
+                 i32 stageHash,
+                 i32 passHash,
+                 const mat43 & transform,
+                 Entity * pCaller);
 
 void model_init_body(i32 modelUid,
                      f32 mass,
