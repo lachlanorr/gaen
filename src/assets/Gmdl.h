@@ -31,6 +31,7 @@
 #include "core/mem.h"
 
 #include "math/vec3.h"
+#include "math/mat43.h"
 
 #include "assets/Color.h"
 #include "assets/AssetHeader.h"
@@ -274,15 +275,15 @@ inline u32 index_count(PrimType primType)
 #pragma pack(push, 1)
 struct Bone
 {
-    Bone(u32 nameHash, u32 parentHash, const vec3 & pos)
+    Bone(u32 nameHash, u32 parentHash, const mat43 & transform)
       : nameHash(nameHash)
       , parentHash(parentHash)
-      , pos(pos)
+      , transform(transform)
     {}
 
     u32 nameHash;
     u32 parentHash;
-    vec3 pos;
+    mat43 transform;
 };
 
 #pragma pack(pop)

@@ -86,19 +86,14 @@ static void readAni(Gaim::AnimRaw & animRaw,
         const rapidjson::Value & transItem = transforms[i];
         for (u32 j = 0; j < transItem["bones"].Size(); ++j)
         {
-            const rapidjson::Value & trans = transItem["bones"][j];
-            PANIC_IF(HASH::hash_func(trans["name"].GetString()) != bones[j].nameHash, "Bones out of order between .skl and .ani");
-            vec3 pos = vec3(trans["pos"][0].GetFloat(),
-                            trans["pos"][1].GetFloat(),
-                            trans["pos"][2].GetFloat());
-            vec3 rot = vec3(trans["rot"][0].GetFloat(),
-                            trans["rot"][1].GetFloat(),
-                            trans["rot"][2].GetFloat());
+            const rapidjson::Value & b = transItem["bones"][j];
+            PANIC_IF(HASH::hash_func(b["name"].GetString()) != bones[j].nameHash, "Bones out of order between .skl and .ani");
+            mat43 transform(vec3(b["transform"][0][0].GetFloat(), b["transform"][0][1].GetFloat(), b["transform"][0][2].GetFloat()),
+                            vec3(b["transform"][1][0].GetFloat(), b["transform"][1][1].GetFloat(), b["transform"][1][2].GetFloat()),
+                            vec3(b["transform"][2][0].GetFloat(), b["transform"][2][1].GetFloat(), b["transform"][2][2].GetFloat()),
+                            vec3(b["transform"][3][0].GetFloat(), b["transform"][3][1].GetFloat(), b["transform"][3][2].GetFloat()));
             PANIC_IF(animRaw.transforms.capacity() == animRaw.transforms.size(), "About to resize transforms vector, all space should have been reserved.");
-
-            rot = radians(rot);
-            mat43 t(pos, rot);
-            animRaw.transforms.push_back(t);
+            animRaw.transforms.push_back(transform);
         }
     }
 }

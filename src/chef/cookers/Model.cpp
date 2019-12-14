@@ -114,9 +114,13 @@ Vector<kMEM_Chef, Bone> Model::read_skl(const char * path)
     for (u32 i = 0; i < d.Size(); ++i)
     {
         const rapidjson::Value & b = d[i];
+        mat43 transform(vec3(b["transform"][0][0].GetFloat(), b["transform"][0][1].GetFloat(), b["transform"][0][2].GetFloat()),
+                        vec3(b["transform"][1][0].GetFloat(), b["transform"][1][1].GetFloat(), b["transform"][1][2].GetFloat()),
+                        vec3(b["transform"][2][0].GetFloat(), b["transform"][2][1].GetFloat(), b["transform"][2][2].GetFloat()),
+                        vec3(b["transform"][3][0].GetFloat(), b["transform"][3][1].GetFloat(), b["transform"][3][2].GetFloat()));
         bones.emplace_back(HASH::hash_func(b["name"].GetString()),
                            b["parent"].IsNull() ? 0 : HASH::hash_func(b["parent"].GetString()),
-                           vec3(b["pos"][0].GetFloat(), b["pos"][1].GetFloat(), b["pos"][2].GetFloat()));
+                           transform);
     }
 
     return bones;
@@ -288,8 +292,9 @@ void Model::cook(CookInfo * pCookInfo) const
                 ASSERT(pBones);
                 VertPosNormUvBone * pVertPosNormUvBone = (VertPosNormUvBone*)pVert;
                 pVertPosNormUvBone->boneId = bone_id(bones, pAiMesh->mName.C_Str());
-                // adjust vert positions based on bone positions
-                pVertPosNormUvBone->position -= pBones[pVertPosNormUvBone->boneId].pos;
+                // adjust vert positions based on bone transforms
+                mat43 invTrans = ~pBones[pVertPosNormUvBone->boneId].transform;
+                pVertPosNormUvBone->position = invTrans * pVertPosNormUvBone->position;
             }
 
             if (pGmdl->hasVertColor())
