@@ -52,7 +52,24 @@ AnimImage::AnimImage()
     addCookedExtExclusive(kExtGaim);
 }
 
-static void readAni(Gaim::AnimRaw & animRaw,
+static void add_bone_transforms(Gaim::AnimRaw & animRaw,
+                             const rapidjson::Value & boneList,
+                             const Vector<kMEM_Chef, Bone> & bones)
+{
+    for (u32 j = 0; j < boneList.Size(); ++j)
+    {
+        const rapidjson::Value & b = boneList[j];
+        PANIC_IF(HASH::hash_func(b["name"].GetString()) != bones[j].nameHash, "Bones out of order between .skl and .ani");
+        mat43 transform(vec3(b["transform"][0][0].GetFloat(), b["transform"][0][1].GetFloat(), b["transform"][0][2].GetFloat()),
+                        vec3(b["transform"][1][0].GetFloat(), b["transform"][1][1].GetFloat(), b["transform"][1][2].GetFloat()),
+                        vec3(b["transform"][2][0].GetFloat(), b["transform"][2][1].GetFloat(), b["transform"][2][2].GetFloat()),
+                        vec3(b["transform"][3][0].GetFloat(), b["transform"][3][1].GetFloat(), b["transform"][3][2].GetFloat()));
+        PANIC_IF(animRaw.transforms.capacity() == animRaw.transforms.size(), "About to resize transforms vector, all space should have been reserved.");
+        animRaw.transforms.push_back(transform);
+    }
+}
+
+static void read_ani(Gaim::AnimRaw & animRaw,
                     const char * animName,
                     const char * path,
                     const Vector<kMEM_Chef, Bone> & bones)
@@ -83,18 +100,7 @@ static void readAni(Gaim::AnimRaw & animRaw,
     animRaw.transforms.reserve(transformCount);
     for (u32 i = 0; i < transforms.Size(); i++)
     {
-        const rapidjson::Value & transItem = transforms[i];
-        for (u32 j = 0; j < transItem["bones"].Size(); ++j)
-        {
-            const rapidjson::Value & b = transItem["bones"][j];
-            PANIC_IF(HASH::hash_func(b["name"].GetString()) != bones[j].nameHash, "Bones out of order between .skl and .ani");
-            mat43 transform(vec3(b["transform"][0][0].GetFloat(), b["transform"][0][1].GetFloat(), b["transform"][0][2].GetFloat()),
-                            vec3(b["transform"][1][0].GetFloat(), b["transform"][1][1].GetFloat(), b["transform"][1][2].GetFloat()),
-                            vec3(b["transform"][2][0].GetFloat(), b["transform"][2][1].GetFloat(), b["transform"][2][2].GetFloat()),
-                            vec3(b["transform"][3][0].GetFloat(), b["transform"][3][1].GetFloat(), b["transform"][3][2].GetFloat()));
-            PANIC_IF(animRaw.transforms.capacity() == animRaw.transforms.size(), "About to resize transforms vector, all space should have been reserved.");
-            animRaw.transforms.push_back(transform);
-        }
+        add_bone_transforms(animRaw, transforms[i]["bones"], bones);
     }
 }
 
@@ -121,7 +127,7 @@ void AnimImage::cook(CookInfo * pCookInfo) const
         pCookInfo->recordDependency(aniPath);
         ChefString fullAniPath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), aniPath);
         animsRaw.push_back(Gaim::AnimRaw());
-        readAni(animsRaw.back(), *it, fullAniPath.c_str(), bones);
+        read_ani(animsRaw.back(), *it, fullAniPath.c_str(), bones);
     }
 
     Gaim * pGaim = Gaim::create(animsRaw);
