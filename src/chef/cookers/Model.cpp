@@ -111,10 +111,10 @@ Vector<kMEM_Chef, Bone> Model::read_skl(const char * path)
 
     rapidjson::Document d;
     d.Parse(jsonStr.get());
-    bones.reserve(d.Size());
-    for (u32 i = 0; i < d.Size(); ++i)
+    bones.reserve(d["bones"].Size());
+    for (u32 i = 0; i < d["bones"].Size(); ++i)
     {
-        const rapidjson::Value & b = d[i];
+        const rapidjson::Value & b = d["bones"][i];
         mat43 transform(vec3(b["transform"][0][0].GetFloat(), b["transform"][0][1].GetFloat(), b["transform"][0][2].GetFloat()),
                         vec3(b["transform"][1][0].GetFloat(), b["transform"][1][1].GetFloat(), b["transform"][1][2].GetFloat()),
                         vec3(b["transform"][2][0].GetFloat(), b["transform"][2][1].GetFloat(), b["transform"][2][2].GetFloat()),
