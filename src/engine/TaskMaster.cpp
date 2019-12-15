@@ -28,6 +28,7 @@
 
 #include "core/platutils.h"
 #include "core/logging.h"
+#include "core/gamevars.h"
 
 #include "hashes/hashes.h"
 #include "engine/MessageQueue.h"
@@ -45,6 +46,8 @@
 #include "engine/TaskMaster.h"
 
 #define LOG_FPS HAS__
+
+GAMEVAR_DECL_FLOAT(min_render_interval, 0.0f);
 
 namespace gaen
 {
@@ -511,10 +514,18 @@ void TaskMaster::runPrimaryGameLoop()
     mIsRunning = true;
     mFrameTime.init();
 
+    f32 timeSinceRender = 0.0f;
+    bool didRender = false;
+
     while(mIsRunning)
     {
         // Render through the render adapter
-        renderer_render(mRendererTask);
+        if (timeSinceRender > min_render_interval)
+        {
+            renderer_render(mRendererTask);
+            didRender = true;
+            timeSinceRender = 0;
+        }
 
 #if HAS(LOG_FPS)
         if (mFrameTime.frameCount() % 100 == 0)
@@ -557,6 +568,7 @@ void TaskMaster::runPrimaryGameLoop()
         // Use a min value to avoid issues when we are debugging for several seconds
         // within a frame, 0.5s should be a reasonable max for a frame.
         f32 delta = mFrameTime.calcDelta(); // glm::min(0.5f, mFrameTime.calcDelta());
+        timeSinceRender += delta;
         if (mStatus == kTMS_Initialized)
         {
             // call update on each task owned by this TaskMaster
@@ -583,7 +595,11 @@ void TaskMaster::runPrimaryGameLoop()
         // messages and update tasks while we render.
         notify_next_frame();
 
-        renderer_end_frame(mRendererTask);
+        if (didRender)
+        {
+            renderer_end_frame(mRendererTask);
+            didRender = false;
+        }
     };
 }
 
