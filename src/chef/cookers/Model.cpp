@@ -28,6 +28,7 @@
 
 #include "math/common.h"
 #include "math/vec3.h"
+#include "math/mat3.h"
 
 #include "core/Vector.h"
 #include "hashes/hashes.h"
@@ -295,6 +296,8 @@ void Model::cook(CookInfo * pCookInfo) const
                 // adjust vert positions based on bone transforms
                 mat43 invTrans = ~pBones[pVertPosNormUvBone->boneId].transform;
                 pVertPosNormUvBone->position = invTrans * pVertPosNormUvBone->position;
+                mat3 invRot(invTrans);
+                pVertPosNormUvBone->normal = invRot * pVertPosNormUvBone->normal;
             }
 
             if (pGmdl->hasVertColor())
