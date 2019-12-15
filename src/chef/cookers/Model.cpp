@@ -99,9 +99,9 @@ static VertType choose_vert_type(aiMesh* pMesh, CookInfo * pCookInfo, bool legac
     return kVERT_Unknown;
 }
 
-Vector<kMEM_Chef, Bone> Model::read_skl(const char * path)
+void Model::read_skl(Skeleton & skel, const char * path)
 {
-    Vector<kMEM_Chef, Bone> bones;
+    ASSERT(skel.bones.size() == 0);
 
     FileReader rdr(path);
     Scoped_GFREE<char> jsonStr((char*)GALLOC(kMEM_Chef, rdr.size()+1)); // +1 for null we'll add to end
@@ -109,22 +109,19 @@ Vector<kMEM_Chef, Bone> Model::read_skl(const char * path)
     jsonStr.get()[rdr.size()] = '\0';
     rdr.ifs.close();
 
-    rapidjson::Document d;
-    d.Parse(jsonStr.get());
-    bones.reserve(d["bones"].Size());
-    for (u32 i = 0; i < d["bones"].Size(); ++i)
+    skel.jsonDoc.Parse(jsonStr.get());
+    skel.bones.reserve(skel.jsonDoc["bones"].Size());
+    for (u32 i = 0; i < skel.jsonDoc["bones"].Size(); ++i)
     {
-        const rapidjson::Value & b = d["bones"][i];
+        const rapidjson::Value & b = skel.jsonDoc["bones"][i];
         mat43 transform(vec3(b["transform"][0][0].GetFloat(), b["transform"][0][1].GetFloat(), b["transform"][0][2].GetFloat()),
                         vec3(b["transform"][1][0].GetFloat(), b["transform"][1][1].GetFloat(), b["transform"][1][2].GetFloat()),
                         vec3(b["transform"][2][0].GetFloat(), b["transform"][2][1].GetFloat(), b["transform"][2][2].GetFloat()),
                         vec3(b["transform"][3][0].GetFloat(), b["transform"][3][1].GetFloat(), b["transform"][3][2].GetFloat()));
-        bones.emplace_back(HASH::hash_func(b["name"].GetString()),
-                           b["parent"].IsNull() ? 0 : HASH::hash_func(b["parent"].GetString()),
-                           transform);
+        skel.bones.emplace_back(HASH::hash_func(b["name"].GetString()),
+                                b["parent"].IsNull() ? 0 : HASH::hash_func(b["parent"].GetString()),
+                                transform);
     }
-
-    return bones;
 }
 
 u32 Model::bone_id(const Vector<kMEM_Chef, Bone> & bones, const char * name)
@@ -206,14 +203,14 @@ void Model::cook(CookInfo * pCookInfo) const
     }
 
     // check for voxel skeleton
-    Vector<kMEM_Chef, Bone> bones;
+    Skeleton skel;
     ChefString sklpath = pCookInfo->rawPath();
     change_ext(sklpath, ChefString("skl"));
     if (file_exists(sklpath.c_str()))
     {
         pCookInfo->recordDependency(get_filename(sklpath));
-        bones = read_skl(sklpath.c_str());
-        if (vertType == kVERT_PosNormUv && bones.size() > 0)
+        read_skl(skel, sklpath.c_str());
+        if (vertType == kVERT_PosNormUv && skel.bones.size() > 0)
         {
             vertType = kVERT_PosNormUvBone;
         }
@@ -225,16 +222,16 @@ void Model::cook(CookInfo * pCookInfo) const
         pMat = Gmat::create(textures, HASH::voxchar); // LORRTODO: allow shader specification in the .rcp file
     }
 
-    Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount, (u32)bones.size(), pMat);
+    Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount, (u32)skel.bones.size(), pMat);
 
     PANIC_IF(!pGmdl, "Failure in Gmdl::create, %s", pCookInfo->rawPath().c_str());
 
     // copy bones into gmdl
     Bone * pBones = nullptr;
-    if (vertType == kVERT_PosNormUvBone && bones.size() > 0)
+    if (vertType == kVERT_PosNormUvBone && skel.bones.size() > 0)
     {
         pBones = pGmdl->bones();
-        memcpy(pBones, bones.data(), sizeof(Bone) * bones.size());
+        memcpy(pBones, skel.bones.data(), sizeof(Bone) * skel.bones.size());
     }
 
     f32 * pVert = pGmdl->verts();
@@ -292,7 +289,7 @@ void Model::cook(CookInfo * pCookInfo) const
             {
                 ASSERT(pBones);
                 VertPosNormUvBone * pVertPosNormUvBone = (VertPosNormUvBone*)pVert;
-                pVertPosNormUvBone->boneId = bone_id(bones, pAiMesh->mName.C_Str());
+                pVertPosNormUvBone->boneId = bone_id(skel.bones, pAiMesh->mName.C_Str());
                 // adjust vert positions based on bone transforms
                 mat43 invTrans = ~pBones[pVertPosNormUvBone->boneId].transform;
                 pVertPosNormUvBone->position = invTrans * pVertPosNormUvBone->position;

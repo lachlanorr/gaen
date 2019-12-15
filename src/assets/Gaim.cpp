@@ -172,8 +172,6 @@ const AnimInfo * Gaim::anim(u32 nameHash) const
             return pAi;
         pAi++;
     }
-    if (nameHash == HASH::default)
-        return anims(); // default to first anim
     PANIC("Anim not found: %u, 0x%x", nameHash, nameHash);
     return nullptr;
 }

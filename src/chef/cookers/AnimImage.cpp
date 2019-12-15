@@ -116,7 +116,20 @@ void AnimImage::cook(CookInfo * pCookInfo) const
     }
 
     ChefString fullSklPath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), aim.get("skeleton"));
-    Vector<kMEM_Chef, Bone> bones = Model::read_skl(fullSklPath.c_str());
+    Model::Skeleton skel;
+    Model::read_skl(skel, fullSklPath.c_str());
+
+    // Add default pose into gaim (bones transforms from gmdl)
+    Gaim::AnimRaw def;
+    def.info.nameHash = HASH::default;
+    def.info.frameDuration = 1.0 / 60.0;
+    def.info.frameCount = 1;
+    def.info.framesOffset = 0;
+    def.info.isLoopable = 1;
+    def.info.totalTime = 0.0;
+    def.transforms.reserve(skel.bones.size());
+    add_bone_transforms(def, skel.jsonDoc["bones"], skel.bones);
+    animsRaw.push_back(def);
 
     auto itend = aim.keysEnd("animations");
     for (auto it = aim.keysBegin("animations");
@@ -127,7 +140,7 @@ void AnimImage::cook(CookInfo * pCookInfo) const
         pCookInfo->recordDependency(aniPath);
         ChefString fullAniPath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), aniPath);
         animsRaw.push_back(Gaim::AnimRaw());
-        read_ani(animsRaw.back(), *it, fullAniPath.c_str(), bones);
+        read_ani(animsRaw.back(), *it, fullAniPath.c_str(), skel.bones);
     }
 
     Gaim * pGaim = Gaim::create(animsRaw);

@@ -42,10 +42,16 @@ static const char * kExtGmdl = "gmdl";
 class Model : public Cooker
 {
 public:
+    struct Skeleton
+    {
+        Vector<kMEM_Chef, Bone> bones;
+        rapidjson::Document jsonDoc;
+    };
+
     Model();
     virtual void cook(CookInfo * pCookInfo) const;
 
-    static Vector<kMEM_Chef, Bone> read_skl(const char * path);
+    static void read_skl(Skeleton & skel, const char * path);
     static u32 bone_id(const Vector<kMEM_Chef, Bone> & bones, const char * name);
 };
 
