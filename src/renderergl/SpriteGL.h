@@ -42,7 +42,7 @@ class SpriteGL
 {
 public:
     typedef SpriteInstance InstanceType;
-    
+
     SpriteGL(SpriteInstance * pSpriteInstance, RendererMesh * pRenderer)
       : mpSpriteInstance(pSpriteInstance)
       , mpRenderer(pRenderer)
@@ -76,6 +76,9 @@ public:
     void setStatus(RenderItemStatus status) { mStatus = status; }
 
     bool hasNormal() { return false; }
+
+    u32 frameOffset() const { return 0; }
+    void setFrameOffset(u32 offset) { }
 
 private:
     UniquePtr<SpriteInstance> mpSpriteInstance;

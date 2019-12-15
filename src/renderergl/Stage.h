@@ -96,6 +96,9 @@ public:
                             }
                         }
 
+                        if (mpRenderer->activeShader().hasUniform(HASH::frame_offset, GL_UNSIGNED_INT))
+                            mpRenderer->activeShader().setUniformUint(HASH::frame_offset, pItem->frameOffset());
+
                         pItem->render();
                         ++it;
                     }
@@ -255,6 +258,20 @@ public:
                     mItems[i].reorder(uid);
                 }
 
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool itemFrameOffset(u32 uid, u32 offset)
+    {
+        for (u32 i = 0; i < kRP_COUNT; ++i)
+        {
+            auto it = mItems[i].find(uid);
+            if (it != mItems[i].end())
+            {
+                it->setFrameOffset(offset);
                 return true;
             }
         }

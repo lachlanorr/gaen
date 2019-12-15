@@ -73,9 +73,9 @@ static const char * kShaderCode_shv =
     "\n"
     "    frag_uv = vert_uv;\n"
     "\n"
-    "    vec4 anim0 = texture(animations, trans_coords(bone_id * 3));\n"
-    "    vec4 anim1 = texture(animations, trans_coords(bone_id * 3 + 1));\n"
-    "    vec4 anim2 = texture(animations, trans_coords(bone_id * 3 + 2));\n"
+    "    vec4 anim0 = texture(animations, trans_coords(frame_offset + bone_id * 3));\n"
+    "    vec4 anim1 = texture(animations, trans_coords(frame_offset + bone_id * 3 + 1));\n"
+    "    vec4 anim2 = texture(animations, trans_coords(frame_offset + bone_id * 3 + 2));\n"
     "\n"
     "    mat4 boneTrans = mat4(vec4(anim0.x, anim0.y, anim0.z, 0),\n"
     "                         vec4(anim0.w, anim1.x, anim1.y, 0),\n"
@@ -162,40 +162,45 @@ Shader * voxchar::construct()
 
 
     // Uniforms
-    pShader->mUniforms[0].nameHash = 0x9d3cf50a; /* HASH::light0_ambient */
+    pShader->mUniforms[0].nameHash = 0xba83cf18; /* HASH::frame_offset */
     pShader->mUniforms[0].index = 0;
     pShader->mUniforms[0].location = 0;
-    pShader->mUniforms[0].type = GL_FLOAT;
+    pShader->mUniforms[0].type = GL_UNSIGNED_INT;
 
-    pShader->mUniforms[1].nameHash = 0x52ed2439; /* HASH::light0_color */
+    pShader->mUniforms[1].nameHash = 0x9d3cf50a; /* HASH::light0_ambient */
     pShader->mUniforms[1].index = 1;
     pShader->mUniforms[1].location = 1;
-    pShader->mUniforms[1].type = GL_FLOAT_VEC3;
+    pShader->mUniforms[1].type = GL_FLOAT;
 
-    pShader->mUniforms[2].nameHash = 0x4baa3a20; /* HASH::light0_incidence */
+    pShader->mUniforms[2].nameHash = 0x52ed2439; /* HASH::light0_color */
     pShader->mUniforms[2].index = 2;
     pShader->mUniforms[2].location = 2;
     pShader->mUniforms[2].type = GL_FLOAT_VEC3;
 
-    pShader->mUniforms[3].nameHash = 0xdd88a90e; /* HASH::mvp */
+    pShader->mUniforms[3].nameHash = 0x4baa3a20; /* HASH::light0_incidence */
     pShader->mUniforms[3].index = 3;
     pShader->mUniforms[3].location = 3;
-    pShader->mUniforms[3].type = GL_FLOAT_MAT4;
+    pShader->mUniforms[3].type = GL_FLOAT_VEC3;
 
-    pShader->mUniforms[4].nameHash = 0x450e1f0e; /* HASH::rot */
+    pShader->mUniforms[4].nameHash = 0xdd88a90e; /* HASH::mvp */
     pShader->mUniforms[4].index = 4;
     pShader->mUniforms[4].location = 4;
-    pShader->mUniforms[4].type = GL_FLOAT_MAT3;
+    pShader->mUniforms[4].type = GL_FLOAT_MAT4;
 
-    pShader->mUniforms[5].nameHash = 0xcf15f26a; /* HASH::animations */
+    pShader->mUniforms[5].nameHash = 0x450e1f0e; /* HASH::rot */
     pShader->mUniforms[5].index = 5;
     pShader->mUniforms[5].location = 5;
-    pShader->mUniforms[5].type = GL_SAMPLER_2D;
+    pShader->mUniforms[5].type = GL_FLOAT_MAT3;
 
-    pShader->mUniforms[6].nameHash = 0x546e2a3d; /* HASH::diffuse */
+    pShader->mUniforms[6].nameHash = 0xcf15f26a; /* HASH::animations */
     pShader->mUniforms[6].index = 6;
     pShader->mUniforms[6].location = 6;
     pShader->mUniforms[6].type = GL_SAMPLER_2D;
+
+    pShader->mUniforms[7].nameHash = 0x546e2a3d; /* HASH::diffuse */
+    pShader->mUniforms[7].index = 7;
+    pShader->mUniforms[7].location = 7;
+    pShader->mUniforms[7].type = GL_SAMPLER_2D;
 
 
     // Attributes
@@ -223,12 +228,12 @@ Shader * voxchar::construct()
     // Textures
     pShader->mTextures[0].nameHash = 0xcf15f26a; /* HASH::animations */
     pShader->mTextures[0].index = 0;
-    pShader->mTextures[0].location = 5;
+    pShader->mTextures[0].location = 6;
     pShader->mTextures[0].type = GL_SAMPLER_2D;
 
     pShader->mTextures[1].nameHash = 0x546e2a3d; /* HASH::diffuse */
     pShader->mTextures[1].index = 1;
-    pShader->mTextures[1].location = 6;
+    pShader->mTextures[1].location = 7;
     pShader->mTextures[1].type = GL_SAMPLER_2D;
 
 

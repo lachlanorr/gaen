@@ -56,6 +56,8 @@ struct AnimInfo
 class Gaim : public AssetHeader4CC<FOURCC("gaim")>
 {
 public:
+    static const u32 kPixelsPerTransform = 3; // kBytesPerBone / bytes_per_pixel(kPXL_RGBA32F);
+
     typedef Vector<kMEM_Chef, mat43> Transforms;
     struct AnimRaw
     {
@@ -78,8 +80,9 @@ public:
 
     Gimg * image();
     const Gimg * image() const;
+
     const AnimInfo * anim(u32 nameHash) const;
-    u32 pixelIndex(AnimInfo * pAnimInfo, f32 delta) const;
+    u32 frameOffset(const AnimInfo * pAnimInfo, f32 elapsedTime) const;
 
 private:
     // Class should not be constructed directly.  Use cast and create static methods.
@@ -93,11 +96,14 @@ private:
         return mBoneCount * kBytesPerBone;
     }
 
-    static u32 pixels_per_transform();
-
     AnimInfo * anims()
     {
         return reinterpret_cast<AnimInfo*>(reinterpret_cast<u8*>(this) + sizeof(Gaim));
+    }
+
+    const AnimInfo * anims() const
+    {
+        return reinterpret_cast<const AnimInfo*>(reinterpret_cast<const u8*>(this) + sizeof(Gaim));
     }
 
     u64 imageOffset() const

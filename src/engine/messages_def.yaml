@@ -114,6 +114,14 @@ UidColor:
   uid: i32
   color: Color
 
+UidInteger:
+  uid: i32
+  integer: i32
+
+UidVec2:
+  uid: i32
+  vector: vec2
+
 UidVec3:
   uid: i32
   vector: vec3

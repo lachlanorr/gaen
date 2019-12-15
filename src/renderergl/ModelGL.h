@@ -29,6 +29,7 @@
 
 #include "core/mem.h"
 #include "math/mat43.h"
+#include "math/vec2.h"
 #include "assets/Gmdl.h"
 #include "render_support/Model.h"
 
@@ -52,6 +53,7 @@ public:
       , mVertBufferId(0)
       , mPrimBufferId(0)
       , mTextureId_diffuse(0)
+      , mFrameOffset(0)
     {}
 
     void loadGpu();
@@ -67,13 +69,16 @@ public:
 
     void reportDestruction();
     
-    const mat43 & transform() { return mpModelInstance->mTransform; }
+    const mat43 & transform() const { return mpModelInstance->mTransform; }
     void setTransform(const mat43 & transform) { mpModelInstance->mTransform = transform; }
 
-    RenderItemStatus status() { return mStatus; }
+    RenderItemStatus status() const { return mStatus; }
     void setStatus(RenderItemStatus status) { mStatus = status; }
 
-    bool hasNormal() { return true; }
+    bool hasNormal() const { return true; }
+
+    u32 frameOffset() const { return mFrameOffset; }
+    void setFrameOffset(u32 offset) { mFrameOffset = offset; }
 
 private:
     UniquePtr<ModelInstance> mpModelInstance;
@@ -87,6 +92,8 @@ private:
 
     u32 mTextureId_animations;
     u32 mTextureId_diffuse;
+
+    u32 mFrameOffset;
 };
 
 typedef UniquePtr<ModelGL> ModelGLUP;

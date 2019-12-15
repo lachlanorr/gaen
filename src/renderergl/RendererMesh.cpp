@@ -53,6 +53,7 @@
 #include "engine/messages/UidTransform.h"
 #include "engine/messages/UidScalarTransform.h"
 #include "engine/messages/UidColor.h"
+#include "engine/messages/UidInteger.h"
 #include "engine/messages/UidVec3.h"
 #include "engine/messages/UidScalar.h"
 
@@ -563,6 +564,12 @@ MessageResult RendererMesh::message(const T & msgAcc)
         messages::NotifyWatcherMat43R<T> msgr(msgAcc);
         ASSERT(msgr.valueType() == HASH::mat43);
         mModelStages.itemTransform(msgr.uid(), msgr.value());
+        break;
+    }
+    case HASH::model_frame_offset:
+    {
+        messages::UidIntegerR<T> msgr(msgAcc);
+        mModelStages.itemFrameOffset(msgr.uid(), msgr.integer());
         break;
     }
     case HASH::model_remove:

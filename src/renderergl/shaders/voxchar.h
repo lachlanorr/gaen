@@ -40,7 +40,7 @@ private:
     voxchar() : Shader(0xd4208c92 /* HASH::voxchar */) {}
 
     static const u32 kCodeCount = 2;
-    static const u32 kUniformCount = 7;
+    static const u32 kUniformCount = 8;
     static const u32 kAttributeCount = 4;
     static const u32 kTextureCount = 2;
 

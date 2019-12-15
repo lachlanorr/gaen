@@ -38,9 +38,9 @@ void main()
 
     frag_uv = vert_uv;
 
-    vec4 anim0 = texture(animations, trans_coords(bone_id * 3));
-    vec4 anim1 = texture(animations, trans_coords(bone_id * 3 + 1));
-    vec4 anim2 = texture(animations, trans_coords(bone_id * 3 + 2));
+    vec4 anim0 = texture(animations, trans_coords(frame_offset + bone_id * 3));
+    vec4 anim1 = texture(animations, trans_coords(frame_offset + bone_id * 3 + 1));
+    vec4 anim2 = texture(animations, trans_coords(frame_offset + bone_id * 3 + 2));
 
     mat4 boneTrans = mat4(vec4(anim0.x, anim0.y, anim0.z, 0),
                          vec4(anim0.w, anim1.x, anim1.y, 0),

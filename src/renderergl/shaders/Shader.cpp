@@ -125,6 +125,11 @@ Shader::VariableInfo * Shader::findUniform(u32 nameHash, u32 type)
     return nullptr;
 }
 
+bool Shader::hasUniform(u32 nameHash, u32 type)
+{
+    return findUniform(nameHash, type) != nullptr;
+}
+
 Shader::VariableInfo * Shader::findTexture(u32 nameHash)
 {
     for (u32 i = 0; i < mTextureCount; ++i)
@@ -165,6 +170,16 @@ void Shader::setUniformFloat(u32 nameHash, f32 value)
         glUniform1f(pUniform->location, value);
     else
         ERR("UniformFloat does not exist in shader");
+}
+
+void Shader::setUniformVec2(u32 nameHash, const vec2 & value)
+{
+    ASSERT(mIsLoaded);
+    VariableInfo * pUniform = findUniform(nameHash, GL_FLOAT_VEC2);
+    if(pUniform)
+        glUniform3fv(pUniform->location, 1, value_ptr(value));
+    else
+        ERR("UniformVec2 does not exist in shader");
 }
 
 void Shader::setUniformVec3(u32 nameHash, const vec3 & value)

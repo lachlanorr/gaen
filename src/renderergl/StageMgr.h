@@ -173,6 +173,16 @@ public:
         ERR("StageMgr::itemTransform unknown item, uid: %u", uid);
     }
 
+    void itemFrameOffset(u32 uid, u32 offset)
+    {
+        for (auto & stage : mStages)
+        {
+            if (stage->itemFrameOffset(uid, offset))
+                return;
+        }
+        ERR("StageMgr::itemFrameOffset unknown item, uid: %u", uid);
+    }
+
     void itemAnimate(u32 uid, u32 animHash, u32 animFrameIdx)
     {
         for (auto & stage : mStages)

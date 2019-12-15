@@ -24,7 +24,10 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include <cmath>
+
 #include "core/Vector.h"
+#include "hashes/hashes.h"
 
 #include "assets/file_utils.h"
 #include "assets/Gimg.h"
@@ -81,12 +84,6 @@ static uvec2 image_dimensions(u32 totalPixels)
     return uvec2(width, height);
 }
 
-u32 Gaim::pixels_per_transform()
-{
-    PANIC_IF(kBytesPerBone % bytes_per_pixel(kPXL_RGBA32F) != 0, "BytesPerBone not divisible by pixel size");
-    return kBytesPerBone / bytes_per_pixel(kPXL_RGBA32F);
-}
-
 u64 Gaim::required_size(u32 & boneCount,
                         u32 & animCount,
                         u64 & imageOffset,
@@ -111,7 +108,7 @@ u64 Gaim::required_size(u32 & boneCount,
         totalTransforms += (u32)animRaw.transforms.size();
     }
 
-    u32 totalPixels = totalTransforms * pixels_per_transform();
+    u32 totalPixels = totalTransforms * kPixelsPerTransform;
     widthHeight = image_dimensions(totalPixels);
     size += Gimg::required_size(kPXL_RGBA32F, widthHeight.x, widthHeight.y);
 
@@ -141,7 +138,7 @@ Gaim * Gaim::create(const AnimsRaw & animsRaw)
     for (const auto & animRaw : animsRaw)
     {
         *pAnims = animRaw.info;
-        pAnims->framesOffset = (pTrans - pTransStart) * pixels_per_transform();
+        pAnims->framesOffset = (pTrans - pTransStart) * kPixelsPerTransform;
         pAnims++;
         for (const auto & trans : animRaw.transforms)
         {
@@ -164,6 +161,34 @@ const Gimg * Gaim::image() const
 {
     return reinterpret_cast<const Gimg*>(reinterpret_cast<const u8*>(this) + mImageOffset);
 }
+
+const AnimInfo * Gaim::anim(u32 nameHash) const
+{
+    const AnimInfo * pAi = anims();
+    const AnimInfo * pAiEnd = pAi + mAnimCount;
+    while (pAi < pAiEnd)
+    {
+        if (pAi->nameHash == nameHash)
+            return pAi;
+        pAi++;
+    }
+    if (nameHash == HASH::default)
+        return anims(); // default to first anim
+    PANIC("Anim not found: %u, 0x%x", nameHash, nameHash);
+    return nullptr;
+}
+
+u32 Gaim::frameOffset(const AnimInfo * pAnimInfo, f32 elapsedTime) const
+{
+    ASSERT(pAnimInfo);
+    f32 moddedTime = fmod(elapsedTime, pAnimInfo->totalTime);
+    u32 offset = (u32)(moddedTime / pAnimInfo->frameDuration);
+    offset = offset * kPixelsPerTransform * mBoneCount;
+    offset += pAnimInfo->framesOffset;
+
+    return offset;
+}
+
 
 } // namespace gaen
 

@@ -29,6 +29,7 @@
 
 #include "core/base_defines.h"
 
+#include "math/vec2.h"
 #include "math/vec3.h"
 #include "math/vec4.h"
 #include "math/mat3.h"
@@ -56,6 +57,7 @@ public:
     void setUniformUint(u32 nameHash, u32 value);
     void setUniformFloat(u32 nameHash, f32 value);
 
+    void setUniformVec2(u32 nameHash, const vec2 & value);
     void setUniformVec3(u32 nameHash, const vec3 & value);
     void setUniformVec4(u32 nameHash, const vec4 & value);
 
@@ -64,6 +66,8 @@ public:
 
     void setTextureUniforms();
     i32 textureUnit(i32 nameHash);
+
+    bool hasUniform(u32 nameHash, u32 type);
 
     static bool compile_shader(GLuint * pShader, GLenum type, const char * shaderCode, const char * headerCode = nullptr);
 
