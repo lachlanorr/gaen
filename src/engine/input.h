@@ -165,7 +165,7 @@ enum Key
     kKEY_Mouse7         = 124,
     kKEY_Mouse8         = 125,
 
-    kKEY_NOKEY          = 126 // Indicative of no key pressed, used when specifying no key in a 4 key combo
+    kKEY_NONE           = 126 // Indicative of no key pressed, used when specifying no key in a 4 key combo
 };
 
 enum KeyAction
@@ -203,30 +203,54 @@ struct KeyInput
 };
 static_assert(sizeof(KeyInput) == sizeof(u32), "KeyInput unexpected size");
 
-enum ControllerButton
+enum PadCode
 {
-    kCTRL_A          = 0x00001,
-    kCTRL_B          = 0x00002,
-    kCTRL_X          = 0x00004,
-    kCTRL_Y          = 0x00008,
+    kPAD_NONE       = 0x00000,
 
-    kCTRL_L1         = 0x00010,
-    kCTRL_L2         = 0x00020,
-    kCTRL_L3         = 0x00040,
+    kPAD_A          = 0x00001,
+    kPAD_B          = 0x00002,
+    kPAD_X          = 0x00004,
+    kPAD_Y          = 0x00008,
 
-    kCTRL_R1         = 0x00080,
-    kCTRL_R2         = 0x00100,
-    kCTRL_R3         = 0x00200,
+    kPAD_LBumper    = 0x00010,
+    kPAD_RBumper    = 0x00020,
 
-    kCTRL_DUp        = 0x00400,
-    kCTRL_DDown      = 0x00800,
-    kCTRL_DLeft      = 0x01000,
-    kCTRL_DRight     = 0x02000,
+    kPAD_Back       = 0x00040,
+    kPAD_Start      = 0x00080,
+    kPAD_Guide      = 0x00100,
 
-    kCTRL_Opt0       = 0x04000,
-    kCTRL_Opt1       = 0x08000,
-    kCTRL_Opt2       = 0x10000,
-    kCTRL_Opt3       = 0x20000
+    kPAD_LThumb     = 0x00200,
+    kPAD_RThumb     = 0x00400,
+
+    kPAD_DUp        = 0x00800,
+    kPAD_DRight     = 0x01000,
+    kPAD_DDown      = 0x02000,
+    kPAD_DLeft      = 0x04000,
+
+    kPAD_LStick     = 0x08000,
+    kPAD_RStick     = 0x10000,
+    kPAD_LTrigger   = 0x20000,
+    kPAD_RTrigger   = 0x40000,
+};
+static const u32 kPadCodeAnalogStart = kPAD_LStick;
+
+struct PadInput
+{
+    u32 padId;
+    u32 codes;
+    vec2 lstick;
+    vec2 rstick;
+    f32 ltrigger;
+    f32 rtrigger;
+
+    PadInput(u32 padId = 0)
+      : padId(padId)
+      , codes(0)
+      , lstick(0.0f)
+      , rstick(0.0f)
+      , ltrigger(0.0f)
+      , rtrigger(0.0f)
+    {}
 };
 
 inline cell to_cell(KeyInput val)
@@ -239,6 +263,7 @@ inline cell to_cell(KeyInput val)
 
 // Convert string to KeyCode, useful when parsing config files
 Key lookup_key_code(const char * str);
+PadCode lookup_pad_button(const char * str);
 
 inline u32 key_vec_idx(Key key) { return key / 32; }
 inline u32 key_vec_mask(Key key) { return 1 << (key % 32); }
@@ -261,7 +286,8 @@ void process_key_input(KeyInput keyInput);
 Key convert_glfw_key(int glfwKey);
 void kill_focus();
 
-u32 convert_glfw_joy_buttons();
+PadCode convert_glfw_pad(int glfwGamepadButton);
+void poll_pad_input();
 
 // Mouse stuff
 

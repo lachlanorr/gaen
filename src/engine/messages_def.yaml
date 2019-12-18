@@ -230,3 +230,11 @@ Asset:
 
 KeyPress:
   keys: ivec4
+
+PadInput:
+  padId: i32
+  codes: i32
+  lstick: vec2
+  rstick: vec2
+  ltrigger: f32
+  rtrigger: f32

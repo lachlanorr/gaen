@@ -94,7 +94,9 @@ void broadcast_targeted_message(u32 msgId,
                                 task_id target,
                                 cell payload,
                                 u32 blockCount,
-                                const Block * pBlocks);
+                                const Block * pBlocks,
+                                bool notToSelf = false);
+void broadcast_targeted_message(const MessageBlockAccessor & msgAcc, bool notToSelf = false);
 
 void broadcast_insert_task(task_id source, thread_id owner, const Task & task);
 void broadcast_remove_task(task_id source, task_id taskToRemove);

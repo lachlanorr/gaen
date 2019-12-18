@@ -51,20 +51,17 @@ public:
 
     u32 queryState(u32 player, u32 stateHash, vec4 * pMeasure);
 
+    static const u32 kPadCountMax = 4;
+    void updatePadState(u32 padId,
+                        u32 codes,
+                        const vec2 & lstick,
+                        const vec2 & rstick,
+                        f32 ltrigger,
+                        f32 rtrigger);
+
     static void register_key_press_listener(u32 mode, task_id target);
     static void deregister_key_press_listener(u32 mode, task_id target);
 private:
-    struct CtrlState
-    {
-        // LORRTODO: Define controller
-        u32 placeholder__;
-
-        void zeroState()
-        {
-            placeholder__ = 0;
-        }
-    };
-
     struct MouseState
     {
         i32 xPos;
@@ -87,24 +84,16 @@ private:
         HashMap<kMEM_Engine, u32, ivec4> mouseButtons;
         u32 mouseMove;
 
-        HashMap<kMEM_Engine, u32, ivec4> ctrlButtons;
-        u32 ctrlLTrigger;
-        u32 ctrlRTrigger;
-        u32 ctrlLStick;
-        u32 ctrlRStick;
+        HashMap<kMEM_Engine, u32, u32> pad;
 
         InputMode()
           : nameHash(0)
           , mouseMove(0)
-          , ctrlLTrigger(0)
-          , ctrlRTrigger(0)
-          , ctrlLStick(0)
-          , ctrlRStick(0)
         {}
     };
 
     bool queryKey(Key key);
-    u32 queryState(const ivec4 & keys);
+    u32 queryKeyboardState(const ivec4 & keys);
 
     void processKeyInput(const KeyInput & keyInput);
     void processMouseMoveInput(const MouseInput::Movement & moveInput);
@@ -120,12 +109,11 @@ private:
 
     bool mIsPrimary;
 
+    PadInput mPadState[kPadCountMax];
+
     ivec4 mPressedKeys;
 
     MouseState mMouseState;
-
-    static const u32 kMaxPlayers = 4;
-    CtrlState mCtrlState[kMaxPlayers];
 
     InputMode * mpActiveMode;
     HashMap<kMEM_Engine, u32, InputMode> mModes;

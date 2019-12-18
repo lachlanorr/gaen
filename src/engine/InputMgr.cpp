@@ -38,6 +38,7 @@
 #include "engine/MessageWriter.h"
 #include "engine/messages/KeyPress.h"
 #include "engine/messages/MouseMove.h"
+#include "engine/messages/PadInput.h"
 
 #include "engine/InputMgr.h"
 
@@ -75,7 +76,7 @@ void find_input_conf(char * inputConfPath)
 InputMgr::InputMgr(bool isPrimary)
   : mIsPrimary(isPrimary)
 {
-    Config<kMEM_Engine> keyConf;
+    Config<kMEM_Engine> inputConf;
 
     zeroState();
 
@@ -84,40 +85,61 @@ InputMgr::InputMgr(bool isPrimary)
     char inputConfPath[kMaxPath+1];
     find_input_conf(inputConfPath);
 
-    if (keyConf.read(inputConfPath))
+    if (inputConf.read(inputConfPath))
     {
-        for (auto secIt = keyConf.sectionsBegin();
-             secIt != keyConf.sectionsEnd();
+        for (auto secIt = inputConf.sectionsBegin();
+             secIt != inputConf.sectionsEnd();
              ++secIt)
         {
             u32 secHash = HASH::hash_func(*secIt);
 
             mModes[secHash].nameHash = secHash;
 
-            for (auto keyIt = keyConf.keysBegin(*secIt);
-                 keyIt != keyConf.keysEnd(*secIt);
-                 ++keyIt)
+            for (auto inpIt = inputConf.keysBegin(*secIt);
+                 inpIt != inputConf.keysEnd(*secIt);
+                 ++inpIt)
             {
-                u32 keyHash = HASH::hash_func(*keyIt);
+                u32 inpHash = HASH::hash_func(*inpIt);
 
-                if (keyHash == HASH::none || keyHash == HASH::any)
+                if (inpHash == HASH::none || inpHash == HASH::any)
                 {
-                    LOG_ERROR("'none' or 'any' input names are reserved");
+                    LOG_ERROR("'none' and 'any' input names are reserved");
                 }
                 else
                 {
-                    ivec4 keys;
-                    auto keyVec = keyConf.getVec(*secIt, *keyIt);
-                    u32 keyCount = min(4, (i32)keyVec.size());
-                    for (u32 i = 0; i < keyCount; ++i)
+                    auto inpVec = inputConf.getVec(*secIt, *inpIt);
+
+                    // Check for keys
+                    ivec4 keyCodes;
+                    u32 inpCount = min(4, (i32)inpVec.size());
+                    for (u32 i = 0; i < inpCount; ++i)
                     {
-                        keys[i] = lookup_key_code(keyVec[i]);
+                        keyCodes[i] = lookup_key_code(inpVec[i]);
                     }
-                    for (u32 i = keyCount; i < 4; ++i)
+                    for (u32 i = inpCount; i < 4; ++i)
                     {
-                        keys[i] = kKEY_NOKEY;
+                        keyCodes[i] = kKEY_NONE;
                     }
-                    mModes[secHash].keyboard[keyHash] = keys;
+
+                    static const ivec4 kAllNoneKeys = ivec4(kKEY_NONE);
+                    if (keyCodes != kAllNoneKeys)
+                    {
+                        mModes[secHash].keyboard[inpHash] = keyCodes;
+                    }
+                    else
+                    {
+                        // check for pad codes
+                        u32 padCodes = 0;
+                        for (u32 i = 0; i < inpCount; ++i)
+                        {
+                            padCodes |= lookup_pad_button(inpVec[i]);
+                        }
+                        if (padCodes != kPAD_NONE)
+                        {
+                            mModes[secHash].pad[inpHash] = padCodes;
+                        }
+                    }
+
                 }
             }
 
@@ -132,9 +154,9 @@ void InputMgr::zeroState()
     mPressedKeys = ivec4(0);
     mMouseState.zeroState();
 
-    for (auto & cs : mCtrlState)
+    for (u32 i = 0; i < kPadCountMax; ++i)
     {
-        cs.zeroState();
+        mPadState[i] = PadInput(i);
     }
 }
 
@@ -229,16 +251,33 @@ u32 InputMgr::queryState(u32 player, u32 stateHash, vec4 * pMeasure)
     {
         auto it = mpActiveMode->keyboard.find(stateHash);
         if (it != mpActiveMode->keyboard.end())
-            return queryState(it->second);
+            return queryKeyboardState(it->second);
     }
     return 0;
 }
 
+void InputMgr::updatePadState(u32 padId,
+                              u32 codes,
+                              const vec2 & lstick,
+                              const vec2 & rstick,
+                              f32 ltrigger,
+                              f32 rtrigger)
+{
+    ASSERT(padId < kPadCountMax);
+    ASSERT(mPadState[padId].padId == padId);
+    PadInput & padState = mPadState[padId];
+    padState.codes = codes;
+    padState.lstick = lstick;
+    padState.rstick = rstick;
+    padState.ltrigger = ltrigger;
+    padState.rtrigger = rtrigger;
+}
+
 bool InputMgr::queryKey(Key key)
 {
-    if (key == kKEY_NOKEY)
+    if (key == kKEY_NONE)
         return true;
-    else if (key > kKEY_NOKEY)
+    else if (key > kKEY_NONE)
         return false;
 
     u32 idx = key / 32;
@@ -248,21 +287,21 @@ bool InputMgr::queryKey(Key key)
     return (mPressedKeys[idx] & mask) != 0;
 }
 
-u32 InputMgr::queryState(const ivec4 & keys)
+u32 InputMgr::queryKeyboardState(const ivec4 & keys)
 {
     u32 ret = 0;
     if (queryKey((Key)keys[0]))
     {
-        ret += (Key)keys[0] != kKEY_NOKEY ? 1 : 0;
+        ret += (Key)keys[0] != kKEY_NONE ? 1 : 0;
         if (queryKey((Key)keys[1]))
         {
-            ret += (Key)keys[1] != kKEY_NOKEY ? 1 : 0;
+            ret += (Key)keys[1] != kKEY_NONE ? 1 : 0;
             if (queryKey((Key)keys[2]))
             {
-                ret += (Key)keys[1] != kKEY_NOKEY ? 1 : 0;
+                ret += (Key)keys[1] != kKEY_NONE ? 1 : 0;
                 if (queryKey((Key)keys[3]))
                 {
-                    ret += (Key)keys[3] != kKEY_NOKEY ? 1 : 0;
+                    ret += (Key)keys[3] != kKEY_NONE ? 1 : 0;
                     return ret;
                 }
             }
@@ -273,7 +312,7 @@ u32 InputMgr::queryState(const ivec4 & keys)
 
 void InputMgr::processKeyInput(const KeyInput & keyInput)
 {
-    if (keyInput.key < kKEY_NOKEY)
+    if (keyInput.key < kKEY_NONE)
     {
         if (keyInput.action == kKACT_Release)
             unset_key_vec_bit(mPressedKeys, (Key)keyInput.key);
@@ -309,6 +348,11 @@ MessageResult InputMgr::message(const T& msgAcc)
 
     switch (msg.msgId)
     {
+    case HASH::pad_input:
+    {
+        messages::PadInputR<T> msgr(msgAcc);
+        updatePadState(msgr.padId(), msgr.codes(), msgr.lstick(), msgr.rstick(), msgr.ltrigger(), msgr.rtrigger());
+    }
     case HASH::keyboard_input:
         processKeyInput(KeyInput(msg.payload));
         break;

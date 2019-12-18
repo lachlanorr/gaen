@@ -229,13 +229,17 @@ void broadcast_targeted_message(u32 msgId,
                                 task_id target,
                                 cell payload,
                                 u32 blockCount,
-                                const Block * pBlocks)
+                                const Block * pBlocks,
+                                bool notToSelf)
 {
     ASSERT(sIsInit);
     ASSERT(active_thread_id() == kMainThreadId || active_thread_id() < num_threads());
 
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
+        if (notToSelf && tid == active_thread_id())
+            continue;
+
         TaskMaster & targetTaskMaster = TaskMaster::task_master_for_thread(tid);
 
         MessageQueue * pMsgQueue = nullptr;
@@ -258,6 +262,17 @@ void broadcast_targeted_message(u32 msgId,
             msgAcc[i] = pBlocks[i];
         }
     }
+}
+void broadcast_targeted_message(const MessageBlockAccessor & msgAcc, bool notToSelf)
+{
+    broadcast_targeted_message(msgAcc.message().msgId,
+                               msgAcc.message().flags,
+                               msgAcc.message().source,
+                               msgAcc.message().target,
+                               msgAcc.message().payload,
+                               msgAcc.message().blockCount,
+                               &msgAcc[0],
+                               notToSelf);
 }
 
 void broadcast_insert_task(task_id source, thread_id owner, const Task & task)
@@ -541,6 +556,8 @@ void TaskMaster::runPrimaryGameLoop()
                      fi.last10000);
         }
 #endif
+        poll_pad_input();
+
         // process messages accumulated since last frame
         processMessages(*mpMainMessageQueue); // messages from main thread
         // messages from other TaskMasters or ourself
@@ -1108,6 +1125,3 @@ void TaskMaster::removeTask(task_id taskId)
 }
 
 } // namespace gaen
-
-
-
