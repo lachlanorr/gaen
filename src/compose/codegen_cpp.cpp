@@ -1407,6 +1407,7 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
     procCode += I1 + S("u32 maxInputMatch = 0;") + LF;
     procCode += I1 + S("u32 inputMatch = 0;") + LF;
     procCode += I1 + S("vec4 measure = vec4(0.0f);") + LF;
+    procCode += I1 + S("vec4 measureTest = vec4(0.0f);") + LF;
     procCode += I1 + S("void (*pHandler)(DefiningType *, f32, const vec4&) = nullptr;") + LF;
     procCode += I1 + S("f32 repeatDelay = 0.0f;") + LF;
     procCode += LF;
@@ -1430,6 +1431,7 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
             procCode += I2 + S("maxInputMatch = 0;") + LF;
             procCode += I2 + S("inputMatch = 0;") + LF;
             procCode += I2 + S("measure = vec4(0.0f);") + LF;
+            procCode += I2 + S("measureTest = vec4(0.0f);") + LF;
             procCode += I2 + S("pHandler = nullptr;") + LF;
             procCode += LF;
 
@@ -1472,12 +1474,18 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
                 if (pInputDef->pSymRec->type == kSYMT_Input)
                 {
                     procCode += I2 + S("// #") + S(pInputDef->str) + LF;
-                    procCode += I2 + S("inputMatch = inputMgr.queryState(self().player(), ") + hash_literal(pInputDef->str) + S(", &measure);") + LF;
-                    procCode += I2 + S("if (inputMatch > maxInputMatch)") + LF;
+                    procCode += I2 + S("inputMatch = inputMgr.queryState(self().player(), ") + hash_literal(pInputDef->str) + S(", &measureTest);") + LF;
+                    procCode += I2 + S("if (inputMatch == InputMgr::kPadInputDetected)") + LF;
+                    procCode += I2 + S("{") + LF;
+                    procCode += I2 + S("    // Always process pad inputs, don't use exclusionary rules which are useful for simplifying keyboard inputs") + LF;
+                    procCode += I2 + S("    DefiningType::") + input_handler_name(pInput->str, pInputDef->str) + S("(this, delta, measureTest);") + LF;
+                    procCode += I2 + S("}") + LF;
+                    procCode += I2 + S("else if (inputMatch > maxInputMatch)") + LF;
                     procCode += I2 + S("{") + LF;
                     procCode += I2 + S("    // Highest priority input match we've found so far, switch to it") + LF;
                     procCode += I2 + S("    pHandler = &DefiningType::") + input_handler_name(pInput->str, pInputDef->str) + S(";") + LF;
                     procCode += I2 + S("    repeatDelay = ") + float_literal(pInputDef->numf) + S(";") + LF;
+                    procCode += I2 + S("    measure = measureTest;") + LF;
                     procCode += I2 + S("    maxInputMatch = inputMatch;") + LF;
                     procCode += I2 + S("}") + LF;
                     procCode += I2 + S("else if (inputMatch == maxInputMatch)") + LF;
