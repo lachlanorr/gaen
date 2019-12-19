@@ -128,20 +128,6 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     while (!glfwWindowShouldClose(pWindow))
     {
         glfwWaitEventsTimeout(0.010);
-        for (u32 i = 0; i < GLFW_JOYSTICK_LAST; ++i)
-        {
-            if (sConnectedJoysticks[i])
-            {
-                u32 gaenBtns = 0;
-                i32 count;
-                const u8 * btns = glfwGetJoystickButtons(i, &count);
-                for (i32 j = 0; j < count; ++j)
-                {
-                    if (btns[j])
-                       LOG(gaen::kLS_Info, "JOY %d: BTN %d: %d", i, j, btns[j]);
-                }
-            }
-        }
     }
 
     fin_gaen();
