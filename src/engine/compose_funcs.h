@@ -144,9 +144,19 @@ inline quat normalize(const quat & q, Entity * pCaller)
     return gaen::normalize(q);
 }
 
+inline f32 cross(const vec2 & lhs, const vec2 & rhs, Entity * pCaller)
+{
+    return gaen::cross(lhs, rhs);
+}
+
 inline vec3 cross(const vec3 & lhs, const vec3 & rhs, Entity * pCaller)
 {
     return gaen::cross(lhs, rhs);
+}
+
+inline f32 dot(const vec2 & lhs, const vec2 & rhs, Entity * pCaller)
+{
+    return gaen::dot(lhs, rhs);
 }
 
 inline f32 dot(const vec3 & lhs, const vec3 & rhs, Entity * pCaller)

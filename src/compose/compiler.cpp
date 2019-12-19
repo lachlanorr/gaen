@@ -1472,6 +1472,16 @@ Ast * ast_create_vec4_init(Ast * pParams, ParseData * pParseData)
 
     switch (pParams->pChildren->nodes.size())
     {
+    case 1:
+    {
+        const SymDataType * pSdt = ast_data_type(pParams->pChildren->nodes.front());
+
+        if (pSdt->typeDesc.dataType != kDT_float)
+        {
+            COMP_ERROR(pParseData, "Invalid data type in vec4 initialization");
+        }
+        break;
+    }
     case 2:
     {
         const SymDataType * pSdt0 = ast_data_type(pParams->pChildren->nodes.front());
@@ -2790,7 +2800,7 @@ Scope* parsedata_push_input_scope(ParseData * pParseData)
 
     SymRec * pVec4SymRec = parsedata_find_type_symbol(pParseData, "vec4", 0, 0);
     SymRec * pMeasureSymRec = symrec_create(kSYMT_Param, pVec4SymRec->pSymDataType, "measure", nullptr, nullptr, pParseData);
-    symtab_add_symbol(pScope->pSymTab, pMeasureSymRec, pParseData);
+    symtab_add_symbol_with_fields(pScope->pSymTab, pMeasureSymRec, pParseData);
 
     return pScope;
 }
@@ -3381,6 +3391,17 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
+    // f32 cross(vec2, vec2)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("lhs", parsedata_find_type_symbol(pParseData, "vec2", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("rhs", parsedata_find_type_symbol(pParseData, "vec2", 1, 1), pParseData));
+        register_builtin_function("cross",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
     // vec3 cross(vec3, vec3)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
@@ -3388,6 +3409,17 @@ void register_builtin_functions(ParseData * pParseData)
         ast_add_child(pFuncArgs, ast_create_function_arg("rhs", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
         register_builtin_function("cross",
                                   parsedata_find_type_symbol(pParseData, "vec3", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // f32 dot(vec2, vec2)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("lhs", parsedata_find_type_symbol(pParseData, "vec2", 1, 1), pParseData));
+        ast_add_child(pFuncArgs, ast_create_function_arg("rhs", parsedata_find_type_symbol(pParseData, "vec2", 1, 1), pParseData));
+        register_builtin_function("dot",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
                                   pFuncArgs,
                                   pParseData);
     }

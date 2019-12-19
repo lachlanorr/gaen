@@ -158,6 +158,11 @@ inline vec2 normalize(const vec2 & v)
     return vec2(glm::normalize((vec2::glm_t)v));
 }
 
+inline f32 cross(const vec2 & lhs, const vec2 & rhs)
+{
+    return (lhs.x * rhs.y) - (lhs.y * rhs.x);
+}
+
 inline f32 dot(const vec2 & lhs, const vec2 & rhs)
 {
     return glm::dot((vec2::glm_t)lhs, (vec2::glm_t)rhs);
