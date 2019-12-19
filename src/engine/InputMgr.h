@@ -49,6 +49,7 @@ public:
     u32 mode() { return mpActiveMode ? mpActiveMode->nameHash : 0; }
     void setMode(u32 modeHash);
 
+    static const u32 kPadInputDetected = 0xffFFffFF;
     u32 queryState(u32 player, u32 stateHash, vec4 * pMeasure);
 
     static const u32 kPadCountMax = 4;
@@ -58,6 +59,8 @@ public:
                         const vec2 & rstick,
                         f32 ltrigger,
                         f32 rtrigger);
+
+    void pollPadInput();
 
     static void register_key_press_listener(u32 mode, task_id target);
     static void deregister_key_press_listener(u32 mode, task_id target);
@@ -91,6 +94,8 @@ private:
           , mouseMove(0)
         {}
     };
+
+    u32 queryPadState(u32 padId, u32 codes, vec4 * pMeasure);
 
     bool queryKey(Key key);
     u32 queryKeyboardState(const ivec4 & keys);

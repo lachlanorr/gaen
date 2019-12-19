@@ -130,13 +130,20 @@ InputMgr::InputMgr(bool isPrimary)
                     {
                         // check for pad codes
                         u32 padCodes = 0;
+                        u32 analogCount = 0;
                         for (u32 i = 0; i < inpCount; ++i)
                         {
-                            padCodes |= lookup_pad_button(inpVec[i]);
+                            PadCode code = lookup_pad_button(inpVec[i]);
+                            if (code >= (u32)kPadCodeAnalogStart)
+                                analogCount++;
+                            padCodes |= code;
                         }
                         if (padCodes != kPAD_NONE)
                         {
-                            mModes[secHash].pad[inpHash] = padCodes;
+                            if (analogCount > 2)
+                                LOG_ERROR("input.conf mode has more than 2 analog pad codes");
+                            else
+                                mModes[secHash].pad[inpHash] = padCodes;
                         }
                     }
 
@@ -249,9 +256,15 @@ u32 InputMgr::queryState(u32 player, u32 stateHash, vec4 * pMeasure)
 {
     if (mpActiveMode)
     {
-        auto it = mpActiveMode->keyboard.find(stateHash);
-        if (it != mpActiveMode->keyboard.end())
-            return queryKeyboardState(it->second);
+        auto padit = mpActiveMode->pad.find(stateHash);
+        if (padit != mpActiveMode->pad.end())
+        {
+            return queryPadState(player, padit->second, pMeasure);
+        }
+
+        auto keyit = mpActiveMode->keyboard.find(stateHash);
+        if (keyit != mpActiveMode->keyboard.end())
+            return queryKeyboardState(keyit->second);
     }
     return 0;
 }
@@ -273,6 +286,115 @@ void InputMgr::updatePadState(u32 padId,
     padState.rtrigger = rtrigger;
 }
 
+
+static HashMap<kMEM_Engine, i32, PadCode> sGlfwPadMap =
+{
+    {GLFW_GAMEPAD_BUTTON_A,            kPAD_A},
+    {GLFW_GAMEPAD_BUTTON_B,            kPAD_B},
+    {GLFW_GAMEPAD_BUTTON_X,            kPAD_X},
+    {GLFW_GAMEPAD_BUTTON_Y,            kPAD_Y},
+    {GLFW_GAMEPAD_BUTTON_LEFT_BUMPER,  kPAD_LBumper},
+    {GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, kPAD_RBumper},
+    {GLFW_GAMEPAD_BUTTON_BACK,         kPAD_Back},
+    {GLFW_GAMEPAD_BUTTON_START,        kPAD_Start},
+    {GLFW_GAMEPAD_BUTTON_GUIDE,        kPAD_Guide},
+    {GLFW_GAMEPAD_BUTTON_LEFT_THUMB,   kPAD_LThumb},
+    {GLFW_GAMEPAD_BUTTON_RIGHT_THUMB,  kPAD_RThumb},
+    {GLFW_GAMEPAD_BUTTON_DPAD_UP,      kPAD_DUp},
+    {GLFW_GAMEPAD_BUTTON_DPAD_RIGHT,   kPAD_DRight},
+    {GLFW_GAMEPAD_BUTTON_DPAD_DOWN,    kPAD_DDown},
+    {GLFW_GAMEPAD_BUTTON_DPAD_LEFT,    kPAD_DLeft}
+};
+
+static const f32 kStickDeadzone = 0.25f;
+static const f32 kStickMultiplier = 1.0f / (1.0f - kStickDeadzone);
+static const f32 kTriggerDeadzone = -0.75f;
+static const f32 kTriggerMultiplier = 2.0f / (1.0f + -kTriggerDeadzone) / 2.0f;
+
+static inline f32 correct_stick(f32 val)
+{
+    if (abs(val) >= kStickDeadzone)
+    {
+        if (val < 0)
+            return (val + kStickDeadzone) * kStickMultiplier;
+        else
+            return (val - kStickDeadzone) * kStickMultiplier;
+    }
+    return 0.0f;
+}
+
+static inline f32 correct_trigger(f32 val)
+{
+    if (val >= kTriggerDeadzone)
+        return (val + -kTriggerDeadzone) * kTriggerMultiplier;
+    return 0.0f;
+}
+
+void InputMgr::pollPadInput()
+{
+    for (u32 i = 0; i < InputMgr::kPadCountMax; ++i)
+    {
+        if (glfwJoystickIsGamepad(i))
+        {
+            PadInput pad(i);
+
+            GLFWgamepadstate padState;
+            glfwGetGamepadState(i, &padState);
+            pad.lstick.x = correct_stick(padState.axes[GLFW_GAMEPAD_AXIS_LEFT_X]);
+            pad.lstick.y = correct_stick(padState.axes[GLFW_GAMEPAD_AXIS_LEFT_Y]);
+            pad.rstick.x = correct_stick(padState.axes[GLFW_GAMEPAD_AXIS_RIGHT_X]);
+            pad.rstick.y = correct_stick(padState.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]);
+            pad.ltrigger = correct_trigger(padState.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER]);
+            pad.rtrigger = correct_trigger(padState.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER]);
+            for (const auto & kv : sGlfwPadMap)
+            {
+                if (padState.buttons[kv.first] == GLFW_PRESS)
+                {
+                    pad.codes |= kv.second;
+                }
+            }
+            if (pad.lstick.x != 0.0f || pad.lstick.y != 0.0f)
+            {
+                pad.codes |= kPAD_LStick;
+            }
+            if (pad.rstick.x != 0.0f || pad.rstick.y != 0.0f)
+            {
+                pad.codes |= kPAD_RStick;
+            }
+            if (pad.ltrigger > 0.0f)
+            {
+                pad.codes |= kPAD_LTrigger;
+            }
+            if (pad.rtrigger > 0.0f)
+            {
+                pad.codes |= kPAD_RTrigger;
+            }
+
+            for (const auto & kv : sGlfwPadMap)
+            {
+                if (padState.buttons[kv.first] == GLFW_PRESS)
+                {
+                    pad.codes |= kv.second;
+                }
+            }
+
+            if (mPadState[i] != pad)
+            {
+                mPadState[i] = pad;
+
+                messages::PadInputBW msgw(HASH::pad_input, kMessageFlag_None, kMainThreadTaskId, kInputMgrTaskId, i);
+                msgw.setCodes(pad.codes);
+                msgw.setLstick(pad.lstick);
+                msgw.setRstick(pad.rstick);
+                msgw.setLtrigger(pad.ltrigger);
+                msgw.setRtrigger(pad.rtrigger);
+                broadcast_targeted_message(msgw.accessor(), true);
+            }
+        }
+    }
+
+}
+
 bool InputMgr::queryKey(Key key)
 {
     if (key == kKEY_NONE)
@@ -285,6 +407,69 @@ bool InputMgr::queryKey(Key key)
     u32 mask = 1 << bit;
 
     return (mPressedKeys[idx] & mask) != 0;
+}
+
+u32 InputMgr::queryPadState(u32 padId, u32 codes, vec4 * pMeasure)
+{
+    ASSERT(padId < kPadCountMax);
+    const PadInput & pad = mPadState[padId];
+
+    *pMeasure = vec4(0.0f);
+    if ((pad.codes & codes) == codes)
+    {
+        if (codes & kPAD_LStick)
+        {
+            pMeasure->x = pad.lstick.x;
+            pMeasure->y = pad.lstick.y;
+            if (codes & kPAD_RStick)
+            {
+                pMeasure->z = pad.rstick.x;
+                pMeasure->w = pad.rstick.y;
+            }
+            else if (codes & kPAD_LTrigger)
+            {
+                pMeasure->z = pad.ltrigger;
+            }
+            else if (codes & kPAD_RTrigger)
+            {
+                pMeasure->z = pad.rtrigger;
+            }
+        }
+        else if (codes & kPAD_RStick)
+        {
+            pMeasure->x = pad.rstick.x;
+            pMeasure->y = pad.rstick.y;
+            if (codes & kPAD_LTrigger)
+            {
+                pMeasure->z = pad.ltrigger;
+            }
+            else if (codes & kPAD_RTrigger)
+            {
+                pMeasure->z = pad.rtrigger;
+            }
+        }
+        else if (codes & kPAD_LTrigger)
+        {
+            pMeasure->x = pad.ltrigger;
+            if (codes & kPAD_RTrigger)
+            {
+                pMeasure->y = pad.rtrigger;
+            }
+        }
+        else if (codes & kPAD_RTrigger)
+        {
+            pMeasure->x = pad.rtrigger;
+        }
+
+        return kPadInputDetected;
+    }
+
+    // If codes contains a flag for analog input, always return true
+    // so we can register zeroed values in input handlers.
+    if (codes >= kPadCodeAnalogStart)
+        return kPadInputDetected;
+
+    return 0;
 }
 
 u32 InputMgr::queryKeyboardState(const ivec4 & keys)

@@ -203,8 +203,8 @@ static PadCodeMap sPadCodeMap =
 
     { "pad_LStick",   kPAD_LStick},
     { "pad_RStick",   kPAD_RStick},
-    { "pad_LTrigger", kPAD_LStick},
-    { "pad_RTrigger", kPAD_RStick}
+    { "pad_LTrigger", kPAD_LTrigger},
+    { "pad_RTrigger", kPAD_RTrigger}
 };
 PadCode lookup_pad_button(const char * str)
 {
@@ -358,35 +358,6 @@ Key convert_glfw_key(int glfwKey)
         return kKEY_NONE;
 }
 
-
-static HashMap<kMEM_Engine, i32, PadCode> sGlfwPadMap =
-{
-    {GLFW_GAMEPAD_BUTTON_A,            kPAD_A},
-    {GLFW_GAMEPAD_BUTTON_B,            kPAD_B},
-    {GLFW_GAMEPAD_BUTTON_X,            kPAD_X},
-    {GLFW_GAMEPAD_BUTTON_Y,            kPAD_Y},
-    {GLFW_GAMEPAD_BUTTON_LEFT_BUMPER,  kPAD_LBumper},
-    {GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER, kPAD_RBumper},
-    {GLFW_GAMEPAD_BUTTON_BACK,         kPAD_Back},
-    {GLFW_GAMEPAD_BUTTON_START,        kPAD_Start},
-    {GLFW_GAMEPAD_BUTTON_GUIDE,        kPAD_Guide},
-    {GLFW_GAMEPAD_BUTTON_LEFT_THUMB,   kPAD_LThumb},
-    {GLFW_GAMEPAD_BUTTON_RIGHT_THUMB,  kPAD_RThumb},
-    {GLFW_GAMEPAD_BUTTON_DPAD_UP,      kPAD_DUp},
-    {GLFW_GAMEPAD_BUTTON_DPAD_RIGHT,   kPAD_DRight},
-    {GLFW_GAMEPAD_BUTTON_DPAD_DOWN,    kPAD_DDown},
-    {GLFW_GAMEPAD_BUTTON_DPAD_LEFT,    kPAD_DLeft}
-};
-
-PadCode convert_glfw_pad(int glfwGamepadButton)
-{
-    auto it = sGlfwPadMap.find(glfwGamepadButton);
-    if (it != sGlfwPadMap.end())
-        return it->second;
-    else
-        return kPAD_NONE;
-}
-
 void kill_focus()
 {
     broadcast_targeted_message(HASH::kill_focus,
@@ -398,83 +369,10 @@ void kill_focus()
                                nullptr);
 }
 
-static const f32 kStickDeadzone = 0.25f;
-static const f32 kStickMultiplier = 1.0f / (1.0f - kStickDeadzone);
-static const f32 kTriggerDeadzone = -0.75f;
-static const f32 kTriggerMultiplier = 2.0f / (1.0f - kTriggerDeadzone);
-
-static inline f32 correct_stick(f32 val)
-{
-    return (val - kStickDeadzone) * kStickMultiplier;
-}
-
-static inline f32 correct_trigger(f32 val)
-{
-    return (val + -kTriggerDeadzone) * kTriggerMultiplier;
-}
-
 void poll_pad_input()
 {
-    for (u32 i = 0; i < InputMgr::kPadCountMax; ++i)
-    {
-        if (glfwJoystickIsGamepad(i))
-        {
-            PadInput pad(i);
-
-            GLFWgamepadstate padState;
-            glfwGetGamepadState(i, &padState);
-
-            if (abs(padState.axes[GLFW_GAMEPAD_AXIS_LEFT_X]) >= kStickDeadzone)
-            {
-                pad.codes |= kPAD_LStick;
-                pad.lstick.x = correct_stick(padState.axes[GLFW_GAMEPAD_AXIS_LEFT_X]);
-            }
-            if (abs(padState.axes[GLFW_GAMEPAD_AXIS_LEFT_Y]) >= kStickDeadzone)
-            {
-                pad.codes |= kPAD_LStick;
-                pad.lstick.y = -correct_stick(padState.axes[GLFW_GAMEPAD_AXIS_LEFT_Y]);
-            }
-            if (abs(padState.axes[GLFW_GAMEPAD_AXIS_RIGHT_X]) >= kStickDeadzone)
-            {
-                pad.codes |= kPAD_RStick;
-                pad.rstick.x = correct_stick(padState.axes[GLFW_GAMEPAD_AXIS_RIGHT_X]);
-            }
-            if (abs(padState.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]) >= kStickDeadzone)
-            {
-                pad.codes |= kPAD_RStick;
-                pad.rstick.y = -correct_stick(padState.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]);
-            }
-            if (padState.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] >= kTriggerDeadzone)
-            {
-                pad.codes |= kPAD_LTrigger;
-                pad.ltrigger = correct_trigger(padState.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER]);
-            }
-            if (padState.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] >= kTriggerDeadzone)
-            {
-                pad.codes |= kPAD_RTrigger;
-                pad.rtrigger = correct_trigger(padState.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER]);
-            }
-
-            for (const auto & kv : sGlfwPadMap)
-            {
-                if (padState.buttons[kv.first] == GLFW_PRESS)
-                {
-                    pad.codes |= kv.second;
-                }
-            }
-
-            InputMgr & inputMgr = TaskMaster::task_master_for_active_thread().inputMgr();
-            inputMgr.updatePadState(pad.padId, pad.codes, pad.lstick, pad.rstick, pad.ltrigger, pad.rtrigger);
-
-            messages::PadInputBW msgw(HASH::pad_input, kMessageFlag_None, kMainThreadTaskId, kInputMgrTaskId, i);
-            msgw.setCodes(pad.codes);
-            msgw.setLstick(pad.lstick);
-            msgw.setRstick(pad.rstick);
-            msgw.setLtrigger(pad.ltrigger);
-            msgw.setRtrigger(pad.rtrigger);
-            broadcast_targeted_message(msgw.accessor(), true);
-        }
-    }
+    InputMgr & inputMgr = TaskMaster::task_master_for_active_thread().inputMgr();
+    inputMgr.pollPadInput();
 }
 
 static const f64 kMouseUpdateInterval = 1.0f / 60.0f;

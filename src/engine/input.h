@@ -251,6 +251,21 @@ struct PadInput
       , ltrigger(0.0f)
       , rtrigger(0.0f)
     {}
+
+    bool operator==(const PadInput & rhs)
+    {
+        return padId == rhs.padId &&
+               codes == rhs.codes &&
+               lstick == rhs.lstick &&
+               rstick == rhs.rstick &&
+               ltrigger == rhs.ltrigger &&
+               rtrigger == rhs.rtrigger;
+    }
+
+    bool operator!=(const PadInput & rhs)
+    {
+        return !(*this == rhs);
+    }
 };
 
 inline cell to_cell(KeyInput val)
