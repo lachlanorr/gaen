@@ -1,11 +1,11 @@
 #ifdef OPENGL3
 
-in vec4 oiColor;
+in vec4 oicolor;
 out vec4 color;
 
 void main()
 {
-    color = oiColor;
+    color = oicolor;
     //color = vec4(gl_FragDepth, gl_FragDepth, gl_FragDepth, 1.0);
 };
 

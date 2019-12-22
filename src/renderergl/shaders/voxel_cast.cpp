@@ -1011,6 +1011,10 @@ Shader * voxel_cast::construct()
     pShader->mpCodes = pShader->mCodes;
     pShader->mUniformCount = kUniformCount;
     pShader->mpUniforms = pShader->mUniforms;
+    pShader->mAttributeCount = kAttributeCount;
+    pShader->mpAttributes = nullptr;
+    pShader->mTextureCount = kTextureCount;
+    pShader->mpTextures = nullptr;
 
     return pShader;
 }

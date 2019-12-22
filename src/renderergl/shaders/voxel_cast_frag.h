@@ -42,6 +42,7 @@ private:
     static const u32 kCodeCount = 2;
     static const u32 kUniformCount = 5;
     static const u32 kAttributeCount = 2;
+    static const u32 kTextureCount = 0;
 
     Shader::ShaderCode mCodes[kCodeCount];
     Shader::VariableInfo mUniforms[kUniformCount];

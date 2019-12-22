@@ -517,21 +517,12 @@ S generate_shader_h(const ShaderInfo & si)
     // storage for codes, uniforms, and attributes
     snprintf(scratch, kMaxPath, "    static const u32 kCodeCount = %u;\n", (u32)si.sources.size());
     code += scratch;
-    if (si.uniforms.size() > 0)
-    {
-        snprintf(scratch, kMaxPath, "    static const u32 kUniformCount = %u;\n", (u32)si.uniforms.size());
-        code += scratch;
-    }
-    if (si.attributes.size() > 0)
-    {
-        snprintf(scratch, kMaxPath, "    static const u32 kAttributeCount = %u;\n", (u32)si.attributes.size());
-        code += scratch;
-    }
-    if (si.textures.size() > 0)
-    {
-        snprintf(scratch, kMaxPath, "    static const u32 kTextureCount = %u;\n", (u32)si.textures.size());
-        code += scratch;
-    }
+    snprintf(scratch, kMaxPath, "    static const u32 kUniformCount = %u;\n", (u32)si.uniforms.size());
+    code += scratch;
+    snprintf(scratch, kMaxPath, "    static const u32 kAttributeCount = %u;\n", (u32)si.attributes.size());
+    code += scratch;
+    snprintf(scratch, kMaxPath, "    static const u32 kTextureCount = %u;\n", (u32)si.textures.size());
+    code += scratch;
 
     code += LF;
 
@@ -701,21 +692,21 @@ S generate_shader_cpp(const ShaderInfo & si)
     code += S("    // Set base Shader members to our arrays and counts\n");
     code += S("    pShader->mCodeCount = kCodeCount;\n");
     code += S("    pShader->mpCodes = pShader->mCodes;\n");
+    code += S("    pShader->mUniformCount = kUniformCount;\n");
     if (si.uniforms.size() > 0)
-    {
-        code += S("    pShader->mUniformCount = kUniformCount;\n");
         code += S("    pShader->mpUniforms = pShader->mUniforms;\n");
-    }
+    else
+        code += S("    pShader->mpUniforms = nullptr;\n");
+    code += S("    pShader->mAttributeCount = kAttributeCount;\n");
     if (si.attributes.size() > 0)
-    {
-        code += S("    pShader->mAttributeCount = kAttributeCount;\n");
         code += S("    pShader->mpAttributes = pShader->mAttributes;\n");
-    }
+    else
+        code += S("    pShader->mpAttributes = nullptr;\n");
+    code += S("    pShader->mTextureCount = kTextureCount;\n");
     if (si.textures.size() > 0)
-    {
-        code += S("    pShader->mTextureCount = kTextureCount;\n");
         code += S("    pShader->mpTextures = pShader->mTextures;\n");
-    }
+    else
+        code += S("    pShader->mpTextures = nullptr;\n");
 
     code += LF;
 

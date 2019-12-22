@@ -73,7 +73,8 @@ void ModelGL::unloadGpu()
 
 void ModelGL::render()
 {
-    mpRenderer->setTexture(HASH::diffuse, mTextureId_diffuse);
+    if (mTextureId_diffuse > 0)
+        mpRenderer->setTexture(HASH::diffuse, mTextureId_diffuse);
 #if HAS(OPENGL3)
     glBindVertexArray(mVertArrayId);
 #else

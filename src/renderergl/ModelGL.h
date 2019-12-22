@@ -53,6 +53,7 @@ public:
       , mVertBufferId(0)
       , mPrimBufferId(0)
       , mTextureId_diffuse(0)
+      , mTextureId_animations(0)
       , mFrameOffset(0)
     {}
 
@@ -90,8 +91,8 @@ private:
     u32 mVertBufferId;
     u32 mPrimBufferId;
 
-    u32 mTextureId_animations;
     u32 mTextureId_diffuse;
+    u32 mTextureId_animations;
 
     u32 mFrameOffset;
 };

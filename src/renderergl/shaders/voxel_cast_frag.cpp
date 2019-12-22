@@ -1023,6 +1023,8 @@ Shader * voxel_cast_frag::construct()
     pShader->mpUniforms = pShader->mUniforms;
     pShader->mAttributeCount = kAttributeCount;
     pShader->mpAttributes = pShader->mAttributes;
+    pShader->mTextureCount = kTextureCount;
+    pShader->mpTextures = nullptr;
 
     return pShader;
 }
