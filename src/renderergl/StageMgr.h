@@ -286,22 +286,41 @@ public:
                            u32 stageHash,
                            u32 screenWidth,
                            u32 screenHeight,
-                           f32 scale,
+                           f32 bounds,
                            f32 nearClip,
                            f32 farClip,
                            const mat43 & view)
     {
-        mat4 proj = ortho(screenWidth * -0.5f,
-                          screenWidth * 0.5f,
-                          screenHeight * -0.5f,
-                          screenHeight * 0.5f,
-                          nearClip,
-                          farClip);
+        mat4 proj;
+        if (bounds == 0.0f) // pixel perfect
+        {
+            proj = ortho(screenWidth * -0.5f,
+                         screenWidth * 0.5f,
+                         screenHeight * -0.5f,
+                         screenHeight * 0.5f,
+                         nearClip,
+                         farClip);
+        }
+        else
+        {
+            f32 aspectWidth = 1.0f;
+            f32 aspectHeight = 1.0f;
+            if (screenWidth >= screenHeight)
+                aspectWidth = (f32)screenWidth / screenHeight;
+            else
+                aspectHeight = (f32)screenHeight / screenWidth;
+            proj = ortho(bounds * -0.5f * aspectWidth,
+                         bounds * 0.5f * aspectWidth,
+                         bounds * -0.5f * aspectHeight,
+                         bounds * 0.5f * aspectHeight,
+                         nearClip,
+                         farClip);
+        }
 
         Camera cam(kRendererTaskId,
                    uid,
                    stageHash,
-                   scale,
+                   1.0f,
                    proj,
                    view);
 

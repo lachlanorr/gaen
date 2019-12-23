@@ -98,7 +98,6 @@ int CALLBACK WinMain(HINSTANCE hInstance,
     glfwWindowHint(GLFW_VISIBLE, 0);
 
     GLFWwindow * pWindow = glfwCreateWindow(kScreenWidth, kScreenHeight, "Gaen", NULL, NULL);
-    glfwSetWindowAspectRatio(pWindow, 16, 9);
 
     PANIC_IF(!pWindow, "glfwCreateWindow failed");
 

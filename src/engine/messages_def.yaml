@@ -200,7 +200,7 @@ CameraPersp:
 CameraOrtho:
   uid: i32
   stageHash: i32
-  scale: f32
+  bounds: f32
   nearClip: f32
   farClip: f32
   view: mat43

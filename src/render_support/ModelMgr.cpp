@@ -362,7 +362,7 @@ i32 model_stage_camera_create_persp(i32 stageHash,
 }
 
 i32 model_stage_camera_create_ortho(i32 stageHash,
-                                    f32 scale,
+                                    f32 bounds,
                                     f32 nearClip,
                                     f32 farClip,
                                     const mat43 & view,
@@ -371,7 +371,7 @@ i32 model_stage_camera_create_ortho(i32 stageHash,
     ruid uid = RenderObject::next_uid();
     messages::CameraOrthoQW msgw(HASH::model_stage_camera_insert_ortho, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, uid);
     msgw.setStageHash(stageHash);
-    msgw.setScale(scale);
+    msgw.setBounds(bounds);
     msgw.setNearClip(nearClip);
     msgw.setFarClip(farClip);
     msgw.setView(view);

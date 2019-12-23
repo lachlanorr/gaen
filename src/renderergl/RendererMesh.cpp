@@ -627,7 +627,7 @@ MessageResult RendererMesh::message(const T & msgAcc)
                                        msgr.stageHash(),
                                        screenWidth(),
                                        screenHeight(),
-                                       msgr.scale(),
+                                       msgr.bounds(),
                                        msgr.nearClip(),
                                        msgr.farClip(),
                                        msgr.view());

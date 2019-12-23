@@ -105,7 +105,7 @@ i32 model_stage_camera_create_persp(i32 stageHash,
                                     Entity * pCaller);
 
 i32 model_stage_camera_create_ortho(i32 stageHash,
-                                    f32 scale,
+                                    f32 bounds,
                                     f32 nearClip,
                                     f32 farClip,
                                     const mat43 & view,
