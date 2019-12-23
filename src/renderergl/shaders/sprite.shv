@@ -1,11 +1,11 @@
-layout(location = 0) in vec4 vPosUv;
+layout(location = 0) in vec4 pos;
 
-layout(location = 1) uniform mat4 uMvp;
+layout(location = 1) uniform mat4 mvp;
 
-out vec2 oiUv;
+out vec2 oiuv;
 
 void main()
 {
-    gl_Position = uMvp * vec4(vPosUv.xy, 0.0, 1.0);
-    oiUv = vPosUv.zw;
+    gl_Position = mvp * vec4(pos.xy, 0.0, 1.0);
+    oiuv = pos.zw;
 };

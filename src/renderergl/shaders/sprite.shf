@@ -1,10 +1,10 @@
-in vec2 oiUv;
+in vec2 oiuv;
 
 out vec4 color;
 
-layout(location=0, binding=0) uniform sampler2D imageSampler;
+layout(location=0, binding=0) uniform sampler2D diffuse;
 
 void main()
 {
-    color = texture(imageSampler, oiUv).rgba;
+    color = texture(diffuse, oiuv).rgba;
 };

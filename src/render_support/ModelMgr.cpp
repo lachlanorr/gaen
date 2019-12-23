@@ -169,7 +169,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
         }
         return MessageResult::Consumed;
     }
-	case HASH::remove_task:
+	case HASH::remove_task__:
 	{
         task_id taskIdToRemove = msg.payload.u;
         auto itL = mModelOwners.find(taskIdToRemove);

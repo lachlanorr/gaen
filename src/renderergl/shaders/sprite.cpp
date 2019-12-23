@@ -33,29 +33,29 @@ namespace shaders
 {
 
 static const char * kShaderCode_shv =
-    "layout(location = 0) in vec4 vPosUv;\n"
+    "layout(location = 0) in vec4 pos;\n"
     "\n"
-    "layout(location = 1) uniform mat4 uMvp;\n"
+    "layout(location = 1) uniform mat4 mvp;\n"
     "\n"
-    "out vec2 oiUv;\n"
+    "out vec2 oiuv;\n"
     "\n"
     "void main()\n"
     "{\n"
-    "    gl_Position = uMvp * vec4(vPosUv.xy, 0.0, 1.0);\n"
-    "    oiUv = vPosUv.zw;\n"
+    "    gl_Position = mvp * vec4(pos.xy, 0.0, 1.0);\n"
+    "    oiuv = pos.zw;\n"
     "};\n"
     ; // kShaderCode_shv (END)
 
 static const char * kShaderCode_shf =
-    "in vec2 oiUv;\n"
+    "in vec2 oiuv;\n"
     "\n"
     "out vec4 color;\n"
     "\n"
-    "layout(location=0, binding=0) uniform sampler2D imageSampler;\n"
+    "layout(location=0, binding=0) uniform sampler2D diffuse;\n"
     "\n"
     "void main()\n"
     "{\n"
-    "    color = texture(imageSampler, oiUv).rgba;\n"
+    "    color = texture(diffuse, oiuv).rgba;\n"
     "};\n"
     ; // kShaderCode_shf (END)
 
@@ -74,26 +74,26 @@ Shader * sprite::construct()
 
 
     // Uniforms
-    pShader->mUniforms[0].nameHash = 0xce837dc9; /* HASH::uMvp */
+    pShader->mUniforms[0].nameHash = 0xdd88a90e; /* HASH::mvp */
     pShader->mUniforms[0].index = 0;
     pShader->mUniforms[0].location = 1;
     pShader->mUniforms[0].type = GL_FLOAT_MAT4;
 
-    pShader->mUniforms[1].nameHash = 0xdc50cc66; /* HASH::imageSampler */
+    pShader->mUniforms[1].nameHash = 0x546e2a3d; /* HASH::diffuse */
     pShader->mUniforms[1].index = 1;
     pShader->mUniforms[1].location = 0;
     pShader->mUniforms[1].type = GL_SAMPLER_2D;
 
 
     // Attributes
-    pShader->mAttributes[0].nameHash = 0x33f0380a; /* HASH::vPosUv */
+    pShader->mAttributes[0].nameHash = 0x54336489; /* HASH::pos */
     pShader->mAttributes[0].index = 0;
     pShader->mAttributes[0].location = 0;
     pShader->mAttributes[0].type = GL_FLOAT_VEC4;
 
 
     // Textures
-    pShader->mTextures[0].nameHash = 0xdc50cc66; /* HASH::imageSampler */
+    pShader->mTextures[0].nameHash = 0x546e2a3d; /* HASH::diffuse */
     pShader->mTextures[0].index = 0;
     pShader->mTextures[0].location = 0;
     pShader->mTextures[0].type = GL_SAMPLER_2D;
