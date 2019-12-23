@@ -60,6 +60,15 @@ tmat4<T>::tmat4(const tvec3<T> & pos, const tvec3<T> & rot)
 }
 
 template <typename T>
+tmat4<T>::tmat4(const tvec4<T> & col0, const tvec4<T> & col1, const tvec4<T> & col2, const tvec4<T> & col3)
+{
+    cols[0] = col0;
+    cols[1] = col1;
+    cols[2] = col2;
+    cols[3] = col3;
+}
+
+template <typename T>
 tmat4<T> tmat4<T>::from_pos(T x, T y, T z)
 {
     return tmat4<T>(tvec3<T>(x, y, z));
