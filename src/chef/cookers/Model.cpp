@@ -219,7 +219,17 @@ void Model::cook(CookInfo * pCookInfo) const
     Gmat * pMat = nullptr;
     if (textures.size() > 0)
     {
-        pMat = Gmat::create(textures, HASH::voxchar); // LORRTODO: allow shader specification in the .rcp file
+        u32 shaderHash = 0;
+        if (vertType == kVERT_PosNormUvBone)
+        {
+            shaderHash = HASH::voxchar;
+        }
+        else
+        {
+            shaderHash = HASH::prop;
+        }
+
+        pMat = Gmat::create(textures, shaderHash); // LORRTODO: allow shader specification in the .rcp file
     }
 
     Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount, (u32)skel.bones.size(), pMat);

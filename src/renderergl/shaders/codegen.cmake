@@ -39,6 +39,11 @@ SET (shaders_codegen_SOURCES
   ${shaders_dir}/faceted.shd
   ${shaders_dir}/faceted.shf
   ${shaders_dir}/faceted.shv
+  ${shaders_dir}/prop.cpp
+  ${shaders_dir}/prop.h
+  ${shaders_dir}/prop.shd
+  ${shaders_dir}/prop.shf
+  ${shaders_dir}/prop.shv
   ${shaders_dir}/Shader.cpp
   ${shaders_dir}/Shader.h
   ${shaders_dir}/ShaderRegistry_codegen.cpp
