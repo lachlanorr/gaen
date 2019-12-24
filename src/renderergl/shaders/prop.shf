@@ -1,0 +1,31 @@
+#ifdef OPENGL3
+
+in vec2 frag_uv;
+in vec3 light0;
+in vec3 light1;
+out vec4 color;
+
+uniform sampler2D diffuse;
+
+void main()
+{
+    const vec3 gamma = vec3(1.0/2.2);
+
+    vec4 tex_color = texture(diffuse, frag_uv).rgba;
+    vec3 linear_color = light0 * tex_color.rgb;
+    color = vec4(linear_color, tex_color.a);
+};
+
+
+#else // #ifdef OPENGL3
+#if IS_PLATFORM_IOS
+precision mediump float;
+#endif
+
+varying vec4 color;
+
+void main()
+{
+    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);//color;
+};
+#endif // #else // #ifdef OPENGL3

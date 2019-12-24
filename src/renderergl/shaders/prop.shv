@@ -1,0 +1,57 @@
+#ifdef OPENGL3
+
+layout(location = 0) in vec4 position;
+layout(location = 1) in vec3 normal;
+layout(location = 2) in vec2 vert_uv;
+
+uniform mat4 mvp;
+uniform mat3 rot;
+
+uniform vec3 light0_incidence;
+uniform vec3 light0_color;
+uniform float light0_ambient;
+
+uniform vec3 light1_incidence;
+uniform vec3 light1_color;
+uniform float light1_ambient;
+
+out vec2 frag_uv;
+out vec3 light0;
+out vec3 light1;
+
+void main()
+{
+    frag_uv = vert_uv;
+
+    vec3 normal_corrected = normalize(rot * normal);
+    light0 = max(dot(normal_corrected, light0_incidence), 0.0) * light0_color + light0_ambient * light0_color;
+    light1 = max(dot(normal_corrected, light1_incidence), 0.0) * light1_color + light1_ambient * light1_color;
+
+    gl_Position = mvp * position;
+};
+
+
+#else //#ifdef OPENGL3
+#ifdef PLATFORM_IOS
+precision mediump float;
+#endif
+attribute vec4 position;
+attribute vec3 normal;
+
+uniform mat4 mvp;
+uniform mat3 rot;
+uniform vec4 ucolor;
+uniform vec3 light0_incidence;
+uniform vec4 light0_color;
+
+varying vec4 vcolor
+
+void main()
+{
+    vec3 normal_corrected = normalize(rot * normal);
+    float intensity = max(dot(normal_corrected, light0_incidence), 0.0);
+    intensity += min(intensity + 0.3, 1.0);
+    vcolor = intensity * ucolor;
+    gl_Position = mvp * position;
+};
+#endif //#else //#ifdef OPENGL3

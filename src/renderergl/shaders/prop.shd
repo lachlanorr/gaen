@@ -1,0 +1,2 @@
+vertex_shader=prop.shv
+fragment_shader=prop.shf
