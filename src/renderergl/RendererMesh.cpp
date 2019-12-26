@@ -242,6 +242,7 @@ void RendererMesh::unloadTexture(const Gimg * pGimg)
         it->second.refCount--;
         if (it->second.refCount == 0)
         {
+            ASSERT(it->second.glId0 > 0);
             glDeleteTextures(1, &it->second.glId0);
             mLoadedTextures.erase(it);
         }
@@ -294,7 +295,10 @@ void RendererMesh::unloadVerts(const void * pVerts)
         it->second.refCount--;
         if (it->second.refCount == 0)
         {
-            LOG_ERROR("TODO: Add code to unloadVerts");
+            ASSERT(it->second.glId0 > 0); // probably not if not OPENGL3
+            ASSERT(it->second.glId1 > 0);
+            glDeleteVertexArrays(1, &it->second.glId0);
+            glDeleteBuffers(1, &it->second.glId1);
             mLoadedVerts.erase(it);
         }
     }
@@ -335,7 +339,8 @@ void RendererMesh::unloadPrims(const void * pPrims)
         it->second.refCount--;
         if (it->second.refCount == 0)
         {
-            LOG_ERROR("TODO: Add code to unloadPrims");
+            ASSERT(it->second.glId0 > 0);
+            glDeleteBuffers(1, &it->second.glId0);
             mLoadedPrims.erase(it);
         }
     }
