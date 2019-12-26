@@ -156,13 +156,13 @@ UniquePtr<CookInfo> Chef::prepCookInfo(const char * rawPath, bool force)
 
 bool Chef::shouldCook(const CookInfo & ci)
 {
-    if (ci.force())
-        return true;
-
     // If this is a dependent file, we don't cook it as an individual
     // file, but let the asset that is its parent cook it.
     if (ci.fullRecipe().getBool("is_dependent"))
         return false;
+
+    if (ci.force())
+        return true;
 
     // shouldCook if any cooked path doesn't exist
     // While looping, find the oldest cooked path to use in comparisons below.
@@ -395,7 +395,7 @@ RecipeListUP Chef::findRecipes(const ChefString & rawPath)
 
     RecipeListUP pRecipes(GNEW(kMEM_Chef, RecipeList));
 
-    ChefString ext = get_ext(rawPath.c_str());
+    ChefString ext = ChefString(".") + get_ext(rawPath.c_str());
     ChefString dir = parent_dir(rawPath);
 
     ChefString rcpFile = rawPath + kRcpExt;
