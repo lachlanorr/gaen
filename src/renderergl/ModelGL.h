@@ -44,7 +44,7 @@ class ModelGL
 {
 public:
     typedef ModelInstance InstanceType;
-    
+
     ModelGL(ModelInstance * pModelInstance, RendererMesh * pRenderer)
       : mpModelInstance(pModelInstance)
       , mpRenderer(pRenderer)
@@ -68,7 +68,7 @@ public:
 
     u32 shaderHash() const { return mpModelInstance->model().gmdl().mat() ? mpModelInstance->model().gmdl().mat()->shaderHash() : HASH::faceted; }
 
-    void reportDestruction();
+    static void reportDestruction(u32 uid);
     
     const mat43 & transform() const { return mpModelInstance->mTransform; }
     void setTransform(const mat43 & transform) { mpModelInstance->mTransform = transform; }
@@ -82,7 +82,7 @@ public:
     void setFrameOffset(u32 offset) { mFrameOffset = offset; }
 
 private:
-    UniquePtr<ModelInstance> mpModelInstance;
+    ModelInstance * mpModelInstance;
     RendererMesh * mpRenderer;
 
     RenderItemStatus mStatus;

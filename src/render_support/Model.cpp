@@ -72,20 +72,15 @@ Model::Model(const Model& rhs)
   , mpGaimAsset(rhs.mpGaimAsset)
   , mpGmdl(rhs.mpGmdl)
   , mpGaim(rhs.mpGaim)
-{
-    LOG_INFO("Model copied without asset addref");
-    // LORRTODO: Probably need to addref here to assets too.
-    // See note below and dig into this idea when looking into crash on cleanup.
-}
+{}
 
 Model::~Model()
 {
     if (mpGmdlAsset)
     {
-       // LORRTODO: Cleanup is causing crash on exit... need to redesign how we release assets
-       //AssetMgr::release_asset(0, mpGmdlAsset);
-       //if (mpGaimAsset)
-       //    AssetMgr::release_asset(0, mpGaimAsset);
+       AssetMgr::release_asset(0, mpGmdlAsset);
+       if (mpGaimAsset)
+           AssetMgr::release_asset(0, mpGaimAsset);
     }
     else
     {

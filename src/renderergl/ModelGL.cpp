@@ -131,9 +131,9 @@ void ModelGL::prepareMeshAttributes()
 
 }
 
-void ModelGL::reportDestruction()
+void ModelGL::reportDestruction(u32 uid)
 {
-    ModelInstance::model_remove(kRendererTaskId, kModelMgrTaskId, uid());
+    ModelInstance::model_remove(kRendererTaskId, kModelMgrTaskId, uid);
 }
 
 } // namespace gaen

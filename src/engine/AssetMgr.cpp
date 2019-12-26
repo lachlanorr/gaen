@@ -393,6 +393,7 @@ MessageResult AssetMgr::message(const T & msgAcc)
         if (pAsset->release())
         {
             LOG_INFO("ASSET DESTROYED: %s", pAsset->path().c_str());
+            mAssets.erase(pAsset->path());
             GDELETE(pAsset);
         }
         return MessageResult::Consumed;

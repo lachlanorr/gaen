@@ -275,15 +275,24 @@ inline u32 index_count(PrimType primType)
 #pragma pack(push, 1)
 struct Bone
 {
-    Bone(u32 nameHash, u32 parentHash, const mat43 & transform)
+    enum BoneFlag
+    {
+        kBF_None = 0,
+        kBF_Hardpoint = 1,
+        kBF_Holdpoint = 2
+    };
+
+    Bone(u32 nameHash, u32 parentHash, const mat43 & transform)//, u32 flags = 0)
       : nameHash(nameHash)
       , parentHash(parentHash)
       , transform(transform)
+//      , flags(flags)
     {}
 
     u32 nameHash;
     u32 parentHash;
     mat43 transform;
+//    u32 flags;
 };
 
 #pragma pack(pop)

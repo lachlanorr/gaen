@@ -105,8 +105,9 @@ public:
                     else if (pItem->status() == kRIS_Destroyed)
                     {
                         pItem->unloadGpu();
-
+                        u32 uid = pItem->uid();
                         mItems[i].erase(it++);
+                        ModelGL::reportDestruction(uid);
                     }
                 }
             }
@@ -301,8 +302,6 @@ public:
             {
                 // Mark destroyed, it will get pulled from maps during next render pass.
                 it->setStatus(kRIS_Destroyed);
-                it->reportDestruction();
-
                 return true;
             }
         }
