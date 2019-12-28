@@ -295,6 +295,7 @@ target_expr
     | IDENTIFIER   { $$ = ast_create_identifier($1, pParseData); }
     | SELF         { $$ = ast_create(kAST_Self, pParseData); }
     | INT_LITERAL  { $$ = ast_create_int_literal($1, pParseData); }
+    | PARENT       { $$ = ast_create(kAST_Parent, pParseData); }
     ;
 
 message_expr

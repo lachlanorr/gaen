@@ -77,6 +77,10 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
+    Entity * safeImmediateMessageTarget(task_id target);
+    Entity * safeImmediateMessageTargetParents(task_id target);
+    Entity * safeImmediateMessageTargetChildren(task_id target);
+
     const mat43 & transform() const { return mTransform; }
     void setTransform(task_id source, const mat43 & mat);
     void applyTransform(task_id source, bool isLocal, const mat43 & mat);
@@ -117,7 +121,8 @@ public:
 
     u32 player() const { return mPlayer; }
 
-    Entity * parent() { return mpParent; }
+    bool hasParent() { return mpParent != nullptr; }
+    Entity * parent() { ASSERT(mpParent); return mpParent; }
 
     void requestSetParent(task_id parentTaskId);
 

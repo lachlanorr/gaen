@@ -620,6 +620,52 @@ MessageResult Entity::message(const T & msgAcc)
     return MessageResult::Propagate;
 }
 
+Entity * Entity::safeImmediateMessageTargetParents(task_id target)
+{
+    if (target == mTask.id() || target == mScriptTask.id())
+        return this;
+    // check parent
+    if (mpParent != nullptr)
+    {
+       Entity * pSafeEnt = mpParent->safeImmediateMessageTargetParents(target);
+       if (pSafeEnt)
+           return pSafeEnt;
+    }
+
+    return nullptr;
+}
+
+Entity * Entity::safeImmediateMessageTargetChildren(task_id target)
+{
+    if (target == mTask.id() || target == mScriptTask.id())
+        return this;
+    // check children
+    for (u32 i = 0; i < mChildCount; ++i)
+    {
+       Entity * pSafeEnt = mpChildren[i]->safeImmediateMessageTargetChildren(target);
+       if (pSafeEnt)
+           return pSafeEnt;
+    }
+
+    return nullptr;
+}
+
+Entity * Entity::safeImmediateMessageTarget(task_id target)
+{
+    if (target == mTask.id() || target == mScriptTask.id())
+        return this;
+    // check children
+    Entity * pSafeEnt = nullptr;
+    pSafeEnt = safeImmediateMessageTargetChildren(target);
+    if (pSafeEnt)
+        return pSafeEnt;
+    // check parents
+    pSafeEnt = safeImmediateMessageTargetParents(target);
+    if (pSafeEnt)
+        return pSafeEnt;
+
+    return nullptr;
+}
 
 void Entity::setTransform(task_id source, const mat43 & mat)
 {
@@ -1064,7 +1110,7 @@ void Entity::growChildren()
 void Entity::insertChild(Entity * pEntity)
 {
     ASSERT(mChildCount <= mChildrenMax);
-    ASSERT(!pEntity->parent());
+    ASSERT(!pEntity->hasParent());
 
     // Resize buffer if necessary
     if (mChildCount == mChildrenMax)

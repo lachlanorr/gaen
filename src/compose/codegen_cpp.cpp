@@ -866,7 +866,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                     code += I + S("{\n");
                     snprintf(scratch,
                              kScratchSize,
-                             "    messages::TransformBW msgw(HASH::transform, kMessageFlag_None, %s.id(), %s.id(), mpEntity->parent() != nullptr);\n",
+                             "    messages::TransformBW msgw(HASH::transform, kMessageFlag_None, %s.id(), %s.id(), mpEntity->hasParent());\n",
                              scriptTaskName,
                              taskName);
                     code += I + S(scratch);
@@ -1542,6 +1542,75 @@ static S input_block(const Ast * pRoot, u32 indentLevel)
     code += LF;
     code += procCode;
     code += I + S("}") + LF;
+    return code;
+}
+
+static S codegen_message_params(const Ast * pAst, int indentLevel)
+{
+    static const u32 kScratchSize = kMaxCmpStringLength;
+    TLARRAY(char, scratch, kScratchSize+1);
+
+    S code;
+    if (pAst->pBlockInfos->blockMemoryItemCount > 0)
+    {
+        snprintf(scratch,
+                 kScratchSize,
+                 "u32 startIndex = %u; // location in message to which to copy block memory items\n",
+                 pAst->pBlockInfos->blockCount);
+        code += I1 + S(scratch);
+    }
+
+    // Set non-payload message data into message body
+    code += I1 + S("// Write parameters to message\n");
+    u32 bmId = 0;
+    for (const BlockInfo & bi : pAst->pBlockInfos->items)
+    {
+        // NOTE: All block memory items are at the end of the BlockInfos
+        // since they were sorted as such.
+        if (bi.isBlockMemoryType)
+        {
+            snprintf(scratch,
+                     kScratchSize,
+                     "bmParam%u.writeMessage(msgw__, startIndex);\n",
+                     bmId);
+            code += I1 + S(scratch);
+
+            snprintf(scratch,
+                     kScratchSize,
+                     "startIndex += bmParam%u.blockCount();\n",
+                     bmId);
+            code += I1 + S(scratch);
+
+            ++bmId;
+        }
+        else if (!bi.isPayload)
+        {
+            ASSERT_MSG(bmId == 0, "BlockMemory param placed in message before regular param");
+
+            if (bi.cellCount <= kCellsPerBlock)
+            {
+                snprintf(scratch,
+                         kScratchSize,
+                         "*reinterpret_cast<%s*>(&msgw__[%d].cells[%d]) = ",
+                         ast_data_type(bi.pAst)->cppTypeStr,
+                         bi.blockIndex,
+                         bi.cellIndex);
+                code += I1 + S(scratch);
+                code += codegen_recurse(bi.pAst, 0);
+                code += ";\n";
+            }
+            else
+            {
+                S val = codegen_recurse(bi.pAst, 0);
+                snprintf(scratch,
+                         kScratchSize,
+                         "msgw__.insertBlocks(%d, %s);\n",
+                         bi.blockIndex,
+                         val.c_str());
+                code += I1 + S(scratch);
+            }
+        }
+    }
     return code;
 }
 
@@ -2420,6 +2489,11 @@ static S codegen_recurse(const Ast * pAst,
         return S("pThis->self().task().id()");
     }
 
+    case kAST_Parent:
+    {
+        return S("pThis->self().parent()->task().id()");
+    }
+
     case kAST_Transform:
     {
         return S("pThis->self().transform()");
@@ -2507,7 +2581,7 @@ static S codegen_recurse(const Ast * pAst,
         // If we have BlockMemory params, those have to be
         // added in at runtime.
         code += I1 + S("// Compute block size, incorporating any BlockMemory parameters dynamically\n");
-        snprintf(scratch, kScratchSize, "const u32 blockCount = %u;\n", pAst->pBlockInfos->blockCount);
+        snprintf(scratch, kScratchSize, "const u32 blockCount__ = %u;\n", pAst->pBlockInfos->blockCount);
         code += I1 + S(scratch);
 
         // Add in blocks for BlockMemory params
@@ -2548,101 +2622,52 @@ static S codegen_recurse(const Ast * pAst,
 
         S target;
         code += I1 + S("// Prepare the writer\n");
+        // LORRTODO 2019-12-28: Optimize for child entity messages.
+        // If we know we're sending to a child entity, we both have
+        // access to the entity and we know we're on the same
+        // TaskMaster. So... we should just create a BlockWriter and
+        // send the message straight to the child entity.
         if (pAst->pLhs == 0) // Sending message to self
-        {
             target = S("pThis->self().task().id()");
-            snprintf(scratch,
-                     kScratchSize,
-                     "StackMessageBlockWriter<blockCount> msgw(%s, kMessageFlag_None, pThis->self().task().id(), %s, to_cell(%s));\n",
-                     codegen_recurse(pAst->pMid, 0).c_str(),
-                     target.c_str(),
-                     payload.c_str());
-        }
         else
-        {
             target = codegen_recurse(pAst->pLhs, 0);
-            snprintf(scratch,
-                     kScratchSize,
-                     "MessageQueueWriter msgw(%s, kMessageFlag_None, pThis->self().task().id(), %s, to_cell(%s), blockCount);\n",
-                     codegen_recurse(pAst->pMid, 0).c_str(),
-                     target.c_str(),
-                     payload.c_str());
-        }
-
+        snprintf(scratch,
+                 kScratchSize,
+                 "const u32 target__ = %s;\n",
+                 target.c_str());
         code += I1 + S(scratch);
         code += LF;
 
-        if (pAst->pBlockInfos->blockMemoryItemCount > 0)
-        {
-            snprintf(scratch,
-                     kScratchSize,
-                     "u32 startIndex = %u; // location in message to which to copy block memory items\n",
-                     pAst->pBlockInfos->blockCount);
-            code += I1 + S(scratch);
-        }
-
-        // Set non-payload message data into message body
-        code += I1 + S("// Write parameters to message\n");
-        bmId = 0;
-        for (const BlockInfo & bi : pAst->pBlockInfos->items)
-        {
-            // NOTE: All block memory items are at the end of the BlockInfos
-            // since they were sorted as such.
-            if (bi.isBlockMemoryType)
-            {
-                snprintf(scratch,
-                         kScratchSize,
-                         "bmParam%u.writeMessage(msgw, startIndex);\n",
-                         bmId);
-                code += I1 + S(scratch);
-
-                snprintf(scratch,
-                         kScratchSize,
-                         "startIndex += bmParam%u.blockCount();\n",
-                         bmId);
-                code += I1 + S(scratch);
-
-                ++bmId;
-            }
-            else if (!bi.isPayload)
-            {
-                ASSERT_MSG(bmId == 0, "BlockMemory param placed in message before regular param");
-
-                if (bi.cellCount <= kCellsPerBlock)
-                {
-                    snprintf(scratch,
-                             kScratchSize,
-                             "*reinterpret_cast<%s*>(&msgw[%d].cells[%d]) = ",
-                             ast_data_type(bi.pAst)->cppTypeStr,
-                             bi.blockIndex,
-                             bi.cellIndex);
-                    code += I1 + S(scratch);
-                    code += codegen_recurse(bi.pAst, 0);
-                    code += ";\n";
-                }
-                else
-                {
-                    S val = codegen_recurse(bi.pAst, 0);
-                    snprintf(scratch,
-                             kScratchSize,
-                             "msgw.insertBlocks(%d, %s);\n",
-                             bi.blockIndex,
-                             val.c_str());
-                    code += I1 + S(scratch);
-                }
-            }
-        }
-
+        code += I1 + S("Entity * pTarget__ = pThis->self().safeImmediateMessageTarget(target__);\n");
+        code += I1 + S("if (pTarget__) // this means we can send immediately, either to self or a child of ours\n");
+        code += I1 + S("{\n");
+        snprintf(scratch,
+                 kScratchSize,
+                 "StackMessageBlockWriter<blockCount__> msgw__(%s, kMessageFlag_None, pThis->self().task().id(), %s, to_cell(%s));\n",
+                 codegen_recurse(pAst->pMid, 0).c_str(),
+                 target.c_str(),
+                 payload.c_str());
+        code += I2 + S(scratch);
         code += LF;
-
-        if (pAst->pLhs == 0) // Sending message to self
-        {
-            code += I1 + S("pThis->self().message(msgw.accessor());\n");
-        }
-        else
-        {
-            code += I1 + S("// MessageQueueWriter will send message through RAII when this scope is exited\n");
-        }
+        code += codegen_message_params(pAst, indentLevel+1);
+        code += LF;
+        code += I2 + S("pTarget__->message(msgw__.accessor());\n");
+        code += I1 + S("}\n");
+        code += I1 + S("else // queue up message\n");
+        code += I1 + S("{\n");
+        snprintf(scratch,
+                 kScratchSize,
+                 "MessageQueueWriter msgw__(%s, kMessageFlag_None, pThis->self().task().id(), %s, to_cell(%s), blockCount__);\n",
+                 codegen_recurse(pAst->pMid, 0).c_str(),
+                 target.c_str(),
+                 payload.c_str());
+        code += I2 + S(scratch);
+        code += LF;
+        code += codegen_message_params(pAst, indentLevel+1);
+        code += LF;
+        code += I2 + S("// MessageQueueWriter will send message through RAII when this scope is exited\n");
+        code += I1 + S("}\n");
+        code += LF;
 
         code += I + S("}\n");
         return code;
