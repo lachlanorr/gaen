@@ -866,7 +866,7 @@ static S codegen_init_properties(Ast * pAst, SymTab * pPropsSymTab, const char *
                     code += I + S("{\n");
                     snprintf(scratch,
                              kScratchSize,
-                             "    messages::TransformBW msgw(HASH::transform, kMessageFlag_None, %s.id(), %s.id(), false);\n",
+                             "    messages::TransformBW msgw(HASH::transform, kMessageFlag_None, %s.id(), %s.id(), mpEntity->parent() != nullptr);\n",
                              scriptTaskName,
                              taskName);
                     code += I + S(scratch);
