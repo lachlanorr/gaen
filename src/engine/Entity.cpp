@@ -672,12 +672,13 @@ void Entity::setTransform(task_id source, const mat43 & mat)
 
 void Entity::applyTransform(task_id source, bool isLocal, const mat43 & mat)
 {
-    if (!isLocal || !mpParent)
+    if (!isLocal)
     {
-        setTransform(source, mat * mTransform);
+        setTransform(source, mat);
     }
     else // isLocal
     {
+        PANIC_IF(parent() == nullptr, "No parent when setting local transform");
         mLocalTransform = mat;
         setTransform(source, parentTransform() * mLocalTransform);
     }
