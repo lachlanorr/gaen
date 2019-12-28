@@ -99,6 +99,22 @@ static VertType choose_vert_type(aiMesh* pMesh, CookInfo * pCookInfo, bool legac
     return kVERT_Unknown;
 }
 
+static void read_bones(Vector<kMEM_Chef, Bone> & boneVec, const rapidjson::Value & bones)
+{
+    boneVec.reserve(bones.Size());
+    for (u32 i = 0; i < bones.Size(); ++i)
+    {
+        const rapidjson::Value & b = bones[i];
+        mat43 transform(vec3(b["transform"][0][0].GetFloat(), b["transform"][0][1].GetFloat(), b["transform"][0][2].GetFloat()),
+                        vec3(b["transform"][1][0].GetFloat(), b["transform"][1][1].GetFloat(), b["transform"][1][2].GetFloat()),
+                        vec3(b["transform"][2][0].GetFloat(), b["transform"][2][1].GetFloat(), b["transform"][2][2].GetFloat()),
+                        vec3(b["transform"][3][0].GetFloat(), b["transform"][3][1].GetFloat(), b["transform"][3][2].GetFloat()));
+        boneVec.emplace_back(HASH::hash_func(b["name"].GetString()),
+                             b["parent"].IsNull() ? 0 : HASH::hash_func(b["parent"].GetString()),
+                             transform);
+    }
+}
+
 void Model::read_skl(Skeleton & skel, const char * path)
 {
     ASSERT(skel.bones.size() == 0);
@@ -110,18 +126,10 @@ void Model::read_skl(Skeleton & skel, const char * path)
     rdr.ifs.close();
 
     skel.jsonDoc.Parse(jsonStr.get());
-    skel.bones.reserve(skel.jsonDoc["bones"].Size());
-    for (u32 i = 0; i < skel.jsonDoc["bones"].Size(); ++i)
-    {
-        const rapidjson::Value & b = skel.jsonDoc["bones"][i];
-        mat43 transform(vec3(b["transform"][0][0].GetFloat(), b["transform"][0][1].GetFloat(), b["transform"][0][2].GetFloat()),
-                        vec3(b["transform"][1][0].GetFloat(), b["transform"][1][1].GetFloat(), b["transform"][1][2].GetFloat()),
-                        vec3(b["transform"][2][0].GetFloat(), b["transform"][2][1].GetFloat(), b["transform"][2][2].GetFloat()),
-                        vec3(b["transform"][3][0].GetFloat(), b["transform"][3][1].GetFloat(), b["transform"][3][2].GetFloat()));
-        skel.bones.emplace_back(HASH::hash_func(b["name"].GetString()),
-                                b["parent"].IsNull() ? 0 : HASH::hash_func(b["parent"].GetString()),
-                                transform);
-    }
+    if (skel.jsonDoc.HasMember("bones"))
+        read_bones(skel.bones, skel.jsonDoc["bones"]);
+    if (skel.jsonDoc.HasMember("hardpoints"))
+        read_bones(skel.hardpoints, skel.jsonDoc["hardpoints"]);
 }
 
 u32 Model::bone_id(const Vector<kMEM_Chef, Bone> & bones, const char * name)
@@ -226,22 +234,30 @@ void Model::cook(CookInfo * pCookInfo) const
         }
         else
         {
-            shaderHash = HASH::prop;
+            shaderHash = HASH::voxprop;
         }
 
         pMat = Gmat::create(textures, shaderHash); // LORRTODO: allow shader specification in the .rcp file
     }
 
-    Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount, (u32)skel.bones.size(), pMat);
+    Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount, (u32)skel.bones.size(), (u32)skel.hardpoints.size(), pMat);
 
     PANIC_IF(!pGmdl, "Failure in Gmdl::create, %s", pCookInfo->rawPath().c_str());
 
     // copy bones into gmdl
     Bone * pBones = nullptr;
-    if (vertType == kVERT_PosNormUvBone && skel.bones.size() > 0)
+    if (vertType == kVERT_PosNormUvBone)
     {
-        pBones = pGmdl->bones();
-        memcpy(pBones, skel.bones.data(), sizeof(Bone) * skel.bones.size());
+        if (skel.bones.size() > 0)
+        {
+            pBones = pGmdl->bones();
+            memcpy(pBones, skel.bones.data(), sizeof(Bone) * skel.bones.size());
+        }
+        if (skel.hardpoints.size() > 0)
+        {
+            Hardpoint * pHardpoints = pGmdl->hardpoints();
+            memcpy(pHardpoints, skel.hardpoints.data(), sizeof(Hardpoint) * skel.hardpoints.size());
+        }
     }
 
     f32 * pVert = pGmdl->verts();

@@ -45,6 +45,7 @@ public:
     struct Skeleton
     {
         Vector<kMEM_Chef, Bone> bones;
+        Vector<kMEM_Chef, Bone> hardpoints;
         rapidjson::Document jsonDoc;
     };
 

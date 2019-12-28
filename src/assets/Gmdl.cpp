@@ -56,12 +56,14 @@ bool Gmdl::is_valid(const void * pBuffer, u64 size)
                                 pAssetData->primType(),
                                 pAssetData->mPrimCount,
                                 pAssetData->mBoneCount,
+                                pAssetData->mHardpointCount,
                                 pAssetData->mat());
     if (reqSize != size)
         return false;
 
     u32 vertStride = pAssetData->vertStride();
 
+    u32 tot = pAssetData->totalSize();
     if (size != pAssetData->totalSize())
         return false;
 
@@ -98,6 +100,7 @@ u64 Gmdl::required_size(VertType vertType,
                         PrimType primType,
                         u32 primCount,
                         u32 boneCount,
+                        u32 hardpointCount,
                         const Gmat * pMat)
 {
     u32 vertStride = vert_stride(vertType);
@@ -108,6 +111,7 @@ u64 Gmdl::required_size(VertType vertType,
             size_aligned(vertStride, vertCount) +
             size_aligned(primStride, primCount) +
             size_aligned(sizeof(Bone), boneCount) +
+            size_aligned(sizeof(Hardpoint), hardpointCount) +
             matSize);
 }
 
@@ -116,6 +120,7 @@ Gmdl * Gmdl::create(VertType vertType,
                     PrimType primType,
                     u32 primCount,
                     u32 boneCount,
+                    u32 hardpointCount,
                     const Gmat * pMat)
 {
     u64 size = Gmdl::required_size(vertType,
@@ -123,6 +128,7 @@ Gmdl * Gmdl::create(VertType vertType,
                                    primType,
                                    primCount,
                                    boneCount,
+                                   hardpointCount,
                                    pMat);
 
     Gmdl * pGmdl = alloc_asset<Gmdl>(kMEM_Model, size);
@@ -140,7 +146,9 @@ Gmdl * Gmdl::create(VertType vertType,
     pGmdl->mPrimOffset = pGmdl->vertOffset() + size_aligned(vertStride, vertCount);
     pGmdl->mBoneCount = boneCount;
     pGmdl->mBoneOffset = pGmdl->primOffset() + size_aligned(primStride, primCount);
-    pGmdl->mMatOffset = pMat ? pGmdl->boneOffset() + size_aligned(sizeof(Bone), boneCount) : 0;
+    pGmdl->mHardpointCount = hardpointCount;
+    pGmdl->mHardpointOffset = pGmdl->boneOffset() + size_aligned(sizeof(Bone), boneCount);
+    pGmdl->mMatOffset = pMat ? pGmdl->hardpointOffset() + size_aligned(sizeof(Hardpoint), hardpointCount) : 0;
 
     pGmdl->mHas32BitIndices = 0;
     pGmdl->mMorphTargetCount = 0; // no targets, just one set of verts
@@ -155,23 +163,22 @@ Gmdl * Gmdl::create(VertType vertType,
 
 void Gmdl::compact(u32 newVertCount, u32 newPrimCount)
 {
+    ASSERT(mBoneCount == 0 && mHardpointCount == 0); // shouldn't ever need to support these in compact, but sanity checking here
     ASSERT(newVertCount < mVertCount);
     ASSERT(newPrimCount < mPrimCount);
 
     // Get current start of prims before we muck up our counts, etc.
     index * oldPrims = prims();
     Gmat * oldMat = mat();
-    u32 oldBoneCount = boneCount();
 
     u32 vertStride = vert_stride((VertType)mVertType);
     u32 primStride = prim_stride((PrimType)mPrimType);
 
-    mSize = required_size((VertType)mVertType, newVertCount, (PrimType)mPrimType, newPrimCount, oldBoneCount, oldMat);;
+    mSize = required_size((VertType)mVertType, newVertCount, (PrimType)mPrimType, newPrimCount, 0, 0, oldMat);;
     mVertCount = newVertCount;
     mPrimCount = newPrimCount;
     mPrimOffset = vertOffset() + size_aligned(vertStride, mVertCount);
-    mBoneOffset = primOffset() + size_aligned(primStride, mPrimCount);
-    mMatOffset = oldMat ? boneOffset() + size_aligned(sizeof(Bone), mBoneCount) : 0;
+    mMatOffset = oldMat ? primOffset() + size_aligned(primStride, mPrimCount) : 0;
 
     index * newPrims = prims();
 
@@ -205,6 +212,30 @@ void Gmdl::updateHalfExtents()
     }
 
     mHalfExtents = max(abs(minPos), abs(maxPos));
+}
+
+const Bone * Gmdl::findBone(u32 nameHash) const
+{
+    const Bone * pBone = bones();
+    for (u32 i = 0; i < boneCount(); ++i)
+    {
+        if (pBone->nameHash == nameHash)
+            return pBone;
+        pBone++;
+    }
+    return nullptr;
+}
+
+const Hardpoint * Gmdl::findHardpoint(u32 nameHash) const
+{
+    const Hardpoint * pHardpoint = hardpoints();
+    for (u32 i = 0; i < hardpointCount(); ++i)
+    {
+        if (pHardpoint->nameHash == nameHash)
+            return pHardpoint;
+        pHardpoint++;
+    }
+    return nullptr;
 }
 
 } // namespace gaen

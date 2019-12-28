@@ -275,26 +275,17 @@ inline u32 index_count(PrimType primType)
 #pragma pack(push, 1)
 struct Bone
 {
-    enum BoneFlag
-    {
-        kBF_None = 0,
-        kBF_Hardpoint = 1,
-        kBF_Holdpoint = 2
-    };
-
-    Bone(u32 nameHash, u32 parentHash, const mat43 & transform)//, u32 flags = 0)
+    Bone(u32 nameHash, u32 parentHash, const mat43 & transform)
       : nameHash(nameHash)
       , parentHash(parentHash)
       , transform(transform)
-//      , flags(flags)
     {}
 
     u32 nameHash;
     u32 parentHash;
     mat43 transform;
-//    u32 flags;
 };
-
+typedef Bone Hardpoint; // exact same structure
 #pragma pack(pop)
 
 //-------------------------------------------
@@ -406,6 +397,7 @@ public:
                              PrimType primType,
                              u32 primCount,
                              u32 boneCount,
+                             u32 hardpointCount,
                              const Gmat * pMat);
 
     static Gmdl * create(VertType vertType,
@@ -413,6 +405,7 @@ public:
                          PrimType primType,
                          u32 primCount,
                          u32 boneCount = 0,
+                         u32 hardpointCount = 0,
                          const Gmat * pMat = nullptr);
 
     void compact(u32 newVertCount, u32 newPrimCount);
@@ -424,10 +417,14 @@ public:
     u32 primCount() const { return mPrimCount; }
     u32 indexCount() const { return mPrimCount * index_count(primType()); }
     u32 boneCount() const { return mBoneCount; }
+    u32 hardpointCount() const { return mHardpointCount; }
 
     vec3 & halfExtents() { return mHalfExtents; }
     const vec3 & halfExtents() const { return mHalfExtents; }
     void updateHalfExtents();
+
+    const Bone * findBone(u32 nameHash) const;
+    const Hardpoint * findHardpoint(u32 nameHash) const;
 
     f32 * verts()
     {
@@ -463,6 +460,20 @@ public:
         return nullptr;
     }
 
+    Hardpoint * hardpoints()
+    {
+        if (hardpointOffset())
+            return reinterpret_cast<Hardpoint*>(reinterpret_cast<u8*>(this) + hardpointOffset());
+        return nullptr;
+    }
+
+    const Hardpoint * hardpoints() const
+    {
+        if (hardpointOffset())
+            return reinterpret_cast<const Hardpoint*>(reinterpret_cast<const u8*>(this) + hardpointOffset());
+        return nullptr;
+    }
+
     Gmat * mat()
     {
         if (matOffset())
@@ -490,6 +501,11 @@ public:
     u32 boneOffset() const
     {
         return mBoneOffset;
+    }
+
+    u32 hardpointOffset() const
+    {
+        return mHardpointOffset;
     }
 
     u32 matOffset() const
@@ -529,6 +545,16 @@ public:
         return size_aligned(boneStride(), boneCount());
     }
 
+    u32 hardpointStride() const
+    {
+        return sizeof(Hardpoint);
+    }
+
+    u32 hardpointsSize() const
+    {
+        return size_aligned(hardpointStride(), hardpointCount());
+    }
+
     u32 matSize() const
     {
         if (mat())
@@ -538,7 +564,7 @@ public:
 
     u32 totalSize() const
     {
-        return sizeof(Gmdl) + vertsSize() + primsSize() + bonesSize() + matSize();
+        return sizeof(Gmdl) + vertsSize() + primsSize() + bonesSize() + hardpointsSize() + matSize();
     }
 
     bool hasVertPosition() const
@@ -747,15 +773,15 @@ private:
     u32 mVertCount;
     u32 mPrimCount;
     u32 mBoneCount;
+    u32 mHardpointCount;
 
     // VertOffset is sizeof(Gmdl), they start immediately after the header
     u32 mPrimOffset;  // offset from start of struct
     u32 mBoneOffset;
+    u32 mHardpointOffset;
     u32 mMatOffset;
 
     vec3 mHalfExtents;
-
-    char PADDING__[8];
 };
 #pragma pack(pop)
 
