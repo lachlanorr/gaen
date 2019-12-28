@@ -28,12 +28,12 @@
 #include "renderergl/shaders/compute_present.h"
 #include "renderergl/shaders/compute_test.h"
 #include "renderergl/shaders/faceted.h"
-#include "renderergl/shaders/prop.h"
 #include "renderergl/shaders/sprite.h"
 #include "renderergl/shaders/voxchar.h"
 #include "renderergl/shaders/voxel27.h"
 #include "renderergl/shaders/voxel_cast.h"
 #include "renderergl/shaders/voxel_cast_frag.h"
+#include "renderergl/shaders/voxprop.h"
 
 namespace gaen
 {
@@ -43,12 +43,12 @@ void ShaderRegistry::registerAllShaderConstructors()
     registerShaderConstructor(0x4613be76 /* HASH::compute_present */, shaders::compute_present::construct);
     registerShaderConstructor(0x62ad79eb /* HASH::compute_test */, shaders::compute_test::construct);
     registerShaderConstructor(0x09352ef9 /* HASH::faceted */, shaders::faceted::construct);
-    registerShaderConstructor(0xd93e11f8 /* HASH::prop */, shaders::prop::construct);
     registerShaderConstructor(0x81e2581c /* HASH::sprite */, shaders::sprite::construct);
     registerShaderConstructor(0xd4208c92 /* HASH::voxchar */, shaders::voxchar::construct);
     registerShaderConstructor(0x9a83b4b8 /* HASH::voxel27 */, shaders::voxel27::construct);
     registerShaderConstructor(0xe9f55c27 /* HASH::voxel_cast */, shaders::voxel_cast::construct);
     registerShaderConstructor(0x427a5ca4 /* HASH::voxel_cast_frag */, shaders::voxel_cast_frag::construct);
+    registerShaderConstructor(0xb4797a4f /* HASH::voxprop */, shaders::voxprop::construct);
 }
 
 

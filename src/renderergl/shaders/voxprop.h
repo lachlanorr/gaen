@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// prop.h - Auto-generated shader from prop.shd
+// voxprop.h - Auto-generated shader from voxprop.shd
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2019 Lachlan Orr
@@ -23,21 +23,21 @@
 //   3. This notice may not be removed or altered from any source
 //   distribution.
 //------------------------------------------------------------------------------
-#ifndef GAEN_RENDERERGL_SHADERS_PROP_H
-#define GAEN_RENDERERGL_SHADERS_PROP_H
+#ifndef GAEN_RENDERERGL_SHADERS_VOXPROP_H
+#define GAEN_RENDERERGL_SHADERS_VOXPROP_H
 #include "renderergl/shaders/Shader.h"
 namespace gaen
 {
 namespace shaders
 {
 
-class prop : Shader
+class voxprop : Shader
 {
 public:
     static Shader * construct();
 
 private:
-    prop() : Shader(0xd93e11f8 /* HASH::prop */) {}
+    voxprop() : Shader(0xb4797a4f /* HASH::voxprop */) {}
 
     static const u32 kCodeCount = 2;
     static const u32 kUniformCount = 6;
@@ -48,8 +48,8 @@ private:
     Shader::VariableInfo mUniforms[kUniformCount];
     Shader::VariableInfo mAttributes[kAttributeCount];
     Shader::VariableInfo mTextures[kTextureCount];
-}; // class prop
+}; // class voxprop
 
 } // namespace shaders
 } // namespace gaen
-#endif // #ifdef GAEN_RENDERERGL_SHADERS_PROP_H
+#endif // #ifdef GAEN_RENDERERGL_SHADERS_VOXPROP_H

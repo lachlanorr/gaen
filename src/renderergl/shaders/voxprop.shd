@@ -1,0 +1,2 @@
+vertex_shader=voxprop.shv
+fragment_shader=voxprop.shf

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// prop.cpp - Auto-generated shader from prop.shd
+// voxprop.cpp - Auto-generated shader from voxprop.shd
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2019 Lachlan Orr
@@ -25,7 +25,7 @@
 //------------------------------------------------------------------------------
 
 #include "core/mem.h"
-#include "renderergl/shaders/prop.h"
+#include "renderergl/shaders/voxprop.h"
 
 namespace gaen
 {
@@ -126,17 +126,17 @@ static const char * kShaderCode_shf =
     "#endif // #else // #ifdef OPENGL3\n"
     ; // kShaderCode_shf (END)
 
-Shader * prop::construct()
+Shader * voxprop::construct()
 {
-    prop * pShader = GNEW(kMEM_Renderer, prop);
+    voxprop * pShader = GNEW(kMEM_Renderer, voxprop);
 
     // Program Codes
     pShader->mCodes[0].stage = GL_VERTEX_SHADER;
-    pShader->mCodes[0].filename = "prop.shv";
+    pShader->mCodes[0].filename = "voxprop.shv";
     pShader->mCodes[0].code = kShaderCode_shv;
 
     pShader->mCodes[1].stage = GL_FRAGMENT_SHADER;
-    pShader->mCodes[1].filename = "prop.shf";
+    pShader->mCodes[1].filename = "voxprop.shf";
     pShader->mCodes[1].code = kShaderCode_shf;
 
 
