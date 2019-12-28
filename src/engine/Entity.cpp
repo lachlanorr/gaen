@@ -1046,14 +1046,14 @@ void Entity::removeComponent(u32 nameHash)
 void Entity::growChildren()
 {
     u32 newMax = mpChildren ? mChildrenMax * 2 : 4;
-    
+
     Entity ** pNewChildren = (Entity**)GALLOC(kMEM_Engine, sizeof(Entity**) * newMax);
 
     if (mpChildren)
     {
         for (u32 i = 0; i < mChildCount; ++i)
             pNewChildren[i] = mpChildren[i];
-        
+
         GFREE(mpChildren);
     }
 
