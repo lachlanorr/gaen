@@ -31,6 +31,11 @@
 #include "assets/Gatl.h"
 #include "assets/Gimg.h"
 #include "assets/Gspr.h"
+#include "assets/Gaim.h"
+#include "assets/Gmdl.h"
+
+#include "engine/Handle.h"
+#include "engine/Entity.h"
 
 #include "engine/Asset.h"
 #include "engine/AssetWithDep.h"
@@ -96,5 +101,71 @@ const AssetType * AssetTypes::assetTypeFromExt(const char * ext) const
         return nullptr;
     }
 }
+
+namespace system_api
+{
+
+i32 gaim_anim_index(const AssetHandleP pAssetHandleGaim, i32 nameHash, Entity * pCaller)
+{
+    ASSERT(pAssetHandleGaim->typeHash() == HASH::asset);
+    const Asset * pAssetGaim = pAssetHandleGaim->data<Asset>();
+    const Gaim * pGaim = pAssetGaim->buffer<Gaim>();
+    return pGaim->animIndex(nameHash);
+}
+
+i32 gaim_frame_offset(const AssetHandleP pAssetHandleGaim, i32 animIndex, f32 delta, Entity * pCaller)
+{
+    ASSERT(pAssetHandleGaim->typeHash() == HASH::asset);
+    const Asset * pAssetGaim = pAssetHandleGaim->data<Asset>();
+    const Gaim * pGaim = pAssetGaim->buffer<Gaim>();
+    return pGaim->frameOffset(animIndex, delta);
+}
+
+mat43 gaim_bone_transform(const AssetHandleP pAssetHandleGaim, i32 animIndex, i32 frameOffset, i32 boneIndex, Entity * pCaller)
+{
+    ASSERT(pAssetHandleGaim->typeHash() == HASH::asset);
+    const Asset * pAssetGaim = pAssetHandleGaim->data<Asset>();
+    const Gaim * pGaim = pAssetGaim->buffer<Gaim>();
+    const AnimInfo * pAnim = pGaim->animByIndex(animIndex);
+    return pGaim->boneTransform(pAnim, frameOffset, boneIndex);
+}
+
+i32 gmdl_bone_index(const AssetHandleP pAssetHandleGmdl, i32 nameHash, Entity * pCaller)
+{
+    ASSERT(pAssetHandleGmdl->typeHash() == HASH::asset);
+    const Asset * pAssetGmdl = pAssetHandleGmdl->data<Asset>();
+    const Gmdl * pGmdl = pAssetGmdl->buffer<Gmdl>();
+    return pGmdl->boneIndex(nameHash);
+}
+
+mat43 gmdl_bone_transform(const AssetHandleP pAssetHandleGmdl, i32 boneIndex, Entity * pCaller)
+{
+    ASSERT(pAssetHandleGmdl->typeHash() == HASH::asset);
+    const Asset * pAssetGmdl = pAssetHandleGmdl->data<Asset>();
+    const Gmdl * pGmdl = pAssetGmdl->buffer<Gmdl>();
+    const Bone * pBone = pGmdl->boneByIndex(boneIndex);
+    ASSERT(pBone);
+    return pBone->transform;
+}
+
+i32 gmdl_hardpoint_index(const AssetHandleP pAssetHandleGmdl, i32 nameHash, Entity * pCaller)
+{
+    ASSERT(pAssetHandleGmdl->typeHash() == HASH::asset);
+    const Asset * pAssetGmdl = pAssetHandleGmdl->data<Asset>();
+    const Gmdl * pGmdl = pAssetGmdl->buffer<Gmdl>();
+    return pGmdl->hardpointIndex(nameHash);
+}
+
+mat43 gmdl_hardpoint_transform(const AssetHandleP pAssetHandleGmdl, i32 hardpointIndex, Entity * pCaller)
+{
+    ASSERT(pAssetHandleGmdl->typeHash() == HASH::asset);
+    const Asset * pAssetGmdl = pAssetHandleGmdl->data<Asset>();
+    const Gmdl * pGmdl = pAssetGmdl->buffer<Gmdl>();
+    const Hardpoint * pHp = pGmdl->hardpointByIndex(hardpointIndex);
+    ASSERT(pHp);
+    return pHp->transform;
+}
+
+} // namespace system_api
 
 } // namespace gaen

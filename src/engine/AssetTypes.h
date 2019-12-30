@@ -29,6 +29,8 @@
 
 #include "core/mem.h"
 #include "core/HashMap.h"
+#include "math/mat43.h"
+#include "engine/Handle.h"
 
 #include "engine/AssetType.h"
 
@@ -51,6 +53,18 @@ public:
 private:
     HashMap<kMEM_Engine, u32, UniquePtr<AssetType>> mExtToAssetTypeMap;
 };
+
+class Entity;
+namespace system_api
+{
+i32 gaim_anim_index(const AssetHandleP pAssetHandleGaim, i32 nameHash, Entity * pCaller);
+i32 gaim_frame_offset(const AssetHandleP pAssetHandleGaim, i32 animIndex, f32 delta, Entity * pCaller);
+mat43 gaim_bone_transform(const AssetHandleP pAssetHandleGaim, i32 animIndex, i32 frameOffset, i32 boneIndex, Entity * pCaller);
+i32 gmdl_bone_index(const AssetHandleP pAssetHandleGmdl, i32 nameHash, Entity * pCaller);
+mat43 gmdl_bone_transform(const AssetHandleP pAssetHandleGmdl, i32 boneIndex, Entity * pCaller);
+i32 gmdl_hardpoint_index(const AssetHandleP pAssetHandleGmdl, i32 nameHash, Entity * pCaller);
+mat43 gmdl_hardpoint_transform(const AssetHandleP pAssetHandleGmdl, i32 hardpointIndex, Entity * pCaller);
+} // namespace system_api
 
 } // namespace gaen
 

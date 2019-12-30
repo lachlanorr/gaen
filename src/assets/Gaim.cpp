@@ -176,6 +176,20 @@ const AnimInfo * Gaim::anim(u32 nameHash) const
     return nullptr;
 }
 
+const AnimInfo * Gaim::animByIndex(u32 animIndex) const
+{
+    ASSERT(animIndex < mAnimCount);
+    return anims() + animIndex;
+}
+
+const u32 Gaim::animIndex(u32 nameHash) const
+{
+    const AnimInfo * pAi = anim(nameHash);
+    if (pAi)
+        return (u32)(pAi - anims());
+    return 0;
+}
+
 u32 Gaim::frameOffset(const AnimInfo * pAnimInfo, f32 elapsedTime) const
 {
     ASSERT(pAnimInfo);
@@ -185,6 +199,13 @@ u32 Gaim::frameOffset(const AnimInfo * pAnimInfo, f32 elapsedTime) const
     offset += pAnimInfo->framesOffset;
 
     return offset;
+}
+
+u32 Gaim::frameOffset(u32 animInfoIndex, f32 elapsedTime) const
+{
+    ASSERT(animInfoIndex < mAnimCount);
+    const AnimInfo * pAi = anims() + animInfoIndex;
+    return frameOffset(pAi, elapsedTime);
 }
 
 const mat43 & Gaim::boneTransform(const AnimInfo * pAnimInfo, u32 frameOffset, u32 boneIdx) const
