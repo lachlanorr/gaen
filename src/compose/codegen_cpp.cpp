@@ -2489,6 +2489,11 @@ static S codegen_recurse(const Ast * pAst,
         return S("pThis->self().task().id()");
     }
 
+    case kAST_Renderer:
+    {
+        return S("kRendererTaskId");
+    }
+
     case kAST_Parent:
     {
         return S("pThis->self().parent()->task().id()");

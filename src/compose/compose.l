@@ -47,7 +47,7 @@ freely, subject to the following restrictions:
     yylloc->first_column = yycolumn + 1; \
     yylloc->first_line = yylineno;       \
     yycolumn += (int)yyleng;             \
-  } while(0);                             
+  } while(0);
 
 #define YY_USER_INIT    \
   do {                  \
@@ -66,7 +66,7 @@ CRLF (\r\n|\r|\n)
 
 %%
 %{
-ParseData * pParseData = yyextra;    
+ParseData * pParseData = yyextra;
 %}
 
 "/*"                       { BEGIN(COMMENT); }
@@ -95,6 +95,7 @@ ParseData * pParseData = yyextra;
 "asset"  { yylval->dataType = kDT_asset;  return ASSET; }
 
 "self"     { return SELF; }
+"renderer" { return RENDERER; }
 
 "if"       { return IF;     }
 "else"     { return ELSE;   }
