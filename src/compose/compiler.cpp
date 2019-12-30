@@ -2807,8 +2807,16 @@ Scope* parsedata_push_input_scope(ParseData * pParseData)
 
 Scope* parsedata_push_prop_prepost_scope(ParseData * pParseData)
 {
-    // get the datatype of the property we're in the process of defining
-    const SymRec * pPropType = parsedata_current_scope(pParseData)->pSymTab->pParent->pParent->orderedSymRecs.front();
+    CompList<SymRec*> recs = parsedata_current_scope(pParseData)->pSymTab->pParent->pParent->orderedSymRecs;
+
+    const SymRec * pPropType = nullptr;
+    // Find most recently defined property
+    for (SymRec * pRec : recs)
+    {
+        if (pRec->type == kSYMT_Property && !pRec->pStructSymRec)
+            pPropType = pRec;
+    }
+    ASSERT(pPropType);
 
     Scope * pScope = parsedata_push_scope(pParseData);
 
@@ -3341,12 +3349,52 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
-    // vec3 euler(mat43)
+    // vec3 extract_rotate(mat43)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
         ast_add_child(pFuncArgs, ast_create_function_arg("m", parsedata_find_type_symbol(pParseData, "mat43", 1, 1), pParseData));
-        register_builtin_function("euler",
+        register_builtin_function("extract_rotate",
                                   parsedata_find_type_symbol(pParseData, "vec3", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // vec3 extract_translate(mat43)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("m", parsedata_find_type_symbol(pParseData, "mat43", 1, 1), pParseData));
+        register_builtin_function("extract_translate",
+                                  parsedata_find_type_symbol(pParseData, "vec3", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // mat43 build_translate(vec3)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("m", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        register_builtin_function("build_translate",
+                                  parsedata_find_type_symbol(pParseData, "mat43", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // mat43 build_rotate(vec3)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("m", parsedata_find_type_symbol(pParseData, "vec3", 1, 1), pParseData));
+        register_builtin_function("build_rotate",
+                                  parsedata_find_type_symbol(pParseData, "mat43", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // mat43 build_rotate(quat)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("m", parsedata_find_type_symbol(pParseData, "quat", 1, 1), pParseData));
+        register_builtin_function("build_rotate",
+                                  parsedata_find_type_symbol(pParseData, "mat43", 0, 0),
                                   pFuncArgs,
                                   pParseData);
     }

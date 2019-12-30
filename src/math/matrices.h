@@ -87,8 +87,25 @@ inline void set_position(mat4 & transform, const vec3 & position)
     transform[3] = vec4(position, 0.0f);
 }
 
-vec3 euler(const mat43 & transform);
+vec3 extract_rotate(const mat43 & transform);
 
+inline vec3 extract_translate(const mat43 & transform)
+{
+    return transform[3];
+}
+
+inline mat43 build_translate(const vec3 & v)
+{
+    return mat43::from_pos(v.x, v.y, v.z);
+}
+inline mat43 build_rotate(const vec3 & v)
+{
+    return mat43::from_rot(v.x, v.y, v.z);
+}
+inline mat43 build_rotate(const quat & q)
+{
+    return mat43(q);
+}
 
 mat4 perspective(f32 fovy,
                  f32 aspect,

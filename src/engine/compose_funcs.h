@@ -119,9 +119,29 @@ inline vec3 position(const mat43 & transform, Entity * pCaller)
     return gaen::position(transform);
 }
 
-inline vec3 euler(const mat43 & transform, Entity * pCaller)
+inline vec3 extract_translate(const mat43 & transform, Entity * pCaller)
 {
-    return gaen::euler(transform);
+    return gaen::extract_translate(transform);
+}
+
+inline vec3 extract_rotate(const mat43 & transform, Entity * pCaller)
+{
+    return gaen::extract_rotate(transform);
+}
+
+inline mat43 build_translate(const vec3 & v, Entity * pCaller)
+{
+    return gaen::build_translate(v);
+}
+
+inline mat43 build_rotate(const vec3 & v, Entity * pCaller)
+{
+    return gaen::build_rotate(v);
+}
+
+inline mat43 build_rotate(const quat & q, Entity * pCaller)
+{
+    return gaen::build_rotate(q);
 }
 
 inline vec2 normalize(const vec2 & v, Entity * pCaller)
