@@ -96,7 +96,7 @@ const void * Sprite::triOffset(u32 idx) const
 
 vec3 Sprite::halfExtents() const
 {
-    const AnimInfo * pAnimInfo = mpGspr->getAnim(mpGspr->defaultAnimHash());
+    const AnimInfoSpr * pAnimInfo = mpGspr->getAnim(mpGspr->defaultAnimHash());
     uintptr_t frameElemsOffset = (uintptr_t)mpGspr->getFrameElemsOffset(pAnimInfo, 0);
     u16 triIdx = (u16)(frameElemsOffset / sizeof(GlyphTri));
     const GlyphTri & tri = mpGatl->tri(triIdx);
@@ -166,7 +166,7 @@ void SpriteInstance::destroySprite()
     }
 }
 
-const AnimInfo & SpriteInstance::currentAnim()
+const AnimInfoSpr & SpriteInstance::currentAnim()
 {
     ASSERT(mpAnimInfo);
     return *mpAnimInfo;

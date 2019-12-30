@@ -64,14 +64,14 @@ bool Gspr::is_valid(const void * pBuffer, u64 size)
     if (pAssetData->mAnimTocOffset != reinterpret_cast<const char*>(pAssetData) + anim_toc_offset(atlasPathLen) - reinterpret_cast<const char*>(pAssetData))
         return false;
 
-    const AnimInfo * pAnims = pAssetData->anims();
+    const AnimInfoSpr * pAnims = pAssetData->anims();
     if ((char*)pAnims <= (char*)(pAssetData+1) || (char*)pAnims > (char*)pAssetData->framesEnd())
         return false;
 
     u32 frameCount = 0;
     for (u32 animIdx = 0; animIdx < pAssetData->mAnimCount; ++animIdx)
     {
-        const AnimInfo & anim = pAssetData->anims()[animIdx];
+        const AnimInfoSpr & anim = pAssetData->anims()[animIdx];
 
         if (anim.animHash == 0)
             return false;
@@ -81,7 +81,7 @@ bool Gspr::is_valid(const void * pBuffer, u64 size)
     }
 
     u64 calcSize = (anim_toc_offset(atlasPathLen) +
-                    pAssetData->mAnimCount * sizeof(AnimInfo) +
+                    pAssetData->mAnimCount * sizeof(AnimInfoSpr) +
                     frameCount * sizeof(u32));
 
     if (calcSize != size)
@@ -115,7 +115,7 @@ const Gspr * Gspr::instance(const void * pBuffer, u64 size)
 u64 Gspr::required_size(const char * atlasPath, u32 animCount, u32 totalFrameCount)
 {
     return (anim_toc_offset(strnlen(atlasPath, kMaxPath)) +
-            animCount * sizeof(AnimInfo) +
+            animCount * sizeof(AnimInfoSpr) +
             totalFrameCount * sizeof(u32));
 
     return 0;
@@ -156,9 +156,9 @@ u32 Gspr::defaultAnimHash() const
     return anims()[0].animHash;
 }
 
-const AnimInfo * Gspr::getAnim(u32 animHash) const
+const AnimInfoSpr * Gspr::getAnim(u32 animHash) const
 {
-    const AnimInfo * pAnims = anims();
+    const AnimInfoSpr * pAnims = anims();
     for (u32 i = 0; i < mAnimCount; ++i)
     {
         if (pAnims[i].animHash == animHash)
@@ -168,7 +168,7 @@ const AnimInfo * Gspr::getAnim(u32 animHash) const
     return pAnims;
 }
 
-const GlyphTri * Gspr::getFrameElems(const AnimInfo * pAnim, u32 frameIdx) const
+const GlyphTri * Gspr::getFrameElems(const AnimInfoSpr * pAnim, u32 frameIdx) const
 {
     ASSERT(mpAtlas);
 
@@ -183,17 +183,17 @@ const GlyphTri * Gspr::getFrameElems(const AnimInfo * pAnim, u32 frameIdx) const
     return mpAtlas->glyphElems(frame);
 }
 
-const void * Gspr::getFrameElemsOffset(const AnimInfo * pAnim, u32 frameIdx) const
+const void * Gspr::getFrameElemsOffset(const AnimInfoSpr * pAnim, u32 frameIdx) const
 {
     return mpAtlas->glyphElemsOffset(getFrameElems(pAnim, frameIdx));
 }
 
-AnimInfo * Gspr::anims()
+AnimInfoSpr * Gspr::anims()
 {
-    return reinterpret_cast<AnimInfo*>(reinterpret_cast<char*>(this) + mAnimTocOffset);
+    return reinterpret_cast<AnimInfoSpr*>(reinterpret_cast<char*>(this) + mAnimTocOffset);
 }
 
-const AnimInfo * Gspr::anims() const
+const AnimInfoSpr * Gspr::anims() const
 {
     return const_cast<Gspr*>(this)->anims();
 }

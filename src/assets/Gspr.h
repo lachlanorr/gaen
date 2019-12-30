@@ -37,13 +37,13 @@ struct GlyphVert;
 struct GlyphTri;
 
 #pragma pack(push, 1)
-struct AnimInfo
+struct AnimInfoSpr
 {
     u32 animHash;
     u32 frameCount:12;
     u32 firstFrame:20;
 };
-static_assert(sizeof(AnimInfo) == 8, "AnimInfo has unexpected size");
+static_assert(sizeof(AnimInfoSpr) == 8, "AnimInfoSpr has unexpected size");
 
 class Gspr : public AssetHeader4CC<FOURCC("gspr")>
 {
@@ -72,7 +72,7 @@ public:
         // atlasPath is null terminated string immediately after header
         return reinterpret_cast<const char*>(this+1);
     }
-    
+
     const Gatl * atlas() const
     {
         ASSERT(mpAtlas);
@@ -81,12 +81,12 @@ public:
 
     u32 defaultAnimHash() const;
 
-    const AnimInfo * getAnim(u32 animHash) const;
-    const GlyphTri * getFrameElems(const AnimInfo * pAnim, u32 frameIdx) const;
-    const void * getFrameElemsOffset(const AnimInfo * pAnim, u32 frameIdx) const;
+    const AnimInfoSpr * getAnim(u32 animHash) const;
+    const GlyphTri * getFrameElems(const AnimInfoSpr * pAnim, u32 frameIdx) const;
+    const void * getFrameElemsOffset(const AnimInfoSpr * pAnim, u32 frameIdx) const;
 
-    AnimInfo * anims();
-    const AnimInfo * anims() const;
+    AnimInfoSpr * anims();
+    const AnimInfoSpr * anims() const;
 
     u32 * frames();
     const u32 * frames() const;
@@ -111,7 +111,7 @@ private:
 
     u32 mFrameWidth;
     u32 mFrameHeight;
-    
+
     u32 mAnimCount:12;
     u32 mAnimTocOffset:20;
 

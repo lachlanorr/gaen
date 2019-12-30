@@ -78,7 +78,7 @@ private:
     const Gatl * mpGatl;
 };
 
-struct AnimInfo;
+struct AnimInfoSpr;
 class SpriteBody;
 // Mutable properties of a sprite
 class SpriteInstance
@@ -103,7 +103,7 @@ public:
     const void * currentFrameElemsOffset() { return mpCurrentFrameElemsOffset; }
     bool animate(u32 animHash, u32 animFrameIdx);
 
-    const AnimInfo & SpriteInstance::currentAnim();
+    const AnimInfoSpr & SpriteInstance::currentAnim();
 
     static void sprite_insert(task_id source, task_id target, SpriteInstance * pSpriteInst);
     static void sprite_anim(task_id source, task_id target, u32 uid, u32 animHash, u32 animFrameIdx);
@@ -130,7 +130,7 @@ private:
 
     bool mHasBody;
 
-    const AnimInfo * mpAnimInfo;
+    const AnimInfoSpr * mpAnimInfo;
     const void * mpCurrentFrameElemsOffset;
 
     u32 mAnimHash;

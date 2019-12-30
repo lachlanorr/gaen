@@ -104,7 +104,7 @@ void Sprite::cook(CookInfo * pCookInfo) const
     // Iterate over sections again to insert animation frame data into
     // the gspr.
     u32 currFrame = 0;
-    AnimInfo * pAnimInfo = pGspr->anims();
+    AnimInfoSpr * pAnimInfo = pGspr->anims();
     u32 * pFrames = pGspr->frames();
     for (auto secIt = spr.sectionsBegin();
          secIt != spr.sectionsEnd();
