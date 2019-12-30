@@ -287,6 +287,19 @@ i32 model_create(AssetHandleP pAssetHandleGmdl,
     return model_anim_create(pAssetHandleGmdl, nullptr, stageHash, passHash, transform, pCaller);
 }
 
+mat43 model_hardpoint_transform(AssetHandleP pAssetHandleGmdl, i32 nameHash, Entity * pCaller)
+{
+    ASSERT(pAssetHandleGmdl->typeHash() == HASH::asset);
+    const Asset * pAssetGmdl = pAssetHandleGmdl->data<Asset>();
+
+    const Gmdl * pGmdl = pAssetGmdl->buffer<Gmdl>();
+
+    const Hardpoint * pHardpoint = pGmdl->hardpointByName(nameHash);
+    ASSERT(pHardpoint);
+
+    return pHardpoint->transform;
+}
+
 void model_set_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller)
 {
     messages::UidVec3QW msgw(HASH::model_set_velocity, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);

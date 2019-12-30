@@ -161,6 +161,52 @@ Gmdl * Gmdl::create(VertType vertType,
     return pGmdl;
 }
 
+u32 Gmdl::boneIndex(u32 nameHash) const
+{
+    ASSERT(boneCount() > 0);
+    const Bone * pBone = bones();
+    for (u32 i = 0; i < boneCount(); ++i)
+    {
+        if (pBone->nameHash == nameHash)
+            return i;
+        pBone++;
+    }
+    PANIC("Unknown nameHash, cannot find bone: %u", nameHash);
+    return 0;
+}
+
+const Bone * Gmdl::boneByIndex(u32 idx) const
+{
+    ASSERT(idx < boneCount());
+    return &bones()[idx];
+}
+
+u32 Gmdl::hardpointIndex(u32 nameHash) const
+{
+    ASSERT(hardpointCount() > 0);
+    const Hardpoint * pHardpoint = hardpoints();
+    for (u32 i = 0; i < hardpointCount(); ++i)
+    {
+        if (pHardpoint->nameHash == nameHash)
+            return i;
+        pHardpoint++;
+    }
+    PANIC("Unknown nameHash, cannot find hardpoint: %u", nameHash);
+    return 0;
+}
+
+const Hardpoint * Gmdl::hardpointByIndex(u32 idx) const
+{
+    ASSERT(idx < hardpointCount());
+    return &hardpoints()[idx];
+}
+
+const Hardpoint * Gmdl::hardpointByName(u32 nameHash) const
+{
+    u32 idx = hardpointIndex(nameHash);
+    return hardpointByIndex(idx);
+}
+
 void Gmdl::compact(u32 newVertCount, u32 newPrimCount)
 {
     ASSERT(mBoneCount == 0 && mHardpointCount == 0); // shouldn't ever need to support these in compact, but sanity checking here

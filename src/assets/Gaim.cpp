@@ -187,6 +187,14 @@ u32 Gaim::frameOffset(const AnimInfo * pAnimInfo, f32 elapsedTime) const
     return offset;
 }
 
+const mat43 & Gaim::boneTransform(const AnimInfo * pAnimInfo, u32 frameOffset, u32 boneIdx) const
+{
+    ASSERT(pAnimInfo);
+    const Gimg * pGimg = image();
+    const mat43 * pTrans = (mat43*)((vec4*)pGimg->pixels() + frameOffset);
+    pTrans += boneIdx;
+    return *pTrans;
+}
 
 } // namespace gaen
 

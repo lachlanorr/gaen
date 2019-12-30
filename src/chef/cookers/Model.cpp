@@ -31,6 +31,7 @@
 #include "math/mat3.h"
 
 #include "core/Vector.h"
+#include "core/hashing.h"
 #include "hashes/hashes.h"
 
 #include "assets/file_utils.h"
@@ -228,7 +229,11 @@ void Model::cook(CookInfo * pCookInfo) const
     if (textures.size() > 0)
     {
         u32 shaderHash = 0;
-        if (vertType == kVERT_PosNormUvBone)
+        if (pCookInfo->fullRecipe().hasKey("shader"))
+        {
+            shaderHash = gaen_hash(pCookInfo->fullRecipe().get("shader"));
+        }
+        else if (vertType == kVERT_PosNormUvBone)
         {
             shaderHash = HASH::voxchar;
         }
@@ -246,18 +251,15 @@ void Model::cook(CookInfo * pCookInfo) const
 
     // copy bones into gmdl
     Bone * pBones = nullptr;
-    if (vertType == kVERT_PosNormUvBone)
+    if (skel.bones.size() > 0)
     {
-        if (skel.bones.size() > 0)
-        {
-            pBones = pGmdl->bones();
-            memcpy(pBones, skel.bones.data(), sizeof(Bone) * skel.bones.size());
-        }
-        if (skel.hardpoints.size() > 0)
-        {
-            Hardpoint * pHardpoints = pGmdl->hardpoints();
-            memcpy(pHardpoints, skel.hardpoints.data(), sizeof(Hardpoint) * skel.hardpoints.size());
-        }
+        pBones = pGmdl->bones();
+        memcpy(pBones, skel.bones.data(), sizeof(Bone) * skel.bones.size());
+    }
+    if (skel.hardpoints.size() > 0)
+    {
+        Hardpoint * pHardpoints = pGmdl->hardpoints();
+        memcpy(pHardpoints, skel.hardpoints.data(), sizeof(Hardpoint) * skel.hardpoints.size());
     }
 
     f32 * pVert = pGmdl->verts();

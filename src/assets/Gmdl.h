@@ -408,6 +408,12 @@ public:
                          u32 hardpointCount = 0,
                          const Gmat * pMat = nullptr);
 
+    u32 boneIndex(u32 nameHash) const;
+    const Bone * boneByIndex(u32 idx) const;
+    u32 hardpointIndex(u32 nameHash) const;
+    const Hardpoint * hardpointByIndex(u32 idx) const;
+    const Hardpoint * hardpointByName(u32 nameHash) const;
+
     void compact(u32 newVertCount, u32 newPrimCount);
 
     VertType vertType() const { return static_cast<VertType>(mVertType); }

@@ -83,6 +83,7 @@ public:
 
     const AnimInfo * anim(u32 nameHash) const;
     u32 frameOffset(const AnimInfo * pAnimInfo, f32 elapsedTime) const;
+    const mat43 & boneTransform(const AnimInfo * pAnimInfo, u32 frameOffset, u32 boneIdx) const;
 
 private:
     // Class should not be constructed directly.  Use cast and create static methods.
