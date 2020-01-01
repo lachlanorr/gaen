@@ -78,8 +78,6 @@ i32 model_create(AssetHandleP pAssetHandleGmdl,
                  const mat43 & transform,
                  Entity * pCaller);
 
-mat43 model_hardpoint_transform(AssetHandleP pAssetHandleGmdl, i32 nameHash, Entity * pCaller);
-
 void model_init_body(i32 modelUid,
                      f32 mass,
                      f32 friction,
