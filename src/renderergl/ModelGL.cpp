@@ -68,7 +68,10 @@ void ModelGL::unloadGpu()
 {
     mpRenderer->unloadVerts(mpModelInstance->model().gmdl().verts());
     mpRenderer->unloadPrims(mpModelInstance->model().gmdl().prims());
-    mpRenderer->unloadTexture(mpModelInstance->model().gmdl().mat()->texture(kTXTY_Diffuse));
+    if (mpModelInstance->model().gmdl().mat() != nullptr)
+    {
+        mpRenderer->unloadTexture(mpModelInstance->model().gmdl().mat()->texture(kTXTY_Diffuse));
+    }
 }
 
 void ModelGL::render()

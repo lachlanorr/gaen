@@ -936,6 +936,11 @@ Gmdl * build_quad_sphere(const vec3 & size, u32 sections, Color color, const mat
 
 namespace system_api
 {
+void shape_destroy(i32 uid, Entity * pCaller)
+{
+    ModelInstance::model_remove(pCaller->task().id(), kRendererTaskId, uid);
+}
+
 i32 shape_box(i32 stageHash, i32 passHash, const vec3 & size, Color color, const mat43 & transform, Entity * pCaller)
 {
     Gmdl * pGmdl = build_box(size, color, mat43(1.0f));
