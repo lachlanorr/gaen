@@ -295,7 +295,6 @@ void Model::cook(CookInfo * pCookInfo) const
 
             mins = min(mins, pVertPos->position);
             maxes = max(maxes, pVertPos->position);
-            printf("%0.4f\n", pVertPos->position.y);
 
             if (pGmdl->hasVertNormal())
             {
