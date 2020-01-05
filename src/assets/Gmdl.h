@@ -427,6 +427,8 @@ public:
 
     vec3 & halfExtents() { return mHalfExtents; }
     const vec3 & halfExtents() const { return mHalfExtents; }
+    vec3 & center() { return mCenter; }
+    const vec3 & center() const { return mCenter; }
     void updateHalfExtents();
 
     const Bone * findBone(u32 nameHash) const;
@@ -439,7 +441,7 @@ public:
 
     const f32 * verts() const
     {
-        return reinterpret_cast<const f32*>(reinterpret_cast<const u8*>(this) + vertOffset());
+        return const_cast<Gmdl*>(this)->verts();
     }
 
     index * prims()
@@ -449,35 +451,31 @@ public:
 
     const index * prims() const
     {
-        return reinterpret_cast<const index*>(reinterpret_cast<const u8*>(this) + primOffset());
+        return const_cast<Gmdl*>(this)->prims();
     }
 
     Bone * bones()
     {
-        if (boneOffset())
+        if (mBoneCount > 0)
             return reinterpret_cast<Bone*>(reinterpret_cast<u8*>(this) + boneOffset());
         return nullptr;
     }
 
     const Bone * bones() const
     {
-        if (boneOffset())
-            return reinterpret_cast<const Bone*>(reinterpret_cast<const u8*>(this) + boneOffset());
-        return nullptr;
+        return const_cast<Gmdl*>(this)->bones();
     }
 
     Hardpoint * hardpoints()
     {
-        if (hardpointOffset())
+        if (mHardpointCount > 0)
             return reinterpret_cast<Hardpoint*>(reinterpret_cast<u8*>(this) + hardpointOffset());
         return nullptr;
     }
 
     const Hardpoint * hardpoints() const
     {
-        if (hardpointOffset())
-            return reinterpret_cast<const Hardpoint*>(reinterpret_cast<const u8*>(this) + hardpointOffset());
-        return nullptr;
+        return const_cast<Gmdl*>(this)->hardpoints();
     }
 
     Gmat * mat()
@@ -788,6 +786,9 @@ private:
     u32 mMatOffset;
 
     vec3 mHalfExtents;
+    vec3 mCenter;
+
+    u8 _PADDING[4];
 };
 #pragma pack(pop)
 
@@ -800,7 +801,7 @@ static_assert(sizeof(VertPosNormUvTan) == 48, "VertPosNormUvTan geometry struct 
 static_assert(sizeof(PrimPoint) == 2,         "PrimLine geometry struct has unexpected size");
 static_assert(sizeof(PrimLine) == 4,          "PrimLine geometry struct has unexpected size");
 static_assert(sizeof(PrimTriangle) == 6,      "PrimTriangle geometry struct has unexpected size");
-static_assert(sizeof(Gmdl) == 64,             "Gmdl has unexpected size");
+static_assert(sizeof(Gmdl) == 80,             "Gmdl has unexpected size");
 static_assert(sizeof(Gmdl) % 16 == 0,         "Gmdl size not 16 byte aligned");
 
 } // namespace gaen
