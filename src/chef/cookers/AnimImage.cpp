@@ -53,8 +53,8 @@ AnimImage::AnimImage()
 }
 
 static void add_bone_transforms(Gaim::AnimRaw & animRaw,
-                             const rapidjson::Value & boneList,
-                             const Vector<kMEM_Chef, Bone> & bones)
+                                const rapidjson::Value & boneList,
+                                const Vector<kMEM_Chef, Bone> & bones)
 {
     for (u32 j = 0; j < boneList.Size(); ++j)
     {
