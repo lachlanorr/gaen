@@ -71,7 +71,9 @@ struct tmat43
     tmat43(const tvec3<T> & pos, const tmat3<T> & rot);
     tmat43(const tvec3<T> & col0, const tvec3<T> & col1, const tvec3<T> & col2, const tvec3<T> & col3);
     static tmat43 from_pos(T x, T y, T z);
+    static tmat43 from_pos(const tvec3<T> & v);
     static tmat43 from_rot(T x, T y, T z);
+    static tmat43 from_rot(const tvec3<T> & v);
     static tmat43 from_scale(T scale);
 
     explicit tmat43(const tmat4<T> & rhs);

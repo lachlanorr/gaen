@@ -90,9 +90,21 @@ tmat43<T> tmat43<T>::from_pos(T x, T y, T z)
 }
 
 template <typename T>
+tmat43<T> tmat43<T>::from_pos(const tvec3<T> & v)
+{
+    return from_pos(v.x, v.y, v.z);
+}
+
+template <typename T>
 tmat43<T> tmat43<T>::from_rot(T x, T y, T z)
 {
     return rotation_from_euler<tmat43<T>>(x, y, z);
+}
+
+template <typename T>
+tmat43<T> tmat43<T>::from_rot(const tvec3<T> & v)
+{
+    return from_rot(v.x, v.y, v.z);
 }
 
 template <typename T>

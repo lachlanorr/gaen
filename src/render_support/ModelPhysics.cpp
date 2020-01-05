@@ -37,16 +37,18 @@
 namespace gaen
 {
 
-void gaen_to_bullet_transform(btTransform & bT, const mat43 & gT)
+void gaen_to_bullet_transform(btTransform & bT, const mat43 & gT, const vec3 & center)
 {
-    bT.setBasis(btMatrix3x3(gT[0][0], gT[1][0], gT[2][0],
-                            gT[0][1], gT[1][1], gT[2][1],
-                            gT[0][2], gT[1][2], gT[2][2]));
+    // adjust for center of gmdl, not always the origin
+    mat43 gTc = mat43::from_pos(center) * gT;
+    bT.setBasis(btMatrix3x3(gTc[0][0], gTc[1][0], gTc[2][0],
+                            gTc[0][1], gTc[1][1], gTc[2][1],
+                            gTc[0][2], gTc[1][2], gTc[2][2]));
 
-    bT.setOrigin(btVector3(gT[3][0], gT[3][1], gT[3][2]));
+    bT.setOrigin(btVector3(gTc[3][0], gTc[3][1], gTc[3][2]));
 }
 
-void bullet_to_gaen_transform(mat43 & gT, const btTransform & bT)
+void bullet_to_gaen_transform(mat43 & gT, const btTransform & bT, const vec3 & center)
 {
     gT[0][0] = bT.getBasis()[0][0];
     gT[0][1] = bT.getBasis()[1][0];
@@ -63,17 +65,20 @@ void bullet_to_gaen_transform(mat43 & gT, const btTransform & bT)
     gT[3][0] = bT.getOrigin()[0];
     gT[3][1] = bT.getOrigin()[1];
     gT[3][2] = bT.getOrigin()[2];
+
+    // adjust for center of gmdl, not always the origin
+    gT = mat43::from_pos(-center) * gT;
 }
 
 void ModelMotionState::getWorldTransform(btTransform& worldTrans) const
 {
-    gaen_to_bullet_transform(worldTrans, mModelInstance.mTransform);
+    gaen_to_bullet_transform(worldTrans, mModelInstance.mTransform, mModelInstance.model().gmdl().center());
 }
 
 void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 {
     mat43 newTrans;
-    bullet_to_gaen_transform(newTrans, worldTrans);
+    bullet_to_gaen_transform(newTrans, worldTrans, mModelInstance.model().gmdl().center());
 
     if (newTrans != mModelInstance.mTransform)
     {
@@ -277,7 +282,7 @@ void ModelPhysics::setTransform(u32 uid, const mat43 & transform)
     {
         // Update bullet
         btTransform btTrans;
-        gaen_to_bullet_transform(btTrans, transform);
+        gaen_to_bullet_transform(btTrans, transform, it->second->mpMotionState->mModelInstance.model().gmdl().center());
         it->second->setWorldTransform(btTrans);
 
         //it->second->getMotionState()->setWorldTransform(btTrans);
