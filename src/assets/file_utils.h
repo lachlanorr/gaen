@@ -31,6 +31,8 @@
 #include <fstream>
 
 #include "core/base_defines.h"
+#include "core/List.h"
+#include "core/String.h"
 
 namespace gaen
 {
@@ -324,6 +326,8 @@ struct FileWriter
 
     std::ofstream ofs;
 };
+
+List<kMEM_Chef, ChefString> read_lines(const char * path);
 
 } // namespace gaen
 

@@ -26,7 +26,9 @@
 
 #include "core/mem.h"
 
-#include "file_utils.h"
+#include "core/Vector.h"
+
+#include "assets/file_utils.h"
 
 namespace gaen
 {
@@ -347,6 +349,29 @@ bool write_file_if_contents_differ(const char * path, const char * contents)
     }
     return false;
 }
+
+List<kMEM_Chef, ChefString> read_lines(const char * path)
+{
+    static const size_t kMaxLineLength = 1024;
+    Vector<kMEM_Chef, char> line(kMaxLineLength+1);
+    List<kMEM_Chef, ChefString> lines;
+
+    std::ifstream ifs;
+    ifs.open(path, std::ifstream::in | std::ifstream::binary);
+    PANIC_IF(!ifs.good(), "Unable to open file for reading: %s", path);
+
+    while (!ifs.eof())
+    {
+        ifs.getline(line.data(), line.size(), '\n');
+        PANIC_IF(ifs.gcount() == line.size(), "Line too long to read, greater than %u: %s", kMaxLineLength, path);
+        if (ifs.gcount() > 2 && line[ifs.gcount()-2] == '\r')
+            line[ifs.gcount()-2] = '\0';
+        lines.emplace_back(line.data());
+    }
+
+    return lines;
+}
+
 
 } // namespace gaen
 
