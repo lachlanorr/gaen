@@ -265,7 +265,7 @@ void Model::cook(CookInfo * pCookInfo) const
     f32 * pVert = pGmdl->verts();
     u32 vertIdxOffset = 0;
     PrimTriangle * pTri = *pGmdl;
-    vec3 & halfExtents = pGmdl->halfExtents();
+    vec3 mins(std::numeric_limits<f32>::max()), maxes(std::numeric_limits<f32>::lowest());
 
     for (u32 i = 0; i < pScene->mNumMeshes; ++i)
     {
@@ -293,10 +293,9 @@ void Model::cook(CookInfo * pCookInfo) const
             pVertPos->position.y = pAiMesh->mVertices[v].y * scale;
             pVertPos->position.z = pAiMesh->mVertices[v].z * scale;
 
-            // Calculate extents as we are iterating verts
-            halfExtents.x = max(halfExtents.x, abs(pVertPos->position.x));
-            halfExtents.y = max(halfExtents.y, abs(pVertPos->position.y));
-            halfExtents.z = max(halfExtents.z, abs(pVertPos->position.z));
+            mins = min(mins, pVertPos->position);
+            maxes = max(maxes, pVertPos->position);
+            printf("%0.4f\n", pVertPos->position.y);
 
             if (pGmdl->hasVertNormal())
             {
@@ -352,6 +351,9 @@ void Model::cook(CookInfo * pCookInfo) const
         vertIdxOffset += pAiMesh->mNumVertices;
         pTri += pAiMesh->mNumFaces;
     }
+
+    pGmdl->center() = (mins + maxes) * 0.5f;
+    pGmdl->halfExtents() = (maxes - mins) * 0.5f;
 
     pCookInfo->setCookedBuffer(pGmdl);
 }
