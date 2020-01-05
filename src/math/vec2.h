@@ -119,7 +119,7 @@ inline tvec2<T> operator*(const tvec2<T> & lhs, T rhs)
 {
     return tvec2<T>(lhs.x * rhs, lhs.y * rhs);
 }
-    
+
 template <>
 inline vec2 abs<vec2>(const vec2 & v)
 {
@@ -139,6 +139,34 @@ inline vec2 max<vec2>(const vec2 & lhs, const vec2 & rhs)
 {
     return vec2(max(lhs.x, rhs.x),
                 max(lhs.y, rhs.y));
+}
+
+template <>
+inline ivec2 min<ivec2>(const ivec2 & lhs, const ivec2 & rhs)
+{
+    return ivec2(min(lhs.x, rhs.x),
+                min(lhs.y, rhs.y));
+}
+
+template <>
+inline ivec2 max<ivec2>(const ivec2 & lhs, const ivec2 & rhs)
+{
+    return ivec2(max(lhs.x, rhs.x),
+                 max(lhs.y, rhs.y));
+}
+
+template <>
+inline uvec2 min<uvec2>(const uvec2 & lhs, const uvec2 & rhs)
+{
+    return uvec2(min(lhs.x, rhs.x),
+                 min(lhs.y, rhs.y));
+}
+
+template <>
+inline uvec2 max<uvec2>(const uvec2 & lhs, const uvec2 & rhs)
+{
+    return uvec2(max(lhs.x, rhs.x),
+                 max(lhs.y, rhs.y));
 }
 
 template<typename T>

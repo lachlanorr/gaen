@@ -421,12 +421,6 @@ AABB_MinMax voxel_subspace(const AABB_MinMax & pSpace, SubVoxel subIndex)
     return ret;
 }
 
-static const f32 kEpsilon = 1e-10;
-
-inline bool f32_eq(f32 x, f32 y)
-{
-    return abs(x - y) <= kEpsilon * max(1.0f, max(abs(x), abs(y)));
-}
 
 inline bool test_ray_box(VoxelFace * pVoxelFace,
                          f32 * pEntryDist,

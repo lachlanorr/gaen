@@ -119,6 +119,12 @@ inline f32 uintBitsToFloat(u32 x)
     return glm::uintBitsToFloat(x);
 }
 
+static const f32 kEpsilon = 1e-10;
+inline bool almost_equal(f32 x, f32 y)
+{
+    return abs(x - y) <= kEpsilon * max(1.0f, max(abs(x), abs(y)));
+}
+
 } // namespace gaen
 
 #endif // #ifndef GAEN_MATH_COMMON_H
