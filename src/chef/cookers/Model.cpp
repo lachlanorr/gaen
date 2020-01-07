@@ -174,7 +174,7 @@ void Model::cook(CookInfo * pCookInfo) const
             pCookInfo->recordDependency(texDiffusePath.c_str());
 
             ChefString fullTexDiffusePath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), texDiffusePath);
-            textures.push_back(Image::load_png(fullTexDiffusePath.c_str()));
+            textures.push_back(Image::load_png(fullTexDiffusePath.c_str(), Image::reference_path_hash(pCookInfo->chef(), fullTexDiffusePath)));
         }
     }
 

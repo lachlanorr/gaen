@@ -76,7 +76,7 @@ public:
                              uvec2 & widthHeight,
                              const AnimsRaw & animsRaw);
 
-    static Gaim * create(const AnimsRaw & animsRaw);
+    static Gaim * create(const AnimsRaw & animsRaw, u32 referencePathHash);
 
     Gimg * image();
     const Gimg * image() const;

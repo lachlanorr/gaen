@@ -133,7 +133,7 @@ u8 * Tga::scanline(u32 idx)
     return imageData() + idx * lineSize;
 }
 
-void Tga::convertToGimg(Gimg ** pGimgOut)
+void Tga::convertToGimg(Gimg ** pGimgOut, u32 referencePathHash)
 {
     PixelFormat pixFmt = kPXL_RGBA8;
     if (imageType == kTGAT_Rgb && bitsPerPixel == 24)
@@ -143,7 +143,7 @@ void Tga::convertToGimg(Gimg ** pGimgOut)
     else
         PANIC("Unable to convert tga to Gimg, invalid format");
 
-    Gimg * pGimg = Gimg::create(pixFmt, width, height);
+    Gimg * pGimg = Gimg::create(pixFmt, width, height, referencePathHash);
     // If pGimg is larger since we're not power of two or our width
     // and height differ, go ahead and zero out the image.
     if (width != pGimg->width() || height != pGimg->height())

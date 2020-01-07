@@ -27,6 +27,7 @@
 #include "chef/stdafx.h"
 
 #include "core/Vector.h"
+#include "core/hashing.h"
 #include "hashes/hashes.h"
 
 #include "math/mat3.h"
@@ -38,6 +39,7 @@
 #include "chef/CookInfo.h"
 #include "chef/Chef.h"
 #include "chef/cookers/Model.h"
+#include "chef/cookers/Image.h"
 #include "chef/cookers/AnimImage.h"
 
 namespace gaen
@@ -143,7 +145,7 @@ void AnimImage::cook(CookInfo * pCookInfo) const
         read_ani(animsRaw.back(), *it, fullAniPath.c_str(), skel.bones);
     }
 
-    Gaim * pGaim = Gaim::create(animsRaw);
+    Gaim * pGaim = Gaim::create(animsRaw, Image::reference_path_hash(pCookInfo));
 
     pCookInfo->setCookedBuffer(pGaim);
 }

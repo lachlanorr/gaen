@@ -26,6 +26,8 @@
 
 #include "chef/stdafx.h"
 
+#include "core/hashing.h"
+
 #include "assets/file_utils.h"
 #include "assets/Config.h"
 #include "assets/Gimg.h"
@@ -35,6 +37,7 @@
 
 #include "chef/cooker_utils.h"
 #include "chef/CookInfo.h"
+#include "chef/Chef.h"
 #include "chef/cookers/Image.h"
 
 namespace gaen
@@ -68,14 +71,14 @@ void Image::cook(CookInfo * pCookInfo) const
     }
 }
 
-Gimg * Image::load_png(const char * path, PixelFormat pixFmt)
+Gimg * Image::load_png(const char * path, u32 referencePathHash, PixelFormat pixFmt)
 {
     UniquePtr<Png> pPng = Png::read(path);
     PANIC_IF(!pPng, "Failed to read png: %s", path);
 
     // Convert to a Gimg with same-ish pixel format
     Gimg * pGimgPng;
-    pPng->convertToGimg(&pGimgPng);
+    pPng->convertToGimg(&pGimgPng, referencePathHash);
     Scoped_GFREE<Gimg> pGimg_sp(pGimgPng);
 
     // Convert the pixel format if necessary
@@ -89,7 +92,7 @@ Gimg * Image::load_png(const char * path, PixelFormat pixFmt)
 void Image::cookPng(CookInfo * pCookInfo) const
 {
     PixelFormat pixFmt = pixel_format_from_str(pCookInfo->fullRecipe().getWithDefault("pixel_format", "RGBA8"));
-    Gimg * pGimg = Image::load_png(pCookInfo->rawPath().c_str(), pixFmt);
+    Gimg * pGimg = Image::load_png(pCookInfo->rawPath().c_str(), Image::reference_path_hash(pCookInfo), pixFmt);
 
     ASSERT(pGimg);
     pCookInfo->setCookedBuffer(pGimg);
@@ -119,7 +122,7 @@ void Image::cookTga(CookInfo * pCookInfo) const
 
     // Convert to a Gimg with same-ish pixel format
     Gimg * pGimgTga;
-    pTga->convertToGimg(&pGimgTga);
+    pTga->convertToGimg(&pGimgTga, gaen_hash(pCookInfo->rawPath().c_str()));
     Scoped_GFREE<Gimg> pGimg_sp(pGimgTga);
 
     PixelFormat pixFmt = pixel_format_from_str(pCookInfo->fullRecipe().getWithDefault("pixel_format", "RGBA8"));
@@ -131,6 +134,19 @@ void Image::cookTga(CookInfo * pCookInfo) const
     ASSERT(pGimg);
     pCookInfo->setCookedBuffer(pGimg);
 }
+
+u32 Image::reference_path_hash(const Chef & chef, const ChefString & rawPath)
+{
+    static ChefString ext(kExtGimg);
+    ChefString gamePath = chef.getGamePath(rawPath, ext);
+    return gaen_hash(gamePath.c_str());
+}
+
+u32 Image::reference_path_hash(const CookInfo *pCookInfo)
+{
+    return reference_path_hash(pCookInfo->chef(), pCookInfo->rawPath());
+}
+
 
 }
 } // namespace gaen

@@ -145,6 +145,9 @@ u64 Gimg::required_size(PixelFormat pixelFormat, u32 width, u32 height)
 
     switch (pixelFormat)
     {
+    case kPXL_Reference:
+        // just the header
+        break;
     case kPXL_RGB_DXT1:
     case kPXL_RGBA_DXT1:
         PANIC_IF(width % 4 != 0 || height % 4 != 0, "DXT1 texture with width or height not a multiple of 4");
@@ -163,14 +166,15 @@ u64 Gimg::required_size(PixelFormat pixelFormat, u32 width, u32 height)
     return size;
 }
 
-void Gimg::init(Gimg * pGimg, PixelFormat pixelFormat, u32 width, u32 height)
+void Gimg::init(Gimg * pGimg, PixelFormat pixelFormat, u32 width, u32 height, u32 referencePathHash)
 {
     pGimg->mPixelFormat = pixelFormat;
     pGimg->mWidth = width;
     pGimg->mHeight = height;
+    pGimg->mReferencePathHash = referencePathHash;
 }
 
-Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
+Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height, u32 referencePathHash)
 {
     // adjust width and height to ensure power of 2 and equal size
     PANIC_IF(width != next_power_of_two(width), "Width not a power of 2");
@@ -179,11 +183,16 @@ Gimg * Gimg::create(PixelFormat pixelFormat, u32 width, u32 height)
     u64 size = Gimg::required_size(pixelFormat, width, height);
     Gimg * pGimg = alloc_asset<Gimg>(kMEM_Texture, size);
 
-    init(pGimg, pixelFormat, width, height);
+    init(pGimg, pixelFormat, width, height, referencePathHash);
 
     ASSERT(is_valid(pGimg, required_size(pixelFormat, width, height)));
 
     return pGimg;
+}
+
+Gimg * Gimg::create(u32 referencePathHash)
+{
+    return create(kPXL_Reference, 0, 0, referencePathHash);
 }
 
 u8 * Gimg::pixels()
@@ -215,7 +224,7 @@ const u8 * Gimg::scanline(u32 idx) const
 
 void Gimg::convertFormat(Gimg ** pGimgOut, MemType memType, PixelFormat newPixelFormat) const
 {
-    Gimg *pGimg = Gimg::create(newPixelFormat, mWidth, mHeight);
+    Gimg *pGimg = Gimg::create(newPixelFormat, mWidth, mHeight, mReferencePathHash);
     *pGimgOut = pGimg;
 
     if (mPixelFormat == newPixelFormat)

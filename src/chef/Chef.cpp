@@ -54,7 +54,7 @@ Chef::Chef(u32 id, const char * platform, const char * assetsDir)
     mAssetsCookedDir = assets_cooked_dir(platform, mAssetsDir);
 }
 
-UniquePtr<CookInfo> Chef::cook(const char * rawPath, bool force)
+UniquePtr<CookInfo> Chef::cook(const char * rawPath, bool force) const
 {
     UniquePtr<CookInfo> pCi = prepCookInfo(rawPath, force);
 
@@ -67,14 +67,14 @@ UniquePtr<CookInfo> Chef::cook(const char * rawPath, bool force)
     return pCi;
 }
 
-UniquePtr<CookInfo> Chef::forceCook(const ChefString & rawPath)
+UniquePtr<CookInfo> Chef::forceCook(const ChefString & rawPath) const
 {
     UniquePtr<CookInfo> pCi = prepCookInfo(rawPath.c_str(), true);
     forceCook(pCi.get());
     return pCi;
 }
 
-void Chef::forceCook(CookInfo * pCi)
+void Chef::forceCook(CookInfo * pCi) const
 {
     pCi->cooker().cook(pCi);
 
@@ -99,7 +99,7 @@ void Chef::forceCook(CookInfo * pCi)
     }
 }
 
-void Chef::forceCookAndWrite(CookInfo * pCi)
+void Chef::forceCookAndWrite(CookInfo * pCi) const
 {
     forceCook(pCi);
 
@@ -124,7 +124,7 @@ void Chef::forceCookAndWrite(CookInfo * pCi)
     }
 }
 
-UniquePtr<CookInfo> Chef::prepCookInfo(const char * rawPath, bool force)
+UniquePtr<CookInfo> Chef::prepCookInfo(const char * rawPath, bool force) const
 {
     ChefString rawPathStr(rawPath);
     ASSERT(isRawPath(rawPathStr));
@@ -154,7 +154,7 @@ UniquePtr<CookInfo> Chef::prepCookInfo(const char * rawPath, bool force)
     return pCi;
 }
 
-bool Chef::shouldCook(const CookInfo & ci)
+bool Chef::shouldCook(const CookInfo & ci) const
 {
     // If this is a dependent file, we don't cook it as an individual
     // file, but let the asset that is its parent cook it.
@@ -184,7 +184,7 @@ bool Chef::shouldCook(const CookInfo & ci)
             // the cooker version of the .fnt.
             const Cooker * pResultCooker = CookerRegistry::find_cooker_from_cooked(res.cookedPath);
             PANIC_IF(!pResultCooker, "No cooker registered exclusively for this cooked extension: %s", res.cookedPath.c_str());
-        
+
             FileReader fr(res.cookedPath.c_str());
             AssetHeader ah(0, 0);
             fr.read(&ah, sizeof(AssetHeader));
@@ -204,13 +204,13 @@ bool Chef::shouldCook(const CookInfo & ci)
             pOldestCookedPath = &res.cookedPath;
         else if (is_file_newer(pOldestCookedPath->c_str(), res.cookedPath.c_str()))
             pOldestCookedPath = &res.cookedPath;
-    }            
-            
+    }
+
     // shouldCook if raw path is newer than the oldest cooked path
     if (is_file_newer(ci.rawPath().c_str(), pOldestCookedPath->c_str()))
         return true;
 
-    
+
     // shouldCook if any recipe is newer than the oldest cooked path
     for (const ChefString & recipePath : ci.recipes())
     {
@@ -236,18 +236,18 @@ bool Chef::shouldCook(const CookInfo & ci)
 
 
 
-bool Chef::isRawPath(const ChefString & path)
+bool Chef::isRawPath(const ChefString & path) const
 {
     return is_parent_dir(mAssetsRawDir, path) ||
            is_parent_dir(mAssetsRawTransDir, path);
 }
 
-bool Chef::isCookedPath(const ChefString & path)
+bool Chef::isCookedPath(const ChefString & path) const
 {
     return is_parent_dir(mAssetsCookedDir, path);
 }
 
-bool Chef::isGamePath(const ChefString & path)
+bool Chef::isGamePath(const ChefString & path) const
 {
     return (path.size() > 0 &&
             path[0] == '/' &&
@@ -255,7 +255,7 @@ bool Chef::isGamePath(const ChefString & path)
             !isCookedPath(path));
 }
 
-ChefString Chef::getRawPath(const ChefString & path)
+ChefString Chef::getRawPath(const ChefString & path) const
 {
     ASSERT(path.size() > 0);
 
@@ -263,11 +263,11 @@ ChefString Chef::getRawPath(const ChefString & path)
 
     // Only valid raw paths should be sent to this function
     ASSERT(isRawPath(pathNorm));
-    
+
     return pathNorm;
 }
 
-ChefString Chef::getRawRelativePath(const ChefString & rawPath)
+ChefString Chef::getRawRelativePath(const ChefString & rawPath) const
 {
     size_t stripSize = 0;
     if (is_parent_dir(mAssetsRawDir, rawPath))
@@ -285,7 +285,7 @@ ChefString Chef::getRawRelativePath(const ChefString & rawPath)
     return ChefString(rawPath, stripSize + 1, ChefString::npos);
 }
 
-ChefString Chef::getRawTransPath(const ChefString & rawPath, const ChefString & transExt)
+ChefString Chef::getRawTransPath(const ChefString & rawPath, const ChefString & transExt) const
 {
     ASSERT(isRawPath(rawPath));
 
@@ -296,7 +296,7 @@ ChefString Chef::getRawTransPath(const ChefString & rawPath, const ChefString & 
     return transPath;
 }
 
-ChefString Chef::getCookedPath(const ChefString & rawPath, const ChefString & cookedExt)
+ChefString Chef::getCookedPath(const ChefString & rawPath, const ChefString & cookedExt) const
 {
     ASSERT(isRawPath(rawPath));
 
@@ -307,7 +307,7 @@ ChefString Chef::getCookedPath(const ChefString & rawPath, const ChefString & co
     return cookedPath;
 }
 
-ChefString Chef::getGamePath(const ChefString & rawPath, const ChefString & cookedExt)
+ChefString Chef::getGamePath(const ChefString & rawPath, const ChefString & cookedExt) const
 {
     ASSERT(isRawPath(rawPath));
 
@@ -317,7 +317,7 @@ ChefString Chef::getGamePath(const ChefString & rawPath, const ChefString & cook
     return gamePath;
 }
 
-ChefString Chef::getRelativeDependencyRawPath(const ChefString & sourceRawPath, const ChefString & dependencyPath)
+ChefString Chef::getRelativeDependencyRawPath(const ChefString & sourceRawPath, const ChefString & dependencyPath) const
 {
     ASSERT(isRawPath(sourceRawPath));
 
@@ -328,13 +328,13 @@ ChefString Chef::getRelativeDependencyRawPath(const ChefString & sourceRawPath, 
     return dependencyRawPath;
 }
 
-ChefString Chef::getDependencyFilePath(const ChefString & rawPath)
+ChefString Chef::getDependencyFilePath(const ChefString & rawPath) const
 {
     ASSERT(isRawPath(rawPath));
     return rawPath + ".deps";
 }
 
-void Chef::deleteDependencyFile(const ChefString & rawPath)
+void Chef::deleteDependencyFile(const ChefString & rawPath) const
 {
     ASSERT(isRawPath(rawPath));
 
@@ -344,7 +344,7 @@ void Chef::deleteDependencyFile(const ChefString & rawPath)
         delete_file(depFilePath.c_str());
 }
 
-void Chef::writeDependencyFile(const CookInfo & ci)
+void Chef::writeDependencyFile(const CookInfo & ci) const
 {
 	if (ci.dependencies().size() > 0)
 	{
@@ -365,7 +365,7 @@ void Chef::writeDependencyFile(const CookInfo & ci)
     }
 }
 
-List<kMEM_Chef, ChefString> Chef::readDependencyFile(const ChefString & rawPath)
+List<kMEM_Chef, ChefString> Chef::readDependencyFile(const ChefString & rawPath) const
 {
     ASSERT(isRawPath(rawPath));
 
@@ -387,7 +387,7 @@ List<kMEM_Chef, ChefString> Chef::readDependencyFile(const ChefString & rawPath)
     return deps;
 }
 
-RecipeListUP Chef::findRecipes(const ChefString & rawPath)
+RecipeListUP Chef::findRecipes(const ChefString & rawPath) const
 {
     ASSERT(isRawPath(rawPath));
 
@@ -421,7 +421,7 @@ RecipeListUP Chef::findRecipes(const ChefString & rawPath)
     return pRecipes;
 }
 
-RecipeUP Chef::overlayRecipes(const RecipeList & recipes)
+RecipeUP Chef::overlayRecipes(const RecipeList & recipes) const
 {
     RecipeUP pRecipe(GNEW(kMEM_Chef, Recipe));
     for (ChefString rcp : recipes)

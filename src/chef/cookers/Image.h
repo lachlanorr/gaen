@@ -45,7 +45,10 @@ public:
     Image();
     virtual void cook(CookInfo * pCookInfo) const;
 
-    static Gimg * load_png(const char * path, PixelFormat pixFmt = kPXL_RGBA8);
+    static Gimg * load_png(const char * path, u32 referencePathHash, PixelFormat pixFmt = kPXL_RGBA8);
+
+    static u32 reference_path_hash(const Chef & chef, const ChefString & rawPath);
+    static u32 reference_path_hash(const CookInfo *pCookInfo);
 private:
     void cookPng(CookInfo * pCookInfo) const;
     void cookTga(CookInfo * pCookInfo) const;

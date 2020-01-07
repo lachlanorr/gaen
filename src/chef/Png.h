@@ -55,7 +55,7 @@ public:
     u8 * scanline(u32 idx);
 
     // Callers should GFREE pGimg
-    void convertToGimg(Gimg ** pGimgOut);
+    void convertToGimg(Gimg ** pGimgOut, u32 referencePathHash);
 
 private:
     Png();

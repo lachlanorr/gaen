@@ -212,13 +212,13 @@ int Png::pixel_format_to_color_type(PixelFormat pixelFormat)
 
 
 // Callers should GFREE pGimg
-void Png::convertToGimg(Gimg ** pGimgOut)
+void Png::convertToGimg(Gimg ** pGimgOut, u32 referencePathHash)
 {
     ASSERT(mppRows);
 
     PixelFormat pixFmt = color_type_to_pixel_format(mColorType);
 
-    Gimg * pGimg = Gimg::create(pixFmt, mWidth, mHeight);
+    Gimg * pGimg = Gimg::create(pixFmt, mWidth, mHeight, referencePathHash);
     // If pGimg is larger since we're not power of two or our width
     // and height differ, go ahead and zero out the image.
     if (mWidth != pGimg->width() || mHeight != pGimg->height())

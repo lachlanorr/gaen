@@ -190,7 +190,7 @@ static void image_format_and_type(u32 &pixelFormat, u32 &pixelType, PixelFormat 
 
 u32 RendererMesh::loadTexture(u32 nameHash, const Gimg * pGimg)
 {
-    auto it = mLoadedTextures.find(pGimg);
+    auto it = mLoadedTextures.find(pGimg->referencePathHash());
     if (it == mLoadedTextures.end())
     {
         u32 glId = 0;
@@ -222,8 +222,8 @@ u32 RendererMesh::loadTexture(u32 nameHash, const Gimg * pGimg)
         err = glGetError();
 
         mLoadedTextures.emplace(std::piecewise_construct,
-                                std::forward_as_tuple(pGimg),
-                                std::forward_as_tuple(pGimg, glId, 1));
+                                std::forward_as_tuple(pGimg->referencePathHash()),
+                                std::forward_as_tuple(glId, 1));
         return glId;
     }
     else
@@ -235,7 +235,7 @@ u32 RendererMesh::loadTexture(u32 nameHash, const Gimg * pGimg)
 
 void RendererMesh::unloadTexture(const Gimg * pGimg)
 {
-    auto it = mLoadedTextures.find(pGimg);
+    auto it = mLoadedTextures.find(pGimg->referencePathHash());
     if (it != mLoadedTextures.end())
     {
         ASSERT(it->second.refCount > 0);
@@ -274,7 +274,7 @@ bool RendererMesh::loadVerts(u32 * pVertArrayId, u32 * pVertBufferId, const void
 
         mLoadedVerts.emplace(std::piecewise_construct,
                              std::forward_as_tuple(pVerts),
-                             std::forward_as_tuple(pVerts, *pVertArrayId, *pVertBufferId, 1));
+                             std::forward_as_tuple(*pVertArrayId, *pVertBufferId, 1));
         return true;
     }
     else
@@ -319,7 +319,7 @@ bool RendererMesh::loadPrims(u32 * pPrimBufferId, const void * pPrims, u64 prims
 
         mLoadedPrims.emplace(std::piecewise_construct,
                              std::forward_as_tuple(pPrims),
-                             std::forward_as_tuple(pPrims, *pPrimBufferId, 1));
+                             std::forward_as_tuple(*pPrimBufferId, 1));
         return true;
     }
     else

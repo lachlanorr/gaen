@@ -44,39 +44,39 @@ class Chef
 public:
     Chef(u32 id, const char * platform, const char * assetsDir);
 
-    u32 id() { return mId; }
-    const ChefString & platform() { return mPlatform; }
+    u32 id() const { return mId; }
+    const ChefString & platform() const { return mPlatform; }
 
-    UniquePtr<CookInfo> cook(const char * rawPath, bool force);
-    UniquePtr<CookInfo> forceCook(const ChefString & rawPath);
-    void forceCook(CookInfo * pCi);
-    void forceCookAndWrite(CookInfo * pCi);
+    UniquePtr<CookInfo> cook(const char * rawPath, bool force) const;
+    UniquePtr<CookInfo> forceCook(const ChefString & rawPath) const;
+    void forceCook(CookInfo * pCi) const;
+    void forceCookAndWrite(CookInfo * pCi) const;
 
-    UniquePtr<CookInfo> prepCookInfo(const char * rawPath, bool force);
-    bool shouldCook(const CookInfo & ci);
+    UniquePtr<CookInfo> prepCookInfo(const char * rawPath, bool force) const;
+    bool shouldCook(const CookInfo & ci) const;
 
-    ChefString getRawPath(const ChefString & path);
-    ChefString getRawRelativePath(const ChefString & rawPath);
-    ChefString getRawTransPath(const ChefString & rawPath, const ChefString & transExt);
-    ChefString getCookedPath(const ChefString & path, const ChefString & cookedExt);
-    ChefString getGamePath(const ChefString & path, const ChefString & cookedExt);
-    ChefString getRelativeDependencyRawPath(const ChefString & sourceRawPath, const ChefString & dependencyPath);
-    ChefString getDependencyFilePath(const ChefString & rawPath);
+    ChefString getRawPath(const ChefString & path) const;
+    ChefString getRawRelativePath(const ChefString & rawPath) const;
+    ChefString getRawTransPath(const ChefString & rawPath, const ChefString & transExt) const;
+    ChefString getCookedPath(const ChefString & path, const ChefString & cookedExt) const;
+    ChefString getGamePath(const ChefString & path, const ChefString & cookedExt) const;
+    ChefString getRelativeDependencyRawPath(const ChefString & sourceRawPath, const ChefString & dependencyPath) const;
+    ChefString getDependencyFilePath(const ChefString & rawPath) const;
 
 private:
     const size_t kMaxPlatform = 4;
 
     // Path conversion functions
-    bool isRawPath(const ChefString & path);
-    bool isCookedPath(const ChefString & path);
-    bool isGamePath(const ChefString & path);
+    bool isRawPath(const ChefString & path) const;
+    bool isCookedPath(const ChefString & path) const;
+    bool isGamePath(const ChefString & path) const;
 
-    RecipeListUP findRecipes(const ChefString & rawPath);
-    RecipeUP overlayRecipes(const RecipeList & recipes);
+    RecipeListUP findRecipes(const ChefString & rawPath) const;
+    RecipeUP overlayRecipes(const RecipeList & recipes) const;
 
-    void writeDependencyFile(const CookInfo & ci);
-    List<kMEM_Chef, ChefString> readDependencyFile(const ChefString & rawPath);
-	void deleteDependencyFile(const ChefString & rawPath);
+    void writeDependencyFile(const CookInfo & ci) const;
+    List<kMEM_Chef, ChefString> readDependencyFile(const ChefString & rawPath) const;
+	void deleteDependencyFile(const ChefString & rawPath) const;
 
     u32 mId;
 

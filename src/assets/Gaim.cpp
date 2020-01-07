@@ -115,7 +115,7 @@ u64 Gaim::required_size(u32 & boneCount,
     return size;
 }
 
-Gaim * Gaim::create(const AnimsRaw & animsRaw)
+Gaim * Gaim::create(const AnimsRaw & animsRaw, u32 referencePathHash)
 {
     u32 boneCount;
     u32 animCount;
@@ -131,7 +131,7 @@ Gaim * Gaim::create(const AnimsRaw & animsRaw)
 
     AnimInfo * pAnims = pGaim->anims();
     Gimg * pGimg = pGaim->image();
-    Gimg::init(pGimg, kPXL_RGBA32F, widthHeight.x, widthHeight.y);
+    Gimg::init(pGimg, kPXL_RGBA32F, widthHeight.x, widthHeight.y, referencePathHash);
     mat43 * pTransStart = (mat43*)pGimg->pixels();
     mat43 * pTrans = pTransStart;
 

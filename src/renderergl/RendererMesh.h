@@ -121,35 +121,31 @@ private:
     ShaderRegistry mShaderRegistry;
     HashMap<kMEM_Renderer, u32, shaders::Shader*> mShaders;
 
-    template <class T>
     struct LoadInfo
     {
-        const T * pGimg;
         u32 glId0;
         u32 glId1;
         u32 refCount;
 
-        LoadInfo(const T *pGimg, u32 glId0, u32 refCount)
-          : pGimg(pGimg)
-          , glId0(glId0)
+        LoadInfo(u32 glId0, u32 refCount)
+          : glId0(glId0)
           , glId1(0)
           , refCount(refCount)
         {}
 
-        LoadInfo(const T *pGimg, u32 glId0, u32 glId1, u32 refCount)
-          : pGimg(pGimg)
-          , glId0(glId0)
+        LoadInfo(u32 glId0, u32 glId1, u32 refCount)
+          : glId0(glId0)
           , glId1(glId1)
           , refCount(refCount)
         {}
     };
 
     template <class T>
-    using LoadMap = HashMap<kMEM_Renderer, const T*, LoadInfo<T>>;
+    using LoadMap = HashMap<kMEM_Renderer, T, LoadInfo>;
 
-    LoadMap<Gimg> mLoadedTextures;
-    LoadMap<void> mLoadedVerts;
-    LoadMap<void> mLoadedPrims;
+    LoadMap<u32> mLoadedTextures;
+    LoadMap<const void*> mLoadedVerts;
+    LoadMap<const void*> mLoadedPrims;
 };
 
 } // namespace gaen

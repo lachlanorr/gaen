@@ -103,7 +103,7 @@ typedef HashSet<kMEM_Chef, DependencyInfo, DependencyInfoHash, DependencyInfoEqu
 class CookInfo
 {
 public:
-    CookInfo(Chef * pChef,
+    CookInfo(const Chef * pChef,
              const Cooker * pCooker,
              bool force,
              const ChefString & rawPath,
@@ -117,7 +117,7 @@ public:
       , mpFullRecipe(std::move(pFullRecipe))
      {}
 
-    Chef & chef() { return *mpChef; }
+    const Chef & chef() const { return *mpChef; }
     const Cooker & cooker() const { return *mpCooker; }
     bool force() const { return mForce; }
 
@@ -144,7 +144,7 @@ public:
     bool isCooked(const char * ext) const;
     void setCookedBuffer(AssetHeader * pBuffer) const;
 private:
-    Chef * mpChef;
+    const Chef * mpChef;
     const Cooker * mpCooker;
     bool mForce;
 

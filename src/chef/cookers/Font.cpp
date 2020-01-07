@@ -205,7 +205,7 @@ void Font::cook(CookInfo * pCookInfo) const
     // Create an image large enough to hold all glyphs
     u32 glyphsPerRow = (u32)(sqrt((f32)utf32Codes.size()) + 0.5f);
     u32 imgHeight = next_power_of_two(glyphsPerRow * glyphHeight);
-    Scoped_GFREE<Gimg> pGimg = Gimg::create(kPXL_R8, imgHeight, imgHeight);
+    Scoped_GFREE<Gimg> pGimg = Gimg::create(kPXL_R8, imgHeight, imgHeight, Image::reference_path_hash(pCookInfo));
 
     ChefString pngTransPath = pCookInfo->chef().getRawTransPath(pCookInfo->rawPath(), kExtPng);
     ChefString atlTransPath = pCookInfo->chef().getRawTransPath(pCookInfo->rawPath(), kExtAtl);

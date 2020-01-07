@@ -39,6 +39,7 @@ namespace gaen
 // These correspond directly to OpenGL pixel formats
 enum PixelFormat
 {
+    kPXL_Reference = 0x0000, // Not a real image, but asset path reference
     kPXL_R8        = 0x8229, // GL_R8
     kPXL_RGB8      = 0x8051, // GL_RGB8
     kPXL_RGBA8     = 0x8058, // GL_RGBA8
@@ -64,8 +65,9 @@ public:
 
     static u64 required_size(PixelFormat pixelFormat, u32 width, u32 height);
 
-    static void init(Gimg * pGimg, PixelFormat pixelFormat, u32 width, u32 height);
-    static Gimg * create(PixelFormat pixelFormat, u32 width, u32 height);
+    static void init(Gimg * pGimg, PixelFormat pixelFormat, u32 width, u32 height, u32 referencePathHash);
+    static Gimg * create(PixelFormat pixelFormat, u32 width, u32 height, u32 referencePathHash);
+    static Gimg * create(u32 referencePathHash);
 
     u8 * pixels();
     const u8 * pixels() const;
@@ -75,6 +77,8 @@ public:
     void convertFormat(Gimg ** pGimg, MemType memType, PixelFormat newPixelFormat) const;
 
     void clear(Color col);
+
+    u32 referencePathHash() const { return mReferencePathHash; }
 
     PixelFormat pixelFormat() const { return mPixelFormat; }
     u32 width() const { return mWidth; }
@@ -91,7 +95,7 @@ private:
     u32 mWidth;
     u32 mHeight;
 
-    char PADDING__[4];
+    u32 mReferencePathHash;
 };
 #pragma pack(pop)
 
