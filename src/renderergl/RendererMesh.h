@@ -79,7 +79,7 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    u32 loadTexture(u32 nameHash, const Gimg * pGimg);
+    u32 loadTexture(const Gimg * pGimg);
     void setTexture(u32 nameHash, u32 glId);
     void unloadTexture(const Gimg* pGimg);
 
@@ -98,7 +98,7 @@ private:
     static void set_shader_vec4_var(u32 nameHash, const vec4 & val, void * pContext);
     static void set_texture(u32 nameHash, u32 glId, void * pContext);
 
-    static u32 load_texture(u32 nameHash, const Gimg * pGimg, void * pContext);
+    static u32 load_texture(const Gimg * pGimg, void * pContext);
 
     shaders::Shader * getShader(u32 nameHash);
 
@@ -146,6 +146,10 @@ private:
     LoadMap<u32> mLoadedTextures;
     LoadMap<const void*> mLoadedVerts;
     LoadMap<const void*> mLoadedPrims;
+
+    // tracking structure for images not associated with a gmdl
+    HashMap<kMEM_Engine, task_id, List<kMEM_Engine, const Asset*>> mImageOwners;
+
 };
 
 } // namespace gaen

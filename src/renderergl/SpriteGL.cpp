@@ -37,7 +37,7 @@ namespace gaen
 void SpriteGL::loadGpu()
 {
     // Load images if they're not loaded yet
-    mTextureId = mpRenderer->loadTexture(HASH::diffuse, &mpSpriteInstance->sprite().gimg());
+    mTextureId = mpRenderer->loadTexture(&mpSpriteInstance->sprite().gimg());
 
     // Load sprite's verts and prims
     if (mpRenderer->loadVerts(&mVertArrayId,

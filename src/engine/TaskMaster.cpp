@@ -825,6 +825,9 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
                 if (mpSpriteMgr)
                     mpSpriteMgr->message(msgAcc);
 
+                // Let renderer know so it can clean up image assets loaded directly to the renderer.
+                mRendererTask.message(msgAcc);
+
                 removeTask(taskIdToRemove);
 
                 return MessageResult::Consumed;

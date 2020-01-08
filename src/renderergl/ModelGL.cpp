@@ -54,11 +54,11 @@ void ModelGL::loadGpu()
 
     if (mpModelInstance->model().gmdl().mat())
     {
-        mTextureId_diffuse = mpRenderer->loadTexture(HASH::diffuse, mpModelInstance->model().gmdl().mat()->texture(kTXTY_Diffuse));
+        mTextureId_diffuse = mpRenderer->loadTexture(mpModelInstance->model().gmdl().mat()->texture(kTXTY_Diffuse));
     }
     if (mpModelInstance->model().hasGaim())
     {
-        mTextureId_animations = mpRenderer->loadTexture(HASH::animations, mpModelInstance->model().gaim().image());
+        mTextureId_animations = mpRenderer->loadTexture(mpModelInstance->model().gaim().image());
     }
 
     mpRenderer->unbindBuffers();

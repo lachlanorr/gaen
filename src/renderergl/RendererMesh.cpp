@@ -45,6 +45,7 @@
 
 #include "engine/messages/CameraOrtho.h"
 #include "engine/messages/CameraPersp.h"
+#include "engine/messages/Handle.h"
 #include "engine/messages/LightDistant.h"
 #include "engine/messages/ModelInstance.h"
 #include "engine/messages/NotifyWatcherMat43.h"
@@ -188,7 +189,7 @@ static void image_format_and_type(u32 &pixelFormat, u32 &pixelType, PixelFormat 
     }
 }
 
-u32 RendererMesh::loadTexture(u32 nameHash, const Gimg * pGimg)
+u32 RendererMesh::loadTexture(const Gimg * pGimg)
 {
     auto it = mLoadedTextures.find(pGimg->referencePathHash());
     if (it == mLoadedTextures.end())
@@ -361,10 +362,10 @@ void RendererMesh::unbindBuffers()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-u32 RendererMesh::load_texture(u32 nameHash, const Gimg * pGimg, void * pContext)
+u32 RendererMesh::load_texture(const Gimg * pGimg, void * pContext)
 {
     RendererMesh * pRenderer = (RendererMesh*)pContext;
-    return pRenderer->loadTexture(nameHash, pGimg);
+    return pRenderer->loadTexture(pGimg);
 }
 
 void drawColorwheel(NVGcontext* vg, float x, float y, float w, float h, float t)
@@ -718,6 +719,35 @@ MessageResult RendererMesh::message(const T & msgAcc)
         mSpriteStages.remove(stageHash);
         break;
     }
+
+    case HASH::image_insert:
+    {
+        messages::HandleR<T> msgr(msgAcc);
+        HandleP pHandle = msgr.handle();
+        const Asset * pAsset = pHandle->data<Asset>();
+        const Gimg * pGimg = pAsset->buffer<Gimg>();
+        AssetMgr::addref_asset(kRendererTaskId, pAsset);
+        mImageOwners[msgr.taskId()].push_back(pAsset);
+        loadTexture(pGimg);
+        break;
+    }
+	case HASH::remove_task__:
+	{
+        task_id taskIdToRemove = msg.payload.u;
+        auto itL = mImageOwners.find(taskIdToRemove);
+        // It's ok if we don't find it, it just means this task had no models
+        if (itL != mImageOwners.end())
+        {
+            for (const Asset * pAsset : itL->second)
+            {
+                const Gimg * pGimg = pAsset->buffer<Gimg>();
+                unloadTexture(pGimg);
+                AssetMgr::release_asset(kRendererTaskId, pAsset);
+            }
+            mImageOwners.erase(itL);
+        }
+        break;
+	}
 
     default:
         PANIC("Unknown renderer message: %d", msg.msgId);
