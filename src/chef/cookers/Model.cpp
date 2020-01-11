@@ -27,6 +27,7 @@
 #include "chef/stdafx.h"
 
 #include "math/common.h"
+#include "math/vec2.h"
 #include "math/vec3.h"
 #include "math/mat3.h"
 
@@ -307,8 +308,7 @@ void Model::cook(CookInfo * pCookInfo) const
             if (pGmdl->hasVertUv())
             {
                 VertPosNormUv * pVertPosNormUv = (VertPosNormUv*)pVert;
-                pVertPosNormUv->u = pAiMesh->mTextureCoords[0][v].x;
-                pVertPosNormUv->v = pAiMesh->mTextureCoords[0][v].y;
+                pVertPosNormUv->uv = vec2(pAiMesh->mTextureCoords[0][v].x, pAiMesh->mTextureCoords[0][v].y);
             }
 
             if (pGmdl->hasVertBone())

@@ -58,8 +58,10 @@ public:
 
     static Gmat * create(const Vector<kMEM_Chef, Gimg*> & textures, u32 shaderHash);
 
+    Gimg * texture(TextureType textureType);
     const Gimg * texture(TextureType textureType) const;
     u32 shaderHash() const { return mShaderHash; }
+    void setShaderHash(u32 hash) { mShaderHash = hash; }
 
 private:
     // Class should not be constructed directly.  Use cast and create static methods.

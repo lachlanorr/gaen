@@ -31,6 +31,7 @@
 #include "core/mem.h"
 
 #include "math/vec3.h"
+#include "math/vec2.h"
 #include "math/mat43.h"
 
 #include "assets/Color.h"
@@ -98,8 +99,7 @@ struct VertPosNormUv
     static const VertType kVertType = kVERT_PosNormUv;
     vec3 position;
     vec3 normal;
-    f32 u;
-    f32 v;
+    vec2 uv;
 };
 
 struct VertPosNormUvBone
@@ -107,8 +107,7 @@ struct VertPosNormUvBone
     static const VertType kVertType = kVERT_PosNormUvBone;
     vec3 position;
     vec3 normal;
-    f32 u;
-    f32 v;
+    vec2 uv;
     u32 boneId; // for simple voxel style meshes where all points map to exactly one bone
 };
 
@@ -117,8 +116,7 @@ struct VertPosNormUvTan
     static const VertType kVertType = kVERT_PosNormUvTan;
     vec3 position;
     vec3 normal;
-    f32 u;
-    f32 v;
+    vec2 uv;
     vec4 tangent;
 };
 struct VertPosNormUvTanBones
@@ -126,8 +124,7 @@ struct VertPosNormUvTanBones
     static const VertType kVertType = kVERT_PosNormUvTanBones;
     vec3 position;
     vec3 normal;
-    f32 u;
-    f32 v;
+    vec2 uv;
     vec4 tangent;
     uvec4 boneIds;
     vec4 boneWeights;

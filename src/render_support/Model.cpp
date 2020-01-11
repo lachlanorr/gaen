@@ -58,12 +58,12 @@ Model::Model(task_id owner, const Asset * pGmdlAsset, const Asset * pGaimAsset)
     }
 }
 
-Model::Model(task_id owner, const Gmdl* pGmdl, const Gaim* pGaim)
+Model::Model(task_id owner, const Gmdl* pGmdl)
   : RenderObject(owner)
   , mpGmdlAsset(nullptr)
   , mpGaimAsset(nullptr)
   , mpGmdl(pGmdl)
-  , mpGaim(pGaim)
+  , mpGaim(nullptr)
 {}
 
 Model::Model(const Model& rhs)

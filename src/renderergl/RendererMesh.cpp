@@ -194,6 +194,7 @@ u32 RendererMesh::loadTexture(const Gimg * pGimg)
     auto it = mLoadedTextures.find(pGimg->referencePathHash());
     if (it == mLoadedTextures.end())
     {
+        PANIC_IF(pGimg->pixelFormat() == kPXL_Reference, "Gimg must be loaded before references");
         u32 glId = 0;
         glActiveTexture(GL_TEXTURE0);
         glGenTextures(1, &glId);

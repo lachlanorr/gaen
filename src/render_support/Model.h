@@ -43,7 +43,7 @@ class Model : public RenderObject
 {
 public:
     Model(task_id owner, const Asset* pGmdlAsset, const Asset* pGaimAsset);
-    Model(task_id owner, const Gmdl* pGmdl, const Gaim* pGaim);
+    Model(task_id owner, const Gmdl* pGmdl);
     Model(const Model& rhs);
     ~Model();
 

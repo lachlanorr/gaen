@@ -99,13 +99,18 @@ Gmat * Gmat::create(const Vector<kMEM_Chef, Gimg*> & textures, u32 shaderHash)
     return pGmat;
 }
 
-const Gimg * Gmat::texture(TextureType textureType) const
+Gimg * Gmat::texture(TextureType textureType)
 {
     if (mTextureOffsets[textureType])
     {
-        return reinterpret_cast<const Gimg*>(reinterpret_cast<const u8*>(this) + mTextureOffsets[textureType]);
+        return reinterpret_cast<Gimg*>(reinterpret_cast<u8*>(this) + mTextureOffsets[textureType]);
     }
     return nullptr;
+}
+
+const Gimg * Gmat::texture(TextureType textureType) const
+{
+    return const_cast<Gmat*>(this)->texture(textureType);
 }
 
 
