@@ -98,7 +98,8 @@ MessageResult ModelMgr::message(const T & msgAcc)
                                                       pModelInst->stageHash(),
                                                       pModelInst->pass(),
                                                       pModelInst->mTransform,
-                                                      pModelInst->mIsRenderable);
+                                                      pModelInst->mIsRenderable,
+                                                      pModelInst->mIsStatic);
             ModelInstance::model_insert(kModelMgrTaskId, kRendererTaskId, pModelInstRenderer);
         }
 
@@ -271,7 +272,7 @@ i32 model_anim_create(AssetHandleP pAssetHandleGmdl,
     RenderPass pass = pass_from_hash(passHash);
 
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pAssetGmdl, pAssetGaim);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass, transform, true);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass, transform, true, false);
 
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
 

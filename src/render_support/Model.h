@@ -73,7 +73,7 @@ class ModelInstance
     friend class ModelMotionState;
     friend class ModelPhysics;
 public:
-    ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, const mat43 & transform, bool isRenderable);
+    ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, const mat43 & transform, bool isRenderable, bool isStatic);
 
     const Model & model() { return *mpModel; }
     u32 stageHash() { return mStageHash; }
@@ -106,6 +106,7 @@ private:
 
     bool mHasBody;
     bool mIsRenderable;
+    bool mIsStatic;
 };
 
 typedef UniquePtr<ModelInstance> ModelInstanceUP;

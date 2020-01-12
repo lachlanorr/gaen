@@ -116,20 +116,24 @@ const Gaim & Model::gaim() const
 
 // ModelInstance methods
 
-ModelInstance::ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, const mat43 & transform, bool isRenderable)
+ModelInstance::ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, const mat43 & transform, bool isRenderable, bool isStatic)
   : mTransform(transform)
   , mpModel(pModel)
   , mStageHash(stageHash)
   , mPass(pass)
   , mHasBody(false)
   , mIsRenderable(isRenderable)
+  , mIsStatic(isStatic)
 {}
 
 void ModelInstance::registerTransformWatcher(task_id taskId)
 {
-    messages::RegisterWatcherQW msgw(HASH::register_watcher, kMessageFlag_None, taskId, mpModel->owner(), HASH::model_transform);
-    msgw.setProperty(HASH::transform);
-    msgw.setUid(mpModel->uid());
+    if (!mIsStatic) // static objects never move
+    {
+        messages::RegisterWatcherQW msgw(HASH::register_watcher, kMessageFlag_None, taskId, mpModel->owner(), HASH::model_transform);
+        msgw.setProperty(HASH::transform);
+        msgw.setUid(mpModel->uid());
+    }
 }
 
 void ModelInstance::destroyModel()
