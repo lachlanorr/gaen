@@ -72,6 +72,9 @@ struct tmat3
     explicit tmat3(const tmat4<T> & rhs);
     explicit tmat3(const tmat43<T> & rhs);
 
+    static tmat3 from_rot(T x, T y, T z);
+    static tmat3 from_rot(const tvec3<T> & v);
+
     tvec3<T> & operator[](u32 i) { ASSERT(i < sizeof(cols) / sizeof(tvec3<T>)); return cols[i]; }
     const tvec3<T> & operator[](u32 i) const { ASSERT(i < sizeof(cols) / sizeof(tvec3<T>)); return cols[i]; }
 

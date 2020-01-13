@@ -63,6 +63,18 @@ tmat3<T>::tmat3(const tmat4<T> & rhs)
 }
 
 template <typename T>
+tmat3<T> tmat3<T>::from_rot(T x, T y, T z)
+{
+    return rotation_from_euler<tmat3<T>>(x, y, z);
+}
+
+template <typename T>
+tmat3<T> tmat3<T>::from_rot(const tvec3<T> & v)
+{
+    return rotation_from_euler<tmat3<T>>(v.x, v.y, v.z);
+}
+
+template <typename T>
 tmat3<T> & tmat3<T>::operator=(const tmat43<T> & rhs)
 {
     cols[0] = rhs[0];
