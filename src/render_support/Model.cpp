@@ -42,6 +42,7 @@ Model::Model(task_id owner, const Asset * pGmdlAsset, const Asset * pGaimAsset)
   : RenderObject(owner)
   , mpGmdlAsset(pGmdlAsset)
   , mpGaimAsset(pGaimAsset)
+  , mDoDelete(false)
 {
     VALIDATE_ASSET(Gmdl, pGmdlAsset);
     AssetMgr::addref_asset(0, mpGmdlAsset);
@@ -58,12 +59,13 @@ Model::Model(task_id owner, const Asset * pGmdlAsset, const Asset * pGaimAsset)
     }
 }
 
-Model::Model(task_id owner, const Gmdl* pGmdl)
+Model::Model(task_id owner, const Gmdl* pGmdl, bool doDelete)
   : RenderObject(owner)
   , mpGmdlAsset(nullptr)
   , mpGaimAsset(nullptr)
   , mpGmdl(pGmdl)
   , mpGaim(nullptr)
+  , mDoDelete(doDelete)
 {}
 
 Model::Model(const Model& rhs)
@@ -82,7 +84,7 @@ Model::~Model()
        if (mpGaimAsset)
            AssetMgr::release_asset(0, mpGaimAsset);
     }
-    else
+    else if (mDoDelete)
     {
         ASSERT(mpGmdl);
         // Most models have a const Gmdl, only if there was no Asset

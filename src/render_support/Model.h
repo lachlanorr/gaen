@@ -43,7 +43,7 @@ class Model : public RenderObject
 {
 public:
     Model(task_id owner, const Asset* pGmdlAsset, const Asset* pGaimAsset);
-    Model(task_id owner, const Gmdl* pGmdl);
+    Model(task_id owner, const Gmdl* pGmdl, bool doDelete);
     Model(const Model& rhs);
     ~Model();
 
@@ -63,6 +63,8 @@ private:
     // pointers into mpGmdlAsset, no need to clean up
     const Gmdl * mpGmdl;
     const Gaim * mpGaim;
+
+    bool mDoDelete;
 };
 
 class ModelBody;
