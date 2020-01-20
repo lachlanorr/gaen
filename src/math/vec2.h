@@ -120,6 +120,12 @@ inline tvec2<T> operator*(const tvec2<T> & lhs, T rhs)
     return tvec2<T>(lhs.x * rhs, lhs.y * rhs);
 }
 
+template <typename T>
+inline tvec2<T> operator*(T lhs, const tvec2<T> & rhs)
+{
+    return rhs * lhs;
+}
+
 template <>
 inline vec2 abs<vec2>(const vec2 & v)
 {
