@@ -71,6 +71,11 @@ SET (shaders_codegen_SOURCES
   ${shaders_dir}/voxprop.shd
   ${shaders_dir}/voxprop.shf
   ${shaders_dir}/voxprop.shv
+  ${shaders_dir}/voxvertcol.cpp
+  ${shaders_dir}/voxvertcol.h
+  ${shaders_dir}/voxvertcol.shd
+  ${shaders_dir}/voxvertcol.shf
+  ${shaders_dir}/voxvertcol.shv
 )
 
 IDE_SOURCE_PROPERTIES( "/shaders" "${shaders_codegen_SOURCES}")

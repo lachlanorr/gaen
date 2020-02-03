@@ -34,6 +34,7 @@
 #include "renderergl/shaders/voxel_cast.h"
 #include "renderergl/shaders/voxel_cast_frag.h"
 #include "renderergl/shaders/voxprop.h"
+#include "renderergl/shaders/voxvertcol.h"
 
 namespace gaen
 {
@@ -49,6 +50,7 @@ void ShaderRegistry::registerAllShaderConstructors()
     registerShaderConstructor(0xe9f55c27 /* HASH::voxel_cast */, shaders::voxel_cast::construct);
     registerShaderConstructor(0x427a5ca4 /* HASH::voxel_cast_frag */, shaders::voxel_cast_frag::construct);
     registerShaderConstructor(0xb4797a4f /* HASH::voxprop */, shaders::voxprop::construct);
+    registerShaderConstructor(0x159d2745 /* HASH::voxvertcol */, shaders::voxvertcol::construct);
 }
 
 

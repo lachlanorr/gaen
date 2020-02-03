@@ -1,0 +1,2 @@
+vertex_shader=voxvertcol.shv
+fragment_shader=voxvertcol.shf
