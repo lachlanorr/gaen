@@ -54,17 +54,14 @@ Model::Model()
 {
     setVersion(8);
     addRawExt(kExtObj);
+    addRawExt(kExtPly);
     addRawExt(kExtGltf);
     addCookedExtExclusive(kExtGmdl);
 }
 
-static VertType choose_vert_type(aiMesh* pMesh, CookInfo * pCookInfo, bool legacyObjWithColor)
+static VertType choose_vert_type(aiMesh* pMesh, CookInfo * pCookInfo)
 {
-    if (legacyObjWithColor)
-    {
-        return kVERT_PosNormCol;
-    }
-    else if (pMesh->HasBones())
+    if (pMesh->HasBones())
     {
         if (pMesh->mNumBones == 1)
         {
@@ -87,6 +84,11 @@ static VertType choose_vert_type(aiMesh* pMesh, CookInfo * pCookInfo, bool legac
     {
         PANIC_IF(!pMesh->HasPositions() || !pMesh->HasNormals(), "Mesh with uvs missing other required characteristics, %s", pCookInfo->rawPath().c_str());
         return kVERT_PosNormUv;
+    }
+    else if (pMesh->HasVertexColors(0))
+    {
+        PANIC_IF(!pMesh->HasPositions() || !pMesh->HasNormals(), "Mesh with vertex colors missing other required characteristics, %s", pCookInfo->rawPath().c_str());
+        return kVERT_PosNormCol;
     }
     else if (pMesh->HasNormals())
     {
@@ -150,12 +152,20 @@ u32 Model::bone_id(const Vector<kMEM_Chef, Bone> & bones, const char * name)
 
 void Model::cook(CookInfo * pCookInfo) const
 {
+    u32 aiFlags = aiProcess_Triangulate |
+                  aiProcess_SortByPType |
+                  aiProcess_GenNormals |
+                  aiProcess_ImproveCacheLocality |
+                  aiProcess_GenBoundingBoxes;
+
+    // Our ply exporter from houdini leaves the default cw windings,
+    // and the engin needs ccw.
+    ChefString ext = get_ext(pCookInfo->rawPath().c_str());
+    if (ext == "ply")
+        aiFlags |= aiProcess_FlipWindingOrder;
+
     const struct aiScene * pScene = aiImportFile(pCookInfo->rawPath().c_str(),
-                                                 aiProcess_Triangulate |
-                                                 aiProcess_SortByPType |
-                                                 aiProcess_GenNormals |
-                                                 aiProcess_ImproveCacheLocality |
-                                                 aiProcess_GenBoundingBoxes);
+                                                 aiFlags);
 
     PANIC_IF(!pScene, "Failure in aiImportFile, %s", pCookInfo->rawPath().c_str());
 
@@ -179,21 +189,6 @@ void Model::cook(CookInfo * pCookInfo) const
         }
     }
 
-    bool legacyObjWithColor = false;
-    if (0 == strcmp(kExtObj, get_ext(pCookInfo->rawPath().c_str())))
-    {
-        static const ChefString kMtlExt = "mtl";
-        ChefString mtlPath = pCookInfo->rawPath();
-        change_ext<ChefString>(mtlPath, kMtlExt);
-        if (file_exists(mtlPath.c_str()))
-        {
-            pCookInfo->recordDependency(get_filename(mtlPath.c_str()));
-
-            if (texDiffusePath.empty())
-                legacyObjWithColor = true;
-        }
-    }
-
     u32 vertCount = 0;
     u32 triCount = 0;
 
@@ -204,10 +199,10 @@ void Model::cook(CookInfo * pCookInfo) const
         vertCount += pScene->mMeshes[i]->mNumVertices;
         triCount += pScene->mMeshes[i]->mNumFaces;
         if (vertType == kVERT_Unknown)
-            vertType = choose_vert_type(pScene->mMeshes[i], pCookInfo, legacyObjWithColor);
+            vertType = choose_vert_type(pScene->mMeshes[i], pCookInfo);
         else
         {
-            VertType meshVertType = choose_vert_type(pScene->mMeshes[i], pCookInfo, legacyObjWithColor);
+            VertType meshVertType = choose_vert_type(pScene->mMeshes[i], pCookInfo);
             PANIC_IF(meshVertType != vertType, "Incompatible vert types in same model, %s", pCookInfo->rawPath().c_str());
         }
     }
@@ -237,6 +232,10 @@ void Model::cook(CookInfo * pCookInfo) const
         else if (vertType == kVERT_PosNormUvBone)
         {
             shaderHash = HASH::voxchar;
+        }
+        else if (vertType == kVERT_PosNormCol)
+        {
+            shaderHash = HASH::voxvertcol;
         }
         else
         {
@@ -277,10 +276,7 @@ void Model::cook(CookInfo * pCookInfo) const
             continue;
         }
 
-        // Materials like this are only used for legacy obj colored verts
-        aiMaterial * pAiMaterial = pScene->mMaterials[pAiMesh->mMaterialIndex];
-        aiColor3D diffuse(1.0f, 1.0f, 1.0f);
-        aiReturn ret = pAiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, diffuse);
+        PANIC_IF(vertType == kVERT_PosNormCol && pAiMesh->GetNumColorChannels() != 1, "Color channels not equal to 1 on a vert color imported model: %s", pCookInfo->rawPath().c_str());            
 
         // Check for .rcp scale
         f32 scale = 1.0f;
@@ -327,10 +323,10 @@ void Model::cook(CookInfo * pCookInfo) const
             {
                 VertPosNormCol* pVertPosNormCol = (VertPosNormCol*)pVert;
                 Color col;
-                col.setrf(diffuse.r);
-                col.setgf(diffuse.g);
-                col.setbf(diffuse.b);
-                col.seta(255);
+                col.setrf(pAiMesh->mColors[0][v].r);
+                col.setgf(pAiMesh->mColors[0][v].g);
+                col.setbf(pAiMesh->mColors[0][v].b);
+                col.setaf(pAiMesh->mColors[0][v].a);
                 pVertPosNormCol->color = col;
             }
 
