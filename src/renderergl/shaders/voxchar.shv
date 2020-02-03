@@ -19,6 +19,7 @@ uniform vec3 light1_color;
 uniform float light1_ambient;
 
 uniform sampler2D animations;
+uniform sampler2D diffuse;
 
 out vec2 frag_uv;
 out vec3 light0;
@@ -32,7 +33,7 @@ vec2 trans_coords(uint offset)
 
 void main()
 {
-    frag_uv = vert_uv;
+    frag_uv = vert_uv * textureSize(diffuse, 0);
 
     vec4 anim0 = texture(animations, trans_coords(frame_offset + bone_id * 3));
     vec4 anim1 = texture(animations, trans_coords(frame_offset + bone_id * 3 + 1));

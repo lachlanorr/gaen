@@ -12,7 +12,16 @@ void main()
 {
     const vec3 gamma = vec3(1.0/2.2);
 
-    vec4 tex_color = texture(diffuse, frag_uv).rgba;
+    // Correct linear filtering to make it look good for scaled low-
+    // res pixel art like textures.
+    vec2 alpha = vec2(0.05);
+    vec2 x = fract(frag_uv);
+    vec2 x_ = clamp(0.5 / alpha * x, 0.0, 0.5) +
+              clamp(0.5 / alpha * (x - 1.0) + 0.5,
+                    0.0, 0.5);
+    vec2 texCoord = (floor(frag_uv) + x_) / textureSize(diffuse, 0);
+
+    vec4 tex_color = texture2D(diffuse, texCoord).rgba;
     vec3 linear_color = light0 * tex_color.rgb;
     color = vec4(linear_color, tex_color.a);
 };
