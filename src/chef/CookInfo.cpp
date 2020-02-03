@@ -96,6 +96,12 @@ UniquePtr<CookInfo> CookInfo::cookDependency(const ChefString & relativePath) co
     {
         mDependencies.insert(dep);
     }
+
+    for (auto & res : pCi->results())
+    {
+        printf("Cooked Dependency: %s - %s -> %s\n", rawPath().c_str(), pCi->rawPath().c_str(), res.cookedPath.c_str());
+    }
+
     return pCi;
 }
 
