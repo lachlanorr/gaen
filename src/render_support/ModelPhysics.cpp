@@ -162,7 +162,7 @@ void ModelPhysics::update()
 {
     mTimeCurr = now();
     f64 delta = mTimeCurr - mTimePrev;
-    mpDynamicsWorld->stepSimulation((f32)delta, 2);
+    mpDynamicsWorld->stepSimulation((f32)delta, 0);
     mTimePrev = mTimeCurr;
 
     // Check for collisions
