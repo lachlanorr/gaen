@@ -668,7 +668,7 @@ Gmdl * build_hex(f32 height, f32 length, Color * pColors, u32 colorsSize, const 
     height = abs(height);
     length = abs(length);
 
-    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, kHexTriCount * 3, kPRIM_Triangle, kHexTriCount);
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, kHexTriCount * 3, kPRIM_Triangle, kHexTriCount, HASH::faceted);
 
     ShapeBuilder builder(pGmdl);
 
@@ -683,13 +683,13 @@ Gmdl * build_hex(f32 height, f32 length, Color * pColors, u32 colorsSize, const 
 
 Gmdl * build_box(const vec3 & size, Color color, const mat43 & transform)
 {
-    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, 24, kPRIM_Triangle, 12);
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, 24, kPRIM_Triangle, 12, HASH::faceted);
 
     ShapeBuilder builder(pGmdl);
 
     f32 xmax = size.x / 2.0f;
     f32 xmin = -xmax;
-    
+
     f32 ymax = size.y / 2.0f;
     f32 ymin = -ymax;
 
@@ -729,7 +729,7 @@ Gmdl * lathe_points(const vec4 * pPoints, u32 count, u32 slices, Color color)
     triCount += slices * (pPoints[0].x == 0.0f ? 1 : 2);
     triCount += slices * (pPoints[count-1].x == 0.0f ? 1 : 2);
 
-    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, triCount * 3, kPRIM_Triangle, triCount);
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, triCount * 3, kPRIM_Triangle, triCount, HASH::faceted);
 
     ShapeBuilder builder(pGmdl);
 
@@ -859,7 +859,7 @@ inline vec3 project_to_sphere(f32 x, f32 y, f32 z, f32 radius)
 Gmdl * build_quad_sphere(const vec3 & size, u32 sections, Color color, const mat43 & transform)
 {
     u32 triCount = sections * sections * 2 * 6; // 2 tris per quad, 6 sides
-    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, triCount * 3, kPRIM_Triangle, triCount);
+    Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, triCount * 3, kPRIM_Triangle, triCount, HASH::faceted);
 
     ShapeBuilder builder(pGmdl);
 

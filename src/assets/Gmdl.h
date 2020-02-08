@@ -401,6 +401,7 @@ public:
                          u32 vertCount,
                          PrimType primType,
                          u32 primCount,
+                         u32 shaderHash,
                          u32 boneCount = 0,
                          u32 hardpointCount = 0,
                          const Gmat * pMat = nullptr);
@@ -488,6 +489,9 @@ public:
             return reinterpret_cast<const Gmat*>(reinterpret_cast<const u8*>(this) + matOffset());
         return nullptr;
     }
+
+    u32 shaderHash() const { return mShaderHash; }
+    void setShaderHash(u32 hash) { mShaderHash = hash; }
 
     u32 vertOffset() const
     {
@@ -782,10 +786,11 @@ private:
     u32 mHardpointOffset;
     u32 mMatOffset;
 
+    u32 mShaderHash;
+
     vec3 mHalfExtents;
     vec3 mCenter;
 
-    u8 _PADDING[4];
 };
 #pragma pack(pop)
 

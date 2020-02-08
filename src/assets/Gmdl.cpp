@@ -119,6 +119,7 @@ Gmdl * Gmdl::create(VertType vertType,
                     u32 vertCount,
                     PrimType primType,
                     u32 primCount,
+                    u32 shaderHash,
                     u32 boneCount,
                     u32 hardpointCount,
                     const Gmat * pMat)
@@ -144,6 +145,7 @@ Gmdl * Gmdl::create(VertType vertType,
     pGmdl->mVertCount = vertCount;
     pGmdl->mPrimCount = primCount;
     pGmdl->mPrimOffset = pGmdl->vertOffset() + size_aligned(vertStride, vertCount);
+    pGmdl->mShaderHash = shaderHash;
     pGmdl->mBoneCount = boneCount;
     pGmdl->mBoneOffset = pGmdl->primOffset() + size_aligned(primStride, primCount);
     pGmdl->mHardpointCount = hardpointCount;

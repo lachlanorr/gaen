@@ -56,12 +56,10 @@ public:
 
     static u64 required_size(const Vector<kMEM_Chef, Gimg*> & textures);
 
-    static Gmat * create(const Vector<kMEM_Chef, Gimg*> & textures, u32 shaderHash);
+    static Gmat * create(const Vector<kMEM_Chef, Gimg*> & textures);
 
     Gimg * texture(TextureType textureType);
     const Gimg * texture(TextureType textureType) const;
-    u32 shaderHash() const { return mShaderHash; }
-    void setShaderHash(u32 hash) { mShaderHash = hash; }
 
 private:
     // Class should not be constructed directly.  Use cast and create static methods.
@@ -71,9 +69,7 @@ private:
 
     u64 mTextureOffsets[kTXTY_COUNT];
 
-    u32 mShaderHash;
-
-    char PADDING__[4];
+    char PADDING__[8];
 };
 #pragma pack(pop)
 

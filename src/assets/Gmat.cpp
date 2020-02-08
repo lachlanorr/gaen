@@ -81,14 +81,12 @@ u64 Gmat::required_size(const Vector<kMEM_Chef, Gimg*> & textures)
     return size;
 }
 
-Gmat * Gmat::create(const Vector<kMEM_Chef, Gimg*> & textures, u32 shaderHash)
+Gmat * Gmat::create(const Vector<kMEM_Chef, Gimg*> & textures)
 {
     u64 size = required_size(textures);
     Gmat * pGmat = alloc_asset<Gmat>(kMEM_Texture, size);
 
     PANIC_IF(textures.size() != kTXTY_COUNT, "Invalid number of textures");
-
-    pGmat->mShaderHash = shaderHash;
 
     pGmat->mTextureOffsets[kTXTY_Diffuse] = sizeof(Gmat);
     u8 * pDiffuseStart = reinterpret_cast<u8*>(pGmat) + sizeof(Gmat);

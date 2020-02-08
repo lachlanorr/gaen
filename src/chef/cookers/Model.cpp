@@ -221,31 +221,31 @@ void Model::cook(CookInfo * pCookInfo) const
         }
     }
 
+    u32 shaderHash = 0;
+    if (pCookInfo->fullRecipe().hasKey("shader"))
+    {
+        shaderHash = gaen_hash(pCookInfo->fullRecipe().get("shader"));
+    }
+    else if (vertType == kVERT_PosNormUvBone)
+    {
+        shaderHash = HASH::voxchar;
+    }
+    else if (vertType == kVERT_PosNormCol)
+    {
+        shaderHash = HASH::voxvertcol;
+    }
+    else
+    {
+        shaderHash = HASH::voxprop;
+    }
+
     Gmat * pMat = nullptr;
     if (textures.size() > 0)
     {
-        u32 shaderHash = 0;
-        if (pCookInfo->fullRecipe().hasKey("shader"))
-        {
-            shaderHash = gaen_hash(pCookInfo->fullRecipe().get("shader"));
-        }
-        else if (vertType == kVERT_PosNormUvBone)
-        {
-            shaderHash = HASH::voxchar;
-        }
-        else if (vertType == kVERT_PosNormCol)
-        {
-            shaderHash = HASH::voxvertcol;
-        }
-        else
-        {
-            shaderHash = HASH::voxprop;
-        }
-
-        pMat = Gmat::create(textures, shaderHash); // LORRTODO: allow shader specification in the .rcp file
+        pMat = Gmat::create(textures);
     }
 
-    Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount, (u32)skel.bones.size(), (u32)skel.hardpoints.size(), pMat);
+    Gmdl * pGmdl = Gmdl::create(vertType, vertCount, kPRIM_Triangle, triCount, shaderHash, (u32)skel.bones.size(), (u32)skel.hardpoints.size(), pMat);
 
     PANIC_IF(!pGmdl, "Failure in Gmdl::create, %s", pCookInfo->rawPath().c_str());
 
