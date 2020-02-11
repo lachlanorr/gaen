@@ -382,7 +382,7 @@ void InputMgr::pollPadInput()
             {
                 mPadState[i] = pad;
 
-                messages::PadInputBW msgw(HASH::pad_input, kMessageFlag_None, kMainThreadTaskId, kInputMgrTaskId, i);
+                messages::PadInputBW msgw(HASH::pad_input, kMessageFlag_None, kPrimaryThreadTaskId, kInputMgrTaskId, i);
                 msgw.setCodes(pad.codes);
                 msgw.setLstick(pad.lstick);
                 msgw.setRstick(pad.rstick);

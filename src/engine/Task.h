@@ -41,8 +41,8 @@ static const task_id kMaxTaskId = (1 << 28) - 1;
 
 // Note: Target task id's less than kMaxThreads are implicitly considered as thread ids
 
-static const task_id kInvalidTaskId      = kMaxTaskId - 0; // 268435455
-static const task_id kMainThreadTaskId   = kMaxTaskId - 1; // 268435454, special task id used to refer to the main thread as a task
+static const task_id kInvalidTaskId       = kMaxTaskId - 0; // 268435455
+static const task_id kPrimaryThreadTaskId = kMaxTaskId - 1; // 268435454, special task id used to refer to the main thread as a task
 
 // Reserved primary task master task ids
 static const task_id kPrimaryTaskIdMax   = kMaxTaskId - 3; // 268435452 -- Change as appropriate if we add more "primary" task ids

@@ -78,29 +78,45 @@ void fin_task_masters()
     ASSERT(sIsInit);
     broadcast_message(HASH::fin,
                       kMessageFlag_ForcePropagate,
-                      kMainThreadTaskId);
-    join_all_threads();
+                      kPrimaryThreadTaskId);
 }
 
 // Entry point of our thread
-static void start_game_loop()
+static void start_primary_game_loop()
+{
+    ASSERT(sIsInit);
+
+    thread_id tid = active_thread_id();
+    ASSERT(tid == 0);
+
+    set_thread_affinity(tid);
+
+    LOG_INFO("Starting primary game loop: %d", tid);
+
+    TaskMaster & tm = TaskMaster::task_master_for_active_thread();
+
+    ASSERT(tm.isPrimary());
+    tm.runPrimaryGameLoop();
+
+    tm.cleanup();
+}
+
+static void start_auxiliary_game_loop()
 {
     ASSERT(sIsInit);
     init_time();
 
     thread_id tid = active_thread_id();
-    ASSERT(tid >= 0 && tid < num_threads());
+    ASSERT(tid > 0 && tid < num_threads());
 
     set_thread_affinity(tid);
 
-    LOG_INFO("Starting thread: %d", tid);
+    LOG_INFO("Starting auxiliary game loop: %d", tid);
 
     TaskMaster & tm = TaskMaster::task_master_for_active_thread();
 
-    if (tm.isPrimary())
-        tm.runPrimaryGameLoop();
-    else
-        tm.runAuxiliaryGameLoop();
+    ASSERT(!tm.isPrimary());
+    tm.runAuxiliaryGameLoop();
 
     tm.cleanup();
 }
@@ -110,12 +126,17 @@ void start_game_loops()
     ASSERT(sIsInit);
     thread_id numThreads = num_threads();
 
-    // Start a TaskMaster for every thread
-    for (thread_id i = 0; i < numThreads; ++i)
+    // Init ourselves as primary
+    ThreadInfo & ti = init_main_thread();
+
+    // Start a TaskMaster for every auxiliary thread
+    for (thread_id i = 1; i < numThreads; ++i)
     {
-        start_thread(start_game_loop);
+        start_thread(start_auxiliary_game_loop);
     }
 
+    // Take over calling thread which will be our primary task manager loop
+    start_primary_game_loop();
 }
 
 void set_start_entity(const char * startEntity)
@@ -158,42 +179,19 @@ MessageQueue * get_message_queue(task_id source,
 {
     ASSERT(sIsInit);
 
-    if (source != kMainThreadTaskId)
+    TaskMaster & tm = TaskMaster::task_master_for_active_thread();
+    MessageQueue * pMsgQ = tm.messageQueueForTarget(target);
+    if (pMsgQ)
     {
-        TaskMaster & tm = TaskMaster::task_master_for_active_thread();
-        MessageQueue * pMsgQ = tm.messageQueueForTarget(target);
-        if (pMsgQ)
-        {
-            return pMsgQ;
-        }
-        else
-        {
-            // Default to the message queue of the active thread's
-            // task master.  In some cases, if a task was just created
-            // but hasn't been inserted, it is valid for this
-            // scenario.
-            return &tm.taskMasterMessageQueue();
-        }
+        return pMsgQ;
     }
-    else // main thread sent this message
+    else
     {
-        thread_id targetThreadId = -1;
-        // Check to see of target is a "standard" reserved target
-        if (is_primary_task(target))
-        {
-            targetThreadId = kPrimaryThreadId;
-        }
-        else
-        {
-            // Not a standard target so assume "target" is the thread id of a taskmaster
-            targetThreadId = static_cast<thread_id>(target);
-            ASSERT(targetThreadId < num_threads());
-        }
-
-        ASSERT(targetThreadId != -1);
-
-        TaskMaster & tm = TaskMaster::task_master_for_thread(targetThreadId);
-        return &tm.mainMessageQueue();
+        // Default to the message queue of the active thread's
+        // task master.  In some cases, if a task was just created
+        // but hasn't been inserted, it is valid for this
+        // scenario.
+        return &tm.taskMasterMessageQueue();
     }
 }
 
@@ -205,8 +203,7 @@ void broadcast_message(u32 msgId,
                        const Block * pBlocks)
 {
     ASSERT(sIsInit);
-    ASSERT(source != kMainThreadTaskId || active_thread_id() == kMainThreadId);
-
+// LORRTODO: special case same thread and send immediately
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
         MessageQueueWriter msgw(msgId,
@@ -233,7 +230,7 @@ void broadcast_targeted_message(u32 msgId,
                                 bool notToSelf)
 {
     ASSERT(sIsInit);
-    ASSERT(active_thread_id() == kMainThreadId || active_thread_id() < num_threads());
+    ASSERT(active_thread_id() < num_threads());
 
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
@@ -242,11 +239,7 @@ void broadcast_targeted_message(u32 msgId,
 
         TaskMaster & targetTaskMaster = TaskMaster::task_master_for_thread(tid);
 
-        MessageQueue * pMsgQueue = nullptr;
-        if (active_thread_id() == kMainThreadId)
-            pMsgQueue = &targetTaskMaster.mainMessageQueue();
-        else
-            pMsgQueue = &targetTaskMaster.taskMasterMessageQueue();
+        MessageQueue * pMsgQueue = &targetTaskMaster.taskMasterMessageQueue();
 
         MessageQueueWriter msgw(msgId,
                                 flags,
@@ -340,13 +333,11 @@ void broadcast_message(const MessageBlockAccessor & msgAcc)
 void notify_next_frame()
 {
     ASSERT(sIsInit);
-    for (thread_id tid = 0; tid < num_threads(); ++tid)
+    for (thread_id tid = 1; tid < num_threads(); ++tid)
     {
         TaskMaster & tm = TaskMaster::task_master_for_thread(tid);
-        if (!tm.isPrimary())
-        {
-            tm.notifyNextFrame();
-        }
+        ASSERT(!tm.isPrimary());
+        tm.notifyNextFrame();
     }
 }
 
@@ -360,9 +351,7 @@ void TaskMaster::init(thread_id tid, bool isEditorActive)
 
     // initialize mRenderTask to be blank for now
     mRendererTask = Task::blank();
-
-    // Allocate a message queue that the main thread can use to communicate with us
-    mpMainMessageQueue = GNEW(kMEM_Engine, MessageQueue, kMaxMainMessages);
+    mPlatformTask = Task::blank();
 
     for (size_t i = 0; i < num_threads(); ++i)
     {
@@ -420,7 +409,6 @@ void TaskMaster::cleanup()
     if (mRendererTask.id() != 0)
         renderer_fin(mRendererTask);
 
-    GDELETE(mpMainMessageQueue);
     for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
     {
         GDELETE(pMessageQueue);
@@ -499,7 +487,7 @@ void TaskMaster::waitForNextFrame()
 void TaskMaster::runPrimaryGameLoop()
 {
     ASSERT(mStatus == kTMS_Initialized);
-    ASSERT(mIsPrimary && mRendererTask.id() != 0);
+    ASSERT(mIsPrimary && mRendererTask.id() != 0 && mPlatformTask.id() != 0);
     ASSERT(!mIsRunning);
 
     mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr, isPrimary()));
@@ -556,10 +544,9 @@ void TaskMaster::runPrimaryGameLoop()
                      fi.last10000);
         }
 #endif
+        mPlatformTask.update(0.0f);
         poll_pad_input();
 
-        // process messages accumulated since last frame
-        processMessages(*mpMainMessageQueue); // messages from main thread
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
         {
@@ -573,8 +560,6 @@ void TaskMaster::runPrimaryGameLoop()
             mpSpriteMgr->update();
         }
 
-        // process messages accumulated since last frame
-        processMessages(*mpMainMessageQueue); // messages from main thread
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
         {
@@ -600,8 +585,6 @@ void TaskMaster::runPrimaryGameLoop()
             mpAssetMgr->process();
         }
 
-        // process messages accumulated since last frame
-        processMessages(*mpMainMessageQueue); // messages from main thread
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
         {
@@ -618,12 +601,13 @@ void TaskMaster::runPrimaryGameLoop()
             didRender = false;
         }
     };
+    join_all_threads();
 }
 
 void TaskMaster::runAuxiliaryGameLoop()
 {
     ASSERT(mStatus == kTMS_Initialized);
-    ASSERT(!mIsPrimary && mRendererTask.id() == 0);
+    ASSERT(!mIsPrimary && mRendererTask.id() == 0 && mPlatformTask.id() == 0);
     ASSERT(!mIsRunning);
 
     mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr, isPrimary()));
@@ -648,8 +632,6 @@ void TaskMaster::runAuxiliaryGameLoop()
         }
 #endif
 
-        // process messages accumulated since last frame
-        processMessages(*mpMainMessageQueue); // messages from main thread
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
         {
@@ -665,8 +647,6 @@ void TaskMaster::runAuxiliaryGameLoop()
             task.update(delta);
         }
 
-        // process messages accumulated since last frame
-        processMessages(*mpMainMessageQueue); // messages from main thread
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
         {
@@ -749,6 +729,8 @@ void TaskMaster::processMessages(MessageQueue & msgQueue)
 MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
 {
     const Message & msg = msgAcc.message();
+
+    //LOG_INFO("MSG: %d %d %ul %s", mThreadId, mStatus, msg.msgId, HASH::reverse_hash(msg.msgId));
 
     // Check for editor messages
     if (mIsEditorEnabled)
@@ -938,10 +920,6 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             ASSERT(mpSpriteMgr.get() != nullptr);
             mpSpriteMgr->message(msgAcc);
         }
-        else if (msg.target == kMainThreadTaskId)
-        {
-            PANIC("Not Implemented");
-        }
         else
         {
             // Message is for a specific task
@@ -1033,7 +1011,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             u32 numThreads = num_threads();
             ASSERT(mShutdownCount < numThreads);
             mShutdownCount++;
-            if (mShutdownCount == numThreads)
+            if (mShutdownCount >= numThreads)
             {
                 mIsRunning = false;
             }

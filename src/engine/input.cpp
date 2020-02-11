@@ -218,7 +218,7 @@ void process_key_input(KeyInput keyInput)
 {
     broadcast_targeted_message(HASH::keyboard_input,
                                kMessageFlag_None,
-                               kMainThreadTaskId,
+                               kPrimaryThreadTaskId,
                                kInputMgrTaskId,
                                to_cell(keyInput),
                                0,
@@ -362,7 +362,7 @@ void kill_focus()
 {
     broadcast_targeted_message(HASH::kill_focus,
                                kMessageFlag_None,
-                               kMainThreadTaskId,
+                               kPrimaryThreadTaskId,
                                kInputMgrTaskId,
                                to_cell(0),
                                0,
@@ -394,7 +394,7 @@ void send_mouse_input()
 
             broadcast_targeted_message(HASH::mouse_move,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(movement),
                                        0,
@@ -428,7 +428,7 @@ void process_mouse_input(const void * pMouseInfo)
             keyInput.action = kKST_Press;
             broadcast_targeted_message(HASH::keyboard_input,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(keyInput),
                                        0,
@@ -440,7 +440,7 @@ void process_mouse_input(const void * pMouseInfo)
             keyInput.action = kKST_Release;
             broadcast_targeted_message(HASH::keyboard_input,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(keyInput),
                                        0,
@@ -452,7 +452,7 @@ void process_mouse_input(const void * pMouseInfo)
             keyInput.action = kKST_Press;
             broadcast_targeted_message(HASH::keyboard_input,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(keyInput),
                                        0,
@@ -464,7 +464,7 @@ void process_mouse_input(const void * pMouseInfo)
             keyInput.action = kKST_Release;
             broadcast_targeted_message(HASH::keyboard_input,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(keyInput),
                                        0,
@@ -476,7 +476,7 @@ void process_mouse_input(const void * pMouseInfo)
             keyInput.action = kKST_Press;
             broadcast_targeted_message(HASH::keyboard_input,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(keyInput),
                                        0,
@@ -488,7 +488,7 @@ void process_mouse_input(const void * pMouseInfo)
             keyInput.action = kKST_Release;
             broadcast_targeted_message(HASH::keyboard_input,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(keyInput),
                                        0,
@@ -500,7 +500,7 @@ void process_mouse_input(const void * pMouseInfo)
             keyInput.action = kKST_Press;
             broadcast_targeted_message(HASH::keyboard_input,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(keyInput),
                                        0,
@@ -512,7 +512,7 @@ void process_mouse_input(const void * pMouseInfo)
             keyInput.action = kKST_Release;
             broadcast_targeted_message(HASH::keyboard_input,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(keyInput),
                                        0,
@@ -524,7 +524,7 @@ void process_mouse_input(const void * pMouseInfo)
             keyInput.action = kKST_Press;
             broadcast_targeted_message(HASH::keyboard_input,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(keyInput),
                                        0,
@@ -536,7 +536,7 @@ void process_mouse_input(const void * pMouseInfo)
             keyInput.action = kKST_Release;
             broadcast_targeted_message(HASH::keyboard_input,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(keyInput),
                                        0,
@@ -547,7 +547,7 @@ void process_mouse_input(const void * pMouseInfo)
         {
             broadcast_targeted_message(HASH::mouse_wheel,
                                        kMessageFlag_None,
-                                       kMainThreadTaskId,
+                                       kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
                                        to_cell(mouseInput.buttons.wheelMovement),
                                        0,

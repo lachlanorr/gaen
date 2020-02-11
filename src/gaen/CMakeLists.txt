@@ -37,8 +37,16 @@ ELSE(IOS)
   SET (gaen_SOURCES
     gaen.cpp
     gaen.h
+    GaenPlatform.cpp
+    GaenPlatform.h
     )
 
+  IF (USE_GLFW)
+    SET (gaen_SOURCES
+      ${gaen_SOURCES}
+      GaenPlatform_glfw.cpp
+      )
+  ENDIF (USE_GLFW)
 
   IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     # OSX

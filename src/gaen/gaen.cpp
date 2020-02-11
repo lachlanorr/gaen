@@ -241,7 +241,10 @@ void set_renderer(const Task & rendererTask)
 void fin_gaen()
 {
     fin_task_masters();
+}
 
+void shutdown()
+{
     fin_memory_manager();
 
     fin_threading();

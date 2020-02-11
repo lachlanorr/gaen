@@ -62,14 +62,8 @@ void init_threading(thread_id numThreads)
 
     sNumThreads = numThreads;
 
-    // We should have been called from the main thread, so we need to register her.
+    // We should have been called from the main thread, so we need to register here.
     sIsThreadingInit = true;
-
-    // Init our main thread.
-    // The main thread doesn't run a TaskMaster, but it
-    // needs to be identified with a unique thread_id.
-    ASSERT(tThreadId == kInvalidThreadId);
-    tThreadId = kMainThreadId;
 }
 
 void fin_threading()
@@ -137,7 +131,7 @@ ThreadInfo & init_thread()
 
 void join_all_threads()
 {
-    for (thread_id tid = 0; tid < num_threads(); ++tid)
+    for (thread_id tid = 1; tid < num_threads(); ++tid)
     {
         ThreadInfo & ti = sThreadInfos[tid];
         ti.thread.join();

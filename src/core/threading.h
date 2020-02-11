@@ -31,7 +31,7 @@
 //
 // 1. There should be exactly one thread per core (fewer's ok for testing).
 // 2. Before any are created, you must call init_threading from main thread.
-// 3. Each thread must be started by calling start_thread.
+// 3. Each thread except main/tm0 must be started by calling start_thread.
 //
 // Threads you create by other means will affect the performance of the system
 // and creating them should not be taken lightly.
@@ -65,13 +65,9 @@ static const thread_id kInvalidThreadId   = -1;
 // this.
 static const thread_id kBroadcastThreadId = -2;
 
-// Main thread isn't running a TaskMaster, but we identify it to make
-// we know when it is calling various functions.
-static const thread_id kMainThreadId      = -3;
 
-
-static const thread_id kMinThreads = 1;   // doesn't include main, main has its own thread
-static const thread_id kMaxThreads = 16;  // doesn't include main, main has its own thread
+static const thread_id kMinThreads = 1;   // main thread is same as TaskMaster 0 thread
+static const thread_id kMaxThreads = 16;  // main thread and 15 auxilliary TaskMasters, 1-15
 
 struct ThreadInfo
 {

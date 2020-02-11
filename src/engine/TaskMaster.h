@@ -124,14 +124,6 @@ public:
         return task_master_for_thread(0);
     }
 
-    // Get message queue for messages from main thread
-    MessageQueue & mainMessageQueue()
-    {
-        ASSERT(mStatus >= kTMS_Initialized);
-        ASSERT(active_thread_id() == kMainThreadId);
-        return *mpMainMessageQueue;
-    }
-
     // Get message queue for messages from another task master
     MessageQueue & taskMasterMessageQueue()
     {
@@ -167,6 +159,13 @@ public:
         mRendererTask = rendererTask;
     }
 
+    void setPlatformTask(const Task & platformTask)
+    {
+        ASSERT(mStatus == kTMS_Initialized);
+        ASSERT(mIsPrimary);
+        mPlatformTask = platformTask;
+    }
+
     InputMgr & inputMgr() { return *mpInputMgr; }
 
     thread_id threadId() { return mThreadId; }
@@ -194,7 +193,6 @@ private:
     void removeTask(task_id taskId);
     void setTaskOwner(thread_id newOwner, const Task & task);
 
-    MessageQueue * mpMainMessageQueue; // messages from main queue here
     Vector<kMEM_Engine, MessageQueue*> mTaskMasterMessageQueues; // message from other task masters queue here
 
     void waitForNextFrame();
@@ -223,6 +221,7 @@ private:
     bool mIsEditorActive = false;
 
     Task mRendererTask;
+    Task mPlatformTask;
 
     FrameTime mFrameTime;
 

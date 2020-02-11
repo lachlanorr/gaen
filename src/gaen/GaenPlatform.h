@@ -1,8 +1,8 @@
 //------------------------------------------------------------------------------
-// gaen.h - Gaen game app
+// GaenPlatform.h - Gaen plaform specific app management
 //
 // Gaen Concurrency Engine - http://gaen.org
-// Copyright (c) 2014-2019 Lachlan Orr
+// Copyright (c) 2014-2020 Lachlan Orr
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -24,27 +24,42 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_GAEN_GAEN_H
-#define GAEN_GAEN_GAEN_H
+#ifndef GAEN_GAEN_GAENPLATFORM_H
+#define GAEN_GAEN_GAENPLATFORM_H
 
-#include "engine/TaskMaster.h"
+#include "core/base_defines.h"
+#include "engine/Task.h"
+
+#if IS_PLATFORM_WIN32
+// A little crufty, but we can accommodate alternate renderers more elegantly later
+#include "renderergl/RendererMesh.h"
+typedef gaen::RendererMesh RendererType;
+#endif
 
 namespace gaen
 {
 
-// Platform specific main function should call init_gaen once things are
-// fully initialized.  It will start the TaskMaster threads.  Main thread
-// is reserved for OS specific stuff, like event handling.
-void init_gaen(int argc, char ** argv);
+class GaenPlatform
+{
+public:
+    GaenPlatform(int argc, char ** argv);
+    ~GaenPlatform();
 
-// Set the renderer for the primary taskmaster
-void set_renderer(const Task & rendererTask);
+    void start();
 
-// Call this to shutdown TaskMasters when app wants to close
-void fin_gaen();
+    void update(f32 delta);
 
-void shutdown();
+    template <typename T>
+    MessageResult message(const T& msgAcc);
+
+private:
+    void init(int argc, char ** argv);
+    void fin();
+
+    RendererType mRenderer;
+    void * mpContext;
+};
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_GAEN_GAEN_H
+#endif // #ifndef GAEN_GAEN_GAENPLATFORM_H
