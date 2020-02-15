@@ -221,6 +221,7 @@ MessageResult SpriteMgr::message(const T & msgAcc)
 
 // Template decls so we can define message func here in the .cpp
 template MessageResult SpriteMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template MessageResult SpriteMgr::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
 
 namespace system_api
 {

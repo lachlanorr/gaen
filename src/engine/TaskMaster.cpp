@@ -199,23 +199,28 @@ void broadcast_message(u32 msgId,
                        u32 flags,
                        task_id source,
                        cell payload,
-                       u32 blockCount,
-                       const Block * pBlocks)
+                       bool immediate)
 {
     ASSERT(sIsInit);
-// LORRTODO: special case same thread and send immediately
+
+    thread_id activeTid = active_thread_id();
+
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
-        MessageQueueWriter msgw(msgId,
-                                flags,
-                                source,
-                                tid, // in this special case, thread_id is used in place of task_id to indicate the message is for a TaskMaster
-                                payload,
-                                blockCount);
-        MessageQueueAccessor & msgAcc = msgw.accessor();
-        for (u32 i = 0; i < blockCount; ++i)
+        if (immediate && tid == activeTid)
         {
-            msgAcc[i] = pBlocks[i];
+            TaskMaster & targetTaskMaster = TaskMaster::task_master_for_thread(activeTid);
+            StackMessageBlockWriter<0> msgw(msgId, flags, source, tid, payload);
+            targetTaskMaster.message(msgw.accessor());
+        }
+        else
+        {
+            MessageQueueWriter msgw(msgId,
+                                    flags,
+                                    source,
+                                    tid, // in this special case, thread_id is used in place of task_id to indicate the message is for a TaskMaster
+                                    payload,
+                                    0);
         }
     }
 }
@@ -225,47 +230,62 @@ void broadcast_targeted_message(u32 msgId,
                                 task_id source,
                                 task_id target,
                                 cell payload,
-                                u32 blockCount,
-                                const Block * pBlocks,
-                                bool notToSelf)
+                                bool notToSelf,
+                                bool immediate)
 {
     ASSERT(sIsInit);
-    ASSERT(active_thread_id() < num_threads());
+    thread_id activeTid = active_thread_id();
+    ASSERT(activeTid < num_threads());
 
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
-        if (notToSelf && tid == active_thread_id())
+        if (notToSelf && tid == activeTid)
+            continue;
+
+        TaskMaster & targetTaskMaster = TaskMaster::task_master_for_thread(tid);
+        if (immediate && tid == activeTid)
+        {
+            StackMessageBlockWriter<0> msgw(msgId, flags, source, tid, payload);
+            targetTaskMaster.message(msgw.accessor());
+        }
+        else
+        {
+            MessageQueue * pMsgQueue = &targetTaskMaster.taskMasterMessageQueue();
+
+            MessageQueueWriter msgw(msgId,
+                                    flags,
+                                    source,
+                                    target,
+                                    payload,
+                                    0,
+                                    pMsgQueue);
+        }
+    }
+}
+
+void broadcast_targeted_message(const MessageBlockAccessor & msgAcc, bool notToSelf, bool immediate)
+{
+    ASSERT(sIsInit);
+    thread_id activeTid = active_thread_id();
+    ASSERT(activeTid < num_threads());
+
+    for (thread_id tid = 0; tid < num_threads(); ++tid)
+    {
+        if (notToSelf && tid == activeTid)
             continue;
 
         TaskMaster & targetTaskMaster = TaskMaster::task_master_for_thread(tid);
 
-        MessageQueue * pMsgQueue = &targetTaskMaster.taskMasterMessageQueue();
-
-        MessageQueueWriter msgw(msgId,
-                                flags,
-                                source,
-                                target,
-                                payload,
-                                blockCount,
-                                pMsgQueue);
-
-        MessageQueueAccessor & msgAcc = msgw.accessor();
-        for (u32 i = 0; i < blockCount; ++i)
+        if (immediate && tid == activeTid)
         {
-            msgAcc[i] = pBlocks[i];
+            targetTaskMaster.message(msgAcc);
+        }
+        else
+        {
+            MessageQueue * pMsgQ = &targetTaskMaster.taskMasterMessageQueue();
+            pMsgQ->transcribeMessage(msgAcc);
         }
     }
-}
-void broadcast_targeted_message(const MessageBlockAccessor & msgAcc, bool notToSelf)
-{
-    broadcast_targeted_message(msgAcc.message().msgId,
-                               msgAcc.message().flags,
-                               msgAcc.message().source,
-                               msgAcc.message().target,
-                               msgAcc.message().payload,
-                               msgAcc.message().blockCount,
-                               &msgAcc[0],
-                               notToSelf);
 }
 
 void broadcast_insert_task(task_id source, thread_id owner, const Task & task)
@@ -320,14 +340,33 @@ void broadcast_confirm_set_parent(task_id source,
     broadcast_message(msgw.accessor());
 }
 
-void broadcast_message(const MessageBlockAccessor & msgAcc)
+void broadcast_message(const MessageBlockAccessor & msgAcc, bool immediate)
 {
-    broadcast_message(msgAcc.message().msgId,
-                      msgAcc.message().flags,
-                      msgAcc.message().source,
-                      msgAcc.message().payload,
-                      msgAcc.message().blockCount,
-                      &msgAcc[0]);
+    ASSERT(sIsInit);
+
+    thread_id activeTid = active_thread_id();
+    for (thread_id tid = 0; tid < num_threads(); ++tid)
+    {
+        if (immediate && tid == activeTid)
+        {
+            TaskMaster & targetTaskMaster = TaskMaster::task_master_for_thread(activeTid);
+            targetTaskMaster.message(msgAcc);
+        }
+        else
+        {
+            MessageQueueWriter msgw(msgAcc.message().msgId,
+                                    msgAcc.message().flags,
+                                    msgAcc.message().source,
+                                    tid, // in this special case, thread_id is used in place of task_id to indicate the message is for a TaskMaster
+                                    msgAcc.message().payload,
+                                    msgAcc.message().blockCount);
+            MessageQueueAccessor & msgAccQ = msgw.accessor();
+            for (u32 i = 0; i < msgAcc.message().blockCount; ++i)
+            {
+                msgAccQ[i] = msgAcc[i];
+            }
+        }
+    }
 }
 
 void notify_next_frame()
@@ -373,7 +412,8 @@ void TaskMaster::init(thread_id tid, bool isEditorActive)
     mStatus = kTMS_Initialized;
 }
 
-void TaskMaster::fin(const MessageQueueAccessor& msgAcc)
+template <typename T>
+void TaskMaster::fin(const T& msgAcc)
 {
     ASSERT(mStatus == kTMS_Initialized);
     ASSERT(msgAcc.message().msgId == HASH::fin);
@@ -553,19 +593,6 @@ void TaskMaster::runPrimaryGameLoop()
             processMessages(*pMessageQueue);
         }
 
-        // Update physics (inside the Mgrs)
-        if (mStatus == kTMS_Initialized)
-        {
-            mpModelMgr->update();
-            mpSpriteMgr->update();
-        }
-
-        // messages from other TaskMasters or ourself
-        for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
-        {
-            processMessages(*pMessageQueue);
-        }
-
         // Get delta since the last time we ran.
         // Use a min value to avoid issues when we are debugging for several seconds
         // within a frame, 0.5s should be a reasonable max for a frame.
@@ -583,6 +610,19 @@ void TaskMaster::runPrimaryGameLoop()
 
             // Give AssetMgr an opportunity to process messages
             mpAssetMgr->process();
+        }
+
+        // messages from other TaskMasters or ourself
+        for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
+        {
+            processMessages(*pMessageQueue);
+        }
+
+        // Update physics (inside the Mgrs)
+        if (mStatus == kTMS_Initialized)
+        {
+            mpModelMgr->update();
+            mpSpriteMgr->update();
         }
 
         // messages from other TaskMasters or ourself
@@ -726,7 +766,8 @@ void TaskMaster::processMessages(MessageQueue & msgQueue)
 }
 
 
-MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
+template <typename T>
+MessageResult TaskMaster::message(const T& msgAcc)
 {
     const Message & msg = msgAcc.message();
 
@@ -760,13 +801,13 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             }
             case HASH::insert_task__:
             {
-                messages::OwnerTaskR<MessageQueueAccessor> msgr(msgAcc);
+                messages::OwnerTaskR<T> msgr(msgAcc);
                 insertTask(msgr.owner(), msgr.task());
                 return MessageResult::Consumed;
             }
             case HASH::request_set_task_owner__:
             {
-                messages::OwnerTaskR<MessageQueueAccessor> msgr(msgAcc);
+                messages::OwnerTaskR<T> msgr(msgAcc);
 
                 // If we own it, remove it and send the confirm_set_task_owner
                 auto ownedIt = mOwnedTaskMap.find(msgr.task().id());
@@ -785,7 +826,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             }
             case HASH::confirm_set_task_owner__:
             {
-                messages::OwnerTaskR<MessageQueueAccessor> msgr(msgAcc);
+                messages::OwnerTaskR<T> msgr(msgAcc);
                 setTaskOwner(msgr.owner(), msgr.task());
                 return MessageResult::Consumed;
             }
@@ -816,7 +857,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             }
             case HASH::request_set_parent__:
             {
-                messages::TaskEntityR<MessageQueueAccessor> msgr(msgAcc);
+                messages::TaskEntityR<T> msgr(msgAcc);
 
                 task_id parentTaskId = msgr.taskId();
                 Entity * pChild = msgr.entity();
@@ -864,7 +905,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
             }
             case HASH::confirm_set_parent__:
             {
-                messages::TaskEntityR<MessageQueueAccessor> msgr(msgAcc);
+                messages::TaskEntityR<T> msgr(msgAcc);
 
                 task_id parentTaskId = msgr.taskId();
                 Entity * pChild = msgr.entity();
@@ -934,7 +975,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
                 // If it is an activate_task message, hand it specially here
                 if (msg.msgId == HASH::set_task_status)
                 {
-                    messages::TaskStatusQR msgRdr(msgAcc);
+                    messages::TaskStatusR<T> msgRdr(msgAcc);
 
                     // Make sure task status is a valid 2 bit value (only has 2 bits in definition of Task struct)
                     PANIC_IF((u32)msgRdr.status() >= 4,"Invalid task status %u", msg.payload.u);
@@ -986,21 +1027,7 @@ MessageResult TaskMaster::message(const MessageQueueAccessor& msgAcc)
                     return MessageResult::Consumed;
                 }
 
-                MessageQueueAccessor msgAccNew;
-                pMsgQ->pushBegin(&msgAccNew,
-                                 msg.msgId,
-                                 msg.flags,
-                                 msg.source,
-                                 msg.target,
-                                 msg.payload,
-                                 msg.blockCount);
-
-                for (u32 i = 0; i < msg.blockCount; ++i)
-                {
-                    msgAccNew[i] = msgAcc[i];
-                }
-
-                pMsgQ->pushCommit(msgAcc);
+                pMsgQ->transcribeMessage(msgAcc);
             }
         }
     }
@@ -1104,5 +1131,11 @@ void TaskMaster::removeTask(task_id taskId)
     if (itTOM != mTaskOwnerMap.end())
         mTaskOwnerMap.erase(itTOM);
 }
+
+// Template decls so we can define message func here in the .cpp
+template MessageResult TaskMaster::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template MessageResult TaskMaster::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
+template void TaskMaster::fin<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template void TaskMaster::fin<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
 
 } // namespace gaen

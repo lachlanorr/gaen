@@ -64,7 +64,8 @@ AssetLoader::~AssetLoader()
     GDELETE(mpReadyQueue);
 }
 
-void AssetLoader::queueRequest(const MessageQueueAccessor & msgAcc)
+template <typename T>
+void AssetLoader::queueRequest(const T & msgAcc)
 {
     ASSERT(mCreatorThreadId == active_thread_id());
     mpRequestQueue->transcribeMessage(msgAcc);
@@ -97,7 +98,8 @@ void AssetLoader::threadProc()
     }
 }
 
-MessageResult AssetLoader::message(const MessageQueueAccessor& msgAcc)
+template <typename T>
+MessageResult AssetLoader::message(const T& msgAcc)
 {
     Message msg = msgAcc.message();
 
@@ -137,7 +139,8 @@ MessageResult AssetLoader::message(const MessageQueueAccessor& msgAcc)
     }
 }
 
-void AssetLoader::extract_request_asset(const MessageQueueAccessor & msgAcc,
+template <typename T>
+void AssetLoader::extract_request_asset(const T & msgAcc,
                                         BlockMemory & blockMemory,
                                         CmpString & pathCmpString,
                                         u32 & subTaskid,
@@ -164,5 +167,23 @@ void AssetLoader::extract_request_asset(const MessageQueueAccessor & msgAcc,
     pathCmpString = blockMemory.string(addr);
 }
 
+
+// Template decls so we can define message func here in the .cpp
+template MessageResult AssetLoader::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template MessageResult AssetLoader::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
+
+template void AssetLoader::queueRequest<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template void AssetLoader::queueRequest<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
+
+template void AssetLoader::extract_request_asset<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc,
+                                                                       BlockMemory & blockMemory,
+                                                                       CmpString & pathCmpString,
+                                                                       u32 & subTaskid,
+                                                                       u32 & nameHash);
+template void AssetLoader::extract_request_asset<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc,
+                                                                       BlockMemory & blockMemory,
+                                                                       CmpString & pathCmpString,
+                                                                       u32 & subTaskid,
+                                                                       u32 & nameHash);
 
 } // namespace gaen

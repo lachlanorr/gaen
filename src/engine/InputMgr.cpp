@@ -225,9 +225,7 @@ void InputMgr::register_key_press_listener(u32 mode, task_id target)
                                kMessageFlag_None,
                                target,
                                kInputMgrTaskId,
-                               to_cell(mode),
-                               0,
-                               nullptr);
+                               to_cell(mode));
 }
 
 void InputMgr::deregister_key_press_listener(u32 mode, task_id target)
@@ -236,9 +234,7 @@ void InputMgr::deregister_key_press_listener(u32 mode, task_id target)
                                kMessageFlag_None,
                                target,
                                kInputMgrTaskId,
-                               to_cell(mode),
-                               0,
-                               nullptr);
+                               to_cell(mode));
 }
 
 void InputMgr::setMode(u32 modeHash)

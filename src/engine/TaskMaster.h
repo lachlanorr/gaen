@@ -81,9 +81,8 @@ void broadcast_message(u32 msgId,
                        u32 flags,
                        task_id source,
                        cell payload = to_cell(0),
-                       u32 blockCount = 0,
-                       const Block * pBlocks = nullptr);
-void broadcast_message(const MessageBlockAccessor & msgAcc);
+                       bool immediate = false);
+void broadcast_message(const MessageBlockAccessor & msgAcc, bool immediate = false);
 
 // Broadcast a message to a target in each TaskMaster.
 // Useful for propagating input messages to the InputMgr on each
@@ -93,10 +92,9 @@ void broadcast_targeted_message(u32 msgId,
                                 task_id source,
                                 task_id target,
                                 cell payload,
-                                u32 blockCount,
-                                const Block * pBlocks,
-                                bool notToSelf = false);
-void broadcast_targeted_message(const MessageBlockAccessor & msgAcc, bool notToSelf = false);
+                                bool notToSelf = false,
+                                bool immediate = false);
+void broadcast_targeted_message(const MessageBlockAccessor & msgAcc, bool notToSelf = false, bool immediate = false);
 
 void broadcast_insert_task(task_id source, thread_id owner, const Task & task);
 void broadcast_remove_task(task_id source, task_id taskToRemove);
@@ -114,7 +112,10 @@ class TaskMaster
 {
 public:
     void init(thread_id tid, bool isEditorActive);
-    void fin(const MessageQueueAccessor& msgAcc);
+
+    template <typename T>
+    void fin(const T& msgAcc);
+
     void cleanup();
 
     static TaskMaster & task_master_for_thread(thread_id tid);
@@ -175,6 +176,9 @@ public:
 
     f32 rand() { return (f32)(mRandom() / (f64)std::numeric_limits<u32>::max()); }
 
+    template <typename T>
+    MessageResult message(const T& msgAcc);
+
 private:
     enum TaskMasterStatus
     {
@@ -186,8 +190,6 @@ private:
 
     // Process any messages on the queue
     void processMessages(MessageQueue & msgQueue);
-
-    MessageResult message(const MessageQueueAccessor& msgAcc);
 
     void insertTask(thread_id threadOwner, const Task & task);
     void removeTask(task_id taskId);

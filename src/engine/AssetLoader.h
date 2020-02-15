@@ -48,7 +48,8 @@ public:
                 const AssetTypes & assetTypes);
     ~AssetLoader();
 
-    void queueRequest(const MessageQueueAccessor & msgAcc);
+    template <typename T>
+    void queueRequest(const T & msgAcc);
     MessageQueue & requestQueue()
     {
         ASSERT(mCreatorThreadId == active_thread_id());
@@ -78,7 +79,8 @@ public:
         mQueueSize--;
     }
 
-    static void extract_request_asset(const MessageQueueAccessor & msgAcc,
+    template <typename T>
+    static void extract_request_asset(const T & msgAcc,
                                       BlockMemory & blockMemory,
                                       CmpString & pathCmpString,
                                       u32 & requestorTaskId,
@@ -86,7 +88,8 @@ public:
 private:
     void threadProc();
 
-    MessageResult message(const MessageQueueAccessor& msgAcc);
+    template <typename T>
+    MessageResult message(const T& msgAcc);
 
     // Track creator's thread id so we can ensure no other thread calls us.
     // If they do, our SPSC queue design breaks down.

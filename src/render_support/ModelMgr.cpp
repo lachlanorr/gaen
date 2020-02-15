@@ -247,6 +247,7 @@ void ModelMgr::transformModel(i32 modelUid, const mat43 & transform)
 
 // Template decls so we can define message func here in the .cpp
 template MessageResult ModelMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template MessageResult ModelMgr::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
 
 
 namespace system_api
@@ -290,14 +291,34 @@ i32 model_create(AssetHandleP pAssetHandleGmdl,
 
 void model_set_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller)
 {
-    messages::UidVec3QW msgw(HASH::model_set_velocity, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
-    msgw.setVector(velocity);
+    if (is_active_main_thread())
+    {
+        TaskMaster & tm = TaskMaster::task_master_for_thread(active_thread_id());
+        messages::UidVec3BW msgw(HASH::model_set_velocity, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
+        msgw.setVector(velocity);
+        tm.message(msgw.accessor());
+    }
+    else
+    {
+        messages::UidVec3QW msgw(HASH::model_set_velocity, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
+        msgw.setVector(velocity);
+    }
 }
 
 void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller)
 {
-    messages::UidVec3QW msgw(HASH::model_set_angular_velocity, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
-    msgw.setVector(velocity);
+    if (is_active_main_thread())
+    {
+        TaskMaster & tm = TaskMaster::task_master_for_thread(active_thread_id());
+        messages::UidVec3BW msgw(HASH::model_set_angular_velocity, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
+        msgw.setVector(velocity);
+        tm.message(msgw.accessor());
+    }
+    else
+    {
+        messages::UidVec3QW msgw(HASH::model_set_angular_velocity, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
+        msgw.setVector(velocity);
+    }
 }
 
 void model_init_body(i32 modelUid,

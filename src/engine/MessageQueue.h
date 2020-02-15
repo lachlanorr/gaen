@@ -100,7 +100,8 @@ public:
     }
 
     // Transcribe a message into another queue
-    void transcribeMessage(const MessageQueueAccessor & sourceAcc)
+    template <typename T>
+    void transcribeMessage(const T & sourceAcc)
     {
         MessageQueueAccessor targetAcc;
 
@@ -108,9 +109,10 @@ public:
 
         mRingBuffer.pushBegin(&targetAcc.mAccessor, sourceMsg.blockCount + 1); // + 1 for header
 
-        for (u32 i = 0; i < sourceMsg.blockCount + 1; ++i) // + 1 for header
+        targetAcc.mAccessor[0] = sourceMsg;
+        for (u32 i = 0; i < sourceMsg.blockCount; ++i) // + 1 for header
         {
-            targetAcc.mAccessor[i] = sourceAcc.mAccessor[i];
+            targetAcc.mAccessor[i+1] = *((Message*)&sourceAcc[i]);
         }
 
         mRingBuffer.pushCommit(sourceMsg.blockCount + 1); // + 1 for header

@@ -426,5 +426,6 @@ AssetLoader * AssetMgr::findLeastBusyAssetLoader()
 
 // Template decls so we can define message func here in the .cpp
 template MessageResult AssetMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
+template MessageResult AssetMgr::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
 
 } // namespace gaen

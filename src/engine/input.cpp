@@ -220,9 +220,7 @@ void process_key_input(KeyInput keyInput)
                                kMessageFlag_None,
                                kPrimaryThreadTaskId,
                                kInputMgrTaskId,
-                               to_cell(keyInput),
-                               0,
-                               nullptr);
+                               to_cell(keyInput));
 }
 
 static HashMap<kMEM_Engine, i32, Key> sGlfwKeyMap =
@@ -364,9 +362,7 @@ void kill_focus()
                                kMessageFlag_None,
                                kPrimaryThreadTaskId,
                                kInputMgrTaskId,
-                               to_cell(0),
-                               0,
-                               nullptr);
+                               to_cell(0));
 }
 
 void poll_pad_input()
@@ -396,9 +392,7 @@ void send_mouse_input()
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(movement),
-                                       0,
-                                       nullptr);
+                                       to_cell(movement));
 
             sMouseDeltaX = 0;
             sMouseDeltaY = 0;
@@ -430,9 +424,7 @@ void process_mouse_input(const void * pMouseInfo)
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(keyInput),
-                                       0,
-                                       nullptr);
+                                       to_cell(keyInput));
         }
         else if (mouseInput.buttons.buttonFlags & kMEVT_1Up)
         {
@@ -442,9 +434,7 @@ void process_mouse_input(const void * pMouseInfo)
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(keyInput),
-                                       0,
-                                       nullptr);
+                                       to_cell(keyInput));
         }
         if (mouseInput.buttons.buttonFlags & kMEVT_2Down)
         {
@@ -454,9 +444,7 @@ void process_mouse_input(const void * pMouseInfo)
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(keyInput),
-                                       0,
-                                       nullptr);
+                                       to_cell(keyInput));
         }
         else if (mouseInput.buttons.buttonFlags & kMEVT_2Up)
         {
@@ -466,9 +454,7 @@ void process_mouse_input(const void * pMouseInfo)
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(keyInput),
-                                       0,
-                                       nullptr);
+                                       to_cell(keyInput));
         }
         if (mouseInput.buttons.buttonFlags & kMEVT_3Down)
         {
@@ -478,9 +464,7 @@ void process_mouse_input(const void * pMouseInfo)
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(keyInput),
-                                       0,
-                                       nullptr);
+                                       to_cell(keyInput));
         }
         else if (mouseInput.buttons.buttonFlags & kMEVT_3Up)
         {
@@ -490,9 +474,7 @@ void process_mouse_input(const void * pMouseInfo)
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(keyInput),
-                                       0,
-                                       nullptr);
+                                       to_cell(keyInput));
         }
         if (mouseInput.buttons.buttonFlags & kMEVT_4Down)
         {
@@ -502,9 +484,7 @@ void process_mouse_input(const void * pMouseInfo)
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(keyInput),
-                                       0,
-                                       nullptr);
+                                       to_cell(keyInput));
         }
         else if (mouseInput.buttons.buttonFlags & kMEVT_4Up)
         {
@@ -514,9 +494,7 @@ void process_mouse_input(const void * pMouseInfo)
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(keyInput),
-                                       0,
-                                       nullptr);
+                                       to_cell(keyInput));
         }
         if (mouseInput.buttons.buttonFlags & kMEVT_5Down)
         {
@@ -526,9 +504,7 @@ void process_mouse_input(const void * pMouseInfo)
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(keyInput),
-                                       0,
-                                       nullptr);
+                                       to_cell(keyInput));
         }
         else if (mouseInput.buttons.buttonFlags & kMEVT_5Up)
         {
@@ -538,20 +514,16 @@ void process_mouse_input(const void * pMouseInfo)
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(keyInput),
-                                       0,
-                                       nullptr);
+                                       to_cell(keyInput));
         }
 
         if (mouseInput.buttons.buttonFlags & kMEVT_Wheel)
         {
-            broadcast_targeted_message(HASH::mouse_wheel,
+            obroadcast_targeted_message(HASH::mouse_wheel,
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(mouseInput.buttons.wheelMovement),
-                                       0,
-                                       nullptr);
+                                       to_cell(mouseInput.buttons.wheelMovement));
         }
     }
 */
