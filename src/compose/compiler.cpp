@@ -2387,12 +2387,13 @@ const SymDataType * ast_data_type(const Ast * pAst)
 
         // special case multiply mat * vec
         if (pAst->type == kAST_Mul &&
-            ((pSdtLhs->typeDesc.dataType == kDT_mat43 ||
-              pSdtLhs->typeDesc.dataType == kDT_mat4) &&
-             (pSdtRhs->typeDesc.dataType == kDT_vec3 ||
-              pSdtRhs->typeDesc.dataType == kDT_vec4)))
+            (((pSdtLhs->typeDesc.dataType == kDT_mat43 ||
+               pSdtLhs->typeDesc.dataType == kDT_mat4) &&
+              pSdtRhs->typeDesc.dataType == kDT_vec4) ||
+             (pSdtLhs->typeDesc.dataType == kDT_mat3 &&
+              pSdtRhs->typeDesc.dataType == kDT_vec3)))
         {
-            return pSdtLhs;
+            return pSdtRhs;
         }
         else
         {
