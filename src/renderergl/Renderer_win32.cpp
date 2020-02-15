@@ -34,7 +34,7 @@
 namespace gaen
 {
 
-GAMEVAR_DECL_BOOL(vsync, false);
+GAMEVAR_DECL_BOOL(vsync, true);
 
 void RENDERER_TYPE::initRenderDevice()
 {
