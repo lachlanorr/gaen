@@ -31,6 +31,42 @@
 namespace gaen
 {
 
+#if HAS(TRACK_HASHES)
+typedef HashMap<kMEM_Debug, task_id, u32> TrackMap;
+static std::mutex sTrackMapMutex;
+static TrackMap sTrackMap;
+
+bool register_special_task_names()
+{
+    register_task(kInvalidTaskId, HASH::hash_func("kInvalidTaskId"));
+    register_task(kPrimaryThreadTaskId, HASH::hash_func("kPrimaryThreadTaskId"));
+    register_task(kRendererTaskId, HASH::hash_func("kRendererTaskId"));
+    register_task(kInputMgrTaskId, HASH::hash_func("kInputMgrTaskId"));
+    register_task(kAssetMgrTaskId, HASH::hash_func("kAssetMgrTaskId"));
+    register_task(kSpriteMgrTaskId, HASH::hash_func("kSpriteMgrTaskId"));
+    register_task(kModelMgrTaskId, HASH::hash_func("kModelMgrTaskId"));
+    return true;
+}
+
+bool register_task(task_id id, u32 nameHash)
+{
+    std::lock_guard<std::mutex> lock(sTrackMapMutex);
+    ASSERT(sTrackMap.find(id) == sTrackMap.end());
+    sTrackMap[id] = nameHash;
+    return true;
+}
+const char * task_name(task_id id)
+{
+    static bool registerSpecialTaskNames = register_special_task_names();
+    std::lock_guard<std::mutex> lock(sTrackMapMutex);
+    auto it = sTrackMap.find(id);
+    if (it != sTrackMap.end())
+        return HASH::reverse_hash(it->second);
+    else
+        return HASH::reverse_hash(id);
+}
+#endif
+
 task_id next_task_id()
 {
     // LORRTODO - When we support networking someday, we need to generate

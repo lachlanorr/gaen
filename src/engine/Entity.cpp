@@ -207,6 +207,10 @@ void Entity::update(f32 delta)
 template <typename T>
 MessageResult Entity::message(const T & msgAcc)
 {
+#if HAS(MESSAGE_TRACING)
+    LOG_INFO("MSG: Entity   %s(0x%x) -> %s(0x%x): %s(%s)", task_name(msgAcc.message().source), msgAcc.message().source, task_name(msgAcc.message().target), msgAcc.message().target, HASH::reverse_hash(msgAcc.message().msgId), HASH::reverse_hash(msgAcc.message().payload.u));
+#endif
+
     u32 msgId = msgAcc.message().msgId;
 
     // Prioritize fin message

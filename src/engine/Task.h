@@ -32,6 +32,8 @@
 #include "engine/MessageAccessor.h"
 #include "hashes/hashes.h"
 
+#define MESSAGE_TRACING HAS_X
+
 namespace gaen
 {
 
@@ -77,6 +79,11 @@ enum class TaskPermissions : u8
 
 // Return the next globally unique task id
 task_id next_task_id();
+
+#if HAS(TRACK_HASHES)
+bool register_task(task_id id, u32 nameHash);
+const char * task_name(task_id id);
+#endif
 
 //------------------------------------------------------------------------------
 // Tasks are the base work unit for the TaskMaster scheduler.
@@ -134,6 +141,13 @@ public:
         task.mTaskId = next_task_id();
 
         task.mNameHash = nameHash;
+
+#if HAS(TRACK_HASHES)
+        register_task(task.mTaskId, task.mNameHash);
+#endif // HAS(TRACK_HASHES)
+#if HAS(MESSAGE_TRACING)
+        LOG_INFO("TASK: %s(0x%x)", task_name(task.mNameHash), task.mTaskId);
+#endif
 
         task.mpThat = pThat;
 

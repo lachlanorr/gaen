@@ -31,7 +31,7 @@
 
 #include "compose/compiler.h"
 #include "compose/compiler_structs.h"
-#include "compose/codegen_cpp.h"
+#include "compose/CodegenCpp.h"
 #include "compose/comp_mem.h"
 
 namespace gaen
@@ -117,7 +117,8 @@ int main(int argc, char ** argv)
     CodeCpp codeCpp;
     if (pParseData)
     {
-        codeCpp = codegen_cpp(pParseData);
+        CodegenCpp codegen;
+        codeCpp = codegen.codegen(pParseData);
     }
 
     if (codeCpp.header != "")

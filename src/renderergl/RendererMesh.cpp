@@ -527,6 +527,9 @@ void RendererMesh::render()
 template <typename T>
 MessageResult RendererMesh::message(const T & msgAcc)
 {
+#if HAS(MESSAGE_TRACING)
+    LOG_INFO("MSG: Renderer %s(0x%x) -> %s(0x%x): %s(%s)", task_name(msgAcc.message().source), msgAcc.message().source, task_name(msgAcc.message().target), msgAcc.message().target, HASH::reverse_hash(msgAcc.message().msgId), HASH::reverse_hash(msgAcc.message().payload.u));
+#endif
     const Message & msg = msgAcc.message();
 
     switch (msg.msgId)

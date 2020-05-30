@@ -161,6 +161,9 @@ void AssetMgr::sendAssetReadyHandle(Asset * pAsset,
 template <typename T>
 MessageResult AssetMgr::message(const T & msgAcc)
 {
+#if HAS(MESSAGE_TRACING)
+    LOG_INFO("MSG: AssetMgr %s(0x%x) -> %s(0x%x): %s(%s)", task_name(msgAcc.message().source), msgAcc.message().source, task_name(msgAcc.message().target), msgAcc.message().target, HASH::reverse_hash(msgAcc.message().msgId), HASH::reverse_hash(msgAcc.message().payload.u));
+#endif
     ASSERT(mCreatorThreadId == active_thread_id());
 
     const Message & msg = msgAcc.message();

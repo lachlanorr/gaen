@@ -66,6 +66,9 @@ void ModelMgr::update()
 template <typename T>
 MessageResult ModelMgr::message(const T & msgAcc)
 {
+#if HAS(MESSAGE_TRACING)
+    LOG_INFO("MSG: ModelMgr %s(0x%x) -> %s(0x%x): %s(%s)", task_name(msgAcc.message().source), msgAcc.message().source, task_name(msgAcc.message().target), msgAcc.message().target, HASH::reverse_hash(msgAcc.message().msgId), HASH::reverse_hash(msgAcc.message().payload.u));
+#endif
     const Message & msg = msgAcc.message();
 
     switch (msg.msgId)

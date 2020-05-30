@@ -176,8 +176,7 @@ public:
                             task_id target,
                             cell payload)
       : MessageBlockWriter(msgId, flags, source, target, payload, blockCount, mBlocks)
-    {
-    }
+    {}
 
 private:
     Block mBlocks[blockCount + 1]; // +1 for header

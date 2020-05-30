@@ -48,18 +48,18 @@ def fnv32a(s):
         hval = hval ^ ord(c)
         hval = (hval * fnv_32_prime) % uint32_max
     return hval
- 
+
 # These are members of FNV class, which we don't want to confuse with
 # references to precalculated FNV hashses.
 EXCLUDE_PATTERNS = ['HASH::hash_func',
                     'HASH::reverse_hash',
                     ]
-                    
+
 def process_file(path):
     with open(path) as f:
         d = f.read()
         return [s for s in re.findall('HASH::[a-zA-Z_][a-zA-Z0-9_]*', d) if s not in EXCLUDE_PATTERNS]
-    
+
 def process_dir(path):
     hashes = []
     for root, dirs, files in os.walk(path):
@@ -73,7 +73,7 @@ def process_dir(path):
         else:
             print 'skipping ' + root
     return hashes
-            
+
 
 def src_dir():
     scriptdir = os.path.split(os.path.abspath(__file__))[0]
@@ -195,7 +195,7 @@ HASHES_H_TEMPLATE = ('//--------------------------------------------------------
                   '#include "core/base_defines.h"\n'
                   '\n'
                   '// Determines if string collisions are detected in hashes\n'
-                  '#define TRACK_HASHES HAS_X\n'
+                  '#define TRACK_HASHES WHEN(HAS(DEV_BUILD))\n'
                   '\n'
                   'namespace gaen\n'
                   '{\n'
@@ -263,6 +263,7 @@ HASHES_CPP_TEMPLATE = ('//------------------------------------------------------
                     'typedef HashMap<kMEM_Debug, u32, String<kMEM_Debug>> TrackMap;\n'
                     'static std::mutex sTrackMapMutex;\n'
                     'static TrackMap sTrackMap;\n'
+                    'static TrackMap sTrackMapHashes;\n'
                     '// Insert all our precalculated hashes into sTrackMap so we will know\n'
                     '// if we encounter conflicts in dynamically calculated hashes.  Also,\n'
                     '// verify the precalculted hashes match what our C++ version returns.\n'
@@ -270,12 +271,12 @@ HASHES_CPP_TEMPLATE = ('//------------------------------------------------------
                     '{\n'
                     '    sTrackMap.rehash(8192);\n'
                     '<<hashes_map_insertions>>'
-                    '    return true;\n'   
+                    '    return true;\n'
                     '}\n'
                     '\n'
                     'namespace\n'
                     '{\n'
-                    '    bool ret = build_initial_track_map();\n'   
+                    '    bool ret = build_initial_track_map();\n'
                     '}\n'
                     '#endif // #if HAS(TRACK_HASHES)\n'
                     '\n'
@@ -322,8 +323,13 @@ HASHES_CPP_TEMPLATE = ('//------------------------------------------------------
                     '        }\n'
                     '        else\n'
                     '        {\n'
-                    '            sprintf(tMessage, "0x%08x", hash);\n'
-                    '            return tMessage;\n'
+                    '            auto ith = sTrackMapHashes.find(hash);\n'
+                    '            if (ith == sTrackMapHashes.end())\n'
+                    '            {\n'
+                    '                sprintf(tMessage, "0x%08x", hash);\n'
+                    '                ith = sTrackMapHashes.emplace(hash, tMessage).first;\n'
+                    '            }\n'
+                    '            return ith->second.c_str();\n'
                     '        }\n'
                     '    }\n'
                     '#else  // #if HAS(TRACK_HASHES)\n'

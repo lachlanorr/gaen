@@ -30,8 +30,8 @@ EXECUTE_PROCESS (
   )
 
 SET (compose_SOURCES
-  codegen_cpp.cpp
-  codegen_cpp.h
+  CodegenCpp.cpp
+  CodegenCpp.h
   codegen_utils.cpp
   codegen_utils.h
   comp_mem.cpp
