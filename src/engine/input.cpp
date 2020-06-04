@@ -220,7 +220,8 @@ void process_key_input(KeyInput keyInput)
                                kMessageFlag_None,
                                kPrimaryThreadTaskId,
                                kInputMgrTaskId,
-                               to_cell(keyInput));
+                               to_cell(keyInput),
+                               true);
 }
 
 static HashMap<kMEM_Engine, i32, Key> sGlfwKeyMap =
@@ -362,7 +363,8 @@ void kill_focus()
                                kMessageFlag_None,
                                kPrimaryThreadTaskId,
                                kInputMgrTaskId,
-                               to_cell(0));
+                               to_cell(0),
+                               true);
 }
 
 void poll_pad_input()

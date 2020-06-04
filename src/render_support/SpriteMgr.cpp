@@ -75,8 +75,9 @@ void SpriteMgr::update()
             pSpriteInst->mTransform = to_mat4x3(translate(mat4(1.0f), offset) * mat4(pSpriteInst->mTransform));
             SpriteInstance::send_sprite_transform(kSpriteMgrTaskId, kRendererTaskId, pSpriteInst->sprite().uid(), pSpriteInst->mTransform);
             {
-                messages::PropertyMat43QW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, pSpriteInst->sprite().mOwner, HASH::transform);
+                messages::PropertyMat43BW msgw(HASH::transform, kMessageFlag_None, kSpriteMgrTaskId, pSpriteInst->sprite().mOwner, HASH::transform);
                 msgw.setValue(pSpriteInst->mTransform);
+                TaskMaster::task_master_for_active_thread().message(msgw.accessor());
             }
         }
         */
@@ -241,26 +242,29 @@ i32 sprite_create(AssetHandleP pAssetHandle, i32 stageHash, i32 passHash, const 
 
 void sprite_play_anim(i32 spriteUid, i32 animHash, f32 duration, bool loop, i32 doneMessage, Entity * pCaller)
 {
-    messages::SpritePlayAnimQW msgw(HASH::sprite_play_anim, kMessageFlag_None, pCaller->task().id(), kSpriteMgrTaskId, spriteUid);
+    messages::SpritePlayAnimBW msgw(HASH::sprite_play_anim, kMessageFlag_None, pCaller->task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setAnimHash(animHash);
     msgw.setDuration(duration);
     msgw.setLoop(loop);
     msgw.setDoneMessage(doneMessage);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void sprite_set_velocity(i32 spriteUid, const vec2 & velocity, Entity * pCaller)
 {
-    messages::SpriteVelocityQW msgw(HASH::sprite_set_velocity, kMessageFlag_None, pCaller->task().id(), kSpriteMgrTaskId, spriteUid);
+    messages::SpriteVelocityBW msgw(HASH::sprite_set_velocity, kMessageFlag_None, pCaller->task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setVelocity(velocity);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void sprite_init_body(i32 spriteUid, f32 mass, i32 group, ivec4 mask03, ivec4 mask47, Entity * pCaller)
 {
-    messages::SpriteBodyQW msgw(HASH::sprite_init_body, kMessageFlag_None, pCaller->task().id(), kSpriteMgrTaskId, spriteUid);
+    messages::SpriteBodyBW msgw(HASH::sprite_init_body, kMessageFlag_None, pCaller->task().id(), kSpriteMgrTaskId, spriteUid);
     msgw.setMass(mass);
     msgw.setGroup(group);
     msgw.setMask03(mask03);
     msgw.setMask47(mask47);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void sprite_stage_show(i32 stageHash, Entity * pCaller)

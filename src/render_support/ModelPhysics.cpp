@@ -122,8 +122,9 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 
         // Send transform to entity
         {
-            messages::PropertyMat43QW msgw(HASH::set_property, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), HASH::transform);
+            messages::PropertyMat43BW msgw(HASH::set_property, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), HASH::transform);
             msgw.setValue(mModelInstance.mTransform);
+            TaskMaster::task_master_for_active_thread().message(msgw.accessor());
         }
     }
 }
@@ -185,14 +186,16 @@ void ModelPhysics::update()
 
                 // Send collision messages to both entities
                 {
-                    messages::CollisionQW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obA->mpMotionState->mModelInstance.model().owner(), obB->mGroupHash);
+                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obA->mpMotionState->mModelInstance.model().owner(), obB->mGroupHash);
                     msgw.setSubject(obB->mpMotionState->mModelInstance.model().owner());
                     msgw.setLocation(vec3(ptA.x(), ptA.y(), ptA.z()));
+                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
                 }
                 {
-                    messages::CollisionQW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obB->mpMotionState->mModelInstance.model().owner(), obA->mGroupHash);
+                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obB->mpMotionState->mModelInstance.model().owner(), obA->mGroupHash);
                     msgw.setSubject(obA->mpMotionState->mModelInstance.model().owner());
                     msgw.setLocation(vec3(ptB.x(), ptB.y(), ptB.z()));
+                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
                 }
 
 

@@ -198,8 +198,9 @@ void InputMgr::notifyKeyPressListeners(u32 mode, const ivec4 & keys)
     {
         for (const auto & target : it->second)
         {
-            messages::KeyPressQW msgQW(HASH::key_press, kMessageFlag_None, kInputMgrTaskId, target);
-            msgQW.setKeys(keys);
+            messages::KeyPressBW msgw(HASH::key_press, kMessageFlag_None, kInputMgrTaskId, target);
+            msgw.setKeys(keys);
+            TaskMaster::task_master_for_active_thread().message(msgw.accessor());
         }
     }
 }
@@ -225,7 +226,8 @@ void InputMgr::register_key_press_listener(u32 mode, task_id target)
                                kMessageFlag_None,
                                target,
                                kInputMgrTaskId,
-                               to_cell(mode));
+                               to_cell(mode),
+                               true);
 }
 
 void InputMgr::deregister_key_press_listener(u32 mode, task_id target)
@@ -234,7 +236,8 @@ void InputMgr::deregister_key_press_listener(u32 mode, task_id target)
                                kMessageFlag_None,
                                target,
                                kInputMgrTaskId,
-                               to_cell(mode));
+                               to_cell(mode),
+                               true);
 }
 
 void InputMgr::setMode(u32 modeHash)

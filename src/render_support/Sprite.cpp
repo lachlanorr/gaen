@@ -152,9 +152,10 @@ SpriteInstance::SpriteInstance(Sprite * pSprite, u32 stageHash, RenderPass pass,
 
 void SpriteInstance::registerTransformWatcher(task_id taskId)
 {
-    messages::RegisterWatcherQW msgw(HASH::register_watcher, kMessageFlag_None, taskId, mpSprite->owner(), HASH::sprite_transform);
+    messages::RegisterWatcherBW msgw(HASH::register_watcher, kMessageFlag_None, taskId, mpSprite->owner(), HASH::sprite_transform);
     msgw.setProperty(HASH::transform);
     msgw.setUid(mpSprite->uid());
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void SpriteInstance::destroySprite()
@@ -239,23 +240,26 @@ bool SpriteInstance::animate(u32 animHash, u32 animFrameIdx)
 
 void SpriteInstance::sprite_insert(task_id source, task_id target, SpriteInstance * pSpriteInst)
 {
-    messages::SpriteInstanceQW msgw(HASH::sprite_insert, kMessageFlag_None, source, target);
+    messages::SpriteInstanceBW msgw(HASH::sprite_insert, kMessageFlag_None, source, target);
     msgw.setSpriteInstance(pSpriteInst);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void SpriteInstance::sprite_anim(task_id source, task_id target, u32 uid, u32 animHash, u32 animFrameIdx)
 {
-    messages::SpriteAnimQW msgw(HASH::sprite_anim, kMessageFlag_None, source, target, uid);
+    messages::SpriteAnimBW msgw(HASH::sprite_anim, kMessageFlag_None, source, target, uid);
     msgw.setAnimHash(animHash);
     msgw.setAnimFrameIdx(animFrameIdx);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void SpriteInstance::sprite_transform(task_id source, task_id target, u32 uid, const mat43 & transform)
 {
-    messages::NotifyWatcherMat43QW msgw(HASH::sprite_transform, kMessageFlag_None, source, target, uid);
+    messages::NotifyWatcherMat43BW msgw(HASH::sprite_transform, kMessageFlag_None, source, target, uid);
     msgw.setProperty(HASH::transform);
     msgw.setValueType(HASH::mat43);
     msgw.setValue(transform);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void SpriteInstance::sprite_remove(task_id source, task_id target, u32 uid)

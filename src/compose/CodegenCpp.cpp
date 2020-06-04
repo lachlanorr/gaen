@@ -2631,37 +2631,25 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
         code += I1 + S(scratch);
         code += LF;
 
-        code += I1 + S("Entity * pTarget__ = pThis->self().safeImmediateMessageTarget(target__);\n");
-        code += I1 + S("if (pTarget__) // this means we can send immediately, either to self or a child of ours\n");
-        code += I1 + S("{\n");
         snprintf(scratch,
                  kScratchSize,
                  "StackMessageBlockWriter<blockCount__> msgw__(%s, kMessageFlag_None, pThis->self().task().id(), %s, to_cell(%s));\n",
                  codegenRecurse(pAst->pMid, 0).c_str(),
                  target.c_str(),
                  payload.c_str());
-        code += I2 + S(scratch);
+        code += I1 + S(scratch);
         code += LF;
-        code += codegenMessageParams(pAst, indentLevel+1);
+        code += codegenMessageParams(pAst, indentLevel);
         code += LF;
-        code += I2 + S("pTarget__->message(msgw__.accessor());\n");
-        code += I1 + S("}\n");
-        code += I1 + S("else // queue up message\n");
+        code += I1 + S("Entity * pTarget__ = pThis->self().safeImmediateMessageTarget(target__);\n");
+        code += I1 + S("if (pTarget__) // this means the target is self or a child or ours, and we can send directly\n");
         code += I1 + S("{\n");
-        snprintf(scratch,
-                 kScratchSize,
-                 "MessageQueueWriter msgw__(%s, kMessageFlag_None, pThis->self().task().id(), %s, to_cell(%s), blockCount__);\n",
-                 codegenRecurse(pAst->pMid, 0).c_str(),
-                                target.c_str(),
-                                payload.c_str());
-        code += I2 + S(scratch);
-        code += LF;
-        code += codegenMessageParams(pAst, indentLevel+1);
-        code += LF;
-        code += I2 + S("// MessageQueueWriter will send message through RAII when this scope is exited\n");
+        code += I1 + S("    pTarget__->message(msgw__.accessor());\n");
         code += I1 + S("}\n");
-        code += LF;
-
+        code += I1 + S("else // send message to our TM and let it deal with the potential queuing\n");
+        code += I1 + S("{\n");
+        code += I1 + S("    TaskMaster::task_master_for_active_thread().message(msgw__.accessor());\n");
+        code += I1 + S("}\n");
         code += I + S("}\n");
         return code;
     }

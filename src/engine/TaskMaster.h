@@ -96,15 +96,17 @@ void broadcast_targeted_message(u32 msgId,
                                 bool immediate = false);
 void broadcast_targeted_message(const MessageBlockAccessor & msgAcc, bool notToSelf = false, bool immediate = false);
 
-void broadcast_insert_task(task_id source, thread_id owner, const Task & task);
-void broadcast_remove_task(task_id source, task_id taskToRemove);
+void broadcast_insert_task(task_id source, thread_id owner, const Task & task, bool immediate = false);
+void broadcast_remove_task(task_id source, task_id taskToRemove, bool immediate = false);
 void broadcast_request_set_parent(task_id source,
                                   task_id parentTaskId,
-                                  Entity * pChild);
+                                  Entity * pChild,
+                                  bool immediate = false);
 void broadcast_confirm_set_parent(task_id source,
                                   thread_id parentOwner,
                                   task_id parentTaskId,
-                                  Entity * pChild);
+                                  Entity * pChild,
+                                  bool immediate = false);
 void notify_next_frame();
 
 

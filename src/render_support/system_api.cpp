@@ -58,14 +58,15 @@ void camera_move(i32 uid,
                  const quat & direction,
                  Entity * pCaller)
 {
-    messages::UidTransformQW msgQW(HASH::camera_move,
-                                   kMessageFlag_None,
-                                   pCaller->task().id(),
-                                   kRendererTaskId,
-                                   uid);
+    messages::UidTransformBW msgw(HASH::camera_move,
+                                  kMessageFlag_None,
+                                  pCaller->task().id(),
+                                  kRendererTaskId,
+                                  uid);
 
     mat4 trans = mat4(position) * mat4(direction);
-    msgQW.setTransform(mat43(trans));
+    msgw.setTransform(mat43(trans));
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 mat43 view_look_at(const vec3 & position,
@@ -83,61 +84,66 @@ void light_insert(i32 uid,
                   const vec3 & direction,
                   Entity * pCaller)
 {
-    messages::LightDistantQW msgQW(HASH::light_insert,
-                                   kMessageFlag_None,
-                                   pCaller->task().id(),
-                                   kRendererTaskId,
-                                   uid);
-    msgQW.setStageHash(stageHash);
-    msgQW.setColor(color);
-    msgQW.setAmbient(ambient);
-    msgQW.setDirection(direction);
+    messages::LightDistantBW msgw(HASH::light_insert,
+                                  kMessageFlag_None,
+                                  pCaller->task().id(),
+                                  kRendererTaskId,
+                                  uid);
+    msgw.setStageHash(stageHash);
+    msgw.setColor(color);
+    msgw.setAmbient(ambient);
+    msgw.setDirection(direction);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void light_direction(i32 uid,
                      const vec3 & direction,
                      Entity * pCaller)
 {
-    messages::UidVec3QW msgQW(HASH::light_update,
-                              kMessageFlag_None,
-                              pCaller->task().id(),
-                              kRendererTaskId,
-                              uid);
-    msgQW.setVector(direction);
+    messages::UidVec3BW msgw(HASH::light_update,
+                             kMessageFlag_None,
+                             pCaller->task().id(),
+                             kRendererTaskId,
+                             uid);
+    msgw.setVector(direction);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void light_color(i32 uid,
                  Color color,
                  Entity * pCaller)
 {
-    messages::UidColorQW msgQW(HASH::light_update,
-                               kMessageFlag_None,
-                               pCaller->task().id(),
-                               kRendererTaskId,
-                               uid);
-    msgQW.setColor(color);
+    messages::UidColorBW msgw(HASH::light_update,
+                              kMessageFlag_None,
+                              pCaller->task().id(),
+                              kRendererTaskId,
+                              uid);
+    msgw.setColor(color);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void light_ambient(i32 uid,
                    f32 ambient,
                    Entity * pCaller)
 {
-    messages::UidScalarQW msgQW(HASH::light_update,
-                                kMessageFlag_None,
-                                pCaller->task().id(),
-                                kRendererTaskId,
-                                uid);
-    msgQW.setScalar(ambient);
+    messages::UidScalarBW msgw(HASH::light_update,
+                               kMessageFlag_None,
+                               pCaller->task().id(),
+                               kRendererTaskId,
+                               uid);
+    msgw.setScalar(ambient);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void light_remove(i32 uid, Entity * pCaller)
 {
-    MessageQueueWriter msgQW(HASH::light_remove,
-                             kMessageFlag_None,
-                             pCaller->task().id(),
-                             kRendererTaskId,
-                             to_cell(uid),
-                             0);
+    MessageQueueWriter msgw(HASH::light_remove,
+                            kMessageFlag_None,
+                            pCaller->task().id(),
+                            kRendererTaskId,
+                            to_cell(uid),
+                            0);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 } // namespace system_api

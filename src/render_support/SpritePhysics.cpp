@@ -70,8 +70,9 @@ void SpriteMotionState::setWorldTransform(const btTransform& worldTrans)
 
     SpriteInstance::sprite_transform(kSpriteMgrTaskId, kRendererTaskId, mSpriteInstance.sprite().uid(), mSpriteInstance.mTransform);
     {
-        messages::PropertyMat43QW msgw(HASH::set_property, kMessageFlag_None, kSpriteMgrTaskId, mSpriteInstance.sprite().owner(), HASH::transform);
+        messages::PropertyMat43BW msgw(HASH::set_property, kMessageFlag_None, kSpriteMgrTaskId, mSpriteInstance.sprite().owner(), HASH::transform);
         msgw.setValue(mSpriteInstance.mTransform);
+        TaskMaster::task_master_for_active_thread().message(msgw.accessor());
     }
 }
 
@@ -132,14 +133,16 @@ void SpritePhysics::update()
 
                 // Send collision messages to both entities
                 {
-                    messages::CollisionQW msgw(HASH::collision, kMessageFlag_None, kSpriteMgrTaskId, obA->mpMotionState->mSpriteInstance.sprite().owner(), obB->mGroupHash);
+                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kSpriteMgrTaskId, obA->mpMotionState->mSpriteInstance.sprite().owner(), obB->mGroupHash);
                     msgw.setSubject(obB->mpMotionState->mSpriteInstance.sprite().owner());
                     msgw.setLocation(vec3(ptA.x(), ptA.y(), ptA.z()));
+                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
                 }
                 {
-                    messages::CollisionQW msgw(HASH::collision, kMessageFlag_None, kSpriteMgrTaskId, obB->mpMotionState->mSpriteInstance.sprite().owner(), obA->mGroupHash);
+                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kSpriteMgrTaskId, obB->mpMotionState->mSpriteInstance.sprite().owner(), obA->mGroupHash);
                     msgw.setSubject(obA->mpMotionState->mSpriteInstance.sprite().owner());
                     msgw.setLocation(vec3(ptB.x(), ptB.y(), ptB.z()));
+                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
                 }
 
 

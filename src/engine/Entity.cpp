@@ -100,12 +100,12 @@ Entity::Entity(u32 nameHash,
     else
         mpBlocks = nullptr;
 
-    mInitStatus = kIS_Uninitialized;
-
     mAssetsRequested = 0;
     mAssetsLoaded = 0;
 
     mTask = Task::create_updatable(this, nameHash);
+
+    setInitStatus(kIS_Uninitialized);
 
     mIsFinSelfSent = false;
     mIsDead = false;
@@ -137,25 +137,27 @@ void Entity::activate()
     ASSERT(mTask.status() == TaskStatus::Initializing);
 
     // Insert Entity into the TaskMasters
-    broadcast_insert_task(mTask.id(), active_thread_id(), mTask);
+    broadcast_insert_task(mTask.id(), active_thread_id(), mTask, true);
 
     if (mInitParentTask != 0)
     {
-        broadcast_request_set_parent(mTask.id(), mInitParentTask, this);
+        broadcast_request_set_parent(mTask.id(), mInitParentTask, this, true);
     }
 
     // Start initialization sequence with #init__
     // Entity will progress through initialization stages on its
     // own, eventually reaching the "activated" state. Then it will
     // be updated each frame by the TaskMasters.
-    MessageQueueWriter msgInit(HASH::init__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0), 0);
+    StackMessageBlockWriter<0> msgInit(HASH::init__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+    mTask.message(msgInit.accessor());
 }
 
 void Entity::finSelf()
 {
     if (!mIsFinSelfSent)
     {
-        MessageQueueWriter msgw(HASH::fin, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0), 0);
+        StackMessageBlockWriter<0> msgw(HASH::fin, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+        mTask.message(msgw.accessor());
     }
     mIsFinSelfSent = true;
 }
@@ -210,6 +212,10 @@ MessageResult Entity::message(const T & msgAcc)
 #if HAS(MESSAGE_TRACING)
     LOG_INFO("MSG: Entity   %s(0x%x) -> %s(0x%x): %s(%s)", task_name(msgAcc.message().source), msgAcc.message().source, task_name(msgAcc.message().target), msgAcc.message().target, HASH::reverse_hash(msgAcc.message().msgId), HASH::reverse_hash(msgAcc.message().payload.u));
 #endif
+    if (msgAcc.message().msgId == HASH::ready_init)
+    {
+        int i = 0;
+    }
 
     u32 msgId = msgAcc.message().msgId;
 
@@ -275,7 +281,7 @@ MessageResult Entity::message(const T & msgAcc)
             mScriptTask.message(finMsgW.accessor());
 
             // Remove us from TaskMasters
-            broadcast_remove_task(mTask.id(), mTask.id());
+            broadcast_remove_task(mTask.id(), mTask.id(), true);
 
             return MessageResult::Consumed;
         }
@@ -475,7 +481,7 @@ MessageResult Entity::message(const T & msgAcc)
                     if (mpEntityInit)
                         mpEntityInit->init();
 
-                    mInitStatus = kIS_Init;
+                    setInitStatus(kIS_Init);
                     // LORRTEMP
                     //LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
 
@@ -502,7 +508,7 @@ MessageResult Entity::message(const T & msgAcc)
                         finalizeAssetInit();
                     else
                     {
-                        mInitStatus = kIS_RequestAssets;
+                        setInitStatus(kIS_RequestAssets);
                         // LORRTEMP
                         //LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
                     }
@@ -580,7 +586,7 @@ MessageResult Entity::message(const T & msgAcc)
                     // Send to our sub-classed message routine
                     mScriptTask.message(msgAcc);
 
-                    mInitStatus = kIS_Activated;
+                    setInitStatus(kIS_Activated);
                     // LORRTEMP
                     //LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
 
@@ -588,14 +594,15 @@ MessageResult Entity::message(const T & msgAcc)
                     // LORRTODO: Add mSetRunningOnInit flag and respect it.a
                     //if (mSetRunningOnInit)
                     {
-                        messages::TaskStatusQW msgW(HASH::set_task_status, kMessageFlag_Editor, mTask.id(), mTask.id(), TaskStatus::Running);
-
                         // set script task and each component to running state as well so they can be updated
                         mScriptTask.setStatus(TaskStatus::Running);
                         for (u32 i = 0; i < mComponentCount; ++i)
                         {
                             mpComponents[i].scriptTask().setStatus(TaskStatus::Running);
                         }
+
+                        messages::TaskStatusBW msgW(HASH::set_task_status, kMessageFlag_Editor, mTask.id(), mTask.id(), TaskStatus::Running);
+                        TaskMaster::task_master_for_active_thread().message(msgW.accessor());
                     }
 
                     notifyWatchersMat43(mTask.id(), HASH::transform, mTransform);
@@ -797,10 +804,11 @@ void Entity::registerWatcher(task_id watcher, u32 property, u32 message, u32 uid
             if (property == HASH::transform)
             {
                 // We special case transform here, other properties are defined in the scripts
-                messages::NotifyWatcherMat43QW msgW(message, kMessageFlag_Editor, mTask.id(), watcher, uid);
+                messages::NotifyWatcherMat43BW msgW(message, kMessageFlag_Editor, mTask.id(), watcher, uid);
                 msgW.setProperty(property);
                 msgW.setValue(mTransform);
                 msgW.setValueType(HASH::mat43);
+                TaskMaster::task_master_for_active_thread().message(msgW.accessor());
             }
             else
             {
@@ -815,13 +823,13 @@ void Entity::registerWatcher(task_id watcher, u32 property, u32 message, u32 uid
 
 void Entity::notifyWatchersMat43(task_id source, u32 property, const mat43& val)
 {
-    notifyWatchers<::gaen::messages::NotifyWatcherMat43QW, mat43, HASH::mat43>(source, val, property);
+    notifyWatchers<::gaen::messages::NotifyWatcherMat43BW, mat43, HASH::mat43>(source, val, property);
 }
 
 
 void Entity::requestSetParent(task_id parentTaskId)
 {
-    broadcast_request_set_parent(mTask.id(), parentTaskId, this);
+    broadcast_request_set_parent(mTask.id(), parentTaskId, this, true);
 }
 
 void Entity::setParent(Entity * pParent)
@@ -920,7 +928,7 @@ void Entity::growBlocks(u32 minSizeIncrease)
 
 void Entity::finalizeAssetInit()
 {
-    mInitStatus = kIS_AssetsReady;
+    setInitStatus(kIS_AssetsReady);
 
     // LORRTEMP
     //LOG_INFO("Entity change state: taskid: %u, name: %s, newstate: %d", mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
@@ -1170,19 +1178,20 @@ void Entity::requestAsset(u32 subTaskId, u32 nameHash, const CmpString & path)
 {
     mAssetsRequested++;
 
-    MessageQueueWriter msgw(HASH::request_asset__, kMessageFlag_None, mTask.id(), kAssetMgrTaskId, to_cell(subTaskId), path.blockCount() + 1);
+    ThreadLocalMessageBlockWriter msgw(HASH::request_asset__, kMessageFlag_None, mTask.id(), kAssetMgrTaskId, to_cell(subTaskId), path.blockCount() + 1);
     msgw[0].cells[0].u = nameHash;
     path.writeMessage(msgw.accessor(), 1);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void Entity::send_ready_init(u32 sourceTaskId, u32 targetTaskId, u32 message)
 {
-    MessageQueueWriter msgw(HASH::ready_init, kMessageFlag_None, sourceTaskId, targetTaskId, to_cell(message), 0);
+    ImmediateMessageWriter<0> msgw(HASH::ready_init, kMessageFlag_None, sourceTaskId, targetTaskId, to_cell(message));
 }
 
 void Entity::send_ready_notify(u32 sourceTaskId, u32 targetTaskId, u32 message)
 {
-    MessageQueueWriter msgw(HASH::ready_notify, kMessageFlag_None, sourceTaskId, targetTaskId, to_cell(message), 0);
+    ImmediateMessageWriter<0> msgw(HASH::ready_notify, kMessageFlag_None, sourceTaskId, targetTaskId, to_cell(message));
 }
 
 void Entity::readyInit(u32 message)

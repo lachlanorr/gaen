@@ -29,6 +29,7 @@
 #include "assets/Gmdl.h"
 #include "assets/Gaim.h"
 #include "engine/AssetMgr.h"
+#include "engine/TaskMaster.h"
 
 #include "engine/messages/RegisterWatcher.h"
 #include "engine/messages/ModelInstance.h"
@@ -132,9 +133,10 @@ void ModelInstance::registerTransformWatcher(task_id taskId)
 {
     if (!mIsStatic) // static objects never move
     {
-        messages::RegisterWatcherQW msgw(HASH::register_watcher, kMessageFlag_None, taskId, mpModel->owner(), HASH::model_transform);
+        messages::RegisterWatcherBW msgw(HASH::register_watcher, kMessageFlag_None, taskId, mpModel->owner(), HASH::model_transform);
         msgw.setProperty(HASH::transform);
         msgw.setUid(mpModel->uid());
+        TaskMaster::task_master_for_active_thread().message(msgw.accessor());
     }
 }
 
@@ -149,13 +151,14 @@ void ModelInstance::destroyModel()
 
 void ModelInstance::model_insert(task_id source, task_id target, ModelInstance * pModelInst)
 {
-    messages::ModelInstanceQW msgw(HASH::model_insert, kMessageFlag_None, source, target);
+    messages::ModelInstanceBW msgw(HASH::model_insert, kMessageFlag_None, source, target);
     msgw.setModelInstance(pModelInst);
+    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
 }
 
 void ModelInstance::model_remove(task_id source, task_id target, u32 uid)
 {
-    MessageQueueWriter msgw(HASH::model_remove, kMessageFlag_None, source, target, to_cell(uid), 0);
+    ImmediateMessageWriter<0> msgw(HASH::model_remove, kMessageFlag_None, source, target, to_cell(uid));
 }
 
 

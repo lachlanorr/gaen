@@ -183,6 +183,24 @@ private:
 };
 
 
+template <u32 blockCount>
+class ImmediateMessageWriter : public StackMessageBlockWriter<blockCount>
+{
+public:
+    ImmediateMessageWriter(u32 msgId,
+                           u32 flags,
+                           task_id source,
+                           task_id target,
+                           cell payload)
+      : StackMessageBlockWriter(msgId, flags, source, target, payload)
+    {}
+    ~ImmediateMessageWriter()
+    {
+        TaskMaster::task_master_for_active_thread().message(accessor());
+    }
+};
+
+
 // Simple block writer that allocates storage in thread local storage
 class ThreadLocalMessageBlockWriter : public MessageBlockWriter
 {

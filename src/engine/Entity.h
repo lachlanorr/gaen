@@ -109,6 +109,7 @@ public:
                 msgW.setValue(val);
                 msgW.setValueType(ValTypeHash);
                 msgW.setProperty(pw.property);
+                TaskMaster::task_master_for_active_thread().message(msgW.accessor());
             }
             else if (pw.watcher == 0)
             {
@@ -152,6 +153,12 @@ protected:
 
     // Max entities that can be created before they're inserted into the engine
     static const u32 kMaxEntityStage = 16;
+
+    void setInitStatus(InitStatus status)
+    {
+        LOG_INFO("setInitStatus %s %d", HASH::reverse_hash(mTask.nameHash()), status);
+        mInitStatus = status;
+    }
 
     void finSelf();
 

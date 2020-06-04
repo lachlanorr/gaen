@@ -78,7 +78,9 @@ void fin_task_masters()
     ASSERT(sIsInit);
     broadcast_message(HASH::fin,
                       kMessageFlag_ForcePropagate,
-                      kPrimaryThreadTaskId);
+                      kPrimaryThreadTaskId,
+                      to_cell(0),
+                      true);
 }
 
 // Entry point of our thread
@@ -209,9 +211,7 @@ void broadcast_message(u32 msgId,
     {
         if (immediate && tid == activeTid)
         {
-            TaskMaster & targetTaskMaster = TaskMaster::task_master_for_thread(activeTid);
-            StackMessageBlockWriter<0> msgw(msgId, flags, source, tid, payload);
-            targetTaskMaster.message(msgw.accessor());
+            ImmediateMessageWriter<0> msgw(msgId, flags, source, tid, payload);
         }
         else
         {
@@ -288,7 +288,7 @@ void broadcast_targeted_message(const MessageBlockAccessor & msgAcc, bool notToS
     }
 }
 
-void broadcast_insert_task(task_id source, thread_id owner, const Task & task)
+void broadcast_insert_task(task_id source, thread_id owner, const Task & task, bool immediate)
 {
     // Insert Entity into the TaskMasters
     messages::OwnerTaskBW msgInsertTask(HASH::insert_task__,
@@ -297,17 +297,18 @@ void broadcast_insert_task(task_id source, thread_id owner, const Task & task)
                                         active_thread_id(),
                                         owner);
     msgInsertTask.setTask(task);
-    broadcast_message(msgInsertTask.accessor());
+    broadcast_message(msgInsertTask.accessor(), immediate);
 }
 
-void broadcast_remove_task(task_id source, task_id taskToRemove)
+void broadcast_remove_task(task_id source, task_id taskToRemove, bool immediate)
 {
-    broadcast_message(HASH::remove_task__, kMessageFlag_None, source, to_cell(taskToRemove));
+    broadcast_message(HASH::remove_task__, kMessageFlag_None, source, to_cell(taskToRemove), immediate);
 }
 
 void broadcast_request_set_parent(task_id source,
                                   task_id parentTaskId,
-                                  Entity * pChild)
+                                  Entity * pChild,
+                                  bool immediate)
 {
     // Request for parenting to occur.
     //
@@ -323,13 +324,14 @@ void broadcast_request_set_parent(task_id source,
                                active_thread_id(),
                                parentTaskId);
     msg.setEntity(pChild);
-    broadcast_message(msg.accessor());
+    broadcast_message(msg.accessor(), immediate);
 }
 
 void broadcast_confirm_set_parent(task_id source,
                                   thread_id parentOwner,
                                   task_id parentTaskId,
-                                  Entity * pChild)
+                                  Entity * pChild,
+                                  bool immediate)
 {
     messages::TaskEntityBW msgw(HASH::confirm_set_parent__,
                                 kMessageFlag_None,
@@ -337,7 +339,7 @@ void broadcast_confirm_set_parent(task_id source,
                                 parentOwner,
                                 parentTaskId);
     msgw.setEntity(pChild);
-    broadcast_message(msgw.accessor());
+    broadcast_message(msgw.accessor(), immediate);
 }
 
 void broadcast_message(const MessageBlockAccessor & msgAcc, bool immediate)
@@ -1083,10 +1085,10 @@ void TaskMaster::setTaskOwner(thread_id newOwner, const Task & task)
         itTOM->second != threadId()) // only need to do something if we don't already own task
     {
         // Send remove message
-        broadcast_remove_task(task.id(), task.id());
+        broadcast_remove_task(task.id(), task.id(), true);
 
         // Send insert message
-        broadcast_insert_task(threadId(), newOwner, task);
+        broadcast_insert_task(threadId(), newOwner, task, true);
     }
 }
 
