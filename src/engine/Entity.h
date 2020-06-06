@@ -156,7 +156,7 @@ protected:
 
     void setInitStatus(InitStatus status)
     {
-        LOG_INFO("setInitStatus %s %d", HASH::reverse_hash(mTask.nameHash()), status);
+        LOG_INFO("setInitStatus %s(0x%x) %d", HASH::reverse_hash(mTask.nameHash()), mTask.id(), status);
         mInitStatus = status;
     }
 

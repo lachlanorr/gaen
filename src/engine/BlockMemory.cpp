@@ -105,10 +105,6 @@ u8 Chunk::alloc(u8 blockCount)
             }
             mHeader.freeCount -= blockCount;
             mHeader.needsCollection = true;
-            if (mHeader.chunkIdx > 0)
-            {
-                int i = 0;
-            }
             //LOG_INFO("-->ALLOC(%2u): blocks: %4u, freeCount: %4u", mHeader.chunkIdx, blockCount, mHeader.freeCount);
             return startIdx;
         }

@@ -212,10 +212,6 @@ MessageResult Entity::message(const T & msgAcc)
 #if HAS(MESSAGE_TRACING)
     LOG_INFO("MSG: Entity   %s(0x%x) -> %s(0x%x): %s(%s)", task_name(msgAcc.message().source), msgAcc.message().source, task_name(msgAcc.message().target), msgAcc.message().target, HASH::reverse_hash(msgAcc.message().msgId), HASH::reverse_hash(msgAcc.message().payload.u));
 #endif
-    if (msgAcc.message().msgId == HASH::ready_init)
-    {
-        int i = 0;
-    }
 
     u32 msgId = msgAcc.message().msgId;
 
@@ -233,91 +229,61 @@ MessageResult Entity::message(const T & msgAcc)
     {
         if (msgId == HASH::fin)
         {
-            // If we are a child, only accept HASH::fin from our
-            // parent, otherwise request our parent sends it to use.
-            if (mpParent && mpParent->mTask.id() != msgAcc.message().source)
+            // Only process if we didn't send the fin to ourself.
+            // If we sent fin to ourself, the message will have come immediately
+            // and not queued, and therefore we run the risk of deleting our task
+            // during a TaskMaster update loop, which will cause the task list
+            // getting modified during iteration.
+            if (msgAcc.message().source != task().id())
             {
-                ASSERT(TaskMaster::task_master_for_active_thread().isOwnedTask(mpParent->mTask.id()));
-                StackMessageBlockWriter<0> msgw(HASH::request_fin,
-                                                kMessageFlag_None,
-                                                mTask.id(),
-                                                mpParent->task().id(),
-                                                to_cell(0));
-                mpParent->message(msgw.accessor());
-                return MessageResult::Consumed;
+                // fin messages are like destructors and should be handled specially.
+                // fin method will propagate fin to all tasks/entity children
+                // and delete this entity.
+
+                // Remove all children, during a TaskMaster fin loop, each child will
+                // get sent the fin message from TaskMaster. If fin is sent to a parent
+                // we don't want to implicitly fin all children, just unparent them.
+                while (mChildCount > 0)
+                {
+                    removeChild(mpChildren[0]);
+                }
+                if (mpParent)
+                {
+                    mpParent->removeChild(this);
+                }
+
+                mIsDead = true;
+
+                // Now, send fin to our components
+                for (u32 i = 0; i < mComponentCount; ++i)
+                {
+                    mpComponents[i].scriptTask().message(msgAcc);
+                }
+
+                // Call our sub-classed message routine
+                mScriptTask.message(msgAcc);
+
+                StackMessageBlockWriter<0> finMsgW(HASH::fin__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+
+                // Now, send fin__ to our components
+                for (u32 i = 0; i < mComponentCount; ++i)
+                {
+                    mpComponents[i].scriptTask().message(finMsgW.accessor());
+                }
+
+                // Call our sub-classed message routine
+                mScriptTask.message(finMsgW.accessor());
+
+                // Remove us from TaskMasters
+                broadcast_remove_task(mTask.id(), mTask.id(), true);
             }
-
-            mIsDead = true;
-
-            // fin messages are like destructors and should be handled specially.
-            // fin method will propagate fin to all tasks/entity children
-            // and delete this entity.
-
-            // Send fin message to all children entities
-            for (u32 i = 0; i < mChildCount; ++i)
+            else // msgAcc.message().source == task().id()
             {
-                mpChildren[i]->message(msgAcc);
+                // queue the fin back to ourselves, not from ourself this time
+                MessageQueueWriter finMsgW(HASH::fin, kMessageFlag_None, TaskMaster::task_master_for_active_thread().threadId(), task().id(), to_cell(0), 0);               
             }
-
-            // Now, send fin to our components
-            for (u32 i = 0; i < mComponentCount; ++i)
-            {
-                mpComponents[i].scriptTask().message(msgAcc);
-            }
-
-            // Call our sub-classed message routine
-            mScriptTask.message(msgAcc);
-
-
-            StackMessageBlockWriter<0> finMsgW(HASH::fin__, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
-
-            // Now, send fin__ to our components
-            for (u32 i = 0; i < mComponentCount; ++i)
-            {
-                mpComponents[i].scriptTask().message(finMsgW.accessor());
-            }
-
-            // Call our sub-classed message routine
-            mScriptTask.message(finMsgW.accessor());
-
-            // Remove us from TaskMasters
-            broadcast_remove_task(mTask.id(), mTask.id(), true);
 
             return MessageResult::Consumed;
-        }
-        if (msgId == HASH::request_fin)
-        {
-            // Verify this is one of our children
-            for (u32 i = 0; i < mChildCount; ++i)
-            {
-                Entity * pEnt = mpChildren[i];
-
-            if (msgAcc.message().payload.u == HASH::position)
-            {
-                messages::PropertyMat43R<T> msgr(msgAcc);
-                setTransform(msgAcc.message().source, msgr.value());
-                return MessageResult::Consumed;
-            }
-                if (pEnt->task().id() == msgAcc.message().source)
-                {
-                    ASSERT_MSG(TaskMaster::task_master_for_active_thread().isOwnedTask(pEnt->mTask.id()), "Parent/child entities must reside on same TaskMaster");
-
-                    // Remove the child
-                    removeChild(pEnt);
-
-                    // Send the child fin from us, so it respects the message.
-                    // Child entities will only conduct fin logic if message is
-                    // sent from their parent.
-                    StackMessageBlockWriter<0> msgw(HASH::fin,
-                                                    kMessageFlag_None,
-                                                    mTask.id(),
-                                                    pEnt->task().id(),
-                                                    to_cell(0));
-                    pEnt->message(msgw.accessor());
-                    return MessageResult::Consumed;
-                }
-            }
-            PANIC("HASH::request_fin sent from a non-child entitty");
         }
 
         // Always pass set_property through to our mScriptTask
@@ -385,6 +351,30 @@ MessageResult Entity::message(const T & msgAcc)
             constrainPosition(msgr.min(), msgr.max());
             return MessageResult::Consumed;
         }
+        else if (msgId == HASH::ready_init)
+        {
+            u32 readyMessage = msgAcc.message().payload.u;
+            readyInit(readyMessage);
+            return MessageResult::Consumed;
+        }
+        else if (msgId == HASH::ready_notify)
+        {
+            u32 readyMessage = msgAcc.message().payload.u;
+            readyNotify(readyMessage);
+            return MessageResult::Consumed;
+        }
+        else if (msgId == HASH::insert_child)
+        {
+            messages::TaskEntityR<T> msgr(msgAcc);
+
+            Entity * pChild = msgr.entity();
+
+            // We should only become parent to Entities that are managed by our TaskMaster
+            ASSERT(TaskMaster::task_master_for_active_thread().isOwnedTask(pChild->task().id()));
+            insertChild(pChild);
+            return MessageResult::Consumed;
+        }
+
         // Interesting messages are handled here, initialization
         // messages are below
         if (mInitStatus == kIS_Activated)
@@ -426,17 +416,6 @@ MessageResult Entity::message(const T & msgAcc)
             {
                 messages::PropertyMat43R<T> msgr(msgAcc);
                 rotate(msgAcc.message().source, mat3(msgr.value()));
-                return MessageResult::Consumed;
-            }
-            case HASH::insert_child:
-            {
-                messages::TaskEntityR<T> msgr(msgAcc);
-
-                Entity * pChild = msgr.entity();
-
-                // We should only become parent to Entities that are managed by our TaskMaster
-                ASSERT(TaskMaster::task_master_for_active_thread().isOwnedTask(pChild->task().id()));
-                insertChild(pChild);
                 return MessageResult::Consumed;
             }
             }
@@ -495,6 +474,7 @@ MessageResult Entity::message(const T & msgAcc)
             case kIS_Init:
                 if (msgId == HASH::request_assets__)
                 {
+                    setInitStatus(kIS_RequestAssets);
                     // Send to our components
                     for (u32 i = 0; i < mComponentCount; ++i)
                     {
@@ -506,12 +486,6 @@ MessageResult Entity::message(const T & msgAcc)
 
                     if (areAllAssetsLoaded())
                         finalizeAssetInit();
-                    else
-                    {
-                        setInitStatus(kIS_RequestAssets);
-                        // LORRTEMP
-                        //LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
-                    }
 
                     // HandleMgr will send us asset_ready__ messages as assets
                     // are loaded.
@@ -587,8 +561,6 @@ MessageResult Entity::message(const T & msgAcc)
                     mScriptTask.message(msgAcc);
 
                     setInitStatus(kIS_Activated);
-                    // LORRTEMP
-                    //LOG_INFO("Entity change state: message: %s, taskid: %u, name: %s, newstate: %d", HASH::reverse_hash(msgId), mTask.id(), HASH::reverse_hash(mTask.nameHash()), mInitStatus);
 
                     // Set us running
                     // LORRTODO: Add mSetRunningOnInit flag and respect it.a
@@ -603,6 +575,17 @@ MessageResult Entity::message(const T & msgAcc)
 
                         messages::TaskStatusBW msgW(HASH::set_task_status, kMessageFlag_Editor, mTask.id(), mTask.id(), TaskStatus::Running);
                         TaskMaster::task_master_for_active_thread().message(msgW.accessor());
+                    }
+
+
+                    {
+                        // Send started message to all components and script task
+                        StackMessageBlockWriter<0> startedMsg(HASH::started, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
+                        for (u32 i = 0; i < mComponentCount; ++i)
+                        {
+                            mpComponents[i].scriptTask().message(startedMsg.accessor());
+                        }
+                        mScriptTask.message(startedMsg.accessor());
                     }
 
                     notifyWatchersMat43(mTask.id(), HASH::transform, mTransform);
@@ -729,13 +712,12 @@ void Entity::setTransform(task_id source, const mat43 & mat)
 
 void Entity::applyTransform(task_id source, bool isLocal, const mat43 & mat)
 {
-    if (!isLocal)
+    if (!isLocal || !mpParent)
     {
         setTransform(source, mat);
     }
     else // isLocal
     {
-        PANIC_IF(parent() == nullptr, "No parent when setting local transform");
         mLocalTransform = mat;
         setTransform(source, parentTransform() * mLocalTransform);
     }
@@ -848,6 +830,7 @@ void Entity::setParent(Entity * pParent)
 void Entity::unParent()
 {
     ASSERT(mpParent);
+    mTransform = mpParent->transform() * mLocalTransform;
     mLocalTransform = mat43{1.0f};
     mpParent = nullptr;
 }
@@ -1145,33 +1128,21 @@ void Entity::removeChild(Entity * pEntity)
 
 void Entity::removeChild(task_id taskId)
 {
-    if (mChildCount == 1)
+    for (u32 i = 0; i < mChildCount; ++i)
     {
-        ASSERT_MSG(mpChildren[0]->task().id() == taskId, "Attempt to remove task that Entity does not have");
-        if (mpChildren[0]->task().id() == taskId)
+        if (mpChildren[i]->task().id() == taskId)
         {
-            mChildCount = 0;
+            mpChildren[i]->unParent();
+            if (i < mChildCount - 1)
+            {
+                // item in middle, swap with the last item
+                mpChildren[i] = mpChildren[mChildCount-1];
+            }
+            mChildCount--;
             return;
         }
     }
-    else
-    {
-        for (u32 i = 0; i < mChildCount; ++i)
-        {
-            if (mpChildren[i]->task().id() == taskId)
-            {
-                mpChildren[i]->unParent();
-                if (i < mChildCount - 1)
-                {
-                    // item in middle, swap with the last item
-                    mpChildren[i] = mpChildren[mChildCount-1];
-                }
-                mChildCount--;
-                return;
-            }
-        }
-    }
-    PANIC("Attempt to remove task that Entity does not have");
+    PANIC("Attempt to remove task that Entity does not have, parent=0x%x child=0x%x", task().id(), taskId);
 }
 
 void Entity::requestAsset(u32 subTaskId, u32 nameHash, const CmpString & path)

@@ -221,6 +221,7 @@ void process_key_input(KeyInput keyInput)
                                kPrimaryThreadTaskId,
                                kInputMgrTaskId,
                                to_cell(keyInput),
+                               false,
                                true);
 }
 
@@ -394,7 +395,8 @@ void send_mouse_input()
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(movement));
+                                       to_cell(movement),
+                                       true);
 
             sMouseDeltaX = 0;
             sMouseDeltaY = 0;
@@ -521,7 +523,7 @@ void process_mouse_input(const void * pMouseInfo)
 
         if (mouseInput.buttons.buttonFlags & kMEVT_Wheel)
         {
-            obroadcast_targeted_message(HASH::mouse_wheel,
+            broadcast_targeted_message(HASH::mouse_wheel,
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,

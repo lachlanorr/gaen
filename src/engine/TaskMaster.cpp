@@ -245,7 +245,7 @@ void broadcast_targeted_message(u32 msgId,
         TaskMaster & targetTaskMaster = TaskMaster::task_master_for_thread(tid);
         if (immediate && tid == activeTid)
         {
-            StackMessageBlockWriter<0> msgw(msgId, flags, source, tid, payload);
+            StackMessageBlockWriter<0> msgw(msgId, flags, source, target, payload);
             targetTaskMaster.message(msgw.accessor());
         }
         else
@@ -900,7 +900,8 @@ MessageResult TaskMaster::message(const T& msgAcc)
                         broadcast_confirm_set_parent(msg.source,
                                                      parentOwner,
                                                      parentTaskId,
-                                                     pChild);
+                                                     pChild,
+                                                     true);
                     }
                 }
                 return MessageResult::Consumed;
@@ -933,7 +934,7 @@ MessageResult TaskMaster::message(const T& msgAcc)
             }
             default:
             {
-                ERR("Unhandled message type, msgId: %d", msg.msgId);
+                ERR("Unhandled message type, msgId: 0x%08x %s", msg.msgId, HASH::reverse_hash(msg.msgId));
                 return MessageResult::Propagate;
             }
             }
@@ -989,10 +990,6 @@ MessageResult TaskMaster::message(const T& msgAcc)
                 // send message to task
                 MessageResult mr = mOwnedTasks[taskIdx].message(msgAcc);
 
-                if (mr != MessageResult::Consumed)
-                {
-                    int i = 0;
-                }
 #if HAS(TRACK_HASHES)
                 EXPECT_MSG(mr == MessageResult::Consumed,
                            "Task did not consume a message intended for it, task name: %s, message: %s",
