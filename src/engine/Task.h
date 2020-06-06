@@ -32,7 +32,7 @@
 #include "engine/MessageAccessor.h"
 #include "hashes/hashes.h"
 
-#define MESSAGE_TRACING HAS_X
+#define MESSAGE_TRACING HAS__
 
 namespace gaen
 {
