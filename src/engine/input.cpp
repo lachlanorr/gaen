@@ -220,9 +220,7 @@ void process_key_input(KeyInput keyInput)
                                kMessageFlag_None,
                                kPrimaryThreadTaskId,
                                kInputMgrTaskId,
-                               to_cell(keyInput),
-                               false,
-                               true);
+                               to_cell(keyInput));
 }
 
 static HashMap<kMEM_Engine, i32, Key> sGlfwKeyMap =
@@ -363,9 +361,7 @@ void kill_focus()
     broadcast_targeted_message(HASH::kill_focus,
                                kMessageFlag_None,
                                kPrimaryThreadTaskId,
-                               kInputMgrTaskId,
-                               to_cell(0),
-                               true);
+                               kInputMgrTaskId);
 }
 
 void poll_pad_input()
@@ -395,8 +391,7 @@ void send_mouse_input()
                                        kMessageFlag_None,
                                        kPrimaryThreadTaskId,
                                        kInputMgrTaskId,
-                                       to_cell(movement),
-                                       true);
+                                       to_cell(movement));
 
             sMouseDeltaX = 0;
             sMouseDeltaY = 0;

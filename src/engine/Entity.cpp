@@ -137,11 +137,11 @@ void Entity::activate()
     ASSERT(mTask.status() == TaskStatus::Initializing);
 
     // Insert Entity into the TaskMasters
-    broadcast_insert_task(mTask.id(), active_thread_id(), mTask, true);
+    broadcast_insert_task(mTask.id(), active_thread_id(), mTask);
 
     if (mInitParentTask != 0)
     {
-        broadcast_request_set_parent(mTask.id(), mInitParentTask, this, true);
+        broadcast_request_set_parent(mTask.id(), mInitParentTask, this);
     }
 
     // Start initialization sequence with #init__
@@ -275,7 +275,7 @@ MessageResult Entity::message(const T & msgAcc)
                 mScriptTask.message(finMsgW.accessor());
 
                 // Remove us from TaskMasters
-                broadcast_remove_task(mTask.id(), mTask.id(), true);
+                broadcast_remove_task(mTask.id(), mTask.id());
             }
             else // msgAcc.message().source == task().id()
             {
@@ -811,7 +811,7 @@ void Entity::notifyWatchersMat43(task_id source, u32 property, const mat43& val)
 
 void Entity::requestSetParent(task_id parentTaskId)
 {
-    broadcast_request_set_parent(mTask.id(), parentTaskId, this, true);
+    broadcast_request_set_parent(mTask.id(), parentTaskId, this);
 }
 
 void Entity::setParent(Entity * pParent)

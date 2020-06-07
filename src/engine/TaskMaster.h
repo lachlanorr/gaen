@@ -80,9 +80,8 @@ MessageQueue * get_message_queue(task_id source,
 void broadcast_message(u32 msgId,
                        u32 flags,
                        task_id source,
-                       cell payload = to_cell(0),
-                       bool immediate = false);
-void broadcast_message(const MessageBlockAccessor & msgAcc, bool immediate = false);
+                       cell payload = to_cell(0));
+void broadcast_message(const MessageBlockAccessor & msgAcc);
 
 // Broadcast a message to a target in each TaskMaster.
 // Useful for propagating input messages to the InputMgr on each
@@ -91,22 +90,18 @@ void broadcast_targeted_message(u32 msgId,
                                 u32 flags,
                                 task_id source,
                                 task_id target,
-                                cell payload,
-                                bool notToSelf = false,
-                                bool immediate = false);
-void broadcast_targeted_message(const MessageBlockAccessor & msgAcc, bool notToSelf = false, bool immediate = false);
+                                cell payload = to_cell(0));
+void broadcast_targeted_message(const MessageBlockAccessor & msgAcc);
 
-void broadcast_insert_task(task_id source, thread_id owner, const Task & task, bool immediate = false);
-void broadcast_remove_task(task_id source, task_id taskToRemove, bool immediate = false);
+void broadcast_insert_task(task_id source, thread_id owner, const Task & task);
+void broadcast_remove_task(task_id source, task_id taskToRemove);
 void broadcast_request_set_parent(task_id source,
                                   task_id parentTaskId,
-                                  Entity * pChild,
-                                  bool immediate = false);
+                                  Entity * pChild);
 void broadcast_confirm_set_parent(task_id source,
                                   thread_id parentOwner,
                                   task_id parentTaskId,
-                                  Entity * pChild,
-                                  bool immediate = false);
+                                  Entity * pChild);
 void notify_next_frame();
 
 

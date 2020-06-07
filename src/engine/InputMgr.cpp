@@ -226,8 +226,7 @@ void InputMgr::register_key_press_listener(u32 mode, task_id target)
                                kMessageFlag_None,
                                target,
                                kInputMgrTaskId,
-                               to_cell(mode),
-                               true);
+                               to_cell(mode));
 }
 
 void InputMgr::deregister_key_press_listener(u32 mode, task_id target)
@@ -236,8 +235,7 @@ void InputMgr::deregister_key_press_listener(u32 mode, task_id target)
                                kMessageFlag_None,
                                target,
                                kInputMgrTaskId,
-                               to_cell(mode),
-                               true);
+                               to_cell(mode));
 }
 
 void InputMgr::setMode(u32 modeHash)
@@ -387,7 +385,7 @@ void InputMgr::pollPadInput()
                 msgw.setRstick(pad.rstick);
                 msgw.setLtrigger(pad.ltrigger);
                 msgw.setRtrigger(pad.rtrigger);
-                broadcast_targeted_message(msgw.accessor(), true);
+                broadcast_targeted_message(msgw.accessor());
             }
         }
     }

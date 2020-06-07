@@ -43,7 +43,7 @@ Editor::Editor(bool isActive)
   : mIsActive(isActive)
 {
     mTask = Task::create(this, HASH::editor__);
-    broadcast_insert_task(mTask.id(), active_thread_id(), mTask, true);
+    broadcast_insert_task(mTask.id(), active_thread_id(), mTask);
     InputMgr::register_key_press_listener(HASH::editor__, mTask.id());
 }
 
@@ -52,7 +52,7 @@ void Editor::processKeyPress(const ivec4 & keys)
     if (keys == kKeyGraveAccent)
     {
         mIsActive = !mIsActive;
-        broadcast_message(HASH::editor_activate__, kMessageFlag_Editor, mTask.id(), to_cell(mIsActive), true);
+        broadcast_message(HASH::editor_activate__, kMessageFlag_Editor, mTask.id(), to_cell(mIsActive));
     }
 }
 
