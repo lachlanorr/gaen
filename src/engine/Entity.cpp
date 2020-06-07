@@ -551,6 +551,8 @@ MessageResult Entity::message(const T & msgAcc)
             case kIS_AssetsReady:
                 if (msgId == HASH::init)
                 {
+                    setInitStatus(kIS_Activated);
+
                     // Send to our components
                     for (u32 i = 0; i < mComponentCount; ++i)
                     {
@@ -559,8 +561,6 @@ MessageResult Entity::message(const T & msgAcc)
 
                     // Send to our sub-classed message routine
                     mScriptTask.message(msgAcc);
-
-                    setInitStatus(kIS_Activated);
 
                     // Set us running
                     // LORRTODO: Add mSetRunningOnInit flag and respect it.a
@@ -575,17 +575,6 @@ MessageResult Entity::message(const T & msgAcc)
 
                         messages::TaskStatusBW msgW(HASH::set_task_status, kMessageFlag_Editor, mTask.id(), mTask.id(), TaskStatus::Running);
                         TaskMaster::task_master_for_active_thread().message(msgW.accessor());
-                    }
-
-
-                    {
-                        // Send started message to all components and script task
-                        StackMessageBlockWriter<0> startedMsg(HASH::started, kMessageFlag_None, mTask.id(), mTask.id(), to_cell(0));
-                        for (u32 i = 0; i < mComponentCount; ++i)
-                        {
-                            mpComponents[i].scriptTask().message(startedMsg.accessor());
-                        }
-                        mScriptTask.message(startedMsg.accessor());
                     }
 
                     notifyWatchersMat43(mTask.id(), HASH::transform, mTransform);
