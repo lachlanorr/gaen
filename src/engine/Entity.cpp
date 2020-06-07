@@ -234,7 +234,7 @@ MessageResult Entity::message(const T & msgAcc)
             // and not queued, and therefore we run the risk of deleting our task
             // during a TaskMaster update loop, which will cause the task list
             // getting modified during iteration.
-            if (msgAcc.message().source != task().id())
+            if (msgAcc.message().source == TaskMaster::task_master_for_active_thread().threadId())
             {
                 // fin messages are like destructors and should be handled specially.
                 // fin method will propagate fin to all tasks/entity children
