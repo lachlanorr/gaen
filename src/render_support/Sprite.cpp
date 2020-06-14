@@ -138,6 +138,7 @@ SpriteInstance::SpriteInstance(Sprite * pSprite, u32 stageHash, RenderPass pass,
   : mpSprite(pSprite)
   , mStageHash(stageHash)
   , mPass(pass)
+  , mRenderFlags(kRF_Normal)
   , mHasBody(false)
   , mTransform(transform)
   , mIsAnimating(false)

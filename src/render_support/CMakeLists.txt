@@ -36,6 +36,8 @@ SET (render_support_SOURCES
   ModelMgr.h
   ModelPhysics.cpp
   ModelPhysics.h
+  physics.cpp
+  physics.h
   RaycastCamera.cpp
   RaycastCamera.h
   renderer_api.h

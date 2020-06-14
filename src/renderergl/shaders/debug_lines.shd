@@ -1,0 +1,2 @@
+vertex_shader=debug_lines.shv
+fragment_shader=debug_lines.shf

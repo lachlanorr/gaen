@@ -1,0 +1,13 @@
+layout(location = 0) in vec4 position;
+layout(location = 1) in vec3 normal;
+layout(location = 2) in vec4 color;
+
+uniform mat4 mvp;
+
+out vec4 oicolor;
+
+void main()
+{
+    oicolor = color;
+    gl_Position = mvp * position;
+};

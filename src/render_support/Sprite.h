@@ -96,6 +96,8 @@ public:
 
     ruid uid() const { return mpSprite->uid(); }
 
+    u32 renderFlags() const { return mRenderFlags; }
+
     void registerTransformWatcher(task_id taskId);
 
     void destroySprite();
@@ -127,6 +129,7 @@ private:
     Sprite * mpSprite;
     u32 mStageHash;
     RenderPass mPass;
+    u32 mRenderFlags;
 
     bool mHasBody;
 

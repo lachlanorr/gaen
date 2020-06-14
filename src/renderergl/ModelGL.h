@@ -45,17 +45,7 @@ class ModelGL
 public:
     typedef ModelInstance InstanceType;
 
-    ModelGL(ModelInstance * pModelInstance, RendererMesh * pRenderer)
-      : mpModelInstance(pModelInstance)
-      , mpRenderer(pRenderer)
-      , mStatus(kRIS_Active)
-      , mVertArrayId(0)
-      , mVertBufferId(0)
-      , mPrimBufferId(0)
-      , mTextureId_diffuse(0)
-      , mTextureId_animations(0)
-      , mFrameOffset(0)
-    {}
+    ModelGL(ModelInstance * pModelInstance, RendererMesh * pRenderer);
 
     void loadGpu();
     void unloadGpu();
@@ -65,11 +55,12 @@ public:
 
     u32 uid() const { return mpModelInstance->model().uid(); }
     f32 order() const { return 0; } // LORRTODO: Decide what to do with this ordering for models, only make sense for sprites
+    u32 renderFlags() const { return mpModelInstance->renderFlags(); }
 
     u32 shaderHash() const { return mpModelInstance->model().gmdl().shaderHash(); }
 
     static void reportDestruction(u32 uid);
-    
+
     const mat43 & transform() const { return mpModelInstance->mTransform; }
     void setTransform(const mat43 & transform) { mpModelInstance->mTransform = transform; }
 
@@ -95,6 +86,8 @@ private:
     u32 mTextureId_animations;
 
     u32 mFrameOffset;
+
+    u32 mGlPrimType;
 };
 
 typedef UniquePtr<ModelGL> ModelGLUP;

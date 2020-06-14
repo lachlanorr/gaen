@@ -46,6 +46,7 @@ public:
       : mStageHash(stageHash)
       , mpRenderer(pRenderer)
       , mIsShown(false)
+      , mRenderFlags(kRF_Normal | kRF_Collision)
     {
         auto pair = mCameraMap.emplace(defaultCamera.uid(), defaultCamera);
         mpDefaultCamera = &pair.first->second;
@@ -71,43 +72,51 @@ public:
                     /* no increment so we can remove while iterating */)
                 {
                     ItemT * pItem = *it;
-                    mpRenderer->setActiveShader(pItem->shaderHash());
-                    mpRenderer->activeShader().setTextureUniforms();
 
-                    if (pItem->status() == kRIS_Active)
+                    if ((pItem->renderFlags() & mRenderFlags) == pItem->renderFlags())
                     {
-                        mat4 mvp = viewProj * mat4(pItem->transform());
-                        mpRenderer->activeShader().setUniformMat4(HASH::mvp, mvp);
+                        mpRenderer->setActiveShader(pItem->shaderHash());
+                        mpRenderer->activeShader().setTextureUniforms();
 
-                        if (pItem->hasNormal())
-                            mpRenderer->activeShader().setUniformMat3(HASH::rot, mat3(pItem->transform()));
-
-                        if (mLights.size() > 0)
+                        if (pItem->status() == kRIS_Active)
                         {
-                            mpRenderer->activeShader().setUniformVec3(HASH::light0_incidence, mLights[0].incidence());
-                            mpRenderer->activeShader().setUniformVec3(HASH::light0_color, mLights[0].color());
-                            mpRenderer->activeShader().setUniformFloat(HASH::light0_ambient, mLights[0].ambient());
+                            mat4 mvp = viewProj * mat4(pItem->transform());
+                            mpRenderer->activeShader().setUniformMat4(HASH::mvp, mvp);
 
-                            if (mLights.size() > 1)
+                            if (mpRenderer->activeShader().hasUniform(HASH::rot, GL_FLOAT_MAT3))
+                                mpRenderer->activeShader().setUniformMat3(HASH::rot, mat3(pItem->transform()));
+
+                            if (mLights.size() > 0 && mpRenderer->activeShader().hasUniform(HASH::light0_incidence, GL_FLOAT_VEC3))
                             {
-                                mpRenderer->activeShader().setUniformVec3(HASH::light1_incidence, mLights[1].incidence());
-                                mpRenderer->activeShader().setUniformVec3(HASH::light1_color, mLights[1].color());
-                                mpRenderer->activeShader().setUniformFloat(HASH::light1_ambient, mLights[1].ambient());
+                                mpRenderer->activeShader().setUniformVec3(HASH::light0_incidence, mLights[0].incidence());
+                                mpRenderer->activeShader().setUniformVec3(HASH::light0_color, mLights[0].color());
+                                mpRenderer->activeShader().setUniformFloat(HASH::light0_ambient, mLights[0].ambient());
+
+                                if (mLights.size() > 1 && mpRenderer->activeShader().hasUniform(HASH::light1_incidence, GL_FLOAT_VEC3))
+                                {
+                                    mpRenderer->activeShader().setUniformVec3(HASH::light1_incidence, mLights[1].incidence());
+                                    mpRenderer->activeShader().setUniformVec3(HASH::light1_color, mLights[1].color());
+                                    mpRenderer->activeShader().setUniformFloat(HASH::light1_ambient, mLights[1].ambient());
+                                }
                             }
+
+                            if (mpRenderer->activeShader().hasUniform(HASH::frame_offset, GL_UNSIGNED_INT))
+                                mpRenderer->activeShader().setUniformUint(HASH::frame_offset, pItem->frameOffset());
+
+                            pItem->render();
+                            ++it;
                         }
-
-                        if (mpRenderer->activeShader().hasUniform(HASH::frame_offset, GL_UNSIGNED_INT))
-                            mpRenderer->activeShader().setUniformUint(HASH::frame_offset, pItem->frameOffset());
-
-                        pItem->render();
-                        ++it;
+                        else if (pItem->status() == kRIS_Destroyed)
+                        {
+                            pItem->unloadGpu();
+                            u32 uid = pItem->uid();
+                            mItems[i].erase(it++);
+                            ModelGL::reportDestruction(uid);
+                        }
                     }
-                    else if (pItem->status() == kRIS_Destroyed)
+                    else
                     {
-                        pItem->unloadGpu();
-                        u32 uid = pItem->uid();
-                        mItems[i].erase(it++);
-                        ModelGL::reportDestruction(uid);
+                        ++it;
                     }
                 }
             }
@@ -312,6 +321,7 @@ private:
     u32 mStageHash;
     RendererMesh * mpRenderer;
     bool mIsShown;
+    u32 mRenderFlags;
 
     const Camera * mpCamera;
     const Camera * mpDefaultCamera;

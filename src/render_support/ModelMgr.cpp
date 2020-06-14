@@ -35,6 +35,7 @@
 
 #include "engine/messages/CameraOrtho.h"
 #include "engine/messages/CameraPersp.h"
+#include "engine/messages/CollisionBox.h"
 #include "engine/messages/ModelBody.h"
 #include "engine/messages/ModelInstance.h"
 #include "engine/messages/NotifyWatcherMat43.h"
@@ -101,6 +102,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
                                                       pModelRenderer,
                                                       pModelInst->stageHash(),
                                                       pModelInst->pass(),
+                                                      pModelInst->renderFlags(),
                                                       pModelInst->mTransform,
                                                       pModelInst->mIsRenderable,
                                                       pModelInst->mIsStatic);
@@ -174,6 +176,12 @@ MessageResult ModelMgr::message(const T & msgAcc)
         }
         return MessageResult::Consumed;
     }
+    case HASH::collision_box_create:
+    {
+        messages::CollisionBoxR<T> msgr(msgAcc);
+        mPhysics.insertCollisionBox(msgr.uid(), msgr.halfExtents(), msgr.transform());
+        return MessageResult::Consumed;
+    }
 	case HASH::remove_task__:
 	{
         task_id taskIdToRemove = msg.payload.u;
@@ -191,7 +199,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
                     {
                         mPhysics.remove(uid);
                     }
-                    
+
                     // send model_remove to renderer who in turn will send it back to us once
                     ModelInstance::model_remove(kModelMgrTaskId, kRendererTaskId, uid);
                 }
@@ -277,7 +285,7 @@ i32 model_anim_create(AssetHandleP pAssetHandleGmdl,
     RenderPass pass = pass_from_hash(passHash);
 
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pAssetGmdl, pAssetGaim);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass, transform, true, false);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass, kRF_Normal, transform, true, false);
 
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
 

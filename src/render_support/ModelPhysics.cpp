@@ -129,7 +129,89 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
     }
 }
 
+PhysicsDebugDraw::PhysicsDebugDraw(btDiscreteDynamicsWorld * pDynamicsWorld)
+  : mpDynamicsWorld(pDynamicsWorld)
+  , mDebugMode(btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawAabb)
+  , mLinesUid(0)
+{
+    mpDynamicsWorld->setDebugDrawer(this);
+    mLines.reserve(1024);
+}
 
+void PhysicsDebugDraw::update()
+{
+    ASSERT(mLines.size() == 0);
+    mpDynamicsWorld->debugDrawWorld();
+    render();
+}
+
+void PhysicsDebugDraw::render()
+{
+    if (mLinesUid != 0)
+    {
+         ModelInstance::model_remove(kModelMgrTaskId, kRendererTaskId, mLinesUid);
+         mLinesUid = 0;
+    }
+    if (mLines.size() > 0)
+    {
+        ASSERT(mLines.size() % 2 == 0);
+        Gmdl * pGmdl = Gmdl::create(kVERT_PosNormCol, (u32)mLines.size() * 2, kPRIM_Line, (u32)mLines.size(), HASH::debug_lines);
+        VertPosNormCol * pVerts = (VertPosNormCol*)pGmdl->verts();
+        for (const Line & l : mLines)
+        {
+            pVerts->position = l.from;
+            pVerts->normal = vec3(0.0f);
+            pVerts->color = l.color;
+            pVerts++;
+            pVerts->position = l.to;
+            pVerts->normal = vec3(0.0f);
+            pVerts->color = l.color;
+            pVerts++;
+        }
+        PrimLine * pPrims = (PrimLine*)pGmdl->prims();
+        for (u32 i = 0; i < mLines.size(); i++)
+        {
+            pPrims[i].p0 = i * 2;
+            pPrims[i].p1 = i * 2 + 1;
+        }
+        mLines.clear();
+
+        Model * pModel = GNEW(kMEM_Engine, Model, kModelMgrTaskId, pGmdl, true);
+        ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, HASH::main, kRP_Opaque, kRF_Collision, mat43{1.0f}, true, true);
+        mLinesUid = pModel->uid();
+        ModelInstance::model_insert(kModelMgrTaskId, kModelMgrTaskId, pModelInst);
+    }
+}
+
+void PhysicsDebugDraw::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
+{
+    mLines.emplace_back(vec3(from.x(), from.y(), from.z()), vec3(to.x(), to.y(), to.z()), Color((u8)(color.x() * 255), (u8)(color.y() * 255), (u8)(color.z() * 255)));
+}
+
+void PhysicsDebugDraw::drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color)
+{
+    LOG_INFO("drawContactPoint");
+}
+
+void PhysicsDebugDraw::reportErrorWarning(const char* warningString)
+{
+    LOG_WARNING("reportErrorWarning: %s", warningString);
+}
+
+void PhysicsDebugDraw::draw3dText(const btVector3& location, const char* textString)
+{
+    LOG_WARNING("draw3dText: %s", textString);
+}
+
+void PhysicsDebugDraw::setDebugMode(int debugMode)
+{
+    mDebugMode = debugMode;
+}
+
+int PhysicsDebugDraw::getDebugMode() const
+{
+    return mDebugMode;
+}
 
 ModelPhysics::ModelPhysics()
 {
@@ -148,10 +230,13 @@ ModelPhysics::ModelPhysics()
                            mpBroadphase,
                            mpSolver,
                            mpCollisionConfiguration);
+
+    mpDebugDraw = GNEW(kMEM_Physics, PhysicsDebugDraw, mpDynamicsWorld);
 }
 
 ModelPhysics::~ModelPhysics()
 {
+    GDELETE(mpDebugDraw);
     GDELETE(mpDynamicsWorld);
     GDELETE(mpSolver);
     GDELETE(mpDispatcher);
@@ -203,6 +288,7 @@ void ModelPhysics::update()
         }
     }
 
+    mpDebugDraw->update();
 }
 
 void ModelPhysics::insert(ModelInstance & modelInst,
@@ -276,6 +362,11 @@ void ModelPhysics::remove(u32 uid)
     {
         LOG_ERROR("Cannot find ModelBody %u to remove", uid);
     }
+}
+
+void ModelPhysics::insertCollisionBox(u32 uid, const vec3 & halfExtents, const mat43 & transform)
+{
+    
 }
 
 void ModelPhysics::setTransform(u32 uid, const mat43 & transform)

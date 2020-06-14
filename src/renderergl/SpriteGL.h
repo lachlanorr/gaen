@@ -63,6 +63,7 @@ public:
     void prepareMeshAttributes();
 
     u32 uid() const { return mpSpriteInstance->sprite().uid(); }
+    u32 renderFlags() const { return mpSpriteInstance->renderFlags(); }
     f32 order() const { return mpSpriteInstance->zdepth(); }
 
     u32 shaderHash() const { return HASH::sprite; }

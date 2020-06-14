@@ -1,0 +1,7 @@
+in vec4 oicolor;
+out vec4 color;
+
+void main()
+{
+    color = oicolor;
+};

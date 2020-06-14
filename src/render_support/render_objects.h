@@ -54,6 +54,12 @@ enum RenderPass
     kRP_COUNT
 };
 
+enum RenderFlags
+{
+    kRF_Normal    = 1 << 0,
+    kRF_Collision = 1 << 1
+};
+
 RenderPass pass_from_hash(i32 hash);
 
 class RenderObject

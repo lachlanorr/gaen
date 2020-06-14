@@ -27,6 +27,7 @@
 #include "renderergl/ShaderRegistry.h"
 #include "renderergl/shaders/compute_present.h"
 #include "renderergl/shaders/compute_test.h"
+#include "renderergl/shaders/debug_lines.h"
 #include "renderergl/shaders/faceted.h"
 #include "renderergl/shaders/sprite.h"
 #include "renderergl/shaders/voxchar.h"
@@ -43,6 +44,7 @@ void ShaderRegistry::registerAllShaderConstructors()
 {
     registerShaderConstructor(0x4613be76 /* HASH::compute_present */, shaders::compute_present::construct);
     registerShaderConstructor(0x62ad79eb /* HASH::compute_test */, shaders::compute_test::construct);
+    registerShaderConstructor(0x027c9dbc /* HASH::debug_lines */, shaders::debug_lines::construct);
     registerShaderConstructor(0x09352ef9 /* HASH::faceted */, shaders::faceted::construct);
     registerShaderConstructor(0x81e2581c /* HASH::sprite */, shaders::sprite::construct);
     registerShaderConstructor(0xd4208c92 /* HASH::voxchar */, shaders::voxchar::construct);

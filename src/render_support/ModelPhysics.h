@@ -28,11 +28,13 @@
 #define GAEN_RENDER_SUPPORT_MODEL_PHYSICS_H
 
 #include <LinearMath/btMotionState.h>
+#include <LinearMath/btIDebugDraw.h>
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 
 #include "core/mem.h"
 #include "math/vec3.h"
+#include "render_support/physics.h"
 #include "render_support/Model.h"
 
 
@@ -83,6 +85,41 @@ private:
     u32 mGroupHash;
 };
 
+class PhysicsDebugDraw : public btIDebugDraw
+{
+public:
+    PhysicsDebugDraw(btDiscreteDynamicsWorld * pDynamicsWorld);
+
+    void update();
+    void render();
+
+    void drawLine(const btVector3& from, const btVector3& to, const btVector3& color) override;
+    void drawContactPoint(const btVector3& PointOnB, const btVector3& normalOnB, btScalar distance, int lifeTime, const btVector3& color) override;
+    void reportErrorWarning(const char* warningString) override;
+    void draw3dText(const btVector3& location, const char* textString) override;
+    void setDebugMode(int debugMode) override;
+    int getDebugMode() const override;
+
+    struct Line
+    {
+        vec3 from;
+        vec3 to;
+        Color color;
+
+        Line(const vec3 & from, const vec3 & to, Color color)
+          : from(from)
+          , to(to)
+          , color(color)
+        {}
+    };
+
+private:
+    btDiscreteDynamicsWorld * mpDynamicsWorld;
+    i32 mDebugMode;
+    i32 mLinesUid;
+    Vector<kMEM_Physics, Line> mLines;
+};
+
 typedef UniquePtr<ModelBody> ModelBodyUP;
 typedef UniquePtr<btCollisionShape> btCollisionShapeUP;
 
@@ -93,6 +130,7 @@ public:
     ~ModelPhysics();
 
     void update();
+    void render();
 
     void insert(ModelInstance & modelInst,
                 f32 mass,
@@ -103,6 +141,8 @@ public:
                 const ivec4 & mask03,
                 const ivec4 & mask47);
     void remove(u32 uid);
+
+    void insertCollisionBox(u32 uid, const vec3 & halfExtents, const mat43 & transform);
 
     void setTransform(u32 uid, const mat43 & transform);
     void setVelocity(u32 uid, const vec3 & velocity);
@@ -123,6 +163,7 @@ private:
     btCollisionDispatcher * mpDispatcher;
     btSequentialImpulseConstraintSolver * mpSolver;
     btDiscreteDynamicsWorld * mpDynamicsWorld;
+    PhysicsDebugDraw * mpDebugDraw;
 
     HashMap<kMEM_Physics, u32, ModelBodyUP> mBodies;
     HashMap<kMEM_Physics, vec3, btCollisionShapeUP> mCollisionShapes;

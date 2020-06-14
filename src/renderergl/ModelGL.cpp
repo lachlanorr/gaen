@@ -35,6 +35,36 @@
 namespace gaen
 {
 
+
+ModelGL::ModelGL(ModelInstance * pModelInstance, RendererMesh * pRenderer)
+  : mpModelInstance(pModelInstance)
+  , mpRenderer(pRenderer)
+  , mStatus(kRIS_Active)
+  , mVertArrayId(0)
+  , mVertBufferId(0)
+  , mPrimBufferId(0)
+  , mTextureId_diffuse(0)
+  , mTextureId_animations(0)
+  , mFrameOffset(0)
+  , mGlPrimType(0)
+{
+    switch (pModelInstance->model().gmdl().primType())
+    {
+    case kPRIM_Triangle:
+        mGlPrimType = GL_TRIANGLES;
+        break;
+    case kPRIM_Line:
+        mGlPrimType = GL_LINES;
+        break;
+    case kPRIM_Point:
+        mGlPrimType = GL_POINTS;
+        break;
+    default:
+        PANIC("No GLenum for PrimType %u", pModelInstance->model().gmdl().primType());
+        break;
+    }
+}
+
 void ModelGL::loadGpu()
 {
     // Load model's verts and tris
@@ -89,7 +119,7 @@ void ModelGL::render()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mPrimBufferId);
 #endif
-    glDrawElements(GL_TRIANGLES, mpModelInstance->model().gmdl().indexCount(), GL_UNSIGNED_SHORT, (void*)(uintptr_t)0);
+    glDrawElements(mGlPrimType, mpModelInstance->model().gmdl().indexCount(), GL_UNSIGNED_SHORT, (void*)(uintptr_t)0);
 
     mpRenderer->unbindBuffers();
 }

@@ -75,13 +75,15 @@ class ModelInstance
     friend class ModelMotionState;
     friend class ModelPhysics;
 public:
-    ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, const mat43 & transform, bool isRenderable, bool isStatic);
+    ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, u32 renderFlags, const mat43 & transform, bool isRenderable, bool isStatic);
 
     const Model & model() { return *mpModel; }
     u32 stageHash() { return mStageHash; }
     RenderPass pass() { return mPass; }
 
     ruid uid() const { return mpModel->uid(); }
+
+    u32 renderFlags() const { return mRenderFlags; }
 
     void registerTransformWatcher(task_id taskId);
 
@@ -105,6 +107,7 @@ private:
     Model * mpModel;
     u32 mStageHash;
     RenderPass mPass;
+    u32 mRenderFlags;
 
     bool mHasBody;
     bool mIsRenderable;

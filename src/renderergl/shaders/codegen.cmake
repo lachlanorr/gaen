@@ -34,6 +34,11 @@ SET (shaders_codegen_SOURCES
   ${shaders_dir}/compute_test.h
   ${shaders_dir}/compute_test.shc
   ${shaders_dir}/compute_test.shd
+  ${shaders_dir}/debug_lines.cpp
+  ${shaders_dir}/debug_lines.h
+  ${shaders_dir}/debug_lines.shd
+  ${shaders_dir}/debug_lines.shf
+  ${shaders_dir}/debug_lines.shv
   ${shaders_dir}/faceted.cpp
   ${shaders_dir}/faceted.h
   ${shaders_dir}/faceted.shd

@@ -184,6 +184,11 @@ ModelBody:
   mask03: ivec4
   mask47: ivec4
 
+CollisionBox:
+  uid: i32
+  halfExtents: vec3
+  transform: mat43
+
 Collision:
   group: i32
   subject: i32
