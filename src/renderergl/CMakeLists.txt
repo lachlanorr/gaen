@@ -69,6 +69,7 @@ SET (nanovg_SOURCES
   ${NANOVG_SRC}/stb_image.h
   ${NANOVG_SRC}/stb_truetype.h
   )
+IDE_SOURCE_PROPERTIES( "/nanovg" "${nanovg_SOURCES}")
 
 ADD_LIBRARY (renderergl
   ${renderergl_SOURCES}
