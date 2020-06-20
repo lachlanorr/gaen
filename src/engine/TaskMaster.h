@@ -243,6 +243,7 @@ private:
     thread_id mThreadId = kInvalidThreadId;
     bool mIsPrimary = false; // primary task master has GPU, handles rendering/physics
     bool mIsRunning = false;
+    bool mIsPaused = false;
 
     TaskMasterStatus mStatus = kTMS_Uninitialized;
     u32 mShutdownCount = 0; // used when shutting down to count how many peer TaskMasters have finalized

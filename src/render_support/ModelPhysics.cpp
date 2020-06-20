@@ -291,6 +291,11 @@ void ModelPhysics::update()
     mpDebugDraw->update();
 }
 
+void ModelPhysics::resetLastFrameTime()
+{
+    mTimePrev = now();
+}
+
 void ModelPhysics::insert(ModelInstance & modelInst,
                           f32 mass,
                           f32 friction,
@@ -366,7 +371,7 @@ void ModelPhysics::remove(u32 uid)
 
 void ModelPhysics::insertCollisionBox(u32 uid, const vec3 & halfExtents, const mat43 & transform)
 {
-    
+
 }
 
 void ModelPhysics::setTransform(u32 uid, const mat43 & transform)
@@ -379,7 +384,6 @@ void ModelPhysics::setTransform(u32 uid, const mat43 & transform)
         gaen_to_bullet_transform(btTrans, transform, it->second->mpMotionState->mModelInstance.model().gmdl().center());
         it->second->setWorldTransform(btTrans);
 
-        //it->second->getMotionState()->setWorldTransform(btTrans);
         it->second->activate();
     }
     else

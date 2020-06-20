@@ -43,7 +43,8 @@
 namespace gaen
 {
 
-static const ivec4 kKeyGraveAccent = key_vec(kKEY_GraveAccent);
+static const ivec4 kTogglePause = key_vec(kKEY_Space);
+static const ivec4 kToggleEditor = key_vec(kKEY_GraveAccent);
 
 Editor::Editor()
   : mIsActive(false)
@@ -53,7 +54,11 @@ Editor::Editor()
 
 void Editor::processKeyPress(const ivec4 & keys)
 {
-    if (keys == kKeyGraveAccent)
+    if (mIsActive && keys == kTogglePause)
+    {
+        broadcast_message(HASH::toggle_pause__, kMessageFlag_None, kEditorTaskId);
+    }
+    else if (keys == kToggleEditor)
     {
         mIsActive = !mIsActive;
     }

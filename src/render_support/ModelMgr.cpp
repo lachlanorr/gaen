@@ -65,6 +65,11 @@ void ModelMgr::update()
     mPhysics.update();
 }
 
+void ModelMgr::resetLastFrameTime()
+{
+    mPhysics.resetLastFrameTime();
+}
+
 template <typename T>
 MessageResult ModelMgr::message(const T & msgAcc)
 {

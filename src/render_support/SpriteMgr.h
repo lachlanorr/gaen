@@ -48,6 +48,7 @@ public:
     ~SpriteMgr();
 
     void update();
+    void resetLastFrameTime();
 
     template <typename T>
     MessageResult message(const T& msgAcc);

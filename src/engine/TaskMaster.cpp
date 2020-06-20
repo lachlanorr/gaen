@@ -588,12 +588,15 @@ void TaskMaster::runPrimaryGameLoop()
         timeSinceRender += delta;
         if (mStatus == kTMS_Initialized)
         {
-            // call update on each task owned by this TaskMaster
-            for (Task & task : mOwnedTasks)
+            if (!mIsPaused)
             {
-                // LORRTODO: remove dead tasks from the list
+                // call update on each task owned by this TaskMaster
+                for (Task & task : mOwnedTasks)
+                {
+                    // LORRTODO: remove dead tasks from the list
 
-                task.update(delta);
+                    task.update(delta);
+                }
             }
 
             // Give AssetMgr an opportunity to process messages
@@ -609,8 +612,11 @@ void TaskMaster::runPrimaryGameLoop()
         // Update physics (inside the Mgrs)
         if (mStatus == kTMS_Initialized)
         {
-            mpModelMgr->update();
-            mpSpriteMgr->update();
+            if (!mIsPaused)
+            {
+                mpModelMgr->update();
+                mpSpriteMgr->update();
+            }
 #if HAS(ENABLE_EDITOR)
             mpEditor->update();
 #endif
@@ -905,6 +911,19 @@ MessageResult TaskMaster::message(const T& msgAcc)
                     auto ownedParentIt = mOwnedTaskMap.find(parentTaskId);
                     ASSERT(ownedParentIt != mOwnedTaskMap.end());
                     mOwnedTasks[ownedParentIt->second].message(msgw.accessor());
+                }
+                return MessageResult::Consumed;
+            }
+            case HASH::toggle_pause__:
+            {
+                mIsPaused = !mIsPaused;
+                if (!mIsPaused)
+                {
+                    mFrameTime.resetLastFrameTime();
+                    if (mpModelMgr)
+                        mpModelMgr->resetLastFrameTime();
+                    if (mpSpriteMgr)
+                        mpSpriteMgr->resetLastFrameTime();
                 }
                 return MessageResult::Consumed;
             }

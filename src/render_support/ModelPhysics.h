@@ -130,6 +130,7 @@ public:
     ~ModelPhysics();
 
     void update();
+    void resetLastFrameTime();
     void render();
 
     void insert(ModelInstance & modelInst,

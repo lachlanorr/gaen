@@ -95,6 +95,7 @@ public:
     ~SpritePhysics();
 
     void update();
+    void resetLastFrameTime();
 
     void insert(SpriteInstance & spriteInst,
                 f32 mass,

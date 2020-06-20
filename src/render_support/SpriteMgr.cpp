@@ -94,6 +94,12 @@ void SpriteMgr::update()
     mTimePrev = mTimeCurr;
 }
 
+void SpriteMgr::resetLastFrameTime()
+{
+    mTimePrev = now();
+    mPhysics.resetLastFrameTime();
+}
+
 template <typename T>
 MessageResult SpriteMgr::message(const T & msgAcc)
 {

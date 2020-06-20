@@ -97,7 +97,6 @@ public:
     {
         mFrameCount = 0;
         mLastFrameTime = now();
-//        mLastFrameTime = glfwGetTime();
 
         mFrameStats10.init();
         mFrameStats100.init();
@@ -109,12 +108,16 @@ public:
 
     u32 frameCount() { return mFrameCount; }
 
+    void resetLastFrameTime()
+    {
+        mLastFrameTime = now();
+    }
+
     f32 calcDelta()
     {
         ASSERT(mIsInit);
 
         f64 startFrameTime = now();
-//        f64 startFrameTime = glfwGetTime();
         f32 delta = (f32)(startFrameTime - mLastFrameTime);
         mLastFrameTime = startFrameTime;
 

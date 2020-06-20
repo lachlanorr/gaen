@@ -152,6 +152,11 @@ void SpritePhysics::update()
 
 }
 
+void SpritePhysics::resetLastFrameTime()
+{
+    mTimePrev = now();
+}
+
 void SpritePhysics::insert(SpriteInstance & spriteInst,
                            f32 mass,
                            u32 group,
