@@ -26,6 +26,12 @@
 
 #include "core/base_defines.h"
 
+#if HAS(ENABLE_EDITOR)
+#include <imgui.h>
+#include <examples/imgui_impl_glfw.h>
+#include <examples/imgui_impl_opengl3.h>
+#endif
+
 #include "core/gamevars.h"
 
 #include "renderergl/gaen_opengl.h"
@@ -59,6 +65,10 @@ void RENDERER_TYPE::endFrame()
 
     static bool sIsVisible = false;
 
+#if HAS(ENABLE_EDITOR)
+    if (ImGui::GetDrawData() != nullptr)
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
     glfwSwapBuffers((GLFWwindow*)mpRenderDevice);
 
     // Show the window which starts as not visible.

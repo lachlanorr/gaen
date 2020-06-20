@@ -77,9 +77,11 @@ ADD_LIBRARY (renderergl
   ${nanovg_SOURCES}
   )
 
+SET (IMGUI_SRC "${ext_dir}/imgui")
 TARGET_INCLUDE_DIRECTORIES (renderergl PRIVATE
   ${GLFW_INCLUDE}
   ${NANOVG_SRC}
+  ${IMGUI_SRC}
 )
 
 ADD_DEPENDENCIES(renderergl

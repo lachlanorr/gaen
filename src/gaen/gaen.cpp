@@ -229,7 +229,7 @@ void init_gaen(int argc, char ** argv)
         LOG_INFO("Editor Activated");
 
     set_start_entity(sStartEntity);
-    init_task_masters(sIsEditorActive);
+    init_task_masters();
 }
 
 void set_renderer(const Task & rendererTask)

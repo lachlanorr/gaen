@@ -80,13 +80,35 @@ MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
 IDE_SOURCE_PROPERTIES( "/" "${engine_SOURCES}")
 IDE_SOURCE_PROPERTIES( "/messages" "${engine_messages_SOURCES}")
 
+SET (IMGUI_SRC "${ext_dir}/imgui")
+SET (imgui_SOURCES
+  ${IMGUI_SRC}/imconfig.h
+  ${IMGUI_SRC}/imgui.cpp
+  ${IMGUI_SRC}/imgui.h
+  ${IMGUI_SRC}/imgui_demo.cpp
+  ${IMGUI_SRC}/imgui_draw.cpp
+  ${IMGUI_SRC}/imgui_internal.h
+  ${IMGUI_SRC}/imgui_widgets.cpp
+  ${IMGUI_SRC}/imstb_rectpack.h
+  ${IMGUI_SRC}/imstb_textedit.h
+  ${IMGUI_SRC}/imstb_truetype.h
+
+  ${IMGUI_SRC}/examples/imgui_impl_glfw.cpp
+  ${IMGUI_SRC}/examples/imgui_impl_glfw.h
+  ${IMGUI_SRC}/examples/imgui_impl_opengl3.cpp
+  ${IMGUI_SRC}/examples/imgui_impl_opengl3.h
+  )
+IDE_SOURCE_PROPERTIES( "/imgui" "${imgui_SOURCES}")
+
 ADD_LIBRARY (engine
   ${engine_SOURCES}
+  ${imgui_SOURCES}
   )
 
 TARGET_INCLUDE_DIRECTORIES (engine PRIVATE
   ${BULLET_INCLUDE}
   ${GLFW_INCLUDE}
+  ${IMGUI_SRC}
 )
 
 # Run each time we build.

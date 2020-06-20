@@ -31,6 +31,12 @@
 #define NANOVG_GL3_IMPLEMENTATION
 #include <nanovg_gl.h>
 
+#if HAS(ENABLE_EDITOR)
+#include <imgui.h>
+#include <examples/imgui_impl_glfw.h>
+#include <examples/imgui_impl_opengl3.h>
+#endif
+
 #include "core/base_defines.h"
 #include "core/gamevars.h"
 
@@ -149,6 +155,14 @@ void RendererMesh::initViewport()
     // reset viewport
     glViewport(0, 0, mScreenWidth, mScreenHeight);
 
+#if HAS(ENABLE_EDITOR)
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL((GLFWwindow*)mpRenderDevice, true);
+    ImGui_ImplOpenGL3_Init("#version 130");
+#endif
 }
 
 void RendererMesh::set_shader_vec4_var(u32 nameHash, const vec4 & val, void * pContext)

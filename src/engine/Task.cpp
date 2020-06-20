@@ -45,6 +45,7 @@ bool register_special_task_names()
     register_task(kAssetMgrTaskId, HASH::hash_func("kAssetMgrTaskId"));
     register_task(kSpriteMgrTaskId, HASH::hash_func("kSpriteMgrTaskId"));
     register_task(kModelMgrTaskId, HASH::hash_func("kModelMgrTaskId"));
+    register_task(kEditorTaskId, HASH::hash_func("kEditorTaskId"));
     return true;
 }
 

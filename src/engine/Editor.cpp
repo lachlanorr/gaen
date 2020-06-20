@@ -26,6 +26,12 @@
 
 #include "engine/stdafx.h"
 
+#include "core/base_defines.h"
+#if HAS(ENABLE_EDITOR)
+#include <imgui.h>
+#include <examples/imgui_impl_glfw.h>
+#include <examples/imgui_impl_opengl3.h>
+
 #include "core/logging.h"
 
 #include "engine/messages/KeyPress.h"
@@ -39,12 +45,10 @@ namespace gaen
 
 static const ivec4 kKeyGraveAccent = key_vec(kKEY_GraveAccent);
 
-Editor::Editor(bool isActive)
-  : mIsActive(isActive)
+Editor::Editor()
+  : mIsActive(false)
 {
-    mTask = Task::create(this, HASH::editor__);
-    broadcast_insert_task(mTask.id(), active_thread_id(), mTask);
-    InputMgr::register_key_press_listener(HASH::editor__, mTask.id());
+    InputMgr::register_key_press_listener(HASH::editor__, kEditorTaskId);
 }
 
 void Editor::processKeyPress(const ivec4 & keys)
@@ -52,7 +56,6 @@ void Editor::processKeyPress(const ivec4 & keys)
     if (keys == kKeyGraveAccent)
     {
         mIsActive = !mIsActive;
-        broadcast_message(HASH::editor_activate__, kMessageFlag_Editor, mTask.id(), to_cell(mIsActive));
     }
 }
 
@@ -71,7 +74,7 @@ MessageResult Editor::message(const T& msgAcc)
     }
     case HASH::fin:
     {
-        InputMgr::deregister_key_press_listener(HASH::editor__, mTask.id());
+        InputMgr::deregister_key_press_listener(HASH::editor__, kEditorTaskId);
         break;
     }
     default:
@@ -81,8 +84,26 @@ MessageResult Editor::message(const T& msgAcc)
     return MessageResult::Consumed;
 }
 
+void Editor::update()
+{
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    if (mIsActive)
+    {
+        bool showDemoWindow = true;
+        if (showDemoWindow)
+            ImGui::ShowDemoWindow(&showDemoWindow);
+    }
+
+    ImGui::Render();
+}
+
 // Template decls so we can define message func here in the .cpp
 template MessageResult Editor::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
 template MessageResult Editor::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
 
 } // namespace gaen
+
+#endif // #if HAS(ENABLE_EDITOR)

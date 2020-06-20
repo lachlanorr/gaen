@@ -57,7 +57,7 @@ class Entity;
 
 // Call this from main to prep one task master per thread and
 // get them running.
-void init_task_masters(bool isEditorActive);
+void init_task_masters();
 
 // Once main TaskMaster quits (i.e. runGameLoop exits)
 // you should call this from main thread.
@@ -108,7 +108,7 @@ void notify_next_frame();
 class TaskMaster
 {
 public:
-    void init(thread_id tid, bool isEditorActive);
+    void init(thread_id tid);
 
     template <typename T>
     void fin(const T& msgAcc);
@@ -215,9 +215,9 @@ private:
     UniquePtr<ModelMgr> mpModelMgr;
     UniquePtr<SpriteMgr> mpSpriteMgr;
 
+#if HAS(ENABLE_EDITOR)
     UniquePtr<Editor> mpEditor;
-    bool mIsEditorEnabled = false;
-    bool mIsEditorActive = false;
+#endif
 
     Task mRendererTask;
     Task mPlatformTask;

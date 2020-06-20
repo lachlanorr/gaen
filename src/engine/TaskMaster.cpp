@@ -60,14 +60,14 @@ static u32 sStartEntityHash = HASH::init__Start;
 
 static bool sIsInit = false;
 
-void init_task_masters(bool isEditorActive)
+void init_task_masters()
 {
     ASSERT(!sIsInit);
 
     for (thread_id tid = 0; tid < num_threads(); ++tid)
     {
         TaskMaster & tm = TaskMaster::task_master_for_thread(tid);
-        tm.init(tid, isEditorActive);
+        tm.init(tid);
     }
 
     sIsInit = true;
@@ -369,13 +369,11 @@ void notify_next_frame()
     }
 }
 
-void TaskMaster::init(thread_id tid, bool isEditorActive)
+void TaskMaster::init(thread_id tid)
 {
     ASSERT(mStatus == kTMS_Uninitialized);
     mThreadId = tid;
     mIsPrimary = tid == kPrimaryThreadId;
-
-    mIsEditorEnabled = mIsEditorActive = isEditorActive;
 
     // initialize mRenderTask to be blank for now
     mRendererTask = Task::blank();
@@ -528,8 +526,9 @@ void TaskMaster::runPrimaryGameLoop()
     mpModelMgr.reset(GNEW(kMEM_Engine, ModelMgr));
     mpSpriteMgr.reset(GNEW(kMEM_Engine, SpriteMgr));
 
-    if (mIsEditorEnabled)
-        mpEditor.reset(GNEW(kMEM_Engine, Editor, mIsEditorActive));
+#if HAS(ENABLE_EDITOR)
+    mpEditor.reset(GNEW(kMEM_Engine, Editor));
+#endif
 
     renderer_init_device(mRendererTask);
     renderer_init_viewport(mRendererTask);
@@ -612,6 +611,9 @@ void TaskMaster::runPrimaryGameLoop()
         {
             mpModelMgr->update();
             mpSpriteMgr->update();
+#if HAS(ENABLE_EDITOR)
+            mpEditor->update();
+#endif
         }
 
         // messages from other TaskMasters or ourself
@@ -761,18 +763,6 @@ MessageResult TaskMaster::message(const T& msgAcc)
     const Message & msg = msgAcc.message();
 
     //LOG_INFO("MSG: %d %d %ul %s", mThreadId, mStatus, msg.msgId, HASH::reverse_hash(msg.msgId));
-
-    // Check for editor messages
-    if (mIsEditorEnabled)
-    {
-        switch (msg.msgId)
-        {
-        case HASH::editor_activate__:
-            mIsEditorActive = msg.payload.b;
-            LOG_INFO("Editor activated: %d", mIsEditorActive);
-            return MessageResult::Consumed;
-        }
-    }
 
     if (mStatus == kTMS_Initialized)
     {
@@ -950,6 +940,13 @@ MessageResult TaskMaster::message(const T& msgAcc)
             ASSERT(mpSpriteMgr.get() != nullptr);
             mpSpriteMgr->message(msgAcc);
         }
+#if HAS(ENABLE_EDITOR)
+        else if (msg.target == kEditorTaskId)
+        {
+            ASSERT(mpEditor.get() != nullptr);
+            mpEditor->message(msgAcc);
+        }
+#endif
         else
         {
             // Message is for a specific task

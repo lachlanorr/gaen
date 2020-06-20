@@ -27,7 +27,8 @@
 #ifndef GAEN_ENGINE_EDITOR_H
 #define GAEN_ENGINE_EDITOR_H
 
-#include "engine/Task.h"
+#include "core/base_defines.h"
+#if HAS(ENABLE_EDITOR)
 
 namespace gaen
 {
@@ -35,19 +36,21 @@ namespace gaen
 class Editor
 {
 public:
-    Editor(bool isActive);
+    Editor();
 
     template <typename T>
     MessageResult message(const T& msgAcc);
 
+    void update();
+
 private:
     void processKeyPress(const ivec4 & keys);
-
-    Task mTask;
 
     bool mIsActive;
 }; // class Engine
 
 } // namespace gaen
+
+#endif // #if HAS(ENABLE_EDITOR)
 
 #endif // #ifndef GAEN_ENGINE_EDITOR_H

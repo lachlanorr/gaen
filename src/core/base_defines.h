@@ -228,7 +228,7 @@ do \
 // Assert and Error Macros (END)
 //------------------------------------------------------------------------------
 
-
+#define ENABLE_EDITOR WHEN(HAS(DEV_BUILD))
 
 // Base types, nice and concise
 typedef std::int8_t      i8;
