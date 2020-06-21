@@ -33,6 +33,7 @@
 #include <examples/imgui_impl_opengl3.h>
 
 #include "core/logging.h"
+#include "core/gamevars.h"
 
 #include "engine/messages/KeyPress.h"
 #include "engine/input.h"
@@ -43,12 +44,16 @@
 namespace gaen
 {
 
+GAMEVAR_REF_BOOL(collision_debug);
+
 static const ivec4 kTogglePause = key_vec(kKEY_Space);
 static const ivec4 kToggleEditor = key_vec(kKEY_GraveAccent);
 
 Editor::Editor()
   : mIsActive(false)
+  , mIsPaused(false)
 {
+    mCollisionDebug = collision_debug;
     InputMgr::register_key_press_listener(HASH::editor__, kEditorTaskId);
 }
 
@@ -56,11 +61,23 @@ void Editor::processKeyPress(const ivec4 & keys)
 {
     if (mIsActive && keys == kTogglePause)
     {
+        mIsPaused = !mIsPaused;
         broadcast_message(HASH::toggle_pause__, kMessageFlag_None, kEditorTaskId);
     }
     else if (keys == kToggleEditor)
     {
         mIsActive = !mIsActive;
+        if (!mIsActive)
+            unpause();
+    }
+}
+
+void Editor::unpause()
+{
+    if (mIsPaused)
+    {
+        mIsPaused = false;
+        broadcast_message(HASH::toggle_pause__, kMessageFlag_None, kEditorTaskId);
     }
 }
 
@@ -97,12 +114,15 @@ void Editor::update()
 
     if (mIsActive)
     {
-        bool showDemoWindow = true;
-        if (showDemoWindow)
-            ImGui::ShowDemoWindow(&showDemoWindow);
+        ImGui::Begin("Editor", nullptr);
+        ImGui::Text("Game State: %s", mIsPaused ? "PAUSED" : "RUNNING");
+        ImGui::Checkbox("Collision Debug", &mCollisionDebug);
+        ImGui::End();
     }
 
     ImGui::Render();
+
+    collision_debug = mCollisionDebug;
 }
 
 // Template decls so we can define message func here in the .cpp

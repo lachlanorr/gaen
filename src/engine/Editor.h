@@ -45,8 +45,12 @@ public:
 
 private:
     void processKeyPress(const ivec4 & keys);
+    void unpause();
 
     bool mIsActive;
+    bool mIsPaused;
+
+    bool mCollisionDebug;
 }; // class Engine
 
 } // namespace gaen

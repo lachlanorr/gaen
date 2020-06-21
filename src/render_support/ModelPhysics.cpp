@@ -27,6 +27,7 @@
 #include "render_support/stdafx.h"
 
 #include "assets/Gmdl.h"
+#include "core/gamevars.h"
 
 #include "engine/messages/PropertyMat43.h"
 #include "engine/messages/Collision.h"
@@ -36,6 +37,8 @@
 
 namespace gaen
 {
+
+GAMEVAR_DECL_BOOL(collision_debug, false);
 
 void gaen_to_bullet_transform(btTransform & bT, const mat43 & gT, const vec3 & center)
 {
@@ -140,18 +143,21 @@ PhysicsDebugDraw::PhysicsDebugDraw(btDiscreteDynamicsWorld * pDynamicsWorld)
 
 void PhysicsDebugDraw::update()
 {
-    ASSERT(mLines.size() == 0);
-    mpDynamicsWorld->debugDrawWorld();
-    render();
-}
-
-void PhysicsDebugDraw::render()
-{
     if (mLinesUid != 0)
     {
          ModelInstance::model_remove(kModelMgrTaskId, kRendererTaskId, mLinesUid);
          mLinesUid = 0;
     }
+    if (collision_debug)
+    {
+        ASSERT(mLines.size() == 0);
+        mpDynamicsWorld->debugDrawWorld();
+        render();
+    }
+}
+
+void PhysicsDebugDraw::render()
+{
     if (mLines.size() > 0)
     {
         ASSERT(mLines.size() % 2 == 0);
@@ -282,8 +288,6 @@ void ModelPhysics::update()
                     msgw.setLocation(vec3(ptB.x(), ptB.y(), ptB.z()));
                     TaskMaster::task_master_for_active_thread().message(msgw.accessor());
                 }
-
-
             }
         }
     }
@@ -327,9 +331,6 @@ void ModelPhysics::insert(ModelInstance & modelInst,
         ModelMotionState * pMotionState = GNEW(kMEM_Physics, ModelMotionState, modelInst);
         btRigidBody::btRigidBodyConstructionInfo constrInfo(mass, pMotionState, pCollisionShape);
         constrInfo.m_friction = friction;
-
-//        constrInfo.m_angularDamping = 0.1;
-//        constrInfo.m_localInertia = btExtents;
 
         ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, pMotionState, group, constrInfo);
         mBodies.emplace(modelInst.model().uid(), pBody);
