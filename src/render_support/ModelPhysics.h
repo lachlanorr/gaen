@@ -63,26 +63,34 @@ public:
     virtual void setWorldTransform(const btTransform& worldTrans);
 
 private:
-    UniquePtr<btRigidBody> mpRigidBody;
     ModelInstance & mModelInstance;
 };
 typedef UniquePtr<ModelMotionState> ModelMotionStateUP;
 
 class ModelBody : public btRigidBody
 {
-    friend class ModelPhysics;
 public:
-    ModelBody(ModelMotionState * pMotionState, u32 groupHash, const btRigidBodyConstructionInfo& constructionInfo)
+    ModelBody(task_id owner,
+              const vec3 & center,
+              u32 groupHash,
+              ModelMotionState * pMotionState,
+              const btRigidBodyConstructionInfo& constructionInfo)
       : btRigidBody(constructionInfo)
-      , mpMotionState(pMotionState)
+      , mOwner(owner)
+      , mCenter(center)
       , mGroupHash(groupHash)
-    {
-        mpMotionState->mModelInstance.mHasBody = true;
-    }
+      , mpMotionState(pMotionState)
+    {}
+
+    task_id owner() const { return mOwner; }
+    const vec3 & center() const { return mCenter; }
+    u32 groupHash() const { return mGroupHash; }
 
 private:
-    ModelMotionStateUP mpMotionState;
+    task_id mOwner;
+    vec3 mCenter;
     u32 mGroupHash;
+    ModelMotionStateUP mpMotionState; // LORRNOTE: only reason we have this pointer is so we can delete it when the ModelBody gets destroyed
 };
 
 class PhysicsDebugDraw : public btIDebugDraw
@@ -133,17 +141,33 @@ public:
     void resetLastFrameTime();
     void render();
 
-    void insert(ModelInstance & modelInst,
+    void insert(u32 uid,
+                task_id owner,
+                const vec3 & center,
+                const vec3 & halfExtents,
+                ModelMotionState * pMotionState,
+                const mat43 & transform,
                 f32 mass,
                 f32 friction,
-                vec3 linearFactor,
-                vec3 angularFactor,
+                const vec3 & linearFactor,
+                const vec3 & angularFactor,
                 u32 group,
                 const ivec4 & mask03,
                 const ivec4 & mask47);
     void remove(u32 uid);
 
-    void insertCollisionBox(u32 uid, const vec3 & halfExtents, const mat43 & transform);
+    void insertCollisionBox(u32 uid,
+                            task_id owner,
+                            const vec3 & center,
+                            const vec3 & halfExtents,
+                            const mat43 & transform,
+                            f32 mass,
+                            f32 friction,
+                            const vec3 & linearFactor,
+                            const vec3 & angularFactor,
+                            u32 group,
+                            const ivec4 & mask03,
+                            const ivec4 & mask47);
 
     void setTransform(u32 uid, const mat43 & transform);
     void setVelocity(u32 uid, const vec3 & velocity);

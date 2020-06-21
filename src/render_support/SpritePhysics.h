@@ -63,7 +63,6 @@ public:
     void setWorldTransform(const btTransform& worldTrans);
 
 private:
-    UniquePtr<btRigidBody> mpRigidBody;
     SpriteInstance & mSpriteInstance;
 };
 typedef UniquePtr<SpriteMotionState> SpriteMotionStateUP;

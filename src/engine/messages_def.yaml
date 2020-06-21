@@ -186,8 +186,17 @@ ModelBody:
 
 CollisionBox:
   uid: i32
+  owner: i32
+  center: vec3
   halfExtents: vec3
   transform: mat43
+  mass: f32
+  friction: f32
+  linearFactor: vec3
+  angularFactor: vec3
+  group: u32
+  mask03: ivec4
+  mask47: ivec4
 
 Collision:
   group: i32

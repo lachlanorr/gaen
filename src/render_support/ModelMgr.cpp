@@ -166,7 +166,15 @@ MessageResult ModelMgr::message(const T & msgAcc)
         auto modelPair = mModelMap.find(msgr.uid());
         if (modelPair != mModelMap.end())
         {
-            mPhysics.insert(*modelPair->second,
+            modelPair->second->mHasBody = true;
+            ModelMotionState * pMotionState = GNEW(kMEM_Physics, ModelMotionState, *modelPair->second);
+
+            mPhysics.insert(modelPair->second->model().uid(),
+                            modelPair->second->model().owner(),
+                            modelPair->second->model().gmdl().center(),
+                            modelPair->second->model().gmdl().halfExtents(),
+                            pMotionState,
+                            mat43(1.0f),
                             msgr.mass(),
                             msgr.friction(),
                             msgr.linearFactor(),
@@ -184,7 +192,19 @@ MessageResult ModelMgr::message(const T & msgAcc)
     case HASH::collision_box_create:
     {
         messages::CollisionBoxR<T> msgr(msgAcc);
-        mPhysics.insertCollisionBox(msgr.uid(), msgr.halfExtents(), msgr.transform());
+        mPhysics.insertCollisionBox(msgr.uid(),
+                                    msgr.owner(),
+                                    msgr.center(),
+                                    msgr.halfExtents(),
+                                    msgr.transform(),
+                                    msgr.mass(),
+                                    msgr.friction(),
+                                    msgr.linearFactor(),
+                                    msgr.angularFactor(),
+                                    msgr.group(),
+                                    msgr.mask03(),
+                                    msgr.mask47());
+
         return MessageResult::Consumed;
     }
 	case HASH::remove_task__:

@@ -277,14 +277,14 @@ void ModelPhysics::update()
 
                 // Send collision messages to both entities
                 {
-                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obA->mpMotionState->mModelInstance.model().owner(), obB->mGroupHash);
-                    msgw.setSubject(obB->mpMotionState->mModelInstance.model().owner());
+                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obA->owner(), obB->groupHash());
+                    msgw.setSubject(obB->owner());
                     msgw.setLocation(vec3(ptA.x(), ptA.y(), ptA.z()));
                     TaskMaster::task_master_for_active_thread().message(msgw.accessor());
                 }
                 {
-                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obB->mpMotionState->mModelInstance.model().owner(), obA->mGroupHash);
-                    msgw.setSubject(obA->mpMotionState->mModelInstance.model().owner());
+                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obB->owner(), obA->groupHash());
+                    msgw.setSubject(obA->owner());
                     msgw.setLocation(vec3(ptB.x(), ptB.y(), ptB.z()));
                     TaskMaster::task_master_for_active_thread().message(msgw.accessor());
                 }
@@ -300,20 +300,22 @@ void ModelPhysics::resetLastFrameTime()
     mTimePrev = now();
 }
 
-void ModelPhysics::insert(ModelInstance & modelInst,
+void ModelPhysics::insert(u32 uid,
+                          task_id owner,
+                          const vec3 & center,
+                          const vec3 & halfExtents,
+                          ModelMotionState * pMotionState,
+                          const mat43 & transform,
                           f32 mass,
                           f32 friction,
-                          vec3 linearFactor,
-                          vec3 angularFactor,
+                          const vec3 & linearFactor,
+                          const vec3 & angularFactor,
                           u32 group,
                           const ivec4 & mask03,
                           const ivec4 & mask47)
 {
-    if (mBodies.find(modelInst.model().uid()) == mBodies.end())
+    if (mBodies.find(uid) == mBodies.end())
     {
-        ASSERT(modelInst.mHasBody == false);
-
-        vec3 halfExtents = modelInst.model().gmdl().halfExtents();
         auto colShapeIt = mCollisionShapes.find(halfExtents);
         btVector3 btExtents(halfExtents.x, halfExtents.y, halfExtents.z);
 
@@ -328,12 +330,12 @@ void ModelPhysics::insert(ModelInstance & modelInst,
             pCollisionShape = empRes.first->second.get();
         }
 
-        ModelMotionState * pMotionState = GNEW(kMEM_Physics, ModelMotionState, modelInst);
         btRigidBody::btRigidBodyConstructionInfo constrInfo(mass, pMotionState, pCollisionShape);
+        gaen_to_bullet_transform(constrInfo.m_startWorldTransform, transform, center);
         constrInfo.m_friction = friction;
 
-        ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, pMotionState, group, constrInfo);
-        mBodies.emplace(modelInst.model().uid(), pBody);
+        ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, owner, center, group, pMotionState, constrInfo);
+        mBodies.emplace(uid, pBody);
 
         pBody->setLinearFactor(btVector3(linearFactor.x, linearFactor.y, linearFactor.z));
         pBody->setAngularFactor(btVector3(angularFactor.x, angularFactor.y, angularFactor.z));
@@ -352,7 +354,7 @@ void ModelPhysics::insert(ModelInstance & modelInst,
     }
     else
     {
-        LOG_ERROR("ModelBody for %u already created", modelInst.model().uid());
+        LOG_ERROR("ModelBody for %u already created", uid);
     }
 }
 
@@ -370,9 +372,32 @@ void ModelPhysics::remove(u32 uid)
     }
 }
 
-void ModelPhysics::insertCollisionBox(u32 uid, const vec3 & halfExtents, const mat43 & transform)
+void ModelPhysics::insertCollisionBox(u32 uid,
+                                      task_id owner,
+                                      const vec3 & center,
+                                      const vec3 & halfExtents,
+                                      const mat43 & transform,
+                                      f32 mass,
+                                      f32 friction,
+                                      const vec3 & linearFactor,
+                                      const vec3 & angularFactor,
+                                      u32 group,
+                                      const ivec4 & mask03,
+                                      const ivec4 & mask47)
 {
-
+    insert(uid,
+           owner,
+           center,
+           halfExtents,
+           nullptr,
+           transform,
+           mass,
+           friction,
+           linearFactor,
+           angularFactor,
+           group,
+           mask03,
+           mask47);
 }
 
 void ModelPhysics::setTransform(u32 uid, const mat43 & transform)
@@ -382,7 +407,7 @@ void ModelPhysics::setTransform(u32 uid, const mat43 & transform)
     {
         // Update bullet
         btTransform btTrans;
-        gaen_to_bullet_transform(btTrans, transform, it->second->mpMotionState->mModelInstance.model().gmdl().center());
+        gaen_to_bullet_transform(btTrans, transform, it->second->center());
         it->second->setWorldTransform(btTrans);
 
         it->second->activate();
