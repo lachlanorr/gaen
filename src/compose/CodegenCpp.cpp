@@ -919,6 +919,9 @@ S CodegenCpp::codegenInitProperties(Ast * pAst, SymTab * pPropsSymTab, const cha
                         case kDT_color:
                             code += I + S("    msgw[0].cells[0].color = ") + codegenRecurse(pPropInit->pRhs, 0);
                             break;
+                        case kDT_bool:
+                            code += I + S("    msgw[0].cells[0].b = ") + codegenRecurse(pPropInit->pRhs, 0);
+                            break;
                         case kDT_vec2:
                         case kDT_vec3:
                         case kDT_vec4:
