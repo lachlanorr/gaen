@@ -350,6 +350,21 @@ void Model::cook(CookInfo * pCookInfo) const
     pGmdl->center() = (mins + maxes) * 0.5f;
     pGmdl->halfExtents() = (maxes - mins) * 0.5f;
 
+    if (pCookInfo->fullRecipe().hasKey("recenter"))
+    {
+        if (pCookInfo->fullRecipe().getBool("recenter") && pGmdl->center() != vec3(0.0f))
+        {
+            f32 * pVert = pGmdl->verts();
+            for (u32 i = 0; i < pGmdl->vertCount(); ++i)
+            {
+                VertPos * pos = (VertPos*)(pVert);
+                pos->position -= pGmdl->center();
+                pVert += pGmdl->vertStride() / sizeof(f32);
+            }
+            pGmdl->center() = vec3(0.0f);
+        }
+    }
+
     pCookInfo->setCookedBuffer(pGmdl);
 }
 
