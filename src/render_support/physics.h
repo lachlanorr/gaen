@@ -47,7 +47,11 @@ private:
     mat43 mTransform;
 };
 
-u32 collision_box_create(const vec3 & halfExtents, const mat43 & transform, task_id source);
+u32 collision_box_create(task_id owner,
+                         const vec3 & halfExtents,
+                         const mat43 & transform,
+                         u32 group,
+                         const ivec4 & mask03);
 
 }
 

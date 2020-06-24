@@ -44,12 +44,6 @@ namespace gaen
 
 static const u32 kMaxMessages = 4096;
 
-SpriteMgr::SpriteMgr()
-{
-    mTimePrev = mTimeCurr = now();
-}
-
-
 SpriteMgr::~SpriteMgr()
 {
     // LORRTODO: Cleanup is causing crash on exit... need to redesign how we release assets
@@ -59,11 +53,9 @@ SpriteMgr::~SpriteMgr()
     //}
 }
 
-void SpriteMgr::update()
+void SpriteMgr::update(f32 delta)
 {
-    mTimeCurr = now();
-    f32 delta = (f32)(mTimeCurr - mTimePrev);
-    mPhysics.update();
+    mPhysics.update(delta);
 
     for (auto & spritePair : mSpriteMap)
     {
@@ -91,13 +83,6 @@ void SpriteMgr::update()
                                         pSpriteInst->mAnimFrameIdx);
         }
     }
-    mTimePrev = mTimeCurr;
-}
-
-void SpriteMgr::resetLastFrameTime()
-{
-    mTimePrev = now();
-    mPhysics.resetLastFrameTime();
 }
 
 template <typename T>

@@ -178,6 +178,7 @@ ModelBody:
   uid: i32
   mass: f32
   friction: f32
+  isKinematic: bool
   linearFactor: vec3
   angularFactor: vec3
   group: i32
@@ -186,7 +187,6 @@ ModelBody:
 
 CollisionBox:
   uid: i32
-  owner: i32
   center: vec3
   halfExtents: vec3
   transform: mat43
@@ -201,7 +201,9 @@ CollisionBox:
 Collision:
   group: i32
   subject: i32
-  location: vec3
+  distance: f32
+  locationSelf: vec3
+  locationOther: vec3
 
 CameraPersp:
   uid: i32

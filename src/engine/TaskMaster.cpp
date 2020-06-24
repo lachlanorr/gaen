@@ -614,8 +614,8 @@ void TaskMaster::runPrimaryGameLoop()
         {
             if (!mIsPaused)
             {
-                mpModelMgr->update();
-                mpSpriteMgr->update();
+                mpModelMgr->update(delta);
+                mpSpriteMgr->update(delta);
             }
 #if HAS(ENABLE_EDITOR)
             mpEditor->update();
@@ -920,10 +920,6 @@ MessageResult TaskMaster::message(const T& msgAcc)
                 if (!mIsPaused)
                 {
                     mFrameTime.resetLastFrameTime();
-                    if (mpModelMgr)
-                        mpModelMgr->resetLastFrameTime();
-                    if (mpSpriteMgr)
-                        mpSpriteMgr->resetLastFrameTime();
                 }
                 return MessageResult::Consumed;
             }

@@ -48,8 +48,7 @@ public:
 
     ~ModelMgr();
 
-    void update();
-    void resetLastFrameTime();
+    void update(f32 delta);
 
     template <typename T>
     MessageResult message(const T& msgAcc);
@@ -82,12 +81,15 @@ i32 model_create(AssetHandleP pAssetHandleGmdl,
 void model_init_body(i32 modelUid,
                      f32 mass,
                      f32 friction,
+                     bool isKinematic,
                      vec3 linearFactor,
                      vec3 angularFactor,
                      i32 group,
                      ivec4 mask03,
                      ivec4 mask47,
                      Entity * pCaller);
+
+void model_remove_body(i32 modelUid, Entity * pCaller);
 
 void model_set_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller);
 void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller);

@@ -80,8 +80,6 @@ void SpriteMotionState::setWorldTransform(const btTransform& worldTrans)
 
 SpritePhysics::SpritePhysics()
 {
-    mTimePrev = mTimeCurr = now();
-
     mpBroadphase = GNEW(kMEM_Physics, btDbvtBroadphase);
     mpCollisionConfiguration = GNEW(kMEM_Physics, btDefaultCollisionConfiguration);
 
@@ -106,12 +104,9 @@ SpritePhysics::~SpritePhysics()
     GDELETE(mpBroadphase);
 }
 
-void SpritePhysics::update()
+void SpritePhysics::update(f32 delta)
 {
-    mTimeCurr = now();
-    f64 delta = mTimeCurr - mTimePrev;
-    mpDynamicsWorld->stepSimulation((f32)delta, 4);
-    mTimePrev = mTimeCurr;
+    mpDynamicsWorld->stepSimulation(delta, 4);
 
     // Check for collisions
     int numManifolds = mpDynamicsWorld->getDispatcher()->getNumManifolds();
@@ -135,13 +130,17 @@ void SpritePhysics::update()
                 {
                     messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kSpriteMgrTaskId, obA->mpMotionState->mSpriteInstance.sprite().owner(), obB->mGroupHash);
                     msgw.setSubject(obB->mpMotionState->mSpriteInstance.sprite().owner());
-                    msgw.setLocation(vec3(ptA.x(), ptA.y(), ptA.z()));
+                    msgw.setDistance(pt.getDistance());
+                    msgw.setLocationSelf(vec3(ptA.x(), ptA.y(), ptA.z()));
+                    msgw.setLocationOther(vec3(ptB.x(), ptB.y(), ptB.z()));
                     TaskMaster::task_master_for_active_thread().message(msgw.accessor());
                 }
                 {
                     messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kSpriteMgrTaskId, obB->mpMotionState->mSpriteInstance.sprite().owner(), obA->mGroupHash);
                     msgw.setSubject(obA->mpMotionState->mSpriteInstance.sprite().owner());
-                    msgw.setLocation(vec3(ptB.x(), ptB.y(), ptB.z()));
+                    msgw.setDistance(pt.getDistance());
+                    msgw.setLocationSelf(vec3(ptB.x(), ptB.y(), ptB.z()));
+                    msgw.setLocationOther(vec3(ptA.x(), ptA.y(), ptA.z()));
                     TaskMaster::task_master_for_active_thread().message(msgw.accessor());
                 }
 
@@ -150,11 +149,6 @@ void SpritePhysics::update()
         }
     }
 
-}
-
-void SpritePhysics::resetLastFrameTime()
-{
-    mTimePrev = now();
 }
 
 void SpritePhysics::insert(SpriteInstance & spriteInst,

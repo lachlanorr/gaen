@@ -93,8 +93,7 @@ public:
     SpritePhysics();
     ~SpritePhysics();
 
-    void update();
-    void resetLastFrameTime();
+    void update(f32 delta);
 
     void insert(SpriteInstance & spriteInst,
                 f32 mass,
@@ -111,9 +110,6 @@ private:
     static void near_callback(btBroadphasePair & collisionPair,
                               btCollisionDispatcher & dispatcher,
                               const btDispatcherInfo & dispatchInfo);
-
-    f64 mTimePrev;
-    f64 mTimeCurr;
 
     btBroadphaseInterface * mpBroadphase;
     btDefaultCollisionConfiguration * mpCollisionConfiguration;

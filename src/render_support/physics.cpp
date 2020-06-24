@@ -42,12 +42,15 @@ CollisionBox::CollisionBox(u32 uid, const vec3 & halfExtents, const mat43 & tran
   , mTransform(transform)
 {}
 
-u32 collision_box_create(const vec3 & halfExtents, const mat43 & transform, task_id source)
+u32 collision_box_create(task_id owner,
+                         const vec3 & halfExtents,
+                         const mat43 & transform,
+                         u32 group,
+                         const ivec4 & mask03)
 {
     u32 uid = RenderObject::next_uid();
-    messages::CollisionBoxBW msgw(HASH::collision_box_create, kMessageFlag_None, source, kModelMgrTaskId, uid);
+    messages::CollisionBoxBW msgw(HASH::collision_box_create, kMessageFlag_None, owner, kModelMgrTaskId, uid);
 
-    msgw.setOwner(source);
     msgw.setCenter(vec3(0.0f));
     msgw.setHalfExtents(halfExtents);
     msgw.setTransform(transform);
@@ -55,8 +58,8 @@ u32 collision_box_create(const vec3 & halfExtents, const mat43 & transform, task
     msgw.setFriction(0.5f);
     msgw.setLinearFactor(vec3(0.0f));
     msgw.setAngularFactor(vec3(0.0f));
-    msgw.setGroup(HASH::wall);
-    msgw.setMask03(ivec4(0));
+    msgw.setGroup(group);
+    msgw.setMask03(mask03);
     msgw.setMask47(ivec4(0));
 
     TaskMaster::task_master_for_active_thread().message(msgw.accessor());

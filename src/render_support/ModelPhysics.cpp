@@ -80,54 +80,63 @@ void ModelMotionState::getWorldTransform(btTransform& worldTrans) const
 
 void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 {
-    mat43 newTrans;
-    bullet_to_gaen_transform(newTrans, worldTrans, mModelInstance.model().gmdl().center());
-
-    if (newTrans != mModelInstance.mTransform)
+    if (mIsMarkedForRemoval)
     {
-#if HAS(LOG_TRANS_INFO)
-        vec3 v1{1.0, 2.0, 0.0};
-        vec3 v2{1.0, 2.0, -0.0};
+        int i = 0;
+    }
 
-        bool eq = v1 == v2;
+    if (!mIsMarkedForRemoval)
+    {
+        mat43 newTrans;
+        bullet_to_gaen_transform(newTrans, worldTrans, mModelInstance.model().gmdl().center());
 
-
-        LOG_INFO("sWT newTrans:    %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef",
-                 newTrans[0][0],
-                 newTrans[0][1],
-                 newTrans[0][2],
-                 newTrans[1][0],
-                 newTrans[1][1],
-                 newTrans[1][2],
-                 newTrans[2][0],
-                 newTrans[2][1],
-                 newTrans[2][2],
-                 newTrans[3][0],
-                 newTrans[3][1],
-                 newTrans[3][2]
-            );
-        LOG_INFO("sWT mTransform:  %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef",
-                 mModelInstance.mTransform[0][0],
-                 mModelInstance.mTransform[0][1],
-                 mModelInstance.mTransform[0][2],
-                 mModelInstance.mTransform[1][0],
-                 mModelInstance.mTransform[1][1],
-                 mModelInstance.mTransform[1][2],
-                 mModelInstance.mTransform[2][0],
-                 mModelInstance.mTransform[2][1],
-                 mModelInstance.mTransform[2][2],
-                 mModelInstance.mTransform[3][0],
-                 mModelInstance.mTransform[3][1],
-                 mModelInstance.mTransform[3][2]
-            );
-#endif // #if HAS(LOG_TRANS_INFO)
-        mModelInstance.mTransform = newTrans;
-
-        // Send transform to entity
+        if (newTrans != mModelInstance.mTransform)
         {
-            messages::PropertyMat43BW msgw(HASH::set_property, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), HASH::transform);
-            msgw.setValue(mModelInstance.mTransform);
-            TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+#if HAS(LOG_TRANS_INFO)
+            vec3 v1{1.0, 2.0, 0.0};
+            vec3 v2{1.0, 2.0, -0.0};
+
+            bool eq = v1 == v2;
+
+
+            LOG_INFO("sWT newTrans:    %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef",
+                     newTrans[0][0],
+                     newTrans[0][1],
+                     newTrans[0][2],
+                     newTrans[1][0],
+                     newTrans[1][1],
+                     newTrans[1][2],
+                     newTrans[2][0],
+                     newTrans[2][1],
+                     newTrans[2][2],
+                     newTrans[3][0],
+                     newTrans[3][1],
+                     newTrans[3][2]
+                );
+            LOG_INFO("sWT mTransform:  %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef, %1.8ef",
+                     mModelInstance.mTransform[0][0],
+                     mModelInstance.mTransform[0][1],
+                     mModelInstance.mTransform[0][2],
+                     mModelInstance.mTransform[1][0],
+                     mModelInstance.mTransform[1][1],
+                     mModelInstance.mTransform[1][2],
+                     mModelInstance.mTransform[2][0],
+                     mModelInstance.mTransform[2][1],
+                     mModelInstance.mTransform[2][2],
+                     mModelInstance.mTransform[3][0],
+                     mModelInstance.mTransform[3][1],
+                     mModelInstance.mTransform[3][2]
+                );
+#endif // #if HAS(LOG_TRANS_INFO)
+
+            mModelInstance.mTransform = newTrans;
+
+            // Send transform to entity
+            {
+                messages::PropertyMat43BW msgw(HASH::set_property, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), HASH::transform);
+                msgw.setValue(mModelInstance.mTransform);
+                TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+            }
         }
     }
 }
@@ -221,7 +230,7 @@ int PhysicsDebugDraw::getDebugMode() const
 
 ModelPhysics::ModelPhysics()
 {
-    mTimePrev = mTimeCurr = now();
+    mIsUpdating = false;
 
     mpBroadphase = GNEW(kMEM_Physics, btDbvtBroadphase);
     mpCollisionConfiguration = GNEW(kMEM_Physics, btDefaultCollisionConfiguration);
@@ -250,12 +259,10 @@ ModelPhysics::~ModelPhysics()
     GDELETE(mpBroadphase);
 }
 
-void ModelPhysics::update()
+void ModelPhysics::update(f32 delta)
 {
-    mTimeCurr = now();
-    f64 delta = mTimeCurr - mTimePrev;
+    mIsUpdating = true;
     mpDynamicsWorld->stepSimulation((f32)delta, 0);
-    mTimePrev = mTimeCurr;
 
     // Check for collisions
     int numManifolds = mpDynamicsWorld->getDispatcher()->getNumManifolds();
@@ -266,38 +273,59 @@ void ModelPhysics::update()
         const ModelBody* obB = static_cast<const ModelBody*>(contactManifold->getBody1());
 
         int numContacts = contactManifold->getNumContacts();
-        for (int j=0;j<numContacts;j++)
-        {
-            btManifoldPoint& pt = contactManifold->getContactPoint(j);
-            if (pt.getDistance() < 0.f)
-            {
-                const btVector3& ptA = pt.getPositionWorldOnA();
-                const btVector3& ptB = pt.getPositionWorldOnB();
-                const btVector3& normalOnB = pt.m_normalWorldOnB;
 
-                // Send collision messages to both entities
+        if (numContacts > 0)
+        {
+            vec3 locA(0.0f);
+            vec3 locB(0.0f);
+            f32 dist = 0.0f;
+            for (int j=0; j < numContacts; j++)
+            {
+                btManifoldPoint& pt = contactManifold->getContactPoint(j);
+                if (pt.getDistance() < 0.f)
                 {
-                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obA->owner(), obB->groupHash());
-                    msgw.setSubject(obB->owner());
-                    msgw.setLocation(vec3(ptA.x(), ptA.y(), ptA.z()));
-                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+                    const btVector3& ptA = pt.getPositionWorldOnA();
+                    const btVector3& ptB = pt.getPositionWorldOnB();
+                    const btVector3& normalOnB = pt.m_normalWorldOnB;
+
+                    dist += pt.getDistance();
+                    locA += vec3(ptA.x(), ptA.y(), ptA.z());
+                    locB += vec3(ptB.x(), ptB.y(), ptB.z());
                 }
-                {
-                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obB->owner(), obA->groupHash());
-                    msgw.setSubject(obA->owner());
-                    msgw.setLocation(vec3(ptB.x(), ptB.y(), ptB.z()));
-                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
-                }
+            }
+
+            dist /= numContacts;
+            locA = locA / (f32)numContacts;
+            locB = locB / (f32)numContacts;
+
+            // Send collision messages to both entities
+            {
+                messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obA->owner(), obB->groupHash());
+                msgw.setSubject(obB->owner());
+                msgw.setDistance(dist);
+                msgw.setLocationSelf(locA);
+                msgw.setLocationOther(locB);
+                TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+            }
+            {
+                messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obB->owner(), obA->groupHash());
+                msgw.setSubject(obA->owner());
+                msgw.setDistance(dist);
+                msgw.setLocationSelf(locB);
+                msgw.setLocationOther(locA);
+                TaskMaster::task_master_for_active_thread().message(msgw.accessor());
             }
         }
     }
+    mIsUpdating = false;
+
+    for (u32 uid : mBodiesToRemove)
+    {
+        remove(uid);
+    }
+    mBodiesToRemove.clear();
 
     mpDebugDraw->update();
-}
-
-void ModelPhysics::resetLastFrameTime()
-{
-    mTimePrev = now();
 }
 
 void ModelPhysics::insert(u32 uid,
@@ -308,6 +336,7 @@ void ModelPhysics::insert(u32 uid,
                           const mat43 & transform,
                           f32 mass,
                           f32 friction,
+                          bool isKinematic,
                           const vec3 & linearFactor,
                           const vec3 & angularFactor,
                           u32 group,
@@ -337,6 +366,12 @@ void ModelPhysics::insert(u32 uid,
         ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, owner, center, group, pMotionState, constrInfo);
         mBodies.emplace(uid, pBody);
 
+        if (isKinematic)
+        {
+            pBody->setCollisionFlags(pBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+            pBody->setActivationState(DISABLE_DEACTIVATION);
+        }
+
         pBody->setLinearFactor(btVector3(linearFactor.x, linearFactor.y, linearFactor.z));
         pBody->setAngularFactor(btVector3(angularFactor.x, angularFactor.y, angularFactor.z));
 
@@ -348,7 +383,7 @@ void ModelPhysics::insert(u32 uid,
         {
             u16 groupMask = maskFromHash(group);
             u16 mask = buildMask(mask03, mask47);
-            mpDynamicsWorld->addRigidBody(pBody, maskFromHash(group), buildMask(mask03, mask47));
+            mpDynamicsWorld->addRigidBody(pBody, groupMask, mask);
         }
         pBody->setGravity(btVector3(0,0,0));
     }
@@ -363,8 +398,16 @@ void ModelPhysics::remove(u32 uid)
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
     {
-        mpDynamicsWorld->removeRigidBody(it->second.get());
-        mBodies.erase(it);
+        if (!mIsUpdating)
+        {
+            mpDynamicsWorld->removeRigidBody(it->second.get());
+            mBodies.erase(it);
+        }
+        else
+        {
+            it->second->markForRemoval();
+            mBodiesToRemove.emplace(uid);
+        }
     }
     else
     {
@@ -393,6 +436,7 @@ void ModelPhysics::insertCollisionBox(u32 uid,
            transform,
            mass,
            friction,
+           false,
            linearFactor,
            angularFactor,
            group,

@@ -33,6 +33,7 @@
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 
 #include "core/mem.h"
+#include "core/HashSet.h"
 #include "math/vec3.h"
 #include "render_support/physics.h"
 #include "render_support/Model.h"
@@ -55,8 +56,14 @@ class ModelMotionState : public btMotionState
 public:
     ModelMotionState(ModelInstance & modelInstance)
       : mModelInstance(modelInstance)
+      , mIsMarkedForRemoval(false)
     {
         mModelInstance.mHasBody = true;
+    }
+
+    void markForRemoval()
+    {
+        mIsMarkedForRemoval = true;
     }
 
     virtual void getWorldTransform(btTransform& worldTrans) const;
@@ -64,6 +71,7 @@ public:
 
 private:
     ModelInstance & mModelInstance;
+    bool mIsMarkedForRemoval;
 };
 typedef UniquePtr<ModelMotionState> ModelMotionStateUP;
 
@@ -80,17 +88,28 @@ public:
       , mCenter(center)
       , mGroupHash(groupHash)
       , mpMotionState(pMotionState)
+      , mIsMarkedForRemoval(false)
     {}
 
     task_id owner() const { return mOwner; }
     const vec3 & center() const { return mCenter; }
     u32 groupHash() const { return mGroupHash; }
 
+    void markForRemoval()
+    {
+        mIsMarkedForRemoval = true;
+        if (mpMotionState)
+        {
+            mpMotionState->markForRemoval();
+        }
+    }
+
 private:
     task_id mOwner;
     vec3 mCenter;
     u32 mGroupHash;
     ModelMotionStateUP mpMotionState; // LORRNOTE: only reason we have this pointer is so we can delete it when the ModelBody gets destroyed
+    bool mIsMarkedForRemoval;
 };
 
 class PhysicsDebugDraw : public btIDebugDraw
@@ -137,9 +156,7 @@ public:
     ModelPhysics();
     ~ModelPhysics();
 
-    void update();
-    void resetLastFrameTime();
-    void render();
+    void update(f32 delta);
 
     void insert(u32 uid,
                 task_id owner,
@@ -149,6 +166,7 @@ public:
                 const mat43 & transform,
                 f32 mass,
                 f32 friction,
+                bool isKinematic,
                 const vec3 & linearFactor,
                 const vec3 & angularFactor,
                 u32 group,
@@ -180,8 +198,7 @@ private:
                               btCollisionDispatcher & dispatcher,
                               const btDispatcherInfo & dispatchInfo);
 
-    f64 mTimePrev;
-    f64 mTimeCurr;
+    bool mIsUpdating;
 
     btBroadphaseInterface * mpBroadphase;
     btDefaultCollisionConfiguration * mpCollisionConfiguration;
@@ -193,6 +210,7 @@ private:
     HashMap<kMEM_Physics, u32, ModelBodyUP> mBodies;
     HashMap<kMEM_Physics, vec3, btCollisionShapeUP> mCollisionShapes;
     HashMap<kMEM_Physics, u32, u16> mMaskBits;
+    HashSet<kMEM_Physics, u32> mBodiesToRemove;
 };
 
 } // namespace gaen

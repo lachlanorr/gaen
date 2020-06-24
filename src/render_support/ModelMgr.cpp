@@ -60,14 +60,9 @@ ModelMgr::~ModelMgr()
     //}
 }
 
-void ModelMgr::update()
+void ModelMgr::update(f32 delta)
 {
-    mPhysics.update();
-}
-
-void ModelMgr::resetLastFrameTime()
-{
-    mPhysics.resetLastFrameTime();
+    mPhysics.update(delta);
 }
 
 template <typename T>
@@ -177,6 +172,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
                             mat43(1.0f),
                             msgr.mass(),
                             msgr.friction(),
+                            msgr.isKinematic(),
                             msgr.linearFactor(),
                             msgr.angularFactor(),
                             msgr.group(),
@@ -189,11 +185,33 @@ MessageResult ModelMgr::message(const T & msgAcc)
         }
         return MessageResult::Consumed;
     }
+    case HASH::model_remove_body:
+    {
+        u32 uid = msg.payload.u;
+        auto modelPair = mModelMap.find(uid);
+        if (modelPair != mModelMap.end())
+        {
+            if (modelPair->second->mHasBody)
+            {
+                modelPair->second->mHasBody = false;
+                mPhysics.remove(uid);
+            }
+            else
+            {
+                ERR("model_remove_body for model with no body, uid: %u", uid);
+            }
+        }
+        else
+        {
+            ERR("model_remove_body for unknown model, uid: %u", uid);
+        }
+        return MessageResult::Consumed;
+    }
     case HASH::collision_box_create:
     {
         messages::CollisionBoxR<T> msgr(msgAcc);
         mPhysics.insertCollisionBox(msgr.uid(),
-                                    msgr.owner(),
+                                    msg.source,
                                     msgr.center(),
                                     msgr.halfExtents(),
                                     msgr.transform(),
@@ -343,6 +361,7 @@ void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity * pC
 void model_init_body(i32 modelUid,
                      f32 mass,
                      f32 friction,
+                     bool isKinematic,
                      vec3 linearFactor,
                      vec3 angularFactor,
                      i32 group,
@@ -353,12 +372,18 @@ void model_init_body(i32 modelUid,
     messages::ModelBodyBW msgw(HASH::model_init_body, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
     msgw.setMass(mass);
     msgw.setFriction(friction);
+    msgw.setIsKinematic(isKinematic);
     msgw.setLinearFactor(linearFactor);
     msgw.setAngularFactor(angularFactor);
     msgw.setGroup(group);
     msgw.setMask03(mask03);
     msgw.setMask47(mask47);
     TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+}
+
+void model_remove_body(i32 modelUid, Entity * pCaller)
+{
+    ImmediateMessageWriter<0> msgw(HASH::model_remove_body, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, to_cell(modelUid));
 }
 
 void model_stage_show(i32 stageHash, Entity * pCaller)
