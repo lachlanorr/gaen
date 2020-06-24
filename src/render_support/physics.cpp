@@ -45,6 +45,7 @@ CollisionBox::CollisionBox(u32 uid, const vec3 & halfExtents, const mat43 & tran
 u32 collision_box_create(task_id owner,
                          const vec3 & halfExtents,
                          const mat43 & transform,
+                         u32 message,
                          u32 group,
                          const ivec4 & mask03)
 {
@@ -58,6 +59,7 @@ u32 collision_box_create(task_id owner,
     msgw.setFriction(0.5f);
     msgw.setLinearFactor(vec3(0.0f));
     msgw.setAngularFactor(vec3(0.0f));
+    msgw.setMessage(message);
     msgw.setGroup(group);
     msgw.setMask03(mask03);
     msgw.setMask47(ivec4(0));

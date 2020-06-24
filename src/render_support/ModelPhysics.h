@@ -80,12 +80,14 @@ class ModelBody : public btRigidBody
 public:
     ModelBody(task_id owner,
               const vec3 & center,
+              u32 message,
               u32 groupHash,
               ModelMotionState * pMotionState,
               const btRigidBodyConstructionInfo& constructionInfo)
       : btRigidBody(constructionInfo)
       , mOwner(owner)
       , mCenter(center)
+      , mMessage(message)
       , mGroupHash(groupHash)
       , mpMotionState(pMotionState)
       , mIsMarkedForRemoval(false)
@@ -93,6 +95,7 @@ public:
 
     task_id owner() const { return mOwner; }
     const vec3 & center() const { return mCenter; }
+    u32 message() const { return mMessage; }
     u32 groupHash() const { return mGroupHash; }
 
     void markForRemoval()
@@ -107,6 +110,7 @@ public:
 private:
     task_id mOwner;
     vec3 mCenter;
+    u32 mMessage;
     u32 mGroupHash;
     ModelMotionStateUP mpMotionState; // LORRNOTE: only reason we have this pointer is so we can delete it when the ModelBody gets destroyed
     bool mIsMarkedForRemoval;
@@ -169,6 +173,7 @@ public:
                 bool isKinematic,
                 const vec3 & linearFactor,
                 const vec3 & angularFactor,
+                u32 message,
                 u32 group,
                 const ivec4 & mask03,
                 const ivec4 & mask47);
@@ -183,6 +188,7 @@ public:
                             f32 friction,
                             const vec3 & linearFactor,
                             const vec3 & angularFactor,
+                            u32 message,
                             u32 group,
                             const ivec4 & mask03,
                             const ivec4 & mask47);

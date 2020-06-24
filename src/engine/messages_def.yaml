@@ -181,7 +181,8 @@ ModelBody:
   isKinematic: bool
   linearFactor: vec3
   angularFactor: vec3
-  group: i32
+  message: u32
+  group: u32
   mask03: ivec4
   mask47: ivec4
 
@@ -194,6 +195,7 @@ CollisionBox:
   friction: f32
   linearFactor: vec3
   angularFactor: vec3
+  message: u32
   group: u32
   mask03: ivec4
   mask47: ivec4

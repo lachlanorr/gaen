@@ -282,7 +282,7 @@ void ModelPhysics::update(f32 delta)
             for (int j=0; j < numContacts; j++)
             {
                 btManifoldPoint& pt = contactManifold->getContactPoint(j);
-                if (pt.getDistance() < 0.f)
+                if (pt.getDistance() < 0.04f)
                 {
                     const btVector3& ptA = pt.getPositionWorldOnA();
                     const btVector3& ptB = pt.getPositionWorldOnB();
@@ -299,6 +299,7 @@ void ModelPhysics::update(f32 delta)
             locB = locB / (f32)numContacts;
 
             // Send collision messages to both entities
+            if (obA->message() != 0)
             {
                 messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obA->owner(), obB->groupHash());
                 msgw.setSubject(obB->owner());
@@ -307,6 +308,7 @@ void ModelPhysics::update(f32 delta)
                 msgw.setLocationOther(locB);
                 TaskMaster::task_master_for_active_thread().message(msgw.accessor());
             }
+            if (obB->message() != 0)
             {
                 messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obB->owner(), obA->groupHash());
                 msgw.setSubject(obA->owner());
@@ -339,6 +341,7 @@ void ModelPhysics::insert(u32 uid,
                           bool isKinematic,
                           const vec3 & linearFactor,
                           const vec3 & angularFactor,
+                          u32 message,
                           u32 group,
                           const ivec4 & mask03,
                           const ivec4 & mask47)
@@ -363,7 +366,7 @@ void ModelPhysics::insert(u32 uid,
         gaen_to_bullet_transform(constrInfo.m_startWorldTransform, transform, center);
         constrInfo.m_friction = friction;
 
-        ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, owner, center, group, pMotionState, constrInfo);
+        ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, owner, center, message, group, pMotionState, constrInfo);
         mBodies.emplace(uid, pBody);
 
         if (isKinematic)
@@ -424,6 +427,7 @@ void ModelPhysics::insertCollisionBox(u32 uid,
                                       f32 friction,
                                       const vec3 & linearFactor,
                                       const vec3 & angularFactor,
+                                      u32 message,
                                       u32 group,
                                       const ivec4 & mask03,
                                       const ivec4 & mask47)
@@ -439,6 +443,7 @@ void ModelPhysics::insertCollisionBox(u32 uid,
            false,
            linearFactor,
            angularFactor,
+           message,
            group,
            mask03,
            mask47);
@@ -519,8 +524,8 @@ u16 ModelPhysics::maskFromHash(u32 hash)
 }
 
 void ModelPhysics::near_callback(btBroadphasePair & collisionPair,
-                                  btCollisionDispatcher & dispatcher,
-                                  const btDispatcherInfo & dispatchInfo)
+                                 btCollisionDispatcher & dispatcher,
+                                 const btDispatcherInfo & dispatchInfo)
 {
     ModelBody * pBody0 = static_cast<ModelBody*>(collisionPair.m_pProxy0->m_clientObject);
     ModelBody * pBody1 = static_cast<ModelBody*>(collisionPair.m_pProxy1->m_clientObject);

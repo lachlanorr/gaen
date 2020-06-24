@@ -175,6 +175,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
                             msgr.isKinematic(),
                             msgr.linearFactor(),
                             msgr.angularFactor(),
+                            msgr.message(),
                             msgr.group(),
                             msgr.mask03(),
                             msgr.mask47());
@@ -219,6 +220,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
                                     msgr.friction(),
                                     msgr.linearFactor(),
                                     msgr.angularFactor(),
+                                    msgr.message(),
                                     msgr.group(),
                                     msgr.mask03(),
                                     msgr.mask47());
@@ -364,6 +366,7 @@ void model_init_body(i32 modelUid,
                      bool isKinematic,
                      vec3 linearFactor,
                      vec3 angularFactor,
+                     i32 message,
                      i32 group,
                      ivec4 mask03,
                      ivec4 mask47,
@@ -375,6 +378,7 @@ void model_init_body(i32 modelUid,
     msgw.setIsKinematic(isKinematic);
     msgw.setLinearFactor(linearFactor);
     msgw.setAngularFactor(angularFactor);
+    msgw.setMessage(message);
     msgw.setGroup(group);
     msgw.setMask03(mask03);
     msgw.setMask47(mask47);

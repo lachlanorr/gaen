@@ -50,6 +50,7 @@ private:
 u32 collision_box_create(task_id owner,
                          const vec3 & halfExtents,
                          const mat43 & transform,
+                         u32 message,
                          u32 group,
                          const ivec4 & mask03);
 
