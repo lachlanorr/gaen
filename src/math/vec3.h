@@ -114,6 +114,20 @@ inline bool operator!=(const tvec3<T> & lhs, const tvec3<T> & rhs)
 }
 
 template <typename T>
+inline bool operator<(const tvec3<T> & lhs, const tvec3<T> & rhs)
+{
+    if(lhs.x != rhs.x)
+        return lhs.x < rhs.x;
+    else if(lhs.y != rhs.y)
+        return lhs.y < rhs.y;
+    else if(lhs.z != rhs.z)
+        return lhs.z < rhs.z;
+
+    // if we get here, all elements match
+    return false;
+}
+
+template <typename T>
 inline tvec3<T> operator-(const tvec3<T> & rhs)
 {
     return tvec3<T>(-rhs.x, -rhs.y, -rhs.z);
