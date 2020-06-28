@@ -26,6 +26,7 @@
 
 #include "core/HashMap.h"
 #include "core/String.h"
+#include "core/Set.h"
 
 #include "assets/file_utils.h"
 #include "assets/Gmdl.h"
@@ -161,6 +162,36 @@ Gmdl * Gmdl::create(VertType vertType,
     }
 
     return pGmdl;
+}
+
+Gmdl * Gmdl::convert_to_points(const Gmdl * pGmdl)
+{
+    Set<kMEM_Model, vec3> pointsSet; // use to de-dupe
+    List<kMEM_Model, vec3> points;   // used to preserve original order
+
+    const u8 * pVerts = (const u8*)pGmdl->verts();
+    for (u32 i = 0; i < pGmdl->vertCount(); ++i)
+    {
+        const VertPos * pVert = (const VertPos*)pVerts;
+        if (pointsSet.find(pVert->position) == pointsSet.end())
+        {
+            pointsSet.insert(pVert->position);
+            points.push_back(pVert->position);
+        }
+        pVerts += pGmdl->vertStride();
+    }
+    Gmdl * pGmdlPoints = Gmdl::create(kVERT_Pos, (u32)points.size(), kPRIM_Point, 0, 0);
+    VertPos * pVertNew = (VertPos*)pGmdlPoints->verts();
+    for (const vec3 & p : points)
+    {
+        pVertNew->position = p;
+        pVertNew++;
+    }
+
+    pGmdlPoints->halfExtents() = pGmdl->halfExtents();
+    pGmdlPoints->center() = pGmdl->center();
+
+    return pGmdlPoints;
 }
 
 u32 Gmdl::boneIndex(u32 nameHash) const

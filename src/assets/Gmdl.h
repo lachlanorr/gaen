@@ -406,6 +406,8 @@ public:
                          u32 hardpointCount = 0,
                          const Gmat * pMat = nullptr);
 
+    static Gmdl * convert_to_points(const Gmdl * pGmdl);
+
     u32 boneIndex(u32 nameHash) const;
     const Bone * boneByIndex(u32 idx) const;
     u32 hardpointIndex(u32 nameHash) const;
