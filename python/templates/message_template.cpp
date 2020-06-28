@@ -123,6 +123,39 @@ private:
     Block mBlocks[<<block_count>> + 1]; // +1 for header
 };
 
+
+class <<message_name>>IW : public MessageBlockWriter
+{
+public:
+    <<message_name>>IW(u32 msgId,
+    <<message_name_indent>> u32 flags,
+    <<message_name_indent>> task_id source,
+    <<message_name_indent>> task_id target<<payload_decl>>)
+      : MessageBlockWriter(msgId,
+                           flags,
+                           source,
+                           target,
+                           to_cell(<<payload_value>>),
+                           <<block_count>>,
+                           mBlocks)
+    {}
+
+    ~<<message_name>>IW()
+    {
+        TaskMaster::task_master_for_active_thread().message(accessor());
+    }
+
+<<writer_setters>>
+
+private:
+    <<message_name>>IW(const <<message_name>>IW &)              = delete;
+    <<message_name>>IW(const <<message_name>>IW &&)             = delete;
+    <<message_name>>IW & operator=(const <<message_name>>IW &)  = delete;
+    <<message_name>>IW & operator=(const <<message_name>>IW &&) = delete;
+
+    Block mBlocks[<<block_count>> + 1]; // +1 for header
+};
+
 } // namespace msg
 } // namespace gaen
 
