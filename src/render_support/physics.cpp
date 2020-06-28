@@ -29,18 +29,13 @@
 #include <LinearMath/btIDebugDraw.h>
 
 #include "engine/messages/CollisionBox.h"
+#include "engine/messages/CollisionConvexHull.h"
 
 #include "render_support/render_objects.h"
 #include "render_support/physics.h"
 
 namespace gaen
 {
-
-CollisionBox::CollisionBox(u32 uid, const vec3 & halfExtents, const mat43 & transform)
-  : mUid(uid)
-  , mHalfExtents(halfExtents)
-  , mTransform(transform)
-{}
 
 u32 collision_box_create(task_id owner,
                          const vec3 & halfExtents,
@@ -50,7 +45,7 @@ u32 collision_box_create(task_id owner,
                          const ivec4 & mask03)
 {
     u32 uid = RenderObject::next_uid();
-    messages::CollisionBoxBW msgw(HASH::collision_box_create, kMessageFlag_None, owner, kModelMgrTaskId, uid);
+    messages::CollisionBoxIW msgw(HASH::collision_box_create, kMessageFlag_None, owner, kModelMgrTaskId, uid);
 
     msgw.setCenter(vec3(0.0f));
     msgw.setHalfExtents(halfExtents);
@@ -64,8 +59,36 @@ u32 collision_box_create(task_id owner,
     msgw.setMask03(mask03);
     msgw.setMask47(ivec4(0));
 
-    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
     return uid;
 }
+
+u32 collision_convex_hull_create(task_id owner,
+                                 const Gmdl * pGmdlPoints,
+                                 const mat43 & transform,
+                                 u32 message,
+                                 u32 group,
+                                 const ivec4 & mask03)
+{
+    u32 uid = RenderObject::next_uid();
+
+    messages::CollisionConvexHullIW msgw(HASH::collision_convex_hull_create, kMessageFlag_None, owner, kModelMgrTaskId, uid);
+
+    msgw.setGmdlPoints(pGmdlPoints);
+    msgw.setTransform(transform);
+    msgw.setMass(0.0f);
+    msgw.setFriction(0.5f);
+    msgw.setMessage(message);
+    msgw.setGroup(group);
+    msgw.setMask03(mask03);
+    msgw.setMask47(ivec4(0));
+
+    return uid;
+}
+
+void collision_remove_body(task_id owner, u32 uid)
+{
+    ImmediateMessageWriter<0> msgw(HASH::remove_body, kMessageFlag_None, owner, kModelMgrTaskId, to_cell(uid));
+}
+
 
 }

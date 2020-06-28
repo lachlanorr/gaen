@@ -162,22 +162,25 @@ public:
 
     void update(f32 delta);
 
-    void insert(u32 uid,
-                task_id owner,
-                const vec3 & center,
-                const vec3 & halfExtents,
-                ModelMotionState * pMotionState,
-                const mat43 & transform,
-                f32 mass,
-                f32 friction,
-                bool isKinematic,
-                const vec3 & linearFactor,
-                const vec3 & angularFactor,
-                u32 message,
-                u32 group,
-                const ivec4 & mask03,
-                const ivec4 & mask47);
-    void remove(u32 uid);
+    btCollisionShape * findBox(const vec3 & halfExtents);
+    btCollisionShape * findConvexHull(const Gmdl * pGmdlPoints);
+
+    void insertRigidBody(u32 uid,
+                         task_id owner,
+                         btCollisionShape * pCollisionShape,
+                         ModelMotionState * pMotionState,
+                         const vec3 & center,
+                         const mat43 & transform,
+                         f32 mass,
+                         f32 friction,
+                         bool isKinematic,
+                         const vec3 & linearFactor,
+                         const vec3 & angularFactor,
+                         u32 message,
+                         u32 group,
+                         const ivec4 & mask03,
+                         const ivec4 & mask47);
+    void removeRigidBody(u32 uid);
 
     void insertCollisionBox(u32 uid,
                             task_id owner,
@@ -192,6 +195,19 @@ public:
                             u32 group,
                             const ivec4 & mask03,
                             const ivec4 & mask47);
+
+    void insertCollisionConvexHull(u32 uid,
+                                   task_id owner,
+                                   const Gmdl * pGmdlPoints,
+                                   const mat43 & transform,
+                                   f32 mass,
+                                   f32 friction,
+                                   u32 message,
+                                   u32 group,
+                                   const ivec4 & mask03,
+                                   const ivec4 & mask47);
+
+    void destroyCollisionConvexHull(u32 uid);
 
     void setTransform(u32 uid, const mat43 & transform);
     void setVelocity(u32 uid, const vec3 & velocity);
@@ -214,7 +230,8 @@ private:
     PhysicsDebugDraw * mpDebugDraw;
 
     HashMap<kMEM_Physics, u32, ModelBodyUP> mBodies;
-    HashMap<kMEM_Physics, vec3, btCollisionShapeUP> mCollisionShapes;
+    HashMap<kMEM_Physics, vec3, btCollisionShapeUP> mBoxes;
+    HashMap<kMEM_Physics, const Gmdl *, btCollisionShapeUP> mConvexHulls;
     HashMap<kMEM_Physics, u32, u16> mMaskBits;
     HashSet<kMEM_Physics, u32> mBodiesToRemove;
 };

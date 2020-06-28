@@ -33,19 +33,7 @@
 namespace gaen
 {
 
-class CollisionBox
-{
-public:
-    CollisionBox(u32 uid, const vec3 & halfExtents, const mat43 & transform);
-
-    u32 uid() { return mUid; }
-    const vec3 & halfExtents() { return mHalfExtents; }
-    const mat43 & transform() { return mTransform; }
-private:
-    u32 mUid;
-    vec3 mHalfExtents;
-    mat43 mTransform;
-};
+class Gmdl;
 
 u32 collision_box_create(task_id owner,
                          const vec3 & halfExtents,
@@ -53,6 +41,15 @@ u32 collision_box_create(task_id owner,
                          u32 message,
                          u32 group,
                          const ivec4 & mask03);
+
+u32 collision_convex_hull_create(task_id owner,
+                                 const Gmdl * pGmdlPoints,
+                                 const mat43 & transform,
+                                 u32 message,
+                                 u32 group,
+                                 const ivec4 & mask03);
+
+void collision_remove_body(task_id owner, u32 uid);
 
 }
 

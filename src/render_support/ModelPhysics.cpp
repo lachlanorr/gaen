@@ -26,6 +26,8 @@
 
 #include "render_support/stdafx.h"
 
+#include <BulletCollision/CollisionShapes/btConvexHullShape.h>
+
 #include "assets/Gmdl.h"
 #include "core/gamevars.h"
 
@@ -323,45 +325,68 @@ void ModelPhysics::update(f32 delta)
 
     for (u32 uid : mBodiesToRemove)
     {
-        remove(uid);
+        removeRigidBody(uid);
     }
     mBodiesToRemove.clear();
 
     mpDebugDraw->update();
 }
 
-void ModelPhysics::insert(u32 uid,
-                          task_id owner,
-                          const vec3 & center,
-                          const vec3 & halfExtents,
-                          ModelMotionState * pMotionState,
-                          const mat43 & transform,
-                          f32 mass,
-                          f32 friction,
-                          bool isKinematic,
-                          const vec3 & linearFactor,
-                          const vec3 & angularFactor,
-                          u32 message,
-                          u32 group,
-                          const ivec4 & mask03,
-                          const ivec4 & mask47)
+btCollisionShape * ModelPhysics::findBox(const vec3 & halfExtents)
+{
+    auto colShapeIt = mBoxes.find(halfExtents);
+    btVector3 btExtents(halfExtents.x, halfExtents.y, halfExtents.z);
+
+    btCollisionShape * pCollisionShape = nullptr;
+    if (colShapeIt != mBoxes.end())
+        pCollisionShape = colShapeIt->second.get();
+    else
+    {
+        auto empRes = mBoxes.emplace(std::piecewise_construct,
+                                     std::forward_as_tuple(halfExtents),
+                                     std::forward_as_tuple(GNEW(kMEM_Physics, btBoxShape, btExtents)));
+        pCollisionShape = empRes.first->second.get();
+    }
+    return pCollisionShape;
+}
+
+
+btCollisionShape * ModelPhysics::findConvexHull(const Gmdl * pGmdlPoints)
+{
+    auto colShapeIt = mConvexHulls.find(pGmdlPoints);
+
+    btCollisionShape * pCollisionShape = nullptr;
+    if (colShapeIt != mConvexHulls.end())
+        pCollisionShape = colShapeIt->second.get();
+    else
+    {
+        auto empRes = mConvexHulls.emplace(std::piecewise_construct,
+                                           std::forward_as_tuple(pGmdlPoints),
+                                           std::forward_as_tuple(GNEW(kMEM_Physics, btConvexHullShape, pGmdlPoints->verts(), pGmdlPoints->vertCount(), pGmdlPoints->vertStride())));
+        pCollisionShape = empRes.first->second.get();
+    }
+    return pCollisionShape;
+}
+
+
+void ModelPhysics::insertRigidBody(u32 uid,
+                                   task_id owner,
+                                   btCollisionShape * pCollisionShape,
+                                   ModelMotionState * pMotionState,
+                                   const vec3 & center,
+                                   const mat43 & transform,
+                                   f32 mass,
+                                   f32 friction,
+                                   bool isKinematic,
+                                   const vec3 & linearFactor,
+                                   const vec3 & angularFactor,
+                                   u32 message,
+                                   u32 group,
+                                   const ivec4 & mask03,
+                                   const ivec4 & mask47)
 {
     if (mBodies.find(uid) == mBodies.end())
     {
-        auto colShapeIt = mCollisionShapes.find(halfExtents);
-        btVector3 btExtents(halfExtents.x, halfExtents.y, halfExtents.z);
-
-        btCollisionShape * pCollisionShape = nullptr;
-        if (colShapeIt != mCollisionShapes.end())
-            pCollisionShape = colShapeIt->second.get();
-        else
-        {
-            auto empRes = mCollisionShapes.emplace(std::piecewise_construct,
-                                                   std::forward_as_tuple(halfExtents),
-                                                   std::forward_as_tuple(GNEW(kMEM_Physics, btBoxShape, btExtents)));
-            pCollisionShape = empRes.first->second.get();
-        }
-
         btRigidBody::btRigidBodyConstructionInfo constrInfo(mass, pMotionState, pCollisionShape);
         gaen_to_bullet_transform(constrInfo.m_startWorldTransform, transform, center);
         constrInfo.m_friction = friction;
@@ -396,7 +421,7 @@ void ModelPhysics::insert(u32 uid,
     }
 }
 
-void ModelPhysics::remove(u32 uid)
+void ModelPhysics::removeRigidBody(u32 uid)
 {
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
@@ -432,21 +457,52 @@ void ModelPhysics::insertCollisionBox(u32 uid,
                                       const ivec4 & mask03,
                                       const ivec4 & mask47)
 {
-    insert(uid,
-           owner,
-           center,
-           halfExtents,
-           nullptr,
-           transform,
-           mass,
-           friction,
-           false,
-           linearFactor,
-           angularFactor,
-           message,
-           group,
-           mask03,
-           mask47);
+    btCollisionShape * pCollisionShape = findBox(halfExtents);
+    insertRigidBody(uid,
+                    owner,
+                    pCollisionShape,
+                    nullptr,
+                    center,
+                    transform,
+                    mass,
+                    friction,
+                    false,
+                    linearFactor,
+                    angularFactor,
+                    message,
+                    group,
+                    mask03,
+                    mask47);
+}
+
+void ModelPhysics::insertCollisionConvexHull(u32 uid,
+                                             task_id owner,
+                                             const Gmdl * pGmdlPoints,
+                                             const mat43 & transform,
+                                             f32 mass,
+                                             f32 friction,
+                                             u32 message,
+                                             u32 group,
+                                             const ivec4 & mask03,
+                                             const ivec4 & mask47)
+{
+    btCollisionShape * pCollisionShape = findConvexHull(pGmdlPoints);
+    insertRigidBody(uid,
+                    owner,
+                    pCollisionShape,
+                    nullptr,
+                    vec3(0.0f, 0.0f, 0.0f),
+//                    pGmdlPoints->center(),
+                    transform,
+                    mass,
+                    friction,
+                    false,
+                    vec3(1.0f, 1.0f, 1.0f),
+                    vec3(1.0f, 1.0f, 1.0f),
+                    message,
+                    group,
+                    mask03,
+                    mask47);
 }
 
 void ModelPhysics::setTransform(u32 uid, const mat43 & transform)

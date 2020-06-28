@@ -36,6 +36,7 @@
 #include "engine/messages/CameraOrtho.h"
 #include "engine/messages/CameraPersp.h"
 #include "engine/messages/CollisionBox.h"
+#include "engine/messages/CollisionConvexHull.h"
 #include "engine/messages/ModelBody.h"
 #include "engine/messages/ModelInstance.h"
 #include "engine/messages/NotifyWatcherMat43.h"
@@ -162,28 +163,35 @@ MessageResult ModelMgr::message(const T & msgAcc)
         if (modelPair != mModelMap.end())
         {
             modelPair->second->mHasBody = true;
+            btCollisionShape * pCollisionShape = mPhysics.findBox(modelPair->second->model().gmdl().halfExtents());
             ModelMotionState * pMotionState = GNEW(kMEM_Physics, ModelMotionState, *modelPair->second);
 
-            mPhysics.insert(modelPair->second->model().uid(),
-                            modelPair->second->model().owner(),
-                            modelPair->second->model().gmdl().center(),
-                            modelPair->second->model().gmdl().halfExtents(),
-                            pMotionState,
-                            mat43(1.0f),
-                            msgr.mass(),
-                            msgr.friction(),
-                            msgr.isKinematic(),
-                            msgr.linearFactor(),
-                            msgr.angularFactor(),
-                            msgr.message(),
-                            msgr.group(),
-                            msgr.mask03(),
-                            msgr.mask47());
+            mPhysics.insertRigidBody(modelPair->second->model().uid(),
+                                     modelPair->second->model().owner(),
+                                     pCollisionShape,
+                                     pMotionState,
+                                     modelPair->second->model().gmdl().center(),
+                                     mat43(1.0f),
+                                     msgr.mass(),
+                                     msgr.friction(),
+                                     msgr.isKinematic(),
+                                     msgr.linearFactor(),
+                                     msgr.angularFactor(),
+                                     msgr.message(),
+                                     msgr.group(),
+                                     msgr.mask03(),
+                                     msgr.mask47());
         }
         else
         {
             ERR("model_init_body for unknown model, uid: %u", msgr.uid());
         }
+        return MessageResult::Consumed;
+    }
+    case HASH::remove_body:
+    {
+        u32 uid = msg.payload.u;
+        mPhysics.removeRigidBody(uid);
         return MessageResult::Consumed;
     }
     case HASH::model_remove_body:
@@ -195,7 +203,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
             if (modelPair->second->mHasBody)
             {
                 modelPair->second->mHasBody = false;
-                mPhysics.remove(uid);
+                mPhysics.removeRigidBody(uid);
             }
             else
             {
@@ -227,6 +235,22 @@ MessageResult ModelMgr::message(const T & msgAcc)
 
         return MessageResult::Consumed;
     }
+    case HASH::collision_convex_hull_create:
+    {
+        messages::CollisionConvexHullR<T> msgr(msgAcc);
+        mPhysics.insertCollisionConvexHull(msgr.uid(),
+                                           msg.source,
+                                           msgr.gmdlPoints(),
+                                           msgr.transform(),
+                                           msgr.mass(),
+                                           msgr.friction(),
+                                           msgr.message(),
+                                           msgr.group(),
+                                           msgr.mask03(),
+                                           msgr.mask47());
+
+        return MessageResult::Consumed;
+    }
 	case HASH::remove_task__:
 	{
         task_id taskIdToRemove = msg.payload.u;
@@ -242,7 +266,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
                     // remove from physics simulation if necessary
                     if (modelPair->second->mHasBody)
                     {
-                        mPhysics.remove(uid);
+                        mPhysics.removeRigidBody(uid);
                     }
 
                     // send model_remove to renderer who in turn will send it back to us once

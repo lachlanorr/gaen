@@ -195,8 +195,23 @@ CollisionBox:
   friction: f32
   linearFactor: vec3
   angularFactor: vec3
-  message: u32
-  group: u32
+  message: i32
+  group: i32
+  mask03: ivec4
+  mask47: ivec4
+
+CollisionConvexHull:
+  uid: i32
+  pGmdlPoints:
+    type: pointer
+    type_name: const Gmdl *
+    includes:
+      - assets/Gmdl.h
+  transform: mat43
+  mass: f32
+  friction: f32
+  message: i32
+  group: i32
   mask03: ivec4
   mask47: ivec4
 
