@@ -289,7 +289,6 @@ const char * parse_identifier(const char * str, ParseData * pParseData);
 
 size_t mangle_function_len(const char * name, const AstList * pParamList);
 void mangle_function(char * mangledName, int mangledNameSize, const char * name, const AstList * pParamList);
-const char * unmangle(const char * mangledName);
 size_t mangle_type_len(const char * name);
 void mangle_type(char * mangledName, size_t mangledNameSize, const char * name, int isConst, int isReference);
 
@@ -319,6 +318,7 @@ SymTab* symtab_create(ParseData * pParseData);
 SymTab* symtab_add_symbol(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseData);
 SymTab* symtab_add_symbol_with_fields(SymTab* pSymTab, SymRec * pSymRec, ParseData * pParseData);
 SymRec* symtab_find_symbol(SymTab* pSymTab, const char * name);
+const char * extract_namespace(const char * name);
 SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name);
 const SymDataType* symtab_find_type_recursive(SymTab* pSymTab, DataType dataType, int isConst, int isReference);
 SymRec* symtab_find_type(SymTab* pSymTab, const char * name);
@@ -426,6 +426,7 @@ int is_integral_type(const SymDataType * pSdt);
 
 void parsedata_destroy(ParseData * pParseData);
 const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dottedId);
+void parsedata_add_script_include(ParseData * pParseData, const char * fullPath);
 void parsedata_prep_paths(ParseData * pParseData, const char * fullPath);
 void *  parsedata_scanner(ParseData * pParseData);
 
@@ -493,8 +494,7 @@ void register_builtin_functions(ParseData * pParseData);
 void register_system_apis(ParseData * pParseData);
 
 ParseData * parse_file(const char * fullPath,
-                       u32 apiIncludesCount,
-                       const char ** pApiIncludes,
+                       CompList<CompString> * pSystemIncludes,
                        MessageHandler messageHandler);
 
 } // namespace gaen

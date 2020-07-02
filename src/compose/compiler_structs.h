@@ -237,8 +237,8 @@ struct ParseData
 
     bool hasErrors;
 
-    u32 apiIncludesCount;
-    const char ** pApiIncludes;
+    CompList<CompString> * pSystemIncludes;
+    CompSet<CompString> scriptIncludes;
 };
 
 #endif // #ifndef GAEN_COMPOSE_COMPILER_STRUCTS_H

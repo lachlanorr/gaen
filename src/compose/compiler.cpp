@@ -111,6 +111,17 @@ void mangle_function(char * mangledName, i32 mangledNameSize, const char * name,
 
     char * p = mangledName;
 
+    // strip of any dotted prefix since it must be pre-pended before mangled function name
+    const char * lastdotpos = strrchr(name, '.');
+    if (lastdotpos)
+    {
+        size_t namespaceLen = lastdotpos - name + 1;
+        strncpy(mangledName, name, namespaceLen);
+        mangledName[namespaceLen] = '\0';
+        name += namespaceLen;
+        p += namespaceLen;
+    }
+
     strcpy(p, "f__");
     p += 3;
 
@@ -128,23 +139,6 @@ void mangle_function(char * mangledName, i32 mangledNameSize, const char * name,
     }
 
     strcpy(p, name);
-}
-
-const char * unmangle(const char * mangledName)
-{
-    const char * lastDoubleDash = strstr(mangledName, "__");
-
-    if (lastDoubleDash)
-        lastDoubleDash += 2;
-    else
-        return mangledName;
-
-    while (const char * ldd = strstr(lastDoubleDash, "__"))
-    {
-        lastDoubleDash = ldd + 2;
-    }
-
-    return lastDoubleDash;
 }
 
 size_t mangle_type_len(const char * name)
@@ -496,6 +490,29 @@ const char * namespace_match(const char * name, const Using & using_)
     return unqualified;
 }
 
+
+const char * extract_namespace(const char * name)
+{
+    const char * dotPos = strrchr(name, '.');
+    if (!dotPos)
+    {
+        return nullptr;
+    }
+    else
+    {
+        size_t namespaceLen = dotPos - name;
+        if (namespaceLen <= 1)
+            return nullptr; // seems like bad id, like it starts with a '.'
+
+        char * namespace_ = (char*)COMP_ALLOC(namespaceLen+1);
+        strncpy(namespace_, name, namespaceLen);
+        namespace_[namespaceLen] = '\0';
+
+        return namespace_;
+    }
+}
+
+
 SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
 {
     ASSERT(pSymTab);
@@ -533,22 +550,11 @@ SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
     // Ok, we haven't found the symbol anywhere, including explicit usings.
     // Attempt to implicitly using the containing file.
     {
-        // Unmangle the name, as we mangled it looking for a type
-        name = unmangle(name);
-
-        const char * dotPos = strrchr(name, '.');
-        if (dotPos)
+        const char * namespace_ = extract_namespace(name);
+        if (namespace_)
         {
-            size_t usingNameLen = dotPos - name;
-            if (usingNameLen <= 1)
-                return nullptr; // seems like bad id, like it starts with a '.'
-
-            char * usingName = (char*)COMP_ALLOC(usingNameLen+1);
-            strncpy(usingName, name, usingNameLen);
-            usingName[usingNameLen] = '\0';
-
             // we have a dot, attempt to load the file
-            const char * path = parsedata_dotted_to_path(pSymTab->pParseData, usingName);
+            const char * path = parsedata_dotted_to_path(pSymTab->pParseData, namespace_);
             if (path)
             {
                 // path seems possibly valid, continue with the using
@@ -561,7 +567,13 @@ SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
                     SymTab * pTopLevelSymTab = pUsing->pParseData->pRootScope->pSymTab->children.front();
                     SymRec * pSymRec = symtab_find_symbol(pTopLevelSymTab, unqualifiedName);
                     if (pSymRec)
+                    {
+                        if (pSymRec->type == kSYMT_Function)
+                        {
+                            parsedata_add_script_include(pSymTab->pParseData, path);
+                        }
                         return pSymRec;
+                    }
                 }
             }
         }
@@ -2084,7 +2096,7 @@ Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData
         {
             pAst->pSymRecRef = pSymRec;
             ast_set_rhs(pAst, pParams);
-            pAst->str = unmangle(pSymRec->name);
+            pAst->str = pApiName; // set to unmangled name
         }
     }
     else
@@ -2488,8 +2500,7 @@ Scope * scope_create(ParseData * pParseData)
 // ParseData
 //------------------------------------------------------------------------------
 ParseData * parsedata_create(const char * fullPath,
-                             u32 apiIncludesCount,
-                             const char ** pApiIncludes,
+                             CompList<CompString> * pSystemIncludes,
                              MessageHandler messageHandler)
 {
     ParseData * pParseData = COMP_NEW(ParseData);
@@ -2506,8 +2517,7 @@ ParseData * parsedata_create(const char * fullPath,
 
     pParseData->pRootScope->pSymTab->pAst = pParseData->pRootAst;
 
-    pParseData->apiIncludesCount = apiIncludesCount;
-    pParseData->pApiIncludes = pApiIncludes;
+    pParseData->pSystemIncludes = pSystemIncludes;
 
     parsedata_prep_paths(pParseData, fullPath);
 
@@ -2548,6 +2558,16 @@ const char * parsedata_dotted_to_path(ParseData * pParseData, const char * dotte
     strcat(path, ".cmp");
 
     return path;
+}
+
+void parsedata_add_script_include(ParseData * pParseData, const char * fullPath)
+{
+    CompString fname = fullPath + pParseData->scriptsRootPathLen;
+    ASSERT(fname.rfind(".cmp") == fname.size() - 4);
+    fname.erase(fname.size() - 4); // strip off ".cmp" suffix
+    fname += ".h";
+    CompString path = CompString("scripts/cpp/") + fname;
+    pParseData->scriptIncludes.insert(path);
 }
 
 static bool has_invalid_underscore(const char * str)
@@ -2899,7 +2919,7 @@ const Using * parsedata_parse_using(ParseData * pParseData,
                                     const char * namespace_,
                                     const char * fullPath)
 {
-    ParseData * pUsingParseData = parse_file(fullPath, pParseData->apiIncludesCount, pParseData->pApiIncludes, pParseData->messageHandler);
+    ParseData * pUsingParseData = parse_file(fullPath, pParseData->pSystemIncludes, pParseData->messageHandler);
 
     if (!pUsingParseData)
     {
@@ -2995,13 +3015,12 @@ i32 read_file(const char * path, char ** output)
 ParseData * parse(const char * source,
                   size_t length,
                   const char * fullPath,
-                  u32 apiIncludesCount,
-                  const char ** pApiIncludes,
+                  CompList<CompString> * pSystemIncludes,
                   MessageHandler messageHandler)
 {
     int ret;
 
-    ParseData * pParseData = parsedata_create(fullPath, apiIncludesCount, pApiIncludes, messageHandler);
+    ParseData * pParseData = parsedata_create(fullPath, pSystemIncludes, messageHandler);
 
     if (!source)
     {
@@ -3518,11 +3537,10 @@ void register_builtin_functions(ParseData * pParseData)
 }
 
 ParseData * parse_file(const char * fullPath,
-                       u32 apiIncludesCount,
-                       const char ** pApiIncludes,
+                       CompList<CompString> * pSystemIncludes,
                        MessageHandler messageHandler)
 {
-    return parse(nullptr, 0, fullPath, apiIncludesCount, pApiIncludes, messageHandler);
+    return parse(nullptr, 0, fullPath, pSystemIncludes, messageHandler);
 }
 
 } // namespace gaen

@@ -77,10 +77,7 @@ int main(int argc, char ** argv)
 
     parse_init();
 
-    static const u32 kMaxIncludes = 16;
-    const char * pIncludes[kMaxIncludes];
-    memset(pIncludes, 0, sizeof(const char *) * kMaxIncludes);
-    u32 includesCount = 0;
+    CompList<CompString> systemIncludes;
 
     // parse command line args
     for (i32 i = 1; i < argc - 2; ++i)
@@ -90,8 +87,7 @@ int main(int argc, char ** argv)
             switch (argv[i][1])
             {
             case 'i':
-                ASSERT_MSG(includesCount < kMaxIncludes, "Too many includes");
-                pIncludes[includesCount++] = argv[i+1];
+                systemIncludes.emplace_back(argv[i+1]);
                 i++;
                 break;
             default:
@@ -104,8 +100,7 @@ int main(int argc, char ** argv)
     const char * inFile = argv[argc-1];
 
     ParseData * pParseData = parse_file(inFile,
-                                        includesCount,
-                                        pIncludes,
+                                        &systemIncludes,
                                         &messageHandler);
 
     if (!pParseData || pParseData->hasErrors)

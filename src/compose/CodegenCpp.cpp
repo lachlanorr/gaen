@@ -1335,7 +1335,9 @@ S CodegenCpp::functionPrototype(const Ast * pFuncAst)
     if (isTopLevelFunction(pFuncAst))
     {
         // Add in a callback function param to 'self()' so the function body can call system apis
-        code += S(", Entity * pThis");
+        if (!isFirst)
+            code += S(", ");
+        code += S("Entity * pThis");
     }
 
     code += S(")");
@@ -2212,7 +2214,9 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
         // make system_api calls.
         if (isTopLevelFunction(pAst->pSymRecRef->pAst))
         {
-            code += S(", &pThis->self()");
+            if (pAst->pRhs->pChildren->nodes.size() > 0)
+                code += S(", ");
+            code += S("&pThis->self()");
         }
 
         code += S(")");
@@ -2801,12 +2805,22 @@ CodeCpp CodegenCpp::codegen(ParseData * pParseData)
 
     codeCpp.code += S("\n");
     codeCpp.code += S("// system_api declarations\n");
-    if (pParseData->pApiIncludes)
+
+    for (const CompString & inc : *pParseData->pSystemIncludes)
     {
-        for (u32 i = 0; i < pParseData->apiIncludesCount; ++i)
+        codeCpp.code += S("#include \"");
+        codeCpp.code += inc.c_str();
+        codeCpp.code += S("\"\n");
+    }
+
+    if (pParseData->scriptIncludes.size() > 0)
+    {
+        codeCpp.code += S("\n");
+        codeCpp.code += S("// script declarations\n");
+        for (const CompString & inc : pParseData->scriptIncludes)
         {
             codeCpp.code += S("#include \"");
-            codeCpp.code += S(pParseData->pApiIncludes[i]);
+            codeCpp.code += inc.c_str();
             codeCpp.code += S("\"\n");
         }
     }
