@@ -82,6 +82,7 @@ typedef enum
     kAST_SystemApiDef,
     kAST_EntityDef,
     kAST_ComponentDef,
+    kAST_GlobalConstDef,
     kAST_MessageDef,
     kAST_PropertyDef,
     kAST_PropertyDefaultAssign,
@@ -208,6 +209,7 @@ typedef enum
     kSYMT_SystemApi,
     kSYMT_Entity,
     kSYMT_Component,
+    kSYMT_GlobalConst,
     kSYMT_Type,
     kSYMT_Message,
     kSYMT_Property,
@@ -345,6 +347,7 @@ Ast * ast_create_input_def(const char * name, float repeatDelay, Ast * pBlock, P
 Ast * ast_create_input_special_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_entity_def(const char * name, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pParseData);
+Ast * ast_create_global_const_def(const char * name, const SymDataType * pDataType, Ast * pConstExpr, ParseData * pParseData);
 
 Ast * ast_create_message_def(const char * name, SymTab * pSymTab, Ast * pBlock, ParseData * pParseData);
 Ast * ast_create_field_def(const char * name, const SymDataType * pDataType, Ast * pInitVal, ParseData * pParseData);

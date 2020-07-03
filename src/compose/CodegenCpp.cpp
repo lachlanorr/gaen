@@ -347,6 +347,10 @@ S CodegenCpp::symref(const Ast * pAst, SymRec * pSymRec, ParseData * pParseData)
             code = S("pThis->") + S(pSymRec->name) + S("()");
         }
     }
+    else if (pSymRec->type == kSYMT_GlobalConst)
+    {
+        code = S("compose_globals::") + S(pSymRec->fullName);
+    }
     else
     {
         PANIC_IF(!pAst, "Null pAst, invalid for this case");
@@ -1968,6 +1972,21 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
 
         return code;
     }
+    case kAST_GlobalConstDef:
+    {
+        ASSERT(pAst->pSymRec->pSymDataType->typeDesc.isConst);
+        S code("namespace compose_globals\n");
+        code += S("{\n");
+        code += S("extern ");
+        code += S(pAst->pSymRec->pSymDataType->cppTypeStr);
+        code += S(" ");
+        code += S(pAst->pSymRec->fullName);
+        code += S(" = ");
+        code += codegenRecurse(pAst->pSymRec->pInitVal, 0);
+        code += S(";\n");
+        code += ("} // namespace compose_globals\n");
+        return code;
+    }
     case kAST_PropertyDef:
     case kAST_FieldDef:
     {
@@ -2686,17 +2705,27 @@ S CodegenCpp::codegenHeader(const Ast * pRootAst)
 {
     ASSERT(pRootAst->type == kAST_Root);
 
-    S code = S();
-    for (Ast * pFuncAst : pRootAst->pChildren->nodes)
+    S codeFuncs = S();
+    S codeGlobals = S();
+
+    for (Ast * pAst : pRootAst->pChildren->nodes)
     {
-        if (pFuncAst->type == kAST_FunctionDef)
+        if (pAst->type == kAST_FunctionDef)
         {
-            code += functionPrototype(pFuncAst);
-            code += S(";\n");
+            codeFuncs += functionPrototype(pAst);
+            codeFuncs += S(";\n");
+        }
+        else if (pAst->type == kAST_GlobalConstDef)
+        {
+            codeGlobals += S("extern ");
+            codeGlobals += S(pAst->pSymRec->pSymDataType->cppTypeStr);
+            codeGlobals += S(" ");
+            codeGlobals += S(pAst->pSymRec->fullName);
+            codeGlobals += S(";\n");
         }
     }
 
-    if (code != S(""))
+    if (codeFuncs != S("") || codeGlobals != S(""))
     {
         S headerDecls = S();
         headerDecls += S("#include \"core/base_defines.h\"\n");
@@ -2706,12 +2735,26 @@ S CodegenCpp::codegenHeader(const Ast * pRootAst)
         headerDecls += LF;
         headerDecls += S("class Entity;\n");
 
-        headerDecls += S("namespace compose_funcs\n{\n\n");
+        if (codeFuncs != S(""))
+        {
+            headerDecls += S("namespace compose_funcs\n{\n\n");
 
-        headerDecls += code;
+            headerDecls += codeFuncs;
 
-        headerDecls += LF;
-        headerDecls += S("} // namespace compose_funcs\n");
+            headerDecls += LF;
+            headerDecls += S("} // namespace compose_funcs\n\n");
+        }
+
+        if (codeGlobals != S(""))
+        {
+            headerDecls += S("namespace compose_globals\n{\n\n");
+
+            headerDecls += codeGlobals;
+
+            headerDecls += LF;
+            headerDecls += S("} // namespace compose_globals\n\n");
+        }
+
         headerDecls += S("} // namespace gaen\n");
         return headerDecls;
     }

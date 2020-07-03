@@ -336,8 +336,8 @@ SymRec * symrec_create(SymType symType,
     case kSYMT_Entity:
     case kSYMT_Component:
     case kSYMT_Type:
+    case kSYMT_GlobalConst:
     {
-
         const char * ns = "";
         if (pAst && pAst->pParseData && pAst->pParseData->namespace_)
         {
@@ -568,7 +568,7 @@ SymRec* symtab_find_symbol_recursive(SymTab* pSymTab, const char * name)
                     SymRec * pSymRec = symtab_find_symbol(pTopLevelSymTab, unqualifiedName);
                     if (pSymRec)
                     {
-                        if (pSymRec->type == kSYMT_Function)
+                        if (pSymRec->type == kSYMT_Function || pSymRec->type == kSYMT_GlobalConst)
                         {
                             parsedata_add_script_include(pSymTab->pParseData, path);
                         }
@@ -938,6 +938,22 @@ Ast * ast_create_component_def(const char * name, Ast * pBlock, ParseData * pPar
                                       false,
                                       pParseData);
     pAst->pBlockInfos = block_pack_props_and_fields(pAst);
+    return pAst;
+}
+
+Ast * ast_create_global_const_def(const char * name, const SymDataType * pDataType, Ast * pConstExpr, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_GlobalConstDef, pParseData);
+    pAst->pSymRec = symrec_create(kSYMT_GlobalConst,
+                                  pDataType,
+                                  name,
+                                  pAst,
+                                  pConstExpr,
+                                  pParseData);
+
+    symtab_add_symbol(parsedata_current_scope(pParseData)->pSymTab, pAst->pSymRec, pParseData);
+    ast_set_rhs(pAst, pConstExpr);
+    parsedata_add_root_ast(pParseData, pAst);
     return pAst;
 }
 
@@ -2125,7 +2141,8 @@ Ast * ast_create_symbol_ref(Ast * pDottedId, ParseData * pParseData)
     if (pSymRec->type != kSYMT_Param &&
         pSymRec->type != kSYMT_Local &&
         pSymRec->type != kSYMT_Field &&
-        pSymRec->type != kSYMT_Property)
+        pSymRec->type != kSYMT_Property &&
+        pSymRec->type != kSYMT_GlobalConst)
     {
         COMP_ERROR(pParseData, "Invalid use of symbol: %s", pDottedId->str);
         return pAst;

@@ -80,7 +80,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 
 /* This type list must match the DataType enum in compiler.h */
 %token <dataType> VOID_ BOOL_ INT_ FLOAT_ COLOR VEC2 VEC3 VEC4 IVEC2 IVEC3 IVEC4 QUAT MAT3 MAT43 MAT4 HANDLE_ ASSET ENTITY STRING
-%type <dataType> basic_type
+%type <dataType> basic_type constable_type
 
 %token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS UPDATE INPUT_ ANY NONE USING AS CONST_ SELF PRE POST VALUE RENDERER
 %right ELSE THEN
@@ -109,9 +109,9 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %right '(' '[' '{'
 %left  ')' ']' '}'
 
-%type <pSymDataType> type type_ent type_ent_handle_asset
+%type <pSymDataType> type const_type type_ent type_ent_handle_asset
 
-%type <pAst> def stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
+%type <pAst> def stmt block stmt_list fun_params expr const_expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> using_list using_stmt dotted_id dotted_id_proc dotted_id_part
 %type <pAst> message_block message_list message_prop target_expr message_expr function_def
 %type <pAst> prop_init_list prop_init component_block component_member_list component_member property_decl property_block property_def_list property_def input_block input_def_list input_def
@@ -157,6 +157,7 @@ def
     : ENTITY IDENTIFIER message_block                   { $$ = ast_create_entity_def($2, $3, pParseData); }
     | COMPONENT IDENTIFIER message_block                { $$ = ast_create_component_def($2, $3, pParseData); }
     | function_def                                      { $$ = parsedata_add_root_ast(pParseData, $1); }
+    | const_type IDENTIFIER '=' const_expr ';'          { $$ = ast_create_global_const_def($2, $1, $4, pParseData); }
     ;
 
 message_block
@@ -312,8 +313,7 @@ expr
     | type_ent IDENTIFIER          { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL, NULL, pParseData)); }
     | type_ent IDENTIFIER '=' expr { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL, $4, pParseData)); }
 
-    | STRING_LITERAL { $$ = ast_create_string_literal($1, pParseData); }
-
+    | const_expr       { $$ = $1; }
     | cond_expr        { $$ = $1; }
 
     | expr '+' expr    { $$ = ast_create_binary_op(kAST_Add,    $1, $3, pParseData); }
@@ -352,8 +352,6 @@ expr
     | expr INC %prec POSTINC { $$ = ast_create_unary_op(kAST_PostInc, $1, pParseData); }
     | expr DEC %prec POSTDEC { $$ = ast_create_unary_op(kAST_PostDec, $1, pParseData); }
 
-    | literal   { $$ = $1; }
-
     | basic_type '{' fun_params '}'      { $$ = ast_create_type_init($1, $3, pParseData); }
     | dotted_id  '{' prop_init_list '}'  { $$ = ast_create_entity_init($1, $3, pParseData); }
     | dotted_id  '(' fun_params ')'      { $$ = ast_create_function_call($1, $3, pParseData); }
@@ -362,6 +360,11 @@ expr
 
     | TRANSFORM  { $$ = ast_create(kAST_Transform, pParseData); }
     | SELF       { $$ = ast_create(kAST_Self, pParseData); }
+    ;
+
+const_expr
+    : STRING_LITERAL { $$ = ast_create_string_literal($1, pParseData); }
+    | literal        { $$ = $1; }
     ;
 
 cond_expr
@@ -398,15 +401,22 @@ fun_params
     ;
 
 type
-    : CONST_ basic_type  { $$ = parsedata_find_basic_type(pParseData, $2, 1, 0); }
-    | basic_type         { $$ = parsedata_find_basic_type(pParseData, $1, 0, 0); }
-    | CONST_ dotted_id   { $$ = parsedata_find_type_from_dotted_id(pParseData, $2, 1, 0); }
+    : basic_type         { $$ = parsedata_find_basic_type(pParseData, $1, 0, 0); }
     | dotted_id          { $$ = parsedata_find_type_from_dotted_id(pParseData, $1, 0, 0); }
+    ;
+
+const_type
+    : CONST_ constable_type { $$ = parsedata_find_basic_type(pParseData, $2, 1, 0); }
     ;
 
 basic_type
     : VOID_
-    | BOOL_
+    | STRING
+    | constable_type
+    ;
+
+constable_type
+    : BOOL_
     | INT_
     | FLOAT_
     | COLOR
@@ -420,7 +430,6 @@ basic_type
     | MAT3
     | MAT43
     | MAT4
-    | STRING
     ;
 
 /*
@@ -429,7 +438,6 @@ basic_type
 */
 type_ent
     : type           { $$ = $1; }
-    | CONST_ ENTITY  { $$ = parsedata_find_type(pParseData, "entity", 1, 0); }
     | ENTITY         { $$ = parsedata_find_type(pParseData, "entity", 0, 0); }
     ;
 
