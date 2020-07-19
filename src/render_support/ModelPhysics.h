@@ -80,6 +80,9 @@ class ModelBody : public btRigidBody
 public:
     ModelBody(task_id owner,
               const vec3 & center,
+              u32 flags,
+              const vec3 & linearFactor,
+              const vec3 & angularFactor,
               u32 message,
               u32 groupHash,
               ModelMotionState * pMotionState,
@@ -87,16 +90,39 @@ public:
       : btRigidBody(constructionInfo)
       , mOwner(owner)
       , mCenter(center)
+      , mFlags(flags)
+      , mVelocity(0.0f)
+      , mLinearFactor(linearFactor)
+      , mAngularFactor(angularFactor)
       , mMessage(message)
       , mGroupHash(groupHash)
       , mpMotionState(pMotionState)
       , mIsMarkedForRemoval(false)
-    {}
+    {
+        int i = 0;
+    }
 
     task_id owner() const { return mOwner; }
     const vec3 & center() const { return mCenter; }
+    u32 flags() const { return mFlags; }
+    const vec3 & velocity() const { return mVelocity; }
+    const vec3 & linearFactor() const { return mLinearFactor; }
+    const vec3 & angularFactor() const { return mAngularFactor; }
+    bool isKinematic() const { return (mFlags & system_api::PHY_KINEMATIC); }
+    bool stopOnCollide() const { return (mFlags & system_api::PHY_KINEMATIC) && (mFlags & system_api::PHY_STOP_ON_COLLIDE); }
+    bool slideOnCollide() const { return (mFlags & system_api::PHY_KINEMATIC) && !(mFlags & system_api::PHY_STOP_ON_COLLIDE) ; }
     u32 message() const { return mMessage; }
     u32 groupHash() const { return mGroupHash; }
+
+    void setVelocity(const vec3 & velocity);
+    void update(f32 delta);
+    void setGaenTransform(const mat43 & transform);
+
+    const mat43 transform() const { return mpMotionState->mModelInstance.mTransform; }
+
+    bool isMarkedForRemoval() const { return mIsMarkedForRemoval; }
+
+    void handleCollision(f32 dist, const vec3 & normal, const vec3 & locSelf, const vec3 & locTarget) const;
 
     void markForRemoval()
     {
@@ -110,6 +136,10 @@ public:
 private:
     task_id mOwner;
     vec3 mCenter;
+    u32 mFlags;
+    vec3 mVelocity;
+    vec3 mLinearFactor;
+    vec3 mAngularFactor;
     u32 mMessage;
     u32 mGroupHash;
     ModelMotionStateUP mpMotionState; // LORRNOTE: only reason we have this pointer is so we can delete it when the ModelBody gets destroyed
@@ -161,6 +191,7 @@ public:
     ~ModelPhysics();
 
     void update(f32 delta);
+    void updateKinematics(f32 delta);
 
     btCollisionShape * findBox(const vec3 & halfExtents);
     btCollisionShape * findConvexHull(const Gmdl * pGmdlPoints);
@@ -173,7 +204,7 @@ public:
                          const mat43 & transform,
                          f32 mass,
                          f32 friction,
-                         bool isKinematic,
+                         u32 flags,
                          const vec3 & linearFactor,
                          const vec3 & angularFactor,
                          u32 message,

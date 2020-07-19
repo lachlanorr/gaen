@@ -54,7 +54,6 @@ TEMPLATE_DIR      = os.path.join(SCRIPT_DIR, 'templates', 'project')
 GAEN_DIR          = os.path.split(SCRIPT_DIR)[0]
 GAEN_PARENT_DIR   = os.path.split(GAEN_DIR)[0]
 GAEN_SRC_DIR      = os.path.join(GAEN_DIR, 'src')
-CODEGEN_CPP_CPP_FILE = os.path.join(GAEN_SRC_DIR, 'compose', 'codegen_cpp.cpp')
 COMPILER_CPP_CPP_FILE = os.path.join(GAEN_SRC_DIR, 'compose', 'compiler.cpp')
 PROJECT_INFO_FILE = os.path.join(GAEN_PARENT_DIR, 'gaen_project.info')
 IS_PROJECT        = __is_project()

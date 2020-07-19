@@ -121,6 +121,7 @@ const Gaim & Model::gaim() const
 
 ModelInstance::ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, u32 renderFlags, const mat43 & transform, bool isRenderable, bool isStatic)
   : mTransform(transform)
+  , mDirection(0.0f)
   , mpModel(pModel)
   , mStageHash(stageHash)
   , mPass(pass)

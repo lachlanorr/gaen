@@ -96,6 +96,7 @@ public:
     f32 zdepth() { return gaen::position(mTransform).z; }
 
     mat43 mTransform;
+    vec3 mDirection;
 
 private:
     // Delete these to make sure we construct through the asset->addref path

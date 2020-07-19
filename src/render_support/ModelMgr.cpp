@@ -174,7 +174,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
                                      mat43(1.0f),
                                      msgr.mass(),
                                      msgr.friction(),
-                                     msgr.isKinematic(),
+                                     msgr.flags(),
                                      msgr.linearFactor(),
                                      msgr.angularFactor(),
                                      msgr.message(),
@@ -310,8 +310,10 @@ void ModelMgr::transformModel(i32 modelUid, const mat43 & transform)
     {
         if (modelPair->second->mTransform != transform)
         {
-
             // update the instance
+            modelPair->second->mDirection = position(transform) - position(modelPair->second->mTransform);
+            if (modelPair->second->mDirection != vec3(0.0f))
+                modelPair->second->mDirection = normalize(modelPair->second->mDirection);
             modelPair->second->mTransform = transform;
 
             if (modelPair->second->mHasBody)
@@ -387,7 +389,7 @@ void model_set_angular_velocity(i32 modelUid, const vec3 & velocity, Entity * pC
 void model_init_body(i32 modelUid,
                      f32 mass,
                      f32 friction,
-                     bool isKinematic,
+                     i32 flags,
                      vec3 linearFactor,
                      vec3 angularFactor,
                      i32 message,
@@ -399,7 +401,7 @@ void model_init_body(i32 modelUid,
     messages::ModelBodyBW msgw(HASH::model_init_body, kMessageFlag_None, pCaller->task().id(), kModelMgrTaskId, modelUid);
     msgw.setMass(mass);
     msgw.setFriction(friction);
-    msgw.setIsKinematic(isKinematic);
+    msgw.setFlags(flags);
     msgw.setLinearFactor(linearFactor);
     msgw.setAngularFactor(angularFactor);
     msgw.setMessage(message);

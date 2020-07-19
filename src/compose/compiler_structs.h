@@ -94,7 +94,8 @@ enum SymRecFlag
     kSRFL_Member          = 0x0001,
     kSRFL_NeedsCppParens  = 0x0002,
     kSRFL_AssetRelated    = 0x0004,
-    kSRFL_BuiltInFunction = 0x0008
+    kSRFL_BuiltInFunction = 0x0008,
+    kSRFL_BuiltInConst    = 0x0010
 };
 
 struct SymRec

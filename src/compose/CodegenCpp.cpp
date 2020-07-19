@@ -1974,18 +1974,8 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
     }
     case kAST_GlobalConstDef:
     {
-        ASSERT(pAst->pSymRec->pSymDataType->typeDesc.isConst);
-        S code("namespace compose_globals\n");
-        code += S("{\n");
-        code += S("extern ");
-        code += S(pAst->pSymRec->pSymDataType->cppTypeStr);
-        code += S(" ");
-        code += S(pAst->pSymRec->fullName);
-        code += S(" = ");
-        code += codegenRecurse(pAst->pSymRec->pInitVal, 0);
-        code += S(";\n");
-        code += ("} // namespace compose_globals\n");
-        return code;
+        // global consts only need to be defined in the .h file
+        return S("");
     }
     case kAST_PropertyDef:
     case kAST_FieldDef:
@@ -2264,6 +2254,12 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
             return S("");
         }
         return symref(pAst, pAst->pSymRecRef, pAst->pParseData);
+    }
+    case kAST_SystemConstRef:
+    {
+        S code = S("");
+        code += S("system_api::") + S(pAst->str);
+        return code;
     }
     case kAST_SymbolDecl:
     {
@@ -2717,10 +2713,12 @@ S CodegenCpp::codegenHeader(const Ast * pRootAst)
         }
         else if (pAst->type == kAST_GlobalConstDef)
         {
-            codeGlobals += S("extern ");
+            codeGlobals += S("static ");
             codeGlobals += S(pAst->pSymRec->pSymDataType->cppTypeStr);
             codeGlobals += S(" ");
             codeGlobals += S(pAst->pSymRec->fullName);
+            codeGlobals += S(" = ");
+            codeGlobals += codegenRecurse(pAst->pSymRec->pInitVal, 0);
             codeGlobals += S(";\n");
         }
     }

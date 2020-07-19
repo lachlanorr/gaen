@@ -51,6 +51,13 @@ u32 collision_convex_hull_create(task_id owner,
 
 void collision_remove_body(task_id owner, u32 uid);
 
+namespace system_api
+{
+static const i32 PHY_NONE            = 0;
+static const i32 PHY_KINEMATIC       = 1;
+static const i32 PHY_STOP_ON_COLLIDE = 2;
+} // namespace system_api
+
 }
 
 #endif // #ifndef GAEN_RENDER_SUPPORT_PHYSICS_H

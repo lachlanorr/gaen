@@ -356,6 +356,7 @@ expr
     | dotted_id  '{' prop_init_list '}'  { $$ = ast_create_entity_init($1, $3, pParseData); }
     | dotted_id  '(' fun_params ')'      { $$ = ast_create_function_call($1, $3, pParseData); }
 
+    | '$' '.' IDENTIFIER                     { $$ = ast_create_system_const_ref($3, pParseData); }
     | '$' '.' IDENTIFIER '(' fun_params ')'  { $$ = ast_create_system_api_call($3, $5, pParseData); }
 
     | TRANSFORM  { $$ = ast_create(kAST_Transform, pParseData); }

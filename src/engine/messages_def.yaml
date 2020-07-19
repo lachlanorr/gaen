@@ -178,7 +178,7 @@ ModelBody:
   uid: i32
   mass: f32
   friction: f32
-  isKinematic: bool
+  flags: u32
   linearFactor: vec3
   angularFactor: vec3
   message: u32

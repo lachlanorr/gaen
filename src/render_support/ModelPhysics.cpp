@@ -42,6 +42,7 @@ namespace gaen
 
 GAMEVAR_DECL_BOOL(collision_debug, false);
 
+
 void gaen_to_bullet_transform(btTransform & bT, const mat43 & gT, const vec3 & center)
 {
     // adjust for center of gmdl, not always the origin
@@ -138,6 +139,70 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
                 messages::PropertyMat43BW msgw(HASH::set_property, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), HASH::transform);
                 msgw.setValue(mModelInstance.mTransform);
                 TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+            }
+        }
+    }
+}
+
+void ModelBody::setVelocity(const vec3 & velocity)
+{
+    mVelocity = velocity;
+    if (!isKinematic())
+    {
+        //activate();
+        setLinearVelocity(btVector3(mVelocity.x, mVelocity.y, mVelocity.z));
+    }
+}
+
+void ModelBody::update(f32 delta)
+{
+    if (isKinematic() && mVelocity != vec3(0.0f))
+    {
+        mat43 trans = mpMotionState->mModelInstance.mTransform;
+        trans[3] += mVelocity * delta;
+        setGaenTransform(trans);
+    }
+}
+
+void ModelBody::setGaenTransform(const mat43 & transform)
+{
+    // Update bullet
+    btTransform btTrans;
+    gaen_to_bullet_transform(btTrans, transform, mCenter);
+    mpMotionState->setWorldTransform(btTrans);
+
+    if (!isKinematic())
+    {
+        activate();
+    }
+}
+
+void ModelBody::handleCollision(f32 dist, const vec3 & norm, const vec3 & locSelf, const vec3 & locOther) const
+{
+    if (isKinematic())
+    {
+        vec3 dir = normalize(velocity());
+        if (dir != vec3(0.0f))
+        {
+            mat43 trans = transform();
+
+            vec3 move;
+            if (stopOnCollide())
+                move = dir * dist;
+            else // slideOnCollide
+                move = dot((dir * dist), norm) * norm;
+
+            move = move * linearFactor();
+            trans[3] += move;
+            {
+                // We have to strip const since this function is
+                // called from within collision handler and bullet
+                // gives us a const pointer to the body.
+                ModelBody * bodyMut = const_cast<ModelBody*>(this);
+                bodyMut->setGaenTransform(trans);
+
+                if (stopOnCollide())
+                    bodyMut->markForRemoval();
             }
         }
     }
@@ -261,9 +326,20 @@ ModelPhysics::~ModelPhysics()
     GDELETE(mpBroadphase);
 }
 
+void ModelPhysics::updateKinematics(f32 delta)
+{
+    for (auto & bodyPair : mBodies)
+    {
+        bodyPair.second->update(delta);
+    }
+}
+
 void ModelPhysics::update(f32 delta)
 {
     mIsUpdating = true;
+
+    updateKinematics(delta);
+
     mpDynamicsWorld->stepSimulation((f32)delta, 0);
 
     // Check for collisions
@@ -274,50 +350,59 @@ void ModelPhysics::update(f32 delta)
         const ModelBody* obA = static_cast<const ModelBody*>(contactManifold->getBody0());
         const ModelBody* obB = static_cast<const ModelBody*>(contactManifold->getBody1());
 
-        int numContacts = contactManifold->getNumContacts();
-
-        if (numContacts > 0)
+        if (!obA->isMarkedForRemoval() && !obB->isMarkedForRemoval())
         {
-            vec3 locA(0.0f);
-            vec3 locB(0.0f);
-            f32 dist = 0.0f;
-            for (int j=0; j < numContacts; j++)
+            int numContacts = contactManifold->getNumContacts();
+
+            if (numContacts > 0)
             {
-                btManifoldPoint& pt = contactManifold->getContactPoint(j);
-                if (pt.getDistance() < 0.04f)
+                vec3 locA(0.0f);
+                vec3 locB(0.0f);
+                vec3 norm(0.0f);
+                f32 dist = 0.0f;
+                for (int j=0; j < numContacts; j++)
                 {
-                    const btVector3& ptA = pt.getPositionWorldOnA();
-                    const btVector3& ptB = pt.getPositionWorldOnB();
-                    const btVector3& normalOnB = pt.m_normalWorldOnB;
+                    btManifoldPoint& pt = contactManifold->getContactPoint(j);
+                    if (pt.getDistance() < 0.0f)
+                    {
+                        const btVector3& ptA = pt.getPositionWorldOnA();
+                        const btVector3& ptB = pt.getPositionWorldOnB();
+                        const btVector3& normalOnB = pt.m_normalWorldOnB;
 
-                    dist += pt.getDistance();
-                    locA += vec3(ptA.x(), ptA.y(), ptA.z());
-                    locB += vec3(ptB.x(), ptB.y(), ptB.z());
+                        dist += pt.getDistance();
+                        locA += vec3(ptA.x(), ptA.y(), ptA.z());
+                        locB += vec3(ptB.x(), ptB.y(), ptB.z());
+                        norm += vec3(normalOnB.x(), normalOnB.y(), normalOnB.z());
+                    }
                 }
-            }
 
-            dist /= numContacts;
-            locA = locA / (f32)numContacts;
-            locB = locB / (f32)numContacts;
+                dist /= numContacts;
+                locA = locA / (f32)numContacts;
+                locB = locB / (f32)numContacts;
+                norm = norm / (f32)numContacts;
 
-            // Send collision messages to both entities
-            if (obA->message() != 0)
-            {
-                messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obA->owner(), obB->groupHash());
-                msgw.setSubject(obB->owner());
-                msgw.setDistance(dist);
-                msgw.setLocationSelf(locA);
-                msgw.setLocationOther(locB);
-                TaskMaster::task_master_for_active_thread().message(msgw.accessor());
-            }
-            if (obB->message() != 0)
-            {
-                messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obB->owner(), obA->groupHash());
-                msgw.setSubject(obA->owner());
-                msgw.setDistance(dist);
-                msgw.setLocationSelf(locB);
-                msgw.setLocationOther(locA);
-                TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+                obA->handleCollision(dist, norm, locA, locB);
+                obB->handleCollision(dist, norm, locB, locA);
+
+                // Send collision messages to both entities
+                if (obA->message() != 0)
+                {
+                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obA->owner(), obB->groupHash());
+                    msgw.setSubject(obB->owner());
+                    msgw.setDistance(dist);
+                    msgw.setLocationSelf(locA);
+                    msgw.setLocationOther(locB);
+                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+                }
+                if (obB->message() != 0)
+                {
+                    messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kModelMgrTaskId, obB->owner(), obA->groupHash());
+                    msgw.setSubject(obA->owner());
+                    msgw.setDistance(dist);
+                    msgw.setLocationSelf(locB);
+                    msgw.setLocationOther(locA);
+                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+                }
             }
         }
     }
@@ -377,7 +462,7 @@ void ModelPhysics::insertRigidBody(u32 uid,
                                    const mat43 & transform,
                                    f32 mass,
                                    f32 friction,
-                                   bool isKinematic,
+                                   u32 flags,
                                    const vec3 & linearFactor,
                                    const vec3 & angularFactor,
                                    u32 message,
@@ -391,10 +476,10 @@ void ModelPhysics::insertRigidBody(u32 uid,
         gaen_to_bullet_transform(constrInfo.m_startWorldTransform, transform, center);
         constrInfo.m_friction = friction;
 
-        ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, owner, center, message, group, pMotionState, constrInfo);
+        ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, owner, center, flags, linearFactor, angularFactor, message, group, pMotionState, constrInfo);
         mBodies.emplace(uid, pBody);
 
-        if (isKinematic)
+        if (pBody->isKinematic())
         {
             pBody->setCollisionFlags(pBody->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
             pBody->setActivationState(DISABLE_DEACTIVATION);
@@ -510,12 +595,7 @@ void ModelPhysics::setTransform(u32 uid, const mat43 & transform)
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
     {
-        // Update bullet
-        btTransform btTrans;
-        gaen_to_bullet_transform(btTrans, transform, it->second->center());
-        it->second->setWorldTransform(btTrans);
-
-        it->second->activate();
+        it->second->setGaenTransform(transform);
     }
     else
     {
@@ -528,8 +608,7 @@ void ModelPhysics::setVelocity(u32 uid, const vec3 & velocity)
     auto it = mBodies.find(uid);
     if (it != mBodies.end())
     {
-        it->second->activate();
-        it->second->setLinearVelocity(btVector3(velocity.x, velocity.y, velocity.z));
+        it->second->setVelocity(velocity);
     }
     else
     {

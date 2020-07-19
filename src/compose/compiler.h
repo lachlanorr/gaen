@@ -80,6 +80,7 @@ typedef enum
     kAST_DottedIdPart,
     kAST_FunctionDef,
     kAST_SystemApiDef,
+    kAST_SystemConstDef,
     kAST_EntityDef,
     kAST_ComponentDef,
     kAST_GlobalConstDef,
@@ -110,6 +111,7 @@ typedef enum
     kAST_FunctionCall,
     kAST_SystemCall,
     kAST_SymbolRef,
+    kAST_SystemConstRef,
     kAST_SymbolDecl,
 
     kAST_SimpleStmt,
@@ -207,6 +209,7 @@ typedef enum
     kSYMT_Undefined = 0,
     kSYMT_Function,
     kSYMT_SystemApi,
+    kSYMT_SystemConst,
     kSYMT_Entity,
     kSYMT_Component,
     kSYMT_GlobalConst,
@@ -400,6 +403,7 @@ Ast * ast_create_string_literal(const char * str, ParseData * pParseData);
 Ast * ast_create_function_call(Ast * pFuncName, Ast * pParams, ParseData * pParseData);
 Ast * ast_create_system_api_call(const char * pApiName, Ast * pParams, ParseData * pParseData);
 Ast * ast_create_symbol_ref(Ast * pDottedId, ParseData * pParseData);
+Ast * ast_create_system_const_ref(const char * pConstName, ParseData * pParseData);
 
 Ast * ast_create_if(Ast * pCondition, Ast * pIfBody, Ast * pElseBody, ParseData * pParseData);
 Ast * ast_create_while(Ast * pCondition, Ast * pBody, ParseData * pParseData);
@@ -454,6 +458,7 @@ const SymDataType * parsedata_find_basic_type_desc(ParseData * pParseData, const
 void parsedata_register_basic_type(ParseData * pParseData, SymDataType * pSymDataType);
 
 SymRec* parsedata_find_symbol(ParseData * pParseData, Ast * pAst);
+SymRec* parsedata_find_symbol_by_name(ParseData * pParseData, const char * name);
 
 SymRec* parsedata_find_function_symbol(ParseData * pParseData, const char * name, Ast * pParams);
 SymRec* parsedata_find_type_symbol(ParseData * pParseData, const char * name, int isConst, int isReference);

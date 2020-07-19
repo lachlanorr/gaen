@@ -110,6 +110,19 @@ CPP_TYPES, COMPOSE_TYPES = read_types()
 CPP_TO_COMPOSE_TYPE = dict(zip(CPP_TYPES, COMPOSE_TYPES))
 COMPOSE_TO_CPP_TYPE = dict(zip(COMPOSE_TYPES, CPP_TYPES))
 
+def type_regex():
+    return '(' + '|'.join(CPP_TYPES) + ')'
+
+def api_start_regex():
+    return r'^[\s]*' + type_regex() + r'[\s]+([a-zA-Z0-9_]+)\(.*$'
+
+RE = {
+    'const': {'start': re.compile(r'^[\s]*static[\s]+const[\s]+.*$'),
+              'parse': re.compile(r'^[\s]*static[\s]+const[\s]+' + type_regex() + r'[\s]+([^\s]+)[\s]+=[\s]+([^\s;]+);[\s]*$')},
+    'func':  {'start': re.compile(r'^[\s]*' + type_regex() + r'[\s]+([a-zA-Z0-9_]+)\(.*$'),
+              'parse': re.compile(type_regex() + r'[\s]+([^\s]+)[\s]*\(([^\)]*)\);')}
+}
+
 def get_api_lines_in_file(in_path):
     with open(in_path) as in_f:
         data = in_f.read()
@@ -122,7 +135,7 @@ def get_api_lines_in_file(in_path):
 
     if not m:
         return []
-        
+
     data = m.group(1).strip()
     return [line.rstrip() for line in data.splitlines()]
 
@@ -147,12 +160,6 @@ def get_api_lines():
         get_api_lines_in_dir(dirs.PROJECT_SRC_DIR, lines, includes)
     return lines, includes
 
-def type_regex():
-    return '(' + '|'.join(CPP_TYPES) + ')'
-
-def api_start_regex():
-    return r'^[\s]*' + type_regex() + r'[\s]+([a-zA-Z0-9_]+)\(.*$'
-
 def append_if_api(line, api_strs):
     if line.endswith(", Entity * pCaller);") or line.endswith("(Entity * pCaller);"):
         api_strs.append(line)
@@ -173,8 +180,11 @@ def get_api_strs(lines):
                 append_if_api(curr_line, api_strs)
                 in_call = False
         else: # not in_call
-            if re.match(api_start_regex(), line):
-                line = line.strip()
+            line = line.strip()
+            if RE['const']['start'].match(line):
+                api_strs.append(line)
+                curr_line = ''
+            elif RE['func']['start'].match(line):
                 if line.endswith(');'):
                     append_if_api(line, api_strs)
                     curr_line = ''
@@ -200,10 +210,12 @@ def parse_param(param_str):
     if cpp_type not in CPP_TYPES:
         raise Exception("Invalid param type: " + param_str)
     return (cpp_type, CPP_TO_COMPOSE_TYPE[cpp_type], name, 1 if has_const else 0, 1 if is_ref else 0)
-            
 
 def parse_api_str(api_str):
-    m = re.match(type_regex() + r'[\s]+([^\s]+)[\s]*\(([^\)]*)\);', api_str)
+    m = RE['const']['parse'].match(api_str)
+    if m:
+        return { 'category': 'const', 'name': m.group(2), 'type': (m.group(1), CPP_TO_COMPOSE_TYPE[m.group(1)]), 'value': m.group(3) }
+    m = RE['func']['parse'].match(api_str)
     if not m:
         raise Exception("api_str does not match expeced regex: " + api_str)
     else:
@@ -214,25 +226,37 @@ def parse_api_str(api_str):
             raise Exception("last parameter of api must be of type Entity *: " + api_str)
         params = params[:-1] # remove the last 'Entity *' parameter
         params = [parse_param(p) for p in params]
-        return name, rettype, params
-    
+        return { 'category': 'func', 'name': name, 'type': rettype, 'params': params }
+
 def reg_api(parsed_api):
-    sarr = []
+    if parsed_api['category'] == 'func':
+        sarr = []
 
-    sarr.append('    {\n')
-    sarr.append('        // %s\n' % parsed_api[0])
+        sarr.append('    {\n')
+        sarr.append('        // function %s\n' % parsed_api['name'])
 
-    sarr.append('        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);\n')
-    for i in range(len(parsed_api[2])):
-        sarr.append('        ast_add_child(pSystemApiDef, ast_create_function_arg("%s", parsedata_find_type_symbol(pParseData, "%s", %d, %d), pParseData));\n' % (parsed_api[2][i][2], parsed_api[2][i][1], parsed_api[2][i][3], parsed_api[2][i][4]))
+        sarr.append('        Ast * pSystemApiDef = ast_create(kAST_SystemApiDef, pParseData);\n')
+        for i in range(len(parsed_api['params'])):
+            sarr.append('        ast_add_child(pSystemApiDef, ast_create_function_arg("%s", parsedata_find_type_symbol(pParseData, "%s", %d, %d), pParseData));\n' % (parsed_api['params'][i][2], parsed_api['params'][i][1], parsed_api['params'][i][3], parsed_api['params'][i][4]))
 
-    sarr.append('        size_t mangledLen = mangle_function_len("%s", pSystemApiDef->pChildren);\n' % parsed_api[0])
-    sarr.append('        char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);\n')
-    sarr.append('        mangle_function(mangledName, kMaxCmpId, "%s", pSystemApiDef->pChildren);\n' % parsed_api[0])
-    sarr.append('        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "%s", 0, 0)->pSymDataType, mangledName, pSystemApiDef, nullptr, pParseData));\n' % parsed_api[1][1])
+        sarr.append('        size_t mangledLen = mangle_function_len("%s", pSystemApiDef->pChildren);\n' % parsed_api['name'])
+        sarr.append('        char * mangledName = (char*)COMP_ALLOC(mangledLen + 1);\n')
+        sarr.append('        mangle_function(mangledName, kMaxCmpId, "%s", pSystemApiDef->pChildren);\n' % parsed_api['name'])
+        sarr.append('        parsedata_add_root_symbol(pParseData, symrec_create(kSYMT_SystemApi, parsedata_find_type_symbol(pParseData, "%s", 0, 0)->pSymDataType, mangledName, pSystemApiDef, nullptr, pParseData));\n' % parsed_api['type'][1])
 
-    sarr.append('    }\n')
-    return ''.join(sarr)
+        sarr.append('    }\n')
+        return ''.join(sarr)
+    elif parsed_api['category'] == 'const':
+        sarr = []
+        sarr.append('    {\n')
+        sarr.append('        // const %s\n' % parsed_api['name'])
+        sarr.append('        Ast * pSystemConstDef = ast_create(kAST_SystemConstDef, pParseData);\n')
+        sarr.append('        pSystemConstDef->pSymRec = symrec_create(kSYMT_SystemConst, parsedata_find_type_symbol(pParseData, "%s", 0, 0)->pSymDataType, "%s", pSystemConstDef, nullptr, pParseData);\n' % (parsed_api['type'][1], parsed_api['name']))
+        sarr.append('        parsedata_add_root_symbol(pParseData, pSystemConstDef->pSymRec);\n')
+        sarr.append('    }\n')
+        return ''.join(sarr)
+    else:
+        raise Exception("unknown category: " + repr(parsed_api))
 
 def build_metadata():
     lines, includes = get_api_lines()

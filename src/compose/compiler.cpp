@@ -2153,6 +2153,29 @@ Ast * ast_create_symbol_ref(Ast * pDottedId, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_system_const_ref(const char * pConstName, ParseData * pParseData)
+{
+    SymRec * pSymRec = parsedata_find_symbol_by_name(pParseData, pConstName);
+
+    Ast * pAst = ast_create_with_str(kAST_SystemConstRef, pConstName, pParseData);
+
+    if (!pSymRec)
+    {
+        COMP_ERROR(pParseData, "Unknown symbol reference: %s", pConstName);
+        return pAst;
+    }
+
+    if (pSymRec->type != kSYMT_SystemConst)
+    {
+        COMP_ERROR(pParseData, "Invalid use of symbol: %s", pConstName);
+        return pAst;
+    }
+
+    pAst->pSymRecRef = pSymRec;
+
+    return pAst;
+}
+
 Ast * ast_create_if(Ast * pCondition, Ast * pIfBody, Ast * pElseBody, ParseData * pParseData)
 {
     Ast * pAst = ast_create(kAST_If, pParseData);
@@ -2690,11 +2713,16 @@ SymTab* parsedata_add_param(ParseData * pParseData, SymTab* pSymTab, SymRec * pS
     return pSymTab;
 }
 
+SymRec* parsedata_find_symbol_by_name(ParseData * pParseData, const char * name)
+{
+    return symtab_find_symbol_recursive(pParseData->scopeStack.back()->pSymTab, name);
+}
+
 SymRec* parsedata_find_symbol(ParseData * pParseData, Ast * pAst)
 {
     ASSERT(pParseData);
     ASSERT(pAst);
-    return symtab_find_symbol_recursive(pParseData->scopeStack.back()->pSymTab, pAst->str);
+    return parsedata_find_symbol_by_name(pParseData, pAst->str);
 }
 
 SymRec* parsedata_find_function_symbol(ParseData * pParseData, const char * name, Ast * pParams)
@@ -3218,6 +3246,20 @@ Ast * register_builtin_function(const char * funcName, SymRec * pRetType, Ast * 
     pAst->pSymRec->flags |= kSRFL_BuiltInFunction;
     pAst->str = funcName;
     pAst->pLhs = pFuncArgs;
+    parsedata_add_root_symbol(pParseData, pAst->pSymRec);
+    return pAst;
+}
+
+Ast * register_builtin_const(const char * name, const SymDataType * pDataType, Ast * pConstExpr, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_GlobalConstDef, pParseData);
+    pAst->pSymRec = symrec_create(kSYMT_GlobalConst,
+                                  pDataType,
+                                  name,
+                                  pAst,
+                                  pConstExpr,
+                                  pParseData);
+    ast_set_rhs(pAst, pConstExpr);
     parsedata_add_root_symbol(pParseData, pAst->pSymRec);
     return pAst;
 }
