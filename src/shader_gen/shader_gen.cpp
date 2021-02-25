@@ -813,10 +813,12 @@ void find_shaders_dir(char * shadersDir)
 }
 
 // Force Optimus enabled systems to use Nvidia adapter
+#if IS_PLATFORM_WIN32
 extern "C"
 {
-    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+    __declspec(dllexport) gaen::u32 NvOptimusEnablement = 0x00000001;
 }
+#endif
 
 int main(int argc, char ** argv)
 {

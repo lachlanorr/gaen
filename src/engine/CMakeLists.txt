@@ -88,15 +88,15 @@ SET (imgui_SOURCES
   ${IMGUI_SRC}/imgui_demo.cpp
   ${IMGUI_SRC}/imgui_draw.cpp
   ${IMGUI_SRC}/imgui_internal.h
+  ${IMGUI_SRC}/imgui_tables.cpp
   ${IMGUI_SRC}/imgui_widgets.cpp
   ${IMGUI_SRC}/imstb_rectpack.h
   ${IMGUI_SRC}/imstb_textedit.h
   ${IMGUI_SRC}/imstb_truetype.h
-
-  ${IMGUI_SRC}/examples/imgui_impl_glfw.cpp
-  ${IMGUI_SRC}/examples/imgui_impl_glfw.h
-  ${IMGUI_SRC}/examples/imgui_impl_opengl3.cpp
-  ${IMGUI_SRC}/examples/imgui_impl_opengl3.h
+  ${IMGUI_SRC}/backends/imgui_impl_glfw.cpp
+  ${IMGUI_SRC}/backends/imgui_impl_glfw.h
+  ${IMGUI_SRC}/backends/imgui_impl_opengl3.cpp
+  ${IMGUI_SRC}/backends/imgui_impl_opengl3.h
   )
 IDE_SOURCE_PROPERTIES( "/imgui" "${imgui_SOURCES}")
 

@@ -37,6 +37,6 @@
 [submodule "external/rapidjson"]
 	path = external/rapidjson
 	url = https://github.com/lachlanorr/rapidjson.git
-[submodule "external\\imgui"]
-	path = external\\imgui
+[submodule "external/imgui"]
+	path = external/imgui
 	url = https://github.com/lachlanorr/imgui.git

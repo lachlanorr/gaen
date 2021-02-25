@@ -208,9 +208,9 @@ ExternalProject_Add(assimp
 SET (ASSIMP_INCLUDE "${ASSIMP_PATH}/include" CACHE INTERNAL "")
 SET (ASSIMP_LIBRARY
   optimized "${ASSIMP_PATH}/lib/assimp-vc142-mt.lib"
-  optimized "${ASSIMP_PATH}/lib/IrrXML.lib"
+  optimized "${ASSIMP_PATH}/lib/draco.lib"
   debug "${ASSIMP_PATH}/lib/assimp-vc142-mtd.lib"
-  debug "${ASSIMP_PATH}/lib/IrrXMLd.lib"
+  debug "${ASSIMP_PATH}/lib/dracod.lib"
   CACHE INTERNAL ""
   )
 
