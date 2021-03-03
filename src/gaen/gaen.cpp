@@ -218,6 +218,10 @@ void init_gaen(int argc, char ** argv)
     if (sIsLoggingEnabled)
         init_logging(sLoggingServerIp);
 
+}
+
+void start_gaen()
+{
     LOG_INFO("^^^^^^^^^^^^^^^^^^^^ GAEN STARTED ^^^^^^^^^^^^^^^^^^^^");
 
     init_threading(sNumThreads);

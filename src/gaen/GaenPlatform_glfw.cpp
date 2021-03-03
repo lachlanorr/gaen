@@ -28,6 +28,9 @@
 #include <GLFW/glfw3.h>
 
 #include "core/logging.h"
+#include "core/gamevars.h"
+#include "core/HashMap.h"
+#include "core/String.h"
 #include "core/platutils.h"
 #include "engine/input.h"
 #include "render_support/renderer_api.h"
@@ -39,6 +42,8 @@
 
 namespace gaen
 {
+
+GAMEVAR_DECL_BOOL(gldebug, false);
 
 void glfw_error_callback(int error, const char * description)
 {
@@ -98,6 +103,8 @@ void GaenPlatform::update(f32 delta)
 
 void GaenPlatform::init(int argc, char ** argv)
 {
+    init_gaen(__argc, __argv);
+
     PANIC_IF(!glfwInit(), "glfwInit() failed");
 
     glfwSetErrorCallback(glfw_error_callback);
@@ -105,7 +112,7 @@ void GaenPlatform::init(int argc, char ** argv)
     const u32 kScreenWidth  = 1920;
     const u32 kScreenHeight = 1080;
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_SAMPLES, 8);
 
@@ -114,11 +121,15 @@ void GaenPlatform::init(int argc, char ** argv)
     // renderer on first endFrame call.
     glfwWindowHint(GLFW_VISIBLE, 0);
 
-    mpContext = glfwCreateWindow(kScreenWidth, kScreenHeight, "Gaen", NULL, NULL);
+    if (gldebug)
+    {
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    }
 
+    mpContext = glfwCreateWindow(kScreenWidth, kScreenHeight, "Gaen", NULL, NULL);
     PANIC_IF(!mpContext, "glfwCreateWindow failed");
 
-    init_gaen(__argc, __argv);
+    start_gaen();
 
     glfwSetWindowFocusCallback((GLFWwindow*)mpContext, glfw_focus_callback);
     glfwSetKeyCallback((GLFWwindow*)mpContext, glfw_key_callback);

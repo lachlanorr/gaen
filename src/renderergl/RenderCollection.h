@@ -46,7 +46,7 @@ namespace gaen
 // class T must supply the following methods:
 //   ruid uid()
 //   f32 order()
-//   
+//
 
 // The order() method can be crafted to support arbitrarily complex
 // orders.  For example, it may encode a combination of zdepth,

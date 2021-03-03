@@ -117,10 +117,99 @@ void RendererMesh::fin()
     ASSERT(mIsInit);
 }
 
+static const char * gl_error_source_str(GLenum source)
+{
+    static MultiMap<kMEM_Renderer, GLenum, String<kMEM_Renderer>> sNames = {
+        { GL_DEBUG_SOURCE_API, "API" },
+        { GL_DEBUG_SOURCE_WINDOW_SYSTEM, "WindowSystem" },
+        { GL_DEBUG_SOURCE_SHADER_COMPILER, "ShaderCompiler" },
+        { GL_DEBUG_SOURCE_THIRD_PARTY, "ThirdParty" },
+        { GL_DEBUG_SOURCE_APPLICATION, "Application" },
+        { GL_DEBUG_SOURCE_OTHER, "Other" }
+    };
+
+    auto it = sNames.find(source);
+    if (it != sNames.end())
+        return it->second.c_str();
+    return "UNKNOWN";
+}
+
+static const char * gl_error_type_str(GLenum type)
+{
+    static MultiMap<kMEM_Renderer, GLenum, String<kMEM_Renderer>> sNames = {
+        { GL_DEBUG_TYPE_ERROR, "Error" },
+        { GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR, "DeprecatedBehaviour" },
+        { GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR, "UndefinedBehaviour" },
+        { GL_DEBUG_TYPE_PORTABILITY, "Portability" },
+        { GL_DEBUG_TYPE_PERFORMANCE, "Performance" },
+        { GL_DEBUG_TYPE_MARKER, "Marker" },
+        { GL_DEBUG_TYPE_PUSH_GROUP, "PushGroup" },
+        { GL_DEBUG_TYPE_POP_GROUP, "PopGroup" },
+        { GL_DEBUG_TYPE_OTHER, "Other" }
+    };
+
+    auto it = sNames.find(type);
+    if (it != sNames.end())
+        return it->second.c_str();
+    return "UNKNOWN";
+}
+
+static const char * gl_error_severity_str(GLenum severity)
+{
+    static MultiMap<kMEM_Renderer, GLenum, String<kMEM_Renderer>> sNames = {
+        { GL_DEBUG_SEVERITY_HIGH, "High" },
+        { GL_DEBUG_SEVERITY_MEDIUM, "Medium" },
+        { GL_DEBUG_SEVERITY_LOW, "Low" },
+        { GL_DEBUG_SEVERITY_NOTIFICATION, "Notification" }
+    };
+
+    auto it = sNames.find(severity);
+    if (it != sNames.end())
+        return it->second.c_str();
+    return "UNKNOWN";
+}
+
+static void APIENTRY gl_debug_output(GLenum source,
+                                     GLenum type,
+                                     unsigned int id,
+                                     GLenum severity,
+                                     GLsizei length,
+                                     const char *message,
+                                     const void *userParam)
+{
+    // LORRTODO: as we encounter these, start ignoring them
+    // ignore non-significant error/warning codes
+    //if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
+    if (id == 131185 /* harmless buffer notifications */)
+        return;
+
+    LogSeverity sev = kLS_Info;
+    if (severity == GL_DEBUG_SEVERITY_HIGH)
+        sev = kLS_Error;
+    else if (severity == GL_DEBUG_SEVERITY_MEDIUM || severity == GL_DEBUG_SEVERITY_LOW)
+        sev = kLS_Warning;
+
+    LOG(sev,
+        "glDebugOutput source=%s type=%s id=%u severity=%s: %s",
+        gl_error_source_str(source),
+        gl_error_type_str(type),
+        id,
+        gl_error_severity_str(severity),
+        message);
+}
 
 void RendererMesh::initViewport()
 {
     ASSERT(mIsInit);
+
+    int flags; glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT)
+    {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(gl_debug_output, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    }
 
     // Collect some details about our GPU capabilities
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &mMaxCombinedTextureImageUnits);
@@ -138,14 +227,12 @@ void RendererMesh::initViewport()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);    // Make sure we don't divide by zero
 
-
     glEnable(GL_MULTISAMPLE);
 
     glClearDepth(1.0f);
     glDepthFunc(GL_LEQUAL);    // The Type Of Depth Testing To Do
     glEnable(GL_DEPTH_TEST);   // Enables Depth Testing
     glDisable(GL_SCISSOR_TEST);
-
 
     if (mScreenHeight == 0)
     {
@@ -228,7 +315,6 @@ u32 RendererMesh::loadTexture(const Gimg * pGimg)
         u32 pixelType = 0;
         image_format_and_type(pixelFormat, pixelType, pGimg->pixelFormat());
 
-        int err = glGetError();
 
         glTexImage2D(GL_TEXTURE_2D,
                      0,
@@ -240,12 +326,8 @@ u32 RendererMesh::loadTexture(const Gimg * pGimg)
                      pixelType,
                      pGimg->pixels());
 
-        err = glGetError();
-
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-        err = glGetError();
 
         mLoadedTextures.emplace(std::piecewise_construct,
                                 std::forward_as_tuple(pGimg->referencePathHash()),

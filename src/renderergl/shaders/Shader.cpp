@@ -64,7 +64,7 @@ void Shader::load()
         {
             if (mpCodes[i].stage == 0)
                 break;
-        
+
             PANIC_IF(!Shader::compile_shader(&shaderIds[i], mpCodes[i].stage, mpCodes[i].code, SHADER_HEADER), "Failed to compile shader: %s", mpCodes[i].filename);
             glAttachShader(mProgramId, shaderIds[i]);
         }

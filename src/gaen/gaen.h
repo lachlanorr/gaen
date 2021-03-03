@@ -32,10 +32,13 @@
 namespace gaen
 {
 
-// Platform specific main function should call init_gaen once things are
+// Initialize arguments and logging
+void init_gaen(int argc, char ** argv);
+
+// Platform specific main function should call start_gaen once things are
 // fully initialized.  It will start the TaskMaster threads.  Main thread
 // is reserved for OS specific stuff, like event handling.
-void init_gaen(int argc, char ** argv);
+void start_gaen();
 
 // Set the renderer for the primary taskmaster
 void set_renderer(const Task & rendererTask);

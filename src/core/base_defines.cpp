@@ -81,7 +81,7 @@ void set_report_failure_cb(ReportFailureCB reportFailureCB)
     sReportFailureCB = reportFailureCB;
 }
 
-// strip off all the '..\..\..\' stuff at the start of 
+// strip off all the '..\..\..\' stuff at the start of
 // filenames.
 const char * strip_dotdots(const char * file)
 {
@@ -110,7 +110,7 @@ void report_failure(const char * condition,
     // Thread storage to print our message.
     TLARRAY(char, tMessage, kMaxMessageSize);
     TLARRAY(char, tFailureMessage, kMaxFailureMessageSize);
-    
+
     va_list argptr;
     va_start(argptr, format);
 
@@ -122,7 +122,7 @@ void report_failure(const char * condition,
         // LORRTODO - Implement replacement for vsnprintf on ios, or wait for Apple to catch up to C++11
         int ret = std::vsprintf(tMessage, format, argptr);
 #endif
-        
+
         if (ret <= 0)
         {
             std::strncpy(tMessage, "report_failure was unable to format message", kMaxMessageSize-1);
@@ -135,8 +135,8 @@ void report_failure(const char * condition,
 
     // Ensure that we're null terminated in cases where someone sent
     // us a stupidly long message.
-    tMessage[kMaxMessageSize-1] = '\0'; 
-    
+    tMessage[kMaxMessageSize-1] = '\0';
+
 
     if (tMessage[0] != '\0')
     {

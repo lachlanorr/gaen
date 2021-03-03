@@ -74,15 +74,15 @@ Shader * sprite::construct()
 
 
     // Uniforms
-    pShader->mUniforms[0].nameHash = 0xdd88a90e; /* HASH::mvp */
+    pShader->mUniforms[0].nameHash = 0x546e2a3d; /* HASH::diffuse */
     pShader->mUniforms[0].index = 0;
-    pShader->mUniforms[0].location = 1;
-    pShader->mUniforms[0].type = GL_FLOAT_MAT4;
+    pShader->mUniforms[0].location = 0;
+    pShader->mUniforms[0].type = GL_SAMPLER_2D;
 
-    pShader->mUniforms[1].nameHash = 0x546e2a3d; /* HASH::diffuse */
+    pShader->mUniforms[1].nameHash = 0xdd88a90e; /* HASH::mvp */
     pShader->mUniforms[1].index = 1;
-    pShader->mUniforms[1].location = 0;
-    pShader->mUniforms[1].type = GL_SAMPLER_2D;
+    pShader->mUniforms[1].location = 1;
+    pShader->mUniforms[1].type = GL_FLOAT_MAT4;
 
 
     // Attributes

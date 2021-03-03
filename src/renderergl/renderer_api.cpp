@@ -61,11 +61,7 @@ void renderer_end_frame(Task & rendererTask)
     pRenderer->endFrame();
 
     // Check for errors
-    GLenum err;
-    while ((err = glGetError()) != GL_NO_ERROR)
-    {
-        LOG_ERROR("glGetError returned %d, 0x%x", err, err);
-    }
+    GL_VALIDATE();
 }
 
 } // namespace gaen

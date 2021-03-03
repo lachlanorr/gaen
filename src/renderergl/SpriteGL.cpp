@@ -69,7 +69,6 @@ void SpriteGL::render()
 {
     mpRenderer->setTexture(HASH::diffuse, mTextureId);
 #if HAS(OPENGL3)
-    int err = glGetError();
     glBindVertexArray(mVertArrayId);
 #else
     glBindBuffer(GL_ARRAY_BUFFER, mpSpriteInstance->vertBufferId);
@@ -78,14 +77,10 @@ void SpriteGL::render()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mPrimBufferId);
 #endif
-    err = glGetError();
     const void * pOffset = mpSpriteInstance->currentFrameElemsOffset();
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, mpSpriteInstance->currentFrameElemsOffset());
-    err = glGetError();
 
     mpRenderer->unbindBuffers();
-
-    err = glGetError();
 }
 
 void SpriteGL::animate(u32 animHash, u32 animFrameIdx)

@@ -57,5 +57,21 @@
  #error Need to implement a similar concepts on other platforms
 #endif
 
+#define GL_VALIDATION WHEN(HAS(DEV_BUILD))
+
+#if HAS(GL_VALIDATION)
+#define GL_VALIDATE() \
+do \
+ { \
+  GLenum err; \
+  while ((err = glGetError()) != GL_NO_ERROR) \
+  { \
+   gaen::report_failure("glGetError", __FILE__, __LINE__, "GLenum err = %d, 0x%x", err, err); \
+  } \
+ } while(0)
+#else  // #if HAS(GL_VALIDATION)
+#define GL_VALIDATE() do {} while(0)
+#endif // #if HAS(GL_VALIDATION)
+
 #endif // #ifndef GAEN_GAEN_OPENGL_H
 
