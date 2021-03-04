@@ -178,7 +178,8 @@ void InputMgr::deregisterKeyPressListener(u32 mode, task_id target)
     auto it = mKeyPressListeners.find(mode);
     if (it != mKeyPressListeners.end())
     {
-        std::remove(it->second.begin(), it->second.end(), target);
+        auto endit = std::remove(it->second.begin(), it->second.end(), target);
+        it->second.erase(endit, it->second.end());
     }
 }
 
@@ -187,7 +188,8 @@ void InputMgr::deregisterKeyPressListener(task_id target)
     // remove from all modes
     for (auto & pair : mKeyPressListeners)
     {
-        std::remove(pair.second.begin(), pair.second.end(), target);
+        auto endit = std::remove(pair.second.begin(), pair.second.end(), target);
+        pair.second.erase(endit, pair.second.end());
     }
 }
 
