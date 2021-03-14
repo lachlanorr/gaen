@@ -685,7 +685,7 @@ void Entity::setTransform(task_id source, const mat43 & mat)
             Entity * pChild = mpChildren[i];
             StackMessageBlockWriter<0> msgw(HASH::update_transform,
                                             kMessageFlag_ForcePropagate,
-                                            task().id(),
+                                            task().id(), // Don't use 'source' since it is ModelMgr, and won't propogate to Bullet (through ModelMgr)
                                             pChild->task().id(),
                                             to_cell(0));
             pChild->message(msgw.accessor());
@@ -863,7 +863,7 @@ void Entity::growComponents()
     {
         for (u32 i = 0; i < mComponentCount; ++i)
             pNewComponents[i] = mpComponents[i];
-        
+
         GFREE(mpComponents);
     }
 
