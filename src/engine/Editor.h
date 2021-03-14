@@ -41,7 +41,7 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    void update();
+    void update(const FrameTime & frameTime);
 
 private:
     void processKeyPress(const ivec4 & keys);

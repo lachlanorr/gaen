@@ -48,8 +48,7 @@ void RENDERER_TYPE::initRenderDevice()
 
     glfwMakeContextCurrent((GLFWwindow*)mpRenderDevice);
 
-    if (vsync)
-        glfwSwapInterval(1);
+    glfwSwapInterval(vsync ? 1 : 0);
 
     // Prepare our GL function pointers.
     // We have to wait until here to do this since if you call it too

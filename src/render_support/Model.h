@@ -51,6 +51,9 @@ public:
     bool hasGaim() const;
     const Gaim & gaim() const;
 
+    const char * gmdlAssetPath() const;
+    const char * gaimAssetPath() const;
+
 private:
     // Delete these to make sure w construct through the asset->addref path
     Model(Model&&)                  = delete;

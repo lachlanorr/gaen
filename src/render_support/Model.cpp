@@ -116,6 +116,29 @@ const Gaim & Model::gaim() const
     return *mpGaim;
 }
 
+const char * Model::gmdlAssetPath() const
+{
+    if (mpGmdlAsset != nullptr)
+    {
+        return mpGmdlAsset->path().c_str();
+    }
+    else
+    {
+        return "none";
+    }
+}
+
+const char * Model::gaimAssetPath() const
+{
+    if (mpGaimAsset != nullptr)
+    {
+        return mpGaimAsset->path().c_str();
+    }
+    else
+    {
+        return "none";
+    }
+}
 
 // ModelInstance methods
 

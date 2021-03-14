@@ -262,14 +262,14 @@ inline vec3 degrees(vec3 radians)
 
 namespace std
 {
-    template <>
-    struct hash<gaen::vec3> : public unary_function<gaen::vec3, size_t>
+template <>
+struct hash<gaen::vec3> : public unary_function<gaen::vec3, size_t>
+{
+    size_t operator()(const gaen::vec3& value) const
     {
-        size_t operator()(const gaen::vec3& value) const
-        {
-            return gaen::fnv1a_32(reinterpret_cast<const gaen::u8*>(&value), sizeof(gaen::vec3));
-        }
-    };
+        return gaen::fnv1a_32(reinterpret_cast<const gaen::u8*>(&value), sizeof(gaen::vec3));
+    }
+};
 } // namespace std
 
 #endif // #ifndef GAEN_MATH_VEC3_H

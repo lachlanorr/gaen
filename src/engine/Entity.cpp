@@ -682,13 +682,13 @@ void Entity::setTransform(task_id source, const mat43 & mat)
         // send update_transform to our child entities
         for (u32 i = 0; i < mChildCount; ++i)
         {
-            Entity * pEnt = mpChildren[i];
+            Entity * pChild = mpChildren[i];
             StackMessageBlockWriter<0> msgw(HASH::update_transform,
                                             kMessageFlag_ForcePropagate,
-                                            source,
-                                            pEnt->task().id(),
+                                            task().id(),
+                                            pChild->task().id(),
                                             to_cell(0));
-            pEnt->message(msgw.accessor());
+            pChild->message(msgw.accessor());
         }
 
         // call transform listeners

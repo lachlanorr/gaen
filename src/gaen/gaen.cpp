@@ -42,7 +42,7 @@
 // Force Optimus enabled systems to use Nvidia adapter
 extern "C"
 {
-    __declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+    __declspec(dllexport) gaen::u32 NvOptimusEnablement = 0x00000001;
 }
 
 namespace gaen

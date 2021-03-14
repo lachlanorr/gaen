@@ -618,7 +618,7 @@ void TaskMaster::runPrimaryGameLoop()
                 mpSpriteMgr->update(delta);
             }
 #if HAS(ENABLE_EDITOR)
-            mpEditor->update();
+            mpEditor->update(mFrameTime);
 #endif
         }
 

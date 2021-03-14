@@ -163,12 +163,12 @@ MessageResult ModelMgr::message(const T & msgAcc)
         if (modelPair != mModelMap.end())
         {
             modelPair->second->mHasBody = true;
-            btCollisionShape * pCollisionShape = mPhysics.findBox(modelPair->second->model().gmdl().halfExtents());
+            btCompoundShape * pCompoundShape = mPhysics.findBox(modelPair->second->model().gmdl().halfExtents(), modelPair->second->model().gmdl().center());
             ModelMotionState * pMotionState = GNEW(kMEM_Physics, ModelMotionState, *modelPair->second);
 
             mPhysics.insertRigidBody(modelPair->second->model().uid(),
                                      modelPair->second->model().owner(),
-                                     pCollisionShape,
+                                     pCompoundShape,
                                      pMotionState,
                                      modelPair->second->model().gmdl().center(),
                                      mat43(1.0f),

@@ -30,12 +30,14 @@
 #include <LinearMath/btMotionState.h>
 #include <LinearMath/btIDebugDraw.h>
 #include <BulletCollision/CollisionShapes/btCollisionShape.h>
+#include <BulletCollision/CollisionShapes/btCompoundShape.h>
 #include <BulletDynamics/Dynamics/btRigidBody.h>
 
 #include "core/mem.h"
 #include "core/HashSet.h"
 #include "math/vec3.h"
 #include "render_support/physics.h"
+#include "render_support/collision.h"
 #include "render_support/Model.h"
 
 
@@ -183,6 +185,7 @@ private:
 
 typedef UniquePtr<ModelBody> ModelBodyUP;
 typedef UniquePtr<btCollisionShape> btCollisionShapeUP;
+typedef UniquePtr<btCompoundShape> btCompoundShapeUP;
 
 class ModelPhysics
 {
@@ -193,7 +196,7 @@ public:
     void update(f32 delta);
     void updateKinematics(f32 delta);
 
-    btCollisionShape * findBox(const vec3 & halfExtents);
+    btCompoundShape * findBox(const vec3 & halfExtents, const vec3 & center);
     btCollisionShape * findConvexHull(const Gmdl * pGmdlPoints);
 
     void insertRigidBody(u32 uid,
@@ -261,12 +264,13 @@ private:
     PhysicsDebugDraw * mpDebugDraw;
 
     HashMap<kMEM_Physics, u32, ModelBodyUP> mBodies;
-    HashMap<kMEM_Physics, vec3, btCollisionShapeUP> mBoxes;
+    HashMap<kMEM_Physics, HitBox, btCompoundShapeUP> mBoxes;
     HashMap<kMEM_Physics, const Gmdl *, btCollisionShapeUP> mConvexHulls;
     HashMap<kMEM_Physics, u32, u16> mMaskBits;
     HashSet<kMEM_Physics, u32> mBodiesToRemove;
 };
 
 } // namespace gaen
+
 
 #endif // #ifndef GAEN_RENDER_SUPPORT_MODEL_PHYSICS_H

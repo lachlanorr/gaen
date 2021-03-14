@@ -124,6 +124,7 @@ i32 gaim_frame_offset(const AssetHandleP pAssetHandleGaim, i32 animIndex, f32 de
 mat43 gaim_bone_transform(const AssetHandleP pAssetHandleGaim, i32 animIndex, i32 frameOffset, i32 boneIndex, Entity * pCaller)
 {
     ASSERT(pAssetHandleGaim->typeHash() == HASH::asset);
+    ASSERT(frameOffset >= 0);
     const Asset * pAssetGaim = pAssetHandleGaim->data<Asset>();
     const Gaim * pGaim = pAssetGaim->buffer<Gaim>();
     const AnimInfo * pAnim = pGaim->animByIndex(animIndex);

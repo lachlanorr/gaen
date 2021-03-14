@@ -106,8 +106,17 @@ MessageResult Editor::message(const T& msgAcc)
     return MessageResult::Consumed;
 }
 
-void Editor::update()
+void Editor::update(const FrameTime & frameTime)
 {
+    static f32 fps = frameTime.fpsLast10();
+    static f64 lastFpsTime = now();
+    f64 nowFpsTime = now();
+    if (nowFpsTime - lastFpsTime > 1.0)
+    {
+        fps = frameTime.fpsLast10();
+        lastFpsTime = nowFpsTime;
+    }
+
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -115,6 +124,7 @@ void Editor::update()
     if (mIsActive)
     {
         ImGui::Begin("Editor", nullptr);
+        ImGui::Text("FPS: %0.2f", fps);
         ImGui::Text("Game State: %s", mIsPaused ? "PAUSED" : "RUNNING");
         ImGui::Checkbox("Collision Debug", &mCollisionDebug);
         ImGui::End();

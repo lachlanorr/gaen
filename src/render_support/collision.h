@@ -144,7 +144,7 @@ struct OBB
     vec3 locX; // local x axis
     vec3 locY; // local y axis
     vec3 ext;  // positive halfwidth extends along each axis
-    
+
     vec3 locZ()
     {
         return cross(locX, locY);
@@ -188,7 +188,36 @@ inline bool test_sphere_halfpspace(const Sphere & s, const Plane & p)
     return test_sphere_halfspace(s.cent, s.rad, p);
 }
 
+struct HitBox
+{
+    vec3 halfExtents;
+    vec3 center;
+    HitBox(const vec3& halfExtents, const vec3& center)
+      : halfExtents(halfExtents)
+      , center(center)
+    {}
+};
+inline bool operator==(const HitBox & lhs, const HitBox & rhs)
+{
+    return lhs.halfExtents == rhs.halfExtents && lhs.center == rhs.center;
+}
+static_assert(sizeof(HitBox) == 24, "HitBox unexpected size");
+
 } // namespace gaen
+
+namespace std
+{
+
+template <>
+struct hash<gaen::HitBox> : public unary_function<gaen::HitBox, size_t>
+{
+    size_t operator()(const gaen::HitBox& value) const
+    {
+        return gaen::fnv1a_32(reinterpret_cast<const gaen::u8*>(&value), sizeof(gaen::HitBox));
+    }
+};
+
+} // namespace std
 
 #endif // #ifndef GAEN_RENDER_SUPPORT_COLLISION_H
 

@@ -43,18 +43,16 @@ namespace gaen
 GAMEVAR_DECL_BOOL(collision_debug, false);
 
 
-void gaen_to_bullet_transform(btTransform & bT, const mat43 & gT, const vec3 & center)
+void gaen_to_bullet_transform(btTransform & bT, const mat43 & gT)
 {
-    // adjust for center of gmdl, not always the origin
-    mat43 gTc = mat43::from_pos(center) * gT;
-    bT.setBasis(btMatrix3x3(gTc[0][0], gTc[1][0], gTc[2][0],
-                            gTc[0][1], gTc[1][1], gTc[2][1],
-                            gTc[0][2], gTc[1][2], gTc[2][2]));
+    bT.setBasis(btMatrix3x3(gT[0][0], gT[1][0], gT[2][0],
+                            gT[0][1], gT[1][1], gT[2][1],
+                            gT[0][2], gT[1][2], gT[2][2]));
 
-    bT.setOrigin(btVector3(gTc[3][0], gTc[3][1], gTc[3][2]));
+    bT.setOrigin(btVector3(gT[3][0], gT[3][1], gT[3][2]));
 }
 
-void bullet_to_gaen_transform(mat43 & gT, const btTransform & bT, const vec3 & center)
+void bullet_to_gaen_transform(mat43 & gT, const btTransform & bT)
 {
     gT[0][0] = bT.getBasis()[0][0];
     gT[0][1] = bT.getBasis()[1][0];
@@ -71,14 +69,11 @@ void bullet_to_gaen_transform(mat43 & gT, const btTransform & bT, const vec3 & c
     gT[3][0] = bT.getOrigin()[0];
     gT[3][1] = bT.getOrigin()[1];
     gT[3][2] = bT.getOrigin()[2];
-
-    // adjust for center of gmdl, not always the origin
-    gT = mat43::from_pos(-center) * gT;
 }
 
 void ModelMotionState::getWorldTransform(btTransform& worldTrans) const
 {
-    gaen_to_bullet_transform(worldTrans, mModelInstance.mTransform, mModelInstance.model().gmdl().center());
+    gaen_to_bullet_transform(worldTrans, mModelInstance.mTransform);
 }
 
 void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
@@ -91,7 +86,7 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
     if (!mIsMarkedForRemoval)
     {
         mat43 newTrans;
-        bullet_to_gaen_transform(newTrans, worldTrans, mModelInstance.model().gmdl().center());
+        bullet_to_gaen_transform(newTrans, worldTrans);
 
         if (newTrans != mModelInstance.mTransform)
         {
@@ -168,7 +163,7 @@ void ModelBody::setGaenTransform(const mat43 & transform)
 {
     // Update bullet
     btTransform btTrans;
-    gaen_to_bullet_transform(btTrans, transform, mCenter);
+    gaen_to_bullet_transform(btTrans, transform);
     mpMotionState->setWorldTransform(btTrans);
 
     if (!isKinematic())
@@ -417,22 +412,34 @@ void ModelPhysics::update(f32 delta)
     mpDebugDraw->update();
 }
 
-btCollisionShape * ModelPhysics::findBox(const vec3 & halfExtents)
+static btCompoundShape * newOffsetBox(const vec3 & halfExtents, const vec3 & center)
 {
-    auto colShapeIt = mBoxes.find(halfExtents);
-    btVector3 btExtents(halfExtents.x, halfExtents.y, halfExtents.z);
+    btCollisionShape * pBoxShape = GNEW(kMEM_Physics, btBoxShape, btVector3(halfExtents.x, halfExtents.y, halfExtents.z));
+    btCompoundShape * pCompoundShape = GNEW(kMEM_Physics, btCompoundShape);
+    btTransform localTrans;
+    localTrans.setIdentity();
+    localTrans.setOrigin(btVector3(center.x, center.y, center.z));
+    pCompoundShape->addChildShape(localTrans, pBoxShape);
+    return pCompoundShape;
+}
 
-    btCollisionShape * pCollisionShape = nullptr;
-    if (colShapeIt != mBoxes.end())
-        pCollisionShape = colShapeIt->second.get();
+btCompoundShape * ModelPhysics::findBox(const vec3 & halfExtents, const vec3 & center)
+{
+    HitBox hb{halfExtents, center};
+    auto cmpShapeIt = mBoxes.find(hb);
+
+    btCompoundShape * pCompoundShape = nullptr;
+    if (cmpShapeIt != mBoxes.end())
+        pCompoundShape = cmpShapeIt->second.get();
     else
     {
+        btVector3 btExtents(halfExtents.x, halfExtents.y, halfExtents.z);
         auto empRes = mBoxes.emplace(std::piecewise_construct,
-                                     std::forward_as_tuple(halfExtents),
-                                     std::forward_as_tuple(GNEW(kMEM_Physics, btBoxShape, btExtents)));
-        pCollisionShape = empRes.first->second.get();
+                                     std::forward_as_tuple(hb),
+                                     std::forward_as_tuple(newOffsetBox(halfExtents, center)));
+        pCompoundShape = empRes.first->second.get();
     }
-    return pCollisionShape;
+    return pCompoundShape;
 }
 
 
@@ -472,8 +479,10 @@ void ModelPhysics::insertRigidBody(u32 uid,
 {
     if (mBodies.find(uid) == mBodies.end())
     {
+        if (pMotionState)
+            LOG_INFO("insertRigidBody %u, %s, %s", uid, pMotionState->mModelInstance.model().gmdlAssetPath(), pMotionState->mModelInstance.model().gaimAssetPath());
         btRigidBody::btRigidBodyConstructionInfo constrInfo(mass, pMotionState, pCollisionShape);
-        gaen_to_bullet_transform(constrInfo.m_startWorldTransform, transform, center);
+        gaen_to_bullet_transform(constrInfo.m_startWorldTransform, transform);
         constrInfo.m_friction = friction;
 
         ModelBody * pBody = GNEW(kMEM_Physics, ModelBody, owner, center, flags, linearFactor, angularFactor, message, group, pMotionState, constrInfo);
@@ -542,10 +551,10 @@ void ModelPhysics::insertCollisionBox(u32 uid,
                                       const ivec4 & mask03,
                                       const ivec4 & mask47)
 {
-    btCollisionShape * pCollisionShape = findBox(halfExtents);
+    btCompoundShape * pCompoundShape = findBox(halfExtents, center);
     insertRigidBody(uid,
                     owner,
-                    pCollisionShape,
+                    pCompoundShape,
                     nullptr,
                     center,
                     transform,

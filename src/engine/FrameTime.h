@@ -69,7 +69,7 @@ public:
         mFrameCount++;
     }
 
-    f32 deltaMean()
+    f32 deltaMean() const
     {
         if (mFrameCount >= count)
             return mSum / count;
@@ -77,7 +77,7 @@ public:
             return mSum / mFrameCount;
     }
 
-    f32 fps()
+    f32 fps() const
     {
         return 1.0f / deltaMean();
     }
@@ -159,22 +159,22 @@ public:
         pDeltas->last10000 = mFrameStats10000.deltaMean();
     }
 
-    f32 fpsLast10()
+    f32 fpsLast10() const
     {
         return mFrameStats10.fps();
     }
 
-    f32 fpsLast100()
+    f32 fpsLast100() const
     {
         return mFrameStats100.fps();
     }
 
-    f32 fpsLast1000()
+    f32 fpsLast1000() const
     {
         return mFrameStats1000.fps();
     }
 
-    f32 fpsLast10000()
+    f32 fpsLast10000() const
     {
         return mFrameStats10000.fps();
     }
