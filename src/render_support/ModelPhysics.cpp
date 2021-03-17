@@ -78,11 +78,6 @@ void ModelMotionState::getWorldTransform(btTransform& worldTrans) const
 
 void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
 {
-    if (mIsMarkedForRemoval)
-    {
-        int i = 0;
-    }
-
     if (!mIsMarkedForRemoval)
     {
         mat43 newTrans;
@@ -585,8 +580,7 @@ void ModelPhysics::insertCollisionConvexHull(u32 uid,
                     owner,
                     pCollisionShape,
                     nullptr,
-                    vec3(0.0f, 0.0f, 0.0f),
-//                    pGmdlPoints->center(),
+                    pGmdlPoints->center(),
                     transform,
                     mass,
                     friction,

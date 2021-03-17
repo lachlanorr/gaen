@@ -100,9 +100,7 @@ public:
       , mGroupHash(groupHash)
       , mpMotionState(pMotionState)
       , mIsMarkedForRemoval(false)
-    {
-        int i = 0;
-    }
+    {}
 
     task_id owner() const { return mOwner; }
     const vec3 & center() const { return mCenter; }
