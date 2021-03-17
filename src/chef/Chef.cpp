@@ -124,12 +124,21 @@ void Chef::forceCookAndWrite(CookInfo * pCi) const
     }
 }
 
-UniquePtr<CookInfo> Chef::prepCookInfo(const char * rawPath, bool force) const
+UniquePtr<CookInfo> Chef::prepCookInfo(const char * rawPath, bool force, Cooker * pCookerOverride) const
 {
     ChefString rawPathStr(rawPath);
     ASSERT(isRawPath(rawPathStr));
 
-    const Cooker * pCooker = CookerRegistry::find_cooker_from_raw(rawPathStr);
+    const Cooker * pCooker = nullptr;
+    if (pCookerOverride != nullptr)
+    {
+        pCooker = pCookerOverride;
+    }
+    else
+    {
+        pCooker = CookerRegistry::find_cooker_from_raw(rawPathStr);
+    }
+
     if (!pCooker)
     {
         // not a cookable file

@@ -139,7 +139,7 @@ public:
     const DependencyInfo & recordDependency(const ChefString & relativePath) const;
 
     // Cook and record a dependency
-    UniquePtr<CookInfo> cookDependency(const ChefString & relativePath) const;
+    UniquePtr<CookInfo> cookDependency(const ChefString & relativePath, Cooker * pCookerOverride = nullptr) const;
 
     bool isCooked(const char * ext) const;
     void setCookedBuffer(AssetHeader * pBuffer) const;

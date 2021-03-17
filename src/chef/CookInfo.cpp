@@ -85,11 +85,11 @@ const DependencyInfo & CookInfo::recordDependency(const ChefString & relativePat
     return *diPair.first;
 }
 
-UniquePtr<CookInfo> CookInfo::cookDependency(const ChefString & relativePath) const
+UniquePtr<CookInfo> CookInfo::cookDependency(const ChefString & relativePath, Cooker * pCookerOverride) const
 {
     const DependencyInfo & depInfo = recordDependency(relativePath);
 
-    UniquePtr<CookInfo> pCi = mpChef->prepCookInfo(depInfo.rawPath.c_str(), true);
+    UniquePtr<CookInfo> pCi = mpChef->prepCookInfo(depInfo.rawPath.c_str(), true, pCookerOverride);
     mpChef->forceCook(pCi.get());
 
     for (auto & dep : pCi->dependencies())

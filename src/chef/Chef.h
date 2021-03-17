@@ -52,7 +52,7 @@ public:
     void forceCook(CookInfo * pCi) const;
     void forceCookAndWrite(CookInfo * pCi) const;
 
-    UniquePtr<CookInfo> prepCookInfo(const char * rawPath, bool force) const;
+    UniquePtr<CookInfo> prepCookInfo(const char * rawPath, bool force, Cooker * pCookerOverride = nullptr) const;
     bool shouldCook(const CookInfo & ci) const;
 
     ChefString getRawPath(const ChefString & path) const;
