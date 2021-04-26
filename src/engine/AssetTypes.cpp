@@ -113,12 +113,21 @@ i32 gaim_anim_index(const AssetHandleP pAssetHandleGaim, i32 nameHash, Entity * 
     return pGaim->animIndex(nameHash);
 }
 
-i32 gaim_frame_offset(const AssetHandleP pAssetHandleGaim, i32 animIndex, f32 delta, Entity * pCaller)
+i32 gaim_frame_offset(const AssetHandleP pAssetHandleGaim, i32 animIndex, f32 delta, bool looped, Entity * pCaller)
 {
     ASSERT(pAssetHandleGaim->typeHash() == HASH::asset);
     const Asset * pAssetGaim = pAssetHandleGaim->data<Asset>();
     const Gaim * pGaim = pAssetGaim->buffer<Gaim>();
-    return pGaim->frameOffset(animIndex, delta);
+    return pGaim->frameOffset(animIndex, delta, looped);
+}
+
+i32 gaim_frame_count(const AssetHandleP pAssetHandleGaim, i32 animIndex, Entity * pCaller)
+{
+    ASSERT(pAssetHandleGaim->typeHash() == HASH::asset);
+    const Asset * pAssetGaim = pAssetHandleGaim->data<Asset>();
+    const Gaim * pGaim = pAssetGaim->buffer<Gaim>();
+    const AnimInfo * pAnim = pGaim->animByIndex(animIndex);
+    return pAnim->frameCount;
 }
 
 mat43 gaim_bone_transform(const AssetHandleP pAssetHandleGaim, i32 animIndex, i32 frameOffset, i32 boneIndex, Entity * pCaller)

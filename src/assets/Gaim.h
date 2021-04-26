@@ -84,8 +84,8 @@ public:
     const AnimInfo * anim(u32 nameHash) const;
     const AnimInfo * animByIndex(u32 nameHash) const;
     const u32 animIndex(u32 animIndex) const;
-    u32 frameOffset(const AnimInfo * pAnimInfo, f32 elapsedTime) const;
-    u32 frameOffset(u32 animInfoIndex, f32 elapsedTime) const;
+    u32 frameOffset(const AnimInfo * pAnimInfo, f32 elapsedTime, bool looped) const;
+    u32 frameOffset(u32 animInfoIndex, f32 elapsedTime, bool looped) const;
     const mat43 & boneTransform(const AnimInfo * pAnimInfo, u32 frameOffset, u32 boneIdx) const;
 
 private:
