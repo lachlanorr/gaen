@@ -203,6 +203,23 @@ inline bool operator==(const HitBox & lhs, const HitBox & rhs)
 }
 static_assert(sizeof(HitBox) == 24, "HitBox unexpected size");
 
+struct Capsule
+{
+    f32  radius;
+    f32  height;
+    vec3 center;
+    Capsule(f32 radius, f32 height, const vec3& center)
+      : radius(radius)
+      , height(height)
+      , center(center)
+    {}
+};
+inline bool operator==(const Capsule & lhs, const Capsule & rhs)
+{
+    return lhs.radius == rhs.radius && lhs.height == lhs.height && lhs.center == rhs.center;
+}
+static_assert(sizeof(Capsule) == 20, "Capsule unexpected size");
+
 } // namespace gaen
 
 namespace std
@@ -214,6 +231,15 @@ struct hash<gaen::HitBox> : public unary_function<gaen::HitBox, size_t>
     size_t operator()(const gaen::HitBox& value) const
     {
         return gaen::fnv1a_32(reinterpret_cast<const gaen::u8*>(&value), sizeof(gaen::HitBox));
+    }
+};
+
+template <>
+struct hash<gaen::Capsule> : public unary_function<gaen::Capsule, size_t>
+{
+    size_t operator()(const gaen::Capsule& value) const
+    {
+        return gaen::fnv1a_32(reinterpret_cast<const gaen::u8*>(&value), sizeof(gaen::Capsule));
     }
 };
 

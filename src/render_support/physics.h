@@ -53,9 +53,14 @@ void collision_remove_body(task_id owner, u32 uid);
 
 namespace system_api
 {
-static const i32 PHY_NONE            = 0;
-static const i32 PHY_KINEMATIC       = 1;
-static const i32 PHY_STOP_ON_COLLIDE = 2;
+static const i32 PHY_FLAG_NONE            = 0;
+static const i32 PHY_FLAG_KINEMATIC       = 1;
+static const i32 PHY_FLAG_STOP_ON_COLLIDE = 2;
+
+// Collision shape type
+static const i32 PHY_SHAPE_BOX = 0;
+static const i32 PHY_SHAPE_CAPSULE = 1;
+
 } // namespace system_api
 
 }

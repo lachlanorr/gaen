@@ -108,9 +108,9 @@ public:
     const vec3 & velocity() const { return mVelocity; }
     const vec3 & linearFactor() const { return mLinearFactor; }
     const vec3 & angularFactor() const { return mAngularFactor; }
-    bool isKinematic() const { return (mFlags & system_api::PHY_KINEMATIC); }
-    bool stopOnCollide() const { return (mFlags & system_api::PHY_KINEMATIC) && (mFlags & system_api::PHY_STOP_ON_COLLIDE); }
-    bool slideOnCollide() const { return (mFlags & system_api::PHY_KINEMATIC) && !(mFlags & system_api::PHY_STOP_ON_COLLIDE) ; }
+    bool isKinematic() const { return (mFlags & system_api::PHY_FLAG_KINEMATIC); }
+    bool stopOnCollide() const { return (mFlags & system_api::PHY_FLAG_KINEMATIC) && (mFlags & system_api::PHY_FLAG_STOP_ON_COLLIDE); }
+    bool slideOnCollide() const { return (mFlags & system_api::PHY_FLAG_KINEMATIC) && !(mFlags & system_api::PHY_FLAG_STOP_ON_COLLIDE) ; }
     u32 message() const { return mMessage; }
     u32 groupHash() const { return mGroupHash; }
 
@@ -137,6 +137,7 @@ private:
     task_id mOwner;
     vec3 mCenter;
     u32 mFlags;
+    u32 mCollisionShape;
     vec3 mVelocity;
     vec3 mLinearFactor;
     vec3 mAngularFactor;
@@ -195,6 +196,7 @@ public:
     void updateKinematics(f32 delta);
 
     btCompoundShape * findBox(const vec3 & halfExtents, const vec3 & center);
+    btCompoundShape * findCapsule(f32 radius, f32 height, const vec3 & center);
     btCollisionShape * findConvexHull(const Gmdl * pGmdlPoints);
 
     void insertRigidBody(u32 uid,
@@ -263,6 +265,7 @@ private:
 
     HashMap<kMEM_Physics, u32, ModelBodyUP> mBodies;
     HashMap<kMEM_Physics, HitBox, btCompoundShapeUP> mBoxes;
+    HashMap<kMEM_Physics, Capsule, btCompoundShapeUP> mCapsules;
     HashMap<kMEM_Physics, const Gmdl *, btCollisionShapeUP> mConvexHulls;
     HashMap<kMEM_Physics, u32, u16> mMaskBits;
     HashSet<kMEM_Physics, u32> mBodiesToRemove;

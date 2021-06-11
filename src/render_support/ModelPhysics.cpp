@@ -437,6 +437,34 @@ btCompoundShape * ModelPhysics::findBox(const vec3 & halfExtents, const vec3 & c
     return pCompoundShape;
 }
 
+static btCompoundShape * newOffsetCapsule(f32 radius, f32 height, const vec3 & center)
+{
+    btCollisionShape * pCapsuleShape = GNEW(kMEM_Physics, btCapsuleShape, radius, height);
+    btCompoundShape * pCompoundShape = GNEW(kMEM_Physics, btCompoundShape);
+    btTransform localTrans;
+    localTrans.setIdentity();
+    localTrans.setOrigin(btVector3(center.x, center.y, center.z));
+    pCompoundShape->addChildShape(localTrans, pCapsuleShape);
+    return pCompoundShape;
+}
+
+btCompoundShape * ModelPhysics::findCapsule(f32 radius, f32 height, const vec3 & center)
+{
+    Capsule cap{radius, height, center};
+    auto cmpShapeIt = mCapsules.find(cap);
+
+    btCompoundShape * pCompoundShape = nullptr;
+    if (cmpShapeIt != mCapsules.end())
+        pCompoundShape = cmpShapeIt->second.get();
+    else
+    {
+        auto empRes = mCapsules.emplace(std::piecewise_construct,
+                                        std::forward_as_tuple(cap),
+                                        std::forward_as_tuple(newOffsetCapsule(radius, height, center)));
+        pCompoundShape = empRes.first->second.get();
+    }
+    return pCompoundShape;
+}
 
 btCollisionShape * ModelPhysics::findConvexHull(const Gmdl * pGmdlPoints)
 {

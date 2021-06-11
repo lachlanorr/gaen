@@ -179,6 +179,7 @@ ModelBody:
   mass: f32
   friction: f32
   flags: u32
+  collisionShape: u32
   linearFactor: vec3
   angularFactor: vec3
   message: u32

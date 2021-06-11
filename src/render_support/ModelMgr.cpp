@@ -163,24 +163,42 @@ MessageResult ModelMgr::message(const T & msgAcc)
         if (modelPair != mModelMap.end())
         {
             modelPair->second->mHasBody = true;
-            btCompoundShape * pCompoundShape = mPhysics.findBox(modelPair->second->model().gmdl().halfExtents(), modelPair->second->model().gmdl().center());
-            ModelMotionState * pMotionState = GNEW(kMEM_Physics, ModelMotionState, *modelPair->second);
 
-            mPhysics.insertRigidBody(modelPair->second->model().uid(),
-                                     modelPair->second->model().owner(),
-                                     pCompoundShape,
-                                     pMotionState,
-                                     modelPair->second->model().gmdl().center(),
-                                     mat43(1.0f),
-                                     msgr.mass(),
-                                     msgr.friction(),
-                                     msgr.flags(),
-                                     msgr.linearFactor(),
-                                     msgr.angularFactor(),
-                                     msgr.message(),
-                                     msgr.group(),
-                                     msgr.mask03(),
-                                     msgr.mask47());
+            btCompoundShape * pCompoundShape = nullptr;
+            const auto & halfExt = modelPair->second->model().gmdl().halfExtents();
+            switch (msgr.collisionShape())
+            {
+            case system_api::PHY_SHAPE_BOX:
+                pCompoundShape = mPhysics.findBox(halfExt, modelPair->second->model().gmdl().center());
+                break;
+            case system_api::PHY_SHAPE_CAPSULE:
+                pCompoundShape = mPhysics.findCapsule(halfExt.x, halfExt.y * 2, modelPair->second->model().gmdl().center());
+                break;
+            default:
+                ERR("model_init_body with unknown collision shape: %u", msgr.collisionShape());
+                break;
+            }
+
+            if (pCompoundShape)
+            {
+                ModelMotionState * pMotionState = GNEW(kMEM_Physics, ModelMotionState, *modelPair->second);
+
+                mPhysics.insertRigidBody(modelPair->second->model().uid(),
+                                         modelPair->second->model().owner(),
+                                         pCompoundShape,
+                                         pMotionState,
+                                         modelPair->second->model().gmdl().center(),
+                                         mat43(1.0f),
+                                         msgr.mass(),
+                                         msgr.friction(),
+                                         msgr.flags(),
+                                         msgr.linearFactor(),
+                                         msgr.angularFactor(),
+                                         msgr.message(),
+                                         msgr.group(),
+                                         msgr.mask03(),
+                                         msgr.mask47());
+            }
         }
         else
         {
@@ -390,6 +408,7 @@ void model_init_body(i32 modelUid,
                      f32 mass,
                      f32 friction,
                      i32 flags,
+                     i32 collisionShape,
                      vec3 linearFactor,
                      vec3 angularFactor,
                      i32 message,
@@ -402,6 +421,7 @@ void model_init_body(i32 modelUid,
     msgw.setMass(mass);
     msgw.setFriction(friction);
     msgw.setFlags(flags);
+    msgw.setCollisionShape(collisionShape);
     msgw.setLinearFactor(linearFactor);
     msgw.setAngularFactor(angularFactor);
     msgw.setMessage(message);
