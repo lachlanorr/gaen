@@ -202,7 +202,7 @@ void InputMgr::notifyKeyPressListeners(u32 mode, const ivec4 & keys)
         {
             messages::KeyPressBW msgw(HASH::key_press, kMessageFlag_None, kInputMgrTaskId, target);
             msgw.setKeys(keys);
-            TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+            send_message(msgw);
         }
     }
 }

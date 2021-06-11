@@ -161,7 +161,7 @@ void ModelInstance::registerTransformWatcher(task_id taskId)
         messages::RegisterWatcherBW msgw(HASH::register_watcher, kMessageFlag_None, taskId, mpModel->owner(), HASH::model_transform);
         msgw.setProperty(HASH::transform);
         msgw.setUid(mpModel->uid());
-        TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+        send_message(msgw);
     }
 }
 
@@ -178,7 +178,7 @@ void ModelInstance::model_insert(task_id source, task_id target, ModelInstance *
 {
     messages::ModelInstanceBW msgw(HASH::model_insert, kMessageFlag_None, source, target);
     msgw.setModelInstance(pModelInst);
-    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+    send_message(msgw);
 }
 
 void ModelInstance::model_remove(task_id source, task_id target, u32 uid)

@@ -109,7 +109,7 @@ public:
                 msgW.setValue(val);
                 msgW.setValueType(ValTypeHash);
                 msgW.setProperty(pw.property);
-                TaskMaster::task_master_for_active_thread().message(msgW.accessor());
+                send_message(msgW);
             }
             else if (pw.watcher == 0)
             {

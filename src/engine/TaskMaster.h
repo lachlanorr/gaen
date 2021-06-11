@@ -254,6 +254,12 @@ private:
     Registry mRegistry;
 };
 
+template <typename T>
+MessageResult send_message(const T& msg)
+{
+    return TaskMaster::task_master_for_active_thread().message(msg.accessor());
+}
+
 } // namespace gaen
 
 

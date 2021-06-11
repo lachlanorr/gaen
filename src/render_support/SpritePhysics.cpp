@@ -72,7 +72,7 @@ void SpriteMotionState::setWorldTransform(const btTransform& worldTrans)
     {
         messages::PropertyMat43BW msgw(HASH::set_property, kMessageFlag_None, kSpriteMgrTaskId, mSpriteInstance.sprite().owner(), HASH::transform);
         msgw.setValue(mSpriteInstance.mTransform);
-        TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+        send_message(msgw);
     }
 }
 
@@ -133,7 +133,7 @@ void SpritePhysics::update(f32 delta)
                     msgw.setDistance(pt.getDistance());
                     msgw.setLocationSelf(vec3(ptA.x(), ptA.y(), ptA.z()));
                     msgw.setLocationOther(vec3(ptB.x(), ptB.y(), ptB.z()));
-                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+                    send_message(msgw);
                 }
                 {
                     messages::CollisionBW msgw(HASH::collision, kMessageFlag_None, kSpriteMgrTaskId, obB->mpMotionState->mSpriteInstance.sprite().owner(), obA->mGroupHash);
@@ -141,7 +141,7 @@ void SpritePhysics::update(f32 delta)
                     msgw.setDistance(pt.getDistance());
                     msgw.setLocationSelf(vec3(ptB.x(), ptB.y(), ptB.z()));
                     msgw.setLocationOther(vec3(ptA.x(), ptA.y(), ptA.z()));
-                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+                    send_message(msgw);
                 }
 
 

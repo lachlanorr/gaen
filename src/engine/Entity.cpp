@@ -574,7 +574,7 @@ MessageResult Entity::message(const T & msgAcc)
                         }
 
                         messages::TaskStatusBW msgW(HASH::set_task_status, kMessageFlag_Editor, mTask.id(), mTask.id(), TaskStatus::Running);
-                        TaskMaster::task_master_for_active_thread().message(msgW.accessor());
+                        send_message(msgW);
                     }
 
                     notifyWatchersMat43(mTask.id(), HASH::transform, mTransform);
@@ -779,7 +779,7 @@ void Entity::registerWatcher(task_id watcher, u32 property, u32 message, u32 uid
                 msgW.setProperty(property);
                 msgW.setValue(mTransform);
                 msgW.setValueType(HASH::mat43);
-                TaskMaster::task_master_for_active_thread().message(msgW.accessor());
+                send_message(msgW);
             }
             else
             {
@@ -1141,7 +1141,7 @@ void Entity::requestAsset(u32 subTaskId, u32 nameHash, const CmpString & path)
     ThreadLocalMessageBlockWriter msgw(HASH::request_asset__, kMessageFlag_None, mTask.id(), kAssetMgrTaskId, to_cell(subTaskId), path.blockCount() + 1);
     msgw[0].cells[0].u = nameHash;
     path.writeMessage(msgw.accessor(), 1);
-    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+    send_message(msgw);
 }
 
 void Entity::send_ready_init(u32 sourceTaskId, u32 targetTaskId, u32 message)

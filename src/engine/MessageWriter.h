@@ -88,7 +88,8 @@ public:
         mIsCommitted = true;
     }
 
-    inline MessageQueueAccessor & accessor() { return mMsgAcc; }
+    inline const MessageQueueAccessor& accessor() const { return mMsgAcc; }
+    inline MessageQueueAccessor& accessor() { return mMsgAcc; }
 
     inline Block & operator[] (u32 index)
     {
@@ -136,7 +137,8 @@ public:
         mMsgAcc.message() = Message(msgId, flags, source, target, payload, blockCount);
     }
 
-    MessageBlockAccessor & accessor() { return mMsgAcc; }
+    const MessageBlockAccessor& accessor() const { return mMsgAcc; }
+    MessageBlockAccessor& accessor() { return mMsgAcc; }
 
     // Access blocks of message
     Block & operator[] (u32 index)
@@ -196,7 +198,7 @@ public:
     {}
     ~ImmediateMessageWriter()
     {
-        TaskMaster::task_master_for_active_thread().message(accessor());
+        send_message(*this);
     }
 };
 

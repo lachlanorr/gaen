@@ -2670,7 +2670,7 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
         code += I1 + S("}\n");
         code += I1 + S("else // send message to our TM and let it deal with the potential queuing\n");
         code += I1 + S("{\n");
-        code += I1 + S("    TaskMaster::task_master_for_active_thread().message(msgw__.accessor());\n");
+        code += I1 + S("    send_message(msgw__);\n");
         code += I1 + S("}\n");
         code += I + S("}\n");
         return code;

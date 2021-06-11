@@ -66,7 +66,7 @@ void camera_move(i32 uid,
 
     mat4 trans = mat4(position) * mat4(direction);
     msgw.setTransform(mat43(trans));
-    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+    send_message(msgw);
 }
 
 mat43 view_look_at(const vec3 & position,
@@ -93,7 +93,7 @@ void light_insert(i32 uid,
     msgw.setColor(color);
     msgw.setAmbient(ambient);
     msgw.setDirection(direction);
-    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+    send_message(msgw);
 }
 
 void light_direction(i32 uid,
@@ -106,7 +106,7 @@ void light_direction(i32 uid,
                              kRendererTaskId,
                              uid);
     msgw.setVector(direction);
-    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+    send_message(msgw);
 }
 
 void light_color(i32 uid,
@@ -119,7 +119,7 @@ void light_color(i32 uid,
                               kRendererTaskId,
                               uid);
     msgw.setColor(color);
-    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+    send_message(msgw);
 }
 
 void light_ambient(i32 uid,
@@ -132,7 +132,7 @@ void light_ambient(i32 uid,
                                kRendererTaskId,
                                uid);
     msgw.setScalar(ambient);
-    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+    send_message(msgw);
 }
 
 void light_remove(i32 uid, Entity * pCaller)
@@ -143,7 +143,7 @@ void light_remove(i32 uid, Entity * pCaller)
                             kRendererTaskId,
                             to_cell(uid),
                             0);
-    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+    send_message(msgw);
 }
 
 } // namespace system_api

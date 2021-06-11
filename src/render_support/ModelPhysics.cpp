@@ -128,7 +128,7 @@ void ModelMotionState::setWorldTransform(const btTransform& worldTrans)
             {
                 messages::PropertyMat43BW msgw(HASH::set_property, kMessageFlag_None, kModelMgrTaskId, mModelInstance.model().owner(), HASH::transform);
                 msgw.setValue(mModelInstance.mTransform);
-                TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+                send_message(msgw);
             }
         }
     }
@@ -382,7 +382,7 @@ void ModelPhysics::update(f32 delta)
                     msgw.setDistance(dist);
                     msgw.setLocationSelf(locA);
                     msgw.setLocationOther(locB);
-                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+                    send_message(msgw);
                 }
                 if (obB->message() != 0)
                 {
@@ -391,7 +391,7 @@ void ModelPhysics::update(f32 delta)
                     msgw.setDistance(dist);
                     msgw.setLocationSelf(locB);
                     msgw.setLocationOther(locA);
-                    TaskMaster::task_master_for_active_thread().message(msgw.accessor());
+                    send_message(msgw);
                 }
             }
         }
