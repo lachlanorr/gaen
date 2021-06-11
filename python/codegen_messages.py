@@ -81,7 +81,13 @@ def output_path():
     return posixpath.join(sys.argv[1], 'messages')
 
 def messages_def_path():
-    return posixpath.join(gaen_path(), 'src/engine')
+    if len(sys.argv) >= 3:
+        return sys.argv[2]
+    else:
+        return posixpath.join(gaen_path(), 'src/engine/messages_def.yaml')
+
+def field_types_path():
+    return posixpath.join(gaen_path(), 'src/engine/field_types.yaml')
 
 def gen_message_cmake(messages):
     lines = []
@@ -224,8 +230,8 @@ def fixup_fields(d, field_types):
     return block_count, sorted(set(includes)), fields
 
 def parse_messages_def():
-    message_defs = read_yaml(posixpath.join(messages_def_path(), 'messages_def.yaml'))
-    field_types = read_yaml(posixpath.join(messages_def_path(), 'field_types.yaml'))
+    message_defs = read_yaml(messages_def_path())
+    field_types = read_yaml(field_types_path())
     messages = []
     for k, v in message_defs.iteritems():
         m = Message()
