@@ -159,12 +159,6 @@ void Model::cook(CookInfo * pCookInfo) const
                   aiProcess_ImproveCacheLocality |
                   aiProcess_GenBoundingBoxes;
 
-    // Our ply exporter from houdini leaves the default cw windings,
-    // and the engine needs ccw.
-    ChefString ext = get_ext(pCookInfo->rawPath().c_str());
-    if (ext == "ply")
-        aiFlags |= aiProcess_FlipWindingOrder;
-
     const struct aiScene * pScene = aiImportFile(pCookInfo->rawPath().c_str(),
                                                  aiFlags);
 
