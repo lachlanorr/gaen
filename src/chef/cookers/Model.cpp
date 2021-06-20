@@ -55,6 +55,7 @@ Model::Model()
     setVersion(8);
     addRawExt(kExtObj);
     addRawExt(kExtPly);
+    addRawExt(kExtOgex);
     addRawExt(kExtGltf);
     addCookedExtExclusive(kExtGmdl);
 }
@@ -159,7 +160,7 @@ void Model::cook(CookInfo * pCookInfo) const
                   aiProcess_GenBoundingBoxes;
 
     // Our ply exporter from houdini leaves the default cw windings,
-    // and the engin needs ccw.
+    // and the engine needs ccw.
     ChefString ext = get_ext(pCookInfo->rawPath().c_str());
     if (ext == "ply")
         aiFlags |= aiProcess_FlipWindingOrder;
@@ -209,8 +210,16 @@ void Model::cook(CookInfo * pCookInfo) const
 
     // check for voxel skeleton
     Skeleton skel;
-    ChefString sklpath = pCookInfo->rawPath();
-    change_ext(sklpath, ChefString("skl"));
+    ChefString sklpath;
+    if (pCookInfo->fullRecipe().hasKey("skeleton"))
+    {
+        sklpath = pCookInfo->relativePathToFullPath(pCookInfo->fullRecipe().get("skeleton"));
+    }
+    else
+    {
+        sklpath = pCookInfo->rawPath();
+        change_ext(sklpath, ChefString("skl"));
+    }
     if (file_exists(sklpath.c_str()))
     {
         pCookInfo->recordDependency(get_filename(sklpath));

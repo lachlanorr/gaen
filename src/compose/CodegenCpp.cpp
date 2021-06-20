@@ -244,7 +244,7 @@ S CodegenCpp::assign(const Ast * pAst, const char * op)
     }
 
 
-    if (!is_block_memory_type(pAst->pSymRecRef->pSymDataType))
+    if (pAst->pSymRecRef->type == kSYMT_Local || !is_block_memory_type(pAst->pSymRecRef->pSymDataType))
     {
         return symref(pAst, pAst->pSymRecRef, pAst->pParseData) + S(" ") + S(op) + S(" ") + codegenRecurse(pAst->pRhs, 0);
     }
@@ -2497,6 +2497,11 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
     case kAST_Self:
     {
         return S("pThis->self().task().id()");
+    }
+
+    case kAST_Creator:
+    {
+        return S("pThis->self().creator()");
     }
 
     case kAST_Renderer:

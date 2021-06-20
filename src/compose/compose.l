@@ -95,6 +95,7 @@ ParseData * pParseData = yyextra;
 "asset"  { yylval->dataType = kDT_asset;  return ASSET; }
 
 "self"     { return SELF; }
+"creator"  { return CREATOR; }
 "renderer" { return RENDERER; }
 
 "if"       { return IF;     }

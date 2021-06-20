@@ -117,6 +117,7 @@ typedef enum
     kAST_SimpleStmt,
 
     kAST_Self,
+    kAST_Creator,
     kAST_Renderer,
     kAST_Parent,
     kAST_Transform,

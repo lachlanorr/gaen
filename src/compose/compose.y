@@ -82,7 +82,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 %token <dataType> VOID_ BOOL_ INT_ FLOAT_ COLOR VEC2 VEC3 VEC4 IVEC2 IVEC3 IVEC4 QUAT MAT3 MAT43 MAT4 HANDLE_ ASSET ENTITY STRING
 %type <dataType> basic_type constable_type
 
-%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS UPDATE INPUT_ ANY NONE USING AS CONST_ SELF PRE POST VALUE RENDERER
+%token IF SWITCH CASE DEFAULT FOR WHILE DO BREAK RETURN COMPONENT COMPONENTS UPDATE INPUT_ ANY NONE USING AS CONST_ SELF CREATOR PRE POST VALUE RENDERER
 %right ELSE THEN
 
 %right <pAst> '=' ADD_ASSIGN SUB_ASSIGN MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN LSHIFT_ASSIGN RSHIFT_ASSIGN AND_ASSIGN XOR_ASSIGN OR_ASSIGN TRANSFORM READY PARENT
@@ -295,6 +295,7 @@ target_expr
     : /* empty */  { $$ = NULL; }
     | IDENTIFIER   { $$ = ast_create_identifier($1, pParseData); }
     | SELF         { $$ = ast_create(kAST_Self, pParseData); }
+    | CREATOR      { $$ = ast_create(kAST_Creator, pParseData); }
     | RENDERER     { $$ = ast_create(kAST_Renderer, pParseData); }
     | INT_LITERAL  { $$ = ast_create_int_literal($1, pParseData); }
     | PARENT       { $$ = ast_create(kAST_Parent, pParseData); }
@@ -361,6 +362,7 @@ expr
 
     | TRANSFORM  { $$ = ast_create(kAST_Transform, pParseData); }
     | SELF       { $$ = ast_create(kAST_Self, pParseData); }
+    | CREATOR    { $$ = ast_create(kAST_Creator, pParseData); }
     ;
 
 const_expr

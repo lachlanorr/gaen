@@ -67,6 +67,8 @@ public:
     const Entity & self() const { return *this; }
     Entity & self() { return *this; }
 
+    task_id creator() { return mCreatorTask; }
+
     void setEntityInit(EntityInit * pEntityInit) { mpEntityInit = pEntityInit; }
 
     void activate();

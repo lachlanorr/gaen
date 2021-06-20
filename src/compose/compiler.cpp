@@ -2376,6 +2376,9 @@ const SymDataType * ast_data_type(const Ast * pAst)
     case kAST_Self:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "entity", 0, 0);
         break;
+    case kAST_Creator:
+        pSymRec = parsedata_find_type_symbol(pAst->pParseData, "int", 0, 0);
+        break;
     case kAST_FloatLiteral:
         pSymRec = parsedata_find_type_symbol(pAst->pParseData, "float", 0, 0);
         break;

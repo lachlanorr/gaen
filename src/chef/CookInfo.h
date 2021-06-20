@@ -124,6 +124,7 @@ public:
     const ChefString & rawPath() const { return mRawPath; }
     const RecipeList & recipes() const { return *mpRecipes; }
     const Recipe & fullRecipe() const { return *mpFullRecipe; }
+    ChefString relativePathToFullPath(const ChefString & relativePath) const;
 
     const CookResultList & results() const { return mResults; }
     const DependencySet & dependencies() const { return mDependencies; }

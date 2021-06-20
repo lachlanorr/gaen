@@ -35,6 +35,14 @@
 namespace gaen
 {
 
+ChefString CookInfo::relativePathToFullPath(const ChefString & relativePath) const
+{
+    ChefString rawParent = parent_dir(rawPath());
+    normalize_path(relativePath);
+    ChefString fullPath = rawParent + "/" + relativePath;
+    return fullPath;
+}
+
 void CookInfo::addCookResult(const ChefString & cookedExt,
                              const ChefString & cookedPath,
                              const ChefString & gamePath)
