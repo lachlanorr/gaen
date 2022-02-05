@@ -279,7 +279,17 @@ void Model::cook(CookInfo * pCookInfo) const
             continue;
         }
 
-        PANIC_IF(vertType == kVERT_PosNormCol && pAiMesh->GetNumColorChannels() != 1, "Color channels not equal to 1 on a vert color imported model: %s", pCookInfo->rawPath().c_str());            
+        // Exclude certain meshes, for example Null_.* meshes which may be informational only to the pipeline
+        if (pCookInfo->fullRecipe().hasKey("mesh_exclude_re"))
+        {
+            std::regex meshExcludeRe(pCookInfo->fullRecipe().get("mesh_exclude_re"));
+            if (std::regex_match(pAiMesh->mName.data, meshExcludeRe))
+            {
+                continue;
+            }
+        }
+
+        PANIC_IF(vertType == kVERT_PosNormCol && pAiMesh->GetNumColorChannels() != 1, "Color channels not equal to 1 on a vert color imported model: %s", pCookInfo->rawPath().c_str());
 
         // Check for .rcp scale
         f32 scale = 1.0f;
