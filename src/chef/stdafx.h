@@ -29,6 +29,7 @@
 
 #include <codecvt>
 #include <cstring>
+#include <regex>
 
 #define PNG_DEBUG 3
 #include <png.h>
