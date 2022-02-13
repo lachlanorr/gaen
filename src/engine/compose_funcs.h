@@ -179,6 +179,11 @@ inline f32 dot(const vec3 & lhs, const vec3 & rhs)
     return gaen::dot(lhs, rhs);
 }
 
+inline f32 length(const vec2 & v)
+{
+    return gaen::length(v);
+}
+
 inline f32 length(const vec3 & v)
 {
     return gaen::length(v);

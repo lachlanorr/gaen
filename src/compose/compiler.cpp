@@ -3575,6 +3575,16 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
+    // f32 length(vec2)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("v", parsedata_find_type_symbol(pParseData, "vec2", 1, 1), pParseData));
+        register_builtin_function("length",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
     // f32 length(vec3)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
@@ -3584,7 +3594,6 @@ void register_builtin_functions(ParseData * pParseData)
                                   pFuncArgs,
                                   pParseData);
     }
-
 
     // f32 acos(f32)
     {
