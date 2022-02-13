@@ -1583,7 +1583,7 @@ S CodegenCpp::codegenMessageParams(const Ast * pAst, int indentLevel)
                 snprintf(scratch,
                          kScratchSize,
                          "*reinterpret_cast<%s*>(&msgw__[%d].cells[%d]) = ",
-                         ast_data_type(bi.pAst)->cppTypeStr,
+                         ast_data_type(bi.pAst)->cppName,
                          bi.blockIndex,
                          bi.cellIndex);
                 code += I1 + S(scratch);
@@ -2221,7 +2221,7 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
         // If it's a top level function call, add in our Entity
         // pointer to serve as the pThis pointer so the function can
         // make system_api calls.
-        if (isTopLevelFunction(pAst->pSymRecRef->pAst))
+        if (isTopLevelFunction(pAst->pSymRecRef->pAst) && !(pAst->pSymRecRef->flags & kSRFL_BuiltInFunction))
         {
             if (pAst->pRhs->pChildren->nodes.size() > 0)
                 code += S(", ");
@@ -2766,8 +2766,8 @@ S CodegenCpp::codegenHeader(const Ast * pRootAst)
 }
 
 void CodegenCpp::extractFilenames(const S & cmpFullPath,
-                              CodeCpp & codeCpp,
-                              ParseData * pParseData)
+                                  CodeCpp & codeCpp,
+                                  ParseData * pParseData)
 {
     codeCpp.cmpFullPath = cmpFullPath;
 
@@ -2785,17 +2785,15 @@ void CodegenCpp::extractFilenames(const S & cmpFullPath,
     S relPath = cmpFullPath.substr(scriptsComposePos + scriptsCompose.size(), lastSlashPos - (scriptsComposePos + scriptsCompose.size()) + 1);
 
     codeCpp.cmpFilename = cmpFullPath.substr(cmpFullPath.rfind('/') + 1);
-    // already ends with .cmp
-    codeCpp.cppFilename = codeCpp.cmpFilename;
-    codeCpp.cppFilename[codeCpp.cppFilename.size() - 2] = 'p';
-    codeCpp.cppFilename[codeCpp.cppFilename.size() - 1] = 'p';
+
+    size_t dotpos = codeCpp.cmpFilename.find_last_of('.');
+
+    codeCpp.cppFilename = codeCpp.cmpFilename.substr(0, dotpos) + ".cpp";
+    codeCpp.hFilename = codeCpp.cmpFilename.substr(0, dotpos) + ".h";
 
     codeCpp.cmpRelPath = relPath + codeCpp.cmpFilename;
     codeCpp.cppRelPath = relPath + codeCpp.cppFilename;
-
-    codeCpp.cppFullPath = cmpFullPath.substr(0, scriptsComposePos);
-    codeCpp.cppFullPath += "/scripts/cpp/";
-    codeCpp.cppFullPath += codeCpp.cppRelPath;
+    codeCpp.hRelPath = relPath + codeCpp.hFilename;
 }
 
 S CodegenCpp::hashRegistration(const S & entName)
@@ -2832,6 +2830,8 @@ CodeCpp CodegenCpp::codegen(ParseData * pParseData)
 
     extractFilenames(pParseData->fullPath, codeCpp, pParseData);
 
+    codeCpp.header = codegenHeader(pParseData->pRootAst);
+
     codeCpp.code += S("#include \"hashes/hashes.h\"\n");
     codeCpp.code += S("#include \"math/math.h\"\n");
     codeCpp.code += S("#include \"engine/Block.h\"\n");
@@ -2848,6 +2848,12 @@ CodeCpp CodegenCpp::codegen(ParseData * pParseData)
     codeCpp.code += S("\n");
     codeCpp.code += S("#include \"engine/messages/Handle.h\"\n");
     codeCpp.code += S("#include \"engine/messages/Transform.h\"\n");
+
+    if (!codeCpp.header.empty())
+    {
+        codeCpp.code += S("\n");
+        codeCpp.code += S("#include \"" + codeCpp.hFilename + "\"\n");
+    }
 
     codeCpp.code += S("\n");
     codeCpp.code += S("// system_api declarations\n");
@@ -2887,8 +2893,6 @@ CodeCpp CodegenCpp::codegen(ParseData * pParseData)
     codeCpp.code += codeDefs;
 
     codeCpp.code += S("} // namespace gaen\n");
-
-    codeCpp.header = codegenHeader(pParseData->pRootAst);
 
     return codeCpp;
 }

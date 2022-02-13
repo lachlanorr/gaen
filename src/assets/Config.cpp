@@ -380,6 +380,37 @@ f32 Config<memType>::getFloat(const char * section, const char * key) const
 }
 
 template <MemType memType>
+typename Config<memType>::StringVec Config<memType>::parseVec(const char * val, char delim) const
+{
+    StringVec vec;
+    const char * dpos = strchr(val, delim);
+    if (!dpos)
+    {
+        auto it = mNames.emplace(val);
+        vec.emplace_back(it.first->c_str());
+    }
+    else
+    {
+        while (dpos)
+        {
+            auto it = mNames.emplace(val, dpos-val);
+            vec.emplace_back(it.first->c_str());
+            val = dpos+1;
+            dpos = strchr(val, delim);
+
+            // grab last value after last dpos
+            if (!dpos && strlen(val) > 0)
+            {
+                auto itLast = mNames.emplace(val);
+                vec.emplace_back(itLast.first->c_str());
+            }
+        }
+    }
+    return vec;
+}
+
+
+template <MemType memType>
 typename Config<memType>::StringVec Config<memType>::getVec(const char * key) const
 {
     return getVec(kGlobalSection, key);
@@ -390,30 +421,27 @@ typename Config<memType>::StringVec Config<memType>::getVec(const char * section
 {
     StringVec vec;
     const char * val = get(section, key);
-    const char * comma = strchr(val, ',');
-    if (!comma)
-    {
-        auto it = mNames.emplace(val);
-        vec.emplace_back(it.first->c_str());
-    }
-    else
-    {
-        while (comma)
-        {
-            auto it = mNames.emplace(val, comma-val);
-            vec.emplace_back(it.first->c_str());
-            val = comma+1;
-            comma = strchr(val, ',');
+    return parseVec(val, ',');
+}
 
-            // grab last value after last comma
-            if (!comma && strlen(val) > 0)
-            {
-                auto itLast = mNames.emplace(val);
-                vec.emplace_back(itLast.first->c_str());
-            }
-        }
+template <MemType memType>
+typename Config<memType>::StringVecVec Config<memType>::getVecVec(const char * key) const
+{
+    return getVecVec(kGlobalSection, key);
+}
+
+template <MemType memType>
+typename Config<memType>::StringVecVec Config<memType>::getVecVec(const char * section, const char * key) const
+{
+    const char * val = get(section, key);
+    StringVec vecStrs = parseVec(val, '|');
+
+    StringVecVec vecVecs;
+    for (const auto & vecStr : vecStrs)
+    {
+        vecVecs.push_back(parseVec(vecStr, ','));
     }
-    return vec;
+    return vecVecs;
 }
 
 template <MemType memType>
@@ -704,7 +732,7 @@ typename Config<memType>::ProcessResult Config<memType>::processLine(char * line
 {
     line = strip(line);
     strip_comment(line);
-    
+
     // if it's blank we can skip it
     if (*line == '\0')
         return ProcessResult(kPRT_Ignore);
@@ -715,7 +743,7 @@ typename Config<memType>::ProcessResult Config<memType>::processLine(char * line
     // A key/value pair
     if (eq)
     {
-        // turn '=' into a null 
+        // turn '=' into a null
         char * lhs = line;
         char * rhs = eq+1;
         *eq = '\0';

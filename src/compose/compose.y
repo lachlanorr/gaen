@@ -111,7 +111,7 @@ static void yyprint(FILE * file, int type, YYSTYPE value);
 
 %type <pSymDataType> type const_type type_ent type_ent_handle_asset
 
-%type <pAst> def stmt block stmt_list fun_params expr const_expr cond_expr expr_or_empty cond_expr_or_empty literal
+%type <pAst> def stmt block stmt_list fun_params expr cond_expr expr_or_empty cond_expr_or_empty literal
 %type <pAst> using_list using_stmt dotted_id dotted_id_proc dotted_id_part
 %type <pAst> message_block message_list message_prop target_expr message_expr function_def
 %type <pAst> prop_init_list prop_init component_block component_member_list component_member property_decl property_block property_def_list property_def input_block input_def_list input_def
@@ -157,7 +157,7 @@ def
     : ENTITY IDENTIFIER message_block                   { $$ = ast_create_entity_def($2, $3, pParseData); }
     | COMPONENT IDENTIFIER message_block                { $$ = ast_create_component_def($2, $3, pParseData); }
     | function_def                                      { $$ = parsedata_add_root_ast(pParseData, $1); }
-    | const_type IDENTIFIER '=' const_expr ';'          { $$ = ast_create_global_const_def($2, $1, $4, pParseData); }
+    | const_type IDENTIFIER '=' expr ';'                { $$ = ast_create_global_const_def($2, $1, $4, pParseData); }
     ;
 
 message_block
@@ -314,8 +314,10 @@ expr
     | type_ent IDENTIFIER          { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL, NULL, pParseData)); }
     | type_ent IDENTIFIER '=' expr { $$ = parsedata_add_local_symbol(pParseData, symrec_create(kSYMT_Local, $1, $2, NULL, $4, pParseData)); }
 
-    | const_expr       { $$ = $1; }
     | cond_expr        { $$ = $1; }
+
+    | STRING_LITERAL   { $$ = ast_create_string_literal($1, pParseData); }
+    | literal          { $$ = $1; }
 
     | expr '+' expr    { $$ = ast_create_binary_op(kAST_Add,    $1, $3, pParseData); }
     | expr '-' expr    { $$ = ast_create_binary_op(kAST_Sub,    $1, $3, pParseData); }
@@ -363,11 +365,6 @@ expr
     | TRANSFORM  { $$ = ast_create(kAST_Transform, pParseData); }
     | SELF       { $$ = ast_create(kAST_Self, pParseData); }
     | CREATOR    { $$ = ast_create(kAST_Creator, pParseData); }
-    ;
-
-const_expr
-    : STRING_LITERAL { $$ = ast_create_string_literal($1, pParseData); }
-    | literal        { $$ = $1; }
     ;
 
 cond_expr

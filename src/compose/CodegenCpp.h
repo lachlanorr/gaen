@@ -46,7 +46,8 @@ struct CodeCpp
     S cmpFullPath;
     S cppFilename;
     S cppRelPath;
-    S cppFullPath;
+    S hFilename;
+    S hRelPath;
     S header;
     S code;
 };

@@ -250,7 +250,7 @@ SymDataType * symdatatype_create(DataType dataType,
     mangle_param(mangledParam, mangledParamSize, name, isConst, isReference);
     pSdt->mangledParam = mangledParam;
 
-
+    pSdt->cppName = cppName;
     pSdt->cppTypeStr = cpp_type_str(cppName, isConst, isReference, pParseData);
 
     return pSdt;
@@ -3288,16 +3288,6 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
-    // CmpString hashstr(i32)
-    {
-        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
-        ast_add_child(pFuncArgs, ast_create_function_arg("hash", parsedata_find_type_symbol(pParseData, "int", 0, 0), pParseData));
-        register_builtin_function("hashstr",
-                                  parsedata_find_type_symbol(pParseData, "string", 0, 0),
-                                  pFuncArgs,
-                                  pParseData);
-    }
-
     // f32 degrees(f32)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
@@ -3312,6 +3302,26 @@ void register_builtin_functions(ParseData * pParseData)
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
         ast_add_child(pFuncArgs, ast_create_function_arg("radians", parsedata_find_type_symbol(pParseData, "float", 0, 0), pParseData));
+        register_builtin_function("degrees",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // vec2 degrees(vec2)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("degrees", parsedata_find_type_symbol(pParseData, "vec2", 0, 0), pParseData));
+        register_builtin_function("radians",
+                                  parsedata_find_type_symbol(pParseData, "float", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
+    // vec2 degrees(vec2)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("radians", parsedata_find_type_symbol(pParseData, "vec2", 0, 0), pParseData));
         register_builtin_function("degrees",
                                   parsedata_find_type_symbol(pParseData, "float", 0, 0),
                                   pFuncArgs,

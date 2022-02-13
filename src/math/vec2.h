@@ -52,7 +52,7 @@ struct tvec2
         struct{ T r, g; };
         struct{ T s, t; };
     };
-    
+
     tvec2() = default;
 
     tvec2(T x, T y)
@@ -62,7 +62,7 @@ struct tvec2
     explicit tvec2(T x)
       : x(x), y(x)
     {}
-    
+
     u32 length() const { return sizeof(*this) / sizeof(T); }
 
     T& operator[](u32 i) { ASSERT(i < length()); return (&x)[i]; }
@@ -205,6 +205,18 @@ inline f32 dot(const vec2 & lhs, const vec2 & rhs)
 inline f32 length(const vec2 & v)
 {
     return glm::length((vec2::glm_t)v);
+}
+
+inline vec2 radians(vec2 degrees)
+{
+    return vec2(radians(degrees.x),
+                radians(degrees.y));
+}
+
+inline vec2 degrees(vec2 radians)
+{
+    return vec2(degrees(radians.x),
+                degrees(radians.y));
 }
 
 } // namespace gaen

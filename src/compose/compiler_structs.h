@@ -75,6 +75,7 @@ struct SymDataType
     const char * name;
     const char * mangledType;
     const char * mangledParam;
+    const char * cppName;
     const char * cppTypeStr;
 
     CompList<SymStructField*> fields;

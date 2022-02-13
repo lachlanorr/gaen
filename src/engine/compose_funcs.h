@@ -46,7 +46,7 @@ namespace gaen
 namespace compose_funcs
 {
 
-inline void print(CmpString str, Entity * pCaller)
+inline void print(CmpString str)
 {
     LOG_INFO(str.c_str());
 }
@@ -56,147 +56,142 @@ inline f32 random(Entity * pCaller)
     return TaskMaster::task_master_for_active_thread().rand();
 }
 
-inline CmpString hashstr(i32 hash, Entity * pCaller)
-{
-    return pCaller->blockMemory().stringAlloc(HASH::reverse_hash(hash));
-}
-
 template <typename T>
-inline T radians(T degrees, Entity * pCaller)
+inline T radians(T degrees)
 {
     return gaen::radians(degrees);
 }
 
 template <typename T>
-inline T degrees(T radians, Entity * pCaller)
+inline T degrees(T radians)
 {
     return gaen::degrees(radians);
 }
 
 template <typename T>
-inline T min(const T & x, const T & y, Entity * pCaller)
+inline T min(const T & x, const T & y)
 {
     return gaen::min(x, y);
 }
 template <typename T>
-inline T max(const T & x, const T & y, Entity * pCaller)
+inline T max(const T & x, const T & y)
 {
     return gaen::max(x, y);
 }
 
 template <typename T>
-inline T clamp(const T & x, const T & minVal, const T & maxVal, Entity * pCaller)
+inline T clamp(const T & x, const T & minVal, const T & maxVal)
 {
     return gaen::clamp(x, minVal, maxVal);
 }
 
 template <typename T>
-inline T step(const T & edge, const T & x, Entity * pCaller)
+inline T step(const T & edge, const T & x)
 {
     return gaen::step(edge, x);
 }
 
 template <typename T>
-inline T smoothstep(const T & edge0, const T & edge1, const T & x, Entity * pCaller)
+inline T smoothstep(const T & edge0, const T & edge1, const T & x)
 {
     return gaen::smoothstep(edge0, edge1, x);
 }
 
 template <typename T, typename U>
-inline T lerp(const T & x, const T & y, const U & a, Entity * pCaller)
+inline T lerp(const T & x, const T & y, const U & a)
 {
     return gaen::lerp(x, y, a);
 }
 
 template <typename T, typename U>
-inline T slerp(const T & x, const T & y, const U & a, Entity * pCaller)
+inline T slerp(const T & x, const T & y, const U & a)
 {
     return gaen::slerp(x, y, a);
 }
 
-inline vec3 position(const mat43 & transform, Entity * pCaller)
+inline vec3 position(const mat43 & transform)
 {
     return gaen::position(transform);
 }
 
-inline vec3 extract_translate(const mat43 & transform, Entity * pCaller)
+inline vec3 extract_translate(const mat43 & transform)
 {
     return gaen::extract_translate(transform);
 }
 
-inline vec3 extract_rotate(const mat43 & transform, Entity * pCaller)
+inline vec3 extract_rotate(const mat43 & transform)
 {
     return gaen::extract_rotate(transform);
 }
 
-inline mat43 build_translate(const vec3 & v, Entity * pCaller)
+inline mat43 build_translate(const vec3 & v)
 {
     return gaen::build_translate(v);
 }
 
-inline mat43 build_rotate(const vec3 & v, Entity * pCaller)
+inline mat43 build_rotate(const vec3 & v)
 {
     return gaen::build_rotate(v);
 }
 
-inline mat43 build_rotate(const quat & q, Entity * pCaller)
+inline mat43 build_rotate(const quat & q)
 {
     return gaen::build_rotate(q);
 }
 
-inline vec2 normalize(const vec2 & v, Entity * pCaller)
+inline vec2 normalize(const vec2 & v)
 {
     return gaen::normalize(v);
 }
 
-inline vec3 normalize(const vec3 & v, Entity * pCaller)
+inline vec3 normalize(const vec3 & v)
 {
     return gaen::normalize(v);
 }
 
-inline vec4 normalize(const vec4 & v, Entity * pCaller)
+inline vec4 normalize(const vec4 & v)
 {
     return gaen::normalize(v);
 }
 
-inline quat normalize(const quat & q, Entity * pCaller)
+inline quat normalize(const quat & q)
 {
     return gaen::normalize(q);
 }
 
-inline f32 cross(const vec2 & lhs, const vec2 & rhs, Entity * pCaller)
+inline f32 cross(const vec2 & lhs, const vec2 & rhs)
 {
     return gaen::cross(lhs, rhs);
 }
 
-inline vec3 cross(const vec3 & lhs, const vec3 & rhs, Entity * pCaller)
+inline vec3 cross(const vec3 & lhs, const vec3 & rhs)
 {
     return gaen::cross(lhs, rhs);
 }
 
-inline f32 dot(const vec2 & lhs, const vec2 & rhs, Entity * pCaller)
+inline f32 dot(const vec2 & lhs, const vec2 & rhs)
 {
     return gaen::dot(lhs, rhs);
 }
 
-inline f32 dot(const vec3 & lhs, const vec3 & rhs, Entity * pCaller)
+inline f32 dot(const vec3 & lhs, const vec3 & rhs)
 {
     return gaen::dot(lhs, rhs);
 }
 
-inline f32 length(const vec3 & v, Entity * pCaller)
+inline f32 length(const vec3 & v)
 {
     return gaen::length(v);
 }
 
 template <typename T>
-inline T acos(T x, Entity * pCaller)
+inline T acos(T x)
 {
     return gaen::acos(x);
 }
 
 template <typename T>
-inline T atan(T x, Entity * pCaller)
+inline T atan(T x)
 {
     return gaen::atan(x);
 }

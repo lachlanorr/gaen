@@ -72,7 +72,6 @@ void find_input_conf(char * inputConfPath)
     }
 }
 
-
 InputMgr::InputMgr(bool isPrimary)
   : mIsPrimary(isPrimary)
 {
@@ -107,46 +106,48 @@ InputMgr::InputMgr(bool isPrimary)
                 }
                 else
                 {
-                    auto inpVec = inputConf.getVec(*secIt, *inpIt);
+                    auto inpVecVec = inputConf.getVecVec(*secIt, *inpIt);
 
-                    // Check for keys
-                    ivec4 keyCodes;
-                    u32 inpCount = min(4, (i32)inpVec.size());
-                    for (u32 i = 0; i < inpCount; ++i)
+                    for (auto & inpVec : inpVecVec)
                     {
-                        keyCodes[i] = lookup_key_code(inpVec[i]);
-                    }
-                    for (u32 i = inpCount; i < 4; ++i)
-                    {
-                        keyCodes[i] = kKEY_NONE;
-                    }
-
-                    static const ivec4 kAllNoneKeys = ivec4(kKEY_NONE);
-                    if (keyCodes != kAllNoneKeys)
-                    {
-                        mModes[secHash].keyboard[inpHash] = keyCodes;
-                    }
-                    else
-                    {
-                        // check for pad codes
-                        u32 padCodes = 0;
-                        u32 analogCount = 0;
+                        // Check for keys
+                        ivec4 keyCodes;
+                        u32 inpCount = min(4, (i32)inpVec.size());
                         for (u32 i = 0; i < inpCount; ++i)
                         {
-                            PadCode code = lookup_pad_button(inpVec[i]);
-                            if (code >= (u32)kPadCodeAnalogStart)
-                                analogCount++;
-                            padCodes |= code;
+                            keyCodes[i] = lookup_key_code(inpVec[i]);
                         }
-                        if (padCodes != kPAD_NONE)
+                        for (u32 i = inpCount; i < 4; ++i)
                         {
-                            if (analogCount > 2)
-                                LOG_ERROR("input.conf mode has more than 2 analog pad codes");
-                            else
-                                mModes[secHash].pad[inpHash] = padCodes;
+                            keyCodes[i] = kKEY_NONE;
+                        }
+
+                        static const ivec4 kAllNoneKeys = ivec4(kKEY_NONE);
+                        if (keyCodes != kAllNoneKeys)
+                        {
+                            mModes[secHash].keyboard[inpHash].push_back(keyCodes);
+                        }
+                        else
+                        {
+                            // check for pad codes
+                            u32 padCodes = 0;
+                            u32 analogCount = 0;
+                            for (u32 i = 0; i < inpCount; ++i)
+                            {
+                                PadCode code = lookup_pad_button(inpVec[i]);
+                                if (code >= (u32)kPadCodeAnalogStart)
+                                    analogCount++;
+                                padCodes |= code;
+                            }
+                            if (padCodes != kPAD_NONE)
+                            {
+                                if (analogCount > 2)
+                                    LOG_ERROR("input.conf mode has more than 2 analog pad codes");
+                                else
+                                    mModes[secHash].pad[inpHash] = padCodes;
+                            }
                         }
                     }
-
                 }
             }
 
@@ -253,19 +254,30 @@ void InputMgr::setMode(u32 modeHash)
 
 u32 InputMgr::queryState(u32 player, u32 stateHash, vec4 * pMeasure)
 {
+    u32 ret = 0;
+
     if (mpActiveMode)
     {
+        auto keyit = mpActiveMode->keyboard.find(stateHash);
+        if (keyit != mpActiveMode->keyboard.end())
+        {
+            for (const auto & keys : keyit->second)
+            {
+                ret = queryKeyboardState(keys);
+                if (ret != 0)
+                    break;
+            }
+        }
+        if (ret != 0)
+            return ret;
+
         auto padit = mpActiveMode->pad.find(stateHash);
         if (padit != mpActiveMode->pad.end())
         {
-            return queryPadState(player, padit->second, pMeasure);
+            ret = queryPadState(player, padit->second, pMeasure);
         }
-
-        auto keyit = mpActiveMode->keyboard.find(stateHash);
-        if (keyit != mpActiveMode->keyboard.end())
-            return queryKeyboardState(keyit->second);
     }
-    return 0;
+    return ret;
 }
 
 void InputMgr::updatePadState(u32 padId,

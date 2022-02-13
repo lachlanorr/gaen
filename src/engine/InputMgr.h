@@ -83,7 +83,7 @@ private:
     {
         u32 nameHash;
 
-        HashMap<kMEM_Engine, u32, ivec4> keyboard;
+        HashMap<kMEM_Engine, u32, Vector<kMEM_Engine, ivec4>> keyboard;
         HashMap<kMEM_Engine, u32, ivec4> mouseButtons;
         u32 mouseMove;
 

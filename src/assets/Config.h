@@ -52,6 +52,7 @@ public:
     Config & operator=(const Config &) = delete;
 
     typedef Vector<memType, const char*> StringVec;
+    typedef Vector<memType, Vector<memType, const char *>> StringVecVec;
     typedef Vector<memType, i32> IntVec;
     typedef Vector<memType, f32> FloatVec;
 
@@ -97,8 +98,13 @@ public:
     f32 getFloat(const char * key) const;
     f32 getFloat(const char * section, const char * key) const;
 
+    StringVec parseVec(const char * val, char delim) const;
+
     StringVec getVec(const char * key) const;
     StringVec getVec(const char * section, const char * key) const;
+
+    StringVecVec getVecVec(const char * key) const;
+    StringVecVec getVecVec(const char * section, const char * key) const;
 
     IntVec getIntVec(const char * key) const;
     IntVec getIntVec(const char * section, const char * key) const;
