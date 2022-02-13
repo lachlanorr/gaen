@@ -2887,7 +2887,9 @@ CodeCpp CodegenCpp::codegen(ParseData * pParseData)
         // only process top level AST nodes from the primary file
         if (pAst->fullPath == pParseData->fullPath)
         {
-            codeDefs += codegenRecurse(pAst, 0) + LF;
+            auto rec = codegenRecurse(pAst, 0);
+            if (!rec.empty())
+                codeDefs += rec + LF;
         }
     }
     codeCpp.code += codeDefs;
