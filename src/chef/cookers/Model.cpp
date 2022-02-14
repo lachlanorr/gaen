@@ -131,6 +131,19 @@ void Model::read_skl(Skeleton & skel, const char * path)
     rdr.ifs.close();
 
     skel.jsonDoc.Parse(jsonStr.get());
+    if (skel.jsonDoc.HasMember("center"))
+    {
+        const rapidjson::Value & c = skel.jsonDoc["center"];
+        skel.center = vec3(c[0].GetFloat(), c[1].GetFloat(), c[2].GetFloat());
+        skel.hasCenter = true;
+    }
+    if (skel.jsonDoc.HasMember("halfExtents"))
+    {
+        const rapidjson::Value & he = skel.jsonDoc["halfExtents"];
+        skel.halfExtents = vec3(he[0].GetFloat(), he[1].GetFloat(), he[2].GetFloat());
+        skel.hasHalfExtents = true;
+    }
+
     if (skel.jsonDoc.HasMember("bones"))
         read_bones(skel.bones, skel.jsonDoc["bones"]);
     if (skel.jsonDoc.HasMember("hardpoints"))
@@ -360,8 +373,15 @@ void Model::cook(CookInfo * pCookInfo) const
         pTri += pAiMesh->mNumFaces;
     }
 
-    pGmdl->center() = (mins + maxes) * 0.5f;
-    pGmdl->halfExtents() = (maxes - mins) * 0.5f;
+    if (skel.hasCenter)
+        pGmdl->center() = skel.center;
+    else
+        pGmdl->center() = (mins + maxes) * 0.5f;
+
+    if (skel.hasHalfExtents)
+        pGmdl->halfExtents() = skel.halfExtents;
+    else
+        pGmdl->halfExtents() = (maxes - mins) * 0.5f;
 
     if (pCookInfo->fullRecipe().hasKey("recenter"))
     {

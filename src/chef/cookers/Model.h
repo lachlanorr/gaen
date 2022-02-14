@@ -46,6 +46,10 @@ class Model : public Cooker
 public:
     struct Skeleton
     {
+        bool hasCenter = false;
+        vec3 center = vec3(0.0f);
+        bool hasHalfExtents = false;
+        vec3 halfExtents = vec3(0.0f);
         Vector<kMEM_Chef, Bone> bones;
         Vector<kMEM_Chef, Bone> hardpoints;
         rapidjson::Document jsonDoc;
