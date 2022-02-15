@@ -373,7 +373,6 @@ Ast * ast_create_ready_init(Ast * pVal, ParseData * pParseData);
 Ast * ast_create_parent_init(Ast * pVal, ParseData * pParseData);
 
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData);
-Ast * ast_create_input_assign(Ast * pExpr, ParseData * pParseData);
 
 Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData);
 Ast * ast_create_binary_op(AstType astType, Ast * pLhs, Ast * pRhs, ParseData * pParseData);

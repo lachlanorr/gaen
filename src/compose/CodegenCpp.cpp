@@ -1413,7 +1413,6 @@ S CodegenCpp::inputBlock(const Ast * pRoot, u32 indentLevel)
             procCode += I1;
             if (compiledCount++ > 0)
                 procCode += ("else ");
-            procCode += S("if (mode == ") + hashLiteral(pInput->str) + S(")") + LF;
             procCode += I1 + S("{") + LF;
 
             const Ast * pAnyDef = nullptr;
@@ -1465,7 +1464,7 @@ S CodegenCpp::inputBlock(const Ast * pRoot, u32 indentLevel)
                 if (pInputDef->pSymRec->type == kSYMT_Input)
                 {
                     procCode += I2 + S("// #") + S(pInputDef->str) + LF;
-                    procCode += I2 + S("inputMatch = inputMgr.queryState(self().player(), ") + hashLiteral(pInputDef->str) + S(", &measureTest);") + LF;
+                    procCode += I2 + S("inputMatch = inputMgr.queryState(self().player(), ") + hashLiteral(pInput->str) + S(", ") + hashLiteral(pInputDef->str) + S(", &measureTest);") + LF;
                     procCode += I2 + S("if (inputMatch == InputMgr::kPadInputDetected)") + LF;
                     procCode += I2 + S("{") + LF;
                     procCode += I2 + S("    // Always process pad inputs, don't use exclusionary rules which are useful for simplifying keyboard inputs") + LF;
@@ -1528,8 +1527,6 @@ S CodegenCpp::inputBlock(const Ast * pRoot, u32 indentLevel)
     code += I + S("void processInput(f32 delta)") + LF;
     code += I + S("{") + LF;
     code += I + S("    InputMgr & inputMgr = TaskMaster::task_master_for_active_thread().inputMgr();") + LF;
-    code += LF;
-    code += I + S("    u32 mode = inputMgr.mode();") + LF;
     code += LF;
     code += procCode;
     code += I + S("}") + LF;

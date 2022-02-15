@@ -1289,22 +1289,6 @@ Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData)
     return pAst;
 }
 
-Ast * ast_create_input_assign(Ast * pExpr, ParseData * pParseData)
-{
-    // Pop the scope we created when the lexer encountered 'input'
-    parsedata_pop_scope(pParseData);
-
-    const SymDataType * pSymDt = ast_data_type(pExpr);
-
-    if (pSymDt->typeDesc.dataType != kDT_int)
-    {
-        COMP_ERROR(pParseData, "'input' assignment only valid with int expression");
-    }
-    Ast * pAst = ast_create(kAST_InputAssign, pParseData);
-    ast_set_rhs(pAst, pExpr);
-    return pAst;
-}
-
 Ast * ast_create_unary_op(AstType astType, Ast * pRhs, ParseData * pParseData)
 {
     Ast * pAst = ast_create(astType, pParseData);
@@ -3279,6 +3263,16 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
+    // void set_input_mode(i32)
+    {
+        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
+        ast_add_child(pFuncArgs, ast_create_function_arg("modeHash", parsedata_find_type_symbol(pParseData, "int", 0, 0), pParseData));
+        register_builtin_function("set_input_mode",
+                                  parsedata_find_type_symbol(pParseData, "void", 0, 0),
+                                  pFuncArgs,
+                                  pParseData);
+    }
+
     // f32 rand()
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
@@ -3614,7 +3608,6 @@ void register_builtin_functions(ParseData * pParseData)
                                   pFuncArgs,
                                   pParseData);
     }
-
 }
 
 ParseData * parse_file(const char * fullPath,

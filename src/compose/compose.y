@@ -287,8 +287,6 @@ stmt
     | block     { $$ = $1; }
 
     | expr ';'  { $$ = ast_create_simple_stmt($1, pParseData); }
-
-    | INPUT_ '=' expr ';' { $$ = ast_create_input_assign($3, pParseData); }
     ;
 
 target_expr

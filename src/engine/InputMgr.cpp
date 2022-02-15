@@ -252,14 +252,17 @@ void InputMgr::setMode(u32 modeHash)
     }
 }
 
-u32 InputMgr::queryState(u32 player, u32 stateHash, vec4 * pMeasure)
+u32 InputMgr::queryState(u32 player, u32 modeHash, u32 stateHash, vec4 * pMeasure)
 {
     u32 ret = 0;
 
-    if (mpActiveMode)
+    auto it = mModes.find(modeHash);
+    if (it != mModes.end())
     {
-        auto keyit = mpActiveMode->keyboard.find(stateHash);
-        if (keyit != mpActiveMode->keyboard.end())
+        const InputMode & mode = it->second;
+
+        auto keyit = mode.keyboard.find(stateHash);
+        if (keyit != mode.keyboard.end())
         {
             for (const auto & keys : keyit->second)
             {
@@ -271,8 +274,8 @@ u32 InputMgr::queryState(u32 player, u32 stateHash, vec4 * pMeasure)
         if (ret != 0)
             return ret;
 
-        auto padit = mpActiveMode->pad.find(stateHash);
-        if (padit != mpActiveMode->pad.end())
+        auto padit = mode.pad.find(stateHash);
+        if (padit != mode.pad.end())
         {
             ret = queryPadState(player, padit->second, pMeasure);
         }

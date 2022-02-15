@@ -34,6 +34,7 @@
 #include "engine/Entity.h"
 #include "engine/BlockMemory.h"
 #include "engine/TaskMaster.h"
+#include "engine/InputMgr.h"
 
 namespace gaen
 {
@@ -49,6 +50,11 @@ namespace compose_funcs
 inline void print(CmpString str)
 {
     LOG_INFO(str.c_str());
+}
+
+inline void set_input_mode(i32 modeHash)
+{
+    TaskMaster::task_master_for_active_thread().inputMgr().setMode(modeHash);
 }
 
 inline f32 random(Entity * pCaller)
@@ -200,8 +206,6 @@ inline T atan(T x)
 {
     return gaen::atan(x);
 }
-
-
 
 } // namespace compose_funcs
 

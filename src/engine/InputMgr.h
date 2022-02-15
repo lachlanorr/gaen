@@ -50,7 +50,7 @@ public:
     void setMode(u32 modeHash);
 
     static const u32 kPadInputDetected = 0xffFFffFF;
-    u32 queryState(u32 player, u32 stateHash, vec4 * pMeasure);
+    u32 queryState(u32 player, u32 modeHash, u32 stateHash, vec4 * pMeasure);
 
     static const u32 kPadCountMax = 4;
     void updatePadState(u32 padId,
