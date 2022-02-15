@@ -121,16 +121,22 @@ void AnimImage::cook(CookInfo * pCookInfo) const
     Model::Skeleton skel;
     Model::read_skl(skel, fullSklPath.c_str());
 
-    // check if there's a default animation file
-    auto defaultAniPath = pCookInfo->rawPath();
-    change_ext(defaultAniPath, ChefString("ani"));
-    if (file_exists(defaultAniPath.c_str()))
+    bool hasDefault = false;
+    auto itend = aim.keysEnd("animations");
+    for (auto it = aim.keysBegin("animations");
+         it != itend;
+         ++it)
     {
-        pCookInfo->recordDependency(defaultAniPath);
+        ChefString aniPath(aim.get("animations", *it));
+        pCookInfo->recordDependency(aniPath);
+        ChefString fullAniPath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), aniPath);
         animsRaw.push_back(Gaim::AnimRaw());
-        read_ani(animsRaw.back(), "default", defaultAniPath.c_str(), skel.bones);
+        read_ani(animsRaw.back(), *it, fullAniPath.c_str(), skel.bones);
+        if (strcmp(*it, "default") == 0)
+            hasDefault = true;
     }
-    else
+
+    if (!hasDefault)
     {
         // Add default pose into gaim (bones transforms from gmdl)
         Gaim::AnimRaw def;
@@ -143,18 +149,6 @@ void AnimImage::cook(CookInfo * pCookInfo) const
         def.transforms.reserve(skel.bones.size());
         add_bone_transforms(def, skel.jsonDoc["bones"], skel.bones);
         animsRaw.push_back(def);
-    }
-
-    auto itend = aim.keysEnd("animations");
-    for (auto it = aim.keysBegin("animations");
-         it != itend;
-         ++it)
-    {
-        ChefString aniPath(aim.get("animations", *it));
-        pCookInfo->recordDependency(aniPath);
-        ChefString fullAniPath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), aniPath);
-        animsRaw.push_back(Gaim::AnimRaw());
-        read_ani(animsRaw.back(), *it, fullAniPath.c_str(), skel.bones);
     }
 
     Gaim * pGaim = Gaim::create(animsRaw, Image::reference_path_hash(pCookInfo));
