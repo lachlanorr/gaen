@@ -71,6 +71,8 @@ SET (engine_SOURCES
   Task.h
   TaskMaster.cpp
   TaskMaster.h
+  UniqueObject.cpp
+  UniqueObject.h
   field_types.yaml
   messages_def.yaml
   ${engine_messages_SOURCES}

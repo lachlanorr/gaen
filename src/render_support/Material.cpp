@@ -34,7 +34,7 @@ namespace gaen
 {
 
 Material::Material(u32 shaderNameHash)
-  : RenderObject(kRendererTaskId)
+  : UniqueObject(kRendererTaskId)
   , mLayer(kMAT_Colored)
   , mShaderNameHash(shaderNameHash)
 {

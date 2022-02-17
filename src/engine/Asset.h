@@ -54,7 +54,7 @@ struct Dependent
 
 typedef Vector<kMEM_Engine, Dependent> DependentVec;
 typedef UniquePtr<DependentVec> DependentVecUP;
-    
+
 
 class Asset
 {
@@ -77,7 +77,7 @@ public:
         return (mPathHash == rhs.mPathHash &&
                 mPath == rhs.mPath);
     }
-    
+
     virtual bool isLoaded() const
     {
         return !mHadError && mpBuffer != nullptr && mSize > 0;
@@ -146,7 +146,7 @@ public:
     {
         return GNEW(kMEM_Engine, T, path, fullPath, memType);
     }
-   
+
 protected:
     void addRef()
     {
@@ -169,7 +169,7 @@ protected:
     {
         return DependentVecUP();
     }
-    
+
     virtual void setDependent(u32 nameHash,
                               Asset * pDependent)
     {

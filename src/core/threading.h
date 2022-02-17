@@ -67,7 +67,7 @@ static const thread_id kBroadcastThreadId = -2;
 
 
 static const thread_id kMinThreads = 1;   // main thread is same as TaskMaster 0 thread
-static const thread_id kMaxThreads = 16;  // main thread and 15 auxilliary TaskMasters, 1-15
+static const thread_id kMaxThreads = 16;  // main thread and 15 auxiliary TaskMasters, 1-15
 
 struct ThreadInfo
 {
@@ -88,6 +88,8 @@ thread_id num_threads();
 // Threads can call these functions to get their own values.
 thread_id active_thread_id();
 ThreadInfo & active_thread_info();
+
+thread_id active_thread_id_no_validate();
 
 void set_active_thread_id(thread_id tid);
 

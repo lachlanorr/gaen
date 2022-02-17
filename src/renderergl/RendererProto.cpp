@@ -465,7 +465,7 @@ MessageResult RendererProto::message(const T & msgAcc)
         vec3 normDir = normalize(msgr.direction());
         vec3 relDir = -normDir; // flip direction of vector relative to objects
         mLightDistants.emplace_back(msgAcc.message().source,
-                                    RenderObject::next_uid(),
+                                    UniqueObject::next_uid(),
                                     HASH::main,
                                     Color(255, 255, 255, 255),
                                     1.0f,

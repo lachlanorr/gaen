@@ -105,7 +105,7 @@ public:
         u32 mAvailable;
     };
 
-    
+
     SpscRingBuffer(u32 elemCount, MemType memType)
       : mElemCount(elemCount)
     {
@@ -124,13 +124,13 @@ public:
     {
         ASSERT_MSG(isValidProducer(), "Push from more than one thread");
         ASSERT(elemCount > 0);
-        
+
         T* pTail = mpTail.load(std::memory_order_relaxed); // we're the only thread to modify this, so relax
         T* pHead = mpHead.load(std::memory_order_acquire); // this is modified by the consumer, so acquire
 
         // Ensure we have available space
         u32 avail = emptyCount(pHead, pTail);
-        
+
         if (elemCount > avail)
             PANIC("Out of space in ring buffer, requested=%d, available=%d", elemCount, avail);
 
@@ -158,7 +158,7 @@ public:
         T* pTail = mpTail.load(std::memory_order_acquire); // this is modified by the producer, so acquire
 
         u32 avail = filledCount(pHead, pTail);
-        
+
         pAccessor->mpSpscRingBuffer = this;
         pAccessor->mpStart = pHead;
         pAccessor->mAvailable = avail;
@@ -207,14 +207,14 @@ private:
     // Verify the identiy of the producer (used just for sanity checks in dev builds)
     bool isValidProducer() const
     {
-        thread_id tid = active_thread_id();
+        thread_id tid = active_thread_id_no_validate();
         if (mProducerThreadId == kInvalidThreadId)
             mProducerThreadId = tid; // first thread to produce, he become's official
         return (tid == mProducerThreadId);
     }
     bool isValidConsumer() const
     {
-        thread_id tid = active_thread_id();
+        thread_id tid = active_thread_id_no_validate();
         if (mConsumerThreadId == kInvalidThreadId)
             mConsumerThreadId = tid; // first thread to consume, he become's official
         return (tid == mConsumerThreadId);

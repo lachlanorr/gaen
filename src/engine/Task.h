@@ -53,8 +53,9 @@ static const task_id kInputMgrTaskId     = kMaxTaskId - 4; // 268435451
 static const task_id kAssetMgrTaskId     = kMaxTaskId - 5; // 268435450
 static const task_id kSpriteMgrTaskId    = kMaxTaskId - 6; // 268435449
 static const task_id kModelMgrTaskId     = kMaxTaskId - 7; // 268435448
-static const task_id kEditorTaskId       = kMaxTaskId - 8; // 268435447
-static const task_id kPrimaryTaskIdMin   = kMaxTaskId - 8; // 268435447 -- Change as appropriate if we add more "primary" task ids
+static const task_id kAudioMgrTaskId     = kMaxTaskId - 8; // 268435447
+static const task_id kEditorTaskId       = kMaxTaskId - 9; // 268435446
+static const task_id kPrimaryTaskIdMin   = kMaxTaskId - 9; // 268435446 -- Change as appropriate if we add more "primary" task ids
 
 // If another "special" task id is added, update this function appropriately.
 static inline bool is_primary_task(task_id taskId)

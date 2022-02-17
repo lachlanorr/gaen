@@ -298,6 +298,10 @@ struct FileReader
         PANIC_IF(!ifs.good() || ifs.gcount() != sizeof(T), "Read failure");
     }
 
+    void advance(u64 offset)
+    {
+        ifs.seekg(offset, std::ios_base::cur);
+    }
 
     u64 size() { return mSize; }
 

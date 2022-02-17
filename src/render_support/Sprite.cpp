@@ -44,7 +44,7 @@ namespace gaen
 {
 
 Sprite::Sprite(task_id owner, const Asset * pGsprAsset)
-  : RenderObject(owner)
+  : UniqueObject(owner)
   , mpGsprAsset(pGsprAsset)
 {
     VALIDATE_ASSET(Gspr, pGsprAsset);
@@ -55,7 +55,7 @@ Sprite::Sprite(task_id owner, const Asset * pGsprAsset)
 }
 
 Sprite::Sprite(const Sprite& rhs)
-  : RenderObject(rhs.owner(), rhs.uid())
+  : UniqueObject(rhs.owner(), rhs.uid())
   , mpGsprAsset(rhs.mpGsprAsset)
 {
     mpGspr = Gspr::instance(mpGsprAsset->buffer(), mpGsprAsset->size());

@@ -39,6 +39,7 @@
 #include "engine/InputMgr.h"
 #include "engine/AssetMgr.h"
 #include "engine/Editor.h"
+#include "audio/AudioMgr.h"
 #include "render_support/ModelMgr.h"
 #include "render_support/SpriteMgr.h"
 #include "render_support/renderer_api.h"
@@ -519,6 +520,7 @@ void TaskMaster::runPrimaryGameLoop()
 
     mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr, isPrimary()));
     mpAssetMgr.reset(GNEW(kMEM_Engine, AssetMgr, 4));
+    mpAudioMgr.reset(GNEW(kMEM_Engine, AudioMgr));
 
     // LORRNOTE: SpriteMgr should be started on all TaskMasters and
     // the broadcast HASH::sprite_insert messages can be handled by
@@ -616,6 +618,7 @@ void TaskMaster::runPrimaryGameLoop()
             {
                 mpModelMgr->update(delta);
                 mpSpriteMgr->update(delta);
+                mpAudioMgr->update(delta);
             }
 #if HAS(ENABLE_EDITOR)
             mpEditor->update(mFrameTime);
@@ -954,6 +957,11 @@ MessageResult TaskMaster::message(const T& msgAcc)
         {
             ASSERT(mpSpriteMgr.get() != nullptr);
             mpSpriteMgr->message(msgAcc);
+        }
+        else if (msg.target == kAudioMgrTaskId)
+        {
+            ASSERT(mpAudioMgr.get() != nullptr);
+            mpAudioMgr->message(msgAcc);
         }
 #if HAS(ENABLE_EDITOR)
         else if (msg.target == kEditorTaskId)

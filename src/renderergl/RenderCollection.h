@@ -40,11 +40,11 @@ namespace gaen
 // ordered traversal based on a float order.
 
 // There are two maps to support these operations:
-// HashMapT is for fast lookups based on ruid values.
+// HashMapT is for fast lookups based on ouid values.
 // OrderedMapT is for ordered traversal during rendering.
 
 // class T must supply the following methods:
-//   ruid uid()
+//   ouid uid()
 //   f32 order()
 //
 
@@ -65,7 +65,7 @@ class RenderCollection
 {
 private:
     typedef MultiMap<kMEM_Renderer, f32, UniquePtr<T>> OrderedMapT;
-    typedef HashMap<kMEM_Renderer, ruid, typename OrderedMapT::iterator> HashMapT;
+    typedef HashMap<kMEM_Renderer, ouid, typename OrderedMapT::iterator> HashMapT;
 
 public:
     class Iter
@@ -118,14 +118,14 @@ public:
         Iter(typename OrderedMapT::iterator ordIt)
           : mOrdIt(ordIt)
         {}
-        
+
         typename OrderedMapT::iterator mOrdIt;
     }; // class Iter
 
     Iter begin()       { return Iter(mOrderedMap.begin()); }
     Iter end()         { return Iter(mOrderedMap.end()); }
     u32  size()        { return (u32)mOrderedMap.size(); }
-    Iter find(ruid uid)
+    Iter find(ouid uid)
     {
         auto hashIt = mHashMap.find(uid);
         if (hashIt != mHashMap.end())
@@ -149,7 +149,7 @@ public:
         ASSERT(mHashMap.size() == mOrderedMap.size());
     }
 
-    void reorder(ruid uid)
+    void reorder(ouid uid)
     {
         ASSERT(mHashMap.size() == mOrderedMap.size());
         auto hashIt = mHashMap.find(uid);
@@ -168,7 +168,7 @@ public:
 private:
     HashMapT mHashMap;
     OrderedMapT mOrderedMap;
-    
+
 }; // class RenderCollection
 
 } // namespace gaen

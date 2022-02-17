@@ -34,6 +34,7 @@
 #include "math/mat4.h"
 #include "math/mat43.h"
 
+#include "engine/UniqueObject.h"
 #include "engine/Entity.h"
 
 #include "assets/Color.h"
@@ -41,8 +42,6 @@
 
 namespace gaen
 {
-
-typedef i32 ruid;
 
 enum RenderPass
 {
@@ -62,35 +61,11 @@ enum RenderFlags
 
 RenderPass pass_from_hash(i32 hash);
 
-class RenderObject
-{
-protected:
-    RenderObject(task_id owner)
-      : mOwner(owner)
-      , mUid(next_uid())
-    {}
-    RenderObject(task_id owner, ruid uid)
-      : mOwner(owner)
-      , mUid(uid)
-    {}
-
-public:
-    task_id owner() const { return mOwner; }
-    ruid uid() const { return mUid; }
-
-    static ruid next_uid();
-
-private:
-    static std::atomic<ruid> sNextRuid;
-    task_id mOwner;
-    ruid mUid;
-};
-
-class Camera : public RenderObject
+class Camera : public UniqueObject
 {
 public:
-    Camera(task_id owner, ruid uid, u32 stageHash, f32 scale, const mat4 & projection, const mat43 & view)
-      : RenderObject(owner, uid)
+    Camera(task_id owner, ouid uid, u32 stageHash, f32 scale, const mat4 & projection, const mat43 & view)
+      : UniqueObject(owner, uid)
       , mStageHash(stageHash)
       , mScale(scale)
       , mProjection(projection)
@@ -100,7 +75,7 @@ public:
     }
 
     Camera(task_id owner, u32 stageHash, f32 scale, const mat4 & projection, const mat43 & view)
-      : Camera(owner, RenderObject::next_uid(), stageHash, scale, projection, view)
+      : Camera(owner, UniqueObject::next_uid(), stageHash, scale, projection, view)
     {}
 
     u32 stageHash() const { return mStageHash; }
@@ -143,16 +118,16 @@ private:
     mat4 mViewProjection;
 };
 
-class Light : public RenderObject
+class Light : public UniqueObject
 {
 public:
     Light(task_id owner,
-          ruid uid,
+          ouid uid,
           u32 stageHash,
           Color color,
           f32 ambient,
           const vec3 & direction)
-      : RenderObject(owner, uid)
+      : UniqueObject(owner, uid)
       , mStageHash(stageHash)
       , mColor(Color::build_vec4(color))
       , mAmbient(ambient)
@@ -166,7 +141,7 @@ public:
           f32 ambient,
           const vec3 & direction)
       : Light(owner,
-              RenderObject::next_uid(),
+              UniqueObject::next_uid(),
               stageHash,
               color,
               ambient,

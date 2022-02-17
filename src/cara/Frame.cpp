@@ -40,7 +40,7 @@ Frame::Frame(task_id owner,
              const char * text,
              Color textColor,
              Color backgroundColor)
-  : RenderObject(owner)
+  : UniqueObject(owner)
   , mpGatlFont(pGatlFont)
   , mText(text)
   , mTextColor(textColor)

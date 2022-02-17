@@ -28,10 +28,10 @@
 
 #include <LinearMath/btIDebugDraw.h>
 
+#include "engine/UniqueObject.h"
 #include "engine/messages/CollisionBox.h"
 #include "engine/messages/CollisionConvexHull.h"
 
-#include "render_support/render_objects.h"
 #include "render_support/physics.h"
 
 namespace gaen
@@ -44,7 +44,7 @@ u32 collision_box_create(task_id owner,
                          u32 group,
                          const ivec4 & mask03)
 {
-    u32 uid = RenderObject::next_uid();
+    u32 uid = UniqueObject::next_uid();
     messages::CollisionBoxIW msgw(HASH::collision_box_create, kMessageFlag_None, owner, kModelMgrTaskId, uid);
 
     msgw.setCenter(vec3(0.0f));
@@ -69,7 +69,7 @@ u32 collision_convex_hull_create(task_id owner,
                                  u32 group,
                                  const ivec4 & mask03)
 {
-    u32 uid = RenderObject::next_uid();
+    u32 uid = UniqueObject::next_uid();
 
     messages::CollisionConvexHullIW msgw(HASH::collision_convex_hull_create, kMessageFlag_None, owner, kModelMgrTaskId, uid);
 

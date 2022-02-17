@@ -43,6 +43,11 @@ namespace gaen
 TL(i64, sStartTimeTicks) = 0;
 TL(f64, sFrequencyRatio) = 0.0;
 
+bool is_time_init()
+{
+    return sStartTimeTicks != 0 && sFrequencyRatio != 0.0f;
+}
+
 void init_time()
 {
     ASSERT(sStartTimeTicks == 0 && sFrequencyRatio == 0.0f);
@@ -62,7 +67,7 @@ void init_time()
 f64 now()
 {
     ASSERT_MSG(sStartTimeTicks != 0 && sFrequencyRatio != 0.0f, "init_time must be called first");
-    
+
     LARGE_INTEGER nowTicks;
     BOOL ret = QueryPerformanceCounter(&nowTicks);
     ASSERT(ret);

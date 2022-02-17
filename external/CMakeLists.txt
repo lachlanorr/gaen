@@ -236,7 +236,28 @@ add_custom_command (TARGET external_build_all
   COMMAND ${CMAKE_COMMAND} --build . --target bullet --config Release
   COMMAND ${CMAKE_COMMAND} --build . --target assimp --config Debug
   COMMAND ${CMAKE_COMMAND} --build . --target assimp --config Release
+  COMMAND ${CMAKE_COMMAND} --build . --target portaudio --config Debug
+  COMMAND ${CMAKE_COMMAND} --build . --target portaudio --config Release
   )
 set_target_properties (external_build_all PROPERTIES
   FOLDER ExternalProjectTargets
+  )
+
+# portaudio
+SET (PORTAUDIO_SRC "${CMAKE_CURRENT_SOURCE_DIR}/portaudio")
+SET (PORTAUDIO_PATH "${CMAKE_CURRENT_BINARY_DIR}/portaudio")
+ExternalProject_Add(portaudio
+  SOURCE_DIR "${PORTAUDIO_SRC}"
+  PREFIX "${PORTAUDIO_PATH}"
+  EXCLUDE_FROM_ALL TRUE
+  CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX:PATH=${PORTAUDIO_PATH}"
+             "-DBUILD_SHARED_LIBS:STRING=OFF"
+             "-DCMAKE_DEBUG_POSTFIX:STRING=d"
+             ${GAEN_BUILD_FLAGS}
+  )
+SET (PORTAUDIO_INCLUDE "${PORTAUDIO_PATH}/include" CACHE INTERNAL "")
+SET (PORTAUDIO_LIBRARY
+  optimized "${PORTAUDIO_PATH}/lib/portaudio.lib"
+  debug "${PORTAUDIO_PATH}/lib/portaudiod.lib"
+  CACHE INTERNAL ""
   )

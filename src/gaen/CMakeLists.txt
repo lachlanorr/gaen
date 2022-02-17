@@ -93,10 +93,12 @@ ELSE(IOS)
     engine
     render_support
     renderergl
+    audio
     cara
     scripts
     ${BULLET_LIBRARY}
     ${GLFW_LIBRARY}
+    ${PORTAUDIO_LIBRARY}
     ${PROJECT_ASSETS_LIB}
     ${PROJECT_LINK_LIBS}
     ${PLATFORM_LINK_LIBS}

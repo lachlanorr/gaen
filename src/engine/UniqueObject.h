@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Frame.h - Base class for all UI frames (text boxes, labels, dialogs, etc)
+// UniqueObject.h - Base class for unique objects with ouid and task owners
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2021 Lachlan Orr
@@ -24,59 +24,41 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CARA_FRAME_H
-#define GAEN_CARA_FRAME_H
+#ifndef GAEN_ENGINE_UNIQUE_OBJECT_H
+#define GAEN_ENGINE_UNIQUE_OBJECT_H
 
-#include "core/String.h"
-#include "assets/Color.h"
-
-#include "engine/Task.h"
-#include "engine/UniqueObject.h"
+#include "core/base_defines.h"
+#include "engine/Message.h"
 
 namespace gaen
 {
 
-class Asset;
-class Gatl;
-class Gimg;
-struct GlyphVert;
-struct GlyphTri;
+typedef i32 ouid;
 
-class Frame : public UniqueObject
+class UniqueObject
 {
+protected:
+    UniqueObject(task_id owner)
+      : mOwner(owner)
+      , mUid(next_uid())
+    {}
+    UniqueObject(task_id owner, ouid uid)
+      : mOwner(owner)
+      , mUid(uid)
+    {}
+
 public:
-    Frame(task_id owner,
-          const Asset* pGatlFont,
-          const char * text,
-          Color textColor,
-          Color backgroundColor);
+    task_id owner() const { return mOwner; }
+    ouid uid() const { return mUid; }
 
-    const GlyphVert* verts() const;
-    u64 vertsSize() const;
-
-    const GlyphTri* tris() const;
-    u64 trisSize() const;
-
-    const Gimg& gimg() const;
+    static ouid next_uid();
 
 private:
-    // Delete these to make sure we construct through the asset->addref path
-    Frame(Frame&&) = delete;
-    Frame& operator=(const Frame&) = delete;
-    Frame& operator=(Frame&&) = delete;
-
-    const Asset* mpGatlFont;
-
-    // pointers into mpGatlFont, no need to clean up
-    const Gatl * mpGatl;
-
-    CaraString mText;
-
-    Color mTextColor;
-    Color mBackgroundColor;
-
+    static std::atomic<ouid> sNextOuid;
+    task_id mOwner;
+    ouid mUid;
 };
 
 } // namespace gaen
 
-#endif GAEN_CARA_FRAME_H
+#endif // GAEN_ENGINE_UNIQUE_OBJECT_H

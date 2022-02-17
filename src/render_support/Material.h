@@ -31,6 +31,7 @@
 
 #include "assets/Color.h"
 #include "core/base_defines.h"
+#include "engine/UniqueObject.h"
 
 #include "render_support/render_objects.h"
 
@@ -59,7 +60,7 @@ typedef void(*SetTextureCB)(u32 nameHash, u32 gpuId, void * pContext);
 typedef u32(*LoadTextureCB)(u32 nameHash, const Gimg * pGimg, void * pContext);
 typedef void(*UnloadTextureCB)(u32 gpuId, const Gimg * pGimg, void * pContext);
 
-class Material : RenderObject
+class Material : UniqueObject
 {
 public:
     Material(u32 shaderNameHash);

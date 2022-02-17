@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Frame.h - Base class for all UI frames (text boxes, labels, dialogs, etc)
+// UniqueObject.h - Base class for unique objects with ouid and task owners
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2021 Lachlan Orr
@@ -24,59 +24,18 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CARA_FRAME_H
-#define GAEN_CARA_FRAME_H
+#include "engine/stdafx.h"
 
-#include "core/String.h"
-#include "assets/Color.h"
-
-#include "engine/Task.h"
 #include "engine/UniqueObject.h"
 
 namespace gaen
 {
 
-class Asset;
-class Gatl;
-class Gimg;
-struct GlyphVert;
-struct GlyphTri;
+std::atomic<ouid> UniqueObject::sNextOuid(1);
 
-class Frame : public UniqueObject
+ouid UniqueObject::next_uid()
 {
-public:
-    Frame(task_id owner,
-          const Asset* pGatlFont,
-          const char * text,
-          Color textColor,
-          Color backgroundColor);
+    return sNextOuid.fetch_add(1, std::memory_order_relaxed);
+}
 
-    const GlyphVert* verts() const;
-    u64 vertsSize() const;
-
-    const GlyphTri* tris() const;
-    u64 trisSize() const;
-
-    const Gimg& gimg() const;
-
-private:
-    // Delete these to make sure we construct through the asset->addref path
-    Frame(Frame&&) = delete;
-    Frame& operator=(const Frame&) = delete;
-    Frame& operator=(Frame&&) = delete;
-
-    const Asset* mpGatlFont;
-
-    // pointers into mpGatlFont, no need to clean up
-    const Gatl * mpGatl;
-
-    CaraString mText;
-
-    Color mTextColor;
-    Color mBackgroundColor;
-
-};
-
-} // namespace gaen
-
-#endif GAEN_CARA_FRAME_H
+}

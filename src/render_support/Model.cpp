@@ -40,7 +40,7 @@ namespace gaen
 {
 
 Model::Model(task_id owner, const Asset * pGmdlAsset, const Asset * pGaimAsset)
-  : RenderObject(owner)
+  : UniqueObject(owner)
   , mpGmdlAsset(pGmdlAsset)
   , mpGaimAsset(pGaimAsset)
   , mDoDelete(false)
@@ -61,7 +61,7 @@ Model::Model(task_id owner, const Asset * pGmdlAsset, const Asset * pGaimAsset)
 }
 
 Model::Model(task_id owner, const Gmdl* pGmdl, bool doDelete)
-  : RenderObject(owner)
+  : UniqueObject(owner)
   , mpGmdlAsset(nullptr)
   , mpGaimAsset(nullptr)
   , mpGmdl(pGmdl)
@@ -70,7 +70,7 @@ Model::Model(task_id owner, const Gmdl* pGmdl, bool doDelete)
 {}
 
 Model::Model(const Model& rhs)
-  : RenderObject(rhs.owner(), rhs.uid())
+  : UniqueObject(rhs.owner(), rhs.uid())
   , mpGmdlAsset(rhs.mpGmdlAsset)
   , mpGaimAsset(rhs.mpGaimAsset)
   , mpGmdl(rhs.mpGmdl)

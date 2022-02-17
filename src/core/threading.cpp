@@ -89,6 +89,11 @@ thread_id active_thread_id()
     return tThreadId;
 }
 
+thread_id active_thread_id_no_validate()
+{
+    return tThreadId;
+}
+
 ThreadInfo & active_thread_info()
 {
     ASSERT_MSG(tThreadId != kInvalidThreadId, "Main thread has not been initialized, or this thread wasn't created properly with gaen::start_thread");

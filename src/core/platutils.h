@@ -39,6 +39,9 @@
 namespace gaen
 {
 
+// Retruns if time has been initialized
+bool is_time_init();
+
 // Initialize any platform specific stuff required for calling time funcs
 void init_time();
 

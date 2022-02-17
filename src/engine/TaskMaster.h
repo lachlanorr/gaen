@@ -50,6 +50,7 @@ class InputMgr;
 class AssetMgr;
 class ModelMgr;
 class SpriteMgr;
+class AudioMgr;
 class Editor;
 
 class MessageQueue;
@@ -214,6 +215,7 @@ private:
     UniquePtr<AssetMgr> mpAssetMgr;
     UniquePtr<ModelMgr> mpModelMgr;
     UniquePtr<SpriteMgr> mpSpriteMgr;
+    UniquePtr<AudioMgr> mpAudioMgr;
 
 #if HAS(ENABLE_EDITOR)
     UniquePtr<Editor> mpEditor;

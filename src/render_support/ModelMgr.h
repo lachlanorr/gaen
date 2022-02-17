@@ -132,7 +132,7 @@ void model_stage_camera_scale_and_view(i32 cameraUid,
 void model_stage_camera_activate(i32 cameraUid, Entity * pCaller);
 void model_stage_camera_remove(i32 cameraUid, Entity * pCaller);
 
-}
+} // namespace system_api
 
 } // namespace gaen
 

@@ -30,6 +30,7 @@
 #include "math/mat43.h"
 #include "math/vec3.h"
 #include "math/matrices.h"
+#include "engine/UniqueObject.h"
 #include "engine/task.h"
 #include "render_support/render_objects.h"
 
@@ -44,7 +45,7 @@ struct GlyphVert;
 struct GlyphTri;
 
 // Immutable properties of a sprite
-class Sprite : public RenderObject
+class Sprite : public UniqueObject
 {
     friend class SpriteInstance;
     friend class SpriteMgr;
@@ -94,7 +95,7 @@ public:
     u32 stageHash() { return mStageHash; }
     RenderPass pass() { return mPass; }
 
-    ruid uid() const { return mpSprite->uid(); }
+    ouid uid() const { return mpSprite->uid(); }
 
     u32 renderFlags() const { return mRenderFlags; }
 

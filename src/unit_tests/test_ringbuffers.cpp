@@ -68,7 +68,7 @@ TEST(RingBuffers, SpscRingBuffer)
     accPush1[1].u = 234234;
     q.pushCommit(2);
 
-    
+
     SpscRingBuffer<Data>::Accessor accPop2;
     q.popBegin(&accPop2);
     EXPECT_EQ(accPop2.available(), 2);

@@ -262,6 +262,13 @@ Asset:
     includes:
       - engine/Asset.h
 
+SoundInstance:
+  pSoundInstance:
+    type: pointer
+    type_name: SoundInstance *
+    includes:
+      - audio/AudioMgr.h
+
 KeyPress:
   keys: ivec4
 

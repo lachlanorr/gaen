@@ -40,3 +40,6 @@
 [submodule "external/imgui"]
 	path = external/imgui
 	url = https://github.com/lachlanorr/imgui.git
+[submodule "external/portaudio"]
+	path = external/portaudio
+	url = https://github.com/lachlanorr/portaudio.git

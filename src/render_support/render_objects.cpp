@@ -31,13 +31,6 @@
 namespace gaen
 {
 
-std::atomic<ruid> RenderObject::sNextRuid(1);
-
-ruid RenderObject::next_uid()
-{
-    return sNextRuid.fetch_add(1, std::memory_order_relaxed);
-}
-
 RenderPass pass_from_hash(i32 hash)
 {
     switch (hash)

@@ -32,6 +32,7 @@
 #include "engine/Asset.h"
 #include "engine/Entity.h"
 #include "engine/TaskMaster.h"
+#include "engine/UniqueObject.h"
 
 #include "engine/messages/CameraOrtho.h"
 #include "engine/messages/CameraPersp.h"
@@ -468,7 +469,7 @@ i32 model_stage_camera_create_persp(i32 stageHash,
                                     const mat43 & view,
                                     Entity * pCaller)
 {
-    ruid uid = RenderObject::next_uid();
+    ouid uid = UniqueObject::next_uid();
     messages::CameraPerspBW msgw(HASH::model_stage_camera_insert_persp, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, uid);
     msgw.setStageHash(stageHash);
     msgw.setFov(fov);
@@ -486,7 +487,7 @@ i32 model_stage_camera_create_ortho(i32 stageHash,
                                     const mat43 & view,
                                     Entity * pCaller)
 {
-    ruid uid = RenderObject::next_uid();
+    ouid uid = UniqueObject::next_uid();
     messages::CameraOrthoBW msgw(HASH::model_stage_camera_insert_ortho, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, uid);
     msgw.setStageHash(stageHash);
     msgw.setBounds(bounds);

@@ -28,13 +28,13 @@
 
 #include "math/matrices.h"
 
+#include "engine/UniqueObject.h"
+#include "engine/Entity.h"
 #include "engine/messages/UidTransform.h"
 #include "engine/messages/UidColor.h"
 #include "engine/messages/UidVec3.h"
 #include "engine/messages/UidScalar.h"
 #include "engine/messages/LightDistant.h"
-
-#include "render_support/render_objects.h"
 
 #include "render_support/system_api.h"
 
@@ -50,7 +50,7 @@ namespace system_api
 
 i32 gen_uid(Entity * pCaller)
 {
-    return RenderObject::next_uid();
+    return UniqueObject::next_uid();
 }
 
 void camera_move(i32 uid,

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Frame.h - Base class for all UI frames (text boxes, labels, dialogs, etc)
+// AudioMgr.h - Generic renderer include that defines RendererType
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2021 Lachlan Orr
@@ -24,59 +24,59 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CARA_FRAME_H
-#define GAEN_CARA_FRAME_H
+#ifndef GAEN_AUDIO_AUDIO_MGR_H
+#define GAEN_AUDIO_AUDIO_MGR_H
 
-#include "core/String.h"
-#include "assets/Color.h"
+#include "core/SpscRingBuffer.h"
 
-#include "engine/Task.h"
+#include "engine/Message.h"
+#include "engine/Handle.h"
 #include "engine/UniqueObject.h"
+
+typedef void PaStream;
 
 namespace gaen
 {
 
+class Gaud;
 class Asset;
-class Gatl;
-class Gimg;
-struct GlyphVert;
-struct GlyphTri;
 
-class Frame : public UniqueObject
+struct SoundInstance : public UniqueObject
+{
+    SoundInstance(task_id owner,
+                  const Asset* pAssetGaud);
+
+    const Asset* pAssetGaud;
+    const Gaud * pGaud;
+
+    u32 currSample = 0;
+};
+
+class AudioMgr
 {
 public:
-    Frame(task_id owner,
-          const Asset* pGatlFont,
-          const char * text,
-          Color textColor,
-          Color backgroundColor);
+    AudioMgr();
+    ~AudioMgr();
 
-    const GlyphVert* verts() const;
-    u64 vertsSize() const;
+    void update(f32 delta);
 
-    const GlyphTri* tris() const;
-    u64 trisSize() const;
-
-    const Gimg& gimg() const;
+    template <typename T>
+    MessageResult message(const T& msgAcc);
 
 private:
-    // Delete these to make sure we construct through the asset->addref path
-    Frame(Frame&&) = delete;
-    Frame& operator=(const Frame&) = delete;
-    Frame& operator=(Frame&&) = delete;
-
-    const Asset* mpGatlFont;
-
-    // pointers into mpGatlFont, no need to clean up
-    const Gatl * mpGatl;
-
-    CaraString mText;
-
-    Color mTextColor;
-    Color mBackgroundColor;
-
+    PaStream *pStream = nullptr;
 };
+
+// Compose API
+class Entity;
+namespace system_api
+{
+
+i32 start_music(AssetHandleP pAssetHandleGaud,
+                Entity * pCaller);
+
+} // namespace system_api
 
 } // namespace gaen
 
-#endif GAEN_CARA_FRAME_H
+#endif // #ifndef GAEN_AUDIO_AUDIO_MGR_H

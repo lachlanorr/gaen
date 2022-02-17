@@ -24,32 +24,22 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (assets_SOURCES
-  AssetHeader.h
-  Color.h
-  Config.cpp
-  Config.h
-  file_utils.cpp
-  file_utils.h
-  file_utils_${platform}.cpp
-  Gaim.cpp
-  Gaim.h
-  Gatl.cpp
-  Gatl.h
-  Gaud.cpp
-  Gaud.h
-  Gimg.cpp
-  Gimg.h
-  Gmat.h
-  Gmat.cpp
-  Gmdl.h
-  Gmdl.cpp
-  Gspr.cpp
-  Gspr.h
+SET (audio_SOURCES
+  AudioMgr.cpp
+  AudioMgr.h
   )
 
-IDE_SOURCE_PROPERTIES( "/" "${assets_SOURCES}")
+IDE_SOURCE_PROPERTIES( "/" "${audio_SOURCES}")
 
-ADD_LIBRARY (assets
-  ${assets_SOURCES}
+ADD_LIBRARY (audio
+  ${audio_SOURCES}
+  )
+
+TARGET_INCLUDE_DIRECTORIES (audio PRIVATE
+  ${PORTAUDIO_INCLUDE}
+)
+
+ADD_DEPENDENCIES(audio
+  hashes
+  CODEGEN_MESSAGES
   )

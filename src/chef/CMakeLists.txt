@@ -29,6 +29,8 @@ SET (cooker_SOURCES
   cookers/AnimImage.h
   cookers/Atlas.cpp
   cookers/Atlas.h
+  cookers/Audio.cpp
+  cookers/Audio.h
   cookers/Font.cpp
   cookers/Font.h
   cookers/Image.cpp

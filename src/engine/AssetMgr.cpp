@@ -322,7 +322,7 @@ MessageResult AssetMgr::message(const T & msgAcc)
             if (deps.get() != nullptr)
             {
                 ASSERT(deps->size() > 0);
-            
+
                 for (const Dependent & dep : *deps)
                 {
                     // check to see if it's already loaded

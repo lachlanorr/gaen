@@ -50,7 +50,7 @@ enum MemType
     kMEM_Renderer    = 5,
     kMEM_Texture     = 6,
     kMEM_Model       = 7,
-    kMEM_Sound       = 8,
+    kMEM_Audio       = 8,
     kMEM_Network     = 9,
     kMEM_Compose     = 10,
     kMEM_Chef        = 11,

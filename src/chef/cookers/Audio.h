@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Frame.h - Base class for all UI frames (text boxes, labels, dialogs, etc)
+// Audio.h - Audio cooker
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2021 Lachlan Orr
@@ -24,59 +24,35 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CARA_FRAME_H
-#define GAEN_CARA_FRAME_H
+#ifndef GAEN_CHEF_COOKERS_AUDIO_H
+#define GAEN_CHEF_COOKERS_AUDIO_H
 
-#include "core/String.h"
-#include "assets/Color.h"
-
-#include "engine/Task.h"
-#include "engine/UniqueObject.h"
+#include "assets/Gimg.h"
+#include "chef/Cooker.h"
 
 namespace gaen
 {
+namespace cookers
+{
 
-class Asset;
-class Gatl;
-class Gimg;
-struct GlyphVert;
-struct GlyphTri;
+static const char * kExtWav = "wav";
+static const char * kExtGaud = "gaud";
 
-class Frame : public UniqueObject
+class Audio : public Cooker
 {
 public:
-    Frame(task_id owner,
-          const Asset* pGatlFont,
-          const char * text,
-          Color textColor,
-          Color backgroundColor);
+    Audio();
+    virtual void cook(CookInfo * pCookInfo) const;
 
-    const GlyphVert* verts() const;
-    u64 vertsSize() const;
+    static Gimg * load_png(const char * path, u32 referencePathHash, PixelFormat pixFmt = kPXL_RGBA8);
 
-    const GlyphTri* tris() const;
-    u64 trisSize() const;
-
-    const Gimg& gimg() const;
-
+    static u32 reference_path_hash(const Chef & chef, const ChefString & rawPath);
+    static u32 reference_path_hash(const CookInfo *pCookInfo);
 private:
-    // Delete these to make sure we construct through the asset->addref path
-    Frame(Frame&&) = delete;
-    Frame& operator=(const Frame&) = delete;
-    Frame& operator=(Frame&&) = delete;
-
-    const Asset* mpGatlFont;
-
-    // pointers into mpGatlFont, no need to clean up
-    const Gatl * mpGatl;
-
-    CaraString mText;
-
-    Color mTextColor;
-    Color mBackgroundColor;
-
+    void cookWav(CookInfo * pCookInfo) const;
 };
 
+}
 } // namespace gaen
 
-#endif GAEN_CARA_FRAME_H
+#endif // #ifndef GAEN_CHEF_COOKERS_AUDIO_H

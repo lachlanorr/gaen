@@ -43,6 +43,7 @@
 
 #include "chef/cookers/AnimImage.h"
 #include "chef/cookers/Atlas.h"
+#include "chef/cookers/Audio.h"
 #include "chef/cookers/Font.h"
 #include "chef/cookers/Image.h"
 #include "chef/cookers/Model.h"
@@ -55,6 +56,7 @@ void register_cookers()
 {
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::AnimImage)));
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Atlas)));
+    CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Audio)));
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Font)));
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Image)));
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Model)));
