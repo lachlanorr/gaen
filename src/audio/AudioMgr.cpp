@@ -111,18 +111,22 @@ static int pa_stream_callback(const void *pInput,
         {
             if (pInst->currSample < pInst->pGaud->sampleCount())
             {
+                if (pInst->ratioCounter == 0)
+                    pInst->ratioCounter = pInst->pGaud->sampleRatio();
+                pInst->ratioCounter--;
+
                 *pLeftOut += pInst->pGaud->samples()[pInst->currSample];
                 if (pInst->pGaud->numChannels() == 2)
                 {
                     *pRightOut += pInst->pGaud->samples()[pInst->currSample+1];
-                    pInst->currSample += 2;
                 }
                 else
                 {
                     // mono sound duplicate to right channel
                     *pRightOut += pInst->pGaud->samples()[pInst->currSample];
-                    pInst->currSample += 1;
                 }
+                if (pInst->ratioCounter == 0)
+                    pInst->currSample += pInst->pGaud->numChannels();
             }
             else
             {
@@ -255,6 +259,7 @@ MessageResult AudioMgr::message(const T & msgAcc)
         messages::SoundInstanceR<T> msgr(msgAcc);
         SoundInstance * pSoundInstance = msgr.soundInstance();
         pSoundInstance->currSample = 0; // make sure we're at the start
+        pSoundInstance->ratioCounter = 0;
 
         SoundQueue::Accessor acc;
         sCallbackQueue.pushBegin(&acc, 1);

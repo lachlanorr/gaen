@@ -50,7 +50,7 @@ public:
     static Gaud * create(u32 sampleRatio, u32 numChannels, u32 sampleCount);
 
     u32 sampleCount() const { return mSampleCount; }
-    u32 sampleRatio() const { return mSampleCount; }
+    u32 sampleRatio() const { return mSampleRatio; }
     u32 numChannels() const { return mNumChannels; }
 
     i16 * samples();

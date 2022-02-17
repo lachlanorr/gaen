@@ -50,6 +50,7 @@ struct SoundInstance : public UniqueObject
     const Gaud * pGaud;
 
     u32 currSample = 0;
+    u32 ratioCounter = 0;
 };
 
 class AudioMgr
