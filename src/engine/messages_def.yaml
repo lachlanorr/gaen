@@ -263,11 +263,13 @@ Asset:
       - engine/Asset.h
 
 SoundInstance:
-  pSoundInstance:
+  uid: i32
+  priorityHash: i32
+  pAssetGaud:
     type: pointer
-    type_name: SoundInstance *
+    type_name: const Asset *
     includes:
-      - audio/AudioMgr.h
+      - engine/Asset.h
 
 KeyPress:
   keys: ivec4

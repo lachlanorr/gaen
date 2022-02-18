@@ -47,6 +47,11 @@ protected:
       , mUid(uid)
     {}
 
+    void zero()
+    {
+        mOwner = 0;
+        mUid = 0;
+    }
 public:
     task_id owner() const { return mOwner; }
     ouid uid() const { return mUid; }

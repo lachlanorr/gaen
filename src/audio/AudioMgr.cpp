@@ -43,11 +43,16 @@ namespace gaen
 {
 
 SoundInstance::SoundInstance(task_id owner,
+                             ouid uid,
+                             i32 priorityHash,
                              const Asset* pAssetGaud)
-  : UniqueObject(owner)
+  : UniqueObject(owner, uid)
   , pAssetGaud(pAssetGaud)
 {
     pGaud = pAssetGaud->buffer<Gaud>();
+
+    currSample = 0;
+    ratioCounter = 0;
 }
 
 enum SoundCommandType
@@ -64,8 +69,20 @@ struct SoundCommand
 };
 
 typedef SpscRingBuffer<SoundCommand> SoundQueue;
-static SoundQueue sCallbackQueue(32, kMEM_Audio);
-static SoundQueue sEngineQueue(256, kMEM_Audio);
+static SoundQueue sCallbackQueue(kMaxSounds*4, kMEM_Audio);
+static SoundQueue sEngineQueue(kMaxSounds*4, kMEM_Audio);
+
+static void insert_instance(std::array<SoundInstance*, kMaxSounds> & insts, SoundInstance * pInst)
+{
+    for (u32 i = 0; i < insts.size(); ++i)
+    {
+        if (insts[i] == nullptr)
+        {
+            insts[i] = pInst;
+            return;
+        }
+    }
+}
 
 static int pa_stream_callback(const void *pInput,
                               void *pOutput,
@@ -74,7 +91,7 @@ static int pa_stream_callback(const void *pInput,
                               PaStreamCallbackFlags statusFlags,
                               void *pUserData)
 {
-    static Vector<kMEM_Audio, SoundInstance*> playing;
+    static std::array<SoundInstance*, kMaxSounds> playing{0};
 
     // check queue for new commands
     SoundQueue::Accessor acc;
@@ -85,8 +102,10 @@ static int pa_stream_callback(const void *pInput,
         switch (acc[i].cmdType)
         {
         case kSCMD_Start:
-            playing.push_back(acc[i].pSoundInstance);
+        {
+            insert_instance(playing, acc[i].pSoundInstance);
             break;
+        }
         default:
             LOG_ERROR("AudioMgr callback unknown command type: %d", acc[i].cmdType);
             break;
@@ -96,8 +115,6 @@ static int pa_stream_callback(const void *pInput,
 
     u16 * pLeftOut = (u16*)pOutput;
     u16 * pEnd = pLeftOut + frameCount * 2; // we're always in stereo
-
-    u32 finishedSounds = 0;
 
     while (pLeftOut < pEnd)
     {
@@ -109,32 +126,39 @@ static int pa_stream_callback(const void *pInput,
 
         for (auto pInst : playing)
         {
-            if (pInst->currSample < pInst->pGaud->sampleCount())
+            if (pInst != nullptr)
             {
-                if (pInst->ratioCounter == 0)
-                    pInst->ratioCounter = pInst->pGaud->sampleRatio();
-                pInst->ratioCounter--;
+                if (pInst->currSample < pInst->pGaud->sampleCount())
+                {
+                    if (pInst->ratioCounter == 0)
+                        pInst->ratioCounter = pInst->pGaud->sampleRatio();
+                    pInst->ratioCounter--;
 
-                *pLeftOut += pInst->pGaud->samples()[pInst->currSample];
-                if (pInst->pGaud->numChannels() == 2)
-                {
-                    *pRightOut += pInst->pGaud->samples()[pInst->currSample+1];
+                    *pLeftOut += pInst->pGaud->samples()[pInst->currSample];
+                    if (pInst->pGaud->numChannels() == 2)
+                    {
+                        *pRightOut += pInst->pGaud->samples()[pInst->currSample+1];
+                    }
+                    else
+                    {
+                        // mono sound duplicate to right channel
+                        *pRightOut += pInst->pGaud->samples()[pInst->currSample];
+                    }
+                    if (pInst->ratioCounter == 0)
+                        pInst->currSample += pInst->pGaud->numChannels();
                 }
-                else
-                {
-                    // mono sound duplicate to right channel
-                    *pRightOut += pInst->pGaud->samples()[pInst->currSample];
-                }
-                if (pInst->ratioCounter == 0)
-                    pInst->currSample += pInst->pGaud->numChannels();
-            }
-            else
-            {
-                finishedSounds++;
             }
         }
 
         pLeftOut += 2; // we're always in stereo
+    }
+
+    // count up finished sounds so we can push them all
+    u32 finishedSounds = 0;
+    for (auto pInst : playing)
+    {
+        if (pInst != nullptr && pInst->currSample >= pInst->pGaud->sampleCount())
+            finishedSounds++;
     }
 
     if (finishedSounds > 0)
@@ -143,23 +167,17 @@ static int pa_stream_callback(const void *pInput,
         sEngineQueue.pushBegin(&acc, finishedSounds);
         u32 pushed = 0;
 
-        auto it = playing.begin();
-        while (it != playing.end())
+        for (u32 i = 0; i < playing.size(); ++i)
         {
-            if ((*it)->currSample >= (*it)->pGaud->sampleCount())
+            if (playing[i] != nullptr && playing[i]->currSample >= playing[i]->pGaud->sampleCount())
             {
                 acc[pushed++] = SoundCommand{
                     kSCMD_Finished,
-                    *it
+                    playing[i]
                 };
-                it = playing.erase(it);
-            }
-            else
-            {
-                ++it;
+                playing[i] = nullptr;
             }
         }
-
         sEngineQueue.pushCommit(pushed);
     }
 
@@ -220,6 +238,11 @@ AudioMgr::~AudioMgr()
         LOG_ERROR("PortAudio Pa_Terminate error: %s", Pa_GetErrorText(err));
         return;
     }
+
+    for (auto & inst : mInsts)
+    {
+        AssetMgr::release_asset(kAssetMgrTaskId, inst.pAssetGaud);
+    }
 }
 
 void AudioMgr::update(f32 delta)
@@ -233,9 +256,19 @@ void AudioMgr::update(f32 delta)
         switch (acc[i].cmdType)
         {
         case kSCMD_Finished:
+        {
             AssetMgr::release_asset(kAssetMgrTaskId, acc[i].pSoundInstance->pAssetGaud);
-            GDELETE(acc[i].pSoundInstance);
+            SoundInstance * pInst = findInstance(acc[i].pSoundInstance->uid());
+            if (pInst == nullptr)
+            {
+                LOG_ERROR("Unknown sound finished: %d", acc[i].pSoundInstance->uid());
+            }
+            else
+            {
+                pInst->zero();
+            }
             break;
+        }
         default:
             LOG_ERROR("AudioMgr update unknown command type: %d", acc[i].cmdType);
             break;
@@ -257,15 +290,28 @@ MessageResult AudioMgr::message(const T & msgAcc)
     case HASH::start_music:
     {
         messages::SoundInstanceR<T> msgr(msgAcc);
-        SoundInstance * pSoundInstance = msgr.soundInstance();
-        pSoundInstance->currSample = 0; // make sure we're at the start
-        pSoundInstance->ratioCounter = 0;
+
+        SoundInstance * pInst = findInstance(msgr.uid());
+        if (pInst != nullptr)
+        {
+            LOG_ERROR("Sound already playing: %d", msgr.uid());
+            break;
+        }
+
+        pInst = findEmpty();
+        if (pInst == nullptr)
+        {
+            LOG_ERROR("Too many sounds playing");
+            break;
+        }
+
+        pInst = new(pInst) SoundInstance(msg.source, msgr.uid(), msgr.priorityHash(), msgr.assetGaud());
 
         SoundQueue::Accessor acc;
         sCallbackQueue.pushBegin(&acc, 1);
         acc[0] = SoundCommand{
             kSCMD_Start,
-            pSoundInstance
+            pInst
         };
         sCallbackQueue.pushCommit(1);
 
@@ -280,6 +326,27 @@ MessageResult AudioMgr::message(const T & msgAcc)
     return MessageResult::Consumed;
 }
 
+SoundInstance * AudioMgr::findInstance(ouid uid)
+{
+    for (auto & inst : mInsts)
+    {
+        if (inst.uid() == uid)
+            return &inst;
+    }
+    return nullptr;
+}
+
+SoundInstance * AudioMgr::findEmpty()
+{
+    for (auto & inst : mInsts)
+    {
+        if (inst.uid() == 0)
+            return &inst;
+    }
+    return nullptr;
+}
+
+
 // Template decls so we can define message func here in the .cpp
 template MessageResult AudioMgr::message<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
 template MessageResult AudioMgr::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
@@ -288,20 +355,21 @@ template MessageResult AudioMgr::message<MessageBlockAccessor>(const MessageBloc
 namespace system_api
 {
 
-i32 start_music(AssetHandleP pAssetHandleGaud,
+i32 play_sound(AssetHandleP pAssetHandleGaud,
+               i32 priorityHash,
                Entity * pCaller)
 {
     ASSERT(pAssetHandleGaud->typeHash() == HASH::asset);
     const Asset * pAssetGaud = pAssetHandleGaud->data<Asset>();
     AssetMgr::addref_asset(gaen::kAudioMgrTaskId, pAssetGaud);
 
-    SoundInstance * pSoundInstance = GNEW(kMEM_Audio, SoundInstance, pCaller->task().id(), pAssetGaud);
-
-    messages::SoundInstanceBW msgw(HASH::start_music, kMessageFlag_None, pCaller->task().id(), kAudioMgrTaskId);
-    msgw.setSoundInstance(pSoundInstance);
+    ouid uid = UniqueObject::next_uid();
+    messages::SoundInstanceBW msgw(HASH::start_music, kMessageFlag_None, pCaller->task().id(), kAudioMgrTaskId, uid);
+    msgw.setPriorityHash(priorityHash);
+    msgw.setAssetGaud(pAssetGaud);
     send_message(msgw);
 
-    return pSoundInstance->uid();
+    return uid;
 }
 
 } // namespace system_api

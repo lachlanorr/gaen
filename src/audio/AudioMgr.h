@@ -27,6 +27,8 @@
 #ifndef GAEN_AUDIO_AUDIO_MGR_H
 #define GAEN_AUDIO_AUDIO_MGR_H
 
+#include <array>
+
 #include "core/SpscRingBuffer.h"
 
 #include "engine/Message.h"
@@ -41,10 +43,29 @@ namespace gaen
 class Gaud;
 class Asset;
 
+static const u32 kMaxSounds = 8;
+
 struct SoundInstance : public UniqueObject
 {
     SoundInstance(task_id owner,
+                  ouid uid,
+                  i32 priorityHash,
                   const Asset* pAssetGaud);
+
+    SoundInstance()
+      : UniqueObject(0, 0)
+    {
+        zero();
+    }
+
+    void zero()
+    {
+        UniqueObject::zero();
+        pAssetGaud = nullptr;
+        pGaud = nullptr;
+        currSample = 0;
+        ratioCounter = 0;
+    }
 
     const Asset* pAssetGaud;
     const Gaud * pGaud;
@@ -65,7 +86,12 @@ public:
     MessageResult message(const T& msgAcc);
 
 private:
+    SoundInstance * findInstance(ouid uid);
+    SoundInstance * findEmpty();
+
     PaStream *pStream = nullptr;
+
+    std::array<SoundInstance, kMaxSounds> mInsts;
 };
 
 // Compose API
@@ -73,8 +99,9 @@ class Entity;
 namespace system_api
 {
 
-i32 start_music(AssetHandleP pAssetHandleGaud,
-                Entity * pCaller);
+i32 play_sound(AssetHandleP pAssetHandleGaud,
+               i32 priorityHash,
+               Entity * pCaller);
 
 } // namespace system_api
 
