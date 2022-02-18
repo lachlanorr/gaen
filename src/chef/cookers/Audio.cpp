@@ -143,37 +143,42 @@ void Audio::cookWav(CookInfo * pCookInfo) const
     PANIC_IF(data.size() % bytesPerSample != 0, "Data size not a multiple of bytes per sample: %s", pCookInfo->rawPath().c_str());
     u32 sampleCount = (u32)(data.size() / bytesPerSample);
 
-    PANIC_IF((44100 % fmt.sampleRate != 0) || (44100 / fmt.sampleRate > 4), "Invalid sampleRate(%d): %s", fmt.sampleRate, pCookInfo->rawPath().c_str());
-    u32 sampleRatio = 44100 / fmt.sampleRate;
-
-    Gaud * pGaud = Gaud::create(sampleRatio, fmt.numChannels, sampleCount);
+    Gaud * pGaud = Gaud::create(fmt.sampleRate, fmt.numChannels, sampleCount);
 
     const u8 * pData = data.data();
     const u8 * pDataEnd = pData + data.size();
     i16 * pSamples = pGaud->samples();
     const i16 * pSamplesEnd = pSamples + pGaud->sampleCount();
+    f64 sample;
+    u32 sampleIdx = 0;
 
     while (pData < pDataEnd)
     {
         if (bytesPerSample == 2)
         {
-            *pSamples = *(i16*)pData;
+            i32 isample = *(i16*)pData;
+            sample = (f64)isample / 32768.0;
         }
         else if (bytesPerSample == 3)
         {
-            *pSamples = (pData[2] << 8) | pData[1];
+            i32 isample = (pData[2] << 24) | (pData[1] << 16) | (pData[0] << 8);
+            sample = (f64)isample / 2147483648.0;
         }
         else if (bytesPerSample == 4)
         {
-            i32 sample = *(i32*)pData;
-            *pSamples = sample >> 16;
+            i32 isample = *(i32*)pData;
+            sample = (f64)isample / 2147483648.0;
         }
         else
         {
             PANIC("Invalid bitdepth(%d): %s", fmt.bitDepth, pCookInfo->rawPath().c_str());
         }
+        pGaud->localMaxes()[pGaud->localMaxIndex(sampleIdx)] = max(pGaud->localMaxes()[pGaud->localMaxIndex(sampleIdx)], (f32)abs(sample));
+        *pSamples = (i16)(sample * 32768.0);
+
         pData += bytesPerSample;
         pSamples++;
+        sampleIdx++;
     }
 
     PANIC_IF(pData != pDataEnd, "Unexpected end of data: %s", pCookInfo->rawPath().c_str());

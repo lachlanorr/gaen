@@ -180,7 +180,7 @@ AudioMgr::AudioMgr()
                                2,          /* stereo output */
                                paInt16,  /* 32 bit floating point output */
                                44100, //SAMPLE_RATE,
-                               256,        /* frames per buffer, i.e. the number
+                               100,        /* frames per buffer, i.e. the number
                                                   of sample frames that PortAudio will
                                                   request from the callback. Many apps
                                                   may want to use

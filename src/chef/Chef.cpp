@@ -170,6 +170,10 @@ bool Chef::shouldCook(const CookInfo & ci) const
     if (ci.fullRecipe().getBool("is_dependent"))
         return false;
 
+    // Allow for manual ignore of certain files
+    if (ci.fullRecipe().getBool("ignore"))
+        return false;
+
     if (ci.force())
         return true;
 

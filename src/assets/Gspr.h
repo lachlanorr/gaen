@@ -117,7 +117,7 @@ private:
 
     const Gatl * mpAtlas;
 
-    char PADDING_[12];
+    char PADDING__[12];
 
     // What follows header:
 

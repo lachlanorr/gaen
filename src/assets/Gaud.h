@@ -44,7 +44,7 @@ public:
     static Gaud * instance(void * pBuffer, u64 size);
     static const Gaud * instance(const void * pBuffer, u64 size);
 
-    static u64 required_size(u32 sampleCount);
+    static u64 required_size(u32 localMaxCount, u32 sampleCount);
 
     static void init(Gaud * pGaud, u32 sampleRatio, u32 numChannels, u32 sampleCount);
     static Gaud * create(u32 sampleRatio, u32 numChannels, u32 sampleCount);
@@ -53,8 +53,46 @@ public:
     u32 sampleRatio() const { return mSampleRatio; }
     u32 numChannels() const { return mNumChannels; }
 
-    i16 * samples();
-    const i16 * samples() const;
+    u32 localMaxIndex(u32 sampleIdx) const
+    {
+        return sampleIdx / mSamplesPerLocalMax;
+    }
+
+    f32 localMax(u32 sampleIdx) const
+    {
+        return localMaxes()[localMaxIndex(sampleIdx)];
+    }
+
+    f32 * localMaxes()
+    {
+        return reinterpret_cast<f32*>(reinterpret_cast<u8*>(this) + localMaxOffset());
+    }
+
+    const f32 * localMaxes() const
+    {
+        return const_cast<Gaud*>(this)->localMaxes();
+    }
+
+    u32 localMaxOffset() const
+    {
+        return sizeof(Gaud);
+    }
+
+    i16 * samples()
+    {
+        return reinterpret_cast<i16*>(reinterpret_cast<u8*>(this) + sampleOffset());
+    }
+
+    const i16 * samples() const
+    {
+        return const_cast<Gaud*>(this)->samples();
+    }
+
+    u32 sampleOffset() const
+    {
+        return localMaxOffset() + sizeof(f32) * mLocalMaxCount;
+    }
+
 private:
     // Class should not be constructed directly.  Use cast and create static methods.
     Gaud() = default;
@@ -62,13 +100,15 @@ private:
     Gaud & operator=(const Gaud&) = delete;
 
     u32 mSampleCount;
-    u8 mSampleRatio; // 1 = 44100, 2 = 22050, 4 = 11025
-    u8 mNumChannels; // 1 or 2
+    u32 mLocalMaxCount;
+    u32 mSamplesPerLocalMax;
+    u16 mSampleRatio; // 1 = 44100, 2 = 22050, 4 = 11025
+    u16 mNumChannels; // 1 or 2
 };
 #pragma pack(pop)
 
-static_assert(sizeof(Gaud) == 22, "Gaud unexpected size");
-static_assert(sizeof(Gaud) % 2 == 0, "Gaud size not 2 byte aligned");
+static_assert(sizeof(Gaud) == 32, "Gaud unexpected size");
+static_assert(sizeof(Gaud) % 16 == 0, "Gaud size not 2 byte aligned");
 
 } // namespace gaen
 

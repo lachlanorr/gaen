@@ -35,6 +35,34 @@
 namespace gaen
 {
 
+static const u32 kFramesPerLocalMax = 1000;
+
+// samples per local max
+// rate    ratio   chans   samples per localmax
+// 44100     1       2     2000
+// 44100     1       1     1000
+// 22050     2       2     1000
+// 22050     2       1      500
+// 11025     4       2      500
+// 11025     4       1      250
+
+// formula:
+// 1000 / ratio * chans
+
+static u32 samples_per_local_max(u32 sampleRatio, u32 numChannels)
+{
+    return 1000 / sampleRatio * numChannels;
+}
+
+static u32 local_max_count(u32 sampleRatio, u32 numChannels, u32 sampleCount)
+{
+    u32 splm = samples_per_local_max(sampleRatio, numChannels);
+    u32 lmc = sampleCount / splm;
+    if (sampleCount % splm != 0)
+        lmc++;
+    return lmc;
+}
+
 bool Gaud::is_valid(const void * pBuffer, u64 size)
 {
     if (size < sizeof(Gaud))
@@ -55,7 +83,20 @@ bool Gaud::is_valid(const void * pBuffer, u64 size)
         return false;
     if (pAssetData->mSampleCount % pAssetData->mNumChannels != 0)
         return false;
-    if (required_size(pAssetData->mSampleCount) != size)
+    if (pAssetData->mLocalMaxCount != local_max_count(pAssetData->mSampleRatio, pAssetData->mNumChannels, pAssetData->mSampleCount))
+        return false;
+    if (pAssetData->mSamplesPerLocalMax != samples_per_local_max(pAssetData->mSampleRatio, pAssetData->mNumChannels))
+        return false;
+    if ((pAssetData->mSampleCount-1) / pAssetData->mSamplesPerLocalMax != (pAssetData->mLocalMaxCount-1))
+        return false;
+
+    for (u32 i = 0; i < pAssetData->mLocalMaxCount; ++i)
+    {
+        if (pAssetData->localMax(i) < 0.0f || pAssetData->localMax(i) > 1.0f)
+            return false;
+    }
+
+    if (required_size(pAssetData->mLocalMaxCount, pAssetData->mSampleCount) != size)
         return false;
 
     return true;
@@ -83,43 +124,48 @@ const Gaud * Gaud::instance(const void * pBuffer, u64 size)
     return reinterpret_cast<const Gaud*>(pBuffer);
 }
 
-u64 Gaud::required_size(u32 sampleCount)
+u64 Gaud::required_size(u32 localMaxCount, u32 sampleCount)
 {
-    u64 size = sizeof(Gaud) + sampleCount * sizeof(i16);
+    u64 size = sizeof(Gaud) + localMaxCount * sizeof(f32) + sampleCount * sizeof(i16);
 
     return size;
 }
 
 void Gaud::init(Gaud * pGaud, u32 sampleRatio, u32 numChannels, u32 sampleCount)
 {
+    pGaud->mSampleCount = sampleCount;
+    pGaud->mLocalMaxCount = local_max_count(sampleRatio, numChannels, sampleCount);
+    pGaud->mSamplesPerLocalMax = samples_per_local_max(sampleRatio, numChannels);
     pGaud->mSampleRatio = sampleRatio;
     pGaud->mNumChannels = numChannels;
-    pGaud->mSampleCount = sampleCount;
+
+    f32 * pLocalMax = pGaud->localMaxes();
+    f32 * pLocalMaxEnd = pLocalMax + pGaud->mLocalMaxCount;
+    while (pLocalMax < pLocalMaxEnd)
+    {
+        *pLocalMax = 0.0f;
+        pLocalMax++;
+    }
 }
 
-Gaud * Gaud::create(u32 sampleRatio, u32 numChannels, u32 sampleCount)
+Gaud * Gaud::create(u32 sampleRate, u32 numChannels, u32 sampleCount)
 {
-    PANIC_IF(sampleRatio != 1 && sampleRatio != 2 && sampleRatio != 4, "Invalid sampleRatio: %d", sampleRatio);
+    PANIC_IF(sampleRate != 44100 && sampleRate != 22050 && sampleRate != 11025, "Invalid sampleRate: %d", sampleRate);
     PANIC_IF(numChannels != 1 && numChannels != 2, "Invalid numChannels: %d", numChannels);
     PANIC_IF(sampleCount % numChannels != 0, "Invalid sampleCount(%d), not multiple of numChannels(%d)", sampleCount, numChannels);
 
-    Gaud * pGaud = alloc_asset<Gaud>(kMEM_Audio, required_size(sampleCount));
+    PANIC_IF((44100 % sampleRate != 0) || (44100 / sampleRate > 4), "Invalid sampleRate(%d)", sampleRate);
+    u32 sampleRatio = 44100 / sampleRate;
+
+    u32 localMaxCount = local_max_count(sampleRatio, numChannels, sampleCount);
+
+    Gaud * pGaud = alloc_asset<Gaud>(kMEM_Audio, required_size(localMaxCount, sampleCount));
 
     init(pGaud, sampleRatio, numChannels, sampleCount);
 
-    ASSERT(is_valid(pGaud, required_size(sampleCount)));
+    ASSERT(is_valid(pGaud, required_size(localMaxCount, sampleCount)));
 
     return pGaud;
-}
-
-i16 * Gaud::samples()
-{
-    return (i16*)((u8*)this + sizeof(Gaud));
-}
-
-const i16 * Gaud::samples() const
-{
-    return (const i16*)((u8*)this + sizeof(Gaud));
 }
 
 } // namespace gaen
