@@ -49,7 +49,7 @@ struct SoundInstance : public UniqueObject
 {
     SoundInstance(task_id owner,
                   ouid uid,
-                  i32 priorityHash,
+                  u32 priority,
                   const Asset* pAssetGaud);
 
     SoundInstance()
@@ -70,6 +70,7 @@ struct SoundInstance : public UniqueObject
     const Asset* pAssetGaud;
     const Gaud * pGaud;
 
+    u32 priority;
     u32 currSample = 0;
     u32 ratioCounter = 0;
 };

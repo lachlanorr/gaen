@@ -42,14 +42,64 @@
 namespace gaen
 {
 
+static const f32 kMaxVolume = 0.95;
+
+static const u32 kPriorityCount = 4;
+static const u32 kMaxPriority = kPriorityCount - 1;
+
+typedef std::array<f32, kPriorityCount> Ratios;
+typedef std::array<Ratios, 16 /*1 << kPriorityCount*/> RatioArray;
+
+// Each of these Ratios should add to 1.0
+// They will get scaled down based on kMaxVolume
+static RatioArray kBaseRatios{
+    Ratios{ 0.0,  0.0,  0.0,  0.0 }, // 0 0 0 0
+    Ratios{ 0.0,  0.0,  0.0,  1.0 }, // 0 0 0 1
+    Ratios{ 0.0,  0.0,  1.0,  0.0 }, // 0 0 1 0
+    Ratios{ 0.0,  0.0,  0.6,  0.4 }, // 0 0 1 1
+    Ratios{ 0.0,  1.0,  0.0,  0.0 }, // 0 1 0 0
+    Ratios{ 0.0,  0.8,  0.0,  0.2 }, // 0 1 0 1
+    Ratios{ 0.0,  0.7,  0.3,  0.0 }, // 0 1 1 0
+    Ratios{ 0.0,  0.7,  0.2,  0.1 }, // 0 1 1 1
+    Ratios{ 1.0,  0.0,  0.0,  0.0 }, // 1 0 0 0
+    Ratios{ 0.9,  0.0,  0.0,  0.1 }, // 1 0 0 1
+    Ratios{ 0.8,  0.0,  0.2,  0.0 }, // 1 0 1 0
+    Ratios{ 0.8,  0.0, 0.15, 0.05 }, // 1 0 1 1
+    Ratios{ 0.7,  0.3,  0.0,  0.0 }, // 1 1 0 0
+    Ratios{ 0.7, 0.25,  0.0, 0.05 }, // 1 1 0 1
+    Ratios{ 0.7,  0.2,  0.1,  0.0 }, // 1 1 1 0
+    Ratios{ 0.7,  0.2, 0.07, 0.03 }  // 1 1 1 1
+};
+
+static bool scale_ratios(const RatioArray & ratioArray)
+{
+    for (auto & ratio : kBaseRatios)
+    {
+        for (u32 i = 0; i < ratio.size(); ++i)
+        {
+            ratio[i] = ratio[i] * kMaxVolume;
+        }
+    }
+    return true;
+}
+
+static const bool kAreRatiosValid = scale_ratios(kBaseRatios);
+
 SoundInstance::SoundInstance(task_id owner,
                              ouid uid,
-                             i32 priorityHash,
+                             u32 priority,
                              const Asset* pAssetGaud)
   : UniqueObject(owner, uid)
   , pAssetGaud(pAssetGaud)
+  , priority(priority)
 {
     pGaud = pAssetGaud->buffer<Gaud>();
+
+    if (priority > kMaxPriority)
+    {
+        LOG_ERROR("Invalid sound priority: %d, changing to max %d", priority, kMaxPriority);
+        priority = kMaxPriority;
+    }
 
     currSample = 0;
     ratioCounter = 0;
@@ -84,6 +134,12 @@ static void insert_instance(std::array<SoundInstance*, kMaxSounds> & insts, Soun
     }
 }
 
+struct PriorityInfo
+{
+    u32 count;
+    f32 localMax;
+};
+
 static int pa_stream_callback(const void *pInput,
                               void *pOutput,
                               unsigned long frameCount,
@@ -113,12 +169,49 @@ static int pa_stream_callback(const void *pInput,
     }
     sCallbackQueue.popCommit(available);
 
-    u16 * pLeftOut = (u16*)pOutput;
-    u16 * pEnd = pLeftOut + frameCount * 2; // we're always in stereo
+    // find which priority sounds are available to play and choose ratios
+    u32 priorityBitmap = 0;
+    Ratios priorityMaxes{0.0};
+    for (const auto pInst : playing)
+    {
+        if (pInst != nullptr)
+        {
+            priorityBitmap |= (1 << (kMaxPriority - pInst->priority));
+            priorityMaxes[pInst->priority] += pInst->pGaud->localMax(pInst->currSample);
+        }
+    }
+    Ratios ratios{0.0};
+    f32 budget = 0.0; // remaining budget from previous priorities
+    for (u32 i = 0; i < ratios.size(); ++i)
+    {
+        f32 priorityBudget = kBaseRatios[priorityBitmap][i] + budget;
+        if (priorityMaxes[i] == 0)
+        {
+            // no volume in this priority, give our budget to next priority
+            ratios[i] = 0.0;
+            budget += kBaseRatios[priorityBitmap][i];
+        }
+        else if (priorityMaxes[i] >= priorityBudget)
+        {
+            ratios[i] = priorityBudget / priorityMaxes[i];
+            // no remaining budget
+        }
+        else
+        {
+            // we're below our budget, so don't compress samples in this priority
+            ratios[i] = 1.0;
+            // give our remaining budget to next priority
+            budget += priorityBudget - priorityMaxes[i];
+        }
+    }
+
+    // Process playing sounds
+    i16 * pLeftOut = (i16*)pOutput;
+    i16 * pEnd = pLeftOut + frameCount * 2; // we're always in stereo
 
     while (pLeftOut < pEnd)
     {
-        u16 * pRightOut = pLeftOut+1;
+        i16 * pRightOut = pLeftOut+1;
 
         // initialize to zero
         *pLeftOut = 0;
@@ -128,21 +221,22 @@ static int pa_stream_callback(const void *pInput,
         {
             if (pInst != nullptr)
             {
+                f32 ratio = ratios[pInst->priority];
                 if (pInst->currSample < pInst->pGaud->sampleCount())
                 {
                     if (pInst->ratioCounter == 0)
                         pInst->ratioCounter = pInst->pGaud->sampleRatio();
                     pInst->ratioCounter--;
 
-                    *pLeftOut += pInst->pGaud->samples()[pInst->currSample];
+                    *pLeftOut += (i16)(pInst->pGaud->samples()[pInst->currSample] * ratio);
                     if (pInst->pGaud->numChannels() == 2)
                     {
-                        *pRightOut += pInst->pGaud->samples()[pInst->currSample+1];
+                        *pRightOut += (i16)(pInst->pGaud->samples()[pInst->currSample+1] * ratio);
                     }
                     else
                     {
                         // mono sound duplicate to right channel
-                        *pRightOut += pInst->pGaud->samples()[pInst->currSample];
+                        *pRightOut += (i16)(pInst->pGaud->samples()[pInst->currSample] * ratio);
                     }
                     if (pInst->ratioCounter == 0)
                         pInst->currSample += pInst->pGaud->numChannels();
@@ -241,7 +335,10 @@ AudioMgr::~AudioMgr()
 
     for (auto & inst : mInsts)
     {
-        AssetMgr::release_asset(kAssetMgrTaskId, inst.pAssetGaud);
+        if (inst.uid() != 0)
+        {
+            AssetMgr::release_asset(kAssetMgrTaskId, inst.pAssetGaud);
+        }
     }
 }
 
@@ -305,7 +402,26 @@ MessageResult AudioMgr::message(const T & msgAcc)
             break;
         }
 
-        pInst = new(pInst) SoundInstance(msg.source, msgr.uid(), msgr.priorityHash(), msgr.assetGaud());
+        u32 priority = 1; // default to low priprity
+        switch (msgr.priorityHash())
+        {
+        case HASH::dialog:
+            priority = 0;
+            break;
+        case HASH::effect:
+            priority = 1;
+            break;
+        case HASH::ambient:
+            priority = 2;
+            break;
+        case HASH::music:
+            priority = 3;
+        default:
+            LOG_ERROR("Invalid priorityHash: %d, defaulting to %d", msgr.priorityHash(), kMaxPriority);
+            priority = kMaxPriority;
+        }
+
+        pInst = new(pInst) SoundInstance(msg.source, msgr.uid(), priority, msgr.assetGaud());
 
         SoundQueue::Accessor acc;
         sCallbackQueue.pushBegin(&acc, 1);
