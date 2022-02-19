@@ -42,7 +42,7 @@
 namespace gaen
 {
 
-static const f32 kMaxVolume = 0.95;
+static const f32 kMaxVolume = 0.90;
 
 static const u32 kPriorityCount = 4;
 static const u32 kMaxPriority = kPriorityCount - 1;

@@ -35,23 +35,23 @@
 namespace gaen
 {
 
-static const u32 kFramesPerLocalMax = 1000;
+static const u32 kFramesPerLocalMax = 100;
 
 // samples per local max
 // rate    ratio   chans   samples per localmax
-// 44100     1       2     2000
-// 44100     1       1     1000
-// 22050     2       2     1000
-// 22050     2       1      500
-// 11025     4       2      500
-// 11025     4       1      250
+// 44100     1       2     200
+// 44100     1       1     100
+// 22050     2       2     100
+// 22050     2       1      50
+// 11025     4       2      50
+// 11025     4       1      25
 
 // formula:
-// 1000 / ratio * chans
+// kFramesPerLocalMax / ratio * chans
 
 static u32 samples_per_local_max(u32 sampleRatio, u32 numChannels)
 {
-    return 1000 / sampleRatio * numChannels;
+    return kFramesPerLocalMax / sampleRatio * numChannels;
 }
 
 static u32 local_max_count(u32 sampleRatio, u32 numChannels, u32 sampleCount)
