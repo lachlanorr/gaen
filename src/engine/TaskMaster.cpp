@@ -406,6 +406,16 @@ void TaskMaster::fin(const T& msgAcc)
     ASSERT(mStatus == kTMS_Initialized);
     ASSERT(msgAcc.message().msgId == HASH::fin);
 
+    // Cleanup managers in reverse order they were initialized
+    mpEditor.reset(nullptr);
+
+    mpSpriteMgr.reset(nullptr);
+    mpModelMgr.reset(nullptr);
+
+    mpAudioMgr.reset(nullptr);
+    mpAssetMgr.reset(nullptr);
+    mpInputMgr.reset(nullptr);
+
     for (Task & task : mOwnedTasks)
     {
         task.message(msgAcc);
