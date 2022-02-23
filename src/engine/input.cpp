@@ -367,7 +367,8 @@ void kill_focus()
 void poll_pad_input()
 {
     InputMgr & inputMgr = TaskMaster::task_master_for_active_thread().inputMgr();
-    inputMgr.pollPadInput();
+    if (&inputMgr)
+        inputMgr.pollPadInput();
 }
 
 static const f64 kMouseUpdateInterval = 1.0f / 60.0f;
