@@ -415,7 +415,7 @@ RecipeListUP Chef::findRecipes(const ChefString & rawPath) const
     if (file_exists(rcpFile.c_str()))
         pRecipes->push_front(rcpFile);
 
-    while (is_parent_dir(mAssetsRawDir, dir))
+    while (is_parent_dir(mAssetsRawDir, dir, true))
     {
         // check for file type override, e.g. .tga.rcp
         ChefString rcpFile = dir + "/" + ext + kRcpExt;

@@ -100,10 +100,10 @@ T parent_dir(const T & filePath)
 }
 
 template <class T>
-bool is_parent_dir(const T & parent, const T & child)
+bool is_parent_dir(const T & parent, const T & child, bool trueIfEquals = false)
 {
     return (0 == child.compare(0, parent.size(), parent) // child starts with parent
-            && child[parent.size()] == '/'); // first character after parent is a slash
+            && (trueIfEquals || child[parent.size()] == '/')); // first character after parent is a slash
 }
 
 
