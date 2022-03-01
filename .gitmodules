@@ -7,9 +7,6 @@
 [submodule "external/stb"]
 	path = external/stb
 	url = https://github.com/lachlanorr/stb.git
-[submodule "external/cmake-modules"]
-	path = external/cmake-modules
-	url = https://github.com/lachlanorr/cmake-modules.git
 [submodule "external/libtiff"]
 	path = external/libtiff
 	url = https://github.com/lachlanorr/libtiff.git
@@ -43,3 +40,9 @@
 [submodule "external/portaudio"]
 	path = external/portaudio
 	url = https://github.com/lachlanorr/portaudio.git
+[submodule "external/kibits"]
+	path = external/kibits
+	url = https://github.com/lachlanorr/kibits.git
+[submodule "external/googletest"]
+	path = external/googletest
+	url = https://github.com/lachlanorr/googletest.git
