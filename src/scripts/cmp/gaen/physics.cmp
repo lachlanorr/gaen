@@ -60,6 +60,24 @@ component ModelBody
     float #friction = 0.5;
     vec3 #linearFactor = vec3{1.0, 1.0, 1.0};
     vec3 #angularFactor = vec3{1.0, 1.0, 1.0};
+    int #flags = $.PHY_FLAG_NONE;
+    int #collisionShape = $.PHY_SHAPE_BOX;
+
+    bool isInit = false;
+
+    vec3 #velocity
+    {
+        default = vec3{0.0, 0.0, 0.0};
+        post
+        {
+            if (isInit)
+            {
+                $.model_set_velocity(modelUid, velocity);
+            }
+        }
+    }
+
+    int #message = #collision;
 
     // Collision group
     int #group = 0;
@@ -77,16 +95,24 @@ component ModelBody
     #init()
     {
         if (modelUid != 0)
+        {
             $.model_init_body(modelUid,
                               mass,
                               friction,
+                              flags,
+                              collisionShape,
                               linearFactor,
                               angularFactor,
+                              message,
                               group,
                               ivec4{mask0, mask1, mask2, mask3},
                               ivec4{mask4, mask5, mask6, mask7});
+            isInit = true;
+            @#velocity = velocity;
+        }
     }
 }
+
 
 component HingeConstraint
 {
@@ -96,6 +122,8 @@ component HingeConstraint
     vec3 #linearFactor = vec3{1.0, 1.0, 1.0};
     vec3 #angularFactor = vec3{1.0, 1.0, 1.0};
 
+    int #message = #collision;
+
     // Collision group
     int #group = 0;
 
@@ -115,8 +143,11 @@ component HingeConstraint
             $.model_init_body(modelUid,
                               mass,
                               friction,
+                              $.PHY_FLAG_NONE,
+                              $.PHY_SHAPE_BOX,
                               linearFactor,
                               angularFactor,
+                              message,
                               group,
                               ivec4{mask0, mask1, mask2, mask3},
                               ivec4{mask4, mask5, mask6, mask7});
@@ -124,6 +155,6 @@ component HingeConstraint
 
     #update_transform()
     {
-        
+
     }
 }

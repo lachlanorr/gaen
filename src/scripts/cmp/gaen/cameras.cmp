@@ -53,7 +53,7 @@ component Persp
     {
         $.model_stage_camera_remove(uid);
     }
-    
+
     #look_at(vec3 position, vec3 target, vec3 up)
     {
         @#view = $.view_look_at(position, target, up);
@@ -72,6 +72,7 @@ component Ortho
     int #stage  = #default;
     float #nearClip = 0.1;
     float #farClip  = 10000.0;
+    float #bounds = 10.0;
 
     bool dirty = false;
 
@@ -106,14 +107,14 @@ component Ortho
 
     #init()
     {
-        uid = $.model_stage_camera_create_ortho(stage, scale, nearClip, farClip, view);
+        uid = $.model_stage_camera_create_ortho(stage, bounds, nearClip, farClip, view);
     }
-    
+
     #fin()
     {
         $.model_stage_camera_remove(uid);
     }
-    
+
     #look_at(vec3 position, vec3 target, vec3 up)
     {
         @#view = $.view_look_at(position, target, up);

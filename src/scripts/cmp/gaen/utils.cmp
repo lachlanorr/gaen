@@ -46,6 +46,46 @@ component Timer
     }
 }
 
+component Animation
+{
+    asset #gaim;
+    int #modelUid;
+    int animIdx;
+    int animFrameCount;
+    int #animState
+    {
+        default = #default;
+        post
+        {
+            animIdx = $.gaim_anim_index(gaim, animState);
+            animFrameCount = $.gaim_frame_count(gaim, animIdx);
+        }
+    }
+    bool #looped = false;
+
+    int animOffset = 0;
+    float animDelta = 0.0;
+
+    #setAnimState(int state)
+    {
+        animState = state;
+    }
+
+    update
+    {
+        if (animState != #default)
+        {
+            animDelta += delta;
+            int newOffset = $.gaim_frame_offset(gaim, animIdx, animDelta, looped);
+            if (newOffset != animOffset)
+            {
+                animOffset = newOffset;
+                @renderer#model_frame_offset(modelUid, animOffset);
+            }
+        }
+    }
+}
+
 //------------------------------------------------------------------------------
 
 component WasdCamera
