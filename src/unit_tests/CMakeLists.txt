@@ -24,10 +24,6 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(gtest_dir ${ext_dir}/gtest-1.7.0)
-
-include_directories(${gtest_dir})
-
 set(unit_test_SOURCES
   BaseFixture.h
   main_testcore.cpp
@@ -38,15 +34,7 @@ set(unit_test_SOURCES
   test_blockmemory.cpp
   test_math.cpp
   test_task.cpp
-  ${gtest_dir}/gtest/gtest-all.cc
   )
-
-
-# Clang gives harmelss warning about unused variable kPathSeparator.
-# Supress it here.
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-  set_source_files_properties(${gtest_dir}/gtest/gtest-all.cc PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
-endif()
 
 source_group("" FILES ${unit_test_SOURCES})
 
@@ -55,6 +43,7 @@ add_executable(unit_tests
   )
 
 target_link_libraries(unit_tests
+  gtest
   engine
   render_support
   compose

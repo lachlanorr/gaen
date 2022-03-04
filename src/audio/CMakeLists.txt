@@ -31,12 +31,16 @@ set(audio_SOURCES
 
 source_group("" FILES ${audio_SOURCES})
 
-add_library(audio
+add_library(audio STATIC
   ${audio_SOURCES}
   )
 
 target_link_libraries(audio PUBLIC
   portaudio_static
+  )
+
+target_link_libraries(audio PUBLIC
+  core
   )
 
 add_dependencies(audio

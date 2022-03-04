@@ -26,6 +26,4 @@
 
 option(kibits_BUILD_TESTS "" OFF)
 add_subdirectory(kibits)
-configure_target_folders("kibits")
-
-
+configure_target_folders("kibits" TRUE)

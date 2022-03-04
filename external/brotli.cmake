@@ -27,7 +27,7 @@
 set(BROTLI_DISABLE_TESTS OFF CACHE BOOL "" FORCE)
 set(BROTLI_ OFF CACHE BOOL "" FORCE)
 add_subdirectory(brotli)
-configure_target_folders("brotli")
+configure_target_folders("brotli" FALSE)
 
 set(BROTLIDEC_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/brotli/c/include CACHE STRING "" FORCE)
 set(BROTLIDEC_LIBRARIES $<TARGET_FILE:brotlidec-static> CACHE STRING "" FORCE)

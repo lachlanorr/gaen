@@ -34,6 +34,10 @@ set(cara_SOURCES
 #msvc_precompiled_header(cara cara_SOURCES)
 source_group("" FILES ${cara_SOURCES})
 
-add_library(cara
+add_library(cara STATIC
   ${cara_SOURCES}
+  )
+
+target_link_libraries(cara PUBLIC
+  core
   )

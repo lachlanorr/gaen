@@ -81,42 +81,19 @@ set(engine_SOURCES
 source_group("" FILES ${engine_SOURCES})
 source_group("messages" FILES ${engine_messages_SOURCES})
 
-set(IMGUI_SRC "${ext_dir}/imgui")
-set(imgui_SOURCES
-  ${IMGUI_SRC}/imconfig.h
-  ${IMGUI_SRC}/imgui.cpp
-  ${IMGUI_SRC}/imgui.h
-  ${IMGUI_SRC}/imgui_demo.cpp
-  ${IMGUI_SRC}/imgui_draw.cpp
-  ${IMGUI_SRC}/imgui_internal.h
-  ${IMGUI_SRC}/imgui_tables.cpp
-  ${IMGUI_SRC}/imgui_widgets.cpp
-  ${IMGUI_SRC}/imstb_rectpack.h
-  ${IMGUI_SRC}/imstb_textedit.h
-  ${IMGUI_SRC}/imstb_truetype.h
-  ${IMGUI_SRC}/backends/imgui_impl_glfw.cpp
-  ${IMGUI_SRC}/backends/imgui_impl_glfw.h
-  ${IMGUI_SRC}/backends/imgui_impl_opengl3.cpp
-  ${IMGUI_SRC}/backends/imgui_impl_opengl3.h
-  )
-source_group("imgui" FILES ${imgui_SOURCES})
-
-add_library(engine
+add_library(engine STATIC
   ${engine_SOURCES}
-  ${imgui_SOURCES}
   )
 
 target_link_libraries(engine PUBLIC
+  core
   BulletCollision
   BulletDynamics
   LinearMath
+  imgui
   glfw
+  glad
   )
-
-target_include_directories(engine PRIVATE
-  ${IMGUI_SRC}
-  ${GLAD_INCLUDE}
-)
 
 # Run each time we build.
 add_custom_target(

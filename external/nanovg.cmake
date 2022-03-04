@@ -24,46 +24,28 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(shaders_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
-include(${shaders_dir}/codegen.cmake)
+set(nanovg_SOURCES
+  nanovg/src/fontstash.h
+  nanovg/src/nanovg.c
+  nanovg/src/nanovg_gl.h
+  nanovg/src/nanovg_gl_utils.h
+  nanovg/src/nanovg.h
+  nanovg/src/stb_image.h
+  nanovg/src/stb_truetype.h
+)
 
-set(renderergl_SOURCES
-  FrameGL.h
-  gaen_opengl.h
-  ModelGL.cpp
-  ModelGL.h
-  RenderCollection.h
-  Renderer.h
-  RendererMesh.h
-  RendererMesh.cpp
-  RendererProto.h
-  RendererProto.cpp
-  Renderer_${platform}.${platform_ext}
-  renderer_api.cpp
-  ShaderRegistry.cpp
-  ShaderRegistry.h
-  SpriteGL.cpp
-  SpriteGL.h
-  Stage.h
-  StageMgr.h
-  ${shaders_codegen_SOURCES}
+source_group("" FILES ${nanovg_SOURCES})
+
+add_library(nanovg STATIC
+  ${nanovg_SOURCES}
   )
 
-source_group("" FILES ${renderergl_SOURCES})
-
-add_library(renderergl STATIC
-  ${renderergl_SOURCES}
+target_include_directories(nanovg PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/nanovg/src
   )
 
-target_link_libraries(renderergl PUBLIC
-  core
-  nanovg
-  imgui
-  glfw
-  glad
+set_target_properties(nanovg PROPERTIES
+  FOLDER external/nanovg
   )
 
-add_dependencies(renderergl
-  hashes
-  CODEGEN_MESSAGES
-  )
+configure_source_folders("${nanovg_SOURCES}" "nanovg/src/")

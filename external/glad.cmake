@@ -24,46 +24,25 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(shaders_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
-include(${shaders_dir}/codegen.cmake)
+if(WIN32)
+  set(glad_SOURCES
+    glad/src/glad.c
+    glad/include/glad/glad.h
+    glad/include/KHR/khrplatform.h
+    )
 
-set(renderergl_SOURCES
-  FrameGL.h
-  gaen_opengl.h
-  ModelGL.cpp
-  ModelGL.h
-  RenderCollection.h
-  Renderer.h
-  RendererMesh.h
-  RendererMesh.cpp
-  RendererProto.h
-  RendererProto.cpp
-  Renderer_${platform}.${platform_ext}
-  renderer_api.cpp
-  ShaderRegistry.cpp
-  ShaderRegistry.h
-  SpriteGL.cpp
-  SpriteGL.h
-  Stage.h
-  StageMgr.h
-  ${shaders_codegen_SOURCES}
+  add_library(glad STATIC
+    ${glad_SOURCES}
+    )
+
+  source_group("" FILES ${glad_SOURCES})
+
+  target_include_directories(glad PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/glad/include
+    )
+
+  set_target_properties(glad PROPERTIES
+    FOLDER external/glad
   )
-
-source_group("" FILES ${renderergl_SOURCES})
-
-add_library(renderergl STATIC
-  ${renderergl_SOURCES}
-  )
-
-target_link_libraries(renderergl PUBLIC
-  core
-  nanovg
-  imgui
-  glfw
-  glad
-  )
-
-add_dependencies(renderergl
-  hashes
-  CODEGEN_MESSAGES
-  )
+  configure_source_folders("${glad_SOURCES}" "glad/")
+endif()

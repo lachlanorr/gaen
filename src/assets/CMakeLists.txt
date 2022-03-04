@@ -50,6 +50,10 @@ set(assets_SOURCES
 
 source_group("" FILES ${assets_SOURCES})
 
-add_library(assets
+add_library(assets STATIC
   ${assets_SOURCES}
+  )
+
+target_link_libraries(assets PUBLIC
+  core
   )

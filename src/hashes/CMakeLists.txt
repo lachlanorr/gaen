@@ -42,7 +42,7 @@ add_custom_target(
   COMMENT "Generating hashes.h/cpp"
   )
 
-add_library(hashes
+add_library(hashes STATIC
   ${hashes_SOURCES}
   )
 

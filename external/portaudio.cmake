@@ -27,4 +27,4 @@
 option(PA_DISABLE_INSTALL "" ON)
 option(PA_BUILD_SHARED "" OFF)
 add_subdirectory(portaudio)
-configure_target_folders("portaudio")
+configure_target_folders("portaudio" FALSE)

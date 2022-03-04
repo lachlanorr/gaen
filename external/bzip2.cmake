@@ -46,7 +46,7 @@ list(APPEND bzip2_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/bzip2/include/bz_version.
 
 source_group("" FILES ${bzip2_SOURCES})
 
-add_library(bzip2static
+add_library(bzip2static STATIC
   ${bzip2_SOURCES}
   )
 

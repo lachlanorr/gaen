@@ -30,12 +30,13 @@ set(scripts_SOURCES
   ${scripts_codegen_SOURCES}
   )
 
-add_library(scripts
+add_library(scripts STATIC
   DUMMY.cpp
   ${scripts_SOURCES}
   )
 
 target_link_libraries(scripts PUBLIC
+  core
   LinearMath
   )
 

@@ -26,4 +26,4 @@
 
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(libtiff)
-configure_target_folders("libtiff")
+configure_target_folders("libtiff" FALSE)

@@ -46,6 +46,10 @@ set(math_SOURCES
 #msvc_precompiled_header(math math_SOURCES)
 source_group("" FILES ${math_SOURCES})
 
-add_library(math
+add_library(math STATIC
   ${math_SOURCES}
+  )
+
+target_link_libraries(math PUBLIC
+  glm
   )

@@ -31,16 +31,8 @@ set(shader_gen_SOURCES
   )
 source_group("" FILES ${shader_gen_SOURCES})
 
-set(glad_SOURCES
-  ${ext_dir}/glad/src/glad.c
-  ${ext_dir}/glad/include/glad/glad.h
-  ${ext_dir}/glad/include/KHR/khrplatform.h
-  )
-source_group("glad" FILES ${glad_SOURCES})
-
 add_executable(shader_gen
   ${shader_gen_SOURCES}
-  ${glad_SOURCES}
   )
 
 target_link_libraries(shader_gen
@@ -48,11 +40,8 @@ target_link_libraries(shader_gen
   assets
   engine
   glfw
+  glad
   ${PLATFORM_LINK_LIBS}
   )
-
-target_include_directories(shader_gen PRIVATE
-  ${GLAD_INCLUDE}
-)
 
 package(shader_gen)

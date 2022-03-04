@@ -39,8 +39,14 @@ include(brotli.cmake)
 # audio
 include(portaudio.cmake)
 
-# graphics
+# math
+include(glm.cmake)
+
+# rendering
+include(glad.cmake)
 include(glfw.cmake)
+include(imgui.cmake)
+include(nanovg.cmake)
 
 # physics
 include(bullet3.cmake)
@@ -56,5 +62,5 @@ include(freetype.cmake)
 # model cooking
 include(assimp.cmake)
 
-set(RAPIDJSON_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/rapidjson/include CACHE INTERNAL "")
-set(GLAD_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/glad/include CACHE INTERNAL "")
+# json
+include(rapidjson.cmake)

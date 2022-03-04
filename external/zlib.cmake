@@ -55,7 +55,7 @@ set(zlib_SOURCES
 
 source_group("" FILES ${zlib_SOURCES})
 
-add_library(zlibstatic
+add_library(zlibstatic STATIC
   ${zlib_SOURCES}
   )
 

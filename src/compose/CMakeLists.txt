@@ -60,6 +60,10 @@ add_custom_target(
 
 source_group("" FILES ${compose_SOURCES})
 
-add_library(compose
+add_library(compose STATIC
   ${compose_SOURCES}
+  )
+
+target_link_libraries(compose PUBLIC
+  core
   )

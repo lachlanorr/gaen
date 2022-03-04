@@ -40,17 +40,31 @@ macro(get_all_targets_recursive targets dir)
   list(APPEND ${targets} ${current_targets})
 endmacro()
 
-
-function(configure_target_folders prefix)
+function(configure_target_folders prefix relative)
   get_all_targets(all_targets)
 
   foreach(tgt ${all_targets})
     get_target_property(tgtsrc ${tgt} SOURCE_DIR)
     cmake_path(RELATIVE_PATH tgtsrc OUTPUT_VARIABLE tgtsrcrel)
     if(${tgtsrcrel} MATCHES "^${prefix}.*")
-      set_target_properties(${tgt} PROPERTIES
-        FOLDER "external/${tgtsrcrel}"
-	    )
+      if(relative)
+        set_target_properties(${tgt} PROPERTIES
+          FOLDER "external/${tgtsrcrel}"
+	      )
+      else()
+        set_target_properties(${tgt} PROPERTIES
+          FOLDER "external/${prefix}"
+	      )
+      endif()
     endif()
+  endforeach()
+endfunction()
+
+function(configure_source_folders sources strip)
+  foreach(source IN LISTS sources)
+    string(LENGTH "${strip}" strip_len)
+    string(SUBSTRING "${source}" ${strip_len} -1 source_stripped) # strip off front
+    get_filename_component(source_path "${source_stripped}" PATH)
+    source_group("${source_path}" FILES "${source}")
   endforeach()
 endfunction()

@@ -39,6 +39,12 @@ option(gaen_MINEXT "Strip out all but the minimal targets in external dependenci
 set(ext_dir ${CMAKE_CURRENT_SOURCE_DIR}/external)
 set(python_dir ${CMAKE_CURRENT_SOURCE_DIR}/python)
 
+# Set these to avoid any external libs overwriting
+set(CMAKE_RELEASE_POSTFIX "" CACHE STRING "")
+set(CMAKE_DEBUG_POSTFIX "" CACHE STRING "")
+set(CMAKE_MINSIZEREL_POSTFIX "" CACHE STRING "")
+set(CMAKE_RELWITHDEBINFO_POSTFIX "" CACHE STRING "")
+
 include(compile_defs.cmake)
 
 # If we're compiling gaen as a project (instead of a project that uses

@@ -25,15 +25,10 @@
 #-------------------------------------------------------------------------------
 
 # Standard include paths
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
-  include_directories(${ext_dir}/glad/include)
-endif()
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_compile_definitions(GLM_FORCE_NO_CTOR_INIT)
-include_directories(${ext_dir}/glm)
 
 # Packaging
 set(packaged_dir ${CMAKE_BINARY_DIR}/packaged)
@@ -47,9 +42,6 @@ macro(package target)
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${target}> ${packaged_dir}/
     )
 endmacro()
-
-
-# Subdirs
 
 #libs
 add_subdirectory(core)

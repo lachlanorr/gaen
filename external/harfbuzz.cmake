@@ -26,4 +26,4 @@
 
 set(SKIP_INSTALL_ALL TRUE)
 add_subdirectory(harfbuzz)
-configure_target_folders("harfbuzz")
+configure_target_folders("harfbuzz" FALSE)

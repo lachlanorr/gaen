@@ -74,10 +74,6 @@ add_executable(chef
   ${chef_SOURCES}
   )
 
-target_include_directories(chef PRIVATE
-  ${RAPIDJSON_INCLUDE}
-)
-
 target_link_libraries(chef
   core
   assets
@@ -91,6 +87,7 @@ target_link_libraries(chef
   #harfbuzz-subset
   png_static
   tiff
+  rapidjson
   zlibstatic
   brotlidec-static
   brotlicommon-static

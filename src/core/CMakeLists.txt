@@ -61,6 +61,10 @@ set(core_SOURCES
 
 source_group("" FILES ${core_SOURCES})
 
-add_library(core
+add_library(core STATIC
   ${core_SOURCES}
+  )
+
+target_link_libraries(core PUBLIC
+  math
   )

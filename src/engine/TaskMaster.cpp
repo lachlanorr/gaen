@@ -407,7 +407,9 @@ void TaskMaster::fin(const T& msgAcc)
     ASSERT(msgAcc.message().msgId == HASH::fin);
 
     // Cleanup managers in reverse order they were initialized
+#if HAS(ENABLE_EDITOR)
     mpEditor.reset(nullptr);
+#endif
 
     mpSpriteMgr.reset(nullptr);
     mpModelMgr.reset(nullptr);

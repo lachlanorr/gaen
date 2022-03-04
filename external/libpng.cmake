@@ -28,7 +28,7 @@ option(PNG_SHARED "" OFF)
 option(PNG_TESTS "" OFF)
 set(SKIP_INSTALL_ALL TRUE)
 add_subdirectory(libpng)
-configure_target_folders("libpng")
+configure_target_folders("libpng" FALSE)
 
 set(PNG_PNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libpng ${CMAKE_CURRENT_BINARY_DIR}/libpng CACHE STRING "" FORCE)
 set(PNG_LIBRARY $<TARGET_FILE:png_static> CACHE STRING "" FORCE)

@@ -24,46 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(shaders_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
-include(${shaders_dir}/codegen.cmake)
-
-set(renderergl_SOURCES
-  FrameGL.h
-  gaen_opengl.h
-  ModelGL.cpp
-  ModelGL.h
-  RenderCollection.h
-  Renderer.h
-  RendererMesh.h
-  RendererMesh.cpp
-  RendererProto.h
-  RendererProto.cpp
-  Renderer_${platform}.${platform_ext}
-  renderer_api.cpp
-  ShaderRegistry.cpp
-  ShaderRegistry.h
-  SpriteGL.cpp
-  SpriteGL.h
-  Stage.h
-  StageMgr.h
-  ${shaders_codegen_SOURCES}
-  )
-
-source_group("" FILES ${renderergl_SOURCES})
-
-add_library(renderergl STATIC
-  ${renderergl_SOURCES}
-  )
-
-target_link_libraries(renderergl PUBLIC
-  core
-  nanovg
-  imgui
-  glfw
-  glad
-  )
-
-add_dependencies(renderergl
-  hashes
-  CODEGEN_MESSAGES
-  )
+set(BUILD_STATIC_LIBS OFF)
+set(BUILD_SHARED_LIBS OFF)
+add_subdirectory("glm/glm")
+configure_target_folders("glm" FALSE)

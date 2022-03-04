@@ -25,5 +25,6 @@
 #-------------------------------------------------------------------------------
 
 set(SKIP_INSTALL_ALL ON)
+set(DISABLE_FORCE_DEBUG_POSTFIX ON)
 add_subdirectory(freetype)
-configure_target_folders("freetype")
+configure_target_folders("freetype" FALSE)

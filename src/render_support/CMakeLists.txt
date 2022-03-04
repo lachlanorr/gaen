@@ -64,11 +64,12 @@ set(render_support_SOURCES
 #msvc_precompiled_header(render_support render_support_SOURCES)
 source_group("" FILES ${render_support_SOURCES})
 
-add_library(render_support
+add_library(render_support STATIC
   ${render_support_SOURCES}
   )
 
 target_link_libraries(render_support PUBLIC
+  core
   BulletCollision
   BulletDynamics
   LinearMath

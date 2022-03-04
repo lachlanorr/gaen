@@ -24,46 +24,40 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(shaders_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
-include(${shaders_dir}/codegen.cmake)
+set(imgui_SOURCES
+  imgui/imconfig.h
+  imgui/imgui.cpp
+  imgui/imgui.h
+  imgui/imgui_demo.cpp
+  imgui/imgui_draw.cpp
+  imgui/imgui_internal.h
+  imgui/imgui_tables.cpp
+  imgui/imgui_widgets.cpp
+  imgui/imstb_rectpack.h
+  imgui/imstb_textedit.h
+  imgui/imstb_truetype.h
+  imgui/backends/imgui_impl_glfw.cpp
+  imgui/backends/imgui_impl_glfw.h
+  imgui/backends/imgui_impl_opengl3.cpp
+  imgui/backends/imgui_impl_opengl3.h
+)
 
-set(renderergl_SOURCES
-  FrameGL.h
-  gaen_opengl.h
-  ModelGL.cpp
-  ModelGL.h
-  RenderCollection.h
-  Renderer.h
-  RendererMesh.h
-  RendererMesh.cpp
-  RendererProto.h
-  RendererProto.cpp
-  Renderer_${platform}.${platform_ext}
-  renderer_api.cpp
-  ShaderRegistry.cpp
-  ShaderRegistry.h
-  SpriteGL.cpp
-  SpriteGL.h
-  Stage.h
-  StageMgr.h
-  ${shaders_codegen_SOURCES}
+source_group("" FILES ${imgui_SOURCES})
+
+add_library(imgui STATIC
+  ${imgui_SOURCES}
   )
 
-source_group("" FILES ${renderergl_SOURCES})
-
-add_library(renderergl STATIC
-  ${renderergl_SOURCES}
+target_include_directories(imgui PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/imgui
   )
 
-target_link_libraries(renderergl PUBLIC
-  core
-  nanovg
-  imgui
+target_link_libraries(imgui PUBLIC
   glfw
-  glad
   )
 
-add_dependencies(renderergl
-  hashes
-  CODEGEN_MESSAGES
+set_target_properties(imgui PROPERTIES
+  FOLDER external/imgui
   )
+
+configure_source_folders("${imgui_SOURCES}" "imgui/")

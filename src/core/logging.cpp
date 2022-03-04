@@ -52,7 +52,7 @@ void init_logging(const char * serverIp)
 
 void fin_logging()
 {
-#if HAS(LOGGING)    
+#if HAS(LOGGING)
     singleton<Logger>().fin();
 #endif
 }
@@ -132,7 +132,7 @@ void logf(LogSeverity severity, const char * format, ...)
     if (format && format[0] != '\0')
     {
         int ret = vsnprintf(tMessage, kMaxLogMessageSize-1, format, argptr);
-        
+
         if (ret <= 0)
         {
             strncpy(tMessage, "logf was unable to format message", kMaxLogMessageSize-1);
@@ -140,10 +140,10 @@ void logf(LogSeverity severity, const char * format, ...)
     }
     else
         tMessage[0] = '\0';
-    
+
     va_end(argptr);
 
-    tMessage[kMaxLogMessageSize-1] = '\0'; 
+    tMessage[kMaxLogMessageSize-1] = '\0';
 
     singleton<Logger>().log(severity, tMessage);
 }

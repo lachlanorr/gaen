@@ -45,7 +45,7 @@ else(IOS)
     list(APPEND gaen_SOURCES GaenPlatform_glfw.cpp)
   endif(USE_GLFW)
 
-  if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+  if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     # OSX
     list(APPEND gaen_SOURCES main_osx.mm)
 
@@ -92,8 +92,13 @@ else(IOS)
     scripts
     ${PROJECT_ASSETS_LIB}
     ${PROJECT_LINK_LIBS}
-    glfw
     ${PLATFORM_LINK_LIBS}
     )
+
+  add_dependencies(${CMAKE_PROJECT_NAME}
+    hashes
+    CODEGEN_MESSAGES
+    CODEGEN_SCRIPTS
+  )
 
 endif()

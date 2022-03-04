@@ -35,7 +35,7 @@ endif()
 add_compile_definitions(IS_COMPILER_$<CXX_COMPILER_ID>)
 add_compile_definitions(IS_BUILD_$<CONFIG>=1)
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
   set(platform_ext "mm")
   if(IOS)
     add_compile_definitions(IS_PLATFORM_IOS)

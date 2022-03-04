@@ -36,7 +36,6 @@ add_executable(cmpc
 
 target_link_libraries(cmpc
   compose
-  core
   hashes
   ${PLATFORM_LINK_LIBS}
   )
@@ -45,4 +44,3 @@ set_property(TARGET cmpc PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_
 set_property(TARGET cmpc PROPERTY VS_DEBUGGER_COMMAND_ARGUMENTS "-i engine/shapes.h -i engine/system_api.h ${CMAKE_SOURCE_DIR}/src/scripts/cmp/test.cmp")
 
 package(cmpc)
-
