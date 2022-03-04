@@ -75,12 +75,10 @@ add_executable(chef
   )
 
 target_link_libraries(chef
-  core
-  assets
-  hashes
-  math
   ${PROJECT_ASSETS_LIB}
   ${PROJECT_COOKERS_LIB}
+  assets
+  hashes
   assimp
   freetype
   #harfbuzz

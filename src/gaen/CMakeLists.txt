@@ -80,18 +80,16 @@ else(IOS)
   )
 
   target_link_libraries(${CMAKE_PROJECT_NAME}
-    core
-    hashes
-    math
-    assets
-    engine
+    ${PROJECT_ASSETS_LIB}
+    ${PROJECT_LINK_LIBS}
     render_support
     renderergl
+    assets
+    engine
+    hashes
     audio
     cara
     scripts
-    ${PROJECT_ASSETS_LIB}
-    ${PROJECT_LINK_LIBS}
     ${PLATFORM_LINK_LIBS}
     )
 
