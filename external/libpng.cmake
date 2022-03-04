@@ -24,42 +24,11 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-# Run during configure so we have system_api_meta.cpp existing for .sln creation
-execute_process(
-  COMMAND python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
-  )
+option(PNG_SHARED "" OFF)
+option(PNG_TESTS "" OFF)
+set(SKIP_INSTALL_ALL TRUE)
+add_subdirectory(libpng)
+configure_target_folders("libpng")
 
-set(compose_SOURCES
-  CodegenCpp.cpp
-  CodegenCpp.h
-  codegen_utils.cpp
-  codegen_utils.h
-  comp_mem.cpp
-  comp_mem.h
-  comp_string.cpp
-  comp_string.h
-  compiler.cpp
-  compiler.h
-  compiler_structs.h
-  compose.l
-  compose.y
-  compose_parser.c
-  compose_parser.h
-  compose_scanner.c
-  compose_scanner.h
-  utils.cpp
-  utils.h
-  "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
-  )
-
-add_custom_target(
-  CODEGEN_API ALL
-  python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
-  COMMENT "Generating system_api_meta.cpp"
-  )
-
-source_group("" FILES ${compose_SOURCES})
-
-add_library(compose
-  ${compose_SOURCES}
-  )
+set(PNG_PNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libpng ${CMAKE_CURRENT_BINARY_DIR}/libpng CACHE STRING "" FORCE)
+set(PNG_LIBRARY $<TARGET_FILE:png_static> CACHE STRING "" FORCE)

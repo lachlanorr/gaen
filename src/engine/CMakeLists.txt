@@ -24,11 +24,9 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-IF (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/messages/messages.cmake")
-  INCLUDE ("${CMAKE_CURRENT_BINARY_DIR}/messages/messages.cmake")
-ENDIF ()
+include("${CMAKE_CURRENT_BINARY_DIR}/messages/messages.cmake" OPTIONAL)
 
-SET (engine_SOURCES
+set(engine_SOURCES
   Asset.cpp
   Asset.h
   AssetLoader.cpp
@@ -78,12 +76,13 @@ SET (engine_SOURCES
   ${engine_messages_SOURCES}
   )
 
-MSVC_PRECOMPILED_HEADER (engine engine_SOURCES)
-IDE_SOURCE_PROPERTIES( "/" "${engine_SOURCES}")
-IDE_SOURCE_PROPERTIES( "/messages" "${engine_messages_SOURCES}")
+#msvc_precompiled_header(engine engine_SOURCES)
 
-SET (IMGUI_SRC "${ext_dir}/imgui")
-SET (imgui_SOURCES
+source_group("" FILES ${engine_SOURCES})
+source_group("messages" FILES ${engine_messages_SOURCES})
+
+set(IMGUI_SRC "${ext_dir}/imgui")
+set(imgui_SOURCES
   ${IMGUI_SRC}/imconfig.h
   ${IMGUI_SRC}/imgui.cpp
   ${IMGUI_SRC}/imgui.h
@@ -100,27 +99,33 @@ SET (imgui_SOURCES
   ${IMGUI_SRC}/backends/imgui_impl_opengl3.cpp
   ${IMGUI_SRC}/backends/imgui_impl_opengl3.h
   )
-IDE_SOURCE_PROPERTIES( "/imgui" "${imgui_SOURCES}")
+source_group("imgui" FILES ${imgui_SOURCES})
 
-ADD_LIBRARY (engine
+add_library(engine
   ${engine_SOURCES}
   ${imgui_SOURCES}
   )
 
-TARGET_INCLUDE_DIRECTORIES (engine PRIVATE
-  ${BULLET_INCLUDE}
-  ${GLFW_INCLUDE}
+target_link_libraries(engine PUBLIC
+  BulletCollision
+  BulletDynamics
+  LinearMath
+  glfw
+  )
+
+target_include_directories(engine PRIVATE
   ${IMGUI_SRC}
+  ${GLAD_INCLUDE}
 )
 
 # Run each time we build.
-ADD_CUSTOM_TARGET (
+add_custom_target(
   CODEGEN_MESSAGES ALL
   python ${python_dir}/codegen_messages.py "${CMAKE_CURRENT_BINARY_DIR}"
   COMMENT "Generating message classes"
   )
 
-ADD_DEPENDENCIES(engine
+add_dependencies(engine
   hashes
   CODEGEN_MESSAGES
   )

@@ -67,16 +67,16 @@
             _pixelFormat = [format retain];
         else
             _pixelFormat = [OpenGLView defaultPixelFormat];
-        
+
         _openGLContext = [[NSOpenGLContext alloc] initWithFormat:_pixelFormat shareContext:nil];
         [_openGLContext setView:self];
-        
+
         [[NSNotificationCenter defaultCenter] addObserver:self
                                               selector:@selector(surfaceNeedsUpdate:)
                                               name:NSViewGlobalFrameDidChangeNotification
                                               object:self];
     }
-    return self;    
+    return self;
 }
 
 - (void) surfaceNeedsUpdate:(NSNotification*)notification
@@ -87,7 +87,7 @@
 - (void)lockFocus
 {
     NSOpenGLContext* context = [self openGLContext];
- 
+
     [super lockFocus];
     if ([context view] != self) {
         [context setView:self];
@@ -185,7 +185,7 @@
 
     [_pWindow makeKeyAndOrderFront:nil];
     [_pWindow setCollectionBehavior: NSWindowCollectionBehaviorFullScreenPrimary];
-    
+
 
 
 
@@ -252,7 +252,7 @@ int main(int argc, char ** argv)
     [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 
     AppDelegate * appDelegate = [[AppDelegate alloc] initWithArgc:argc Argv:argv];
-    
+
     [NSApp setDelegate:(id)appDelegate];
     [NSApp activateIgnoringOtherApps:YES];
     [NSApp run];

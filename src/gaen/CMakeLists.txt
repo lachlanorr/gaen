@@ -25,67 +25,61 @@
 #-------------------------------------------------------------------------------
 
 
-IF(IOS)
-  FILE(COPY
+if(IOS)
+  file(COPY
        ${CMAKE_CURRENT_SOURCE_DIR}/gaenios/gaenios.xcodeproj
        DESTINATION
        ${CMAKE_BINARY_DIR})
-  EXECUTE_PROCESS(COMMAND ln -s ${CMAKE_CURRENT_SOURCE_DIR}/gaenios/gaenios ${CMAKE_BINARY_DIR}/gaenios)
+  execute_process(COMMAND ln -s ${CMAKE_CURRENT_SOURCE_DIR}/gaenios/gaenios ${CMAKE_BINARY_DIR}/gaenios)
 
-ELSE(IOS)
+else(IOS)
 
-  SET (gaen_SOURCES
+  set(gaen_SOURCES
     gaen.cpp
     gaen.h
     GaenPlatform.cpp
     GaenPlatform.h
     )
 
-  IF (USE_GLFW)
-    SET (gaen_SOURCES
-      ${gaen_SOURCES}
-      GaenPlatform_glfw.cpp
-      )
-  ENDIF (USE_GLFW)
+  if(USE_GLFW)
+    list(APPEND gaen_SOURCES GaenPlatform_glfw.cpp)
+  endif(USE_GLFW)
 
-  IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  if(${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     # OSX
-    SET (gaen_SOURCES
-      ${gaen_SOURCES}
-      main_osx.mm
-      )
+    list(APPEND gaen_SOURCES main_osx.mm)
 
-    SET(MACOSX_BUNDLE_BUNDLE_NAME Gaen)
+    set(MACOSX_BUNDLE_BUNDLE_NAME ${CMAKE_PROJECT_NAME})
 
-    ADD_EXECUTABLE(${CMAKE_PROJECT_NAME} MACOSX_BUNDLE
+    add_executable(${CMAKE_PROJECT_NAME} MACOSX_BUNDLE
       ${gaen_SOURCES}
       )
 
     # Copy bundle to package dir
-    ADD_CUSTOM_COMMAND(
+    add_custom_command(
       TARGET ${CMAKE_PROJECT_NAME}
       POST_BUILD
-      COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:gaen>/../../../gaen.app ${packaged_dir}/gaen.app
+      COMMAND ${CMAKE_COMMAND} -E copy_directory $<TARGET_FILE_DIR:gaen>/../../../${CMAKE_PROJECT_NAME}.app ${packaged_dir}/${CMAKE_PROJECT_NAME}.app
       )
 
-  ELSEIF (WIN32)
-    SET (gaen_SOURCES
-      ${gaen_SOURCES}
-      main_win32.cpp
-      )
-    ADD_EXECUTABLE(${CMAKE_PROJECT_NAME} WIN32
+  elseif(WIN32)
+    list(APPEND gaen_SOURCES main_win32.cpp)
+    add_executable(${CMAKE_PROJECT_NAME} WIN32
       ${gaen_SOURCES}
       )
-    package ("${CMAKE_PROJECT_NAME}")
-  ENDIF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    package("${CMAKE_PROJECT_NAME}")
+  endif()
 
-  IDE_SOURCE_PROPERTIES( "/" "${gaen_SOURCES}")
+  set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+  set_property(TARGET ${CMAKE_PROJECT_NAME} PROPERTY VS_DEBUGGER_COMMAND_ARGUMENTS "-l 127.0.0.1")
 
-  TARGET_INCLUDE_DIRECTORIES (${CMAKE_PROJECT_NAME} PRIVATE
-    ${GLFW_INCLUDE}
+  source_group("" FILES ${gaen_SOURCES})
+
+  target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+    ${GLAD_INCLUDE}
   )
 
-  TARGET_LINK_LIBRARIES (${CMAKE_PROJECT_NAME}
+  target_link_libraries(${CMAKE_PROJECT_NAME}
     core
     hashes
     math
@@ -96,19 +90,10 @@ ELSE(IOS)
     audio
     cara
     scripts
-    ${BULLET_LIBRARY}
-    ${GLFW_LIBRARY}
-    ${PORTAUDIO_LIBRARY}
     ${PROJECT_ASSETS_LIB}
     ${PROJECT_LINK_LIBS}
+    glfw
     ${PLATFORM_LINK_LIBS}
     )
 
-  # Set debugging params for ALL_BUILD
-  create_target_launcher(
-    ${CMAKE_PROJECT_NAME}
-    ARGS "-l 127.0.0.1"
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-    )
-
-ENDIF(IOS)
+endif()

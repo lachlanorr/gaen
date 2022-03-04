@@ -24,26 +24,24 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-IF (EXISTS "${CMAKE_CURRENT_BINARY_DIR}/codegen.cmake")
-  INCLUDE ("${CMAKE_CURRENT_BINARY_DIR}/codegen.cmake")
-ENDIF ()
+include("${CMAKE_CURRENT_BINARY_DIR}/codegen.cmake" OPTIONAL)
 
-SET (scripts_SOURCES
+set(scripts_SOURCES
   ${scripts_codegen_SOURCES}
   )
 
-ADD_LIBRARY (scripts
+add_library(scripts
   DUMMY.cpp
   ${scripts_SOURCES}
   )
 
-TARGET_INCLUDE_DIRECTORIES (scripts PRIVATE
-  ${BULLET_INCLUDE}
-)
+target_link_libraries(scripts PUBLIC
+  LinearMath
+  )
 
-IDE_SOURCE_PROPERTIES( "/" "DUMMY.cpp" )
+source_group("" FILES "DUMMY.cpp")
 
-ADD_CUSTOM_TARGET (
+add_custom_target(
   CODEGEN_SCRIPTS ALL
   python ${python_dir}/codegen.py "${CMAKE_CURRENT_BINARY_DIR}"
   # re-run update_hashes.py since generated .cpp files will likely
@@ -53,7 +51,7 @@ ADD_CUSTOM_TARGET (
   COMMENT "Generating scripts"
   )
 
-ADD_DEPENDENCIES(scripts
+add_dependencies(scripts
   hashes
   CODEGEN_MESSAGES
   CODEGEN_SCRIPTS

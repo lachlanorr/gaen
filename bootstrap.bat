@@ -6,13 +6,9 @@ SETLOCAL
 :: Change to root dir
 CD /d %~dp0
 
-:: Make sure we're in a clean state
-call .\clean.bat
-if %errorlevel% neq 0 exit /b %errorlevel%
-
 :: Pull down our submodules
 git submodule init
-git submodule update
+git submodule update --init --recursive
 
 :: Write root directory to main GAEN_ROOT env var
 FOR /f "tokens=1" %%B in ('CHDIR') do set GAEN_ROOT=%%B
@@ -48,11 +44,6 @@ if "%PLAT%"=="win32" (
     cmake -G "Visual Studio 16" -A Win32 %GAEN_ROOT%
     if %errorlevel% neq 0 exit /b %errorlevel%
 )
-
-:: Build external libs, this should be the only time they get built
-:: unless necessity requires it, in that they aren't part of the ALL
-:: target.
-cmake --build . --target external_build_all
 
 echo.
 echo Bootstrapping complete.

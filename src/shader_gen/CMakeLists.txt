@@ -24,34 +24,35 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (shader_gen_SOURCES
+set(shader_gen_SOURCES
   shader_gen.cpp
   glutils.h
   glutils_${platform}.${platform_ext}
   )
-IDE_SOURCE_PROPERTIES( "/" "${shader_gen_SOURCES}")
+source_group("" FILES ${shader_gen_SOURCES})
 
-SET (glad_SOURCES
+set(glad_SOURCES
   ${ext_dir}/glad/src/glad.c
   ${ext_dir}/glad/include/glad/glad.h
   ${ext_dir}/glad/include/KHR/khrplatform.h
   )
-IDE_SOURCE_PROPERTIES( "/glad" "${glad_SOURCES}")
+source_group("glad" FILES ${glad_SOURCES})
 
-ADD_EXECUTABLE (shader_gen
+add_executable(shader_gen
   ${shader_gen_SOURCES}
   ${glad_SOURCES}
   )
 
-TARGET_INCLUDE_DIRECTORIES (shader_gen PRIVATE
-  ${GLFW_INCLUDE}
-)
-
-TARGET_LINK_LIBRARIES (shader_gen
+target_link_libraries(shader_gen
   core
   assets
   engine
+  glfw
   ${PLATFORM_LINK_LIBS}
   )
 
-package (shader_gen)
+target_include_directories(shader_gen PRIVATE
+  ${GLAD_INCLUDE}
+)
+
+package(shader_gen)

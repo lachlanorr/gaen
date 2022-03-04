@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# ios.cmake - iOS specific settings used in CMakeLists.txt files
+# CMakeLists.txt - Build script
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014-2021 Lachlan Orr
@@ -24,16 +24,6 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (platform "ios")
-
-INCLUDE (${cmake_dir}/xcode.cmake)
-
-#FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-
-#FIND_PACKAGE(OpenGL REQUIRED)
-#INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR}
-
-#SET(PLATFORM_LINK_LIBS
-#  ${COCOA_LIBRARY}
-#  ${OPENGL_LIBRARIES}
-#  )
+set(SKIP_INSTALL_ALL TRUE)
+add_subdirectory(harfbuzz)
+configure_target_folders("harfbuzz")

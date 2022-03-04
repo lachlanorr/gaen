@@ -24,16 +24,16 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (cara_SOURCES
+set(cara_SOURCES
   Cara.cpp
   Cara.h
   Frame.cpp
   Frame.h
   )
 
-MSVC_PRECOMPILED_HEADER (cara cara_SOURCES)
-IDE_SOURCE_PROPERTIES( "/" "${cara_SOURCES}")
+#msvc_precompiled_header(cara cara_SOURCES)
+source_group("" FILES ${cara_SOURCES})
 
-ADD_LIBRARY (cara
+add_library(cara
   ${cara_SOURCES}
   )

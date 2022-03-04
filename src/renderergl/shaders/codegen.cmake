@@ -24,7 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (shaders_codegen_SOURCES
+set(shaders_codegen_SOURCES
   ${shaders_dir}/compute_present.cpp
   ${shaders_dir}/compute_present.h
   ${shaders_dir}/compute_present.shd
@@ -83,4 +83,4 @@ SET (shaders_codegen_SOURCES
   ${shaders_dir}/voxvertcol.shv
 )
 
-IDE_SOURCE_PROPERTIES( "/shaders" "${shaders_codegen_SOURCES}")
+source_group("shaders" ${shaders_codegen_SOURCES})

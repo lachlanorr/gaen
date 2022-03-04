@@ -24,10 +24,10 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (shaders_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
-INCLUDE (${shaders_dir}/codegen.cmake)
+set(shaders_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
+include(${shaders_dir}/codegen.cmake)
 
-SET (renderergl_SOURCES
+set(renderergl_SOURCES
   FrameGL.h
   gaen_opengl.h
   ModelGL.cpp
@@ -49,18 +49,18 @@ SET (renderergl_SOURCES
   ${shaders_codegen_SOURCES}
   )
 
-IDE_SOURCE_PROPERTIES( "/" "${renderergl_SOURCES}")
+source_group("" FILES ${renderergl_SOURCES})
 
-SET (glad_SOURCES
+set(glad_SOURCES
   ${ext_dir}/glad/src/glad.c
   ${ext_dir}/glad/include/glad/glad.h
   ${ext_dir}/glad/include/KHR/khrplatform.h
   )
-IDE_SOURCE_PROPERTIES( "/glad" "${glad_SOURCES}")
+source_group("glad" FILES ${glad_SOURCES})
 
-SET (NANOVG_SRC "${ext_dir}/nanovg/src")
+set(NANOVG_SRC "${ext_dir}/nanovg/src")
 
-SET (nanovg_SOURCES
+set(nanovg_SOURCES
   ${NANOVG_SRC}/fontstash.h
   ${NANOVG_SRC}/nanovg.c
   ${NANOVG_SRC}/nanovg_gl.h
@@ -69,22 +69,26 @@ SET (nanovg_SOURCES
   ${NANOVG_SRC}/stb_image.h
   ${NANOVG_SRC}/stb_truetype.h
   )
-IDE_SOURCE_PROPERTIES( "/nanovg" "${nanovg_SOURCES}")
+source_group("nanovg" FILES ${nanovg_SOURCES})
 
-ADD_LIBRARY (renderergl
+add_library(renderergl
   ${renderergl_SOURCES}
   ${glad_SOURCES}
   ${nanovg_SOURCES}
   )
 
-SET (IMGUI_SRC "${ext_dir}/imgui")
-TARGET_INCLUDE_DIRECTORIES (renderergl PRIVATE
-  ${GLFW_INCLUDE}
+target_link_libraries(renderergl PUBLIC
+  glfw
+  )
+
+set(IMGUI_SRC "${ext_dir}/imgui")
+target_include_directories(renderergl PRIVATE
   ${NANOVG_SRC}
   ${IMGUI_SRC}
+  ${GLAD_INCLUDE}
 )
 
-ADD_DEPENDENCIES(renderergl
+add_dependencies(renderergl
   hashes
   CODEGEN_MESSAGES
   )

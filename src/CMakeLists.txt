@@ -24,54 +24,52 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-
-
 # Standard include paths
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_SOURCE_DIR})
-INCLUDE_DIRECTORIES (${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-IF ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
-  INCLUDE_DIRECTORIES (${ext_dir}/glad/include)
-ENDIF()
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+  include_directories(${ext_dir}/glad/include)
+endif()
 
-ADD_DEFINITIONS(-DGLM_FORCE_NO_CTOR_INIT)
-INCLUDE_DIRECTORIES (${ext_dir}/glm)
+add_compile_definitions(GLM_FORCE_NO_CTOR_INIT)
+include_directories(${ext_dir}/glm)
 
 # Packaging
-SET (packaged_dir ${CMAKE_BINARY_DIR}/packaged)
+set(packaged_dir ${CMAKE_BINARY_DIR}/packaged)
 
-EXECUTE_PROCESS (COMMAND ${CMAKE_COMMAND} -E make_directory ${packaged_dir})
+file(MAKE_DIRECTORY ${packaged_dir})
 
-MACRO (package target)
-  ADD_CUSTOM_COMMAND(
+macro(package target)
+  add_custom_command(
     TARGET ${target}
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${target}> ${packaged_dir}/
     )
-ENDMACRO (package)
+endmacro()
 
 
 # Subdirs
 
 #libs
-ADD_SUBDIRECTORY (core)
-ADD_SUBDIRECTORY (hashes)
-ADD_SUBDIRECTORY (assets)
-ADD_SUBDIRECTORY (cara)
-ADD_SUBDIRECTORY (math)
-ADD_SUBDIRECTORY (engine)
-ADD_SUBDIRECTORY (render_support)
-ADD_SUBDIRECTORY (audio)
-ADD_SUBDIRECTORY (chef)
-ADD_SUBDIRECTORY (shader_gen)
-ADD_SUBDIRECTORY (renderergl)
-ADD_SUBDIRECTORY (compose)
-ADD_SUBDIRECTORY (scripts)
-ADD_SUBDIRECTORY (gaen)
+add_subdirectory(core)
+add_subdirectory(hashes)
+add_subdirectory(assets)
+add_subdirectory(cara)
+add_subdirectory(math)
+add_subdirectory(engine)
+add_subdirectory(render_support)
+add_subdirectory(audio)
+add_subdirectory(chef)
+add_subdirectory(shader_gen)
+add_subdirectory(renderergl)
+add_subdirectory(compose)
+add_subdirectory(scripts)
+add_subdirectory(gaen)
 
 #exes
-IF (NOT IOS)
-  ADD_SUBDIRECTORY (cmpc)
-  ADD_SUBDIRECTORY (gac)
-  #ADD_SUBDIRECTORY (unit_tests)
-ENDIF()
+if(NOT IOS)
+  add_subdirectory(cmpc)
+  add_subdirectory(gac)
+  add_subdirectory(unit_tests)
+endif()

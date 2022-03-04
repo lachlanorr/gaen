@@ -192,7 +192,7 @@ S generate_codegen_cmake(const char * shadersDir)
     code +=
         ")\n"
         "\n"
-        "IDE_SOURCE_PROPERTIES( \"/shaders\" \"${shaders_codegen_SOURCES}\")\n";
+        "source_group( \"shaders\" ${shaders_codegen_SOURCES})\n";
 
     return code;
 }

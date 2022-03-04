@@ -24,7 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (math_SOURCES
+set(math_SOURCES
   common.h
   mat3.cpp
   mat3.h
@@ -43,9 +43,9 @@ SET (math_SOURCES
   vec4.h
   )
 
-MSVC_PRECOMPILED_HEADER (math math_SOURCES)
-IDE_SOURCE_PROPERTIES( "/" "${math_SOURCES}")
+#msvc_precompiled_header(math math_SOURCES)
+source_group("" FILES ${math_SOURCES})
 
-ADD_LIBRARY (math
+add_library(math
   ${math_SOURCES}
   )

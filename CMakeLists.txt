@@ -24,65 +24,50 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-CMAKE_MINIMUM_REQUIRED (VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.22.0)
 
-SET_PROPERTY (GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_CXX_STANDARD 11)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+cmake_policy(SET CMP0091 NEW)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-PROJECT (gaen)
+project(gaen)
 
-CMAKE_POLICY(SET CMP0054 NEW)
+option(gaen_BUILD_TESTS "Build tests" ON)
+option(gaen_MINEXT "Strip out all but the minimal targets in external dependencies" ON)
 
-IF (WIN32)
-# Rpavlik CreateLauncher still requires this policy for use of LOCATION
-# https://github.com/rpavlik/cmake-modules/issues/25
-CMAKE_POLICY(SET CMP0026 OLD)
-ENDIF (WIN32)
+set(ext_dir ${CMAKE_CURRENT_SOURCE_DIR}/external)
+set(python_dir ${CMAKE_CURRENT_SOURCE_DIR}/python)
 
-
-
-SET (cmake_dir ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-SET (ext_dir ${CMAKE_CURRENT_SOURCE_DIR}/external)
-SET (python_dir ${CMAKE_CURRENT_SOURCE_DIR}/python)
-SET (src_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
-
-INCLUDE (${cmake_dir}/core_defs.cmake)
+include(compile_defs.cmake)
 
 # If we're compiling gaen as a project (instead of a project that uses
 # gaen) set IS_GAEN_PROJECT so we can selectively include some hooks
 # for the project to register asset types and cookers.
-IF ("${CMAKE_PROJECT_NAME}" STREQUAL "gaen")
-  ADD_DEFINITIONS("-DIS_GAEN_PROJECT=1")
-ELSE ()
-  SET(PROJECT_ASSETS_LIB
+if("${CMAKE_PROJECT_NAME}" STREQUAL "gaen")
+  add_compile_definitions(IS_GAEN_PROJECT=1)
+else()
+  set(PROJECT_ASSETS_LIB
     "${CMAKE_PROJECT_NAME}_assets"
     )
-  SET(PROJECT_COOKERS_LIB
+  set(PROJECT_COOKERS_LIB
     "${CMAKE_PROJECT_NAME}_cookers"
     )
-ENDIF ()
+endif()
 
-# Support for creating launch params in Visual Studio
-LIST (APPEND CMAKE_MODULE_PATH "${ext_dir}/cmake-modules")
-INCLUDE (CreateLaunchers)
+add_subdirectory(external)
+add_subdirectory(src)
 
-ADD_SUBDIRECTORY(external)
-ADD_SUBDIRECTORY(src)
-
-# Set debugging params for ALL_BUILD
-create_default_target_launcher(
-    ${CMAKE_PROJECT_NAME}
-    ARGS "-l 127.0.0.1"
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-)
-
-
-SET (publish_dir "${CMAKE_BINARY_DIR}/publish")
-ADD_CUSTOM_TARGET (
-  PUBLISH
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${publish_dir}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${publish_dir}
-  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${publish_dir}
-  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:gac> ${publish_dir}
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/cooked_win ${publish_dir}/assets
-  DEPENDS COOK_ASSETS ${CMAKE_PROJECT_NAME}
-  )
+#--## Set gaen as startup project
+#--#set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${CMAKE_PROJECT_NAME})
+#--#
+#--#set(publish_dir "${CMAKE_BINARY_DIR}/publish")
+#--#add_custom_target(
+#--#  PUBLISH
+#--#  COMMAND ${CMAKE_COMMAND} -E remove_directory ${publish_dir}
+#--#  COMMAND ${CMAKE_COMMAND} -E make_directory ${publish_dir}
+#--#  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${publish_dir}
+#--#  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:gac> ${publish_dir}
+#--#  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/cooked_win ${publish_dir}/assets
+#--#  DEPENDS COOK_ASSETS ${CMAKE_PROJECT_NAME}
+#--#  )

@@ -46,3 +46,12 @@
 [submodule "external/googletest"]
 	path = external/googletest
 	url = https://github.com/lachlanorr/googletest.git
+[submodule "external/bzip2"]
+	path = external/bzip2
+	url = https://github.com/lachlanorr/bzip2.git
+[submodule "external/freetype"]
+	path = external/freetype
+	url = https://github.com/lachlanorr/freetype.git
+[submodule "external/harfbuzz"]
+	path = external/harfbuzz
+	url = https://github.com/lachlanorr/harfbuzz.git

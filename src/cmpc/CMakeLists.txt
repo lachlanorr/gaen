@@ -24,28 +24,25 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (cmpc_SOURCES
+set(cmpc_SOURCES
   main_cmpc.cpp
   )
 
-IDE_SOURCE_PROPERTIES( "/" "${cmpc_SOURCES}")
+source_group("" FILES ${cmpc_SOURCES})
 
-ADD_EXECUTABLE (cmpc
+add_executable(cmpc
   ${cmpc_SOURCES}
   )
 
-TARGET_LINK_LIBRARIES (cmpc
+target_link_libraries(cmpc
   compose
   core
   hashes
   ${PLATFORM_LINK_LIBS}
   )
 
-create_target_launcher(
-  cmpc
-  ARGS "-i engine/shapes.h -i engine/system_api.h ${CMAKE_SOURCE_DIR}/src/scripts/cmp/test.cmp"
-  WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-)
+set_property(TARGET cmpc PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+set_property(TARGET cmpc PROPERTY VS_DEBUGGER_COMMAND_ARGUMENTS "-i engine/shapes.h -i engine/system_api.h ${CMAKE_SOURCE_DIR}/src/scripts/cmp/test.cmp")
 
-package (cmpc)
+package(cmpc)
 

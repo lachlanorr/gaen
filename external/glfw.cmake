@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# posix.cmake - Posix settings used in CMakeLists.txt files
+# CMakeLists.txt - Build script
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014-2021 Lachlan Orr
@@ -24,8 +24,10 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (net_platform "posix")
-
-MACRO (MSVC_PRECOMPILED_HEADER target_name sources)
-ENDMACRO (MSVC_PRECOMPILED_HEADER source_path sources)
-
+option(BUILD_SHARED_LIBS "" OFF)
+option(GLFW_BUILD_EXAMPLES "" OFF)
+option(GLFW_BUILD_TESTS "" OFF)
+option(GLFW_BUILD_DOCS "" OFF)
+option(GLFW_INSTALL "" OFF)
+add_subdirectory(glfw)
+configure_target_folders("glfw")

@@ -24,11 +24,11 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (gtest_dir ${ext_dir}/gtest-1.7.0)
+set(gtest_dir ${ext_dir}/gtest-1.7.0)
 
-INCLUDE_DIRECTORIES (${gtest_dir})
+include_directories(${gtest_dir})
 
-SET (unit_test_SOURCES
+set(unit_test_SOURCES
   BaseFixture.h
   main_testcore.cpp
   test_gamevars.cpp
@@ -44,24 +44,24 @@ SET (unit_test_SOURCES
 
 # Clang gives harmelss warning about unused variable kPathSeparator.
 # Supress it here.
-IF ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-  SET_SOURCE_FILES_PROPERTIES(${gtest_dir}/gtest/gtest-all.cc PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
-ENDIF()
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+  set_source_files_properties(${gtest_dir}/gtest/gtest-all.cc PROPERTIES COMPILE_FLAGS -Wno-unused-variable)
+endif()
 
+source_group("" FILES ${unit_test_SOURCES})
 
-IDE_SOURCE_PROPERTIES( "/" "${unit_test_SOURCES}")
-
-ADD_EXECUTABLE (unit_tests
+add_executable(unit_tests
   ${unit_test_SOURCES}
   )
 
-TARGET_LINK_LIBRARIES (unit_tests
-  core
+target_link_libraries(unit_tests
   engine
   render_support
   compose
+  core
+  hashes
   ${PLATFORM_LINK_LIBS}
 )
 
-package (unit_tests)
+package(unit_tests)
 

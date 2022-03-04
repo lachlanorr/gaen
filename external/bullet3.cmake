@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# osx.cmake - OSX specific settings used in CMakeLists.txt files
+# CMakeLists.txt - Build script
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014-2021 Lachlan Orr
@@ -24,16 +24,17 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (platform "osx")
-
-INCLUDE (${cmake_dir}/xcode.cmake)
-
-FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-
-FIND_PACKAGE(OpenGL REQUIRED)
-INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
-
-SET(PLATFORM_LINK_LIBS
-  ${COCOA_LIBRARY}
-  ${OPENGL_LIBRARIES}
-  )
+option(BUILD_CPU_DEMOS "" OFF)
+option(USE_GLUT "" OFF)
+option(BUILD_PYBULLET "" OFF)
+option(BUILD_EGL "" OFF)
+option(BUILD_OPENGL3_DEMOS "" OFF)
+option(BUILD_ENET "" OFF)
+option(BUILD_CLSOCKET "" OFF)
+option(BUILD_BULLET2_DEMOS "" OFF)
+option(BUILD_EXTRAS "" OFF)
+option(BUILD_UNIT_TESTS "" OFF)
+option(INSTALL_LIBS "" OFF)
+option(INSTALL_CMAKE_FILES "" OFF)
+add_subdirectory(bullet3)
+configure_target_folders("bullet3")

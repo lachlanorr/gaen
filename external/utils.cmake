@@ -24,42 +24,33 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-# Run during configure so we have system_api_meta.cpp existing for .sln creation
-execute_process(
-  COMMAND python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
-  )
+function(get_all_targets var)
+  set(targets)
+  get_all_targets_recursive(targets ${CMAKE_CURRENT_SOURCE_DIR})
+  set(${var} ${targets} PARENT_SCOPE)
+endfunction()
 
-set(compose_SOURCES
-  CodegenCpp.cpp
-  CodegenCpp.h
-  codegen_utils.cpp
-  codegen_utils.h
-  comp_mem.cpp
-  comp_mem.h
-  comp_string.cpp
-  comp_string.h
-  compiler.cpp
-  compiler.h
-  compiler_structs.h
-  compose.l
-  compose.y
-  compose_parser.c
-  compose_parser.h
-  compose_scanner.c
-  compose_scanner.h
-  utils.cpp
-  utils.h
-  "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
-  )
+macro(get_all_targets_recursive targets dir)
+  get_property(subdirectories DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
+  foreach(subdir ${subdirectories})
+    get_all_targets_recursive(${targets} ${subdir})
+  endforeach()
 
-add_custom_target(
-  CODEGEN_API ALL
-  python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
-  COMMENT "Generating system_api_meta.cpp"
-  )
+  get_property(current_targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
+  list(APPEND ${targets} ${current_targets})
+endmacro()
 
-source_group("" FILES ${compose_SOURCES})
 
-add_library(compose
-  ${compose_SOURCES}
-  )
+function(configure_target_folders prefix)
+  get_all_targets(all_targets)
+
+  foreach(tgt ${all_targets})
+    get_target_property(tgtsrc ${tgt} SOURCE_DIR)
+    cmake_path(RELATIVE_PATH tgtsrc OUTPUT_VARIABLE tgtsrcrel)
+    if(${tgtsrcrel} MATCHES "^${prefix}.*")
+      set_target_properties(${tgt} PROPERTIES
+        FOLDER "external/${tgtsrcrel}"
+	    )
+    endif()
+  endforeach()
+endfunction()

@@ -24,42 +24,10 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-# Run during configure so we have system_api_meta.cpp existing for .sln creation
-execute_process(
-  COMMAND python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
-  )
+set(BROTLI_DISABLE_TESTS OFF CACHE BOOL "" FORCE)
+set(BROTLI_ OFF CACHE BOOL "" FORCE)
+add_subdirectory(brotli)
+configure_target_folders("brotli")
 
-set(compose_SOURCES
-  CodegenCpp.cpp
-  CodegenCpp.h
-  codegen_utils.cpp
-  codegen_utils.h
-  comp_mem.cpp
-  comp_mem.h
-  comp_string.cpp
-  comp_string.h
-  compiler.cpp
-  compiler.h
-  compiler_structs.h
-  compose.l
-  compose.y
-  compose_parser.c
-  compose_parser.h
-  compose_scanner.c
-  compose_scanner.h
-  utils.cpp
-  utils.h
-  "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
-  )
-
-add_custom_target(
-  CODEGEN_API ALL
-  python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
-  COMMENT "Generating system_api_meta.cpp"
-  )
-
-source_group("" FILES ${compose_SOURCES})
-
-add_library(compose
-  ${compose_SOURCES}
-  )
+set(BROTLIDEC_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/brotli/c/include CACHE STRING "" FORCE)
+set(BROTLIDEC_LIBRARIES $<TARGET_FILE:brotlidec-static> CACHE STRING "" FORCE)

@@ -24,42 +24,50 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-# Run during configure so we have system_api_meta.cpp existing for .sln creation
-execute_process(
-  COMMAND python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
+set(zlib_SOURCES
+  zlib/adler32.c
+  zlib/compress.c
+  zlib/crc32.c
+  zlib/crc32.h
+  zlib/deflate.c
+  zlib/deflate.h
+  zlib/gzclose.c
+  zlib/gzguts.h
+  zlib/gzlib.c
+  zlib/gzread.c
+  zlib/gzwrite.c
+  zlib/infback.c
+  zlib/inffast.c
+  zlib/inffast.h
+  zlib/inffixed.h
+  zlib/inflate.c
+  zlib/inflate.h
+  zlib/inftrees.c
+  zlib/inftrees.h
+  zlib/trees.c
+  zlib/trees.h
+  zlib/uncompr.c
+  zlib/zlib.h
+  zlib/zutil.c
+  zlib/zutil.h
+  zlib/zconf.h
   )
 
-set(compose_SOURCES
-  CodegenCpp.cpp
-  CodegenCpp.h
-  codegen_utils.cpp
-  codegen_utils.h
-  comp_mem.cpp
-  comp_mem.h
-  comp_string.cpp
-  comp_string.h
-  compiler.cpp
-  compiler.h
-  compiler_structs.h
-  compose.l
-  compose.y
-  compose_parser.c
-  compose_parser.h
-  compose_scanner.c
-  compose_scanner.h
-  utils.cpp
-  utils.h
-  "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
+source_group("" FILES ${zlib_SOURCES})
+
+add_library(zlibstatic
+  ${zlib_SOURCES}
   )
 
-add_custom_target(
-  CODEGEN_API ALL
-  python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
-  COMMENT "Generating system_api_meta.cpp"
+target_include_directories(zlibstatic PUBLIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/zlib
   )
 
-source_group("" FILES ${compose_SOURCES})
-
-add_library(compose
-  ${compose_SOURCES}
+set_target_properties(zlibstatic PROPERTIES
+  FOLDER external/zlib
   )
+
+set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/zlib CACHE STRING "" FORCE)
+set(ZLIB_LIBRARY $<TARGET_FILE:zlibstatic> CACHE STRING "" FORCE)
+set(ZLIB_LIBRARIES ${ZLIB_LIBRARY} CACHE STRING "" FORCE)
+set(ZLIB_FOUND TRUE CACHE STRING "" FORCE)

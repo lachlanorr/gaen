@@ -24,7 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (cooker_SOURCES
+set(cooker_SOURCES
   cookers/AnimImage.cpp
   cookers/AnimImage.h
   cookers/Atlas.cpp
@@ -41,7 +41,7 @@ SET (cooker_SOURCES
   cookers/Sprite.h
   )
 
-SET (chef_SOURCES
+set(chef_SOURCES
   Chef.cpp
   Chef.h
   CookerRegistry.cpp
@@ -63,48 +63,43 @@ SET (chef_SOURCES
   ${cooker_SOURCES}
   )
 
-MSVC_PRECOMPILED_HEADER (chef chef_SOURCES)
-IDE_SOURCE_PROPERTIES( "/" "${chef_SOURCES}")
-IDE_SOURCE_PROPERTIES( "/cookers" "${cooker_SOURCES}")
+#msvc_precompiled_header(chef chef_SOURCES)
 
-ADD_DEFINITIONS("-DIS_BUILD_Tool=1")
+source_group("" FILES ${chef_SOURCES})
+source_group("cookers" FILES ${cooker_SOURCES})
 
-ADD_EXECUTABLE (chef
+add_compile_definitions(IS_BUILD_Tool=1)
+
+add_executable(chef
   ${chef_SOURCES}
   )
 
-TARGET_INCLUDE_DIRECTORIES (chef PRIVATE
-  ${LIBPNG_INCLUDE}
-  ${LIBTIFF_INCLUDE}
-  ${FREETYPE_INCLUDE}
-  ${ASSIMP_INCLUDE}
+target_include_directories(chef PRIVATE
   ${RAPIDJSON_INCLUDE}
 )
 
-SET (deps
-  core
-  assets
-  )
-
-TARGET_LINK_LIBRARIES (chef
+target_link_libraries(chef
   core
   assets
   hashes
   math
-  ${ZLIB_LIBRARY}
-  ${LIBPNG_LIBRARY}
-  ${LIBTIFF_LIBRARY}
-  ${FREETYPE_LIBRARY}
-  ${BROTLI_LIBRARY}
-  ${ASSIMP_LIBRARY}
   ${PROJECT_ASSETS_LIB}
   ${PROJECT_COOKERS_LIB}
+  assimp
+  freetype
+  #harfbuzz
+  #harfbuzz-subset
+  png_static
+  tiff
+  zlibstatic
+  brotlidec-static
+  brotlicommon-static
   ${PLATFORM_LINK_LIBS}
   )
 
 package (chef)
 
-ADD_CUSTOM_TARGET (
+add_custom_target(
   COOK_ASSETS
   COMMAND ${packaged_dir}/chef
   DEPENDS chef

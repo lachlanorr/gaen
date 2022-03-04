@@ -24,8 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-
-SET (core_SOURCES
+set(core_SOURCES
   base_defines.cpp
   base_defines.h
   gamevars.cpp
@@ -58,9 +57,10 @@ SET (core_SOURCES
   Vector.h
   )
 
-MSVC_PRECOMPILED_HEADER (core core_SOURCES)
-IDE_SOURCE_PROPERTIES( "/" "${core_SOURCES}")
+#msvc_precompiled_header(core core_SOURCES)
 
-ADD_LIBRARY (core
+source_group("" FILES ${core_SOURCES})
+
+add_library(core
   ${core_SOURCES}
   )

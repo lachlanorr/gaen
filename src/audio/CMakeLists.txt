@@ -24,22 +24,22 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (audio_SOURCES
+set(audio_SOURCES
   AudioMgr.cpp
   AudioMgr.h
   )
 
-IDE_SOURCE_PROPERTIES( "/" "${audio_SOURCES}")
+source_group("" FILES ${audio_SOURCES})
 
-ADD_LIBRARY (audio
+add_library(audio
   ${audio_SOURCES}
   )
 
-TARGET_INCLUDE_DIRECTORIES (audio PRIVATE
-  ${PORTAUDIO_INCLUDE}
-)
+target_link_libraries(audio PUBLIC
+  portaudio_static
+  )
 
-ADD_DEPENDENCIES(audio
+add_dependencies(audio
   hashes
   CODEGEN_MESSAGES
   )

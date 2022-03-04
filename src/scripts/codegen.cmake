@@ -24,9 +24,9 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (scripts_dir ${CMAKE_CURRENT_SOURCE_DIR})
+set(scripts_dir ${CMAKE_CURRENT_SOURCE_DIR})
 
-SET (scripts_codegen_SOURCES
+set(scripts_codegen_SOURCES
   ${CMAKE_CURRENT_BINARY_DIR}/registration.cpp
   ${scripts_dir}/cmp/init.cmp
   ${scripts_dir}/cmp/test.cmp
@@ -40,13 +40,13 @@ C:/code/gaen/build/win64/src/scripts/cpp/gaen/shapes.cpp
 C:/code/gaen/build/win64/src/scripts/cpp/gaen/utils.cpp
 )
 
-IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/init.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp" "${scripts_dir}/cmp/test.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp/gaen" "${scripts_dir}/cmp/gaen/lights.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp/gaen" "${scripts_dir}/cmp/gaen/shapes.cmp" )
-IDE_SOURCE_PROPERTIES( "/cmp/gaen" "${scripts_dir}/cmp/gaen/utils.cmp" )
-IDE_SOURCE_PROPERTIES( "C:/code/gaen/build/win64/src/scripts/cpp" "C:/code/gaen/build/win64/src/scripts/cpp/init.cpp" )
-IDE_SOURCE_PROPERTIES( "C:/code/gaen/build/win64/src/scripts/cpp" "C:/code/gaen/build/win64/src/scripts/cpp/test.cpp" )
-IDE_SOURCE_PROPERTIES( "C:/code/gaen/build/win64/src/scripts/cpp/gaen" "C:/code/gaen/build/win64/src/scripts/cpp/gaen/lights.cpp" )
-IDE_SOURCE_PROPERTIES( "C:/code/gaen/build/win64/src/scripts/cpp/gaen" "C:/code/gaen/build/win64/src/scripts/cpp/gaen/shapes.cpp" )
-IDE_SOURCE_PROPERTIES( "C:/code/gaen/build/win64/src/scripts/cpp/gaen" "C:/code/gaen/build/win64/src/scripts/cpp/gaen/utils.cpp" )
+source_group( "/cmp" "${scripts_dir}/cmp/init.cmp" )
+source_group( "/cmp" "${scripts_dir}/cmp/test.cmp" )
+source_group( "/cmp/gaen" "${scripts_dir}/cmp/gaen/lights.cmp" )
+source_group( "/cmp/gaen" "${scripts_dir}/cmp/gaen/shapes.cmp" )
+source_group( "/cmp/gaen" "${scripts_dir}/cmp/gaen/utils.cmp" )
+source_group( "C:/code/gaen/build/win64/src/scripts/cpp" "C:/code/gaen/build/win64/src/scripts/cpp/init.cpp" )
+source_group( "C:/code/gaen/build/win64/src/scripts/cpp" "C:/code/gaen/build/win64/src/scripts/cpp/test.cpp" )
+source_group( "C:/code/gaen/build/win64/src/scripts/cpp/gaen" "C:/code/gaen/build/win64/src/scripts/cpp/gaen/lights.cpp" )
+source_group( "C:/code/gaen/build/win64/src/scripts/cpp/gaen" "C:/code/gaen/build/win64/src/scripts/cpp/gaen/shapes.cpp" )
+source_group( "C:/code/gaen/build/win64/src/scripts/cpp/gaen" "C:/code/gaen/build/win64/src/scripts/cpp/gaen/utils.cpp" )

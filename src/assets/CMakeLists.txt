@@ -24,7 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (assets_SOURCES
+set(assets_SOURCES
   AssetHeader.h
   Color.h
   Config.cpp
@@ -48,8 +48,8 @@ SET (assets_SOURCES
   Gspr.h
   )
 
-IDE_SOURCE_PROPERTIES( "/" "${assets_SOURCES}")
+source_group("" FILES ${assets_SOURCES})
 
-ADD_LIBRARY (assets
+add_library(assets
   ${assets_SOURCES}
   )

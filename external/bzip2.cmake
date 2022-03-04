@@ -24,28 +24,55 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-# Run during configure so we have FNV.h/cpp existing for .sln creation
-execute_process(
-  COMMAND python ${python_dir}/update_hashes.py "${CMAKE_CURRENT_BINARY_DIR}"
+set(bzip2_SOURCES
+  bzip2/blocksort.c
+  bzip2/huffman.c
+  bzip2/crctable.c
+  bzip2/randtable.c
+  bzip2/compress.c
+  bzip2/decompress.c
+  bzip2/bzlib.c
+  bzip2/bzlib.h
+  bzip2/bzlib_private.h
   )
 
-set(hashes_SOURCES
-  "${CMAKE_CURRENT_BINARY_DIR}/hashes.cpp"
-  "${CMAKE_CURRENT_BINARY_DIR}/hashes.h"
+set(BZ_VERSION "1.0.7")
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/bzip2/bz_version.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/bzip2/include/bz_version.h
   )
 
-source_group("" FILES ${hashes_SOURCES})
+list(APPEND bzip2_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/bzip2/include/bz_version.h")
 
-add_custom_target(
-  CODEGEN_HASHES ALL
-  python ${python_dir}/update_hashes.py "${CMAKE_CURRENT_BINARY_DIR}"
-  COMMENT "Generating hashes.h/cpp"
+source_group("" FILES ${bzip2_SOURCES})
+
+add_library(bzip2static
+  ${bzip2_SOURCES}
   )
 
-add_library(hashes
-  ${hashes_SOURCES}
+if(WIN32)
+  target_compile_definitions(bzip2static
+    PRIVATE BZ_LCCWIN32
+    )
+else()
+  target_compile_definitions(bzip2static
+    PRIVATE BZ_UNIX
+    )
+endif()
+
+target_include_directories(bzip2static PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/bzip2
+  ${CMAKE_CURRENT_BINARY_DIR}/bzip2/include
   )
 
-add_dependencies(hashes
-  CODEGEN_HASHES
+target_include_directories(bzip2static SYSTEM INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/bzip2
+  ${CMAKE_CURRENT_BINARY_DIR}/bzip2/include
   )
+
+set_target_properties(bzip2static PROPERTIES
+  FOLDER external/bzip2
+  )
+
+set(BZIP2_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bzip2 CACHE STRING "" FORCE)
+set(BZIP2_LIBRARIES $<TARGET_FILE:bzip2static> CACHE STRING "" FORCE)

@@ -24,19 +24,19 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (gac_SOURCES
+set(gac_SOURCES
   main_gac.cpp
   )
 
-IDE_SOURCE_PROPERTIES( "/" "${gac_SOURCES}")
+source_group("" FILES ${gac_SOURCES})
 
-ADD_EXECUTABLE (gac
+add_executable(gac
   ${gac_SOURCES}
   )
 
-TARGET_LINK_LIBRARIES (gac
+target_link_libraries(gac
   core
   ${PLATFORM_LINK_LIBS}
   )
 
-package (gac)
+package(gac)
