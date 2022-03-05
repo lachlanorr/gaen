@@ -53,12 +53,12 @@ CMAKE_TEMPLATE = '''\
 
 set(scripts_dir <<scripts_dir>>)
 
-set(scripts_codegen_SOURCES
+set(gaen_scripts_codegen_SOURCES
   ${CMAKE_CURRENT_BINARY_DIR}/registration.cpp
 <<files>>
 )
 
-source_group("" ${CMAKE_CURRENT_BINARY_DIR}/registration.cpp)
+source_group("" FILES ${CMAKE_CURRENT_BINARY_DIR}/registration.cpp)
 <<ide_source_props>>
 '''
 
@@ -74,7 +74,7 @@ namespace gaen
 
 %s
 
-void register_all_entities_and_components(Registry & registry)
+extern void register_all_entities_and_components(Registry & registry)
 {
     %s
 }
@@ -282,9 +282,9 @@ def write_cmake(cmp_files, cpp_files, h_files):
     cmp_rel_files = [cmakeify_src_script_path(f) for f in cmp_files]
     cpp_rel_files = [cmakeify_bin_script_path(f) for f in cpp_files]
     h_rel_files = [cmakeify_bin_script_path(f) for f in h_files]
-    ide_src_props = ['source_group( "%s" "%s" )' % (strip_scripts_dir(r)[1:], r.lstrip()) for r in cmp_rel_files]
-    ide_src_props += ['source_group( "%s" "%s" )' % (strip_scripts_dir(r)[1:], r.lstrip()) for r in cpp_rel_files]
-    ide_src_props += ['source_group( "%s" "%s" )' % (strip_scripts_dir(r)[1:], r.lstrip()) for r in h_rel_files]
+    ide_src_props = ['source_group("%s" FILES %s)' % (strip_scripts_dir(r)[1:], r.lstrip()) for r in cmp_rel_files]
+    ide_src_props += ['source_group("%s" FILES %s)' % (strip_scripts_dir(r)[1:], r.lstrip()) for r in cpp_rel_files]
+    ide_src_props += ['source_group("%s" FILES %s)' % (strip_scripts_dir(r)[1:], r.lstrip()) for r in h_rel_files]
     cmake_path = posixpath.join(sys.argv[1], 'codegen.cmake')
     template = CMAKE_TEMPLATE
     template = template.replace('<<scripts_dir>>', cmake_scripts_dir())

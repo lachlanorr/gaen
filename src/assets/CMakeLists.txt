@@ -24,7 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(assets_SOURCES
+set(gaen_assets_SOURCES
   AssetHeader.h
   Color.h
   Config.cpp
@@ -48,12 +48,17 @@ set(assets_SOURCES
   Gspr.h
   )
 
-source_group("" FILES ${assets_SOURCES})
+source_group("" FILES ${gaen_assets_SOURCES})
 
-add_library(assets STATIC
-  ${assets_SOURCES}
+add_library(gaen_assets STATIC
+  ${gaen_assets_SOURCES}
   )
 
-target_link_libraries(assets PUBLIC
-  hashes
+set_target_properties(gaen_assets PROPERTIES
+  FOLDER lib
+  )
+
+target_link_libraries(gaen_assets PUBLIC
+  gaen_math
+  gaen_hashes
   )

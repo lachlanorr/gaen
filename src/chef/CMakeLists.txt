@@ -63,8 +63,6 @@ set(chef_SOURCES
   ${cooker_SOURCES}
   )
 
-#msvc_precompiled_header(chef chef_SOURCES)
-
 source_group("" FILES ${chef_SOURCES})
 source_group("cookers" FILES ${cooker_SOURCES})
 
@@ -77,8 +75,8 @@ add_executable(chef
 target_link_libraries(chef
   ${PROJECT_ASSETS_LIB}
   ${PROJECT_COOKERS_LIB}
-  assets
-  hashes
+  gaen_assets
+  gaen_hashes
   assimp
   freetype
   #harfbuzz
@@ -98,4 +96,8 @@ add_custom_target(
   COOK_ASSETS
   COMMAND ${packaged_dir}/chef
   DEPENDS chef
+  )
+
+set_target_properties(COOK_ASSETS PROPERTIES
+  FOLDER CMakePredefinedTargets
   )

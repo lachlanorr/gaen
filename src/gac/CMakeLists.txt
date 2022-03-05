@@ -35,7 +35,7 @@ add_executable(gac
   )
 
 target_link_libraries(gac
-  core
+  gaen_core
   ${PLATFORM_LINK_LIBS}
   )
 

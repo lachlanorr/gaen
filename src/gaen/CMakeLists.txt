@@ -78,19 +78,17 @@ else(IOS)
   target_link_libraries(${CMAKE_PROJECT_NAME}
     ${PROJECT_ASSETS_LIB}
     ${PROJECT_LINK_LIBS}
-    render_support
-    renderergl
-    assets
-    engine
-    hashes
-    audio
-    cara
-    scripts
+    gaen_render_support
+    gaen_renderergl
+    gaen_assets
+    gaen_engine
+    gaen_audio
+    gaen_cara
+    gaen_scripts
     ${PLATFORM_LINK_LIBS}
     )
 
   add_dependencies(${CMAKE_PROJECT_NAME}
-    hashes
     CODEGEN_MESSAGES
     CODEGEN_SCRIPTS
   )

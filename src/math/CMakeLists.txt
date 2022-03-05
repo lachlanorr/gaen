@@ -24,7 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(math_SOURCES
+set(gaen_math_SOURCES
   common.h
   mat3.cpp
   mat3.h
@@ -43,18 +43,17 @@ set(math_SOURCES
   vec4.h
   )
 
-#msvc_precompiled_header(math math_SOURCES)
-source_group("" FILES ${math_SOURCES})
+source_group("" FILES ${gaen_math_SOURCES})
 
-add_library(math STATIC
-  ${math_SOURCES}
+add_library(gaen_math STATIC
+  ${gaen_math_SOURCES}
   )
 
-target_include_directories(math PUBLIC
-  ${GAEN_SRC_INCLUDE}
+set_target_properties(gaen_math PROPERTIES
+  FOLDER lib
   )
 
-target_link_libraries(math PUBLIC
-  core
+target_link_libraries(gaen_math PUBLIC
+  gaen_core
   glm
   )

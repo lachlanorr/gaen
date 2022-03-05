@@ -24,7 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(render_support_SOURCES
+set(gaen_render_support_SOURCES
   collision.h
   ImageBuffer.cpp
   ImageBuffer.h
@@ -61,22 +61,25 @@ set(render_support_SOURCES
   voxel_proto.h
   )
 
-#msvc_precompiled_header(render_support render_support_SOURCES)
-source_group("" FILES ${render_support_SOURCES})
+source_group("" FILES ${gaen_render_support_SOURCES})
 
-add_library(render_support STATIC
-  ${render_support_SOURCES}
+add_library(gaen_render_support STATIC
+  ${gaen_render_support_SOURCES}
   )
 
-target_link_libraries(render_support PUBLIC
-  hashes
+set_target_properties(gaen_render_support PROPERTIES
+  FOLDER lib
+  )
+
+target_link_libraries(gaen_render_support PUBLIC
+  gaen_math
+  gaen_hashes
   BulletCollision
   BulletDynamics
   LinearMath
   glfw
   )
 
-add_dependencies(render_support
-  hashes
+add_dependencies(gaen_render_support
   CODEGEN_MESSAGES
   )

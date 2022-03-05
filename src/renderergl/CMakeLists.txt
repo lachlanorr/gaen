@@ -27,7 +27,7 @@
 set(shaders_dir ${CMAKE_CURRENT_SOURCE_DIR}/shaders)
 include(${shaders_dir}/codegen.cmake)
 
-set(renderergl_SOURCES
+set(gaen_renderergl_SOURCES
   FrameGL.h
   gaen_opengl.h
   ModelGL.cpp
@@ -49,21 +49,25 @@ set(renderergl_SOURCES
   ${shaders_codegen_SOURCES}
   )
 
-source_group("" FILES ${renderergl_SOURCES})
+source_group("" FILES ${gaen_renderergl_SOURCES})
 
-add_library(renderergl STATIC
-  ${renderergl_SOURCES}
+add_library(gaen_renderergl STATIC
+  ${gaen_renderergl_SOURCES}
   )
 
-target_link_libraries(renderergl PUBLIC
-  hashes
+set_target_properties(gaen_renderergl PROPERTIES
+  FOLDER lib
+  )
+
+target_link_libraries(gaen_renderergl PUBLIC
+  gaen_math
+  gaen_hashes
   nanovg
   imgui
   glfw
   glad
   )
 
-add_dependencies(renderergl
-  hashes
+add_dependencies(gaen_renderergl
   CODEGEN_MESSAGES
   )

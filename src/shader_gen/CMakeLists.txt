@@ -36,9 +36,8 @@ add_executable(shader_gen
   )
 
 target_link_libraries(shader_gen
-  core
-  assets
-  engine
+  gaen_assets
+  gaen_engine
   glfw
   glad
   ${PLATFORM_LINK_LIBS}

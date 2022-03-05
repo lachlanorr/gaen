@@ -36,8 +36,6 @@
 #include "core/sockets.h"
 #include "core/logging.h"
 
-#include "math/common.h"
-
 #include "core/log_message.h"
 
 namespace gaen
@@ -104,7 +102,10 @@ void Logger::log(LogSeverity severity, const char * message)
         lm.header.time = 0;
     lm.header.sev = severity;
 
-    size_t msgLen = max(kMaxLogMessageSize-1, strlen(message) + 1);
+    size_t msgLen = strlen(message);
+    if (msgLen >= kMaxLogMessageSize)
+        msgLen = kMaxLogMessageSize-1;
+
     strncpy(lm.msg, message, msgLen-1);
     lm.msg[msgLen-1] = '\0';
 

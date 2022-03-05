@@ -49,3 +49,7 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/cooked_win ${publish_dir}/assets
   DEPENDS COOK_ASSETS ${CMAKE_PROJECT_NAME}
   )
+
+set_target_properties(PUBLISH PROPERTIES
+  FOLDER CMakePredefinedTargets
+  )

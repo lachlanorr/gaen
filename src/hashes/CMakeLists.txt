@@ -24,17 +24,17 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-# Run during configure so we have FNV.h/cpp existing for .sln creation
+# Run during configure so we have hashes.h/cpp existing for .sln creation
 execute_process(
   COMMAND python ${python_dir}/update_hashes.py "${CMAKE_CURRENT_BINARY_DIR}"
   )
 
-set(hashes_SOURCES
+set(gaen_hashes_SOURCES
   "${CMAKE_CURRENT_BINARY_DIR}/hashes.cpp"
   "${CMAKE_CURRENT_BINARY_DIR}/hashes.h"
   )
 
-source_group("" FILES ${hashes_SOURCES})
+source_group("" FILES ${gaen_hashes_SOURCES})
 
 add_custom_target(
   CODEGEN_HASHES ALL
@@ -42,18 +42,26 @@ add_custom_target(
   COMMENT "Generating hashes.h/cpp"
   )
 
-add_library(hashes STATIC
-  ${hashes_SOURCES}
+set_target_properties(CODEGEN_HASHES PROPERTIES
+  FOLDER CMakePredefinedTargets
   )
 
-target_include_directories(hashes PUBLIC
+add_library(gaen_hashes STATIC
+  ${gaen_hashes_SOURCES}
+  )
+
+set_target_properties(gaen_hashes PROPERTIES
+  FOLDER lib
+  )
+
+target_include_directories(gaen_hashes PUBLIC
   ${GAEN_BIN_INCLUDE}
   )
 
-target_link_libraries(hashes PUBLIC
-  core
+target_link_libraries(gaen_hashes PUBLIC
+  gaen_core
   )
 
-add_dependencies(hashes
+add_dependencies(gaen_hashes
   CODEGEN_HASHES
   )

@@ -24,23 +24,27 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(audio_SOURCES
+set(gaen_audio_SOURCES
   AudioMgr.cpp
   AudioMgr.h
   )
 
-source_group("" FILES ${audio_SOURCES})
+source_group("" FILES ${gaen_audio_SOURCES})
 
-add_library(audio STATIC
-  ${audio_SOURCES}
+add_library(gaen_audio STATIC
+  ${gaen_audio_SOURCES}
   )
 
-target_link_libraries(audio PUBLIC
-  hashes
+set_target_properties(gaen_audio PROPERTIES
+  FOLDER lib
+  )
+
+target_link_libraries(gaen_audio PUBLIC
+  gaen_math
+  gaen_hashes
   portaudio_static
   )
 
-add_dependencies(audio
-  hashes
+add_dependencies(gaen_audio
   CODEGEN_MESSAGES
   )

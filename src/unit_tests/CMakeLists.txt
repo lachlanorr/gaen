@@ -43,9 +43,9 @@ add_executable(unit_tests
   )
 
 target_link_libraries(unit_tests
-  engine
-  render_support
-  compose
+  gaen_engine
+  gaen_render_support
+  gaen_compose
   gtest
   ${PLATFORM_LINK_LIBS}
 )

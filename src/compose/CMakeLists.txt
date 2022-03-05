@@ -29,7 +29,7 @@ execute_process(
   COMMAND python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
   )
 
-set(compose_SOURCES
+set(gaen_compose_SOURCES
   CodegenCpp.cpp
   CodegenCpp.h
   codegen_utils.cpp
@@ -58,12 +58,21 @@ add_custom_target(
   COMMENT "Generating system_api_meta.cpp"
   )
 
-source_group("" FILES ${compose_SOURCES})
-
-add_library(compose STATIC
-  ${compose_SOURCES}
+set_target_properties(CODEGEN_API PROPERTIES
+  FOLDER CMakePredefinedTargets
   )
 
-target_link_libraries(compose PUBLIC
-  hashes
+source_group("" FILES ${gaen_compose_SOURCES})
+
+add_library(gaen_compose STATIC
+  ${gaen_compose_SOURCES}
+  )
+
+set_target_properties(gaen_compose PROPERTIES
+  FOLDER lib
+  )
+
+target_link_libraries(gaen_compose PUBLIC
+  gaen_math
+  gaen_hashes
   )

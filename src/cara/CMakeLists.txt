@@ -24,20 +24,24 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(cara_SOURCES
+set(gaen_cara_SOURCES
   Cara.cpp
   Cara.h
   Frame.cpp
   Frame.h
   )
 
-#msvc_precompiled_header(cara cara_SOURCES)
-source_group("" FILES ${cara_SOURCES})
+source_group("" FILES ${gaen_cara_SOURCES})
 
-add_library(cara STATIC
-  ${cara_SOURCES}
+add_library(gaen_cara STATIC
+  ${gaen_cara_SOURCES}
   )
 
-target_link_libraries(cara PUBLIC
-  hashes
+set_target_properties(gaen_cara PROPERTIES
+  FOLDER lib
+  )
+
+target_link_libraries(gaen_cara PUBLIC
+  gaen_math
+  gaen_hashes
   )

@@ -24,7 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(core_SOURCES
+set(gaen_core_SOURCES
   base_defines.cpp
   base_defines.h
   gamevars.cpp
@@ -57,18 +57,16 @@ set(core_SOURCES
   Vector.h
   )
 
-#msvc_precompiled_header(core core_SOURCES)
+source_group("" FILES ${gaen_core_SOURCES})
 
-source_group("" FILES ${core_SOURCES})
-
-add_library(core STATIC
-  ${core_SOURCES}
+add_library(gaen_core STATIC
+  ${gaen_core_SOURCES}
   )
 
-target_include_directories(core PUBLIC
+set_target_properties(gaen_core PROPERTIES
+  FOLDER lib
+  )
+
+target_include_directories(gaen_core PUBLIC
   ${GAEN_SRC_INCLUDE}
-  )
-
-target_link_libraries(core PUBLIC
-  math
   )

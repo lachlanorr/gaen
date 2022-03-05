@@ -26,21 +26,26 @@
 
 include("${CMAKE_CURRENT_BINARY_DIR}/codegen.cmake" OPTIONAL)
 
-set(scripts_SOURCES
-  ${scripts_codegen_SOURCES}
+set(gaen_scripts_SOURCES
+  ${gaen_scripts_codegen_SOURCES}
   )
 
-add_library(scripts STATIC
+add_library(gaen_scripts STATIC
   DUMMY.cpp
-  ${scripts_SOURCES}
+  ${gaen_scripts_SOURCES}
   )
 
-target_include_directories(scripts PUBLIC
+set_target_properties(gaen_scripts PROPERTIES
+  FOLDER lib
+  )
+
+target_include_directories(gaen_scripts PUBLIC
   ${PROJECT_INCLUDE_DIR}
   )
 
-target_link_libraries(scripts PUBLIC
-  hashes
+target_link_libraries(gaen_scripts PUBLIC
+  gaen_math
+  gaen_hashes
   LinearMath
   )
 
@@ -56,8 +61,11 @@ add_custom_target(
   COMMENT "Generating scripts"
   )
 
-add_dependencies(scripts
-  hashes
+set_target_properties(CODEGEN_SCRIPTS PROPERTIES
+  FOLDER CMakePredefinedTargets
+  )
+
+add_dependencies(gaen_scripts
   CODEGEN_MESSAGES
   CODEGEN_SCRIPTS
   )

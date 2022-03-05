@@ -26,7 +26,7 @@
 
 include("${CMAKE_CURRENT_BINARY_DIR}/messages/messages.cmake" OPTIONAL)
 
-set(engine_SOURCES
+set(gaen_engine_SOURCES
   Asset.cpp
   Asset.h
   AssetLoader.cpp
@@ -73,20 +73,23 @@ set(engine_SOURCES
   UniqueObject.h
   field_types.yaml
   messages_def.yaml
-  ${engine_messages_SOURCES}
+  ${gaen_engine_messages_SOURCES}
   )
 
-#msvc_precompiled_header(engine engine_SOURCES)
+source_group("" FILES ${gaen_engine_SOURCES})
+source_group("messages" FILES ${gaen_engine_messages_SOURCES})
 
-source_group("" FILES ${engine_SOURCES})
-source_group("messages" FILES ${engine_messages_SOURCES})
-
-add_library(engine STATIC
-  ${engine_SOURCES}
+add_library(gaen_engine STATIC
+  ${gaen_engine_SOURCES}
   )
 
-target_link_libraries(engine PUBLIC
-  hashes
+set_target_properties(gaen_engine PROPERTIES
+  FOLDER lib
+  )
+
+target_link_libraries(gaen_engine PUBLIC
+  gaen_math
+  gaen_hashes
   BulletCollision
   BulletDynamics
   LinearMath
@@ -102,7 +105,10 @@ add_custom_target(
   COMMENT "Generating message classes"
   )
 
-add_dependencies(engine
-  hashes
+set_target_properties(CODEGEN_MESSAGES PROPERTIES
+  FOLDER CMakePredefinedTargets
+  )
+
+add_dependencies(gaen_engine
   CODEGEN_MESSAGES
   )

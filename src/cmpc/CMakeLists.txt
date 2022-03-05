@@ -35,7 +35,7 @@ add_executable(cmpc
   )
 
 target_link_libraries(cmpc
-  compose
+  gaen_compose
   ${PLATFORM_LINK_LIBS}
   )
 
