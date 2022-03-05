@@ -43,12 +43,10 @@ add_executable(unit_tests
   )
 
 target_link_libraries(unit_tests
-  gtest
   engine
   render_support
   compose
-  core
-  hashes
+  gtest
   ${PLATFORM_LINK_LIBS}
 )
 

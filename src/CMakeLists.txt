@@ -25,10 +25,8 @@
 #-------------------------------------------------------------------------------
 
 # Standard include paths
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
-add_compile_definitions(GLM_FORCE_NO_CTOR_INIT)
+set(GAEN_SRC_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR})
+set(GAEN_BIN_INCLUDE ${CMAKE_CURRENT_BINARY_DIR})
 
 # Packaging
 set(packaged_dir ${CMAKE_BINARY_DIR}/packaged)
@@ -52,7 +50,6 @@ add_subdirectory(math)
 add_subdirectory(engine)
 add_subdirectory(render_support)
 add_subdirectory(audio)
-add_subdirectory(chef)
 add_subdirectory(shader_gen)
 add_subdirectory(renderergl)
 add_subdirectory(compose)
@@ -61,6 +58,7 @@ add_subdirectory(gaen)
 
 #exes
 if(NOT IOS)
+  add_subdirectory(chef)
   add_subdirectory(cmpc)
   add_subdirectory(gac)
   add_subdirectory(unit_tests)

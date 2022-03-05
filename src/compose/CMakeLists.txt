@@ -65,5 +65,5 @@ add_library(compose STATIC
   )
 
 target_link_libraries(compose PUBLIC
-  core
+  hashes
   )

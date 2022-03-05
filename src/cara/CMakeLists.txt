@@ -39,5 +39,5 @@ add_library(cara STATIC
   )
 
 target_link_libraries(cara PUBLIC
-  core
+  hashes
   )

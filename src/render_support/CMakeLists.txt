@@ -69,7 +69,7 @@ add_library(render_support STATIC
   )
 
 target_link_libraries(render_support PUBLIC
-  core
+  hashes
   BulletCollision
   BulletDynamics
   LinearMath

@@ -50,6 +50,11 @@ add_library(math STATIC
   ${math_SOURCES}
   )
 
+target_include_directories(math PUBLIC
+  ${GAEN_SRC_INCLUDE}
+  )
+
 target_link_libraries(math PUBLIC
+  core
   glm
   )

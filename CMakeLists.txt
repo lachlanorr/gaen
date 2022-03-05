@@ -26,40 +26,12 @@
 
 cmake_minimum_required(VERSION 3.22.0)
 
-set(CMAKE_CXX_STANDARD 11)
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-cmake_policy(SET CMP0091 NEW)
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-
 project(gaen)
-
-option(gaen_BUILD_TESTS "Build tests" ON)
-option(gaen_MINEXT "Strip out all but the minimal targets in external dependencies" ON)
-
-set(ext_dir ${CMAKE_CURRENT_SOURCE_DIR}/external)
-set(python_dir ${CMAKE_CURRENT_SOURCE_DIR}/python)
-
-# Set these to avoid any external libs overwriting
-set(CMAKE_RELEASE_POSTFIX "" CACHE STRING "")
-set(CMAKE_DEBUG_POSTFIX "" CACHE STRING "")
-set(CMAKE_MINSIZEREL_POSTFIX "" CACHE STRING "")
-set(CMAKE_RELWITHDEBINFO_POSTFIX "" CACHE STRING "")
-
 include(compile_defs.cmake)
 
-# If we're compiling gaen as a project (instead of a project that uses
-# gaen) set IS_GAEN_PROJECT so we can selectively include some hooks
-# for the project to register asset types and cookers.
-if("${CMAKE_PROJECT_NAME}" STREQUAL "gaen")
-  add_compile_definitions(IS_GAEN_PROJECT=1)
-else()
-  set(PROJECT_ASSETS_LIB
-    "${CMAKE_PROJECT_NAME}_assets"
-    )
-  set(PROJECT_COOKERS_LIB
-    "${CMAKE_PROJECT_NAME}_cookers"
-    )
-endif()
+option(gaen_BUILD_TESTS "Build tests" ON)
+
+set(python_dir ${CMAKE_CURRENT_SOURCE_DIR}/python)
 
 add_subdirectory(external)
 add_subdirectory(src)

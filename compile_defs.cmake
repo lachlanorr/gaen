@@ -24,6 +24,17 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
+set(CMAKE_CXX_STANDARD 11)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+cmake_policy(SET CMP0091 NEW)
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+# Set these to avoid any external libs overwriting
+set(CMAKE_RELEASE_POSTFIX "" CACHE STRING "")
+set(CMAKE_DEBUG_POSTFIX "" CACHE STRING "")
+set(CMAKE_MINSIZEREL_POSTFIX "" CACHE STRING "")
+set(CMAKE_RELWITHDEBINFO_POSTFIX "" CACHE STRING "")
+
 include(TestBigEndian)
 test_big_endian(IS_BIG_ENDIAN)
 if(IS_BIG_ENDIAN)

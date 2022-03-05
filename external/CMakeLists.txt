@@ -26,6 +26,9 @@
 
 include(utils.cmake)
 
+# Adjust external builds and strip out all but the minimal required targets
+set(gaen_MINEXT TRUE)
+
 #include(kibits.cmake)
 
 # unit tests

@@ -46,6 +46,14 @@ add_library(hashes STATIC
   ${hashes_SOURCES}
   )
 
+target_include_directories(hashes PUBLIC
+  ${GAEN_BIN_INCLUDE}
+  )
+
+target_link_libraries(hashes PUBLIC
+  core
+  )
+
 add_dependencies(hashes
   CODEGEN_HASHES
   )

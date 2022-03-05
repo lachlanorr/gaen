@@ -65,6 +65,10 @@ add_library(core STATIC
   ${core_SOURCES}
   )
 
+target_include_directories(core PUBLIC
+  ${GAEN_SRC_INCLUDE}
+  )
+
 target_link_libraries(core PUBLIC
   math
   )

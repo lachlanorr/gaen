@@ -36,7 +36,6 @@ add_executable(cmpc
 
 target_link_libraries(cmpc
   compose
-  hashes
   ${PLATFORM_LINK_LIBS}
   )
 

@@ -56,7 +56,7 @@ add_library(renderergl STATIC
   )
 
 target_link_libraries(renderergl PUBLIC
-  core
+  hashes
   nanovg
   imgui
   glfw

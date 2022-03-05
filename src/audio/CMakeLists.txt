@@ -36,11 +36,8 @@ add_library(audio STATIC
   )
 
 target_link_libraries(audio PUBLIC
+  hashes
   portaudio_static
-  )
-
-target_link_libraries(audio PUBLIC
-  core
   )
 
 add_dependencies(audio

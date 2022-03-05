@@ -35,8 +35,12 @@ add_library(scripts STATIC
   ${scripts_SOURCES}
   )
 
+target_include_directories(scripts PUBLIC
+  ${PROJECT_INCLUDE_DIR}
+  )
+
 target_link_libraries(scripts PUBLIC
-  core
+  hashes
   LinearMath
   )
 

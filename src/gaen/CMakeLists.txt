@@ -75,10 +75,6 @@ else(IOS)
 
   source_group("" FILES ${gaen_SOURCES})
 
-  target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    ${GLAD_INCLUDE}
-  )
-
   target_link_libraries(${CMAKE_PROJECT_NAME}
     ${PROJECT_ASSETS_LIB}
     ${PROJECT_LINK_LIBS}

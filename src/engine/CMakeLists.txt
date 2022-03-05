@@ -86,7 +86,7 @@ add_library(engine STATIC
   )
 
 target_link_libraries(engine PUBLIC
-  core
+  hashes
   BulletCollision
   BulletDynamics
   LinearMath
