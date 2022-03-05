@@ -55,5 +55,5 @@ add_library(assets STATIC
   )
 
 target_link_libraries(assets PUBLIC
-  core
+  hashes
   )
