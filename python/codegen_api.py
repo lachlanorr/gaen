@@ -60,9 +60,9 @@ META_TEMPLATE = '''\
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "core/HashMap.h"
+#include "gaen/core/HashMap.h"
 
-#include "compose/compiler_structs.h"
+#include "gaen/compose/compiler_structs.h"
 
 namespace gaen
 {
@@ -147,10 +147,10 @@ def get_api_lines_in_dir(dir_path, lines, includes):
                 api_lines = get_api_lines_in_file(full_path)
                 if len(api_lines):
                     lines += api_lines
-                    pathdir = os.path.split(full_path)[0]
-                    fname = os.path.split(full_path)[1]
-                    lastdir = os.path.split(pathdir)[1]
-                    includes.append(posixpath.join(lastdir, fname))
+                    pathdir, fname = os.path.split(full_path)
+                    rel_include_dir = pathdir.replace(dir_path, '')[1:]
+                    include_path = os.path.join(rel_include_dir, fname).replace('\\', '/')
+                    includes.append(include_path)
 
 def get_api_lines():
     lines = []

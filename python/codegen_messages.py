@@ -84,10 +84,10 @@ def messages_def_path():
     if len(sys.argv) >= 3:
         return sys.argv[2]
     else:
-        return posixpath.join(gaen_path(), 'src/engine/messages_def.yaml')
+        return posixpath.join(gaen_path(), 'src/gaen/engine/messages_def.yaml')
 
 def field_types_path():
-    return posixpath.join(gaen_path(), 'src/engine/field_types.yaml')
+    return posixpath.join(gaen_path(), 'src/gaen/engine/field_types.yaml')
 
 def gen_message_cmake(messages):
     lines = []
@@ -110,7 +110,7 @@ class Message:
     def __str__(self):
         return repr(self.__dict__)
 
-DEFAULT_INCLUDES = ['engine/MessageWriter.h']
+DEFAULT_INCLUDES = ['gaen/engine/MessageWriter.h']
 CELLS_PER_BLOCK = 4 # cells per block, blocks are 16 bytes
 
 def find_next_fit(fields, curr_cell):
@@ -358,7 +358,7 @@ def gen_message_classes():
     if replace_file_if_different(cmake_path, cmake_data):
         # touch the engine/CMakeLists.txt file since we generated
         # messages.cmake and want to poke cmake to reprocess
-        os.utime(posixpath.join(dirs.GAEN_SRC_DIR, 'engine/CMakeLists.txt'), None)
+        os.utime(posixpath.join(dirs.GAEN_SRC_DIR, 'gaen/engine/CMakeLists.txt'), None)
 
 
 if __name__ == '__main__':

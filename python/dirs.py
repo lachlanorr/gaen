@@ -54,14 +54,14 @@ TEMPLATE_DIR      = os.path.join(SCRIPT_DIR, 'templates', 'project')
 GAEN_DIR          = os.path.split(SCRIPT_DIR)[0]
 GAEN_PARENT_DIR   = os.path.split(GAEN_DIR)[0]
 GAEN_SRC_DIR      = os.path.join(GAEN_DIR, 'src')
-COMPILER_CPP_CPP_FILE = os.path.join(GAEN_SRC_DIR, 'compose', 'compiler.cpp')
+COMPILER_CPP_CPP_FILE = os.path.join(GAEN_SRC_DIR, 'gaen/compose', 'compiler.cpp')
 PROJECT_INFO_FILE = os.path.join(GAEN_PARENT_DIR, 'gaen_project.info')
 IS_PROJECT        = __is_project()
 PROJECT_DIR       = __project_dir()
 PROJECT_SRC_DIR   = os.path.join(PROJECT_DIR, 'src')
 BUILD_DIR         = os.path.join(PROJECT_DIR, 'build')
 CMP_SCRIPTS_DIR   = os.path.join(PROJECT_DIR, 'src', 'scripts')
-GAEN_SCRIPTS_DIR  = os.path.join(GAEN_SRC_DIR, 'scripts')
+GAEN_SCRIPTS_DIR  = os.path.join(GAEN_SRC_DIR, 'gaen/scripts')
 PROJECT_NAME      = __project_name()
 
 # create posix versions of all paths

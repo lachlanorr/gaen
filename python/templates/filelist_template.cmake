@@ -24,6 +24,6 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-SET (engine_<<autogen_type>>_SOURCES
+SET (gaen_engine_<<autogen_type>>_SOURCES
 <<files>>
 )
