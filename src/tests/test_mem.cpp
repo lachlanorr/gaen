@@ -31,7 +31,7 @@
 
 #include "core/mem.h"
 
-#include "unit_tests/BaseFixture.h"
+#include "tests/BaseFixture.h"
 
 class TestClass
 {

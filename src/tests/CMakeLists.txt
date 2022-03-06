@@ -24,7 +24,7 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(unit_test_SOURCES
+set(gaen_test_SOURCES
   BaseFixture.h
   main_testcore.cpp
   test_gamevars.cpp
@@ -36,13 +36,13 @@ set(unit_test_SOURCES
   test_task.cpp
   )
 
-source_group("" FILES ${unit_test_SOURCES})
+source_group("" FILES ${gaen_test_SOURCES})
 
-add_executable(unit_tests
-  ${unit_test_SOURCES}
+add_executable(gaen_tests
+  ${gaen_test_SOURCES}
   )
 
-target_link_libraries(unit_tests
+target_link_libraries(gaen_tests
   gaen_engine
   gaen_render_support
   gaen_compose
@@ -50,5 +50,4 @@ target_link_libraries(unit_tests
   ${PLATFORM_LINK_LIBS}
 )
 
-package(unit_tests)
-
+package(gaen_tests)
