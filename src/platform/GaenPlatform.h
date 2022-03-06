@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// main_win32.cpp - Gaen game app
+// GaenPlatform.h - Gaen plaform specific app management
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2021 Lachlan Orr
@@ -24,25 +24,42 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN 1
+#ifndef GAEN_PLATFORM_GAENPLATFORM_H
+#define GAEN_PLATFORM_GAENPLATFORM_H
+
+#include "core/base_defines.h"
+#include "engine/Task.h"
+
+#if IS_PLATFORM_WIN32
+// A little crufty, but we can accommodate alternate renderers more elegantly later
+#include "renderergl/RendererMesh.h"
+typedef gaen::RendererMesh RendererType;
 #endif
-#include <windows.h>
 
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
-#include "gaen/GaenPlatform.h"
-
-int CALLBACK WinMain(HINSTANCE hInstance,
-                     HINSTANCE hPrevInstance,
-                     LPSTR lpCmdLine,
-                     int nCmdShow)
+namespace gaen
 {
-    using namespace gaen;
 
-    GaenPlatform plat(__argc, __argv);
-    plat.start(); // loops will start
+class GaenPlatform
+{
+public:
+    GaenPlatform(int argc, char ** argv);
+    ~GaenPlatform();
 
-    return 0;
-}
+    void start();
+
+    void update(f32 delta);
+
+    template <typename T>
+    MessageResult message(const T& msgAcc);
+
+private:
+    void init(int argc, char ** argv);
+    void fin();
+
+    RendererType mRenderer;
+    void * mpContext;
+};
+
+} // namespace gaen
+
+#endif // #ifndef GAEN_PLATFORM_GAENPLATFORM_H

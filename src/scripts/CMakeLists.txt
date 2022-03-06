@@ -39,11 +39,8 @@ set_target_properties(gaen_scripts PROPERTIES
   FOLDER lib
   )
 
-target_include_directories(gaen_scripts PUBLIC
-  ${PROJECT_INCLUDE_DIR}
-  )
-
 target_link_libraries(gaen_scripts PUBLIC
+  ${PROJECT_LINK_LIBS}
   gaen_math
   gaen_hashes
   LinearMath

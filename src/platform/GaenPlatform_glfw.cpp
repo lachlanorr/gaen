@@ -36,9 +36,9 @@
 #include "render_support/renderer_api.h"
 #include "renderergl/Renderer.h"
 #include "renderergl/gaen_opengl.h"
-#include "gaen/gaen.h"
+#include "platform/gaen.h"
 
-#include "gaen/GaenPlatform.h"
+#include "platform/GaenPlatform.h"
 
 namespace gaen
 {

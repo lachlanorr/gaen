@@ -39,6 +39,8 @@
 #include "engine/Entity.h"
 #include "engine/Registry.h"
 
+#include "platform/gaen.h"
+
 // Force Optimus enabled systems to use Nvidia adapter
 extern "C"
 {

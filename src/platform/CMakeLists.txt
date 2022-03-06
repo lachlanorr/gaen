@@ -24,42 +24,39 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-# Standard include paths
-set(GAEN_SRC_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR})
-set(GAEN_BIN_INCLUDE ${CMAKE_CURRENT_BINARY_DIR})
+set(gaen_platform_SOURCES
+  gaen.cpp
+  gaen.h
+  GaenPlatform.cpp
+  GaenPlatform.h
+  )
 
-# Packaging
-set(packaged_dir ${CMAKE_BINARY_DIR}/packaged)
-
-file(MAKE_DIRECTORY ${packaged_dir})
-
-macro(package target)
-  add_custom_command(
-    TARGET ${target}
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${target}> ${packaged_dir}/
-    )
-endmacro()
-
-#libs
-add_subdirectory(core)
-add_subdirectory(hashes)
-add_subdirectory(assets)
-add_subdirectory(cara)
-add_subdirectory(math)
-add_subdirectory(engine)
-add_subdirectory(render_support)
-add_subdirectory(audio)
-add_subdirectory(shader_gen)
-add_subdirectory(renderergl)
-add_subdirectory(compose)
-add_subdirectory(scripts)
-add_subdirectory(platform)
-
-#exes
-if(NOT IOS)
-  add_subdirectory(chef)
-  add_subdirectory(cmpc)
-  add_subdirectory(gac)
-  add_subdirectory(unit_tests)
+if(USE_GLFW)
+  list(APPEND gaen_platform_SOURCES GaenPlatform_glfw.cpp)
 endif()
+
+source_group("" FILES ${gaen_platform_SOURCES})
+
+add_library(gaen_platform STATIC
+  ${gaen_platform_SOURCES}
+  )
+
+set_target_properties(gaen_platform PROPERTIES
+  FOLDER lib
+  )
+
+target_link_libraries(gaen_platform
+    gaen_render_support
+    gaen_renderergl
+    gaen_assets
+    gaen_engine
+    gaen_audio
+    gaen_cara
+    gaen_scripts
+    ${PLATFORM_LINK_LIBS}
+    )
+
+add_dependencies(gaen_platform
+  CODEGEN_MESSAGES
+  CODEGEN_SCRIPTS
+  )

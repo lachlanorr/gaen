@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// gaen.h - Gaen game app
+// GaenPlatform.cpp - Gaen plaform specific app management
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2021 Lachlan Orr
@@ -24,30 +24,43 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_GAEN_GAEN_H
-#define GAEN_GAEN_GAEN_H
-
 #include "engine/TaskMaster.h"
+#include "platform/gaen.h"
+#include "platform/GaenPlatform.h"
 
 namespace gaen
 {
 
-// Initialize arguments and logging
-void init_gaen(int argc, char ** argv);
+GaenPlatform::GaenPlatform(int argc, char ** argv)
+  : mpContext(nullptr)
+{
+    init(argc, argv);
 
-// Platform specific main function should call start_gaen once things are
-// fully initialized.  It will start the TaskMaster threads.  Main thread
-// is reserved for OS specific stuff, like event handling.
-void start_gaen();
+    TaskMaster & tm = TaskMaster::primary_task_master();
+    Task t = Task::create_updatable(this, HASH::gaen_platform);
+    t.setStatus(TaskStatus::Running);
+    tm.setPlatformTask(t);
+}
 
-// Set the renderer for the primary taskmaster
-void set_renderer(const Task & rendererTask);
+GaenPlatform::~GaenPlatform()
+{
+    fin();
+}
 
-// Call this to shutdown TaskMasters when app wants to close
-void fin_gaen();
+void GaenPlatform::start()
+{
+    start_game_loops();
 
-void shutdown();
+    shutdown();
+}
+
+
+template <typename T>
+MessageResult GaenPlatform::message(const T & msgAcc)
+{
+    const Message & msg = msgAcc.message();
+    PANIC("Message received in GaenPlaform");
+    return MessageResult::Propagate;
+}
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_GAEN_GAEN_H

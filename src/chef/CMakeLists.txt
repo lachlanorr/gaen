@@ -73,8 +73,7 @@ add_executable(chef
   )
 
 target_link_libraries(chef
-  ${PROJECT_ASSETS_LIB}
-  ${PROJECT_COOKERS_LIB}
+  ${PROJECT_LINK_LIBS}
   gaen_assets
   gaen_hashes
   assimp
