@@ -2,7 +2,7 @@
 // Model.h - Model, a collection of gmdls/materials
 //
 // Gaen Concurrency Engine - http://gaen.org
-// Copyright (c) 2014-2021 Lachlan Orr
+// Copyright (c) 2014-2022 Lachlan Orr
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
