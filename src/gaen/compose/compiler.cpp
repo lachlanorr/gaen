@@ -3157,9 +3157,9 @@ RelatedTypes register_basic_type(DataType dt,
 
 void register_basic_types(ParseData * pParseData)
 {
-    RelatedTypes voidRt = register_basic_type(kDT_void,  "void", "void", 0, pParseData);
-    RelatedTypes boolRt = register_basic_type(kDT_bool,  "bool", "bool", 1, pParseData);
-    RelatedTypes intRt = register_basic_type(kDT_int,   "int",  "i32",  1, pParseData);
+    RelatedTypes voidRt = register_basic_type(kDT_void, "void", "void", 0, pParseData);
+    RelatedTypes boolRt = register_basic_type(kDT_bool, "bool", "bool", 1, pParseData);
+    RelatedTypes intRt = register_basic_type(kDT_int, "int", "i32",  1, pParseData);
     RelatedTypes colorRt = register_basic_type(kDT_color, "color", "Color", 1, pParseData);
 
     // Save float related types since we need them to register fields of each
