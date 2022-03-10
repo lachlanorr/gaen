@@ -35,8 +35,8 @@ class Dirs:
 
         self.python_dir = pathlib.Path(os.path.abspath(__file__)).parent
         self.gaen_dir = self.python_dir.parent
-        self.gaen_src_dir = self.gaen_dir/'src'/'gaen'
-        self.gaen_shaders_dir = self.gaen_src_dir/'renderergl'/'shaders'
+        self.gaen_src_dir = self.gaen_dir/'src'
+        self.gaen_shaders_dir = self.gaen_src_dir/'gaen'/'renderergl'/'shaders'
 
         project_info_file = self.gaen_dir.parent/'gaen_project.info'
         if project_info_file.is_file():
@@ -59,6 +59,9 @@ class Dirs:
         self.hashes_output_cpp_file = self.hashes_output_dir/'hashes3.cpp'
         self.hashes_output_h_file = self.hashes_output_dir/'hashes3.h'
 
+        self.compose_compiler_cpp_file = self.gaen_src_dir/'gaen'/'compose'/'compiler.cpp'
+        self.system_api_meta_output_cpp_file = self.binary_gaen_dir/'src'/'gaen'/'compose'/'system_api_meta3.cpp'
+        self.system_api_meta_template_cpp_file = self.python_dir/'templates'/'system_api_meta.cpp'
 
 
 

@@ -26,7 +26,7 @@
 
 # Run during configure so we have system_api_meta.cpp existing for .sln creation
 execute_process(
-  COMMAND python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
+  COMMAND C:/python27/python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
   )
 
 set(gaen_compose_SOURCES
@@ -54,11 +54,21 @@ set(gaen_compose_SOURCES
 
 add_custom_target(
   CODEGEN_API ALL
-  python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
+  C:/python27/python ${python_dir}/codegen_api.py "${CMAKE_CURRENT_BINARY_DIR}/system_api_meta.cpp"
   COMMENT "Generating system_api_meta.cpp"
   )
 
 set_target_properties(CODEGEN_API PROPERTIES
+  FOLDER CMakePredefinedTargets
+  )
+
+add_custom_target(
+  CODEGEN_API3 ALL
+  C:/python310/python ${python_dir}/codegen_api3.py "${CMAKE_BINARY_DIR}"
+  COMMENT "Generating system_api_meta3.cpp"
+  )
+
+set_target_properties(CODEGEN_API3 PROPERTIES
   FOLDER CMakePredefinedTargets
   )
 

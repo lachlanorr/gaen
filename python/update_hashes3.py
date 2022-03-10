@@ -29,7 +29,7 @@
 '''
 Pulls hash references out of code and updates hashes.h/cpp.
 
-Looks for patterns of type "HAHS::[a-zA-Z_][a-zA-Z0-9_]*" in the code, and
+Looks for patterns of type "HASH::[a-zA-Z_][a-zA-Z0-9_]*" in the code, and
 inserts the corresponding fnv hashes in src/engine/hashes.h/cpp.
 '''
 
@@ -76,7 +76,7 @@ def build_hash_list():
     hash_list = process_dir(DIRS.gaen_src_dir)
     if DIRS.is_project:
         hash_list += process_dir(DIRS.project_src_dir)
-    hash_list = [hash[len(b"HASH::"):] for hash in hash_list]
+    hash_list = [hash[len(b'HASH::'):] for hash in hash_list]
     hash_list = sorted(set(hash_list), key=lambda s: s.lower())
     hash_list = [(hash, fnv32a(hash)) for hash in hash_list]
     return hash_list
@@ -113,16 +113,13 @@ def write_file_if_different(path, new_data):
         print('Writing ' + str(path))
         path.write_bytes(new_data)
 
-def update_hashes_files():
+def update_hashes_files(binary_dir):
+    global DIRS
+    DIRS = dirs3.Dirs(binary_dir)
+
     hash_list = build_hash_list()
     write_file_if_different(DIRS.hashes_output_h_file, hashes_h_construct(hash_list))
     write_file_if_different(DIRS.hashes_output_cpp_file, hashes_cpp_construct(hash_list))
 
-def main():
-    global DIRS
-    DIRS = dirs3.Dirs(sys.argv[1])
-    update_hashes_files()
-
 if __name__=='__main__':
-    print(' '.join(sys.argv))
-    main()
+    update_hashes_files(sys.argv[1])
