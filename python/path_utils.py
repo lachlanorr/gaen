@@ -29,7 +29,7 @@
 import os
 import pathlib
 
-class Dirs:
+class Paths:
     def __init__(self, binary_dir):
         self.binary_dir = pathlib.Path(binary_dir)
 
@@ -46,6 +46,7 @@ class Dirs:
             self.project_dir = self.gaen_dir.parent
             self.project_src_dir = self.project_dir/'src'
             self.project_shaders_dir = self.project_src_dir/'shaders'
+            self.project_messages_def_yaml = self.project_src_dir/(self.project_name+'_lib')/'messages_def.yaml'
 
         else:
             self.is_project = False
@@ -53,16 +54,36 @@ class Dirs:
 
         self.scripts_output_dir = self.binary_gaen_dir/'src'/'gaen'/'scripts'
 
-        self.hashes_template_cpp_file = self.python_dir/'templates'/'hashes.cpp'
-        self.hashes_template_h_file = self.python_dir/'templates'/'hashes.h'
+        self.hashes_cpp_tpl = self.python_dir/'templates'/'hashes.cpp.tpl'
+        self.hashes_h_tpl = self.python_dir/'templates'/'hashes.h.tpl'
         self.hashes_output_dir = self.binary_gaen_dir/'src'/'gaen'/'hashes'
-        self.hashes_output_cpp_file = self.hashes_output_dir/'hashes3.cpp'
-        self.hashes_output_h_file = self.hashes_output_dir/'hashes3.h'
+        self.hashes_cpp = self.hashes_output_dir/'hashes3.cpp'
+        self.hashes_h = self.hashes_output_dir/'hashes3.h'
 
-        self.compose_compiler_cpp_file = self.gaen_src_dir/'gaen'/'compose'/'compiler.cpp'
-        self.system_api_meta_output_cpp_file = self.binary_gaen_dir/'src'/'gaen'/'compose'/'system_api_meta3.cpp'
-        self.system_api_meta_template_cpp_file = self.python_dir/'templates'/'system_api_meta.cpp'
+        self.compiler_cpp = self.gaen_src_dir/'gaen'/'compose'/'compiler.cpp'
+        self.system_api_meta_cpp = self.binary_gaen_dir/'src'/'gaen'/'compose'/'system_api_meta3.cpp'
+        self.system_api_meta_cpp_tpl = self.python_dir/'templates'/'system_api_meta.cpp.tpl'
 
+        self.engine_cmakelists_txt = self.gaen_src_dir/'gaen'/'engine'/'CMakeLists.txt'
+        self.messages_output_dir = self.binary_gaen_dir/'src'/'gaen'/'engine'/'messages3'
+        self.messages_cmake = self.messages_output_dir/'messages.cmake'
+        self.message_cpp_tpl = self.python_dir/'templates'/'message.cpp.tpl'
+        self.filelist_cmake_tpl = self.python_dir/'templates'/'filelist.cmake.tpl'
+        self.messages_def_yaml = self.gaen_src_dir/'gaen'/'engine'/'messages_def.yaml'
+        self.field_types_yaml = self.gaen_src_dir/'gaen'/'engine'/'field_types.yaml'
+
+def read_file(path):
+    if path.is_file():
+        return path.read_bytes()
+    return None
+
+def write_file_if_different(path, new_data):
+    curr_data = read_file(path)
+    if curr_data != new_data:
+        print("Writing " + str(path))
+        path.write_bytes(new_data)
+        return True
+    return False
 
 
 #SCRIPT_FILE       = pathlib.Path(os.path.abspath(__file__))

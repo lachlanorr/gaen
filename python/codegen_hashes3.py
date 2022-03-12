@@ -37,8 +37,7 @@ import sys
 import re
 import pathlib
 
-import dirs3
-DIRS = None
+import path_utils
 
 def fnv32a(s):
     hval = 0x811c9dc5
@@ -55,27 +54,27 @@ EXCLUDE_PATTERNS = [b'HASH::hash_func',
                     b'HASH::reverse_hash',
                     ]
 
-def process_file(path):
-    d = path.read_bytes()
+def process_file(fpath):
+    d = fpath.read_bytes()
     return [s for s in re.findall(b'HASH::[a-zA-Z_][a-zA-Z0-9_]*', d) if s not in EXCLUDE_PATTERNS]
 
-def should_process_file(path):
-    return (path.is_file() and
-            path.suffix in ['.h', '.cpp', '.mm'] and
-            not path.is_relative_to(DIRS.gaen_shaders_dir) and
-            not path.is_relative_to(DIRS.project_shaders_dir))
+def should_process_file(fpath, paths):
+    return (fpath.is_file() and
+            fpath.suffix in ['.h', '.cpp', '.mm'] and
+            not fpath.is_relative_to(paths.gaen_shaders_dir) and
+            not fpath.is_relative_to(paths.project_shaders_dir))
 
-def process_dir(path):
+def process_dir(path, paths):
     hashes = []
     for fpath in path.rglob('*'):
-        if should_process_file(fpath):
+        if should_process_file(fpath, paths):
             hashes += process_file(fpath)
     return hashes
 
-def build_hash_list():
-    hash_list = process_dir(DIRS.gaen_src_dir)
-    if DIRS.is_project:
-        hash_list += process_dir(DIRS.project_src_dir)
+def build_hash_list(paths):
+    hash_list = process_dir(paths.gaen_src_dir, paths)
+    if paths.is_project:
+        hash_list += process_dir(paths.project_src_dir, paths)
     hash_list = [hash[len(b'HASH::'):] for hash in hash_list]
     hash_list = sorted(set(hash_list), key=lambda s: s.lower())
     hash_list = [(hash, fnv32a(hash)) for hash in hash_list]
@@ -89,8 +88,8 @@ def hashes_declarations(hash_list):
     code = b''.join([b'    static const u32 %s%s = 0x%08x; // %10d\n' % (h[0], b' ' * (max_len-len(h[0])), h[1], h[1]) for h in hash_list])
     return code[:-1] # strip trailing \n
 
-def hashes_h_construct(hash_list):
-    htmpl = DIRS.hashes_template_h_file.read_bytes()
+def hashes_h_construct(hash_list, paths):
+    htmpl = paths.hashes_h_tpl.read_bytes()
     return htmpl.replace(b'${hashes_const_declarations}', hashes_declarations(hash_list))
 
 def hashes_initializations(hash_list):
@@ -98,28 +97,16 @@ def hashes_initializations(hash_list):
     code = b''.join([b'    if (HASH::hash_func("%s")%s != HASH::%s) %s PANIC("Hash mismatch between Python and C++");\n' % (h[0],b' ' * (max_len-len(h[0])),h[0],b' ' * (max_len-len(h[0]))) for h in hash_list])
     return code[:-1] # strip trailing \n
 
-def hashes_cpp_construct(hash_list):
-    cpptmpl = DIRS.hashes_template_cpp_file.read_bytes()
+def hashes_cpp_construct(hash_list, paths):
+    cpptmpl = paths.hashes_cpp_tpl.read_bytes()
     return cpptmpl.replace(b'${hashes_map_insertions}', hashes_initializations(hash_list))
 
-def is_file_different(path, data):
-    if not path.is_file():
-        return True
-    d = path.read_bytes()
-    return d != data
-
-def write_file_if_different(path, new_data):
-    if is_file_different(path, new_data):
-        print('Writing ' + str(path))
-        path.write_bytes(new_data)
-
 def update_hashes_files(binary_dir):
-    global DIRS
-    DIRS = dirs3.Dirs(binary_dir)
+    paths = path_utils.Paths(binary_dir)
 
-    hash_list = build_hash_list()
-    write_file_if_different(DIRS.hashes_output_h_file, hashes_h_construct(hash_list))
-    write_file_if_different(DIRS.hashes_output_cpp_file, hashes_cpp_construct(hash_list))
+    hash_list = build_hash_list(paths)
+    path_utils.write_file_if_different(paths.hashes_h, hashes_h_construct(hash_list, paths))
+    path_utils.write_file_if_different(paths.hashes_cpp, hashes_cpp_construct(hash_list, paths))
 
 if __name__=='__main__':
     update_hashes_files(sys.argv[1])

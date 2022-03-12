@@ -48,7 +48,7 @@ set_target_properties(CODEGEN_HASHES PROPERTIES
 
 add_custom_target(
   CODEGEN_HASHES3 ALL
-  C:/python310/python ${python_dir}/update_hashes3.py "${CMAKE_BINARY_DIR}"
+  C:/python310/python ${python_dir}/codegen_hashes3.py "${CMAKE_BINARY_DIR}"
   COMMENT "Generating hashes3.h/cpp"
   )
 

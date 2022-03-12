@@ -26,20 +26,19 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-import os
 import sys
-import posixpath
 import re
 
-import dirs3
-DIRS = None
+import path_utils
 
-class ParseUtil(object):
+class ParseUtil:
     '''
     Read types from compiler.cpp and prepare regular expressions
     '''
-    def __init__(self):
-        d = DIRS.compose_compiler_cpp_file.read_bytes()
+    def __init__(self, paths):
+        self.paths = paths
+
+        d = paths.compiler_cpp.read_bytes()
         lines = [line.rstrip() for line in d.split(b'\n')]
 
         self.cpp_types = []
@@ -53,14 +52,14 @@ class ParseUtil(object):
             else:
                 if b'}' in line:
                     if len(self.cpp_types) == 0 or len(self.cpp_types) != len(self.cmp_types):
-                        raise Exception('Failed to parse types in %s' % DIRS.compose_compiler_cpp_file)
+                        raise Exception('Failed to parse types in %s' % self.paths.compiler_cpp)
                     break
                 m = re.search(rb'register_basic_type\([^,]+,\s+\"([^\"]+)\",\s+\"([^\"]+)\",.*', line)
                 if m:
                     self.cmp_types.append(m.group(1))
                     self.cpp_types.append(m.group(2))
         if not in_cpp_type_str_func:
-            raise Exception('Failed to find types in %s' % DIRS.compose_compiler_cpp_file)
+            raise Exception('Failed to find types in %s' % self.paths.compiler_cpp)
 
         self.cpp_to_cmp_type = dict(zip(self.cpp_types, self.cmp_types))
         self.cmp_to_cpp_type = dict(zip(self.cmp_types, self.cpp_types))
@@ -98,9 +97,9 @@ def get_api_lines_in_dir(path, lines, includes, parseUtil):
 def get_api_lines(parseUtil):
     lines = []
     includes = []
-    get_api_lines_in_dir(DIRS.gaen_src_dir, lines, includes, parseUtil)
-    if DIRS.is_project:
-        get_api_lines_in_dir(DIRS.project_src_dir, lines, includes, parseUtil)
+    get_api_lines_in_dir(parseUtil.paths.gaen_src_dir, lines, includes, parseUtil)
+    if parseUtil.paths.is_project:
+        get_api_lines_in_dir(parseUtil.paths.project_src_dir, lines, includes, parseUtil)
     return lines, includes
 
 
@@ -204,24 +203,15 @@ def build_metadata(parseUtil):
     lines, includes = get_api_lines(parseUtil)
     api_strs = get_api_strs(lines, parseUtil)
     reg_apis = [reg_api(parse_api_str(api_str, parseUtil)) for api_str in api_strs]
-    tmpl = DIRS.system_api_meta_template_cpp_file.read_bytes()
-    return tmpl.replace(b'${reg_apis}', b''.join(reg_apis)), includes
-
-def read_file(path):
-    if path.is_file():
-        return path.read_bytes()
-    return b''
+    tpl = parseUtil.paths.system_api_meta_cpp_tpl.read_bytes()
+    return tpl.replace(b'${reg_apis}', b''.join(reg_apis)), includes
 
 def write_metadata(binary_dir):
-    global DIRS
-    DIRS = dirs3.Dirs(binary_dir)
+    paths = path_utils.Paths(binary_dir)
 
-    parseUtil = ParseUtil()
+    parseUtil = ParseUtil(paths)
     new_data, includes = build_metadata(parseUtil)
-    old_data = read_file(DIRS.system_api_meta_output_cpp_file)
-    if new_data != old_data:
-        print("Writing " + str(DIRS.system_api_meta_output_cpp_file))
-        DIRS.system_api_meta_output_cpp_file.write_bytes(new_data)
+    path_utils.write_file_if_different(paths.system_api_meta_cpp, new_data)
     return includes
 
 if __name__=='__main__':
