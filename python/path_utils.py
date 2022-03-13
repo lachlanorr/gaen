@@ -85,6 +85,8 @@ class Paths:
         self.scripts_cmakelists_txt = self.gaen_src_dir/'gaen'/'scripts'/'CMakeLists.txt'
         self.scripts_output_dir = self.binary_gaen_dir/'src'/'gaen'/'scripts'
         self.script_cpp_tpl = self.python_dir/'templates'/'script.cpp.tpl'
+        self.script_includes_h = self.scripts_output_dir/'script_includes.h'
+        self.script_includes_h_tpl = self.python_dir/'templates'/'script_includes.h.tpl'
         if os.name == 'nt':
             self.cmpc = self.binary_dir/'packaged'/'cmpc.exe'
         else:

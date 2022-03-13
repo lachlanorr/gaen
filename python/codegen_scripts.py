@@ -66,7 +66,7 @@ def write_file(fpath, data):
     fpath.write_bytes(data.encode('utf-8'))
 
 class ScriptInfo:
-    def __init__(self, cmp_full_path, includes, paths):
+    def __init__(self, cmp_full_path, paths):
         self.cmp_full_path = cmp_full_path
         out_path_work = paths.scripts_output_dir/'cpp'/(self.cmp_full_path.relative_to(paths.scripts_cmp_dir))
         self.cpp_full_path = out_path_work.with_suffix('.cpp')
@@ -87,7 +87,7 @@ class ScriptInfo:
             self.h_output_old, self.h_source_old, self.h_source_old_hash = read_cpp_file(self.h_full_path)
             self.h_source_old_hash_actual = hashlib.md5(self.h_source_old.encode('utf-8')).hexdigest()
 
-        self._compile(includes, paths)
+        self._compile(paths)
 
         cpp_tpl = string.Template(paths.script_cpp_tpl.read_text())
 
@@ -105,11 +105,9 @@ class ScriptInfo:
                                                source=self.h_source)
 
 
-    def _compile(self, includes, paths):
-        args = [paths.cmpc]
-        for inc in includes:
-            args += ['-i', inc]
-        args.append(self.cmp_full_path)
+    def _compile(self, paths):
+        rel_scr_inc = paths.script_includes_h.relative_to(paths.binary_dir/'gaen'/'src').as_posix()
+        args = [paths.cmpc, '-i', rel_scr_inc, self.cmp_full_path]
 
         # LORRNOTE: Printing these always isn't useful, but keeping
         # these lines commented out for future debugging purposes.
@@ -245,6 +243,15 @@ def write_cmake(cmp_files, cpp_files, h_files, paths):
 def find_cmp_files(paths):
     return list(paths.scripts_dir.rglob('*.cmp'))
 
+def write_script_includes(includes, paths):
+    include_lines = ['#include "%s"' % inc for inc in includes]
+    script_includes_h_tpl = string.Template(paths.script_includes_h_tpl.read_text())
+    script_includes_h = script_includes_h_tpl.substitute(source='\n'.join(include_lines),
+                                                         license_text=license_text('//', paths.project_LICENSE))
+    if not paths.script_includes_h.exists() or paths.script_includes_h.read_text() != script_includes_h:
+        print(paths.script_includes_h)
+        write_file(paths.script_includes_h, script_includes_h)
+
 def main(binary_dir):
     paths = path_utils.Paths(binary_dir)
 
@@ -254,6 +261,8 @@ def main(binary_dir):
     # recent api code
     parseUtil = codegen_api.ParseUtil(paths)
     new_data, includes = codegen_api.build_metadata(parseUtil)
+
+    write_script_includes(includes, paths)
 
     if not paths.cmpc.exists():
         print("ERROR: cmpc not found, do you need to build?")
@@ -268,7 +277,7 @@ def main(binary_dir):
 
     for fcmp in cmp_inputs:
         try:
-            si = ScriptInfo(fcmp, includes, paths)
+            si = ScriptInfo(fcmp, paths)
             si.write_cpp()
             script_infos.append(si)
             cmp_files.append(si.cmp_full_path)
