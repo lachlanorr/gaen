@@ -152,7 +152,7 @@ def checkdir(path):
             fullpath = posixpath.join(root.replace('\\', '/'), f)
             if not re.match(EXCLUDE_DIR_RE, fullpath):
                 if not checkfile(fullpath):
-                    print fullpath
+                    print(fullpath)
 
 def checkdirs():
     scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
@@ -161,4 +161,3 @@ def checkdirs():
 
 if __name__=='__main__':
     checkdirs()
-

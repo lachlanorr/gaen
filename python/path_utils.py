@@ -64,17 +64,17 @@ class Paths:
         self.hashes_cpp_tpl = self.python_dir/'templates'/'hashes.cpp.tpl'
         self.hashes_h_tpl = self.python_dir/'templates'/'hashes.h.tpl'
         self.hashes_output_dir = self.binary_gaen_dir/'src'/'gaen'/'hashes'
-        self.hashes_cpp = self.hashes_output_dir/'hashes3.cpp'
-        self.hashes_h = self.hashes_output_dir/'hashes3.h'
+        self.hashes_cpp = self.hashes_output_dir/'hashes.cpp'
+        self.hashes_h = self.hashes_output_dir/'hashes.h'
 
         # codegen_api
         self.compiler_cpp = self.gaen_src_dir/'gaen'/'compose'/'compiler.cpp'
-        self.system_api_meta_cpp = self.binary_gaen_dir/'src'/'gaen'/'compose'/'system_api_meta3.cpp'
+        self.system_api_meta_cpp = self.binary_gaen_dir/'src'/'gaen'/'compose'/'system_api_meta.cpp'
         self.system_api_meta_cpp_tpl = self.python_dir/'templates'/'system_api_meta.cpp.tpl'
 
         # codgen_messages
         self.engine_cmakelists_txt = self.gaen_src_dir/'gaen'/'engine'/'CMakeLists.txt'
-        self.messages_output_dir = self.binary_gaen_dir/'src'/'gaen'/'engine'/'messages3'
+        self.messages_output_dir = self.binary_gaen_dir/'src'/'gaen'/'engine'/'messages'
         self.messages_cmake = self.messages_output_dir/'messages.cmake'
         self.message_cpp_tpl = self.python_dir/'templates'/'message.cpp.tpl'
         self.messages_cmake_tpl = self.python_dir/'templates'/'messages.cmake.tpl'
@@ -83,7 +83,7 @@ class Paths:
 
         # codegen_scripts
         self.scripts_cmakelists_txt = self.gaen_src_dir/'gaen'/'scripts'/'CMakeLists.txt'
-        self.scripts_output_dir = self.binary_gaen_dir/'src'/'gaen'/'scripts3'
+        self.scripts_output_dir = self.binary_gaen_dir/'src'/'gaen'/'scripts'
         self.script_cpp_tpl = self.python_dir/'templates'/'script.cpp.tpl'
         if os.name == 'nt':
             self.cmpc = self.binary_dir/'packaged'/'cmpc.exe'

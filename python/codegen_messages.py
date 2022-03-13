@@ -27,37 +27,15 @@
 #-------------------------------------------------------------------------------
 
 import sys
-import posixpath
-import os
-import dirs
+import string
+
 from ruamel.yaml import YAML
 yaml = YAML()
 
-def read_file_data(path):
-    if not os.path.exists(path):
-        return None
-    with open(path, 'r') as f:
-        return f.read()
+import path_utils
 
-def replace_file_if_different(path, data):
-    if read_file_data(path) != data:
-        print 'Writing ' + path
-        with open(path, 'wb') as out_f:
-            out_f.write(data)
-            return True
-    return False
-
-def python_path():
-    scriptdir = os.path.split(os.path.abspath(__file__))[0].replace('\\', '/')
-    return scriptdir
-
-def gaen_path():
-    return posixpath.split(python_path())[0]
-
-def template_subst(template, replacements):
-    for k, v in replacements.iteritems():
-        template = template.replace('<<%s>>' % k, v)
-    return template
+DEFAULT_INCLUDES = ['gaen/engine/MessageWriter.h']
+CELLS_PER_BLOCK = 4 # cells per block, blocks are 16 bytes
 
 def gen_includes(includes):
     inc = []
@@ -67,38 +45,17 @@ def gen_includes(includes):
         inc.append('#include %s\n' % i)
     return ''.join(inc)
 
-def camel_to_underscores(s):
-    s = re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1_\2', s)
-    s = re.sub(r'([a-z\d])([A-Z])', r'\1_\2', s)
-    s = s.strip('_')
-    return s.lower()
-
-class Templates:
-    MessageClass   = read_file_data(posixpath.join(python_path(), 'templates/message_template.cpp'))
-    CmakeFileList  = read_file_data(posixpath.join(python_path(), 'templates/filelist_template.cmake'))
-
-def output_path():
-    return posixpath.join(sys.argv[1], 'messages')
-
-def messages_def_path():
-    if len(sys.argv) >= 3:
-        return sys.argv[2]
-    else:
-        return posixpath.join(gaen_path(), 'src/gaen/engine/messages_def.yaml')
-
-def field_types_path():
-    return posixpath.join(gaen_path(), 'src/gaen/engine/field_types.yaml')
-
-def gen_message_cmake(messages):
+def gen_message_cmake(messages, messages_cmake_tpl_path):
     lines = []
     for message in messages:
         lines.append('  "${CMAKE_CURRENT_BINARY_DIR}/messages/%s.h"' % message.name)
     lines.sort()
-    return template_subst(Templates.CmakeFileList, {'files'       : '\n'.join(lines),
-                                                    'autogen_type': 'messages'})
+    tpl = string.Template(messages_cmake_tpl_path.read_text())
+    return tpl.substitute({'files'       : '\n'.join(lines),
+                           'autogen_type': 'messages'})
 
-def read_yaml(path):
-    with open(path) as f:
+def read_yaml(fpath):
+    with fpath.open() as f:
         return yaml.load(f)
 
 class Field:
@@ -109,9 +66,14 @@ class Field:
 class Message:
     def __str__(self):
         return repr(self.__dict__)
+    def __repr__(self):
+        return repr(self.__dict__)
 
-DEFAULT_INCLUDES = ['gaen/engine/MessageWriter.h']
-CELLS_PER_BLOCK = 4 # cells per block, blocks are 16 bytes
+def upper_first(s):
+    return s[0].upper() + s[1:]
+
+def lower_first(s):
+    return s[0].lower() + s[1:]
 
 def find_next_fit(fields, curr_cell):
     for item in fields:
@@ -125,17 +87,11 @@ def find_next_fit(fields, curr_cell):
         return item
     return None
 
-def upper_first(s):
-    return s[0].upper() + s[1:]
-
-def lower_first(s):
-    return s[0].lower() + s[1:]
-
 def block_accessor(field):
     if field.cell_count == 1:
         return 'cells[%d]' % field.cell_index
     elif field.cell_count == 2:
-        return 'dCells[%d]' % (field.cell_index / 2,)
+        return 'dCells[%d]' % (field.cell_index // 2,)
     elif field.cell_count == 3:
         return 'tCellPad.tCell'
     elif field.cell_count == 4:
@@ -143,21 +99,21 @@ def block_accessor(field):
     else:
         raise Exception('Invalid field size for block accessor')
 
-def fixup_fields(d, field_types):
+def fixup_fields(msg, field_types):
     fields = []
-    includes = list(DEFAULT_INCLUDES)
+    includes = DEFAULT_INCLUDES.copy()
     has_payload = False
-    unassigned_item_count = len(d)
-    for k, v in d.iteritems():
+    unassigned_item_count = len(msg)
+    for name, fld in msg.items():
         newfield = Field()
-        newfield.name = k
+        newfield.name = name
         newfield.is_assigned = False
-        if type(v) == str:
-            newfield.type = v
+        if type(fld) == str:
+            newfield.type = fld
         else: # dict
-            newfield.__dict__.update(v)
-            newfield.type = v['type']
-            includes += v.get('includes', [])
+            newfield.__dict__.update(fld)
+            newfield.type = fld['type']
+            includes += fld.get('includes', [])
         # pull in defaults
         field = Field()
         ft = field_types[newfield.type]
@@ -179,7 +135,7 @@ def fixup_fields(d, field_types):
             field.getter_name = field.name
         field.setter_name = 'set' + upper_first(field.getter_name)
 
-        field.block_count = field.cell_count / CELLS_PER_BLOCK
+        field.block_count = field.cell_count // CELLS_PER_BLOCK
 
         # handle payload
         if not has_payload and field.cell_count == 1:
@@ -207,7 +163,7 @@ def fixup_fields(d, field_types):
             item.block_index = curr_block
             item.cell_index = curr_cell
 
-            curr_block += item.cell_count / CELLS_PER_BLOCK
+            curr_block += item.cell_count // CELLS_PER_BLOCK
             curr_cell += item.cell_count % CELLS_PER_BLOCK
 
             if curr_cell >= CELLS_PER_BLOCK:
@@ -229,14 +185,21 @@ def fixup_fields(d, field_types):
 
     return block_count, sorted(set(includes)), fields
 
-def parse_messages_def():
-    message_defs = read_yaml(messages_def_path())
-    field_types = read_yaml(field_types_path())
+def parse_messages_def(paths):
+    message_defs = read_yaml(paths.messages_def_yaml)
+    if paths.is_project:
+        proj_message_defs = read_yaml(paths.project_messages_def_yaml)
+        for name, msg in proj_message_defs.items():
+            if name in message_defs:
+                print("Warning: '%s' message defined in %s project will replace gaen version" % (k, paths.project_name))
+            message_defs[name] = msg
+
+    field_types = read_yaml(paths.field_types_yaml)
     messages = []
-    for k, v in message_defs.iteritems():
+    for name, msg in message_defs.items():
         m = Message()
-        m.name = k
-        m.block_count, m.includes, m.fields = fixup_fields(v, field_types)
+        m.name = name
+        m.block_count, m.includes, m.fields = fixup_fields(msg, field_types)
         messages.append(m)
     return messages
 
@@ -327,7 +290,7 @@ def gen_writer_setters(message):
             lines.append('    }')
     return '\n'.join(lines)
 
-def gen_message_class(message):
+def gen_message_class(message, message_cpp_tpl_path):
     repl = {'message_name_caps'      : message.name.upper(),
             'message_name'           : message.name,
             'message_name_indent'    : ' ' * (len(message.name) + 2),
@@ -340,28 +303,25 @@ def gen_message_class(message):
             'block_count'            : str(message.block_count),
             'writer_setters'         : gen_writer_setters(message),
     }
+    tpl = string.Template(message_cpp_tpl_path.read_text())
+    return tpl.substitute(repl)
 
-    return template_subst(Templates.MessageClass, repl)
+def gen_message_classes(binary_dir):
+    paths = path_utils.Paths(binary_dir)
 
-def gen_message_classes():
-    messages = parse_messages_def()
+    messages = parse_messages_def(paths)
 
-    if not os.path.exists(output_path()):
-        os.makedirs(output_path())
+    paths.messages_output_dir.mkdir(parents=True, exist_ok=True)
 
     for message in messages:
-        cpp_data = gen_message_class(message)
-        cpp_path = posixpath.join(output_path(), message.name + '.h')
-        replace_file_if_different(cpp_path, cpp_data)
-    cmake_data = gen_message_cmake(messages)
-    cmake_path = posixpath.join(output_path(), 'messages.cmake')
-    if replace_file_if_different(cmake_path, cmake_data):
+        h_data = gen_message_class(message, paths.message_cpp_tpl)
+        h_path = paths.messages_output_dir/(message.name + '.h')
+        path_utils.write_file_if_different(h_path, h_data.encode('utf-8'))
+    cmake_data = gen_message_cmake(messages, paths.messages_cmake_tpl)
+    if path_utils.write_file_if_different(paths.messages_cmake, cmake_data.encode('utf-8')):
         # touch the engine/CMakeLists.txt file since we generated
         # messages.cmake and want to poke cmake to reprocess
-        os.utime(posixpath.join(dirs.GAEN_SRC_DIR, 'gaen/engine/CMakeLists.txt'), None)
-
+        paths.engine_cmakelists_txt.touch()
 
 if __name__ == '__main__':
-    gen_message_classes()
-
-
+    gen_message_classes(sys.argv[1])

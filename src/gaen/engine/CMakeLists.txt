@@ -101,21 +101,11 @@ target_link_libraries(gaen_engine PUBLIC
 # Run each time we build.
 add_custom_target(
   CODEGEN_MESSAGES ALL
-  C:/python27/python ${python_dir}/codegen_messages.py "${CMAKE_CURRENT_BINARY_DIR}"
+  C:/python310/python ${python_dir}/codegen_messages.py "${CMAKE_BINARY_DIR}"
   COMMENT "Generating message classes"
   )
 
 set_target_properties(CODEGEN_MESSAGES PROPERTIES
-  FOLDER CMakePredefinedTargets
-  )
-
-add_custom_target(
-  CODEGEN_MESSAGES3
-  C:/python310/python ${python_dir}/codegen_messages3.py "${CMAKE_BINARY_DIR}"
-  COMMENT "Generating message classes 3"
-  )
-
-set_target_properties(CODEGEN_MESSAGES3 PROPERTIES
   FOLDER CMakePredefinedTargets
   )
 
