@@ -50,15 +50,28 @@ source_group("" FILES "DUMMY.cpp")
 
 add_custom_target(
   CODEGEN_SCRIPTS ALL
-  python ${python_dir}/codegen.py "${CMAKE_SOURCE_DIR}/src/scripts" "${CMAKE_CURRENT_BINARY_DIR}"
+  C:/python27/python ${python_dir}/codegen_scripts.py "${CMAKE_SOURCE_DIR}/src/scripts" "${CMAKE_CURRENT_BINARY_DIR}"
   # re-run update_hashes.py since generated .cpp files will likely
   # have new hashes to consider.
-  COMMAND python ${python_dir}/update_hashes.py "${CMAKE_CURRENT_BINARY_DIR}/../hashes"
+  COMMAND C:/python27/python ${python_dir}/update_hashes.py "${CMAKE_CURRENT_BINARY_DIR}/../hashes"
   DEPENDS cmpc
   COMMENT "Generating scripts"
   )
 
 set_target_properties(CODEGEN_SCRIPTS PROPERTIES
+  FOLDER CMakePredefinedTargets
+  )
+
+add_custom_target(
+  CODEGEN_SCRIPTS3
+  C:/python310/python ${python_dir}/codegen_scripts3.py "${CMAKE_BINARY_DIR}"
+  # re-run update_hashes.py since generated .cpp files will likely
+  # have new hashes to consider.
+  DEPENDS cmpc
+  COMMENT "Generating scripts 3"
+  )
+
+set_target_properties(CODEGEN_SCRIPTS3 PROPERTIES
   FOLDER CMakePredefinedTargets
   )
 

@@ -45,12 +45,12 @@ def gen_includes(includes):
         inc.append('#include %s\n' % i)
     return ''.join(inc)
 
-def gen_message_cmake(messages, filelist_cmake_tpl_path):
+def gen_message_cmake(messages, messages_cmake_tpl_path):
     lines = []
     for message in messages:
         lines.append('  "${CMAKE_CURRENT_BINARY_DIR}/messages/%s.h"' % message.name)
     lines.sort()
-    tpl = string.Template(filelist_cmake_tpl_path.read_text())
+    tpl = string.Template(messages_cmake_tpl_path.read_text())
     return tpl.substitute({'files'       : '\n'.join(lines),
                            'autogen_type': 'messages'})
 
@@ -317,7 +317,7 @@ def gen_message_classes(binary_dir):
         h_data = gen_message_class(message, paths.message_cpp_tpl)
         h_path = paths.messages_output_dir/(message.name + '.h')
         path_utils.write_file_if_different(h_path, h_data.encode('utf-8'))
-    cmake_data = gen_message_cmake(messages, paths.filelist_cmake_tpl)
+    cmake_data = gen_message_cmake(messages, paths.messages_cmake_tpl)
     if path_utils.write_file_if_different(paths.messages_cmake, cmake_data.encode('utf-8')):
         # touch the engine/CMakeLists.txt file since we generated
         # messages.cmake and want to poke cmake to reprocess
