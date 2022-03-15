@@ -166,6 +166,7 @@ QbtUP Qbt::load_from_file(const char * path)
 
     if (colorCount > 0)
     {
+        PANIC("Palletized qbt not supported, if we find one of these (and get this error), we should code up pallete lookup after reading in the voxels");
         pQbt->colors.resize(colorCount);
         rdr.ifs.read((char*)pQbt->colors.data(), colorCount * sizeof(Color));
         PANIC_IF(!rdr.ifs.good() || rdr.ifs.gcount() != colorCount * sizeof(Color), "Failed to read color map, EOF");
