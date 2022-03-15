@@ -27,6 +27,8 @@
 #ifndef GAEN_CHEF_COOKERS_MODEL_H
 #define GAEN_CHEF_COOKERS_MODEL_H
 
+#include <rapidjson/document.h>
+
 #include "gaen/assets/Gmdl.h"
 #include "gaen/chef/Cooker.h"
 

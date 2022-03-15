@@ -24,7 +24,11 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "gaen/chef/stdafx.h"
+#include <regex>
+
+#include <assimp/cimport.h>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include "gaen/math/common.h"
 #include "gaen/math/vec2.h"

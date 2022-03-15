@@ -24,8 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "gaen/chef/stdafx.h"
-
 #include "gaen/core/base_defines.h"
 #include "gaen/core/thread_local.h"
 #include "gaen/core/hashing.h"
@@ -48,6 +46,7 @@
 #include "gaen/chef/cookers/Image.h"
 #include "gaen/chef/cookers/Model.h"
 #include "gaen/chef/cookers/Sprite.h"
+#include "gaen/chef/cookers/Qubicle.h"
 
 namespace gaen
 {
@@ -61,6 +60,7 @@ void register_cookers()
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Image)));
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Model)));
     CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Sprite)));
+    CookerRegistry::register_cooker(UniquePtr<Cooker>(GNEW(kMEM_Chef, cookers::Qubicle)));
 
     register_project_cookers();
 }

@@ -29,6 +29,9 @@
 
 #include <cstdio>
 
+#define PNG_DEBUG 3
+#include <png.h>
+
 #include "gaen/core/mem.h"
 #include "gaen/assets/Gimg.h"
 #include "gaen/chef/cooker_utils.h"

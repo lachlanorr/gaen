@@ -24,8 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "gaen/chef/stdafx.h"
-
 #include "gaen/assets/file_utils.h"
 #include "gaen/assets/Config.h"
 #include "gaen/assets/Gspr.h"

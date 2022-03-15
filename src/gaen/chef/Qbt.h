@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.cpp - Precompiled headers
+// Qbt.h - Qubicle binary tree reader
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,4 +24,63 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "gaen/chef/stdafx.h"
+#ifndef GAEN_CHEF_QBT_H
+#define GAEN_CHEF_QBT_H
+
+#include "gaen/math/vec3.h"
+#include "gaen/core/String.h"
+#include "gaen/core/Vector.h"
+#include "gaen/assets/Color.h"
+
+namespace gaen
+{
+
+static const u32 kQbtMagic = 0x32204251; // 'QB 2' little endian
+
+enum QbtNodeType : u32
+{
+    kQBNT_Matrix   = 0,
+    kQBNT_Model    = 1,
+    kQBNT_Compound = 2
+};
+
+struct QbtNode
+{
+    const QbtNode * pParent;
+    Vector<kMEM_Chef, UniquePtr<QbtNode>> children;
+
+    QbtNodeType typeId;
+    ChefString name;
+    ivec3 position;
+    uvec3 localScale;
+    vec3 pivot;
+    uvec3 size;
+    Vector<kMEM_Chef, Color> voxels;
+
+    QbtNode()
+      : pParent(nullptr)
+      , typeId(kQBNT_Matrix)
+      , position(0)
+      , localScale(0)
+      , pivot(0)
+      , size(0)
+    {}
+};
+typedef UniquePtr<QbtNode> QbtNodeUP;
+
+struct Qbt
+{
+    Vector<kMEM_Chef, Color> colors;
+
+    QbtNodeUP pRoot;
+    Qbt()
+      : pRoot(nullptr)
+    {}
+
+    static UniquePtr<Qbt> load_from_file(const char * path);
+};
+typedef UniquePtr<Qbt> QbtUP;
+
+} // namespace gaen
+
+#endif // #ifndef GAEN_CHEF_QBT_H

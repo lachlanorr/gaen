@@ -24,8 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "gaen/chef/stdafx.h"
-
 #include "gaen/core/mem.h"
 #include "gaen/assets/Gimg.h"
 

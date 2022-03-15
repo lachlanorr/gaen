@@ -24,8 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "gaen/chef/stdafx.h"
-
 #include "gaen/chef/Chef.h"
 #include "gaen/chef/Cooker.h"
 

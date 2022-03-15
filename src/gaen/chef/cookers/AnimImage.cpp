@@ -24,8 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "gaen/chef/stdafx.h"
-
 #include "gaen/core/Vector.h"
 #include "gaen/core/hashing.h"
 #include "gaen/hashes/hashes.h"

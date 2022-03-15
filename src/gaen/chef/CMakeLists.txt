@@ -37,6 +37,8 @@ set(cooker_SOURCES
   cookers/Image.h
   cookers/Model.cpp
   cookers/Model.h
+  cookers/Qubicle.cpp
+  cookers/Qubicle.h
   cookers/Sprite.cpp
   cookers/Sprite.h
   )
@@ -56,6 +58,8 @@ set(chef_SOURCES
   main_chef.cpp
   Png.cpp
   Png.h
+  Qbt.cpp
+  Qbt.h
   Tga.cpp
   Tga.h
   Tiff.cpp

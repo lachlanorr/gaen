@@ -24,8 +24,6 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "gaen/chef/stdafx.h"
-
 #include <tiffio.h>
 
 #include "gaen/assets/Gimg.h"

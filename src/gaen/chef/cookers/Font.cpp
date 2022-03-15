@@ -24,7 +24,10 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "gaen/chef/stdafx.h"
+#include <codecvt>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #include "gaen/core/thread_local.h"
 

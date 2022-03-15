@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.h - Precompiled headers
+// Qubicle.h - Qubicle binary file cooker
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,23 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_STDAFX_H
-#define GAEN_CHEF_STDAFX_H
+#ifndef GAEN_CHEF_COOKERS_QUBICLE_H
+#define GAEN_CHEF_COOKERS_QUBICLE_H
 
-#include <codecvt>
-#include <cstring>
-#include <regex>
+#include "gaen/chef/Cooker.h"
 
-#define PNG_DEBUG 3
-#include <png.h>
+namespace gaen
+{
+namespace cookers
+{
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
+static const char * kExtQbt = "qbt";
+static const char * kExtGqbt = "gqbt";
 
-#include <assimp/cimport.h>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+class Qubicle : public Cooker
+{
+public:
+    Qubicle();
+    virtual void cook(CookInfo * pCookInfo) const;
+};
 
-#include <rapidjson/document.h>
+}
+} // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_STDAFX_H
+#endif // #ifndef GAEN_CHEF_COOKERS_QUBICLE_H
