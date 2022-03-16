@@ -27,9 +27,9 @@
 #include "gaen/core/String.h"
 #include "gaen/core/Vector.h"
 
-#include "gaen/chef/CookInfo.h"
-
+#include "gaen/chef/chef.h"
 #include "gaen/chef/Qbt.h"
+#include "gaen/chef/Png.h"
 
 #include "gaen/chef/cookers/Model.h"
 #include "gaen/chef/cookers/Image.h"
@@ -49,23 +49,127 @@ Qubicle::Qubicle()
     addCookedExtExclusive(kExtGqbt);
 }
 
+typedef HashMap<kMEM_Chef, ChefString, const QbtNode*> NodesMap;
+
+static void get_matrices(NodesMap & nodes, const QbtNode & node)
+{
+    if (node.typeId == kQBNT_Matrix)
+    {
+        nodes[node.name] = &node;
+    }
+    else
+    {
+        for (u32 i = 0; i < node.children.size(); ++i)
+        {
+            get_matrices(nodes, *node.children[i]);
+        }
+    }
+}
+
+static NodesMap get_compound_matrices(const Qbt & qbt, const char * topLevelCompound)
+{
+    NodesMap nodes;
+
+    if (qbt.pRoot)
+    {
+        for (u32 i = 0; i < qbt.pRoot->children.size(); ++i)
+        {
+            if (qbt.pRoot->children[i]->name == topLevelCompound && qbt.pRoot->children[i]->typeId == kQBNT_Compound)
+            {
+                get_matrices(nodes, *qbt.pRoot->children[i]);
+            }
+        }
+    }
+
+    return nodes;
+}
+
+static void build_diffuse(Gimg* pGimg, const QbtNode & matrix)
+{
+    PANIC_IF(matrix.typeId != kQBNT_Matrix, "Not a matrix: '%s', %d", matrix.name.c_str(), matrix.typeId);
+
+    pGimg->clear(Color(0,0,0,0));
+
+    u32 centerXR = matrix.size.x / 2;
+    u32 centerXL = centerXR - 1;
+
+    u32 backHalf = matrix.size.z / 2;
+
+    bool yShouldAdvance = true;
+    Color *pScanLine, *pScanLeft, *pScanRight;
+    u32 currLine = 0;
+    for (i32 ymat = matrix.size.y-1; ymat >= 0; --ymat)
+    {
+        if (yShouldAdvance) // if the last time through we found a non-null voxel
+        {
+            pScanLine = (Color*)pGimg->scanline(currLine++);
+            pScanLeft = pScanLine + pGimg->width() / 2;
+            pScanRight = pScanLeft + 1;
+            yShouldAdvance = false;
+        }
+
+        for (i32 zmat = matrix.size.z-1; zmat > backHalf; --zmat)
+        {
+            // do left side
+            for (i32 xmat = centerXL; xmat >= 0; --xmat)
+            {
+                const Color & col = matrix.voxel(xmat, ymat, zmat);
+                if (col.a() > 1) // a == 1 means a core voxel
+                {
+                    yShouldAdvance = true;
+                    *pScanLeft = col;
+                    pScanLeft->seta(255);
+                    pScanLeft--;
+                }
+            }
+
+            // do right side
+            for (i32 xmat = centerXR; xmat < matrix.size.x; ++xmat)
+            {
+                const Color & col = matrix.voxel(xmat, ymat, zmat);
+                if (col.a() > 1) // a == 1 means a core voxel
+                {
+                    yShouldAdvance = true;
+                    *pScanRight = col;
+                    pScanRight->seta(255);
+                    pScanRight++;
+                }
+            }
+        }
+    }
+}
+
+// NOTE:
+// Texture map for center of pixel
+//u = x / width + 0.5 / width;
+//v = y / height + 0.5 / height;
 
 void Qubicle::cook(CookInfo * pCookInfo) const
 {
     QbtUP pQbTree = Qbt::load_from_file(pCookInfo->rawPath().c_str());
 
+    NodesMap baseMatrices = get_compound_matrices(*pQbTree, "Base");
+
+    static const u32 kImgDim = 256;
+    Scoped_GFREE<Gimg> pGimg = Gimg::create(kPXL_RGBA8, kImgDim, kImgDim, Image::reference_path_hash(pCookInfo));
+
+    build_diffuse(pGimg.get(), *baseMatrices["Chest"]);
 /*
     // Create an image for our diffuse map
     u32 glyphsPerRow = (u32)(sqrt((f32)utf32Codes.size()) + 0.5f);
     u32 imgHeight = next_power_of_two(glyphsPerRow * glyphHeight);
     Scoped_GFREE<Gimg> pGimg = Gimg::create(kPXL_R8, imgHeight, imgHeight, Image::reference_path_hash(pCookInfo));
-
+*/
+    // Make any directories needed to write transitory .png and .atl
     ChefString objTransPath = pCookInfo->chef().getRawTransPath(pCookInfo->rawPath(), kExtObj);
     ChefString pngTransPath = pCookInfo->chef().getRawTransPath(pCookInfo->rawPath(), kExtPng);
 
-    // Make any directories needed to write transitory .png and .atl
     ChefString transDir = parent_dir((const ChefString&)pngTransPath);
     make_dirs(transDir.c_str());
+
+    Png::write_gimg(pngTransPath.c_str(), pGimg.get(), false);
+
+/*
 
     // Write .png transitory output file
     Png::write_gimg(pngTransPath.c_str(), pGimg.get());

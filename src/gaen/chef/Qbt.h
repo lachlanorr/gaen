@@ -57,6 +57,9 @@ struct QbtNode
     uvec3 size;
     Vector<kMEM_Chef, Color> voxels;
 
+    const Color & voxel(u32 x, u32 y, u32 z) const;
+    const Color& voxel(const uvec3 & coord) const;
+
     QbtNode()
       : pParent(nullptr)
       , typeId(kQBNT_Matrix)

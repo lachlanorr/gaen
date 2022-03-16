@@ -44,6 +44,19 @@ struct WorkBuffers
     {}
 };
 
+const Color& QbtNode::voxel(u32 x, u32 y, u32 z) const
+{
+    PANIC_IF(x >= size.x || y >= size.y || z >= size.z, "Invalid coords for voxel");
+    u32 idx = x * size.z * size.y + z * size.y + y;
+    PANIC_IF(idx >= voxels.size(), "idx calculation error");
+    return voxels[idx];
+}
+
+const Color& QbtNode::voxel(const uvec3 & coord) const
+{
+    return voxel(coord.x, coord.y, coord.z);
+}
+
 static ChefString read_qbt_node_name(FileReader & rdr)
 {
     static const u32 kMaxNameLen = 255;
@@ -92,7 +105,9 @@ static void read_qbt_voxel_data(QbtNode & node, FileReader & rdr, WorkBuffers & 
     }
     PANIC_IF(ret != Z_OK, "Failed to zlib uncompress: %d", ret);
     PANIC_IF(uncompSize % sizeof(Color) != 0, "zlib uncompress size not a multiple of Color size: %d", uncompSize);
-    node.voxels.resize(uncompSize / sizeof(Color));
+    u32 voxCount = uncompSize / sizeof(Color);
+    PANIC_IF(voxCount != node.size.x * node.size.y * node.size.z, "Voxel count mismatches size %d, vs (%d, %d, %d)", voxCount, node.size.x, node.size.y, node.size.z);
+    node.voxels.resize(voxCount);
     memcpy(node.voxels.data(), bufs.uncomp.data(), uncompSize);
 }
 
