@@ -76,7 +76,7 @@ Gimg * Image::load_png(const char * path, u32 referencePathHash, PixelFormat pix
 
     // Convert to a Gimg with same-ish pixel format
     Gimg * pGimgPng;
-    pPng->convertToGimg(&pGimgPng, referencePathHash);
+    pPng->convertToGimg(&pGimgPng, referencePathHash, true);
     Scoped_GFREE<Gimg> pGimg_sp(pGimgPng);
 
     // Convert the pixel format if necessary

@@ -105,7 +105,7 @@ ImageInfo Png::read_image_info(const char * path)
     return imgInf;
 }
 
-void Png::write_gimg(const char * path, const Gimg * pGimg)
+void Png::write_gimg(const char * path, const Gimg * pGimg, bool flip)
 {
     ASSERT(path);
     ASSERT(pGimg);
@@ -143,7 +143,11 @@ void Png::write_gimg(const char * path, const Gimg * pGimg)
 
     for (u32 line = 0; line < pGimg->height(); ++line)
     {
-        const u8 * gimgLine = pGimg->scanline(pGimg->height() - line - 1); // reverse row order for opengl
+        const u8 * gimgLine;
+        if (flip)
+            gimgLine = pGimg->scanline(pGimg->height() - line - 1); // reverse row order for opengl
+        else
+            gimgLine = pGimg->scanline(line);
         png_write_row(png.mpPng, gimgLine);
     }
 
@@ -210,7 +214,7 @@ int Png::pixel_format_to_color_type(PixelFormat pixelFormat)
 
 
 // Callers should GFREE pGimg
-void Png::convertToGimg(Gimg ** pGimgOut, u32 referencePathHash)
+void Png::convertToGimg(Gimg ** pGimgOut, u32 referencePathHash, bool flip)
 {
     ASSERT(mppRows);
 
@@ -227,7 +231,11 @@ void Png::convertToGimg(Gimg ** pGimgOut, u32 referencePathHash)
     for (u32 line = 0; line < mHeight; ++line)
     {
         u8 * pngLine = scanline(line);
-        u8 * gimgLine = pGimg->scanline(pGimg->height() - line - 1); // reverse row order for opengl
+        u8 * gimgLine;
+        if (flip)
+            gimgLine = pGimg->scanline(pGimg->height() - line - 1); // reverse row order for opengl
+        else
+            gimgLine = pGimg->scanline(line);
 
         for (u32 pix = 0; pix < mWidth; ++pix)
         {

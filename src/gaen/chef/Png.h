@@ -43,7 +43,7 @@ class Png
 public:
     static UniquePtr<Png> read(const char * path);
     static ImageInfo read_image_info(const char * path);
-    static void write_gimg(const char * path, const Gimg * pGimg);
+    static void write_gimg(const char * path, const Gimg * pGimg, bool flip);
     static PixelFormat color_type_to_pixel_format(int colorType);
     static int pixel_format_to_color_type(PixelFormat pixelFormat);
 
@@ -58,7 +58,7 @@ public:
     u8 * scanline(u32 idx);
 
     // Callers should GFREE pGimg
-    void convertToGimg(Gimg ** pGimgOut, u32 referencePathHash);
+    void convertToGimg(Gimg ** pGimgOut, u32 referencePathHash, bool flip);
 
 private:
     Png();

@@ -272,7 +272,7 @@ void Font::cook(CookInfo * pCookInfo) const
     make_dirs(transDir.c_str());
 
     // Write .png transitory output file
-    Png::write_gimg(pngTransPath.c_str(), pGimg.get());
+    Png::write_gimg(pngTransPath.c_str(), pGimg.get(), true);
     UniquePtr<CookInfo> pCiPng = pCookInfo->chef().forceCook(pngTransPath);
     pCookInfo->transferCookResult(*pCiPng, kExtGimg);
 
