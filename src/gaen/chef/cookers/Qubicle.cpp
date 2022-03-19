@@ -410,20 +410,11 @@ struct VoxObj
         struct Face
         {
             u32 points[4];
-            u32 uvs[4];
+            u32 uv;
             u32 normal;
         };
 
         HashMap<kMEM_Chef, ChefString, Vector<kMEM_Chef, Face>> faceMap;
-        Vector<kMEM_Chef, vec2> uvAdjusted;
-
-        f32 quarterPixel = 0.25 / (f32)pGimgDiffuse->width();
-        std::array<vec2, 4> uvOff{
-            vec2(-quarterPixel, quarterPixel),
-            vec2(quarterPixel, quarterPixel),
-            vec2(quarterPixel, -quarterPixel),
-            vec2(-quarterPixel, -quarterPixel)
-        };
 
         for (const auto & part : pType->parts)
         {
@@ -434,6 +425,7 @@ struct VoxObj
                 auto & faces = faceMap[matrix.node.name];
 
                 Face face;
+                face.uv = quad.pixelIdx;
                 face.normal = normalIdxs.find(quad.side)->second;
                 for (u32 i = 0; i < 4; ++i)
                 {
@@ -451,10 +443,6 @@ struct VoxObj
                         vertToPoint[scaledVert] = pointIdx;
                     }
                     face.points[i] = pointIdx;
-
-                    vec2 adjUv = pixels[quad.pixelIdx].uv + uvOff[i];
-                    uvAdjusted.push_back(adjUv);
-                    face.uvs[i] = uvAdjusted.size()-1;
                 }
                 faces.push_back(face);
             }
@@ -509,9 +497,9 @@ struct VoxObj
         }
         objWrtr.ofs.write("\n", 1);
 
-        for (const auto & uvAdj : uvAdjusted)
+        for (const auto & pix : pixels)
         {
-            snprintf(tempStr.data(), tempStr.size(), "vt %f %f\n", uvAdj.x, uvAdj.y);
+            snprintf(tempStr.data(), tempStr.size(), "vt %f %f\n", pix.uv.x, pix.uv.y);
             objWrtr.ofs.write(tempStr.data(), strlen(tempStr.data()));
         }
         objWrtr.ofs.write("\n", 1);
@@ -527,10 +515,10 @@ struct VoxObj
             for (const auto & face : faces)
             {
                 snprintf(tempStr.data(), tempStr.size(), "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n",
-                         face.points[0]+1, face.uvs[0]+1, face.normal+1,
-                         face.points[1]+1, face.uvs[1]+1, face.normal+1,
-                         face.points[2]+1, face.uvs[2]+1, face.normal+1,
-                         face.points[3]+1, face.uvs[3]+1, face.normal+1);
+                         face.points[0]+1, face.uv+1, face.normal+1,
+                         face.points[1]+1, face.uv+1, face.normal+1,
+                         face.points[2]+1, face.uv+1, face.normal+1,
+                         face.points[3]+1, face.uv+1, face.normal+1);
                 objWrtr.ofs.write(tempStr.data(), strlen(tempStr.data()));
             }
         }
