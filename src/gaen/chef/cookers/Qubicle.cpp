@@ -225,11 +225,11 @@ static const void process_matrix(VoxPixelVec & pixels, VoxMatrix & matrix)
     matrix.worldPos = qbt_node_world_pos(matrix.node);
     vec3 worldPos = vec3(matrix.worldPos.x, matrix.worldPos.y, matrix.worldPos.z);
 
-    for (u32 x = 0; x < matrix.node.size.x; x++)
+    for (i32 y = matrix.node.size.y-1; y >= 0; y--)
     {
-        for (u32 z = 0; z < matrix.node.size.z; z++)
+        for (i32 z = matrix.node.size.z-1; z >= 0; z--)
         {
-            for (u32 y = 0; y < matrix.node.size.y; y++)
+            for (i32 x = 0; x < matrix.node.size.x; x++)
             {
                 Color col = matrix.node.voxel(x, y, z);
                 if (col.a() > 1) // 1 means core voxel
