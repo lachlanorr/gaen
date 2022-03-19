@@ -113,7 +113,7 @@ void light_color(i32 uid,
                  Color color,
                  Entity * pCaller)
 {
-    messages::UidColorBW msgw(HASH::light_update,
+    messages::UidColorBW msgw(HASH::light_color,
                               kMessageFlag_None,
                               pCaller->task().id(),
                               kRendererTaskId,
