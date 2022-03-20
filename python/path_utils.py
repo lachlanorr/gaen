@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #-------------------------------------------------------------------------------
-# dirs.py - Shared utils to find various dirs within gaen
+# path_utils.py - Shared utils to find various dirs within gaen
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014-2022 Lachlan Orr

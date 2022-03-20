@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #-------------------------------------------------------------------------------
-# update_hashes.py - Pulls fnv references out of code and updates hashes.h/cpp
+# codegen_hashes.py - Pulls fnv references out of code and updates hashes.h/cpp
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014-2022 Lachlan Orr

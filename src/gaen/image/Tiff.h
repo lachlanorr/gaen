@@ -24,13 +24,13 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_TIFF_H
-#define GAEN_CHEF_TIFF_H
+#ifndef GAEN_IMAGE_TIFF_H
+#define GAEN_IMAGE_TIFF_H
 
 #include "gaen/core/mem.h"
-#include "gaen/chef/cooker_utils.h"
 #include "gaen/core/String.h"
 #include "gaen/core/Vector.h"
+#include "gaen/image/ImageInfo.h"
 
 struct tiff;
 class Gimg;
@@ -88,7 +88,6 @@ private:
     Vector<kMEM_Chef, LayerInfo> mLayers;
 };
 
-
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_TIFF_H
+#endif // #ifndef GAEN_IMAGE_TIFF_H

@@ -24,29 +24,31 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-#libs
-add_subdirectory(core)
-add_subdirectory(math)
-add_subdirectory(hashes)
-add_subdirectory(assets)
-add_subdirectory(image)
-add_subdirectory(voxel)
-add_subdirectory(cara)
-add_subdirectory(engine)
-add_subdirectory(render_support)
-add_subdirectory(audio)
-add_subdirectory(shader_gen)
-add_subdirectory(renderergl)
-add_subdirectory(compose)
-add_subdirectory(scripts)
-add_subdirectory(platform)
+set(gaen_image_SOURCES
+  ImageInfo.cpp
+  ImageInfo.h
+  Png.cpp
+  Png.h
+  Tga.cpp
+  Tga.h
+  Tiff.cpp
+  Tiff.h
+  )
 
-#exes
-if(NOT IOS)
-  add_subdirectory(chef)
-  add_subdirectory(cmpc)
-  add_subdirectory(gac)
-  if(gaen_BUILD_TESTS)
-    add_subdirectory(tests)
-  endif()
-endif()
+source_group("" FILES ${gaen_image_SOURCES})
+
+add_compile_definitions(IS_BUILD_Tool=1)
+
+add_library(gaen_image STATIC
+  ${gaen_image_SOURCES}
+  )
+
+set_target_properties(gaen_image PROPERTIES
+  FOLDER lib
+  )
+
+target_link_libraries(gaen_image
+  gaen_assets
+  png_static
+  tiff
+  )

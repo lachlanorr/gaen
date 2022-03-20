@@ -29,7 +29,6 @@
 #include "gaen/assets/Gspr.h"
 #include "gaen/assets/Gatl.h"
 
-#include "gaen/chef/cooker_utils.h"
 #include "gaen/chef/CookInfo.h"
 #include "gaen/chef/cookers/Sprite.h"
 

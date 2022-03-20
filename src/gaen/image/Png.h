@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_PNG_H
-#define GAEN_CHEF_PNG_H
+#ifndef GAEN_IMAGE_PNG_H
+#define GAEN_IMAGE_PNG_H
 
 #include <cstdio>
 
@@ -34,7 +34,7 @@
 
 #include "gaen/core/mem.h"
 #include "gaen/assets/Gimg.h"
-#include "gaen/chef/cooker_utils.h"
+#include "gaen/image/ImageInfo.h"
 
 namespace gaen
 {
@@ -89,4 +89,4 @@ private:
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_PNG_H
+#endif // #ifndef GAEN_IMAGE_PNG_H

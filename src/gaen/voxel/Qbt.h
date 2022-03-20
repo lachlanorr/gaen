@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// cooker_utils.cpp - Shared utilities used by various cookers
+// Qbt.h - Qubicle binary tree reader
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,39 +24,66 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "gaen/assets/file_utils.h"
+#ifndef GAEN_VOXEL_QBT_H
+#define GAEN_VOXEL_QBT_H
 
-#include "gaen/chef/Png.h"
-#include "gaen/chef/Tga.h"
-
-#include "gaen/chef/cooker_utils.h"
+#include "gaen/math/vec3.h"
+#include "gaen/core/String.h"
+#include "gaen/core/Vector.h"
+#include "gaen/assets/Color.h"
 
 namespace gaen
 {
 
-ImageInfo read_image_info(const char * path)
+static const u32 kQbtMagic = 0x32204251; // 'QB 2' little endian
+
+enum QbtNodeType : u32
 {
-    const char * ext = get_ext(path);
+    kQBNT_Matrix   = 0,
+    kQBNT_Model    = 1,
+    kQBNT_Compound = 2
+};
 
-    if (0 == strcmp(ext, "png"))
-    {
-        return Png::read_image_info(path);
-    }
-    else if (0 == strcmp(ext, "tga"))
-    {
-        FileReader rdr(path);
-        PANIC_IF(!rdr.isOk(), "Unable to load file: %s", path);
+struct QbtNode
+{
+    const QbtNode * pParent;
+    Vector<kMEM_Chef, UniquePtr<QbtNode>> children;
 
-        Tga tga;
-        rdr.read(&tga);
-        return ImageInfo(kORIG_TopLeft, tga.width, tga.height);
-    }
-    else
-    {
-        PANIC("Unknown image format: %s", ext);
-        return ImageInfo(kORIG_TopLeft, 0, 0);
-    }
-}
+    QbtNodeType typeId;
+    ChefString name;
+    ivec3 position;
+    uvec3 localScale;
+    vec3 pivot;
+    uvec3 size;
+    Vector<kMEM_Chef, Color> voxels;
 
+    const Color & voxel(u32 x, u32 y, u32 z) const;
+    const Color& voxel(const uvec3 & coord) const;
+
+    QbtNode()
+      : pParent(nullptr)
+      , typeId(kQBNT_Matrix)
+      , position(0)
+      , localScale(0)
+      , pivot(0)
+      , size(0)
+    {}
+};
+typedef UniquePtr<QbtNode> QbtNodeUP;
+
+struct Qbt
+{
+    Vector<kMEM_Chef, Color> colors;
+
+    QbtNodeUP pRoot;
+    Qbt()
+      : pRoot(nullptr)
+    {}
+
+    static UniquePtr<Qbt> load_from_file(const char * path);
+};
+typedef UniquePtr<Qbt> QbtUP;
 
 } // namespace gaen
+
+#endif // #ifndef GAEN_VOXEL_QBT_H

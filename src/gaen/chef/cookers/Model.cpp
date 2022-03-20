@@ -43,7 +43,6 @@
 #include "gaen/assets/Gmdl.h"
 #include "gaen/assets/Gmat.h"
 
-#include "gaen/chef/cooker_utils.h"
 #include "gaen/chef/CookInfo.h"
 #include "gaen/chef/Chef.h"
 #include "gaen/chef/cookers/Image.h"

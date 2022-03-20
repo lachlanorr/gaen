@@ -51,19 +51,9 @@ set(chef_SOURCES
   Cooker.h
   cookers.cpp
   cookers.h
-  cooker_utils.cpp
-  cooker_utils.h
   CookInfo.cpp
   CookInfo.h
   main_chef.cpp
-  Png.cpp
-  Png.h
-  Qbt.cpp
-  Qbt.h
-  Tga.cpp
-  Tga.h
-  Tiff.cpp
-  Tiff.h
   ${cooker_SOURCES}
   )
 
@@ -78,14 +68,11 @@ add_executable(chef
 
 target_link_libraries(chef
   ${PROJECT_LINK_LIBS}
-  gaen_assets
-  gaen_hashes
+  gaen_voxel
   assimp
   freetype
   #harfbuzz
   #harfbuzz-subset
-  png_static
-  tiff
   rapidjson
   zlibstatic
   brotlidec-static

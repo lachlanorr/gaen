@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Tga.h - Targa (.tga) image processing
+// ImageInfo.h - General image info used by various image readers
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,76 +24,36 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_TGA_H
-#define GAEN_CHEF_TGA_H
+#ifndef GAEN_IMAGE_IMAGE_INFO_H
+#define GAEN_IMAGE_IMAGE_INFO_H
 
 #include "gaen/core/base_defines.h"
 
 namespace gaen
 {
 
-class Gimg;
-
-enum TgaImageType
+enum ImageOrigin
 {
-    kTGAT_NoImageData = 0,
-    kTGAT_ColorMapped = 1,
-    kTGAT_Rgb = 2,
-    kTGAT_Grayscale = 3,
-    kTGAT_RleColorMapped = 9,
-    kTGAT_RleRgb = 10,
-    kTGAT_RleGrayscale = 11
+    kORIG_TopLeft,
+    kORIG_BottomLeft
 };
 
-#pragma pack(push, 1)
-struct Tga
+
+struct ImageInfo
 {
-    static bool is_valid(u8 * pBuffer, u32 size);
+    ImageInfo(ImageOrigin origin, u16 width, u16 height)
+      : origin(origin)
+      , width(width)
+      , height(height)
+    {}
 
-    u8 * id();
-    u32 idSize();
-    u8 * colorMap();
-    u32 colorMapSize();
-    u8 * imageData();
-    u32 imageDataSize();
-    u32 totalSize();
-
-    u32 bytesPerPixel();
-
-    u8 * scanline(u32 idx);
-
-    // Callers should GFREE pGimg
-    void convertToGimg(Gimg ** pGimgOut, u32 referencePathHash);
-
-    u8 idLength;
-    u8 colorMapType;
-    u8 imageType;
-
-    // color map
-    u16 firstColorMapEntry;
-    u16 colorMapEntryCount;
-    u8 colorMapEntrySize;
-
-    // image specification
-    u16 xOrigin;
-    u16 yOrigin;
+    ImageOrigin origin;
     u16 width;
     u16 height;
-
-    u8 bitsPerPixel;
-
-    u8 interleaving:2;
-    u8 screenOrigin:1;
-    u8 RESERVED:1;
-    u8 attribBitsPerPixel:4;
-
-private:
-    u8 * postHeader() { return reinterpret_cast<u8*>(this) + sizeof(Tga); }
 };
-#pragma pack(pop)
 
-static_assert(sizeof(Tga) == 18, "Tga should be 18 bytes");
+ImageInfo read_image_info(const char * path);
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_TGA_H
+#endif // #ifndef GAEN_IMAGE_IMAGE_INFO_H

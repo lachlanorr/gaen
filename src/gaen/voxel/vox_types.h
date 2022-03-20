@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Qbt.h - Qubicle binary tree reader
+// vox_types.h - Utilities to identify VoxObj types
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,66 +24,32 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_QBT_H
-#define GAEN_CHEF_QBT_H
+#ifndef GAEN_VOXEL_VOX_TYPES_H
+#define GAEN_VOXEL_VOX_TYPES_H
 
-#include "gaen/math/vec3.h"
 #include "gaen/core/String.h"
-#include "gaen/core/Vector.h"
-#include "gaen/assets/Color.h"
 
 namespace gaen
 {
 
-static const u32 kQbtMagic = 0x32204251; // 'QB 2' little endian
-
-enum QbtNodeType : u32
+struct VoxPart
 {
-    kQBNT_Matrix   = 0,
-    kQBNT_Model    = 1,
-    kQBNT_Compound = 2
-};
-
-struct QbtNode
-{
-    const QbtNode * pParent;
-    Vector<kMEM_Chef, UniquePtr<QbtNode>> children;
-
-    QbtNodeType typeId;
     ChefString name;
-    ivec3 position;
-    uvec3 localScale;
-    vec3 pivot;
-    uvec3 size;
-    Vector<kMEM_Chef, Color> voxels;
-
-    const Color & voxel(u32 x, u32 y, u32 z) const;
-    const Color& voxel(const uvec3 & coord) const;
-
-    QbtNode()
-      : pParent(nullptr)
-      , typeId(kQBNT_Matrix)
-      , position(0)
-      , localScale(0)
-      , pivot(0)
-      , size(0)
-    {}
+    ChefString group;
+    ChefString parent;
 };
-typedef UniquePtr<QbtNode> QbtNodeUP;
 
-struct Qbt
+typedef Vector<kMEM_Chef, VoxPart> VoxParts;
+
+struct VoxObjType
 {
-    Vector<kMEM_Chef, Color> colors;
+    ChefString name;
+    VoxParts parts;
 
-    QbtNodeUP pRoot;
-    Qbt()
-      : pRoot(nullptr)
-    {}
-
-    static UniquePtr<Qbt> load_from_file(const char * path);
+    template<class ContainerType>
+    static const VoxObjType * determine_type(const ContainerType & matrices);
 };
-typedef UniquePtr<Qbt> QbtUP;
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_QBT_H
+#endif // #ifndef GAEN_VOXEL_TYPES_H

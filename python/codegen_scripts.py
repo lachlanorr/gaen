@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #-------------------------------------------------------------------------------
-# codegen.py - Run cmpc on all compose scripts to generate cpp files
+# codegen_scripts.py - Run cmpc on all compose scripts to generate cpp files
 #
 # Gaen Concurrency Engine - http://gaen.org
 # Copyright (c) 2014-2022 Lachlan Orr

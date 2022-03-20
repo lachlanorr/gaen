@@ -29,7 +29,7 @@
 #include <zlib.h>
 
 #include "gaen/assets/file_utils.h"
-#include "gaen/chef/Qbt.h"
+#include "gaen/voxel/Qbt.h"
 
 namespace gaen
 {

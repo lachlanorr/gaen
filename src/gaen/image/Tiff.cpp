@@ -28,7 +28,7 @@
 
 #include "gaen/assets/Gimg.h"
 
-#include "gaen/chef/Tiff.h"
+#include "gaen/image/Tiff.h"
 
 namespace gaen
 {

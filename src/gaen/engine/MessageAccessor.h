@@ -182,8 +182,6 @@ private:
     u32 mBlockCount;
 };
 
-
-
 } // namespace gaen
 
 #endif // #ifndef GAEN_ENGINE_MESSAGEACCESSOR_H

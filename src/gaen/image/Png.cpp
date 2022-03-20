@@ -26,7 +26,7 @@
 
 #include "gaen/assets/Gimg.h"
 
-#include "gaen/chef/Png.h"
+#include "gaen/image/Png.h"
 
 namespace gaen
 {

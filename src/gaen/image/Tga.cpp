@@ -27,11 +27,10 @@
 #include "gaen/core/mem.h"
 #include "gaen/assets/Gimg.h"
 
-#include "gaen/chef/Tga.h"
+#include "gaen/image/Tga.h"
 
 namespace gaen
 {
-
 
 bool Tga::is_valid(u8 * pBuffer, u32 size)
 {
@@ -168,6 +167,5 @@ void Tga::convertToGimg(Gimg ** pGimgOut, u32 referencePathHash)
 
     *pGimgOut = pGimg;
 }
-
 
 } // namespace gaen

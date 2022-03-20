@@ -24,29 +24,26 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-#libs
-add_subdirectory(core)
-add_subdirectory(math)
-add_subdirectory(hashes)
-add_subdirectory(assets)
-add_subdirectory(image)
-add_subdirectory(voxel)
-add_subdirectory(cara)
-add_subdirectory(engine)
-add_subdirectory(render_support)
-add_subdirectory(audio)
-add_subdirectory(shader_gen)
-add_subdirectory(renderergl)
-add_subdirectory(compose)
-add_subdirectory(scripts)
-add_subdirectory(platform)
+set(gaen_voxel_SOURCES
+  Qbt.cpp
+  Qbt.h
+  VoxObj.h
+  VoxObj.cpp
+  vox_types.h
+  vox_types.cpp
+  )
 
-#exes
-if(NOT IOS)
-  add_subdirectory(chef)
-  add_subdirectory(cmpc)
-  add_subdirectory(gac)
-  if(gaen_BUILD_TESTS)
-    add_subdirectory(tests)
-  endif()
-endif()
+source_group("" FILES ${gaen_voxel_SOURCES})
+
+add_library(gaen_voxel STATIC
+  ${gaen_voxel_SOURCES}
+  )
+
+set_target_properties(gaen_voxel PROPERTIES
+  FOLDER lib
+  )
+
+target_link_libraries(gaen_voxel PUBLIC
+  gaen_image
+  zlibstatic
+  )
