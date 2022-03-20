@@ -32,6 +32,14 @@
 namespace gaen
 {
 
+struct VoxObj;
+
+enum class VoxType
+{
+    Other = 0,
+    Biped = 1
+};
+
 struct VoxPart
 {
     ChefString name;
@@ -43,11 +51,10 @@ typedef Vector<kMEM_Chef, VoxPart> VoxParts;
 
 struct VoxObjType
 {
-    ChefString name;
+    VoxType type;
     VoxParts parts;
 
-    template<class ContainerType>
-    static const VoxObjType * determine_type(const ContainerType & matrices);
+    static const VoxObjType determine_type(const VoxObj & vobj);
 };
 
 } // namespace gaen

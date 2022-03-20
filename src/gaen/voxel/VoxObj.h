@@ -102,8 +102,10 @@ struct VoxObj
 {
     const Qbt& qbt;
 
-    VoxMatrixMap matrices;
-    const VoxObjType *pType;
+    VoxMatrixMap baseMatrices;
+    VoxMatrixMap nullsMatrices;
+
+    VoxObjType type;
 
     VoxPixelVec pixels;
     UniquePtr<Gimg> pGimgDiffuse;

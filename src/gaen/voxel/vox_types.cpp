@@ -32,7 +32,7 @@ namespace gaen
 
 static const Vector<kMEM_Chef, VoxObjType> kVoxObjTypes
 {
-    { "Biped",
+    { VoxType::Biped,
         {
             { "Hips", "Lower", "" },
             { "L_Thigh", "Lower", "Hips" },
@@ -66,23 +66,26 @@ static const Vector<kMEM_Chef, VoxObjType> kVoxObjTypes
     }
 };
 
-template<class ContainerType>
-const VoxObjType * VoxObjType::determine_type(const ContainerType & matrices)
+const VoxObjType VoxObjType::determine_type(const VoxObj & vobj)
 {
     for (const auto & objType : kVoxObjTypes)
     {
-        if (matrices.size() != objType.parts.size())
+        if (vobj.baseMatrices.size() != objType.parts.size())
             continue;
         for (const auto & part : objType.parts)
         {
-            if (matrices.find(part.name) == matrices.end())
+            if (vobj.baseMatrices.find(part.name) == vobj.baseMatrices.end())
                 continue;
         }
-        return &objType;
+        return objType;
     }
-    return nullptr;
-}
 
-template const VoxObjType * VoxObjType::determine_type<VoxMatrixMap>(const VoxMatrixMap &);
+    VoxObjType otherType{VoxType::Other, {}};
+    for (const auto & matrix : vobj.baseMatrices)
+    {
+        otherType.parts.push_back({matrix.second->node.name, "", ""});
+    }
+    return otherType;
+}
 
 } // namespace gaen

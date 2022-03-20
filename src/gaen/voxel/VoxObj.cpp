@@ -50,22 +50,20 @@ static void add_matrices_to_map(VoxMatrixMap & matrices, const QbtNode & node)
     }
 }
 
-static VoxMatrixMap build_matrix_map(const Qbt & qbt, const char * topLevelCompound)
+static const QbtNode * find_top_level_compound(const Qbt & qbt, const char * name)
 {
-    VoxMatrixMap matrices;
-
     if (qbt.pRoot)
     {
         for (u32 i = 0; i < qbt.pRoot->children.size(); ++i)
         {
-            if (qbt.pRoot->children[i]->name == topLevelCompound && qbt.pRoot->children[i]->typeId == kQBNT_Compound)
+            if (qbt.pRoot->children[i]->name == name && qbt.pRoot->children[i]->typeId == kQBNT_Compound)
             {
-                add_matrices_to_map(matrices, *qbt.pRoot->children[i]);
+                return qbt.pRoot->children[i].get();
             }
         }
     }
 
-    return matrices;
+    return nullptr;
 }
 
 static const ivec3 qbt_node_world_pos(const QbtNode & node)
@@ -104,8 +102,10 @@ static const void process_matrix(VoxPixelVec & pixels, VoxMatrix & matrix)
                     pixels.push_back(pix);
                     u32 pixIdx = pixels.size() - 1;
 
-                    // determine visible sides
+                    // process each side
                     matrix.visibleSides = 0;
+
+                    // Left
                     if (x == 0 || matrix.node.voxel(x-1, y, z).a() == 0)
                     {
                         matrix.visibleSides |= kVSD_Left;
@@ -119,6 +119,8 @@ static const void process_matrix(VoxPixelVec & pixels, VoxMatrix & matrix)
                             }
                         );
                     }
+
+                    // Back
                     if (z == 0 || matrix.node.voxel(x, y, z-1).a() == 0)
                     {
                         matrix.visibleSides |= kVSD_Back;
@@ -132,6 +134,8 @@ static const void process_matrix(VoxPixelVec & pixels, VoxMatrix & matrix)
                             }
                         );
                     }
+
+                    // Bottom
                     if (y == 0 || matrix.node.voxel(x, y-1, z).a() == 0)
                     {
                         matrix.visibleSides |= kVSD_Bottom;
@@ -145,6 +149,8 @@ static const void process_matrix(VoxPixelVec & pixels, VoxMatrix & matrix)
                             }
                         );
                     }
+
+                    // Right
                     if (x == matrix.node.size.x-1 || matrix.node.voxel(x+1, y, z).a() == 0)
                     {
                         matrix.visibleSides |= kVSD_Right;
@@ -158,6 +164,8 @@ static const void process_matrix(VoxPixelVec & pixels, VoxMatrix & matrix)
                             }
                         );
                     }
+
+                    // Front
                     if (z == matrix.node.size.z-1 || matrix.node.voxel(x, y, z+1).a() == 0)
                     {
                         matrix.visibleSides |= kVSD_Front;
@@ -171,6 +179,8 @@ static const void process_matrix(VoxPixelVec & pixels, VoxMatrix & matrix)
                             }
                         );
                     }
+
+                    // Top
                     if (y == matrix.node.size.y-1 || matrix.node.voxel(x, y+1, z).a() == 0)
                     {
                         matrix.visibleSides |= kVSD_Top;
@@ -192,15 +202,25 @@ static const void process_matrix(VoxPixelVec & pixels, VoxMatrix & matrix)
 
 VoxObj::VoxObj(const Qbt& qbt)
   : qbt(qbt)
-  , pType(nullptr)
 {
-    matrices = build_matrix_map(qbt, "Base");
-    pType = VoxObjType::determine_type(matrices);
-    PANIC_IF(pType == nullptr, "Unknown vox obj type");
-
-    for (const auto & part : pType->parts)
+    if (const QbtNode * pNode = find_top_level_compound(qbt, "Base"))
     {
-        process_matrix(pixels, *matrices[part.name]);
+        add_matrices_to_map(baseMatrices, *pNode);
+        if (const QbtNode * pNode = find_top_level_compound(qbt, "Nulls"))
+        {
+            add_matrices_to_map(nullsMatrices, *pNode);
+        }
+    }
+    else
+    {
+        // no known type, just grab all other matrices
+        add_matrices_to_map(baseMatrices, *qbt.pRoot);
+    }
+    type = VoxObjType::determine_type(*this);
+
+    for (const auto & part : type.parts)
+    {
+        process_matrix(pixels, *baseMatrices[part.name]);
     }
 
     PANIC_IF(pixels.size() == 0, "No visible voxels");
@@ -264,9 +284,9 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
 
     HashMap<kMEM_Chef, ChefString, Vector<kMEM_Chef, Face>> faceMap;
 
-    for (const auto & part : pType->parts)
+    for (const auto & part : type.parts)
     {
-        const VoxMatrix & matrix = *matrices.find(part.name)->second;
+        const VoxMatrix & matrix = *baseMatrices.find(part.name)->second;
         // build face
         for (const auto & quad : matrix.quads)
         {
@@ -352,7 +372,7 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
     }
     objWrtr.ofs.write("\n", 1);
 
-    for (const auto & part : pType->parts)
+    for (const auto & part : type.parts)
     {
         snprintf(tempStr.data(), tempStr.size(), "g %s\n", part.name.c_str());
         objWrtr.ofs.write(tempStr.data(), strlen(tempStr.data()));
