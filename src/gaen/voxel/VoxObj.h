@@ -40,58 +40,123 @@ namespace gaen
 {
 class Gimg;
 
-enum VoxSide : u32
+enum VoxSide : i32
 {
-    kVSD_Left   = 0x01,
-    kVSD_Back   = 0x02,
-    kVSD_Bottom = 0x04,
-    kVSD_Right  = 0x08,
-    kVSD_Front  = 0x10,
-    kVSD_Top    = 0x20
+    kVSD_UNDEFINED = -1,
+
+    kVSD_Left   = 0,
+    kVSD_Back   = 1,
+    kVSD_Bottom = 2,
+    kVSD_Right  = 3,
+    kVSD_Front  = 4,
+    kVSD_Top    = 5,
+
+    kVSD_COUNT  = 6
 };
 
-struct VoxPixel
+enum VoxSideFlag : i32
 {
-    Color color;
-    ivec3 localPos;
-    ivec3 worldPos;
-    u32 visibleSides; // bitmask of VoxSide's
-    vec2 uv;
+    kVSDF_NONE   = 0x00,
 
-    VoxPixel()
-      : color(0,0,0,0)
-      , localPos(0)
-      , worldPos(0)
-      , visibleSides(0)
-    {}
+    kVSDF_Left   = 0x01,
+    kVSDF_Back   = 0x02,
+    kVSDF_Bottom = 0x04,
+    kVSDF_Right  = 0x08,
+    kVSDF_Front  = 0x10,
+    kVSDF_Top    = 0x20
 };
 
-struct VoxQuad
+struct VoxFace
 {
-    vec3 verts[4];
-    u32 pixelIdx;
+    ivec3 start;
+    ivec3 size;
     VoxSide side;
 };
 
-typedef Vector<kMEM_Chef, VoxPixel> VoxPixelVec;
+struct Voxel
+{
+    Color color;
+    ivec3 pos;
+    u32 visibleSides; // bitmask of VoxSide's
+
+    VoxFace * faces; // faces voxel owns, could be composite faces with other co-planar-adjacent voxel faces
+    VoxFace * pFaces[kVSD_COUNT];     // pointer to actual face, could be pointing to composite face on another voxel
+
+    Voxel(Color color, ivec3 pos)
+      : color(color)
+      , pos(pos)
+      , visibleSides(0)
+    {
+        faces = (VoxFace*)GALLOC(kMEM_Chef, sizeof(VoxFace)*kVSD_COUNT); // malloc so things don't move around, our pFaces must remain constant
+        for (i32 i = 0; i < kVSD_COUNT; ++i)
+        {
+            faces[i].start = pos;
+            faces[i].size = ivec3(1);
+            faces[i].side = (VoxSide)i;
+            pFaces[i] = nullptr;
+        }
+    }
+    ~Voxel()
+    {
+        if (faces != nullptr)
+            GFREE(faces);
+    }
+
+    Voxel(const Voxel&) = delete;
+    Voxel& operator=(const Voxel&) = delete;
+
+    // Re-enable move
+    Voxel(Voxel&& rhs) noexcept
+    {
+        color = rhs.color;
+        pos = rhs.pos;
+        visibleSides = rhs.visibleSides;
+        faces = rhs.faces;
+        rhs.faces = nullptr;
+        for (i32 i = 0; i < kVSD_COUNT; ++i)
+        {
+            pFaces[i] = rhs.pFaces[i];
+            rhs.pFaces[i] = nullptr;
+        }
+    };
+    Voxel& operator=(Voxel&& rhs)
+    {
+        color = rhs.color;
+        pos = rhs.pos;
+        visibleSides = rhs.visibleSides;
+        faces = rhs.faces;
+        rhs.faces = nullptr;
+        for (i32 i = 0; i < kVSD_COUNT; ++i)
+        {
+            pFaces[i] = rhs.pFaces[i];
+            rhs.pFaces[i] = nullptr;
+        }
+        return *this;
+    };
+};
+
+struct VoxMatrixFace
+{
+    const VoxFace * pFace;
+    ivec3 startWorld;
+    i32 area;
+    vec3 points[4];
+};
 
 struct VoxMatrix
 {
     const QbtNode& node;
 
-    i32 pixBegin;
-    i32 pixEnd;
-
     ivec3 worldPos;
 
-    u32 visibleSides;
+    Vector<kMEM_Chef, Voxel> voxels;
+    HashMap<kMEM_Chef, ivec3, size_t> voxelIdMap;
 
-    Vector<kMEM_Chef, VoxQuad> quads;
+    Vector<kMEM_Chef, VoxMatrixFace> faces;
 
     VoxMatrix(const QbtNode &node)
       : node(node)
-      , pixBegin(-1)
-      , pixEnd(-1)
+      , worldPos(0)
     {}
 };
 
@@ -107,7 +172,6 @@ struct VoxObj
 
     VoxObjType type;
 
-    VoxPixelVec pixels;
     UniquePtr<Gimg> pGimgDiffuse;
 
     VoxObj(const Qbt& qbt);

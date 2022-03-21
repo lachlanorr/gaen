@@ -76,123 +76,369 @@ static const ivec3 qbt_node_world_pos(const QbtNode & node)
     return worldPos;
 }
 
-static const void process_matrix(VoxPixelVec & pixels, VoxMatrix & matrix)
+static bool is_voxel_side_visible(VoxMatrix & matrix, const ivec3 & pos, VoxSide side)
+{
+    switch (side)
+    {
+    case kVSD_Left:
+        return pos.x == 0 || matrix.node.voxel(pos.x-1, pos.y, pos.z).a() == 0;
+    case kVSD_Back:
+        return pos.z == 0 || matrix.node.voxel(pos.x, pos.y, pos.z-1).a() == 0;
+    case kVSD_Bottom:
+        return pos.y == 0 || matrix.node.voxel(pos.x, pos.y-1, pos.z).a() == 0;
+    case kVSD_Right:
+        return pos.x == matrix.node.size.x-1 || matrix.node.voxel(pos.x+1, pos.y, pos.z).a() == 0;
+    case kVSD_Front:
+        return pos.z == matrix.node.size.z-1 || matrix.node.voxel(pos.x, pos.y, pos.z+1).a() == 0;
+    case kVSD_Top:
+        return pos.y == matrix.node.size.y-1 || matrix.node.voxel(pos.x, pos.y+1, pos.z).a() == 0;
+    default:
+        PANIC("Invalid side");
+        return false;
+    }
+}
+
+static VoxSideFlag voxel_side_flag(VoxSide side)
+{
+    switch(side)
+    {
+    case kVSD_Left:
+        return kVSDF_Left;
+    case kVSD_Back:
+        return kVSDF_Back;
+    case kVSD_Bottom:
+        return kVSDF_Bottom;
+    case kVSD_Right:
+        return kVSDF_Right;
+    case kVSD_Front:
+        return kVSDF_Front;
+    case kVSD_Top:
+        return kVSDF_Top;
+    default:
+        PANIC("Invalid side");
+        return kVSDF_NONE;
+    }
+}
+
+static bool voxel_pos_check(const ivec3 & pos, VoxSide side)
+{
+    switch(side)
+    {
+    case kVSD_Left:
+    case kVSD_Right:
+        return pos.z > 0;
+    case kVSD_Back:
+    case kVSD_Bottom:
+    case kVSD_Front:
+    case kVSD_Top:
+        return pos.x > 0;
+    default:
+        PANIC("Invalid side");
+        return false;
+    }
+}
+
+static ivec3 voxel_prev_pos(const ivec3 & pos, VoxSide side)
+{
+    switch(side)
+    {
+    case kVSD_Left:
+    case kVSD_Right:
+        return ivec3(pos.x, pos.y, pos.z-1);
+    case kVSD_Back:
+    case kVSD_Bottom:
+    case kVSD_Front:
+    case kVSD_Top:
+        return ivec3(pos.x-1, pos.y, pos.z);
+    default:
+        PANIC("Invalid side");
+        return ivec3(0);
+    }
+}
+
+static void voxel_merge(Voxel & vox, Voxel & prevVox, VoxSide side, VoxSideFlag sideFlag)
+{
+    if (prevVox.visibleSides & sideFlag)
+    {
+        VoxFace * pPrevFace = prevVox.pFaces[side];
+
+        bool canMerge = false;
+        ivec3 sizeInc(0);
+        switch(side)
+        {
+        case kVSD_Left:
+        case kVSD_Right:
+            canMerge = pPrevFace->size.y == 1;
+            sizeInc = ivec3(0, 0, 1);
+            break;
+        case kVSD_Back:
+        case kVSD_Front:
+            canMerge = pPrevFace->size.y == 1;
+            sizeInc = ivec3(1, 0, 0);
+            break;
+        case kVSD_Bottom:
+        case kVSD_Top:
+            canMerge = pPrevFace->size.z == 1;
+            sizeInc = ivec3(1, 0, 0);
+            break;
+        }
+
+        // make sure prev face hasn't joined into a taller rect
+        if (canMerge)
+        {
+            // increase size to include us, combining our faces
+            pPrevFace->size += sizeInc;
+            // change our pFace to use previous voxel's
+            vox.pFaces[side] = pPrevFace;
+        }
+    }
+}
+
+static bool voxel_row_check(const ivec3 & pos, VoxSide side)
+{
+    switch(side)
+    {
+    case kVSD_Bottom:
+    case kVSD_Top:
+        return pos.z > 0;
+    case kVSD_Left:
+    case kVSD_Back:
+    case kVSD_Right:
+    case kVSD_Front:
+        return pos.y > 0;
+    default:
+        PANIC("Invalid side");
+        return false;
+    }
+}
+
+static void voxel_row_merge(VoxMatrix & matrix, Voxel & vox, VoxSide side, VoxSideFlag sideFlag)
+{
+    ivec3 prevRow;
+    switch(side)
+    {
+    case kVSD_Left:
+    case kVSD_Back:
+    case kVSD_Right:
+    case kVSD_Front:
+        prevRow = ivec3(vox.pos.x, vox.pos.y-1, vox.pos.z);
+        break;
+    case kVSD_Bottom:
+    case kVSD_Top:
+        prevRow = ivec3(vox.pos.x, vox.pos.y, vox.pos.z-1);
+        break;
+    default:
+        PANIC("Invalid side");
+        break;
+    }
+
+    auto itIdx = matrix.voxelIdMap.find(prevRow);
+    if (itIdx != matrix.voxelIdMap.end())
+    {
+        Voxel & prevVox = matrix.voxels[itIdx->second];
+        if (prevVox.visibleSides & sideFlag)
+        {
+            VoxFace * pFace = vox.pFaces[side];
+            VoxFace * pPrevFace = prevVox.pFaces[side];
+
+            bool canMerge = false;
+            switch(side)
+            {
+            case kVSD_Left:
+            case kVSD_Right:
+                canMerge = (pPrevFace->start.z == pFace->start.z && // check if our row start is the same
+                            pPrevFace->size.z == pFace->size.z);    // check if width is the same
+                break;
+            case kVSD_Back:
+            case kVSD_Bottom:
+            case kVSD_Front:
+            case kVSD_Top:
+                canMerge = (pPrevFace->start.x == pFace->start.x && // check if our row start is the same
+                            pPrevFace->size.x == pFace->size.x);    // check if width is the same
+                break;
+            default:
+                PANIC("Invalid side");
+                break;
+            }
+
+            if (canMerge)
+            {
+                // combine with previous face, and fix up
+                // all pFaces pointers in our row
+                switch(side)
+                {
+                case kVSD_Left:
+                case kVSD_Right:
+                    pPrevFace->size.y++;
+                    for (i32 rowi = pFace->start.z; rowi < pFace->start.z + pFace->size.z; rowi++)
+                    {
+                        auto itIdxi = matrix.voxelIdMap.find(ivec3(vox.pos.x, vox.pos.y, rowi));
+                        if (itIdxi != matrix.voxelIdMap.end())
+                        {
+                            Voxel & ivox = matrix.voxels[itIdxi->second];
+                            ivox.pFaces[side] = pPrevFace;
+                        }
+                    }
+                    break;
+                case kVSD_Back:
+                case kVSD_Front:
+                    pPrevFace->size.y++;
+                    for (i32 rowi = pFace->start.x; rowi < pFace->start.x + pFace->size.x; rowi++)
+                    {
+                        auto itIdxi = matrix.voxelIdMap.find(ivec3(rowi, vox.pos.y, vox.pos.z));
+                        if (itIdxi != matrix.voxelIdMap.end())
+                        {
+                            Voxel & ivox = matrix.voxels[itIdxi->second];
+                            ivox.pFaces[side] = pPrevFace;
+                        }
+                    }
+                    break;
+                case kVSD_Bottom:
+                case kVSD_Top:
+                    pPrevFace->size.z++;
+                    for (i32 rowi = pFace->start.x; rowi < pFace->start.x + pFace->size.x; rowi++)
+                    {
+                        auto itIdxi = matrix.voxelIdMap.find(ivec3(rowi, vox.pos.y, vox.pos.z));
+                        if (itIdxi != matrix.voxelIdMap.end())
+                        {
+                            Voxel & ivox = matrix.voxels[itIdxi->second];
+                            ivox.pFaces[side] = pPrevFace;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+}
+
+static void process_voxel_side(VoxMatrix & matrix, Voxel & vox, VoxSide side)
+{
+    VoxSideFlag sideFlag = voxel_side_flag(side);
+
+    if (is_voxel_side_visible(matrix, vox.pos, side))
+    {
+        vox.pFaces[side] = &vox.faces[side];
+        vox.visibleSides |= sideFlag;
+
+        // check if previous voxel is coplanar on this side
+        if (voxel_pos_check(vox.pos, side))
+        {
+            ivec3 prevPos = voxel_prev_pos(vox.pos, side);
+            auto itIdx = matrix.voxelIdMap.find(prevPos);
+            if (itIdx != matrix.voxelIdMap.end())
+            {
+                Voxel & prevVox = matrix.voxels[itIdx->second];
+                voxel_merge(vox, prevVox, side, sideFlag);
+            }
+        }
+
+        // check if previous row is compatible to combine faces
+        if (voxel_row_check(vox.pos, side))
+        {
+            voxel_row_merge(matrix, vox, side, sideFlag);
+        }
+    }
+}
+
+static void process_matrix(VoxMatrix & matrix)
 {
     matrix.worldPos = qbt_node_world_pos(matrix.node);
-    vec3 worldPos = vec3(matrix.worldPos.x, matrix.worldPos.y, matrix.worldPos.z);
 
-    for (i32 y = matrix.node.size.y-1; y >= 0; y--)
+    for (i32 y = 0; y < matrix.node.size.y; y++)
     {
-        for (i32 z = matrix.node.size.z-1; z >= 0; z--)
+        for (i32 z = 0; z < matrix.node.size.z; z++)
         {
             for (i32 x = 0; x < matrix.node.size.x; x++)
             {
                 Color col = matrix.node.voxel(x, y, z);
                 if (col.a() > 1) // 1 means core voxel
                 {
-                    if (matrix.pixBegin == -1)
-                        matrix.pixBegin = pixels.size();
-                    matrix.pixEnd = pixels.size() + 1;
+                    col.seta(255);
 
-                    VoxPixel pix;
-                    pix.color = col;
-                    pix.color.seta(255);
-                    pix.localPos = ivec3(x, y, z);
-                    pix.worldPos = pix.localPos + matrix.worldPos;
-                    pixels.push_back(pix);
-                    u32 pixIdx = pixels.size() - 1;
+                    ivec3 pos(x, y, z);
+                    matrix.voxels.emplace_back(col, pos);
+                    Voxel &vox = matrix.voxels.back();
+                    matrix.voxelIdMap.emplace(pos, matrix.voxels.size()-1);
 
-                    // process each side
-                    matrix.visibleSides = 0;
-
-                    // Left
-                    if (x == 0 || matrix.node.voxel(x-1, y, z).a() == 0)
+                    for (i32 side = 0; side < kVSD_COUNT; side++)
                     {
-                        matrix.visibleSides |= kVSD_Left;
-                        matrix.quads.push_back(
-                            VoxQuad{
-                                // verts
-                                {vec3(x, y, z)+worldPos, vec3(x, y, z+1)+worldPos, vec3(x, y+1, z+1)+worldPos, vec3(x, y+1, z)+worldPos},
-                                // pointer to pixel we just created
-                                pixIdx,
-                                kVSD_Left
-                            }
-                        );
+                        process_voxel_side(matrix, vox, (VoxSide)side);
                     }
+                }
+            }
+        }
+    }
 
-                    // Back
-                    if (z == 0 || matrix.node.voxel(x, y, z-1).a() == 0)
+    // All composite faces should be generated now, build the master matrix face vector
+    for (i32 y = 0; y < matrix.node.size.y; y++)
+    {
+        for (i32 z = 0; z < matrix.node.size.z; z++)
+        {
+            for (i32 x = 0; x < matrix.node.size.x; x++)
+            {
+                auto voxIdIt = matrix.voxelIdMap.find(ivec3(x, y, z));
+                if (voxIdIt != matrix.voxelIdMap.end())
+                {
+                    Voxel & vox = matrix.voxels[voxIdIt->second];
+                    for (u32 i = 0; i < kVSD_COUNT; ++i)
                     {
-                        matrix.visibleSides |= kVSD_Back;
-                        matrix.quads.push_back(
-                            VoxQuad{
-                                // verts
-                                {vec3(x+1, y, z)+worldPos, vec3(x, y, z)+worldPos, vec3(x, y+1, z)+worldPos, vec3(x+1, y+1, z)+worldPos},
-                                // pointer to pixel we just created
-                                pixIdx,
-                                kVSD_Back
-                            }
-                        );
-                    }
+                        VoxFace * pFace = vox.pFaces[i];
+                        // If our pointer matches our face, we are the
+                        // "owner" of this potentially composite face
+                        if (pFace == &vox.faces[i])
+                        {
+                            matrix.faces.push_back(VoxMatrixFace());
+                            VoxMatrixFace &matFace = matrix.faces.back();
 
-                    // Bottom
-                    if (y == 0 || matrix.node.voxel(x, y-1, z).a() == 0)
-                    {
-                        matrix.visibleSides |= kVSD_Bottom;
-                        matrix.quads.push_back(
-                            VoxQuad{
-                                // verts
-                                {vec3(x, y, z)+worldPos, vec3(x+1, y, z)+worldPos, vec3(x+1, y, z+1)+worldPos, vec3(x, y, z+1)+worldPos},
-                                // pointer to pixel we just created
-                                pixIdx,
-                                kVSD_Bottom
-                            }
-                        );
-                    }
+                            matFace.pFace = pFace;
+                            matFace.startWorld = matrix.worldPos + pFace->start;
+                            matFace.area = pFace->size.x * pFace->size.y * pFace->size.z;
 
-                    // Right
-                    if (x == matrix.node.size.x-1 || matrix.node.voxel(x+1, y, z).a() == 0)
-                    {
-                        matrix.visibleSides |= kVSD_Right;
-                        matrix.quads.push_back(
-                            VoxQuad{
-                                // verts
-                                {vec3(x+1, y, z+1)+worldPos, vec3(x+1, y, z)+worldPos, vec3(x+1, y+1, z)+worldPos, vec3(x+1, y+1, z+1)+worldPos},
-                                // pointer to pixel we just created
-                                pixIdx,
-                                kVSD_Right
-                            }
-                        );
-                    }
+                            vec3 worldPos(matrix.worldPos.x, matrix.worldPos.y, matrix.worldPos.z);
+                            vec3 size(pFace->size.x, pFace->size.y, pFace->size.z);
 
-                    // Front
-                    if (z == matrix.node.size.z-1 || matrix.node.voxel(x, y, z+1).a() == 0)
-                    {
-                        matrix.visibleSides |= kVSD_Front;
-                        matrix.quads.push_back(
-                            VoxQuad{
-                                // verts
-                                {vec3(x, y, z+1)+worldPos, vec3(x+1, y, z+1)+worldPos, vec3(x+1, y+1, z+1)+worldPos, vec3(x, y+1, z+1)+worldPos},
-                                // pointer to pixel we just created
-                                pixIdx,
-                                kVSD_Front
+                            switch(pFace->side)
+                            {
+                            case kVSD_Left:
+                                matFace.points[0] = vec3(pFace->start.x, pFace->start.y,        pFace->start.z) + worldPos;
+                                matFace.points[1] = vec3(pFace->start.x, pFace->start.y,        pFace->start.z+size.z) + worldPos;
+                                matFace.points[2] = vec3(pFace->start.x, pFace->start.y+size.y, pFace->start.z+size.z) + worldPos;
+                                matFace.points[3] = vec3(pFace->start.x, pFace->start.y+size.y, pFace->start.z) + worldPos;
+                                break;
+                            case kVSD_Back:
+                                matFace.points[0] = vec3(pFace->start.x+size.x, pFace->start.y,        pFace->start.z) + worldPos;
+                                matFace.points[1] = vec3(pFace->start.x,        pFace->start.y,        pFace->start.z) + worldPos;
+                                matFace.points[2] = vec3(pFace->start.x,        pFace->start.y+size.y, pFace->start.z) + worldPos;
+                                matFace.points[3] = vec3(pFace->start.x+size.x, pFace->start.y+size.y, pFace->start.z) + worldPos;
+                                break;
+                            case kVSD_Bottom:
+                                matFace.points[0] = vec3(pFace->start.x,        pFace->start.y, pFace->start.z) + worldPos;
+                                matFace.points[1] = vec3(pFace->start.x+size.x, pFace->start.y, pFace->start.z) + worldPos;
+                                matFace.points[2] = vec3(pFace->start.x+size.x, pFace->start.y, pFace->start.z+size.z) + worldPos;
+                                matFace.points[3] = vec3(pFace->start.x,        pFace->start.y, pFace->start.z+size.z) + worldPos;
+                                break;
+                            case kVSD_Right:
+                                matFace.points[0] = vec3(pFace->start.x+1, pFace->start.y,        pFace->start.z+size.z) + worldPos;
+                                matFace.points[1] = vec3(pFace->start.x+1, pFace->start.y,        pFace->start.z) + worldPos;
+                                matFace.points[2] = vec3(pFace->start.x+1, pFace->start.y+size.y, pFace->start.z) + worldPos;
+                                matFace.points[3] = vec3(pFace->start.x+1, pFace->start.y+size.y, pFace->start.z+size.z) + worldPos;
+                                break;
+                            case kVSD_Front:
+                                matFace.points[0] = vec3(pFace->start.x,        pFace->start.y,        pFace->start.z+1) + worldPos;
+                                matFace.points[1] = vec3(pFace->start.x+size.x, pFace->start.y,        pFace->start.z+1) + worldPos;
+                                matFace.points[2] = vec3(pFace->start.x+size.x, pFace->start.y+size.y, pFace->start.z+1) + worldPos;
+                                matFace.points[3] = vec3(pFace->start.x,        pFace->start.y+size.y, pFace->start.z+1) + worldPos;
+                                break;
+                            case kVSD_Top:
+                                matFace.points[0] = vec3(pFace->start.x,        pFace->start.y+1, pFace->start.z+size.z) + worldPos;
+                                matFace.points[1] = vec3(pFace->start.x+size.x, pFace->start.y+1, pFace->start.z+size.z) + worldPos;
+                                matFace.points[2] = vec3(pFace->start.x+size.x, pFace->start.y+1, pFace->start.z) + worldPos;
+                                matFace.points[3] = vec3(pFace->start.x,        pFace->start.y+1, pFace->start.z) + worldPos;
+                                break;
                             }
-                        );
-                    }
 
-                    // Top
-                    if (y == matrix.node.size.y-1 || matrix.node.voxel(x, y+1, z).a() == 0)
-                    {
-                        matrix.visibleSides |= kVSD_Top;
-                        matrix.quads.push_back(
-                            VoxQuad{
-                                // verts
-                                {vec3(x, y+1, z+1)+worldPos, vec3(x+1, y+1, z+1)+worldPos, vec3(x+1, y+1, z)+worldPos, vec3(x, y+1, z)+worldPos},
-                                // pointer to pixel we just created
-                                pixIdx,
-                                kVSD_Top
-                            }
-                        );
+                        }
                     }
                 }
             }
@@ -220,9 +466,11 @@ VoxObj::VoxObj(const Qbt& qbt)
 
     for (const auto & part : type.parts)
     {
-        process_matrix(pixels, *baseMatrices[part.name]);
+        process_matrix(*baseMatrices[part.name]);
     }
 
+
+    /*
     PANIC_IF(pixels.size() == 0, "No visible voxels");
 
     f32 pixRoot = sqrt(pixels.size());
@@ -250,6 +498,7 @@ VoxObj::VoxObj(const Qbt& qbt)
 
         *pDiffusePix++ = pixels[i].color;
     }
+    */
 }
 
 void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
@@ -266,19 +515,10 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
         vec3( 0,  1,  0)  // kVSD_Top
     };
 
-    static const HashMap<kMEM_Chef, u32, u32> normalIdxs{
-        { kVSD_Left,   0 },
-        { kVSD_Back,   1 },
-        { kVSD_Bottom, 2 },
-        { kVSD_Right,  3 },
-        { kVSD_Front,  4 },
-        { kVSD_Top,    5 }
-    };
-
     struct Face
     {
         u32 points[4];
-        u32 uv;
+        //u32 uvs[4];
         u32 normal;
     };
 
@@ -288,17 +528,17 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
     {
         const VoxMatrix & matrix = *baseMatrices.find(part.name)->second;
         // build face
-        for (const auto & quad : matrix.quads)
+        for (const auto & matFace : matrix.faces)
         {
             auto & faces = faceMap[matrix.node.name];
 
             Face face;
-            face.uv = quad.pixelIdx;
-            face.normal = normalIdxs.find(quad.side)->second;
+            //face.uv = quad.pixelIdx;
+            face.normal = matFace.pFace->side;
             for (u32 i = 0; i < 4; ++i)
             {
                 u32 pointIdx = 0;
-                vec3 scaledVert = quad.verts[i] * scaleFactor;
+                vec3 scaledVert = matFace.points[i] * scaleFactor;
                 auto itPnt = vertToPoint.find(scaledVert);
                 if (itPnt != vertToPoint.end())
                 {
@@ -343,7 +583,7 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
     mtlWrtr.ofs.write(tempStr.data(), strlen(tempStr.data()));
 
     // png file
-    Png::write_gimg(pngPath.c_str(), pGimgDiffuse.get(), true);
+    //--//Png::write_gimg(pngPath.c_str(), pGimgDiffuse.get(), true);
 
     // obj file
     FileWriter objWrtr(objPath.c_str());
@@ -365,11 +605,15 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
     }
     objWrtr.ofs.write("\n", 1);
 
+    snprintf(tempStr.data(), tempStr.size(), "vt 0.0 0.0\n");
+    objWrtr.ofs.write(tempStr.data(), strlen(tempStr.data()));
+    /*--
     for (const auto & pix : pixels)
     {
         snprintf(tempStr.data(), tempStr.size(), "vt %f %f\n", pix.uv.x, pix.uv.y);
         objWrtr.ofs.write(tempStr.data(), strlen(tempStr.data()));
     }
+    --*/
     objWrtr.ofs.write("\n", 1);
 
     for (const auto & part : type.parts)
@@ -383,10 +627,10 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
         for (const auto & face : faces)
         {
             snprintf(tempStr.data(), tempStr.size(), "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n",
-                     face.points[0]+1, face.uv+1, face.normal+1,
-                     face.points[1]+1, face.uv+1, face.normal+1,
-                     face.points[2]+1, face.uv+1, face.normal+1,
-                     face.points[3]+1, face.uv+1, face.normal+1);
+                     face.points[0]+1, 1/*face.uv+1*/, face.normal+1,
+                     face.points[1]+1, 1/*face.uv+1*/, face.normal+1,
+                     face.points[2]+1, 1/*face.uv+1*/, face.normal+1,
+                     face.points[3]+1, 1/*face.uv+1*/, face.normal+1);
             objWrtr.ofs.write(tempStr.data(), strlen(tempStr.data()));
         }
     }
