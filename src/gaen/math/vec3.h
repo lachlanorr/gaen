@@ -270,6 +270,16 @@ struct hash<gaen::vec3> : public unary_function<gaen::vec3, size_t>
         return gaen::fnv1a_32(reinterpret_cast<const gaen::u8*>(&value), sizeof(gaen::vec3));
     }
 };
+
+template <>
+struct hash<gaen::ivec3> : public unary_function<gaen::ivec3, size_t>
+{
+    size_t operator()(const gaen::ivec3& value) const
+    {
+        size_t ret = gaen::fnv1a_32(reinterpret_cast<const gaen::u8*>(&value), sizeof(gaen::ivec3));
+        return ret;
+    }
+};
 } // namespace std
 
 #endif // #ifndef GAEN_MATH_VEC3_H
