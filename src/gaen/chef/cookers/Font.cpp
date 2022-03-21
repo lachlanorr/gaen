@@ -38,10 +38,9 @@
 #include "gaen/assets/Gatl.h"
 #include "gaen/assets/Gimg.h"
 
-#include "gaen/chef/cooker_utils.h"
 #include "gaen/chef/CookInfo.h"
 #include "gaen/chef/Chef.h"
-#include "gaen/chef/Png.h"
+#include "gaen/image/Png.h"
 #include "gaen/chef/cookers/Atlas.h"
 #include "gaen/chef/cookers/Image.h"
 #include "gaen/chef/cookers/Font.h"

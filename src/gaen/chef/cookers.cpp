@@ -35,8 +35,6 @@
 
 #include "gaen/chef/Chef.h"
 #include "gaen/chef/CookerRegistry.h"
-#include "gaen/chef/Tga.h"
-#include "gaen/chef/cooker_utils.h"
 #include "gaen/chef/cookers.h"
 
 #include "gaen/chef/cookers/AnimImage.h"
