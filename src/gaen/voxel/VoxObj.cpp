@@ -212,7 +212,7 @@ static bool voxel_row_check(const ivec3 & pos, VoxSide side)
     }
 }
 
-static void voxel_row_merge(VoxMatrix & matrix, Voxel & vox, VoxSide side, VoxSideFlag sideFlag)
+static void voxel_row_merge(VoxMatrix & matrix, Voxel & vox, VoxSide side, HashMap<kMEM_Chef, VoxFace*, VoxFace*> &faceTrans)
 {
     ivec3 prevRow;
     switch(side)
@@ -236,10 +236,10 @@ static void voxel_row_merge(VoxMatrix & matrix, Voxel & vox, VoxSide side, VoxSi
     if (itIdx != matrix.voxelIdMap.end())
     {
         Voxel & prevVox = matrix.voxels[itIdx->second];
-        if (prevVox.visibleSides & sideFlag)
+        VoxFace * pPrevFace = prevVox.pFaces[side];
+        if (pPrevFace != nullptr)
         {
             VoxFace * pFace = vox.pFaces[side];
-            VoxFace * pPrevFace = prevVox.pFaces[side];
 
             bool canMerge = false;
             switch(side)
@@ -269,44 +269,18 @@ static void voxel_row_merge(VoxMatrix & matrix, Voxel & vox, VoxSide side, VoxSi
                 {
                 case kVSD_Left:
                 case kVSD_Right:
-                    pPrevFace->size.y++;
-                    for (i32 rowi = pFace->start.z; rowi < pFace->start.z + pFace->size.z; rowi++)
-                    {
-                        auto itIdxi = matrix.voxelIdMap.find(ivec3(vox.pos.x, vox.pos.y, rowi));
-                        if (itIdxi != matrix.voxelIdMap.end())
-                        {
-                            Voxel & ivox = matrix.voxels[itIdxi->second];
-                            ivox.pFaces[side] = pPrevFace;
-                        }
-                    }
-                    break;
                 case kVSD_Back:
                 case kVSD_Front:
                     pPrevFace->size.y++;
-                    for (i32 rowi = pFace->start.x; rowi < pFace->start.x + pFace->size.x; rowi++)
-                    {
-                        auto itIdxi = matrix.voxelIdMap.find(ivec3(rowi, vox.pos.y, vox.pos.z));
-                        if (itIdxi != matrix.voxelIdMap.end())
-                        {
-                            Voxel & ivox = matrix.voxels[itIdxi->second];
-                            ivox.pFaces[side] = pPrevFace;
-                        }
-                    }
                     break;
                 case kVSD_Bottom:
                 case kVSD_Top:
                     pPrevFace->size.z++;
-                    for (i32 rowi = pFace->start.x; rowi < pFace->start.x + pFace->size.x; rowi++)
-                    {
-                        auto itIdxi = matrix.voxelIdMap.find(ivec3(rowi, vox.pos.y, vox.pos.z));
-                        if (itIdxi != matrix.voxelIdMap.end())
-                        {
-                            Voxel & ivox = matrix.voxels[itIdxi->second];
-                            ivox.pFaces[side] = pPrevFace;
-                        }
-                    }
                     break;
                 }
+
+                faceTrans[pFace] = pPrevFace;
+                vox.pFaces[side] = pPrevFace;
             }
         }
     }
@@ -332,12 +306,6 @@ static void process_voxel_side(VoxMatrix & matrix, Voxel & vox, VoxSide side)
                 voxel_merge(vox, prevVox, side, sideFlag);
             }
         }
-
-        // check if previous row is compatible to combine faces
-        if (voxel_row_check(vox.pos, side))
-        {
-            voxel_row_merge(matrix, vox, side, sideFlag);
-        }
     }
 }
 
@@ -345,9 +313,9 @@ static void process_matrix(VoxMatrix & matrix)
 {
     matrix.worldPos = qbt_node_world_pos(matrix.node);
 
-    for (i32 y = 0; y < matrix.node.size.y; y++)
+    for (i32 z = 0; z < matrix.node.size.z; z++)
     {
-        for (i32 z = 0; z < matrix.node.size.z; z++)
+        for (i32 y = 0; y < matrix.node.size.y; y++)
         {
             for (i32 x = 0; x < matrix.node.size.x; x++)
             {
@@ -370,10 +338,32 @@ static void process_matrix(VoxMatrix & matrix)
         }
     }
 
-    // All composite faces should be generated now, build the master matrix face vector
-    for (i32 y = 0; y < matrix.node.size.y; y++)
+    // merge compatible rows
+    HashMap<kMEM_Chef, VoxFace*, VoxFace*> faceTrans;
+    for (Voxel & vox : matrix.voxels)
     {
-        for (i32 z = 0; z < matrix.node.size.z; z++)
+        for (i32 side = 0; side < kVSD_COUNT; side++)
+        {
+            VoxFace * pFace = vox.pFaces[side];
+            if (pFace != nullptr)
+            {
+                auto pFaceIt = faceTrans.find(pFace);
+                if (pFaceIt != faceTrans.end())
+                {
+                    vox.pFaces[side] = pFaceIt->second;
+                }
+                else if (voxel_row_check(vox.pos, (VoxSide)side))
+                {
+                    voxel_row_merge(matrix, vox, (VoxSide)side, faceTrans);
+                }
+            }
+        }
+    }
+
+    // All composite faces should be generated now, build the master matrix face vector
+    for (i32 z = 0; z < matrix.node.size.z; z++)
+    {
+        for (i32 y = 0; y < matrix.node.size.y; y++)
         {
             for (i32 x = 0; x < matrix.node.size.x; x++)
             {
