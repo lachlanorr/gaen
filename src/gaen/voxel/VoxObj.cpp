@@ -25,10 +25,12 @@
 //------------------------------------------------------------------------------
 
 #include <array>
+#include <algorithm>
 
 #include "gaen/assets/Gimg.h"
 #include "gaen/assets/file_utils.h"
 #include "gaen/image/Png.h"
+#include "gaen/image/ImagePartition.h"
 
 #include "gaen/voxel/VoxObj.h"
 
@@ -378,12 +380,8 @@ static void process_matrix(VoxMatrix & matrix)
                         // "owner" of this potentially composite face
                         if (pFace == &vox.faces[i])
                         {
-                            matrix.faces.push_back(VoxMatrixFace());
+                            matrix.faces.push_back(VoxMatrixFace(pFace, &matrix));
                             VoxMatrixFace &matFace = matrix.faces.back();
-
-                            matFace.pFace = pFace;
-                            matFace.startWorld = matrix.worldPos + pFace->start;
-                            matFace.area = pFace->size.x * pFace->size.y * pFace->size.z;
 
                             vec3 worldPos(matrix.worldPos.x, matrix.worldPos.y, matrix.worldPos.z);
                             vec3 size(pFace->size.x, pFace->size.y, pFace->size.z);
@@ -436,6 +434,153 @@ static void process_matrix(VoxMatrix & matrix)
     }
 }
 
+static bool face_size_gt(const VoxMatrixFace *lhs, const VoxMatrixFace *rhs)
+{
+    return lhs->area > rhs->area;
+}
+
+static vec2 calc_uv(uvec2 pos, uvec2 imageSize)
+{
+    return vec2(pos.x / (f32)imageSize.x + 0.5 / imageSize.x,
+                pos.y / (f32)imageSize.y + 0.5 / imageSize.y);
+}
+
+static ivec3 face_image_pos_to_voxel(const VoxFace * pFace, const uvec2 size, u32 x, u32 y)
+{
+    switch(pFace->side)
+    {
+    case kVSD_Left:
+        return ivec3(pFace->start.x,
+                     pFace->start.y + size.y - y - 1,
+                     pFace->start.z + x);
+    case kVSD_Back:
+        return ivec3(pFace->start.x + size.x - x - 1,
+                     pFace->start.y + size.y - y - 1,
+                     pFace->start.z);
+    case kVSD_Bottom:
+        return ivec3(pFace->start.x + x,
+                     pFace->start.y,
+                     pFace->start.z + size.y - y - 1);
+    case kVSD_Right:
+        return ivec3(pFace->start.x,
+                     pFace->start.y + size.y - y - 1,
+                     pFace->start.z + size.x - x - 1);
+    case kVSD_Front:
+        return ivec3(pFace->start.x + x,
+                     pFace->start.y + size.y - y - 1,
+                     pFace->start.z);
+    case kVSD_Top:
+        return ivec3(pFace->start.x + x,
+                     pFace->start.y,
+                     pFace->start.z + y);
+    }
+    PANIC("Invalid side");
+    return ivec3(0);
+}
+
+static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrixFaces)
+{
+    pGimg->clear(0);
+
+    uvec2 imageSize(pGimg->width(), pGimg->height());
+    ImagePartition imgPart(imageSize);
+
+    size_t i = 0;
+    for (i = 0; i < matrixFaces.size(); i++)
+    {
+        VoxMatrixFace * pMatFace = matrixFaces[i];
+        const VoxFace * pFace = pMatFace->pFace;
+
+        // 1x1 faces are handled below
+        if (pMatFace->area == 1)
+            break;
+
+        uvec2 size;
+        switch(pFace->side)
+        {
+        case kVSD_Left:
+        case kVSD_Right:
+            size.x = pFace->size.z;
+            size.y = pFace->size.y;
+            break;
+        case kVSD_Back:
+        case kVSD_Front:
+            size.x = pFace->size.x;
+            size.y = pFace->size.y;
+            break;
+        case kVSD_Bottom:
+        case kVSD_Top:
+            size.x = pFace->size.x;
+            size.y = pFace->size.z;
+            break;
+        }
+
+        uvec2 pos;
+        if (!imgPart.getEmptyPosition(&pos, size))
+        {
+            // No more available space in image for requested size.
+            // Caller can re-call us with a bigger Gimg.
+            return false;
+        }
+
+        for (i32 y = 0; y < size.y; y++)
+        {
+            Color * pScanLine = (Color*)pGimg->scanline(pos.y + y);
+            for (i32 x = 0; x < size.x; x++)
+            {
+                ivec3 matPos = face_image_pos_to_voxel(pFace, size, x, y);
+                pScanLine[pos.x+x] = pMatFace->pMatrix->node.voxel(matPos.x, matPos.y, matPos.z);
+                pScanLine[pos.x+x].seta(255);
+            }
+        }
+    }
+
+    // the only faces left are 1x1 faces, so we fill in any gaps in the image with those
+    Color * const pColorStart = (Color*)pGimg->pixels();
+    Color * const pColorEnd = pColorStart + imageSize.x * imageSize.y;
+    Color * pColor = pColorStart;
+
+    // remember any 1x1 faces we find and make all 1x1 faces of the same voxel use it
+    HashMap<kMEM_Chef, ivec3, uvec2> voxPosToImgPos;
+    for (; i < matrixFaces.size(); i++)
+    {
+        VoxMatrixFace* pMatFace = matrixFaces[i];
+        const VoxFace* pFace = pMatFace->pFace;
+
+        uvec2 imagePos(0);
+        // check if we already have a pixel for a different face of this 1x1x1 voxel
+        auto voxToImgIt = voxPosToImgPos.find(pFace->start);
+        if (voxToImgIt != voxPosToImgPos.end())
+        {
+            imagePos = voxToImgIt->second;
+        }
+        else
+        {
+            // find a blank space in image
+            while(*pColor != 0)
+            {
+                if (pColor >= pColorEnd)
+                {
+                    // we've run out of space in the image
+                    return false;
+                }
+                pColor++;
+            }
+            *pColor = pMatFace->pMatrix->node.voxel(pFace->start.x, pFace->start.y, pFace->start.z);
+            pColor->seta(255);
+
+            // figure out our imagePos and store it in our lookup table
+            u32 offset = pColor - pColorStart;
+            imagePos = uvec2(offset % imageSize.x, offset / imageSize.x);
+            voxPosToImgPos.emplace(pFace->start, imagePos);
+
+            pColor++;
+        }
+    }
+
+    return true;
+}
+
 VoxObj::VoxObj(const Qbt& qbt)
   : qbt(qbt)
 {
@@ -459,20 +604,44 @@ VoxObj::VoxObj(const Qbt& qbt)
         process_matrix(*baseMatrices[part.name]);
     }
 
+    // build master face list
+    Vector<kMEM_Chef, VoxMatrixFace*> matrixFaces;
+    i32 totalArea = 0;
+    for (const auto & part : type.parts)
+    {
+        VoxMatrix & matrix = *baseMatrices[part.name];
+        for (auto & matFace : matrix.faces)
+        {
+            matrixFaces.push_back(&matFace);
+            totalArea += matFace.area;
+        }
+    }
+    std::stable_sort(matrixFaces.begin(), matrixFaces.end(), face_size_gt);
 
-    /*
-    PANIC_IF(pixels.size() == 0, "No visible voxels");
-
-    f32 pixRoot = sqrt(pixels.size());
+    f32 pixRoot = sqrt(totalArea);
     u32 imgWidth = next_power_of_two((u32)(pixRoot + 0.5));
-    u32 imgHeight;
-    if (pixels.size() <= imgWidth * imgWidth / 2)
-        imgHeight = imgWidth / 2;
-    else
-        imgHeight = imgWidth;
+    u32 imgHeight = imgWidth;
 
     pGimgDiffuse.reset(Gimg::create(kPXL_RGBA8, imgWidth, imgHeight, 0));
-    pGimgDiffuse->clear(0);
+
+    if (!build_diffuse(pGimgDiffuse.get(), matrixFaces))
+    {
+        // try one more time with larger image
+        imgWidth *= 2;
+        imgHeight *= 2;
+
+        pGimgDiffuse.reset(Gimg::create(kPXL_RGBA8, imgWidth, imgHeight, 0));
+        if (!build_diffuse(pGimgDiffuse.get(), matrixFaces))
+        {
+            PANIC("Unable to build_diffuse on second attempt, width=%d height=%d", imgWidth, imgHeight);
+        }
+    }
+
+
+    // Now we only have 1x1 faces, so fill in any empty spaces in
+    // image we can find
+
+/*
     Color * pDiffusePix = (Color*)pGimgDiffuse->pixels();
 
     for (u32 i = 0; i < pixels.size(); ++i)
@@ -488,7 +657,7 @@ VoxObj::VoxObj(const Qbt& qbt)
 
         *pDiffusePix++ = pixels[i].color;
     }
-    */
+*/
 }
 
 void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
@@ -573,7 +742,7 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
     mtlWrtr.ofs.write(tempStr.data(), strlen(tempStr.data()));
 
     // png file
-    //--//Png::write_gimg(pngPath.c_str(), pGimgDiffuse.get(), true);
+    Png::write_gimg(pngPath.c_str(), pGimgDiffuse.get(), true);
 
     // obj file
     FileWriter objWrtr(objPath.c_str());

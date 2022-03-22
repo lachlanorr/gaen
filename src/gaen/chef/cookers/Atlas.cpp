@@ -30,7 +30,7 @@
 #include "gaen/assets/Config.h"
 #include "gaen/assets/Gatl.h"
 
-#include "gaen/chef/cooker_utils.h"
+#include "gaen/image/ImageInfo.h"
 #include "gaen/chef/CookInfo.h"
 #include "gaen/chef/cookers/Atlas.h"
 

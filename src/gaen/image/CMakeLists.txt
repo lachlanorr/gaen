@@ -27,6 +27,8 @@
 set(gaen_image_SOURCES
   ImageInfo.cpp
   ImageInfo.h
+  ImagePartition.cpp
+  ImagePartition.h
   Png.cpp
   Png.h
   Tga.cpp

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Set.h - Typedefed std::set that uses our allocator
+// ImagePartition.cpp - Fill an image rect with rects keeping track of free areas
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,34 +24,35 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CORE_SET_H
-#define GAEN_CORE_SET_H
-
-#include <set>
-#include <functional>
-
-#include "gaen/core/mem.h"
+#include "gaen/image/ImagePartition.h"
 
 namespace gaen
 {
 
-// Declare sets with the additional MemType enum parameter, E.g.:
-//   Set<int, kMT_Texture> mySet;
-template <MemType memType,
-          class Key,
-          class Comparer = std::less<Key>>
-using Set = std::set<Key,
-                     Comparer,
-                     gaen::Allocator<memType, Key>>;
+ImagePartition::ImagePartition(uvec2 size)
+  : mSize(size)
+{
+    mRects.insert(Rect{uvec2(0), size});
+}
 
-template <MemType memType,
-          class Key,
-          class Comparer = std::less<Key>>
-using MultiSet = std::multiset<Key,
-                               Comparer,
-                               gaen::Allocator<memType, Key>>;
+bool ImagePartition::getEmptyPosition(uvec2 * pPos, uvec2 size)
+{
+    for (auto it = mRects.begin(); it != mRects.end(); ++it)
+    {
+        if (size.x <= it->size.x && size.y <= it->size.y)
+        {
+            Rect rightRect{uvec2(it->pos.x + size.x, it->pos.y), uvec2(it->size.x - size.x, size.y)};
+            Rect lowerRect{uvec2(it->pos.x, it->pos.y + size.y), uvec2(it->size.x, it->size.y - size.y)};
+            *pPos = it->pos;
+            mRects.erase(it);
+            if (rightRect.size.x > 0 && rightRect.size.y > 0)
+                mRects.insert(rightRect);
+            if (lowerRect.size.x > 0 && lowerRect.size.y > 0)
+                mRects.insert(lowerRect);
+            return true;
+        }
+    }
+    return false;
+}
 
 } // namespace gaen
-
-
-#endif //#ifndef GAEN_CORE_SET_H

@@ -135,12 +135,26 @@ struct Voxel
     };
 };
 
+struct VoxMatrix;
 struct VoxMatrixFace
 {
     const VoxFace * pFace;
-    ivec3 startWorld;
+    const VoxMatrix * pMatrix;
     i32 area;
     vec3 points[4];
+    vec2 uvs[4];
+
+    VoxMatrixFace(const VoxFace * pFace, const VoxMatrix * pMatrix)
+      : pFace(pFace)
+      , pMatrix(pMatrix)
+      , area(pFace->size.x * pFace->size.y * pFace->size.z)
+    {
+        for (u32 i = 0; i < 4; ++i)
+        {
+            points[i] = vec3(0);
+            uvs[i] = vec2(0);
+        }
+    }
 };
 
 struct VoxMatrix

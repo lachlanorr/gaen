@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Set.h - Typedefed std::set that uses our allocator
+// ImagePartition.h - Fill an image rect with rects keeping track of free areas
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,34 +24,38 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CORE_SET_H
-#define GAEN_CORE_SET_H
+#ifndef GAEN_IMAGE_IMAGE_PARTITION_H
+#define GAEN_IMAGE_IMAGE_PARTITION_H
 
-#include <set>
-#include <functional>
-
-#include "gaen/core/mem.h"
+#include "gaen/math/vec2.h"
+#include "gaen/core/Set.h"
 
 namespace gaen
 {
 
-// Declare sets with the additional MemType enum parameter, E.g.:
-//   Set<int, kMT_Texture> mySet;
-template <MemType memType,
-          class Key,
-          class Comparer = std::less<Key>>
-using Set = std::set<Key,
-                     Comparer,
-                     gaen::Allocator<memType, Key>>;
+class ImagePartition
+{
+public:
+    ImagePartition(uvec2 size);
+    bool getEmptyPosition(uvec2 * pPos, uvec2 size);
 
-template <MemType memType,
-          class Key,
-          class Comparer = std::less<Key>>
-using MultiSet = std::multiset<Key,
-                               Comparer,
-                               gaen::Allocator<memType, Key>>;
+private:
+    struct Rect
+    {
+        uvec2 pos;
+        uvec2 size;
+
+        bool operator<(const Rect & rhs) const
+        {
+            return size.x * size.y < rhs.size.x * rhs.size.y;
+        }
+    };
+
+    uvec2 mSize;
+
+    MultiSet<kMEM_Chef, Rect> mRects;
+};
 
 } // namespace gaen
 
-
-#endif //#ifndef GAEN_CORE_SET_H
+#endif // #ifndef GAEN_IMAGE_IMAGE_PARTITION_H
