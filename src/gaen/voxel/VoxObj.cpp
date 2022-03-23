@@ -445,6 +445,14 @@ static vec2 calc_uv(uvec2 pos, uvec2 imageSize)
                 pos.y / (f32)imageSize.y + 0.5 / imageSize.y);
 }
 
+static void set_uvs(VoxMatrixFace * pMatFace, uvec2 pos, uvec2 size, uvec2 imageSize)
+{
+    pMatFace->uvs[0] = calc_uv(uvec2(pos.x,              pos.y + size.y - 1), imageSize);
+    pMatFace->uvs[1] = calc_uv(uvec2(pos.x + size.x - 1, pos.y + size.y - 1), imageSize);
+    pMatFace->uvs[2] = calc_uv(uvec2(pos.x + size.x - 1, pos.y),              imageSize);
+    pMatFace->uvs[3] = calc_uv(uvec2(pos.x,              pos.y),              imageSize);
+}
+
 static ivec3 face_image_pos_to_voxel(const VoxFace * pFace, const uvec2 size, u32 x, u32 y)
 {
     switch(pFace->side)
@@ -533,6 +541,8 @@ static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrix
                 pScanLine[pos.x+x].seta(255);
             }
         }
+
+        set_uvs(pMatFace, pos, size, imageSize);
     }
 
     // the only faces left are 1x1 faces, so we fill in any gaps in the image with those
@@ -541,18 +551,18 @@ static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrix
     Color * pColor = pColorStart;
 
     // remember any 1x1 faces we find and make all 1x1 faces of the same voxel use it
-    HashMap<kMEM_Chef, ivec3, uvec2> voxPosToImgPos;
+    HashMap<kMEM_Chef, const VoxMatrix*, HashMap<kMEM_Chef, ivec3, uvec2>> voxPosToImgPos;
     for (; i < matrixFaces.size(); i++)
     {
         VoxMatrixFace* pMatFace = matrixFaces[i];
         const VoxFace* pFace = pMatFace->pFace;
 
-        uvec2 imagePos(0);
+        uvec2 pos(0);
         // check if we already have a pixel for a different face of this 1x1x1 voxel
-        auto voxToImgIt = voxPosToImgPos.find(pFace->start);
-        if (voxToImgIt != voxPosToImgPos.end())
+        auto voxToImgIt = voxPosToImgPos[pMatFace->pMatrix].find(pFace->start);
+        if (voxToImgIt != voxPosToImgPos[pMatFace->pMatrix].end())
         {
-            imagePos = voxToImgIt->second;
+            pos = voxToImgIt->second;
         }
         else
         {
@@ -569,13 +579,15 @@ static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrix
             *pColor = pMatFace->pMatrix->node.voxel(pFace->start.x, pFace->start.y, pFace->start.z);
             pColor->seta(255);
 
-            // figure out our imagePos and store it in our lookup table
+            // figure out our pos and store it in our lookup table
             u32 offset = pColor - pColorStart;
-            imagePos = uvec2(offset % imageSize.x, offset / imageSize.x);
-            voxPosToImgPos.emplace(pFace->start, imagePos);
+            pos = uvec2(offset % imageSize.x, offset / imageSize.x);
+
+            voxPosToImgPos[pMatFace->pMatrix].emplace(pFace->start, pos);
 
             pColor++;
         }
+        set_uvs(pMatFace, pos, uvec2(1), imageSize);
     }
 
     return true;
@@ -662,8 +674,11 @@ VoxObj::VoxObj(const Qbt& qbt)
 
 void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
 {
-    HashMap<kMEM_Chef, vec3, u32> vertToPoint;
+    HashMap<kMEM_Chef, vec3, u32> pointIndices;
     Vector<kMEM_Chef, vec3> points;
+
+    HashMap<kMEM_Chef, vec2, u32> uvIndices;
+    Vector<kMEM_Chef, vec2> uvs;
 
     static const Vector<kMEM_Chef, vec3> normals{
         vec3(-1,  0,  0), // kVSD_Left
@@ -677,7 +692,7 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
     struct Face
     {
         u32 points[4];
-        //u32 uvs[4];
+        u32 uvs[4];
         u32 normal;
     };
 
@@ -698,8 +713,8 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
             {
                 u32 pointIdx = 0;
                 vec3 scaledVert = matFace.points[i] * scaleFactor;
-                auto itPnt = vertToPoint.find(scaledVert);
-                if (itPnt != vertToPoint.end())
+                auto itPnt = pointIndices.find(scaledVert);
+                if (itPnt != pointIndices.end())
                 {
                     pointIdx = itPnt->second;
                 }
@@ -707,9 +722,23 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
                 {
                     pointIdx = points.size();
                     points.push_back(scaledVert);
-                    vertToPoint[scaledVert] = pointIdx;
+                    pointIndices[scaledVert] = pointIdx;
                 }
                 face.points[i] = pointIdx;
+
+                u32 uvIdx = 0;
+                auto itUv = uvIndices.find(matFace.uvs[i]);
+                if (itUv != uvIndices.end())
+                {
+                    uvIdx = itUv->second;
+                }
+                else
+                {
+                    uvIdx = uvs.size();
+                    uvs.push_back(matFace.uvs[i]);
+                    uvIndices[matFace.uvs[i]] = uvIdx;
+                }
+                face.uvs[i] = uvIdx;
             }
             faces.push_back(face);
         }
@@ -764,15 +793,11 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
     }
     objWrtr.ofs.write("\n", 1);
 
-    snprintf(tempStr.data(), tempStr.size(), "vt 0.0 0.0\n");
-    objWrtr.ofs.write(tempStr.data(), strlen(tempStr.data()));
-    /*--
-    for (const auto & pix : pixels)
+    for (const auto & uv : uvs)
     {
-        snprintf(tempStr.data(), tempStr.size(), "vt %f %f\n", pix.uv.x, pix.uv.y);
+        snprintf(tempStr.data(), tempStr.size(), "vt %f %f\n", uv.x, uv.y);
         objWrtr.ofs.write(tempStr.data(), strlen(tempStr.data()));
     }
-    --*/
     objWrtr.ofs.write("\n", 1);
 
     for (const auto & part : type.parts)
@@ -786,10 +811,10 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 scaleFactor) const
         for (const auto & face : faces)
         {
             snprintf(tempStr.data(), tempStr.size(), "f %d/%d/%d %d/%d/%d %d/%d/%d %d/%d/%d\n",
-                     face.points[0]+1, 1/*face.uv+1*/, face.normal+1,
-                     face.points[1]+1, 1/*face.uv+1*/, face.normal+1,
-                     face.points[2]+1, 1/*face.uv+1*/, face.normal+1,
-                     face.points[3]+1, 1/*face.uv+1*/, face.normal+1);
+                     face.points[0]+1, face.uvs[0]+1, face.normal+1,
+                     face.points[1]+1, face.uvs[1]+1, face.normal+1,
+                     face.points[2]+1, face.uvs[2]+1, face.normal+1,
+                     face.points[3]+1, face.uvs[3]+1, face.normal+1);
             objWrtr.ofs.write(tempStr.data(), strlen(tempStr.data()));
         }
     }

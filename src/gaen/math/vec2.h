@@ -31,6 +31,8 @@
 #include <glm/geometric.hpp>// glm::cross, glm::normalize
 
 #include "gaen/core/base_defines.h"
+#include "gaen/core/hashing.h"
+
 #include "gaen/math/common.h"
 
 namespace gaen
@@ -220,5 +222,27 @@ inline vec2 degrees(vec2 radians)
 }
 
 } // namespace gaen
+
+namespace std
+{
+template <>
+struct hash<gaen::vec2> : public unary_function<gaen::vec2, size_t>
+{
+    size_t operator()(const gaen::vec2& value) const
+    {
+        return gaen::fnv1a_32(reinterpret_cast<const gaen::u8*>(&value), sizeof(gaen::vec2));
+    }
+};
+
+template <>
+struct hash<gaen::ivec2> : public unary_function<gaen::ivec2, size_t>
+{
+    size_t operator()(const gaen::ivec2& value) const
+    {
+        size_t ret = gaen::fnv1a_32(reinterpret_cast<const gaen::u8*>(&value), sizeof(gaen::ivec2));
+        return ret;
+    }
+};
+} // namespace std
 
 #endif // #ifndef GAEN_MATH_VEC2_H
