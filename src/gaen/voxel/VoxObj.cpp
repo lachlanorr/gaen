@@ -287,7 +287,6 @@ static void voxel_row_merge(VoxMatrix & matrix, Voxel & vox, VoxSide side, HashM
         }
     }
 }
-
 static void process_voxel_side(VoxMatrix & matrix, Voxel & vox, VoxSide side)
 {
     VoxSideFlag sideFlag = voxel_side_flag(side);
@@ -311,30 +310,25 @@ static void process_voxel_side(VoxMatrix & matrix, Voxel & vox, VoxSide side)
     }
 }
 
-static void process_matrix(VoxMatrix & matrix)
+VoxMatrix::VoxMatrix(const QbtNode &node)
+  : node(node)
 {
-    matrix.worldPos = qbt_node_world_pos(matrix.node);
+    worldPos = qbt_node_world_pos(node);
+    mins = ivec3(std::numeric_limits<int>::max());
+    maxes = ivec3(std::numeric_limits<int>::min());
 
-    for (i32 z = 0; z < matrix.node.size.z; z++)
+    for (i32 z = 0; z < node.size.z; z++)
     {
-        for (i32 y = 0; y < matrix.node.size.y; y++)
+        for (i32 y = 0; y < node.size.y; y++)
         {
-            for (i32 x = 0; x < matrix.node.size.x; x++)
+            for (i32 x = 0; x < node.size.x; x++)
             {
-                Color col = matrix.node.voxel(x, y, z);
+                Color col = node.voxel(x, y, z);
                 if (col.a() > 1) // 1 means core voxel
                 {
                     col.seta(255);
-
                     ivec3 pos(x, y, z);
-                    matrix.voxels.emplace_back(col, pos);
-                    Voxel &vox = matrix.voxels.back();
-                    matrix.voxelIdMap.emplace(pos, matrix.voxels.size()-1);
-
-                    for (i32 side = 0; side < kVSD_COUNT; side++)
-                    {
-                        process_voxel_side(matrix, vox, (VoxSide)side);
-                    }
+                    addVoxel(col, pos);
                 }
             }
         }
@@ -342,7 +336,7 @@ static void process_matrix(VoxMatrix & matrix)
 
     // merge compatible rows
     HashMap<kMEM_Chef, VoxFace*, VoxFace*> faceTrans;
-    for (Voxel & vox : matrix.voxels)
+    for (Voxel & vox : voxels)
     {
         for (i32 side = 0; side < kVSD_COUNT; side++)
         {
@@ -356,23 +350,23 @@ static void process_matrix(VoxMatrix & matrix)
                 }
                 else if (voxel_row_check(vox.pos, (VoxSide)side))
                 {
-                    voxel_row_merge(matrix, vox, (VoxSide)side, faceTrans);
+                    voxel_row_merge(*this, vox, (VoxSide)side, faceTrans);
                 }
             }
         }
     }
 
     // All composite faces should be generated now, build the master matrix face vector
-    for (i32 z = 0; z < matrix.node.size.z; z++)
+    for (i32 z = 0; z < node.size.z; z++)
     {
-        for (i32 y = 0; y < matrix.node.size.y; y++)
+        for (i32 y = 0; y < node.size.y; y++)
         {
-            for (i32 x = 0; x < matrix.node.size.x; x++)
+            for (i32 x = 0; x < node.size.x; x++)
             {
-                auto voxIdIt = matrix.voxelIdMap.find(ivec3(x, y, z));
-                if (voxIdIt != matrix.voxelIdMap.end())
+                auto voxIdIt = voxelIdMap.find(ivec3(x, y, z));
+                if (voxIdIt != voxelIdMap.end())
                 {
-                    Voxel & vox = matrix.voxels[voxIdIt->second];
+                    Voxel & vox = voxels[voxIdIt->second];
                     for (u32 i = 0; i < kVSD_COUNT; ++i)
                     {
                         VoxFace * pFace = vox.pFaces[i];
@@ -380,10 +374,10 @@ static void process_matrix(VoxMatrix & matrix)
                         // "owner" of this potentially composite face
                         if (pFace == &vox.faces[i])
                         {
-                            matrix.faces.push_back(VoxMatrixFace(pFace, &matrix));
-                            VoxMatrixFace &matFace = matrix.faces.back();
+                            faces.push_back(VoxMatrixFace(pFace, this));
+                            VoxMatrixFace &matFace = faces.back();
 
-                            vec3 worldPos(matrix.worldPos.x, matrix.worldPos.y, matrix.worldPos.z);
+                            vec3 worldPos(worldPos.x, worldPos.y, worldPos.z);
                             vec3 size(pFace->size.x, pFace->size.y, pFace->size.z);
 
                             switch(pFace->side)
@@ -537,8 +531,7 @@ static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrix
             for (i32 x = 0; x < size.x; x++)
             {
                 ivec3 matPos = face_image_pos_to_voxel(pFace, size, x, y);
-                pScanLine[pos.x+x] = pMatFace->pMatrix->node.voxel(matPos.x, matPos.y, matPos.z);
-                pScanLine[pos.x+x].seta(255);
+                pScanLine[pos.x+x] = pMatFace->pMatrix->voxel(matPos).color;
             }
         }
 
@@ -576,8 +569,7 @@ static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrix
                 }
                 pColor++;
             }
-            *pColor = pMatFace->pMatrix->node.voxel(pFace->start.x, pFace->start.y, pFace->start.z);
-            pColor->seta(255);
+            *pColor = pMatFace->pMatrix->voxel(pFace->start).color;
 
             // figure out our pos and store it in our lookup table
             u32 offset = pColor - pColorStart;
@@ -593,15 +585,48 @@ static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrix
     return true;
 }
 
+const Voxel & VoxMatrix::voxel(ivec3 pos) const
+{
+    auto voxIdIt = voxelIdMap.find(pos);
+    PANIC_IF(voxIdIt == voxelIdMap.end(), "Voxel not found: (%d, %d, %d)", pos.x, pos.y, pos.z);
+    return voxels[voxIdIt->second];
+}
+
+void VoxMatrix::addVoxel(Color col, ivec3 pos)
+{
+    voxels.emplace_back(col, pos);
+    Voxel &vox = voxels.back();
+    voxelIdMap.emplace(pos, voxels.size()-1);
+
+    if (pos.x < mins.x)
+        mins.x = pos.x;
+    if (pos.y < mins.y)
+        mins.y = pos.y;
+    if (pos.z < mins.z)
+        mins.z = pos.z;
+
+    if (pos.x > maxes.x)
+        maxes.x = pos.x;
+    if (pos.y > maxes.y)
+        maxes.y = pos.y;
+    if (pos.z > maxes.z)
+        maxes.z = pos.z;
+
+    for (i32 side = 0; side < kVSD_COUNT; side++)
+    {
+        process_voxel_side(*this, vox, (VoxSide)side);
+    }
+}
+
 VoxObj::VoxObj(const Qbt& qbt)
   : qbt(qbt)
 {
     if (const QbtNode * pNode = find_top_level_compound(qbt, "Base"))
     {
         add_matrices_to_map(baseMatrices, *pNode);
-        if (const QbtNode * pNode = find_top_level_compound(qbt, "Nulls"))
+        if (const QbtNode * pNode = find_top_level_compound(qbt, "Skeleton"))
         {
-            add_matrices_to_map(nullsMatrices, *pNode);
+            add_matrices_to_map(skelMatrices, *pNode);
         }
     }
     else
@@ -610,11 +635,6 @@ VoxObj::VoxObj(const Qbt& qbt)
         add_matrices_to_map(baseMatrices, *qbt.pRoot);
     }
     type = VoxObjType::determine_type(*this);
-
-    for (const auto & part : type.parts)
-    {
-        process_matrix(*baseMatrices[part.name]);
-    }
 
     // build master face list
     Vector<kMEM_Chef, VoxMatrixFace*> matrixFaces;

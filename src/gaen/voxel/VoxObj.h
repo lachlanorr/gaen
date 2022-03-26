@@ -27,6 +27,8 @@
 #ifndef GAEN_VOXEL_VOX_OBJ_H
 #define GAEN_VOXEL_VOX_OBJ_H
 
+#include <limits>
+
 #include "gaen/core/HashMap.h"
 #include "gaen/core/Vector.h"
 #include "gaen/math/vec3.h"
@@ -162,16 +164,18 @@ struct VoxMatrix
     const QbtNode& node;
 
     ivec3 worldPos;
+    ivec3 mins;
+    ivec3 maxes;
 
     Vector<kMEM_Chef, Voxel> voxels;
     HashMap<kMEM_Chef, ivec3, size_t> voxelIdMap;
 
     Vector<kMEM_Chef, VoxMatrixFace> faces;
 
-    VoxMatrix(const QbtNode &node)
-      : node(node)
-      , worldPos(0)
-    {}
+    const Voxel & voxel(ivec3 pos) const;
+    void addVoxel(Color col, ivec3 pos);
+
+    VoxMatrix(const QbtNode &node);
 };
 
 typedef UniquePtr<VoxMatrix> VoxMatrixUP;
@@ -182,7 +186,10 @@ struct VoxObj
     const Qbt& qbt;
 
     VoxMatrixMap baseMatrices;
-    VoxMatrixMap nullsMatrices;
+    VoxMatrixMap skelMatrices;
+
+    ivec3 mins;
+    ivec2 maxes;
 
     VoxObjType type;
 
