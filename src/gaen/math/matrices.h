@@ -102,6 +102,8 @@ inline mat43 build_rotate(const vec3 & v)
 {
     return mat43::from_rot(v.x, v.y, v.z);
 }
+mat43 build_rotate(f32 angle, const vec3 & v);
+mat43 build_rotate(const vec3 & lhs, const vec3 & rhs);
 inline mat43 build_rotate(const quat & q)
 {
     return mat43(q);

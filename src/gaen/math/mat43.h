@@ -87,6 +87,7 @@ struct tmat43
 
     // inverse
     tmat43 operator~() const;
+    tmat43 inverse() const;
 };
 
 typedef tmat43<f32> mat43;

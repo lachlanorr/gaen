@@ -138,6 +138,12 @@ tmat43<T> & tmat43<T>::operator=(const tmat3<T> & rhs)
 template <typename T>
 tmat43<T> tmat43<T>::operator~() const
 {
+    return inverse();
+}
+
+template <typename T>
+tmat43<T> tmat43<T>::inverse() const
+{
     return tmat43<T>(glm::inverse((tmat4<T>::glm_t)*this));
 }
 

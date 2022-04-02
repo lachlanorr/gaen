@@ -24,6 +24,7 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "gaen/voxel/Qbt.h"
 #include "gaen/voxel/VoxObj.h"
 #include "gaen/voxel/vox_types.h"
 
@@ -33,36 +34,34 @@ namespace gaen
 static const Vector<kMEM_Chef, VoxObjType> kVoxObjTypes
 {
     { VoxType::Biped,
-        {
-            { "Hips", "Lower", "" },
-            { "L_Thigh", "Lower", "Hips" },
-            { "L_Calf", "Lower", "L_Thigh" },
-            { "L_Heel", "Lower", "L_Calf" },
-            { "L_Toes", "Lower", "L_Heel" },
-            { "R_Thigh", "Lower", "Hips" },
-            { "R_Calf", "Lower", "R_Thigh" },
-            { "R_Heel", "Lower", "R_Calf" },
-            { "R_Toes", "Lower", "R_Heel" },
-            { "Waist", "Upper", "" },
-            { "Chest", "Upper", "Waist" },
-            { "Head", "Upper", "Chest" },
-            { "L_Upperarm", "Upper", "Chest" },
-            { "L_Forearm", "Upper", "L_Upperarm" },
-            { "L_Hand", "Upper", "L_Forearm" },
-            { "L_Digit_0", "Upper", "L_Hand" },
-            { "L_Digit_1", "Upper", "L_Digit_0" },
-            { "L_Digit_2", "Upper", "L_Digit_1" },
-            { "L_Thumb_0", "Upper", "L_Hand" },
-            { "L_Thumb_1", "Upper", "L_Thumb_0" },
-            { "R_Upperarm", "Upper", "Chest" },
-            { "R_Forearm", "Upper", "R_Upperarm" },
-            { "R_Hand", "Upper", "R_Forearm" },
-            { "R_Digit_0", "Upper", "R_Hand" },
-            { "R_Digit_1", "Upper", "R_Digit_0" },
-            { "R_Digit_2", "Upper", "R_Digit_1" },
-            { "R_Thumb_0", "Upper", "R_Hand" },
-            { "R_Thumb_1", "Upper", "R_Thumb_0" }
-        }
+      {{ "Hips",       "Lower", "",           kVPF_CenterOfMass },
+       { "L_Thigh",    "Lower", "Hips",       kVPF_CenterOfMass },
+       { "L_Calf",     "Lower", "L_Thigh",    kVPF_CenterOfMass },
+       { "L_Heel",     "Lower", "L_Calf",     kVPF_CenterOfMass },
+       { "L_Toes",     "Lower", "L_Heel",     kVPF_CenterOfMass },
+       { "R_Thigh",    "Lower", "Hips",       kVPF_CenterOfMass },
+       { "R_Calf",     "Lower", "R_Thigh",    kVPF_CenterOfMass },
+       { "R_Heel",     "Lower", "R_Calf",     kVPF_CenterOfMass },
+       { "R_Toes",     "Lower", "R_Heel",     kVPF_CenterOfMass },
+       { "Waist",      "Upper", "",           kVPF_CenterOfMass },
+       { "Chest",      "Upper", "Waist",      kVPF_CenterOfMass },
+       { "Head",       "Upper", "Chest",      kVPF_CenterOfMass },
+       { "L_Upperarm", "Upper", "Chest",      kVPF_NONE },
+       { "L_Forearm",  "Upper", "L_Upperarm", kVPF_NONE },
+       { "L_Hand",     "Upper", "L_Forearm",  kVPF_NONE },
+       { "L_Digit_0",  "Upper", "L_Hand",     kVPF_NONE },
+       { "L_Digit_1",  "Upper", "L_Digit_0",  kVPF_NONE },
+       { "L_Digit_2",  "Upper", "L_Digit_1",  kVPF_NONE },
+       { "L_Thumb_0",  "Upper", "L_Hand",     kVPF_NONE },
+       { "L_Thumb_1",  "Upper", "L_Thumb_0",  kVPF_NONE },
+       { "R_Upperarm", "Upper", "Chest",      kVPF_NONE },
+       { "R_Forearm",  "Upper", "R_Upperarm", kVPF_NONE },
+       { "R_Hand",     "Upper", "R_Forearm",  kVPF_NONE },
+       { "R_Digit_0",  "Upper", "R_Hand",     kVPF_NONE },
+       { "R_Digit_1",  "Upper", "R_Digit_0",  kVPF_NONE },
+       { "R_Digit_2",  "Upper", "R_Digit_1",  kVPF_NONE },
+       { "R_Thumb_0",  "Upper", "R_Hand",     kVPF_NONE },
+       { "R_Thumb_1",  "Upper", "R_Thumb_0",  kVPF_NONE }}
     }
 };
 

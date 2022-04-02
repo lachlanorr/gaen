@@ -198,4 +198,20 @@ QbtUP Qbt::load_from_file(const char * path)
     return pQbt;
 }
 
+const QbtNode * Qbt::findTopLevelCompound(const char * name) const
+{
+    if (pRoot)
+    {
+        for (u32 i = 0; i < pRoot->children.size(); ++i)
+        {
+            if (pRoot->children[i]->name == name && pRoot->children[i]->typeId == kQBNT_Compound)
+            {
+                return pRoot->children[i].get();
+            }
+        }
+    }
+
+    return nullptr;
+}
+
 } // namespace gaen

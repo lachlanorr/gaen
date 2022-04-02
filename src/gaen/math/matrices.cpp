@@ -28,6 +28,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtx/perpendicular.hpp>
 
 #include "gaen/math/common.h"
 #include "gaen/math/matrices.h"
@@ -44,6 +46,60 @@ vec3 extract_rotate(const mat43 & t)
     glm::extractEulerAngleXYZ<f32>(t4, euler.x, euler.y, euler.z);
 
     return euler;
+}
+
+mat43 build_rotate(f32 angle, const vec3 & v)
+{
+    return mat43(glm::rotate(angle, (vec3::glm_t)v));
+}
+
+mat43 build_rotate(const vec3 & lhs, const vec3 & rhs)
+{
+    if (lhs == vec3(0) || rhs == vec3(0) || lhs == rhs)
+    {
+        return mat43(1.0f);
+    }
+
+    vec3::glm_t v;
+    vec3::glm_t glhs = lhs;
+    vec3::glm_t grhs = rhs;
+
+    if (glhs != -grhs) // not opposite vectors
+    {
+        v = glm::cross(glhs, grhs);
+    }
+    else
+    {
+        // Find a perpendicular vector perp
+        // dot(lhs, perp) == 0
+        vec3 perp;
+
+        if (lhs.z != 0.0f)
+        {
+            // x = 0, y = 1
+            // solve for z, where dot product would be 0
+            // Thus lhs.y + lhs.z * z = 0
+            // z = -lhs.y / lhs.z
+            perp = vec3(0, 1, -lhs.y / lhs.z);
+        }
+        else if (lhs.y != 0.0f)
+        {
+            // x = 1, z = 0
+            // lhs.x + lhs.y * y = 0
+            // y = -lhs.x / lhs.y
+            perp = vec3(1, -lhs.x / lhs.y, 0);
+        }
+        else // x != 0.0f
+        {
+            // y = 0, z = 1
+            // lhs.x * x + lhs.z = 0
+            // x = -lhs.z / lhs.x
+            perp = vec3(-lhs.z / lhs.x, 0, 1);
+        }
+        v = normalize(perp);
+    }
+    f32 angle = glm::acos(glm::dot(glhs, grhs));
+    return mat43(glm::rotate(angle, v));
 }
 
 mat4 perspective(f32 fovy,

@@ -81,6 +81,8 @@ struct Qbt
     {}
 
     static UniquePtr<Qbt> load_from_file(const char * path);
+
+    const QbtNode * findTopLevelCompound(const char * name) const;
 };
 typedef UniquePtr<Qbt> QbtUP;
 

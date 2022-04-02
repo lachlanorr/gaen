@@ -40,7 +40,7 @@ void normalize_path(char * outPath, const char * inPath)
 
     const char * pIn = inPath;
     char * pOut = outPath;
-    
+
     // copy the path, replacing '\' with '/'
     while (*pIn)
     {
@@ -372,6 +372,14 @@ List<kMEM_Chef, ChefString> read_lines(const char * path)
     return lines;
 }
 
+void FileWriter::write(const char * str)
+{
+    ofs.write(str, strlen(str));
+}
+
+void FileWriter::write(const ChefString & str)
+{
+    ofs.write(str.c_str(), str.size());
+}
 
 } // namespace gaen
-

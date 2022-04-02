@@ -28,6 +28,7 @@
 #define GAEN_VOXEL_VOX_TYPES_H
 
 #include "gaen/core/String.h"
+#include "gaen/core/Vector.h"
 
 namespace gaen
 {
@@ -40,11 +41,19 @@ enum class VoxType
     Biped = 1
 };
 
+enum VoxPartFlags
+{
+    kVPF_NONE = 0,
+
+    kVPF_CenterOfMass = 0x01
+};
+
 struct VoxPart
 {
     ChefString name;
     ChefString group;
     ChefString parent;
+    u32 flags;
 };
 
 typedef Vector<kMEM_Chef, VoxPart> VoxParts;

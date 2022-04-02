@@ -29,6 +29,10 @@ set(gaen_voxel_SOURCES
   Qbt.h
   VoxObj.h
   VoxObj.cpp
+  VoxMatrix.cpp
+  VoxMatrix.h
+  VoxSkel.cpp
+  VoxSkel.h
   vox_types.h
   vox_types.cpp
   )

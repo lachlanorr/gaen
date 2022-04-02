@@ -328,6 +328,9 @@ struct FileWriter
             ofs.close();
     }
 
+    void write(const char * str);
+    void write(const ChefString & str);
+
     std::ofstream ofs;
 };
 
