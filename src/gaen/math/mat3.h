@@ -83,6 +83,7 @@ struct tmat3
 
     // inverse
     tmat3 operator~() const;
+    tmat3 inverse() const;
 };
 
 typedef tmat3<f32> mat3;

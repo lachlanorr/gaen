@@ -67,10 +67,10 @@ struct tvec4
 
     tvec4(const tvec3<T> & v, T w);
 
-    u32 length() const { return sizeof(*this) / sizeof(T); }
+    u32 size() const { return sizeof(*this) / sizeof(T); }
 
-    T& operator[](u32 i) { ASSERT(i < length()); return (&x)[i]; }
-    const T& operator[](u32 i) const { ASSERT(i < length()); return (&x)[i]; }
+    T& operator[](u32 i) { ASSERT(i < size()); return (&x)[i]; }
+    const T& operator[](u32 i) const { ASSERT(i < size()); return (&x)[i]; }
 
 }; // struct vec4
 

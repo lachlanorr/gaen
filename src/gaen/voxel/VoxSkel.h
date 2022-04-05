@@ -49,6 +49,7 @@ enum VoxNullType
 const ChefString & vox_null_type_str(VoxNullType type);
 
 class VoxSkel;
+struct VoxObj;
 struct VoxNull
 {
     VoxNull(VoxSkel & skel,
@@ -58,12 +59,11 @@ struct VoxNull
             const ChefString & group,
             vec3 pos);
 
-    ChefString serialize(f32 voxelSize, const ChefString indent) const;
+    ChefString serialize(f32 voxelSize, const VoxObj * pVoxObj, const ChefString indent) const;
 
     VoxSkel & skel;
     VoxNullType type;
     ChefString name;
-    ChefString shortName;
     ChefString parent;
     ChefString group;
     vec3 pos;
@@ -86,7 +86,8 @@ struct FileWriter;
 class VoxSkel
 {
 public:
-    VoxSkel(const Qbt & qbt);
+    VoxSkel() {}
+    VoxSkel(const VoxObj * pVoxObj);
 
     const VoxNull * getNull(const ChefString & name) const;
     VoxNull * getNull(const ChefString & name);
@@ -94,9 +95,10 @@ public:
     const VoxNull * getRoot() { return mNulls.find(root)->second.get(); }
 
     void writeSkl(const ChefString & path, f32 voxelSize) const;
-    void serializeNulls(Vector<kMEM_Chef, ChefString> & nullObjs, const ChefString & nullName, f32 voxelSize) const;
+    void serializeNulls(Vector<kMEM_Chef, ChefString> & nullObjs, const ChefString & nullName, f32 voxelSize, const ChefString indent) const;
 
 private:
+    const VoxObj * pVoxObj;
     ChefString root;
     Map<kMEM_Chef, ChefString, VoxBoneUP> mNulls;
 };

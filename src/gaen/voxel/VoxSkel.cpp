@@ -27,8 +27,10 @@
 #include <array>
 
 #include "gaen/math/matrices.h"
+#include "gaen/math/mat3.h"
 #include "gaen/assets/file_utils.h"
 #include "gaen/voxel/Qbt.h"
+#include "gaen/voxel/VoxObj.h"
 #include "gaen/voxel/VoxSkel.h"
 
 namespace gaen
@@ -49,9 +51,9 @@ typedef HashMap<kMEM_Chef, ChefString, RawNull> RawNullMap;
 const ChefString & vox_null_type_str(VoxNullType type)
 {
     static const HashMap<kMEM_Chef, VoxNullType, ChefString> sTypeMap{
-        { kVNT_Null, "Null" },
-        { kVNT_Bone, "Bone" },
-        { kVNT_Hardpoint, "Hardpoint" }
+        { kVNT_Null, "null" },
+        { kVNT_Bone, "bone" },
+        { kVNT_Hardpoint, "hardpoint" }
     };
 
     const auto it = sTypeMap.find(type);
@@ -59,7 +61,7 @@ const ChefString & vox_null_type_str(VoxNullType type)
     return it->second;
 }
 
-static void calc_details(VoxNull * pNull, RawNullMap & rawNulls)
+static void calc_details(VoxNull * pNull, const vec3 & voxObjCenter, RawNullMap & rawNulls)
 {
     if (pNull->detailsAreAvailable)
         return;
@@ -70,7 +72,7 @@ static void calc_details(VoxNull * pNull, RawNullMap & rawNulls)
         pParent = pNull->skel.getNull(pNull->parent);
         if (pParent != nullptr)
         {
-            calc_details(pParent, rawNulls);
+            calc_details(pParent, voxObjCenter, rawNulls);
         }
     }
 
@@ -81,7 +83,7 @@ static void calc_details(VoxNull * pNull, RawNullMap & rawNulls)
         PANIC_IF(eIt == rawNulls.end(), "No end null defined for bone %s", endName.c_str());
         pNull->endPos = eIt->second.pos;
         vec3 dirFull = pNull->endPos - pNull->pos;
-        pNull->length = dirFull.length();
+        pNull->length = length(dirFull);
         pNull->dir = normalize(dirFull);
 
         mat43 rotMat = build_rotate(kBoneInitDir, pNull->dir);
@@ -102,8 +104,24 @@ static void calc_details(VoxNull * pNull, RawNullMap & rawNulls)
 
     if (pParent)
     {
-        pNull->localTrans = pParent->worldTrans.inverse() * pNull->worldTrans;
+        if (pNull->type == kVNT_Bone)
+        {
+            // bones just have rotates
+            mat3 rot = (mat3)pNull->worldTrans;
+            mat3 prot = (mat3)pParent->worldTrans;
+            mat3 locRot = prot.inverse() * rot;
+            pNull->localTrans = locRot;
+        }
+        else
+        {
+            pNull->localTrans = pParent->worldTrans.inverse() * pNull->worldTrans;
+        }
+
         pParent->children.insert(pNull->name);
+    }
+    else
+    {
+        pNull->localTrans = mat43(voxObjCenter).inverse() * pNull->worldTrans;
     }
 
     pNull->detailsAreAvailable = true;
@@ -134,7 +152,6 @@ VoxNull::VoxNull(VoxSkel & skel,
   : skel(skel)
   , type(type)
   , name(name)
-  , shortName(name.substr(1))
   , parent(parent)
   , group(group)
   , pos(pos)
@@ -146,11 +163,12 @@ VoxNull::VoxNull(VoxSkel & skel,
   , localTrans(1.0f)
 {}
 
-VoxSkel::VoxSkel(const Qbt & qbt)
+VoxSkel::VoxSkel(const VoxObj * pVoxObj)
+  : pVoxObj(pVoxObj)
 {
     VoxMatrixMap skelMatrices;
 
-    const QbtNode * pSkelNode = qbt.findTopLevelCompound("Skeleton");
+    const QbtNode * pSkelNode = pVoxObj->qbt.findTopLevelCompound("Skeleton");
     if (pSkelNode == nullptr)
     {
         return;
@@ -224,7 +242,7 @@ VoxSkel::VoxSkel(const Qbt & qbt)
     for (auto & nullPair : mNulls)
     {
         VoxNull * pNull = nullPair.second.get();
-        calc_details(pNull, rawNulls);
+        calc_details(pNull, pVoxObj->worldCenter, rawNulls);
     }
 }
 
@@ -264,14 +282,14 @@ ChefString serialize_transform(const mat43 & trans, f32 voxelSize, const ChefStr
     ser += indent2 + tempStr.data();
     vec3 swtrans = trans.cols[3] * voxelSize;
     snprintf(tempStr.data(), tempStr.size(),
-             "[%f, %f, %f, %f]\n", swtrans.x, swtrans.y, swtrans.z, 0.0f);
+             "[%f, %f, %f, %f]\n", swtrans.x, swtrans.y, swtrans.z, 1.0f);
     ser += indent2 + tempStr.data();
     ser += indent + "]";
 
     return ser;
 }
 
-ChefString VoxNull::serialize(f32 voxelSize, const ChefString indent) const
+ChefString VoxNull::serialize(f32 voxelSize, const VoxObj * pVoxObj, const ChefString indent) const
 {
     ChefString ser;
     std::array<char, 1024> tempStr;
@@ -281,10 +299,6 @@ ChefString VoxNull::serialize(f32 voxelSize, const ChefString indent) const
 
     snprintf(tempStr.data(), tempStr.size(),
              "\"name\": \"%s\",\n", name.c_str());
-    ser += indent2 + tempStr.data();
-
-    snprintf(tempStr.data(), tempStr.size(),
-             "\"shortName\": \"%s\",\n", shortName.c_str());
     ser += indent2 + tempStr.data();
 
     snprintf(tempStr.data(), tempStr.size(),
@@ -321,12 +335,24 @@ ChefString VoxNull::serialize(f32 voxelSize, const ChefString indent) const
         snprintf(tempStr.data(), tempStr.size(),
                  "\"length\": %f,\n", slength);
         ser += indent2 + tempStr.data();
+
+        // find matrix to get center and extents
+        const auto & mat = *pVoxObj->baseMatrices.find(name.substr(1))->second;
+        vec3 scenter = mat.worldCenter * voxelSize;
+        snprintf(tempStr.data(), tempStr.size(),
+                 "\"center\": [%f, %f, %f],\n", scenter.x, scenter.y, scenter.z);
+        ser += indent2 + tempStr.data();
+
+        vec3 shalfExtents = mat.halfExtents * voxelSize;
+        snprintf(tempStr.data(), tempStr.size(),
+                 "\"halfExtents\": [%f, %f, %f],\n", shalfExtents.x, shalfExtents.y, shalfExtents.z);
+        ser += indent2 + tempStr.data();
     }
 
-    ser += "    \"worldTrans\": " + serialize_transform(worldTrans, voxelSize, indent2) + ",\n";
-    ser += "    \"localTrans\": " + serialize_transform(localTrans, voxelSize, indent2) + ",\n";
+    ser += indent2 + "\"worldTransform\": " + serialize_transform(worldTrans, voxelSize, indent2) + ",\n";
+    ser += indent2 + "\"localTransform\": " + serialize_transform(localTrans, voxelSize, indent2) + ",\n";
 
-    ser += "    \"children\": [";
+    ser += indent2 + "\"children\": [";
     for (const auto & child : children)
     {
         snprintf(tempStr.data(), tempStr.size(),
@@ -339,20 +365,38 @@ ChefString VoxNull::serialize(f32 voxelSize, const ChefString indent) const
     }
     ser += "]\n";
 
-    ser += "  }";
+    ser += indent + "}";
 
     return ser;
 }
 
 void VoxSkel::writeSkl(const ChefString & path, f32 voxelSize) const
 {
+    std::array<char, 1024> tempStr;
+
     Vector<kMEM_Chef, ChefString> nullObjs;
 
-    serializeNulls(nullObjs, root, voxelSize);
+    serializeNulls(nullObjs, root, voxelSize, "    ");
 
     FileWriter sklWrtr(path.c_str());
 
-    sklWrtr.write("[\n");
+    sklWrtr.write("{\n");
+
+    snprintf(tempStr.data(), tempStr.size(),
+             "  \"type\": \"%s\",\n", vox_type_str(pVoxObj->type.type).c_str());
+    sklWrtr.write(tempStr.data());
+
+    vec3 scenter = pVoxObj->worldCenter * voxelSize;
+    snprintf(tempStr.data(), tempStr.size(),
+             "  \"center\": [%f, %f, %f],\n", scenter.x, scenter.y, scenter.z);
+    sklWrtr.write(tempStr.data());
+
+    vec3 shalfExtents = pVoxObj->halfExtents * voxelSize;
+    snprintf(tempStr.data(), tempStr.size(),
+             "  \"halfExtents\": [%f, %f, %f],\n", shalfExtents.x, shalfExtents.y, shalfExtents.z);
+    sklWrtr.write(tempStr.data());
+
+    sklWrtr.write("  \"skeleton\": [\n");
     for (const auto & obj : nullObjs)
     {
         sklWrtr.write(obj);
@@ -363,21 +407,22 @@ void VoxSkel::writeSkl(const ChefString & path, f32 voxelSize) const
         }
         sklWrtr.write("\n");
     }
-    sklWrtr.write("]\n");
+    sklWrtr.write("  ]\n");
+    sklWrtr.write("}\n");
 }
 
-void VoxSkel::serializeNulls(Vector<kMEM_Chef, ChefString> & nullObjs, const ChefString & nullName, f32 voxelSize) const
+void VoxSkel::serializeNulls(Vector<kMEM_Chef, ChefString> & nullObjs, const ChefString & nullName, f32 voxelSize, const ChefString indent) const
 {
     const auto nullIt = mNulls.find(nullName);
     PANIC_IF(nullIt == mNulls.end(), "Null not found: %s", nullName.c_str());
 
     const auto & null = *nullIt->second;
 
-    nullObjs.push_back(null.serialize(voxelSize, "  "));
+    nullObjs.push_back(null.serialize(voxelSize, pVoxObj, indent));
 
     for (const auto & childName : null.children)
     {
-        serializeNulls(nullObjs, childName, voxelSize);
+        serializeNulls(nullObjs, childName, voxelSize, indent);
     }
 }
 

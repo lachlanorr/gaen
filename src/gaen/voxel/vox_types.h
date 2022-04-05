@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // vox_types.h - Utilities to identify VoxObj types
 //
-// Gaen Concurrency Engine - http://gaen.org
+// aen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
 //
 // This software is provided 'as-is', without any express or implied
@@ -41,6 +41,8 @@ enum class VoxType
     Biped = 1
 };
 
+const ChefString & vox_type_str(VoxType type);
+
 enum VoxPartFlags
 {
     kVPF_NONE = 0,
@@ -51,8 +53,6 @@ enum VoxPartFlags
 struct VoxPart
 {
     ChefString name;
-    ChefString group;
-    ChefString parent;
     u32 flags;
 };
 

@@ -45,7 +45,7 @@ struct VoxObj
 
     ivec3 mins;
     ivec3 maxes;
-    vec3 center;
+    vec3 worldCenter;
     vec3 halfExtents;
 
     VoxObjType type;

@@ -164,6 +164,7 @@ struct VoxMatrix
     ivec3 maxes;
 
     vec3 worldCenter;
+    vec3 halfExtents;
 
     Vector<kMEM_Chef, Voxel> voxels;
     HashMap<kMEM_Chef, ivec3, size_t> voxelIdMap;

@@ -315,6 +315,7 @@ VoxMatrix::VoxMatrix(const QbtNode &node)
     ivec3 worldMaxes = maxes + worldPos;
     ivec3 worldMins = mins + worldPos;
     worldCenter = vec3(worldMaxes.x + worldMins.x + 1, worldMaxes.y + worldMins.y + 1, worldMaxes.z + worldMins.z + 1) * 0.5f;
+    halfExtents = vec3(worldCenter.x - worldMins.x, worldCenter.y - worldMins.y, worldCenter.z - worldMins.z);
 
     // merge compatible rows
     HashMap<kMEM_Chef, VoxFace*, VoxFace*> faceTrans;

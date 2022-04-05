@@ -199,7 +199,6 @@ static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrix
 
 VoxObj::VoxObj(const Qbt& qbt)
   : qbt(qbt)
-  , voxSkel(qbt)
 {
     const QbtNode * pBaseNode = qbt.findTopLevelCompound("Base");
     if (pBaseNode != nullptr)
@@ -234,8 +233,11 @@ VoxObj::VoxObj(const Qbt& qbt)
                 maxes.z = matMaxes.z;
         }
     }
-    center = vec3(maxes.x + mins.x + 1, maxes.y + mins.y + 1, maxes.z + mins.z + 1) * 0.5f;
-    halfExtents = vec3(center.x - mins.x, center.y - mins.y, center.z - mins.z);
+    worldCenter = vec3(maxes.x + mins.x + 1, maxes.y + mins.y + 1, maxes.z + mins.z + 1) * 0.5f;
+    halfExtents = vec3(worldCenter.x - mins.x, worldCenter.y - mins.y, worldCenter.z - mins.z);
+
+    // build skeleton, process nulls
+    voxSkel = VoxSkel(this);
 
     // build master face list
     Vector<kMEM_Chef, VoxMatrixFace*> matrixFaces;
@@ -321,6 +323,8 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 voxelSize) const
 
     for (const auto & part : type.parts)
     {
+        pointIndices.clear();
+
         const VoxMatrix & matrix = *baseMatrices.find(part.name)->second;
         // build face
         for (const auto & matFace : matrix.faces)

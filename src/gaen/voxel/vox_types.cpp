@@ -34,36 +34,48 @@ namespace gaen
 static const Vector<kMEM_Chef, VoxObjType> kVoxObjTypes
 {
     { VoxType::Biped,
-      {{ "Hips",       "Lower", "",           kVPF_CenterOfMass },
-       { "L_Thigh",    "Lower", "Hips",       kVPF_CenterOfMass },
-       { "L_Calf",     "Lower", "L_Thigh",    kVPF_CenterOfMass },
-       { "L_Heel",     "Lower", "L_Calf",     kVPF_CenterOfMass },
-       { "L_Toes",     "Lower", "L_Heel",     kVPF_CenterOfMass },
-       { "R_Thigh",    "Lower", "Hips",       kVPF_CenterOfMass },
-       { "R_Calf",     "Lower", "R_Thigh",    kVPF_CenterOfMass },
-       { "R_Heel",     "Lower", "R_Calf",     kVPF_CenterOfMass },
-       { "R_Toes",     "Lower", "R_Heel",     kVPF_CenterOfMass },
-       { "Waist",      "Upper", "",           kVPF_CenterOfMass },
-       { "Chest",      "Upper", "Waist",      kVPF_CenterOfMass },
-       { "Head",       "Upper", "Chest",      kVPF_CenterOfMass },
-       { "L_Upperarm", "Upper", "Chest",      kVPF_NONE },
-       { "L_Forearm",  "Upper", "L_Upperarm", kVPF_NONE },
-       { "L_Hand",     "Upper", "L_Forearm",  kVPF_NONE },
-       { "L_Digit_0",  "Upper", "L_Hand",     kVPF_NONE },
-       { "L_Digit_1",  "Upper", "L_Digit_0",  kVPF_NONE },
-       { "L_Digit_2",  "Upper", "L_Digit_1",  kVPF_NONE },
-       { "L_Thumb_0",  "Upper", "L_Hand",     kVPF_NONE },
-       { "L_Thumb_1",  "Upper", "L_Thumb_0",  kVPF_NONE },
-       { "R_Upperarm", "Upper", "Chest",      kVPF_NONE },
-       { "R_Forearm",  "Upper", "R_Upperarm", kVPF_NONE },
-       { "R_Hand",     "Upper", "R_Forearm",  kVPF_NONE },
-       { "R_Digit_0",  "Upper", "R_Hand",     kVPF_NONE },
-       { "R_Digit_1",  "Upper", "R_Digit_0",  kVPF_NONE },
-       { "R_Digit_2",  "Upper", "R_Digit_1",  kVPF_NONE },
-       { "R_Thumb_0",  "Upper", "R_Hand",     kVPF_NONE },
-       { "R_Thumb_1",  "Upper", "R_Thumb_0",  kVPF_NONE }}
+      {{ "Hips",       kVPF_CenterOfMass },
+       { "L_Thigh",    kVPF_CenterOfMass },
+       { "L_Calf",     kVPF_CenterOfMass },
+       { "L_Heel",     kVPF_CenterOfMass },
+       { "L_Toes",     kVPF_CenterOfMass },
+       { "R_Thigh",    kVPF_CenterOfMass },
+       { "R_Calf",     kVPF_CenterOfMass },
+       { "R_Heel",     kVPF_CenterOfMass },
+       { "R_Toes",     kVPF_CenterOfMass },
+       { "Waist",      kVPF_CenterOfMass },
+       { "Chest",      kVPF_CenterOfMass },
+       { "Head",       kVPF_CenterOfMass },
+       { "L_Upperarm", kVPF_NONE },
+       { "L_Forearm",  kVPF_NONE },
+       { "L_Hand",     kVPF_NONE },
+       { "L_Digit_0",  kVPF_NONE },
+       { "L_Digit_1",  kVPF_NONE },
+       { "L_Digit_2",  kVPF_NONE },
+       { "L_Thumb_0",  kVPF_NONE },
+       { "L_Thumb_1",  kVPF_NONE },
+       { "R_Upperarm", kVPF_NONE },
+       { "R_Forearm",  kVPF_NONE },
+       { "R_Hand",     kVPF_NONE },
+       { "R_Digit_0",  kVPF_NONE },
+       { "R_Digit_1",  kVPF_NONE },
+       { "R_Digit_2",  kVPF_NONE },
+       { "R_Thumb_0",  kVPF_NONE },
+       { "R_Thumb_1",  kVPF_NONE }}
     }
 };
+
+const ChefString & vox_type_str(VoxType type)
+{
+    static const HashMap<kMEM_Chef, VoxType, ChefString> sTypeMap{
+        { VoxType::Other, "other" },
+        { VoxType::Biped, "biped" }
+    };
+
+    const auto it = sTypeMap.find(type);
+    PANIC_IF(it == sTypeMap.end(), "Invalid VoxType: %d", type);
+    return it->second;
+}
 
 const VoxObjType VoxObjType::determine_type(const VoxObj & vobj)
 {
@@ -82,7 +94,7 @@ const VoxObjType VoxObjType::determine_type(const VoxObj & vobj)
     VoxObjType otherType{VoxType::Other, {}};
     for (const auto & matrix : vobj.baseMatrices)
     {
-        otherType.parts.push_back({matrix.second->node.name, "", ""});
+        otherType.parts.push_back({matrix.second->node.name, kVPF_CenterOfMass});
     }
     return otherType;
 }

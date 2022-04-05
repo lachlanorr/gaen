@@ -78,10 +78,10 @@ struct tvec3
     tvec3(const tvec2<T> & v, T s);
     tvec3(T s, const tvec2<T> & v);
 
-    u32 length() const { return sizeof(*this) / sizeof(T); }
+    u32 size() const { return sizeof(*this) / sizeof(T); }
 
-    T& operator[](u32 i) { ASSERT(i < length()); return (&x)[i]; }
-    const T& operator[](u32 i) const { ASSERT(i < length()); return (&x)[i]; }
+    T& operator[](u32 i) { ASSERT(i < size()); return (&x)[i]; }
+    const T& operator[](u32 i) const { ASSERT(i < size()); return (&x)[i]; }
 
     const tvec3 & operator+=(const tvec3 & rhs)
     {
