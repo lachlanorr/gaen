@@ -50,18 +50,22 @@ enum VoxPartFlags
     kVPF_CenterOfMass = 0x01
 };
 
-struct VoxPart
+struct VoxPartDetails
 {
     ChefString name;
     u32 flags;
 };
 
-typedef Vector<kMEM_Chef, VoxPart> VoxParts;
+struct VoxNullDetails
+{
+    vec3 preRot;
+};
 
 struct VoxObjType
 {
     VoxType type;
-    VoxParts parts;
+    Vector<kMEM_Chef, VoxPartDetails> parts;
+    HashMap<kMEM_Chef, ChefString, VoxNullDetails> nulls;
 
     static const VoxObjType determine_type(const VoxObj & vobj);
 };

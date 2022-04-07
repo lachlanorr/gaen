@@ -61,7 +61,12 @@ static const Vector<kMEM_Chef, VoxObjType> kVoxObjTypes
        { "R_Digit_1",  kVPF_NONE },
        { "R_Digit_2",  kVPF_NONE },
        { "R_Thumb_0",  kVPF_NONE },
-       { "R_Thumb_1",  kVPF_NONE }}
+       { "R_Thumb_1",  kVPF_NONE }},
+
+      {{ "HL_Hand_In",   {vec3(0, 0,  90)} },
+       { "HL_Hand_Out",  {vec3(0, 0,  90)} },
+       { "HR_Hand_In",   {vec3(0, 0, -90)} },
+       { "HR_Hand_Out",  {vec3(0, 0, -90)} }}
     }
 };
 

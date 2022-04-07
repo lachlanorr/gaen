@@ -86,12 +86,12 @@ static void calc_details(VoxNull * pNull, const vec3 & voxObjCenter, RawNullMap 
         pNull->length = length(dirFull);
         pNull->dir = normalize(dirFull);
 
-        mat43 rotMat = build_rotate(kBoneInitDir, pNull->dir);
+        mat43 rotMat = build_rotate(kBoneInitDir, pNull->dir) * pNull->preRot;
         pNull->worldTrans = build_translate(pNull->pos) * rotMat;
     }
     else
     {
-        pNull->worldTrans = build_translate(pNull->pos);
+        pNull->worldTrans = build_translate(pNull->pos) * pNull->preRot;
     }
 
     if (pNull->group.empty())
@@ -148,13 +148,15 @@ VoxNull::VoxNull(VoxSkel & skel,
                  const ChefString & name,
                  const ChefString & parent,
                  const ChefString & group,
-                 vec3 pos)
+                 vec3 pos,
+                 const mat43 & preRot)
   : skel(skel)
   , type(type)
   , name(name)
   , parent(parent)
   , group(group)
   , pos(pos)
+  , preRot(preRot)
   , detailsAreAvailable(false)
   , endPos(pos)
   , dir(0.0f)
@@ -234,7 +236,15 @@ VoxSkel::VoxSkel(const VoxObj * pVoxObj)
         {
             ChefString name = rawName;
             ChefString parent = rawNull.parent.empty() ? "" : rawNull.parent;
-            mNulls.emplace(name, GNEW(kMEM_Chef, VoxNull, *this, type, name, parent, rawNull.group, rawNull.pos));
+
+            mat43 preRot(1.0f);
+            const auto nullDetailsIt = pVoxObj->type.nulls.find(name);
+            if (nullDetailsIt != pVoxObj->type.nulls.end())
+            {
+                preRot = mat43::from_rot(radians(nullDetailsIt->second.preRot));
+            }
+
+            mNulls.emplace(name, GNEW(kMEM_Chef, VoxNull, *this, type, name, parent, rawNull.group, rawNull.pos, preRot));
         }
     }
 

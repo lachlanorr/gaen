@@ -57,7 +57,8 @@ struct VoxNull
             const ChefString & name,
             const ChefString & parent,
             const ChefString & group,
-            vec3 pos);
+            vec3 pos,
+            const mat43 & preRot);
 
     ChefString serialize(f32 voxelSize, const VoxObj * pVoxObj, const ChefString indent) const;
 
@@ -67,6 +68,7 @@ struct VoxNull
     ChefString parent;
     ChefString group;
     vec3 pos;
+    mat43 preRot;
 
     bool detailsAreAvailable;
     vec3 endPos;
