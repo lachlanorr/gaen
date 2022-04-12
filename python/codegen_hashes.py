@@ -59,10 +59,11 @@ def process_file(fpath):
     return [s for s in re.findall(b'HASH::[a-zA-Z_][a-zA-Z0-9_]*', d) if s not in EXCLUDE_PATTERNS]
 
 def should_process_file(fpath, paths):
+    rel_proj_shd = paths.is_project and fpath.is_relative_to(paths.project_shaders_dir)
     return (fpath.is_file() and
             fpath.suffix in ['.h', '.cpp', '.mm'] and
             not fpath.is_relative_to(paths.gaen_shaders_dir) and
-            not fpath.is_relative_to(paths.project_shaders_dir))
+            not rel_proj_shd)
 
 def process_dir(path, paths):
     hashes = []
