@@ -29,8 +29,6 @@ include(utils.cmake)
 # Adjust external builds and strip out all but the minimal required targets
 set(gaen_MINEXT TRUE)
 
-#include(kibits.cmake)
-
 # unit tests
 include(googletest.cmake)
 
@@ -59,7 +57,6 @@ include(libpng.cmake)
 include(libtiff.cmake)
 
 # fonts
-#include(harfbuzz.cmake)
 include(freetype.cmake)
 
 # model cooking
