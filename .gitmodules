@@ -43,6 +43,3 @@
 [submodule "external/freetype"]
 	path = external/freetype
 	url = https://github.com/lachlanorr/freetype.git
-[submodule "external/harfbuzz"]
-	path = external/harfbuzz
-	url = https://github.com/lachlanorr/harfbuzz.git
