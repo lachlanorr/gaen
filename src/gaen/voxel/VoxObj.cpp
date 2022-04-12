@@ -197,16 +197,20 @@ static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrix
     return true;
 }
 
-VoxObj::VoxObj(const Qbt& qbt)
-  : qbt(qbt)
-{
-    const QbtNode * pBaseNode = qbt.findTopLevelCompound("Base");
-    if (pBaseNode != nullptr)
-    {
-        add_matrices_to_map(baseMatrices, *pBaseNode);
-    }
+VoxObj::VoxObj(const std::shared_ptr<QbtNode>& pRootNode, const VoxObjType& type)
+  : pRootNode(pRootNode)
+  , type(type)
+  , mins(0)
+  , maxes(0)
+  , worldCenter(0)
+  , halfExtents(0)
+  , pGimgDiffuse(nullptr)
+  , pVoxSkel(nullptr)
+{}
 
-    type = VoxObjType::determine_type(*this);
+void VoxObj::processBaseMatrices(const QbtNode & baseNode)
+{
+    add_matrices_to_map(baseMatrices, baseNode);
 
     // calc base matrices mins/maxes
     mins = ivec3(std::numeric_limits<int>::max());
@@ -235,9 +239,6 @@ VoxObj::VoxObj(const Qbt& qbt)
     }
     worldCenter = vec3(maxes.x + mins.x + 1, maxes.y + mins.y + 1, maxes.z + mins.z + 1) * 0.5f;
     halfExtents = vec3(worldCenter.x - mins.x, worldCenter.y - mins.y, worldCenter.z - mins.z);
-
-    // build skeleton, process nulls
-    voxSkel = VoxSkel(this);
 
     // build master face list
     Vector<kMEM_Chef, VoxMatrixFace*> matrixFaces;
@@ -271,32 +272,11 @@ VoxObj::VoxObj(const Qbt& qbt)
             PANIC("Unable to build_diffuse on second attempt, width=%d height=%d", imgWidth, imgHeight);
         }
     }
-
-
-    // Now we only have 1x1 faces, so fill in any empty spaces in
-    // image we can find
-
-/*
-    Color * pDiffusePix = (Color*)pGimgDiffuse->pixels();
-
-    for (u32 i = 0; i < pixels.size(); ++i)
-    {
-        u32 imgX = i % imgWidth;
-        u32 imgY = i / imgWidth;
-
-        // For center of pixel we're using:
-        //u = x / width + 0.5 / width;
-        //v = y / height + 0.5 / height;
-        pixels[i].uv.x = imgX / (f32)imgWidth + 0.5 / imgWidth;
-        pixels[i].uv.y = imgY / (f32)imgHeight + 0.5 / imgHeight;
-
-        *pDiffusePix++ = pixels[i].color;
-    }
-*/
 }
 
 void VoxObj::exportFiles(const ChefString & basePath, f32 voxelSize) const
 {
+/*
     HashMap<kMEM_Chef, vec3, u32> pointIndices;
     Vector<kMEM_Chef, vec3> points;
 
@@ -445,7 +425,119 @@ void VoxObj::exportFiles(const ChefString & basePath, f32 voxelSize) const
         }
     }
 
-    voxSkel.writeSkl(sklPath, voxelSize);
+    if (voxSkel.getRoot())
+        voxSkel.writeSkl(sklPath, voxelSize);
+*/
+}
+
+VoxObjVec build_voxobjs_from_qbt(const std::shared_ptr<Qbt> & pQbt)
+{
+    VoxObjVec vovec;
+
+    if (!pQbt->pRoot)
+        return vovec;
+
+    // check to see if root node matches a type
+    VoxObjType voType;
+    if (VoxObjType::determine_type(pQbt->pRoot, voType))
+    {
+        vovec.emplace_back(voType.create(pQbt->pRoot));
+    }
+    else
+    {
+        // go through all top level nodes and add them in
+        for (const auto pChild : pQbt->pRoot->children)
+        {
+            if (VoxObjType::determine_type(pChild, voType))
+            {
+                vovec.emplace_back(voType.create(pChild));
+            }
+            else
+            {
+                printf("Unknown VoxObjType, node name: %s", pChild->name.c_str());
+            }
+        }
+    }
+    if (vovec.size() == 0)
+    {
+        printf("No known VoxObjTypes in qbt");
+    }
+
+/*
+    const QbtNode * pBaseNode = qbt.findTopLevelCompound("Base");
+    if (pBaseNode != nullptr)
+    {
+        add_matrices_to_map(baseMatrices, *pBaseNode);
+    }
+
+    type = VoxObjType::determine_type(*this);
+
+    // calc base matrices mins/maxes
+    mins = ivec3(std::numeric_limits<int>::max());
+    maxes = ivec3(std::numeric_limits<int>::min());
+    for (const auto & part : type.parts)
+    {
+        if (part.flags & kVPF_CenterOfMass)
+        {
+            VoxMatrix & mat = *baseMatrices[part.name];
+            ivec3 matMins = mat.mins + mat.worldPos;
+            ivec3 matMaxes = mat.maxes + mat.worldPos;
+            if (matMins.x < mins.x)
+                mins.x = matMins.x;
+            if (matMins.y < mins.y)
+                mins.y = matMins.y;
+            if (matMins.z < mins.z)
+                mins.z = matMins.z;
+
+            if (matMaxes.x > maxes.x)
+                maxes.x = matMaxes.x;
+            if (matMaxes.y > maxes.y)
+                maxes.y = matMaxes.y;
+            if (matMaxes.z > maxes.z)
+                maxes.z = matMaxes.z;
+        }
+    }
+    worldCenter = vec3(maxes.x + mins.x + 1, maxes.y + mins.y + 1, maxes.z + mins.z + 1) * 0.5f;
+    halfExtents = vec3(worldCenter.x - mins.x, worldCenter.y - mins.y, worldCenter.z - mins.z);
+
+    // build skeleton, process nulls
+    voxSkel = VoxSkel(this);
+
+    // build master face list
+    Vector<kMEM_Chef, VoxMatrixFace*> matrixFaces;
+    i32 totalArea = 0;
+    for (const auto & part : type.parts)
+    {
+        VoxMatrix & matrix = *baseMatrices[part.name];
+        for (auto & matFace : matrix.faces)
+        {
+            matrixFaces.push_back(&matFace);
+            totalArea += matFace.area;
+        }
+    }
+    std::stable_sort(matrixFaces.begin(), matrixFaces.end(), face_size_gt);
+
+    f32 pixRoot = sqrt(totalArea);
+    u32 imgWidth = next_power_of_two((u32)(pixRoot + 0.5));
+    u32 imgHeight = imgWidth;
+
+    pGimgDiffuse.reset(Gimg::create(kPXL_RGBA8, imgWidth, imgHeight, 0));
+
+    if (!build_diffuse(pGimgDiffuse.get(), matrixFaces))
+    {
+        // try one more time with larger image
+        imgWidth *= 2;
+        imgHeight *= 2;
+
+        pGimgDiffuse.reset(Gimg::create(kPXL_RGBA8, imgWidth, imgHeight, 0));
+        if (!build_diffuse(pGimgDiffuse.get(), matrixFaces))
+        {
+            PANIC("Unable to build_diffuse on second attempt, width=%d height=%d", imgWidth, imgHeight);
+        }
+    }
+*/
+
+    return vovec;
 }
 
 } // namespace gaen

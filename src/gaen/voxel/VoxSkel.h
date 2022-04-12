@@ -89,18 +89,18 @@ class VoxSkel
 {
 public:
     VoxSkel() {}
-    VoxSkel(const VoxObj * pVoxObj);
+    VoxSkel(const VoxObj* pVoxObj);
 
     const VoxNull * getNull(const ChefString & name) const;
     VoxNull * getNull(const ChefString & name);
 
-    const VoxNull * getRoot() { return mNulls.find(root)->second.get(); }
+    const VoxNull* getRoot() const { const auto it = mNulls.find(root); return (it != mNulls.end()) ? it->second.get() : nullptr; }
 
     void writeSkl(const ChefString & path, f32 voxelSize) const;
     void serializeNulls(Vector<kMEM_Chef, ChefString> & nullObjs, const ChefString & nullName, f32 voxelSize, const ChefString indent) const;
 
 private:
-    const VoxObj * pVoxObj;
+    const VoxObj* pVoxObj;
     ChefString root;
     Map<kMEM_Chef, ChefString, VoxBoneUP> mNulls;
 };

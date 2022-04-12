@@ -165,13 +165,13 @@ VoxNull::VoxNull(VoxSkel & skel,
   , localTrans(1.0f)
 {}
 
-VoxSkel::VoxSkel(const VoxObj * pVoxObj)
+VoxSkel::VoxSkel(const VoxObj* pVoxObj)
   : pVoxObj(pVoxObj)
 {
     VoxMatrixMap skelMatrices;
 
-    const QbtNode * pSkelNode = pVoxObj->qbt.findTopLevelCompound("Skeleton");
-    if (pSkelNode == nullptr)
+    const auto pSkelNode = pVoxObj->pRootNode->findChild("Skeleton");
+    if (!pSkelNode)
     {
         return;
     }

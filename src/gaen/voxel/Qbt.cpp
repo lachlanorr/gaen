@@ -57,6 +57,15 @@ const Color& QbtNode::voxel(const uvec3 & coord) const
     return voxel(coord.x, coord.y, coord.z);
 }
 
+const std::shared_ptr<QbtNode> QbtNode::findChild(const ChefString & name) const
+{
+    const auto it = childMap.find(name);
+    if (it != childMap.end())
+        return it->second;
+    else
+        return std::shared_ptr<QbtNode>(); // nullptr
+}
+
 static ChefString read_qbt_node_name(FileReader & rdr)
 {
     static const u32 kMaxNameLen = 255;
@@ -111,9 +120,9 @@ static void read_qbt_voxel_data(QbtNode & node, FileReader & rdr, WorkBuffers & 
     memcpy(node.voxels.data(), bufs.uncomp.data(), uncompSize);
 }
 
-static QbtNodeUP read_qbt_node(const QbtNode * pParent, FileReader & rdr, WorkBuffers & bufs)
+static std::shared_ptr<QbtNode> read_qbt_node(const QbtNode * pParent, FileReader & rdr, WorkBuffers & bufs)
 {
-    QbtNodeUP pNode(GNEW(kMEM_Chef, QbtNode));
+    std::shared_ptr<QbtNode> pNode(GNEW(kMEM_Chef, QbtNode), deleter<QbtNode>());
     pNode->pParent = pParent;
     rdr.read(&pNode->typeId);
 
@@ -126,6 +135,10 @@ static QbtNodeUP read_qbt_node(const QbtNode * pParent, FileReader & rdr, WorkBu
     {
     case kQBNT_Matrix:
         pNode->name = read_qbt_node_name(rdr);
+        if (pParent)
+            pNode->fullName = pParent->name + "-";
+        pNode->fullName += pNode->name;
+        PANIC_IF(pNode->name.empty(), "Matrix with empty name");
         read_qbt_voxel_data(*pNode, rdr, bufs);
         break;
     case kQBNT_Model:
@@ -133,6 +146,7 @@ static QbtNodeUP read_qbt_node(const QbtNode * pParent, FileReader & rdr, WorkBu
         break;
     case kQBNT_Compound:
         pNode->name = read_qbt_node_name(rdr);
+        PANIC_IF(pNode->name.empty(), "Compound with empty name");
         read_qbt_voxel_data(*pNode, rdr, bufs);
         rdr.read(&childCount);
         break;
@@ -146,18 +160,20 @@ static QbtNodeUP read_qbt_node(const QbtNode * pParent, FileReader & rdr, WorkBu
         for (u32 i = 0; i < childCount; ++i)
         {
             pNode->children.push_back(read_qbt_node(pNode.get(), rdr, bufs));
+            if (!pNode->name.empty())
+                pNode->childMap[pNode->children.back()->name] = pNode->children.back();
         }
     }
 
     return pNode;
 }
 
-QbtUP Qbt::load_from_file(const char * path)
+std::shared_ptr<Qbt> Qbt::load_from_file(const ChefString & path)
 {
-    FileReader rdr(path);
-    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", path);
+    FileReader rdr(path.c_str());
+    PANIC_IF(!rdr.isOk(), "Unable to load file: %s", path.c_str());
 
-    QbtUP pQbt(GNEW(kMEM_Chef, Qbt));
+    std::shared_ptr<Qbt> pQbt(GNEW(kMEM_Chef, Qbt), deleter<Qbt>());
 
     u32 magic;
     rdr.read(&magic);
@@ -194,24 +210,10 @@ QbtUP Qbt::load_from_file(const char * path)
     WorkBuffers bufs(1024 * 1024, 5 * 1024 * 1024); // sizes will grow if necessary
 
     pQbt->pRoot = read_qbt_node(nullptr, rdr, bufs);
+    // set pRoot name to name of file
+    pQbt->pRoot->name = get_filename_root(path);
 
     return pQbt;
-}
-
-const QbtNode * Qbt::findTopLevelCompound(const char * name) const
-{
-    if (pRoot)
-    {
-        for (u32 i = 0; i < pRoot->children.size(); ++i)
-        {
-            if (pRoot->children[i]->name == name && pRoot->children[i]->typeId == kQBNT_Compound)
-            {
-                return pRoot->children[i].get();
-            }
-        }
-    }
-
-    return nullptr;
 }
 
 } // namespace gaen

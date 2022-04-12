@@ -55,9 +55,9 @@ Qubicle::Qubicle()
 
 void Qubicle::cook(CookInfo * pCookInfo) const
 {
-    QbtUP pQbTree = Qbt::load_from_file(pCookInfo->rawPath().c_str());
+    const auto pQbTree = Qbt::load_from_file(pCookInfo->rawPath().c_str());
 
-    VoxObj vobj(*pQbTree);
+    const auto voxObjVec = build_voxobjs_from_qbt(pQbTree);
     //build_diffuse_front_half(pGimg.get(), *baseMatrices["Head"]);
 /*
     // Create an image for our diffuse map
@@ -68,13 +68,16 @@ void Qubicle::cook(CookInfo * pCookInfo) const
     // Make any directories needed to write transitory .png and .atl
 
 
+/*--
     ChefString objTransPath = pCookInfo->chef().getRawTransPath(pCookInfo->rawPath(), kExtObj);
     ChefString pngTransPath = pCookInfo->chef().getRawTransPath(pCookInfo->rawPath(), kExtPng);
 
     ChefString transDir = parent_dir((const ChefString&)pngTransPath);
     make_dirs(transDir.c_str());
 
-    vobj.exportFiles(objTransPath, 0.0125);
+    if (vobj.baseMatrices.size() > 0)
+        vobj.exportFiles(objTransPath, 0.0125);
+--*/
 
     //Png::write_gimg(pngTransPath.c_str(), vobj.pGimgDiffuse.get(), false);
 
@@ -90,7 +93,7 @@ void Qubicle::cook(CookInfo * pCookInfo) const
     UniquePtr<CookInfo> pCiAtl = pCookInfo->chef().forceCook(atlTransPath);
     pCookInfo->transferCookResult(*pCiAtl, kExtGatl);
 */
-    // Write a AssetHeader only g_qb file so we can track Font cooker version and force recooks.
+    // Write a AssetHeader only g_qb file so we can track Qubicle cooker version and force recooks.
     AssetHeader * pGqbtHeader = GNEW(kMEM_Chef, AssetHeader, FOURCC(kExtGqbt), sizeof(AssetHeader));
     pCookInfo->setCookedBuffer(pGqbtHeader);
 }

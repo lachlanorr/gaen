@@ -24,57 +24,26 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
+#include "gaen/assets/Gimg.h"
 #include "gaen/voxel/Qbt.h"
 #include "gaen/voxel/VoxObj.h"
+#include "gaen/voxel/VoxBiped.h"
+#include "gaen/voxel/VoxProp.h"
 #include "gaen/voxel/vox_types.h"
 
 namespace gaen
 {
 
-static const Vector<kMEM_Chef, VoxObjType> kVoxObjTypes
+static const Vector<kMEM_Chef, VoxObjTypeDelegator> kVoxObjTypeDelegators
 {
-    { VoxType::Biped,
-      {{ "Hips",       kVPF_CenterOfMass },
-       { "L_Thigh",    kVPF_CenterOfMass },
-       { "L_Calf",     kVPF_CenterOfMass },
-       { "L_Heel",     kVPF_CenterOfMass },
-       { "L_Toes",     kVPF_CenterOfMass },
-       { "R_Thigh",    kVPF_CenterOfMass },
-       { "R_Calf",     kVPF_CenterOfMass },
-       { "R_Heel",     kVPF_CenterOfMass },
-       { "R_Toes",     kVPF_CenterOfMass },
-       { "Waist",      kVPF_CenterOfMass },
-       { "Chest",      kVPF_CenterOfMass },
-       { "Head",       kVPF_CenterOfMass },
-       { "L_Upperarm", kVPF_NONE },
-       { "L_Forearm",  kVPF_NONE },
-       { "L_Hand",     kVPF_NONE },
-       { "L_Digit_0",  kVPF_NONE },
-       { "L_Digit_1",  kVPF_NONE },
-       { "L_Digit_2",  kVPF_NONE },
-       { "L_Thumb_0",  kVPF_NONE },
-       { "L_Thumb_1",  kVPF_NONE },
-       { "R_Upperarm", kVPF_NONE },
-       { "R_Forearm",  kVPF_NONE },
-       { "R_Hand",     kVPF_NONE },
-       { "R_Digit_0",  kVPF_NONE },
-       { "R_Digit_1",  kVPF_NONE },
-       { "R_Digit_2",  kVPF_NONE },
-       { "R_Thumb_0",  kVPF_NONE },
-       { "R_Thumb_1",  kVPF_NONE }},
-
-      {{ "HL_Hand_In",   {vec3(0, 0,  90)} },
-       { "HL_Hand_Out",  {vec3(0, 0,  90)} },
-       { "HR_Hand_In",   {vec3(0, 0, -90)} },
-       { "HR_Hand_Out",  {vec3(0, 0, -90)} }}
-    }
+    { VoxType::Biped, VoxBiped::is_of_type }
 };
 
 const ChefString & vox_type_str(VoxType type)
 {
     static const HashMap<kMEM_Chef, VoxType, ChefString> sTypeMap{
-        { VoxType::Other, "other" },
-        { VoxType::Biped, "biped" }
+        { VoxType::Biped, "biped" },
+        { VoxType::Prop, "prop" }
     };
 
     const auto it = sTypeMap.find(type);
@@ -82,26 +51,27 @@ const ChefString & vox_type_str(VoxType type)
     return it->second;
 }
 
-const VoxObjType VoxObjType::determine_type(const VoxObj & vobj)
+bool VoxObjType::do_parts_match(const VoxObjType & objType, const std::shared_ptr<QbtNode> & pNode)
 {
-    for (const auto & objType : kVoxObjTypes)
+    for (const auto & part : objType.parts)
     {
-        if (vobj.baseMatrices.size() != objType.parts.size())
-            continue;
-        for (const auto & part : objType.parts)
-        {
-            if (vobj.baseMatrices.find(part.name) == vobj.baseMatrices.end())
-                continue;
-        }
-        return objType;
+        const auto pChild = pNode->findChild(part.name);
+        if (!pChild || pChild->typeId != kQBNT_Matrix)
+            return false;
     }
+    return true;
+}
 
-    VoxObjType otherType{VoxType::Other, {}};
-    for (const auto & matrix : vobj.baseMatrices)
+bool VoxObjType::determine_type(const std::shared_ptr<QbtNode> & pNode, VoxObjType & voxObjType)
+{
+    for (const auto & objTypeDelegator : kVoxObjTypeDelegators)
     {
-        otherType.parts.push_back({matrix.second->node.name, kVPF_CenterOfMass});
+        if (objTypeDelegator.is_of_type(pNode, voxObjType))
+        {
+            return true;
+        }
     }
-    return otherType;
+    return false;
 }
 
 } // namespace gaen

@@ -38,24 +38,29 @@ struct Qbt;
 
 struct VoxObj
 {
-    const Qbt& qbt;
-    VoxSkel voxSkel;
+    const std::shared_ptr<QbtNode> pRootNode;
+    VoxObjType type;
 
-    VoxMatrixMap baseMatrices;
+    VoxObj(const std::shared_ptr<QbtNode>& pRootNode, const VoxObjType& type);
 
     ivec3 mins;
     ivec3 maxes;
     vec3 worldCenter;
     vec3 halfExtents;
 
-    VoxObjType type;
-
     UniquePtr<Gimg> pGimgDiffuse;
+    UniquePtr<VoxSkel> pVoxSkel;
 
-    VoxObj(const Qbt& qbt);
+    VoxMatrixMap baseMatrices;
 
-    void exportFiles(const ChefString & basePath, f32 voxelSize) const;
+    virtual void exportFiles(const ChefString & basePath, f32 voxelSize) const = 0;
+
+    void processBaseMatrices(const QbtNode& baseNode);
 };
+typedef UniquePtr<VoxObj> VoxObjUP;
+typedef Vector<kMEM_Chef, VoxObjUP> VoxObjVec;
+
+VoxObjVec build_voxobjs_from_qbt(const std::shared_ptr<Qbt> & pQbt);
 
 } // namespace gaen
 

@@ -30,6 +30,7 @@
 #include "gaen/math/vec3.h"
 #include "gaen/core/String.h"
 #include "gaen/core/Vector.h"
+#include "gaen/core/Map.h"
 #include "gaen/assets/Color.h"
 
 namespace gaen
@@ -47,10 +48,12 @@ enum QbtNodeType : u32
 struct QbtNode
 {
     const QbtNode * pParent;
-    Vector<kMEM_Chef, UniquePtr<QbtNode>> children;
+    Vector<kMEM_Chef, std::shared_ptr<QbtNode>> children;
+    Map<kMEM_Chef, ChefString, std::shared_ptr<QbtNode>> childMap;
 
     QbtNodeType typeId;
     ChefString name;
+    ChefString fullName;
     ivec3 position;
     uvec3 localScale;
     vec3 pivot;
@@ -59,6 +62,8 @@ struct QbtNode
 
     const Color & voxel(u32 x, u32 y, u32 z) const;
     const Color& voxel(const uvec3 & coord) const;
+
+    const std::shared_ptr<QbtNode> findChild(const ChefString & name) const;
 
     QbtNode()
       : pParent(nullptr)
@@ -69,22 +74,18 @@ struct QbtNode
       , size(0)
     {}
 };
-typedef UniquePtr<QbtNode> QbtNodeUP;
 
 struct Qbt
 {
     Vector<kMEM_Chef, Color> colors;
 
-    QbtNodeUP pRoot;
+    std::shared_ptr<QbtNode> pRoot;
     Qbt()
       : pRoot(nullptr)
     {}
 
-    static UniquePtr<Qbt> load_from_file(const char * path);
-
-    const QbtNode * findTopLevelCompound(const char * name) const;
+    static std::shared_ptr<Qbt> load_from_file(const ChefString & path);
 };
-typedef UniquePtr<Qbt> QbtUP;
 
 } // namespace gaen
 
