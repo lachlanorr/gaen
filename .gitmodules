@@ -19,9 +19,6 @@
 [submodule "external/bullet3"]
 	path = external/bullet3
 	url = https://github.com/lachlanorr/bullet3.git
-[submodule "external/freetype2"]
-	path = external/freetype2
-	url = https://github.com/lachlanorr/freetype2.git
 [submodule "external/libpng"]
 	path = external/libpng
 	url = https://github.com/lachlanorr/libpng.git
