@@ -27,6 +27,10 @@
 set(gaen_voxel_SOURCES
   Qbt.cpp
   Qbt.h
+  VoxExporter.cpp
+  VoxExporter.h
+  VoxGeo.cpp
+  VoxGeo.h
   VoxMatrix.cpp
   VoxMatrix.h
   VoxSkel.cpp
@@ -36,18 +40,22 @@ set(gaen_voxel_SOURCES
 
   VoxObj.h
   VoxObj.cpp
+)
 
+set(gaen_voxel_types_SOURCES
   # VoxObj subclasses
-  VoxBiped.h
-  VoxBiped.cpp
-  VoxProp.h
-  VoxProp.cpp
+  types/VoxBiped.h
+  types/VoxBiped.cpp
+  types/VoxProp.h
+  types/VoxProp.cpp
   )
 
 source_group("" FILES ${gaen_voxel_SOURCES})
+source_group("types" FILES ${gaen_voxel_types_SOURCES})
 
 add_library(gaen_voxel STATIC
   ${gaen_voxel_SOURCES}
+  ${gaen_voxel_types_SOURCES}
   )
 
 set_target_properties(gaen_voxel PROPERTIES

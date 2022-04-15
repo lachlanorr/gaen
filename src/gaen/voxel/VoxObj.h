@@ -29,6 +29,7 @@
 
 #include "gaen/voxel/VoxMatrix.h"
 #include "gaen/voxel/VoxSkel.h"
+#include "gaen/voxel/VoxGeo.h"
 #include "gaen/voxel/vox_types.h"
 
 namespace gaen
@@ -52,8 +53,9 @@ struct VoxObj
     UniquePtr<VoxSkel> pVoxSkel;
 
     VoxMatrixMap baseMatrices;
+    UniquePtr<VoxGeo> pBaseGeo;
 
-    virtual void exportFiles(const ChefString & basePath, f32 voxelSize) const = 0;
+    virtual Vector<kMEM_Chef, ChefString> exportFiles(const ChefString & directory) const = 0;
 
     void processBaseMatrices(const QbtNode& baseNode);
 };

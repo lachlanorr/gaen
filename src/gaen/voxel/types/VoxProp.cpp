@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// VoxBiped.h - Voxel Biped Geometry
+// VoxProp.cpp - Voxel Prop Geometry
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,27 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_VOXEL_VOX_BIPED_H
-#define GAEN_VOXEL_VOX_BIPED_H
+#include "gaen/assets/Gimg.h"
 
-#include "gaen/voxel/VoxObj.h"
+#include "gaen/voxel/types/VoxProp.h"
 
 namespace gaen
 {
-struct QbtNode;
 
-struct VoxBiped : public VoxObj
+VoxObjUP VoxProp::create(const std::shared_ptr<QbtNode>& pRootNode)
 {
-    VoxBiped(const std::shared_ptr<QbtNode> & pRootNode, const VoxObjType & type)
-      : VoxObj(pRootNode, type)
-    {}
+    return VoxObjUP();
+}
 
-    static VoxObjUP create(const std::shared_ptr<QbtNode>& pRootNode);
-    static bool is_of_type(const std::shared_ptr<QbtNode>& pRootNode, VoxObjType & voxObjType);
+bool VoxProp::is_of_type(const std::shared_ptr<QbtNode>& pRootNode, VoxObjType & voxObjType)
+{
+    return false;
+}
 
-    void exportFiles(const ChefString & basePath, f32 voxelSize) const override;
-};
+Vector<kMEM_Chef, ChefString> VoxProp::exportFiles(const ChefString & directory) const
+{
+    Vector<kMEM_Chef, ChefString> outputPaths;
+    return outputPaths;
+}
 
 } // namespace gaen
-
-#endif // #ifndef GAEN_VOXEL_BIPED_H

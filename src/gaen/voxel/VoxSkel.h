@@ -96,7 +96,7 @@ public:
 
     const VoxNull* getRoot() const { const auto it = mNulls.find(root); return (it != mNulls.end()) ? it->second.get() : nullptr; }
 
-    void writeSkl(const ChefString & path, f32 voxelSize) const;
+    void writeSklFile(const ChefString & path, f32 voxelSize) const;
     void serializeNulls(Vector<kMEM_Chef, ChefString> & nullObjs, const ChefString & nullName, f32 voxelSize, const ChefString indent) const;
 
 private:

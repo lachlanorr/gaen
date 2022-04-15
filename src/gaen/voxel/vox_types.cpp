@@ -27,8 +27,8 @@
 #include "gaen/assets/Gimg.h"
 #include "gaen/voxel/Qbt.h"
 #include "gaen/voxel/VoxObj.h"
-#include "gaen/voxel/VoxBiped.h"
-#include "gaen/voxel/VoxProp.h"
+#include "gaen/voxel/types/VoxBiped.h"
+#include "gaen/voxel/types/VoxProp.h"
 #include "gaen/voxel/vox_types.h"
 
 namespace gaen

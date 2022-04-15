@@ -58,6 +58,30 @@ void Qubicle::cook(CookInfo * pCookInfo) const
     const auto pQbTree = Qbt::load_from_file(pCookInfo->rawPath().c_str());
 
     const auto voxObjVec = build_voxobjs_from_qbt(pQbTree);
+
+    ChefString objTransPath = pCookInfo->chef().getRawTransPath(pCookInfo->rawPath(), kExtObj);
+    ChefString transDir = parent_dir((const ChefString&)objTransPath);
+
+    for (const auto & vobj : voxObjVec)
+    {
+        auto outputFiles = vobj->exportFiles(transDir);
+
+        for (const auto & outputFile : outputFiles)
+        {
+            ChefString ext = get_ext(outputFile);
+            ChefString cookedExt;
+            if (ext == "obj")
+                cookedExt = kExtGmdl;
+            else if (ext == "png")
+                cookedExt = kExtGimg;
+            else
+                PANIC("Invalid outputFile extension: %s", ext.c_str());
+
+            UniquePtr<CookInfo> pCi = pCookInfo->chef().forceCook(outputFile);
+            pCookInfo->transferCookResult(*pCi, cookedExt);
+        }
+    }
+
     //build_diffuse_front_half(pGimg.get(), *baseMatrices["Head"]);
 /*
     // Create an image for our diffuse map

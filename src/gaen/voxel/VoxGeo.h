@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-// vox_types.h - Utilities to identify VoxObj types
+// VoxGeo.h - Voxel points, polys, uvs, etc
 //
-// aen Concurrency Engine - http://gaen.org
+// Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
 //
 // This software is provided 'as-is', without any express or implied
@@ -24,62 +24,52 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_VOXEL_VOX_TYPES_H
-#define GAEN_VOXEL_VOX_TYPES_H
+#ifndef GAEN_VOXEL_VOX_GEO_H
+#define GAEN_VOXEL_VOX_GEO_H
 
+#include <array>
+
+#include "gaen/math/vec3.h"
+#include "gaen/math/vec2.h"
 #include "gaen/core/String.h"
 #include "gaen/core/Vector.h"
+#include "gaen/voxel/VoxMatrix.h"
 
 namespace gaen
 {
 
-struct QbtNode;
-struct VoxObj;
+static const u32 kMaxVoxPolyPoints = 5;
 
-enum class VoxType
+struct VoxPoint
 {
-    Prop = 0,
-    Biped = 1
+    vec3 pos;
+    vec2 uv;
 };
 
-const ChefString & vox_type_str(VoxType type);
-
-enum VoxPartFlags
+struct VoxPoly
 {
-    kVPF_NONE = 0,
-
-    kVPF_CenterOfMass = 0x01
+    VoxSide side;
+    u32 pointCount;
+    std::array<VoxPoint, kMaxVoxPolyPoints> points;
 };
 
-struct VoxPartDetails
+struct VoxMesh
 {
     ChefString name;
-    u32 flags;
+    Vector<kMEM_Chef, VoxPoly> polys;
+
+    VoxMesh(const ChefString & name)
+      : name(name)
+    {}
 };
 
-struct VoxNullDetails
+struct VoxGeo
 {
-    vec3 preRot;
-};
+    VoxGeo(const Vector<kMEM_Chef, const VoxMatrix*> & matrices);
 
-struct VoxObjType
-{
-    VoxType type;
-    f32 voxelSize;
-    UniquePtr<VoxObj>(*create)(const std::shared_ptr<QbtNode>&);
-    Vector<kMEM_Chef, VoxPartDetails> parts;
-    HashMap<kMEM_Chef, ChefString, VoxNullDetails> nulls;
-
-    static bool do_parts_match(const VoxObjType & objType, const std::shared_ptr<QbtNode> & pNode);
-    static bool determine_type(const std::shared_ptr<QbtNode> & pNode, VoxObjType & voxObjType);
-};
-
-struct VoxObjTypeDelegator
-{
-    VoxType type;
-    bool (*is_of_type)(const std::shared_ptr<QbtNode>&, VoxObjType&);
+    Vector<kMEM_Chef, UniquePtr<VoxMesh>> meshes;
 };
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_VOXEL_TYPES_H
+#endif // #ifndef GAEN_VOXEL_GEO_H

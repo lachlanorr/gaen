@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// VoxProp.h - Voxel Prop Geometry
+// VoxBiped.h - Voxel Biped Geometry
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,8 +24,8 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_VOXEL_VOX_PROP_H
-#define GAEN_VOXEL_VOX_PROP_H
+#ifndef GAEN_VOXEL_VOX_BIPED_H
+#define GAEN_VOXEL_VOX_BIPED_H
 
 #include "gaen/voxel/VoxObj.h"
 
@@ -33,14 +33,18 @@ namespace gaen
 {
 struct QbtNode;
 
-struct VoxProp : public VoxObj
+struct VoxBiped : public VoxObj
 {
+    VoxBiped(const std::shared_ptr<QbtNode> & pRootNode, const VoxObjType & type)
+      : VoxObj(pRootNode, type)
+    {}
+
     static VoxObjUP create(const std::shared_ptr<QbtNode>& pRootNode);
     static bool is_of_type(const std::shared_ptr<QbtNode>& pRootNode, VoxObjType & voxObjType);
 
-    void exportFiles(const ChefString & basePath, f32 voxelSize) const override;
+    Vector<kMEM_Chef, ChefString> exportFiles(const ChefString & directory) const override;
 };
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_VOXEL_PROP_H
+#endif // #ifndef GAEN_VOXEL_BIPED_H

@@ -107,19 +107,33 @@ static VertType choose_vert_type(aiMesh* pMesh, CookInfo * pCookInfo)
     return kVERT_Unknown;
 }
 
-static void read_bones(Vector<kMEM_Chef, Bone> & boneVec, const rapidjson::Value & bones)
+static void read_nulls(Vector<kMEM_Chef, Bone> & boneVec, Vector<kMEM_Chef, Bone> & hardpointsVec, const rapidjson::Value & nulls)
 {
-    boneVec.reserve(bones.Size());
-    for (u32 i = 0; i < bones.Size(); ++i)
+    boneVec.reserve(nulls.Size());
+    hardpointsVec.reserve(nulls.Size());
+    for (u32 i = 0; i < nulls.Size(); ++i)
     {
-        const rapidjson::Value & b = bones[i];
-        mat43 transform(vec3(b["transform"][0][0].GetFloat(), b["transform"][0][1].GetFloat(), b["transform"][0][2].GetFloat()),
-                        vec3(b["transform"][1][0].GetFloat(), b["transform"][1][1].GetFloat(), b["transform"][1][2].GetFloat()),
-                        vec3(b["transform"][2][0].GetFloat(), b["transform"][2][1].GetFloat(), b["transform"][2][2].GetFloat()),
-                        vec3(b["transform"][3][0].GetFloat(), b["transform"][3][1].GetFloat(), b["transform"][3][2].GetFloat()));
-        boneVec.emplace_back(HASH::hash_func(b["name"].GetString()),
-                             b["parent"].IsNull() ? 0 : HASH::hash_func(b["parent"].GetString()),
-                             transform);
+        const rapidjson::Value & n = nulls[i];
+        if (0 == strcmp(n["type"].GetString(), "bone"))
+        {
+            mat43 transform(vec3(n["worldTransform"][0][0].GetFloat(), n["worldTransform"][0][1].GetFloat(), n["worldTransform"][0][2].GetFloat()),
+                            vec3(n["worldTransform"][1][0].GetFloat(), n["worldTransform"][1][1].GetFloat(), n["worldTransform"][1][2].GetFloat()),
+                            vec3(n["worldTransform"][2][0].GetFloat(), n["worldTransform"][2][1].GetFloat(), n["worldTransform"][2][2].GetFloat()),
+                            vec3(n["worldTransform"][3][0].GetFloat(), n["worldTransform"][3][1].GetFloat(), n["worldTransform"][3][2].GetFloat()));
+            boneVec.emplace_back(HASH::hash_func(n["name"].GetString()),
+                                 n["parent"].IsNull() ? 0 : HASH::hash_func(n["parent"].GetString()),
+                                 transform);
+        }
+        else if (0 == strcmp(n["type"].GetString(), "hardpoint"))
+        {
+            mat43 transform(vec3(n["localTransform"][0][0].GetFloat(), n["localTransform"][0][1].GetFloat(), n["localTransform"][0][2].GetFloat()),
+                            vec3(n["localTransform"][1][0].GetFloat(), n["localTransform"][1][1].GetFloat(), n["localTransform"][1][2].GetFloat()),
+                            vec3(n["localTransform"][2][0].GetFloat(), n["localTransform"][2][1].GetFloat(), n["localTransform"][2][2].GetFloat()),
+                            vec3(n["localTransform"][3][0].GetFloat(), n["localTransform"][3][1].GetFloat(), n["localTransform"][3][2].GetFloat()));
+            hardpointsVec.emplace_back(HASH::hash_func(n["name"].GetString()),
+                                       n["parent"].IsNull() ? 0 : HASH::hash_func(n["parent"].GetString()),
+                                       transform);
+        }
     }
 }
 
@@ -147,10 +161,8 @@ void Model::read_skl(Skeleton & skel, const char * path)
         skel.hasHalfExtents = true;
     }
 
-    if (skel.jsonDoc.HasMember("bones"))
-        read_bones(skel.bones, skel.jsonDoc["bones"]);
-    if (skel.jsonDoc.HasMember("hardpoints"))
-        read_bones(skel.hardpoints, skel.jsonDoc["hardpoints"]);
+    if (skel.jsonDoc.HasMember("skeleton"))
+        read_nulls(skel.bones, skel.hardpoints, skel.jsonDoc["skeleton"]);
 }
 
 u32 Model::bone_id(const Vector<kMEM_Chef, Bone> & bones, const char * name)
@@ -340,7 +352,8 @@ void Model::cook(CookInfo * pCookInfo) const
             {
                 ASSERT(pBones);
                 VertPosNormUvBone * pVertPosNormUvBone = (VertPosNormUvBone*)pVert;
-                pVertPosNormUvBone->boneId = bone_id(skel.bones, pAiMesh->mName.C_Str());
+                ChefString boneName = ChefString("B") + pAiMesh->mName.C_Str();
+                pVertPosNormUvBone->boneId = bone_id(skel.bones, boneName.c_str());
                 // adjust vert positions based on bone transforms
                 mat43 invTrans = ~pBones[pVertPosNormUvBone->boneId].transform;
                 pVertPosNormUvBone->position = invTrans * pVertPosNormUvBone->position;

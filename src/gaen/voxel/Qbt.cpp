@@ -120,7 +120,7 @@ static void read_qbt_voxel_data(QbtNode & node, FileReader & rdr, WorkBuffers & 
     memcpy(node.voxels.data(), bufs.uncomp.data(), uncompSize);
 }
 
-static std::shared_ptr<QbtNode> read_qbt_node(const QbtNode * pParent, FileReader & rdr, WorkBuffers & bufs)
+static std::shared_ptr<QbtNode> read_qbt_node(const QbtNode * pParent, const ChefString & rootName, FileReader & rdr, WorkBuffers & bufs)
 {
     std::shared_ptr<QbtNode> pNode(GNEW(kMEM_Chef, QbtNode), deleter<QbtNode>());
     pNode->pParent = pParent;
@@ -135,18 +135,23 @@ static std::shared_ptr<QbtNode> read_qbt_node(const QbtNode * pParent, FileReade
     {
     case kQBNT_Matrix:
         pNode->name = read_qbt_node_name(rdr);
-        if (pParent)
-            pNode->fullName = pParent->name + "-";
-        pNode->fullName += pNode->name;
         PANIC_IF(pNode->name.empty(), "Matrix with empty name");
+        if (pParent)
+            pNode->fullName = pParent->fullName + "-";
+        pNode->fullName += pNode->name;
         read_qbt_voxel_data(*pNode, rdr, bufs);
         break;
     case kQBNT_Model:
+        pNode->name = rootName;
+        pNode->fullName = rootName;
         rdr.read(&childCount);
         break;
     case kQBNT_Compound:
         pNode->name = read_qbt_node_name(rdr);
         PANIC_IF(pNode->name.empty(), "Compound with empty name");
+        if (pParent)
+            pNode->fullName = pParent->fullName + "-";
+        pNode->fullName += pNode->name;
         read_qbt_voxel_data(*pNode, rdr, bufs);
         rdr.read(&childCount);
         break;
@@ -159,7 +164,7 @@ static std::shared_ptr<QbtNode> read_qbt_node(const QbtNode * pParent, FileReade
         pNode->children.reserve(childCount);
         for (u32 i = 0; i < childCount; ++i)
         {
-            pNode->children.push_back(read_qbt_node(pNode.get(), rdr, bufs));
+            pNode->children.push_back(read_qbt_node(pNode.get(), rootName, rdr, bufs));
             if (!pNode->name.empty())
                 pNode->childMap[pNode->children.back()->name] = pNode->children.back();
         }
@@ -209,9 +214,7 @@ std::shared_ptr<Qbt> Qbt::load_from_file(const ChefString & path)
 
     WorkBuffers bufs(1024 * 1024, 5 * 1024 * 1024); // sizes will grow if necessary
 
-    pQbt->pRoot = read_qbt_node(nullptr, rdr, bufs);
-    // set pRoot name to name of file
-    pQbt->pRoot->name = get_filename_root(path);
+    pQbt->pRoot = read_qbt_node(nullptr, get_filename_root(path), rdr, bufs);
 
     return pQbt;
 }

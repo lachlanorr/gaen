@@ -43,7 +43,7 @@ typedef void(*RecurseDirCB)(const char * path, void * context);
 
 void recurse_dir(const char * root_path, void * context, RecurseDirCB cb);
 
-// All of these file system functions assume a path with '/' separators, 
+// All of these file system functions assume a path with '/' separators,
 // even on windows.
 bool file_exists(const char * filePath);
 bool dir_exists(const char * dirPath);
@@ -114,6 +114,17 @@ const char * get_ext(const char * path);
 char * get_ext(char * path);
 void strip_ext(char * path);
 void change_ext(char * path, const char * ext);
+
+template <class T>
+T get_ext(T & path)
+{
+    size_t dotPos = path.find_last_of('.');
+    if (dotPos != T::npos)
+    {
+        return path.substr(dotPos+1);
+    }
+    return "";
+}
 
 template <class T>
 void strip_ext(T & path)

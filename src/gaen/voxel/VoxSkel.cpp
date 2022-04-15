@@ -380,7 +380,7 @@ ChefString VoxNull::serialize(f32 voxelSize, const VoxObj * pVoxObj, const ChefS
     return ser;
 }
 
-void VoxSkel::writeSkl(const ChefString & path, f32 voxelSize) const
+void VoxSkel::writeSklFile(const ChefString & path, f32 voxelSize) const
 {
     std::array<char, 1024> tempStr;
 
