@@ -53,13 +53,11 @@ AnimImage::AnimImage()
 }
 
 static void add_bone_transforms(Gaim::AnimRaw & animRaw,
-                                const rapidjson::Value & boneList,
-                                const Vector<kMEM_Chef, Bone> & bones)
+                                const rapidjson::Value & boneList)
 {
     for (u32 j = 0; j < boneList.Size(); ++j)
     {
         const rapidjson::Value & b = boneList[j];
-        PANIC_IF(HASH::hash_func(b["name"].GetString()) != bones[j].nameHash, "Bones out of order between .skl and .ani");
         mat43 transform(vec3(b["transform"][0][0].GetFloat(), b["transform"][0][1].GetFloat(), b["transform"][0][2].GetFloat()),
                         vec3(b["transform"][1][0].GetFloat(), b["transform"][1][1].GetFloat(), b["transform"][1][2].GetFloat()),
                         vec3(b["transform"][2][0].GetFloat(), b["transform"][2][1].GetFloat(), b["transform"][2][2].GetFloat()),
@@ -70,9 +68,8 @@ static void add_bone_transforms(Gaim::AnimRaw & animRaw,
 }
 
 static void read_ani(Gaim::AnimRaw & animRaw,
-                    const char * animName,
-                    const char * path,
-                    const Vector<kMEM_Chef, Bone> & bones)
+                     const char * animName,
+                     const char * path)
 {
     FileReader rdr(path);
     PANIC_IF(!rdr.isOk(), "Unable to load ani file: %s", path);
@@ -94,13 +91,12 @@ static void read_ani(Gaim::AnimRaw & animRaw,
     animRaw.info.isLoopable = d["isLoopable"].GetBool();
 
     u32 boneCount = d["boneCount"].GetInt();
-    PANIC_IF(boneCount != bones.size(), "Incompatible .skl and .ani files");
     u32 transformCount = animRaw.info.frameCount * boneCount;
 
     animRaw.transforms.reserve(transformCount);
     for (u32 i = 0; i < transforms.Size(); i++)
     {
-        add_bone_transforms(animRaw, transforms[i]["bones"], bones);
+        add_bone_transforms(animRaw, transforms[i]["bones"]);
     }
 }
 
@@ -115,10 +111,6 @@ void AnimImage::cook(CookInfo * pCookInfo) const
         aim.read(rdr.ifs);
     }
 
-    ChefString fullSklPath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), aim.get("skeleton"));
-    Model::Skeleton skel;
-    Model::read_skl(skel, fullSklPath.c_str());
-
     bool hasDefault = false;
     auto itend = aim.keysEnd("animations");
     for (auto it = aim.keysBegin("animations");
@@ -129,25 +121,12 @@ void AnimImage::cook(CookInfo * pCookInfo) const
         pCookInfo->recordDependency(aniPath);
         ChefString fullAniPath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), aniPath);
         animsRaw.push_back(Gaim::AnimRaw());
-        read_ani(animsRaw.back(), *it, fullAniPath.c_str(), skel.bones);
+        read_ani(animsRaw.back(), *it, fullAniPath.c_str());
         if (strcmp(*it, "default") == 0)
             hasDefault = true;
     }
 
-    if (!hasDefault)
-    {
-        // Add default pose into gaim (bones transforms from gmdl)
-        Gaim::AnimRaw def;
-        def.info.nameHash = HASH::default;
-        def.info.frameDuration = 1.0 / 60.0;
-        def.info.frameCount = 1;
-        def.info.framesOffset = 0;
-        def.info.isLoopable = 1;
-        def.info.totalTime = 0.0;
-        def.transforms.reserve(skel.bones.size());
-        add_bone_transforms(def, skel.jsonDoc["bones"], skel.bones);
-        animsRaw.push_back(def);
-    }
+    PANIC_IF(!hasDefault, "No default ani specified");
 
     Gaim * pGaim = Gaim::create(animsRaw, Image::reference_path_hash(pCookInfo));
 
