@@ -271,7 +271,7 @@ void RendererMesh::setTexture(u32 nameHash, u32 glId)
 
     glActiveTexture(GL_TEXTURE0 + textureUnit);
     glBindTexture(GL_TEXTURE_2D, glId);
-    if (nameHash == HASH::animations)
+    if (nameHash == HASH::animations || nameHash == HASH::diffuse)
     {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
