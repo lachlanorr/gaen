@@ -69,7 +69,8 @@ static void add_bone_transforms(Gaim::AnimRaw & animRaw,
 
 static void read_ani(Gaim::AnimRaw & animRaw,
                      const char * animName,
-                     const char * path)
+                     const char * path,
+                     u32 & boneCount)
 {
     FileReader rdr(path);
     PANIC_IF(!rdr.isOk(), "Unable to load ani file: %s", path);
@@ -90,7 +91,7 @@ static void read_ani(Gaim::AnimRaw & animRaw,
     animRaw.info.framesOffset = 0;
     animRaw.info.isLoopable = d["isLoopable"].GetBool();
 
-    u32 boneCount = d["boneCount"].GetInt();
+    boneCount = d["boneCount"].GetInt();
     u32 transformCount = animRaw.info.frameCount * boneCount;
 
     animRaw.transforms.reserve(transformCount);
@@ -112,6 +113,7 @@ void AnimImage::cook(CookInfo * pCookInfo) const
     }
 
     bool hasDefault = false;
+    u32 boneCount = 0;
     auto itend = aim.keysEnd("animations");
     for (auto it = aim.keysBegin("animations");
          it != itend;
@@ -121,12 +123,21 @@ void AnimImage::cook(CookInfo * pCookInfo) const
         pCookInfo->recordDependency(aniPath);
         ChefString fullAniPath = pCookInfo->chef().getRelativeDependencyRawPath(pCookInfo->rawPath(), aniPath);
         animsRaw.push_back(Gaim::AnimRaw());
-        read_ani(animsRaw.back(), *it, fullAniPath.c_str());
+
+        u32 aniBoneCount = 0;
+        read_ani(animsRaw.back(), *it, fullAniPath.c_str(), aniBoneCount);
+
+        if (boneCount == 0)
+            boneCount = aniBoneCount;
+        else
+            PANIC_IF(boneCount != aniBoneCount, "ani with mismatched bone count");
+
         if (strcmp(*it, "default") == 0)
             hasDefault = true;
     }
 
     PANIC_IF(!hasDefault, "No default ani specified");
+    PANIC_IF(animsRaw.size() == 0, "No ani's specificed");
 
     Gaim * pGaim = Gaim::create(animsRaw, Image::reference_path_hash(pCookInfo));
 
