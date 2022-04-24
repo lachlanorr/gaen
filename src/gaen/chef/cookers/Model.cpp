@@ -107,6 +107,14 @@ static VertType choose_vert_type(aiMesh* pMesh, CookInfo * pCookInfo)
     return kVERT_Unknown;
 }
 
+static mat43 read_null_transform(const rapidjson::Value& n, const char * fieldName)
+{
+    return mat43(vec3(n[fieldName][0][0].GetFloat(), n[fieldName][0][1].GetFloat(), n[fieldName][0][2].GetFloat()),
+                 vec3(n[fieldName][1][0].GetFloat(), n[fieldName][1][1].GetFloat(), n[fieldName][1][2].GetFloat()),
+                 vec3(n[fieldName][2][0].GetFloat(), n[fieldName][2][1].GetFloat(), n[fieldName][2][2].GetFloat()),
+                 vec3(n[fieldName][3][0].GetFloat(), n[fieldName][3][1].GetFloat(), n[fieldName][3][2].GetFloat()));
+}
+
 static void read_nulls(Vector<kMEM_Chef, Bone> & boneVec, Vector<kMEM_Chef, Bone> & hardpointsVec, const rapidjson::Value & nulls)
 {
     boneVec.reserve(nulls.Size());
@@ -116,20 +124,19 @@ static void read_nulls(Vector<kMEM_Chef, Bone> & boneVec, Vector<kMEM_Chef, Bone
         const rapidjson::Value & n = nulls[i];
         if (0 == strcmp(n["type"].GetString(), "bone"))
         {
-            mat43 transform(vec3(n["worldTransform"][0][0].GetFloat(), n["worldTransform"][0][1].GetFloat(), n["worldTransform"][0][2].GetFloat()),
-                            vec3(n["worldTransform"][1][0].GetFloat(), n["worldTransform"][1][1].GetFloat(), n["worldTransform"][1][2].GetFloat()),
-                            vec3(n["worldTransform"][2][0].GetFloat(), n["worldTransform"][2][1].GetFloat(), n["worldTransform"][2][2].GetFloat()),
-                            vec3(n["worldTransform"][3][0].GetFloat(), n["worldTransform"][3][1].GetFloat(), n["worldTransform"][3][2].GetFloat()));
+            mat43 transform = read_null_transform(n, "worldTransform");
             boneVec.emplace_back(HASH::hash_func(n["name"].GetString()),
                                  n["parent"].IsNull() ? 0 : HASH::hash_func(n["parent"].GetString()),
                                  transform);
         }
         else if (0 == strcmp(n["type"].GetString(), "hardpoint"))
         {
-            mat43 transform(vec3(n["localTransform"][0][0].GetFloat(), n["localTransform"][0][1].GetFloat(), n["localTransform"][0][2].GetFloat()),
-                            vec3(n["localTransform"][1][0].GetFloat(), n["localTransform"][1][1].GetFloat(), n["localTransform"][1][2].GetFloat()),
-                            vec3(n["localTransform"][2][0].GetFloat(), n["localTransform"][2][1].GetFloat(), n["localTransform"][2][2].GetFloat()),
-                            vec3(n["localTransform"][3][0].GetFloat(), n["localTransform"][3][1].GetFloat(), n["localTransform"][3][2].GetFloat()));
+            // use local for hardpoints parented to a bone, otherwise global
+            mat43 transform;
+            if (!n["parent"].IsNull() && n["parent"].GetString()[0] == 'B')
+                transform = read_null_transform(n, "localTransform");
+            else
+                transform = read_null_transform(n, "worldTransform");
             hardpointsVec.emplace_back(HASH::hash_func(n["name"].GetString()),
                                        n["parent"].IsNull() ? 0 : HASH::hash_func(n["parent"].GetString()),
                                        transform);
