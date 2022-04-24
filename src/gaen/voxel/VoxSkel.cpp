@@ -244,7 +244,7 @@ VoxSkel::VoxSkel(const VoxObj* pVoxObj)
                 preRot = mat43::from_rot(radians(nullDetailsIt->second.preRot));
             }
 
-            mNulls.emplace(name, GNEW(kMEM_Chef, VoxNull, *this, type, name, parent, rawNull.group, rawNull.pos, preRot));
+            mNulls.emplace(name, GNEW(kMEM_Chef, VoxNull, *this, type, name, parent, rawNull.group, rawNull.pos + pVoxObj->offset, preRot));
         }
     }
 
@@ -252,7 +252,7 @@ VoxSkel::VoxSkel(const VoxObj* pVoxObj)
     for (auto & nullPair : mNulls)
     {
         VoxNull * pNull = nullPair.second.get();
-        calc_details(pNull, pVoxObj->worldCenter, rawNulls);
+        calc_details(pNull, pVoxObj->cogCenter + pVoxObj->offset, rawNulls);
     }
 }
 
@@ -348,7 +348,7 @@ ChefString VoxNull::serialize(f32 voxelSize, const VoxObj * pVoxObj, const ChefS
 
         // find matrix to get center and extents
         const auto & mat = *pVoxObj->baseMatrices.find(name.substr(1))->second;
-        vec3 scenter = mat.worldCenter * voxelSize;
+        vec3 scenter = (mat.worldCenter + pVoxObj->offset) * voxelSize;
         snprintf(tempStr.data(), tempStr.size(),
                  "\"center\": [%f, %f, %f],\n", scenter.x, scenter.y, scenter.z);
         ser += indent2 + tempStr.data();
@@ -396,12 +396,12 @@ void VoxSkel::writeSklFile(const ChefString & path, f32 voxelSize) const
              "  \"type\": \"%s\",\n", vox_type_str(pVoxObj->type.type).c_str());
     sklWrtr.write(tempStr.data());
 
-    vec3 scenter = pVoxObj->worldCenter * voxelSize;
+    vec3 scenter = (pVoxObj->cogCenter + pVoxObj->offset) * voxelSize;
     snprintf(tempStr.data(), tempStr.size(),
              "  \"center\": [%f, %f, %f],\n", scenter.x, scenter.y, scenter.z);
     sklWrtr.write(tempStr.data());
 
-    vec3 shalfExtents = pVoxObj->halfExtents * voxelSize;
+    vec3 shalfExtents = pVoxObj->cogHalfExtents * voxelSize;
     snprintf(tempStr.data(), tempStr.size(),
              "  \"halfExtents\": [%f, %f, %f],\n", shalfExtents.x, shalfExtents.y, shalfExtents.z);
     sklWrtr.write(tempStr.data());

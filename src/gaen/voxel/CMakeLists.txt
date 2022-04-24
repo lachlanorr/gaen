@@ -48,6 +48,8 @@ set(gaen_voxel_types_SOURCES
   types/VoxBiped.cpp
   types/VoxProp.h
   types/VoxProp.cpp
+  types/VoxWeapon.h
+  types/VoxWeapon.cpp
   )
 
 source_group("" FILES ${gaen_voxel_SOURCES})

@@ -46,7 +46,7 @@ void add_matrices_to_map(VoxMatrixMap & matrices, const QbtNode & node)
     }
 }
 
-static bool is_voxel_side_visible(VoxMatrix & matrix, const ivec3 & pos, VoxSide side)
+static bool is_voxel_side_visible(VoxMatrix & matrix, const vec3 & pos, VoxSide side)
 {
     switch (side)
     {
@@ -90,7 +90,7 @@ static VoxSideFlag voxel_side_flag(VoxSide side)
     }
 }
 
-static bool voxel_pos_check(const ivec3 & pos, VoxSide side)
+static bool voxel_pos_check(const vec3 & pos, VoxSide side)
 {
     switch(side)
     {
@@ -108,21 +108,21 @@ static bool voxel_pos_check(const ivec3 & pos, VoxSide side)
     }
 }
 
-static ivec3 voxel_prev_pos(const ivec3 & pos, VoxSide side)
+static vec3 voxel_prev_pos(const vec3 & pos, VoxSide side)
 {
     switch(side)
     {
     case kVSD_Left:
     case kVSD_Right:
-        return ivec3(pos.x, pos.y, pos.z-1);
+        return vec3(pos.x, pos.y, pos.z-1);
     case kVSD_Back:
     case kVSD_Bottom:
     case kVSD_Front:
     case kVSD_Top:
-        return ivec3(pos.x-1, pos.y, pos.z);
+        return vec3(pos.x-1, pos.y, pos.z);
     default:
         PANIC("Invalid side");
-        return ivec3(0);
+        return vec3(0);
     }
 }
 
@@ -133,23 +133,23 @@ static void voxel_merge(Voxel & vox, Voxel & prevVox, VoxSide side, VoxSideFlag 
         VoxFace * pPrevFace = prevVox.pFaces[side];
 
         bool canMerge = false;
-        ivec3 sizeInc(0);
+        vec3 sizeInc(0);
         switch(side)
         {
         case kVSD_Left:
         case kVSD_Right:
             canMerge = pPrevFace->size.y == 1;
-            sizeInc = ivec3(0, 0, 1);
+            sizeInc = vec3(0, 0, 1);
             break;
         case kVSD_Back:
         case kVSD_Front:
             canMerge = pPrevFace->size.y == 1;
-            sizeInc = ivec3(1, 0, 0);
+            sizeInc = vec3(1, 0, 0);
             break;
         case kVSD_Bottom:
         case kVSD_Top:
             canMerge = pPrevFace->size.z == 1;
-            sizeInc = ivec3(1, 0, 0);
+            sizeInc = vec3(1, 0, 0);
             break;
         }
 
@@ -164,7 +164,7 @@ static void voxel_merge(Voxel & vox, Voxel & prevVox, VoxSide side, VoxSideFlag 
     }
 }
 
-static bool voxel_row_check(const ivec3 & pos, VoxSide side)
+static bool voxel_row_check(const vec3 & pos, VoxSide side)
 {
     switch(side)
     {
@@ -184,18 +184,18 @@ static bool voxel_row_check(const ivec3 & pos, VoxSide side)
 
 static void voxel_row_merge(VoxMatrix & matrix, Voxel & vox, VoxSide side, HashMap<kMEM_Chef, VoxFace*, VoxFace*> &faceTrans)
 {
-    ivec3 prevRow;
+    vec3 prevRow;
     switch(side)
     {
     case kVSD_Left:
     case kVSD_Back:
     case kVSD_Right:
     case kVSD_Front:
-        prevRow = ivec3(vox.pos.x, vox.pos.y-1, vox.pos.z);
+        prevRow = vec3(vox.pos.x, vox.pos.y-1, vox.pos.z);
         break;
     case kVSD_Bottom:
     case kVSD_Top:
-        prevRow = ivec3(vox.pos.x, vox.pos.y, vox.pos.z-1);
+        prevRow = vec3(vox.pos.x, vox.pos.y, vox.pos.z-1);
         break;
     default:
         PANIC("Invalid side");
@@ -267,7 +267,7 @@ static void process_voxel_side(VoxMatrix & matrix, Voxel & vox, VoxSide side)
         // check if previous voxel is coplanar on this side
         if (voxel_pos_check(vox.pos, side))
         {
-            ivec3 prevPos = voxel_prev_pos(vox.pos, side);
+            vec3 prevPos = voxel_prev_pos(vox.pos, side);
             auto itIdx = matrix.voxelIdMap.find(prevPos);
             if (itIdx != matrix.voxelIdMap.end())
             {
@@ -278,9 +278,9 @@ static void process_voxel_side(VoxMatrix & matrix, Voxel & vox, VoxSide side)
     }
 }
 
-static const ivec3 qbt_node_world_pos(const QbtNode & node)
+static const vec3 qbt_node_world_pos(const QbtNode & node)
 {
-    ivec3 worldPos = node.position;
+    vec3 worldPos = vec3(node.position.x, node.position.y, node.position.z);
     if (node.pParent)
     {
         worldPos += qbt_node_world_pos(*node.pParent);
@@ -292,8 +292,8 @@ VoxMatrix::VoxMatrix(const QbtNode &node)
   : node(node)
 {
     worldPos = qbt_node_world_pos(node);
-    mins = ivec3(std::numeric_limits<int>::max());
-    maxes = ivec3(std::numeric_limits<int>::min());
+    mins = vec3(std::numeric_limits<int>::max());
+    maxes = vec3(std::numeric_limits<int>::min());
 
     for (i32 z = 0; z < node.size.z; z++)
     {
@@ -305,15 +305,15 @@ VoxMatrix::VoxMatrix(const QbtNode &node)
                 if (col.a() > 1) // 1 means core voxel
                 {
                     col.seta(255);
-                    ivec3 pos(x, y, z);
+                    vec3 pos(x, y, z);
                     addVoxel(col, pos);
                 }
             }
         }
     }
 
-    ivec3 worldMaxes = maxes + worldPos;
-    ivec3 worldMins = mins + worldPos;
+    vec3 worldMaxes = maxes + worldPos;
+    vec3 worldMins = mins + worldPos;
     worldCenter = vec3(worldMaxes.x + worldMins.x + 1, worldMaxes.y + worldMins.y + 1, worldMaxes.z + worldMins.z + 1) * 0.5f;
     halfExtents = vec3(worldCenter.x - worldMins.x, worldCenter.y - worldMins.y, worldCenter.z - worldMins.z);
 
@@ -346,7 +346,7 @@ VoxMatrix::VoxMatrix(const QbtNode &node)
         {
             for (i32 x = 0; x < node.size.x; x++)
             {
-                auto voxIdIt = voxelIdMap.find(ivec3(x, y, z));
+                auto voxIdIt = voxelIdMap.find(vec3(x, y, z));
                 if (voxIdIt != voxelIdMap.end())
                 {
                     Voxel & vox = voxels[voxIdIt->second];
@@ -411,14 +411,14 @@ VoxMatrix::VoxMatrix(const QbtNode &node)
     }
 }
 
-const Voxel & VoxMatrix::voxel(ivec3 pos) const
+const Voxel & VoxMatrix::voxel(vec3 pos) const
 {
     auto voxIdIt = voxelIdMap.find(pos);
     PANIC_IF(voxIdIt == voxelIdMap.end(), "Voxel not found: (%d, %d, %d)", pos.x, pos.y, pos.z);
     return voxels[voxIdIt->second];
 }
 
-void VoxMatrix::addVoxel(Color col, ivec3 pos)
+void VoxMatrix::addVoxel(Color col, vec3 pos)
 {
     voxels.emplace_back(col, pos);
     Voxel &vox = voxels.back();

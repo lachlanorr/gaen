@@ -44,10 +44,17 @@ struct VoxObj
 
     VoxObj(const std::shared_ptr<QbtNode>& pRootNode, const VoxObjType& type);
 
-    ivec3 mins;
-    ivec3 maxes;
-    vec3 worldCenter;
+    vec3 mins;
+    vec3 maxes;
+    vec3 center;
     vec3 halfExtents;
+
+    vec3 cogMins;
+    vec3 cogMaxes;
+    vec3 cogCenter;
+    vec3 cogHalfExtents;
+
+    vec3 offset;
 
     UniquePtr<Gimg> pGimgDiffuse;
     UniquePtr<VoxSkel> pVoxSkel;

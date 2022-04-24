@@ -65,7 +65,7 @@ struct VoxMesh
 
 struct VoxGeo
 {
-    VoxGeo(const Vector<kMEM_Chef, const VoxMatrix*> & matrices);
+    VoxGeo(const Vector<kMEM_Chef, const VoxMatrix*> & matrices, const vec3 & offset);
 
     Vector<kMEM_Chef, UniquePtr<VoxMesh>> meshes;
 };

@@ -39,7 +39,8 @@ struct VoxObj;
 enum class VoxType
 {
     Prop = 0,
-    Biped = 1
+    Biped = 1,
+    Weapon = 2
 };
 
 const ChefString & vox_type_str(VoxType type);
@@ -48,7 +49,7 @@ enum VoxPartFlags
 {
     kVPF_NONE = 0,
 
-    kVPF_CenterOfMass = 0x01
+    kVPF_CenterOfGravity = 0x01
 };
 
 struct VoxPartDetails

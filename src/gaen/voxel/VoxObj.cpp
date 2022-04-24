@@ -59,37 +59,37 @@ static void set_uvs(VoxMatrixFace * pMatFace, uvec2 pos, uvec2 size, uvec2 image
     pMatFace->uvs[3] = calc_uv(uvec2(pos.x,              pos.y),              imageSize);
 }
 
-static ivec3 face_image_pos_to_voxel(const VoxFace * pFace, const uvec2 size, u32 x, u32 y)
+static vec3 face_image_pos_to_voxel(const VoxFace * pFace, const uvec2 size, u32 x, u32 y)
 {
     switch(pFace->side)
     {
     case kVSD_Left:
-        return ivec3(pFace->start.x,
+        return vec3(pFace->start.x,
                      pFace->start.y + size.y - y - 1,
                      pFace->start.z + x);
     case kVSD_Back:
-        return ivec3(pFace->start.x + size.x - x - 1,
+        return vec3(pFace->start.x + size.x - x - 1,
                      pFace->start.y + size.y - y - 1,
                      pFace->start.z);
     case kVSD_Bottom:
-        return ivec3(pFace->start.x + x,
+        return vec3(pFace->start.x + x,
                      pFace->start.y,
                      pFace->start.z + size.y - y - 1);
     case kVSD_Right:
-        return ivec3(pFace->start.x,
+        return vec3(pFace->start.x,
                      pFace->start.y + size.y - y - 1,
                      pFace->start.z + size.x - x - 1);
     case kVSD_Front:
-        return ivec3(pFace->start.x + x,
+        return vec3(pFace->start.x + x,
                      pFace->start.y + size.y - y - 1,
                      pFace->start.z);
     case kVSD_Top:
-        return ivec3(pFace->start.x + x,
+        return vec3(pFace->start.x + x,
                      pFace->start.y,
                      pFace->start.z + y);
     }
     PANIC("Invalid side");
-    return ivec3(0);
+    return vec3(0);
 }
 
 static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrixFaces)
@@ -142,7 +142,7 @@ static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrix
             Color * pScanLine = (Color*)pGimg->scanline(pos.y + y);
             for (i32 x = 0; x < size.x; x++)
             {
-                ivec3 matPos = face_image_pos_to_voxel(pFace, size, x, y);
+                vec3 matPos = face_image_pos_to_voxel(pFace, size, x, y);
                 pScanLine[pos.x+x] = pMatFace->pMatrix->voxel(matPos).color;
             }
         }
@@ -156,7 +156,7 @@ static bool build_diffuse(Gimg * pGimg, Vector<kMEM_Chef, VoxMatrixFace*> matrix
     Color * pColor = pColorStart;
 
     // remember any 1x1 faces we find and make all 1x1 faces of the same voxel use it
-    HashMap<kMEM_Chef, const VoxMatrix*, HashMap<kMEM_Chef, ivec3, uvec2>> voxPosToImgPos;
+    HashMap<kMEM_Chef, const VoxMatrix*, HashMap<kMEM_Chef, vec3, uvec2>> voxPosToImgPos;
     for (; i < matrixFaces.size(); i++)
     {
         VoxMatrixFace* pMatFace = matrixFaces[i];
@@ -202,8 +202,8 @@ VoxObj::VoxObj(const std::shared_ptr<QbtNode>& pRootNode, const VoxObjType& type
   , type(type)
   , mins(0)
   , maxes(0)
-  , worldCenter(0)
-  , halfExtents(0)
+  , cogCenter(0)
+  , cogHalfExtents(0)
   , pGimgDiffuse(nullptr)
   , pVoxSkel(nullptr)
 {}
@@ -213,32 +213,52 @@ void VoxObj::processBaseMatrices(const QbtNode & baseNode)
     add_matrices_to_map(baseMatrices, baseNode);
 
     // calc base matrices mins/maxes
-    mins = ivec3(std::numeric_limits<int>::max());
-    maxes = ivec3(std::numeric_limits<int>::min());
+    mins = cogMins = vec3(std::numeric_limits<int>::max());
+    maxes = cogMaxes = vec3(std::numeric_limits<int>::min());
     for (const auto & part : type.parts)
     {
-        if (part.flags & kVPF_CenterOfMass)
-        {
-            VoxMatrix & mat = *baseMatrices[part.name];
-            ivec3 matMins = mat.mins + mat.worldPos;
-            ivec3 matMaxes = mat.maxes + mat.worldPos;
-            if (matMins.x < mins.x)
-                mins.x = matMins.x;
-            if (matMins.y < mins.y)
-                mins.y = matMins.y;
-            if (matMins.z < mins.z)
-                mins.z = matMins.z;
+        VoxMatrix & mat = *baseMatrices[part.name];
+        vec3 matMins = mat.mins + mat.worldPos;
+        vec3 matMaxes = mat.maxes + mat.worldPos;
 
-            if (matMaxes.x > maxes.x)
-                maxes.x = matMaxes.x;
-            if (matMaxes.y > maxes.y)
-                maxes.y = matMaxes.y;
-            if (matMaxes.z > maxes.z)
-                maxes.z = matMaxes.z;
+        if (matMins.x < mins.x)
+            mins.x = matMins.x;
+        if (matMins.y < mins.y)
+            mins.y = matMins.y;
+        if (matMins.z < mins.z)
+            mins.z = matMins.z;
+
+        if (matMaxes.x > maxes.x)
+            maxes.x = matMaxes.x;
+        if (matMaxes.y > maxes.y)
+            maxes.y = matMaxes.y;
+        if (matMaxes.z > maxes.z)
+            maxes.z = matMaxes.z;
+
+        if (part.flags & kVPF_CenterOfGravity)
+        {
+            if (matMins.x < cogMins.x)
+                cogMins.x = matMins.x;
+            if (matMins.y < cogMins.y)
+                cogMins.y = matMins.y;
+            if (matMins.z < cogMins.z)
+                cogMins.z = matMins.z;
+
+            if (matMaxes.x > cogMaxes.x)
+                cogMaxes.x = matMaxes.x;
+            if (matMaxes.y > cogMaxes.y)
+                cogMaxes.y = matMaxes.y;
+            if (matMaxes.z > cogMaxes.z)
+                cogMaxes.z = matMaxes.z;
         }
     }
-    worldCenter = vec3(maxes.x + mins.x + 1, maxes.y + mins.y + 1, maxes.z + mins.z + 1) * 0.5f;
-    halfExtents = vec3(worldCenter.x - mins.x, worldCenter.y - mins.y, worldCenter.z - mins.z);
+    center = vec3(maxes.x + mins.x + 1, maxes.y + mins.y + 1, maxes.z + mins.z + 1) * 0.5f;
+    halfExtents = vec3(center.x - mins.x, center.y - mins.y, center.z - mins.z);
+    cogCenter = vec3(cogMaxes.x + cogMins.x + 1, cogMaxes.y + cogMins.y + 1, cogMaxes.z + cogMins.z + 1) * 0.5f;
+    cogHalfExtents = vec3(cogCenter.x - cogMins.x, cogCenter.y - cogMins.y, cogCenter.z - cogMins.z);
+
+    // offset so we are centered in the end
+    offset = vec3(-center.x, -mins.y, -center.z);
 
     // build master face list
     Vector<kMEM_Chef, VoxMatrixFace*> matrixFaces;
@@ -279,7 +299,7 @@ void VoxObj::processBaseMatrices(const QbtNode & baseNode)
     {
         orderedMatrices[i] = baseMatrices.find(type.parts[i].name)->second.get();
     }
-    pBaseGeo.reset(GNEW(kMEM_Chef, VoxGeo, orderedMatrices));
+    pBaseGeo.reset(GNEW(kMEM_Chef, VoxGeo, orderedMatrices, offset));
 }
 
 VoxObjVec build_voxobjs_from_qbt(const std::shared_ptr<Qbt> & pQbt)
@@ -314,80 +334,6 @@ VoxObjVec build_voxobjs_from_qbt(const std::shared_ptr<Qbt> & pQbt)
     {
         printf("No known VoxObjTypes in qbt");
     }
-
-/*
-    const QbtNode * pBaseNode = qbt.findTopLevelCompound("Base");
-    if (pBaseNode != nullptr)
-    {
-        add_matrices_to_map(baseMatrices, *pBaseNode);
-    }
-
-    type = VoxObjType::determine_type(*this);
-
-    // calc base matrices mins/maxes
-    mins = ivec3(std::numeric_limits<int>::max());
-    maxes = ivec3(std::numeric_limits<int>::min());
-    for (const auto & part : type.parts)
-    {
-        if (part.flags & kVPF_CenterOfMass)
-        {
-            VoxMatrix & mat = *baseMatrices[part.name];
-            ivec3 matMins = mat.mins + mat.worldPos;
-            ivec3 matMaxes = mat.maxes + mat.worldPos;
-            if (matMins.x < mins.x)
-                mins.x = matMins.x;
-            if (matMins.y < mins.y)
-                mins.y = matMins.y;
-            if (matMins.z < mins.z)
-                mins.z = matMins.z;
-
-            if (matMaxes.x > maxes.x)
-                maxes.x = matMaxes.x;
-            if (matMaxes.y > maxes.y)
-                maxes.y = matMaxes.y;
-            if (matMaxes.z > maxes.z)
-                maxes.z = matMaxes.z;
-        }
-    }
-    worldCenter = vec3(maxes.x + mins.x + 1, maxes.y + mins.y + 1, maxes.z + mins.z + 1) * 0.5f;
-    halfExtents = vec3(worldCenter.x - mins.x, worldCenter.y - mins.y, worldCenter.z - mins.z);
-
-    // build skeleton, process nulls
-    voxSkel = VoxSkel(this);
-
-    // build master face list
-    Vector<kMEM_Chef, VoxMatrixFace*> matrixFaces;
-    i32 totalArea = 0;
-    for (const auto & part : type.parts)
-    {
-        VoxMatrix & matrix = *baseMatrices[part.name];
-        for (auto & matFace : matrix.faces)
-        {
-            matrixFaces.push_back(&matFace);
-            totalArea += matFace.area;
-        }
-    }
-    std::stable_sort(matrixFaces.begin(), matrixFaces.end(), face_size_gt);
-
-    f32 pixRoot = sqrt(totalArea);
-    u32 imgWidth = next_power_of_two((u32)(pixRoot + 0.5));
-    u32 imgHeight = imgWidth;
-
-    pGimgDiffuse.reset(Gimg::create(kPXL_RGBA8, imgWidth, imgHeight, 0));
-
-    if (!build_diffuse(pGimgDiffuse.get(), matrixFaces))
-    {
-        // try one more time with larger image
-        imgWidth *= 2;
-        imgHeight *= 2;
-
-        pGimgDiffuse.reset(Gimg::create(kPXL_RGBA8, imgWidth, imgHeight, 0));
-        if (!build_diffuse(pGimgDiffuse.get(), matrixFaces))
-        {
-            PANIC("Unable to build_diffuse on second attempt, width=%d height=%d", imgWidth, imgHeight);
-        }
-    }
-*/
 
     return vovec;
 }

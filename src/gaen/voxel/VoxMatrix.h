@@ -66,21 +66,21 @@ enum VoxSideFlag : i32
 
 struct VoxFace
 {
-    ivec3 start;
-    ivec3 size;
+    vec3 start;
+    vec3 size;
     VoxSide side;
 };
 
 struct Voxel
 {
     Color color;
-    ivec3 pos;
+    vec3 pos;
     u32 visibleSides; // bitmask of VoxSide's
 
     VoxFace * faces; // faces voxel owns, could be composite faces with other co-planar-adjacent voxel faces
     VoxFace * pFaces[kVSD_COUNT];     // pointer to actual face, could be pointing to composite face on another voxel
 
-    Voxel(Color color, ivec3 pos)
+    Voxel(Color color, vec3 pos)
       : color(color)
       , pos(pos)
       , visibleSides(0)
@@ -89,7 +89,7 @@ struct Voxel
         for (i32 i = 0; i < kVSD_COUNT; ++i)
         {
             faces[i].start = pos;
-            faces[i].size = ivec3(1);
+            faces[i].size = vec3(1);
             faces[i].side = (VoxSide)i;
             pFaces[i] = nullptr;
         }
@@ -159,20 +159,20 @@ struct VoxMatrix
 {
     const QbtNode& node;
 
-    ivec3 worldPos;
-    ivec3 mins;
-    ivec3 maxes;
+    vec3 worldPos;
+    vec3 mins;
+    vec3 maxes;
 
     vec3 worldCenter;
     vec3 halfExtents;
 
     Vector<kMEM_Chef, Voxel> voxels;
-    HashMap<kMEM_Chef, ivec3, size_t> voxelIdMap;
+    HashMap<kMEM_Chef, vec3, size_t> voxelIdMap;
 
     Vector<kMEM_Chef, VoxMatrixFace> faces;
 
-    const Voxel & voxel(ivec3 pos) const;
-    void addVoxel(Color col, ivec3 pos);
+    const Voxel & voxel(vec3 pos) const;
+    void addVoxel(Color col, vec3 pos);
 
     VoxMatrix(const QbtNode &node);
 };
