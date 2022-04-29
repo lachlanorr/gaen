@@ -61,7 +61,7 @@ const ChefString & vox_null_type_str(VoxNullType type)
     return it->second;
 }
 
-static void calc_details(VoxNull * pNull, const vec3 & voxObjCenter, RawNullMap & rawNulls)
+static void calc_details(VoxNull * pNull, const vec3 & voxObjCenter, const vec3 & offset, RawNullMap & rawNulls)
 {
     if (pNull->detailsAreAvailable)
         return;
@@ -72,7 +72,7 @@ static void calc_details(VoxNull * pNull, const vec3 & voxObjCenter, RawNullMap 
         pParent = pNull->skel.getNull(pNull->parent);
         if (pParent != nullptr)
         {
-            calc_details(pParent, voxObjCenter, rawNulls);
+            calc_details(pParent, voxObjCenter, offset, rawNulls);
         }
     }
 
@@ -81,7 +81,7 @@ static void calc_details(VoxNull * pNull, const vec3 & voxObjCenter, RawNullMap 
         ChefString endName = "E" + pNull->name.substr(1);
         auto eIt = rawNulls.find(endName);
         PANIC_IF(eIt == rawNulls.end(), "No end null defined for bone %s", endName.c_str());
-        pNull->endPos = eIt->second.pos;
+        pNull->endPos = eIt->second.pos + offset;
         vec3 dirFull = pNull->endPos - pNull->pos;
         pNull->length = length(dirFull);
         pNull->dir = normalize(dirFull);
@@ -218,7 +218,7 @@ VoxSkel::VoxSkel(const VoxObj* pVoxObj)
             }
             PANIC_IF(parent == "" && nullName[0] != 'N' && nullName[0] != 'E', "Null missing parent: %s", nullName.c_str());
 
-            rawNulls.emplace(nullName, RawNull{mat.worldCenter, parent, group});
+            rawNulls.emplace(nullName, RawNull{mat.worldPivot, parent, group});
             start = delimPos + 2;
         }
     }
@@ -252,7 +252,7 @@ VoxSkel::VoxSkel(const VoxObj* pVoxObj)
     for (auto & nullPair : mNulls)
     {
         VoxNull * pNull = nullPair.second.get();
-        calc_details(pNull, pVoxObj->cogCenter + pVoxObj->offset, rawNulls);
+        calc_details(pNull, pVoxObj->cogCenter + pVoxObj->offset, pVoxObj->offset, rawNulls);
     }
 }
 

@@ -315,6 +315,7 @@ VoxMatrix::VoxMatrix(const QbtNode &node)
     vec3 worldMaxes = maxes + worldPos;
     vec3 worldMins = mins + worldPos;
     worldCenter = vec3(worldMaxes.x + worldMins.x + 1, worldMaxes.y + worldMins.y + 1, worldMaxes.z + worldMins.z + 1) * 0.5f;
+    worldPivot = worldPos + node.pivot;
     halfExtents = vec3(worldCenter.x - worldMins.x, worldCenter.y - worldMins.y, worldCenter.z - worldMins.z);
 
     // merge compatible rows

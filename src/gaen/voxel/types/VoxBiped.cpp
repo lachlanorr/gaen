@@ -36,7 +36,7 @@ namespace gaen
 
 static const VoxObjType kVoxObjType
 { VoxType::Biped,
-  0.0125,
+  0.025,
   VoxBiped::create,
   {{ "Hips",       kVPF_CenterOfGravity },
    { "L_Thigh",    kVPF_CenterOfGravity },
@@ -49,9 +49,11 @@ static const VoxObjType kVoxObjType
    { "R_Toes",     kVPF_CenterOfGravity },
    { "Waist",      kVPF_CenterOfGravity },
    { "Chest",      kVPF_CenterOfGravity },
+   { "Neck",       kVPF_CenterOfGravity },
    { "Head",       kVPF_CenterOfGravity },
    { "L_Upperarm", kVPF_NONE },
    { "L_Forearm",  kVPF_NONE },
+   { "L_Wrist",    kVPF_NONE },
    { "L_Hand",     kVPF_NONE },
    { "L_Digit_0",  kVPF_NONE },
    { "L_Digit_1",  kVPF_NONE },
@@ -60,6 +62,7 @@ static const VoxObjType kVoxObjType
    { "L_Thumb_1",  kVPF_NONE },
    { "R_Upperarm", kVPF_NONE },
    { "R_Forearm",  kVPF_NONE },
+   { "R_Wrist",    kVPF_NONE },
    { "R_Hand",     kVPF_NONE },
    { "R_Digit_0",  kVPF_NONE },
    { "R_Digit_1",  kVPF_NONE },

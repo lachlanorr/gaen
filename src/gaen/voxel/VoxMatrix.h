@@ -164,6 +164,7 @@ struct VoxMatrix
     vec3 maxes;
 
     vec3 worldCenter;
+    vec3 worldPivot;
     vec3 halfExtents;
 
     Vector<kMEM_Chef, Voxel> voxels;
