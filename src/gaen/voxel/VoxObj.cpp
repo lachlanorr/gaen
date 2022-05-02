@@ -326,13 +326,13 @@ VoxObjVec build_voxobjs_from_qbt(const std::shared_ptr<Qbt> & pQbt)
             }
             else
             {
-                printf("Unknown VoxObjType, node name: %s", pChild->name.c_str());
+                printf("Unknown VoxObjType, node name: %s\n", pChild->name.c_str());
             }
         }
     }
     if (vovec.size() == 0)
     {
-        printf("No known VoxObjTypes in qbt");
+        printf("No known VoxObjTypes in qbt\n");
     }
 
     return vovec;
