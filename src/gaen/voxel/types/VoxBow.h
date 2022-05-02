@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
-// vox_types.h - Utilities to identify VoxObj types
+// VoxBow.h - Voxel Bow Geometry
 //
-// aen Concurrency Engine - http://gaen.org
+// Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
 //
 // This software is provided 'as-is', without any express or implied
@@ -24,64 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_VOXEL_VOX_TYPES_H
-#define GAEN_VOXEL_VOX_TYPES_H
+#ifndef GAEN_VOXEL_VOX_BOW_H
+#define GAEN_VOXEL_VOX_BOW_H
 
-#include "gaen/core/String.h"
-#include "gaen/core/Vector.h"
+#include "gaen/voxel/VoxObj.h"
 
 namespace gaen
 {
-
 struct QbtNode;
-struct VoxObj;
 
-enum class VoxType
+struct VoxBow : public VoxObj
 {
-    Prop = 0,
-    Biped = 1,
-    Weapon = 2,
-    Bow = 3
-};
+    VoxBow(const std::shared_ptr<QbtNode> & pRootNode, const VoxObjType & type)
+      : VoxObj(pRootNode, type)
+    {}
 
-const ChefString & vox_type_str(VoxType type);
+    static VoxObjUP create(const std::shared_ptr<QbtNode>& pRootNode);
+    static bool is_of_type(const std::shared_ptr<QbtNode>& pRootNode, VoxObjType & voxObjType);
 
-enum VoxPartFlags
-{
-    kVPF_NONE = 0,
-
-    kVPF_CenterOfGravity = 0x01
-};
-
-struct VoxPartDetails
-{
-    ChefString name;
-    u32 flags;
-};
-
-struct VoxNullDetails
-{
-    vec3 preRot;
-};
-
-struct VoxObjType
-{
-    VoxType type;
-    f32 voxelSize;
-    UniquePtr<VoxObj>(*create)(const std::shared_ptr<QbtNode>&);
-    Vector<kMEM_Chef, VoxPartDetails> parts;
-    HashMap<kMEM_Chef, ChefString, VoxNullDetails> nulls;
-
-    static bool do_parts_match(const VoxObjType & objType, const std::shared_ptr<QbtNode> & pNode);
-    static bool determine_type(const std::shared_ptr<QbtNode> & pNode, VoxObjType & voxObjType);
-};
-
-struct VoxObjTypeDelegator
-{
-    VoxType type;
-    bool (*is_of_type)(const std::shared_ptr<QbtNode>&, VoxObjType&);
+    Vector<kMEM_Chef, ChefString> exportFiles(const ChefString & directory) const override;
 };
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_VOXEL_TYPES_H
+#endif // #ifndef GAEN_VOXEL_BOW_H

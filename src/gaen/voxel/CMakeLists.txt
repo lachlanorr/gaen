@@ -46,6 +46,8 @@ set(gaen_voxel_types_SOURCES
   # VoxObj subclasses
   types/VoxBiped.h
   types/VoxBiped.cpp
+  types/VoxBow.h
+  types/VoxBow.cpp
   types/VoxProp.h
   types/VoxProp.cpp
   types/VoxWeapon.h
