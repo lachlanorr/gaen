@@ -26,6 +26,9 @@
 
 #include <array>
 
+#include <glm/gtx/euler_angles.hpp>
+
+
 #include "gaen/math/matrices.h"
 #include "gaen/math/mat3.h"
 #include "gaen/assets/file_utils.h"
@@ -238,10 +241,16 @@ VoxSkel::VoxSkel(const VoxObj* pVoxObj)
             ChefString parent = rawNull.parent.empty() ? "" : rawNull.parent;
 
             mat43 preRot(1.0f);
+            mat43 preRotX, preRotY, preRotZ;
             const auto nullDetailsIt = pVoxObj->type.nulls.find(name);
             if (nullDetailsIt != pVoxObj->type.nulls.end())
             {
-                preRot = mat43::from_rot(radians(nullDetailsIt->second.preRot));
+                vec3 radPreRot = radians(nullDetailsIt->second.preRot);
+
+                preRotX = mat43(glm::eulerAngleX(radPreRot.x));
+                preRotY = mat43(glm::eulerAngleY(radPreRot.y));
+                preRotZ = mat43(glm::eulerAngleZ(radPreRot.z));
+                preRot = preRotZ * preRotY * preRotX;
             }
 
             mNulls.emplace(name, GNEW(kMEM_Chef, VoxNull, *this, type, name, parent, rawNull.group, rawNull.pos + pVoxObj->offset, preRot));

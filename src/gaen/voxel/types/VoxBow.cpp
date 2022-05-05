@@ -53,8 +53,8 @@ static const VoxObjType kVoxObjType
    { "R_Seg_2",    kVPF_CenterOfGravity },
    { "R_String_1", kVPF_NONE }},
 
-  {{ "HL_Handle",   {vec3(0, -90, 0)} },
-   { "HR_Handle",   {vec3(0,  90, 0)} }}
+  {{ "HL_Handle",   {vec3(  90, -90, 0)} },
+   { "HR_Handle",   {vec3( -90,  90, 0)} }}
 };
 
 
