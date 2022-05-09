@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// VoxObj.h - Voxel Geometry
+// VoxMissile.h - Voxel Missile Geometry
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,54 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_VOXEL_VOX_OBJ_H
-#define GAEN_VOXEL_VOX_OBJ_H
+#ifndef GAEN_VOXEL_VOX_MISSILE_H
+#define GAEN_VOXEL_VOX_MISSILE_H
 
-#include "gaen/voxel/VoxMatrix.h"
-#include "gaen/voxel/VoxSkel.h"
-#include "gaen/voxel/VoxGeo.h"
-#include "gaen/voxel/vox_types.h"
+#include "gaen/voxel/VoxObj.h"
 
 namespace gaen
 {
-class Gimg;
-struct Qbt;
+struct QbtNode;
 
-struct VoxObj
+struct VoxMissile : public VoxObj
 {
-    const std::shared_ptr<QbtNode> pRootNode;
-    VoxObjType type;
+    VoxMissile(const std::shared_ptr<QbtNode> & pRootNode, const VoxObjType & type)
+      : VoxObj(pRootNode, type)
+    {}
 
-    VoxObj(const std::shared_ptr<QbtNode>& pRootNode, const VoxObjType& type);
+    static VoxObjUP create(const std::shared_ptr<QbtNode>& pRootNode);
+    static bool is_of_type(const std::shared_ptr<QbtNode>& pRootNode, VoxObjType & voxObjType);
 
-    vec3 mins;
-    vec3 maxes;
-    vec3 center;
-    vec3 halfExtents;
-
-    vec3 cogMins;
-    vec3 cogMaxes;
-    vec3 cogCenter;
-    vec3 cogHalfExtents;
-
-    vec3 offset;
-
-    UniquePtr<Gimg> pGimgDiffuse;
-    UniquePtr<VoxSkel> pVoxSkel;
-
-    VoxMatrixMap baseMatrices;
-    UniquePtr<VoxGeo> pBaseGeo;
-
-    virtual Vector<kMEM_Chef, ChefString> exportFiles(const ChefString & directory) const = 0;
-
-    void processBaseMatrices(const QbtNode& baseNode);
-    void buildGeometry();
+    Vector<kMEM_Chef, ChefString> exportFiles(const ChefString & directory) const override;
 };
-typedef UniquePtr<VoxObj> VoxObjUP;
-typedef Vector<kMEM_Chef, VoxObjUP> VoxObjVec;
-
-VoxObjVec build_voxobjs_from_qbt(const std::shared_ptr<Qbt> & pQbt);
 
 } // namespace gaen
 
-#endif // #ifndef GAEN_VOXEL_OBJ_H
+#endif // #ifndef GAEN_VOXEL_MISSILE_H

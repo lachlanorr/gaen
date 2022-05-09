@@ -48,6 +48,8 @@ set(gaen_voxel_types_SOURCES
   types/VoxBiped.cpp
   types/VoxBow.h
   types/VoxBow.cpp
+  types/VoxMissile.h
+  types/VoxMissile.cpp
   types/VoxProp.h
   types/VoxProp.cpp
   types/VoxWeapon.h

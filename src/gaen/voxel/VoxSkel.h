@@ -46,9 +46,15 @@ enum VoxNullType
     kVNT_Hardpoint = 3
 };
 
+enum VoxSkelCenter
+{
+    kVSC_ObjOffset = 0,
+    kVSC_RootNull = 1
+};
+
 const ChefString & vox_null_type_str(VoxNullType type);
 
-class VoxSkel;
+struct VoxSkel;
 struct VoxObj;
 struct VoxNull
 {
@@ -85,11 +91,10 @@ struct VoxNull
 
 typedef UniquePtr<VoxNull> VoxBoneUP;
 struct FileWriter;
-class VoxSkel
+struct VoxSkel
 {
-public:
     VoxSkel() {}
-    VoxSkel(const VoxObj* pVoxObj);
+    VoxSkel(const VoxObj* pVoxObj, VoxSkelCenter skelCenter);
 
     const VoxNull * getNull(const ChefString & name) const;
     VoxNull * getNull(const ChefString & name);
@@ -99,8 +104,8 @@ public:
     void writeSklFile(const ChefString & path, f32 voxelSize) const;
     void serializeNulls(Vector<kMEM_Chef, ChefString> & nullObjs, const ChefString & nullName, f32 voxelSize, const ChefString indent) const;
 
-private:
     const VoxObj* pVoxObj;
+    vec3 offset;
     ChefString root;
     Map<kMEM_Chef, ChefString, VoxBoneUP> mNulls;
 };

@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// VoxBow.cpp - Voxel Bow Geometry
+// VoxMissile.cpp - Voxel Missile Geometry
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -29,54 +29,43 @@
 
 #include "gaen/voxel/qbt.h"
 #include "gaen/voxel/VoxExporter.h"
-#include "gaen/voxel/types/VoxBow.h"
+#include "gaen/voxel/types/VoxMissile.h"
 
 namespace gaen
 {
 
 static const VoxObjType kVoxObjType
-{ VoxType::Bow,
+{ VoxType::Missile,
   0.0125,
-  VoxBow::create,
-  {{ "Hold",       kVPF_CenterOfGravity },
+  VoxMissile::create,
+  {{ "Shaft",       kVPF_NONE },
+   { "Strike",     kVPF_CenterOfGravity }},
 
-   { "L_String_0", kVPF_NONE },
-   { "R_String_0", kVPF_NONE },
-
-   { "L_Seg_0",    kVPF_CenterOfGravity },
-   { "L_Seg_1",    kVPF_CenterOfGravity },
-   { "L_Seg_2",    kVPF_CenterOfGravity },
-   { "L_String_1", kVPF_NONE },
-
-   { "R_Seg_0",    kVPF_CenterOfGravity },
-   { "R_Seg_1",    kVPF_CenterOfGravity },
-   { "R_Seg_2",    kVPF_CenterOfGravity },
-   { "R_String_1", kVPF_NONE }},
-
-  {{ "HL_Handle",   {vec3(  90, -90, 0)} },
-   { "HR_Handle",   {vec3( -90,  90, 0)} }}
+  {{ "HNock",   {vec3(0, 0, 0)} }}
 };
 
 
-VoxObjUP VoxBow::create(const std::shared_ptr<QbtNode>& pRootNode)
+VoxObjUP VoxMissile::create(const std::shared_ptr<QbtNode>& pRootNode)
 {
     VoxObjType vot;
     PANIC_IF(!is_of_type(pRootNode, vot), "VoxObjType mismatch");
 
-    VoxObjUP pvo(GNEW(kMEM_Chef, VoxBow, pRootNode, vot));
+    VoxObjUP pvo(GNEW(kMEM_Chef, VoxMissile, pRootNode, vot));
 
     const auto pBaseNode = pRootNode->findChild("Base");
 
     pvo->processBaseMatrices(*pBaseNode);
-    pvo->buildGeometry();
+    pvo->pVoxSkel.reset(GNEW(kMEM_Chef, VoxSkel, pvo.get(), kVSC_RootNull));
 
-    // build skeleton, process nulls
-    pvo->pVoxSkel.reset(GNEW(kMEM_Chef, VoxSkel, pvo.get(), kVSC_ObjOffset));
+    // Use the root node offset so our nock point is centered at origin
+    pvo->offset = pvo->pVoxSkel->offset;
+
+    pvo->buildGeometry();
 
     return pvo;
 }
 
-bool VoxBow::is_of_type(const std::shared_ptr<QbtNode>& pRootNode, VoxObjType & voxObjType)
+bool VoxMissile::is_of_type(const std::shared_ptr<QbtNode>& pRootNode, VoxObjType & voxObjType)
 {
     const auto pBase = pRootNode->findChild("Base");
     if (!pBase)
@@ -87,7 +76,7 @@ bool VoxBow::is_of_type(const std::shared_ptr<QbtNode>& pRootNode, VoxObjType & 
     return true;
 }
 
-Vector<kMEM_Chef, ChefString> VoxBow::exportFiles(const ChefString & directory) const
+Vector<kMEM_Chef, ChefString> VoxMissile::exportFiles(const ChefString & directory) const
 {
     return VoxExporter::write_files(*pBaseGeo,
                                     pVoxSkel.get(),

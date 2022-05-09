@@ -33,7 +33,7 @@ namespace gaen
 {
 
 struct VoxGeo;
-class VoxSkel;
+struct VoxSkel;
 
 struct VoxExporter
 {

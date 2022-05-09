@@ -168,7 +168,7 @@ VoxNull::VoxNull(VoxSkel & skel,
   , localTrans(1.0f)
 {}
 
-VoxSkel::VoxSkel(const VoxObj* pVoxObj)
+VoxSkel::VoxSkel(const VoxObj* pVoxObj, VoxSkelCenter skelCenter)
   : pVoxObj(pVoxObj)
 {
     VoxMatrixMap skelMatrices;
@@ -227,6 +227,18 @@ VoxSkel::VoxSkel(const VoxObj* pVoxObj)
     }
     PANIC_IF(root == "", "No root null");
 
+    switch(skelCenter)
+    {
+    case kVSC_ObjOffset:
+        offset = pVoxObj->offset;
+        break;
+    case kVSC_RootNull:
+        offset = -rawNulls[root].pos;
+        break;
+    default:
+        PANIC("Invalid value for skelCenter: %d", skelCenter);
+    };
+
     // Make pass through raw nulls and add to mNulls
     for (const auto & nullPair : rawNulls)
     {
@@ -253,7 +265,7 @@ VoxSkel::VoxSkel(const VoxObj* pVoxObj)
                 preRot = preRotZ * preRotY * preRotX;
             }
 
-            mNulls.emplace(name, GNEW(kMEM_Chef, VoxNull, *this, type, name, parent, rawNull.group, rawNull.pos + pVoxObj->offset, preRot));
+            mNulls.emplace(name, GNEW(kMEM_Chef, VoxNull, *this, type, name, parent, rawNull.group, rawNull.pos + offset, preRot));
         }
     }
 
@@ -261,7 +273,7 @@ VoxSkel::VoxSkel(const VoxObj* pVoxObj)
     for (auto & nullPair : mNulls)
     {
         VoxNull * pNull = nullPair.second.get();
-        calc_details(pNull, pVoxObj->cogCenter + pVoxObj->offset, pVoxObj->offset, rawNulls);
+        calc_details(pNull, pVoxObj->cogCenter + offset, offset, rawNulls);
     }
 }
 

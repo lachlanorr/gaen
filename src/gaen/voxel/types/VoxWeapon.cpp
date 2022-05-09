@@ -56,9 +56,10 @@ VoxObjUP VoxWeapon::create(const std::shared_ptr<QbtNode>& pRootNode)
     const auto pBaseNode = pRootNode->findChild("Base");
 
     pvo->processBaseMatrices(*pBaseNode);
+    pvo->buildGeometry();
 
     // build skeleton, process nulls
-    pvo->pVoxSkel.reset(GNEW(kMEM_Chef, VoxSkel, pvo.get()));
+    pvo->pVoxSkel.reset(GNEW(kMEM_Chef, VoxSkel, pvo.get(), kVSC_ObjOffset));
 
     return pvo;
 }

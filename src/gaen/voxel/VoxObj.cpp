@@ -292,7 +292,10 @@ void VoxObj::processBaseMatrices(const QbtNode & baseNode)
             PANIC("Unable to build_diffuse on second attempt, width=%d height=%d", imgWidth, imgHeight);
         }
     }
+}
 
+void VoxObj::buildGeometry()
+{
     // build VoxGeo
     Vector<kMEM_Chef, const VoxMatrix*> orderedMatrices(type.parts.size());
     for (size_t i = 0; i < type.parts.size(); ++i)
