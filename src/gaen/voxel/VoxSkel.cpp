@@ -368,16 +368,26 @@ ChefString VoxNull::serialize(f32 voxelSize, const VoxObj * pVoxObj, const ChefS
         ser += indent2 + tempStr.data();
 
         // find matrix to get center and extents
-        const auto & mat = *pVoxObj->baseMatrices.find(name.substr(1))->second;
-        vec3 scenter = (mat.worldCenter + pVoxObj->offset) * voxelSize;
-        snprintf(tempStr.data(), tempStr.size(),
-                 "\"center\": [%f, %f, %f],\n", scenter.x, scenter.y, scenter.z);
-        ser += indent2 + tempStr.data();
+        const auto matIt = pVoxObj->baseMatrices.find(name.substr(1));
+        if (matIt != pVoxObj->baseMatrices.end())
+        {
+            ser += indent2 + "\"hasGeometry\": true,\n";
 
-        vec3 shalfExtents = mat.halfExtents * voxelSize;
-        snprintf(tempStr.data(), tempStr.size(),
-                 "\"halfExtents\": [%f, %f, %f],\n", shalfExtents.x, shalfExtents.y, shalfExtents.z);
-        ser += indent2 + tempStr.data();
+            const auto & mat = *matIt->second;
+            vec3 scenter = (mat.worldCenter + pVoxObj->offset) * voxelSize;
+            snprintf(tempStr.data(), tempStr.size(),
+                     "\"center\": [%f, %f, %f],\n", scenter.x, scenter.y, scenter.z);
+            ser += indent2 + tempStr.data();
+
+            vec3 shalfExtents = mat.halfExtents * voxelSize;
+            snprintf(tempStr.data(), tempStr.size(),
+                     "\"halfExtents\": [%f, %f, %f],\n", shalfExtents.x, shalfExtents.y, shalfExtents.z);
+            ser += indent2 + tempStr.data();
+        }
+        else
+        {
+            ser += indent2 + "\"hasGeometry\": false,\n";
+        }
     }
 
     ser += indent2 + "\"worldTransform\": " + serialize_transform(worldTrans, voxelSize, indent2) + ",\n";
