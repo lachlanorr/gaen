@@ -263,6 +263,7 @@ void VoxObj::processBaseMatrices(const QbtNode & baseNode)
     // build master face list
     Vector<kMEM_Chef, VoxMatrixFace*> matrixFaces;
     i32 totalArea = 0;
+    f32 maxDim = 0;
     for (const auto & part : type.parts)
     {
         VoxMatrix & matrix = *baseMatrices[part.name];
@@ -270,11 +271,16 @@ void VoxObj::processBaseMatrices(const QbtNode & baseNode)
         {
             matrixFaces.push_back(&matFace);
             totalArea += matFace.area;
+            maxDim = max(maxDim, matFace.pFace->size.x);
+            maxDim = max(maxDim, matFace.pFace->size.y);
+            maxDim = max(maxDim, matFace.pFace->size.z);
         }
     }
     std::stable_sort(matrixFaces.begin(), matrixFaces.end(), face_size_gt);
 
     f32 pixRoot = sqrt(totalArea);
+    if (maxDim > pixRoot)
+        pixRoot = maxDim;
     u32 imgWidth = next_power_of_two((u32)(pixRoot + 0.5));
     u32 imgHeight = imgWidth;
 
