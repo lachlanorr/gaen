@@ -131,7 +131,7 @@ class ScriptInfo:
             self.cpp_source_hash = hashlib.md5(mcpp.group(1)).hexdigest();
             return True
         else:
-            print(serr),
+            print(serr.decode('utf-8')),
             return False
 
     def _should_write_cpp(self):
