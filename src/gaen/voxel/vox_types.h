@@ -42,7 +42,8 @@ enum class VoxType
     Biped = 1,
     Weapon = 2,
     Bow = 3,
-    Missile = 4
+    Missile = 4,
+    Quiver = 5
 };
 
 const ChefString & vox_type_str(VoxType type);

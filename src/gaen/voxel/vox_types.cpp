@@ -31,6 +31,7 @@
 #include "gaen/voxel/types/VoxBow.h"
 #include "gaen/voxel/types/VoxWeapon.h"
 #include "gaen/voxel/types/VoxMissile.h"
+#include "gaen/voxel/types/VoxQuiver.h"
 #include "gaen/voxel/types/VoxProp.h"
 #include "gaen/voxel/vox_types.h"
 
@@ -42,7 +43,8 @@ static const Vector<kMEM_Chef, VoxObjTypeDelegator> kVoxObjTypeDelegators
     { VoxType::Biped, VoxBiped::is_of_type },
     { VoxType::Bow, VoxBow::is_of_type },
     { VoxType::Weapon, VoxWeapon::is_of_type },
-    { VoxType::Missile, VoxMissile::is_of_type }
+    { VoxType::Missile, VoxMissile::is_of_type },
+    { VoxType::Quiver, VoxQuiver::is_of_type }
 };
 
 const ChefString & vox_type_str(VoxType type)
@@ -51,6 +53,7 @@ const ChefString & vox_type_str(VoxType type)
         { VoxType::Biped, "biped" },
         { VoxType::Bow, "bow" },
         { VoxType::Missile, "missile" },
+        { VoxType::Quiver, "quiver" },
         { VoxType::Weapon, "weapon" },
         { VoxType::Prop, "prop" }
     };

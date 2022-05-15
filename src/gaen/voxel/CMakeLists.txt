@@ -52,6 +52,8 @@ set(gaen_voxel_types_SOURCES
   types/VoxMissile.cpp
   types/VoxProp.h
   types/VoxProp.cpp
+  types/VoxQuiver.h
+  types/VoxQuiver.cpp
   types/VoxWeapon.h
   types/VoxWeapon.cpp
   )
