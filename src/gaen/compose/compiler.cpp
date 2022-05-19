@@ -2593,7 +2593,7 @@ void parsedata_add_script_include(ParseData * pParseData, const char * fullPath)
     ASSERT(fname.rfind(".cmp") == fname.size() - 4);
     fname.erase(fname.size() - 4); // strip off ".cmp" suffix
     fname += ".h";
-    CompString path = CompString("scripts/cpp/") + fname;
+    CompString path = CompString("gaen/scripts/cpp/") + fname;
     pParseData->scriptIncludes.insert(path);
 }
 
