@@ -359,6 +359,11 @@ void broadcast_message(const MessageBlockAccessor & msgAcc)
     }
 }
 
+bool is_target_on_same_taskmaster(task_id source, task_id target)
+{
+    return TaskMaster::task_master_for_active_thread().messageQueueForTarget(source) == TaskMaster::task_master_for_active_thread().messageQueueForTarget(target);
+}
+
 void notify_next_frame()
 {
     ASSERT(sIsInit);

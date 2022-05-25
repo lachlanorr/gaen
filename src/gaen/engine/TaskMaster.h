@@ -103,6 +103,9 @@ void broadcast_confirm_set_parent(task_id source,
                                   thread_id parentOwner,
                                   task_id parentTaskId,
                                   Entity * pChild);
+
+bool is_target_on_same_taskmaster(task_id source, task_id target);
+
 void notify_next_frame();
 
 
