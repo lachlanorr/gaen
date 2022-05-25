@@ -285,7 +285,7 @@ def main(binary_dir):
             if (si.h_source is not None):
                 h_files.append(si.h_full_path)
         except:
-            print("ERROR: %s failed to compile" % f)
+            print("ERROR: %s failed to compile" % fcmp)
             raise
             has_errors = True;
 
