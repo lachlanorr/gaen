@@ -193,6 +193,14 @@ const u32 Gaim::animIndex(u32 nameHash) const
 u32 Gaim::frameOffset(const AnimInfo * pAnimInfo, f32 elapsedTime, bool looped) const
 {
     ASSERT(pAnimInfo);
+
+    // quick out for non-looped animations at the end
+    // typically caller needs to set a different animation up
+    // when this happens, so we return -1 here
+    if (!looped)
+        if (elapsedTime > pAnimInfo->totalTime)
+            return -1;
+
     f32 moddedTime = looped ? fmod(elapsedTime, pAnimInfo->totalTime) : min(elapsedTime, pAnimInfo->totalTime);
     u32 offset = (u32)(moddedTime / pAnimInfo->frameDuration);
     offset = offset * kPixelsPerTransform * mBoneCount;
