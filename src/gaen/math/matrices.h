@@ -29,6 +29,8 @@
 
 #include <cmath>
 
+#include <glm/gtx/euler_angles.hpp>
+
 #include "gaen/core/base_defines.h"
 
 #include "gaen/math/vec3.h"
@@ -41,6 +43,10 @@ namespace gaen
 template<class T>
 T rotation_from_euler(f32 x, f32 y, f32 z)
 {
+    auto rotMat = glm::eulerAngleZ(z) * glm::eulerAngleY(y) * glm::eulerAngleX(x);
+    return T(rotMat);
+
+/*
     T mat(1);
 
     f32 a   = cos(x);
@@ -65,6 +71,7 @@ T rotation_from_euler(f32 x, f32 y, f32 z)
     mat[2][2]  =  a * c;
 
     return mat;
+*/
 }
 
 inline vec3 position(const mat43 & transform)
