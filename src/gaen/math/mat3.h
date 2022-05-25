@@ -30,6 +30,7 @@
 #include <glm/mat3x3.hpp>
 
 #include "gaen/math/vec3.h"
+#include "gaen/math/quat.h"
 
 #include "gaen/core/base_defines.h"
 
@@ -67,6 +68,7 @@ struct tmat3
     }
 
     explicit tmat3(const tvec3<T> & rot);
+    explicit tmat3(const tquat<T> & q);
 
     explicit tmat3(const tmat3a<T> & rhs);
     explicit tmat3(const tmat4<T> & rhs);
@@ -106,6 +108,7 @@ struct tmat3a : tmat3<T>
         cols[1] = m[1];
         cols[2] = m[2];
     }
+    explicit tmat3a(const tquat<T> & q);
     explicit tmat3a(const tmat43<T> & rhs);
 private:
     vec3 padding__;

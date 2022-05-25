@@ -43,6 +43,12 @@ tmat3<T>::tmat3(const tvec3<T> & rot)
 }
 
 template <typename T>
+tmat3<T>::tmat3(const tquat<T> & q)
+{
+    *this = tmat3<T>(tmat3<T>(glm::mat3_cast((tquat<T>::glm_t)q)));
+}
+
+template <typename T>
 tmat3<T>::tmat3(const tmat3a<T> & rhs)
 {
     cols[0] = rhs[0];
@@ -102,6 +108,15 @@ template <typename T>
 tmat3<T> tmat3<T>::inverse() const
 {
     return tmat3<T>(glm::inverse((tmat3<T>::glm_t)*this));
+}
+
+template <typename T>
+tmat3a<T>::tmat3a(const tquat<T> & q)
+{
+    tmat3<T> m3 = tmat3<T>(tmat3<T>(glm::mat3_cast((tquat<T>::glm_t)q)));
+    cols[0] = m3[0];
+    cols[1] = m3[1];
+    cols[2] = m3[2];
 }
 
 template <typename T>
