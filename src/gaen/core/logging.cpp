@@ -106,12 +106,12 @@ void Logger::log(LogSeverity severity, const char * message)
     if (msgLen >= kMaxLogMessageSize)
         msgLen = kMaxLogMessageSize-1;
 
-    strncpy(lm.msg, message, msgLen-1);
-    lm.msg[msgLen-1] = '\0';
+    strncpy(lm.msg, message, msgLen);
+    lm.msg[msgLen] = '\0';
 
     sock_sendto(mSock,
                 reinterpret_cast<u8*>(&lm),
-                sizeof(LogMessageHeader) + msgLen,
+                sizeof(LogMessageHeader) + msgLen+1,
                 mServerIp,
                 kLoggingPort);
 }
