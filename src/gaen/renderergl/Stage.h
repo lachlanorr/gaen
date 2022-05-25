@@ -73,6 +73,12 @@ public:
                 {
                     ItemT * pItem = *it;
 
+                    if (!pItem->isVisible())
+                    {
+                        ++it;
+                        continue;
+                    }
+
                     if ((pItem->renderFlags() & mRenderFlags) == pItem->renderFlags())
                     {
                         mpRenderer->setActiveShader(pItem->shaderHash());
@@ -296,6 +302,34 @@ public:
             if (it != mItems[i].end())
             {
                 it->animate(animHash, animFrameIdx);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool itemShow(u32 uid)
+    {
+        for (u32 i = 0; i < kRP_COUNT; ++i)
+        {
+            auto it = mItems[i].find(uid);
+            if (it != mItems[i].end())
+            {
+                it->show();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool itemHide(u32 uid)
+    {
+        for (u32 i = 0; i < kRP_COUNT; ++i)
+        {
+            auto it = mItems[i].find(uid);
+            if (it != mItems[i].end())
+            {
+                it->hide();
                 return true;
             }
         }

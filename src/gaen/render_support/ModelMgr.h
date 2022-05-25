@@ -91,6 +91,9 @@ void model_init_body(i32 modelUid,
                      ivec4 mask47,
                      Entity * pCaller);
 
+void model_show(i32 modelUid, Entity * pCaller);
+void model_hide(i32 modelUid, Entity * pCaller);
+
 void model_remove_body(i32 modelUid, Entity * pCaller);
 
 void model_set_velocity(i32 modelUid, const vec3 & velocity, Entity * pCaller);

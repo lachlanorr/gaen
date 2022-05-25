@@ -79,7 +79,7 @@ class ModelInstance
     friend class ModelMotionState;
     friend class ModelPhysics;
 public:
-    ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, u32 renderFlags, const mat43 & transform, bool isRenderable, bool isStatic);
+    ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, u32 renderFlags, bool isVisible, const mat43 & transform, bool isRenderable, bool isStatic);
 
     const Model & model() { return *mpModel; }
     u32 stageHash() { return mStageHash; }
@@ -89,12 +89,18 @@ public:
 
     u32 renderFlags() const { return mRenderFlags; }
 
+    bool isVisible() const { return mIsVisible; }
+    void setVisibility(bool isVisible) { mIsVisible = isVisible; }
+    void hide() { mIsVisible = false; }
+    void show() { mIsVisible = true; }
+
     void registerTransformWatcher(task_id taskId);
 
     void destroyModel();
 
     static void model_insert(task_id source, task_id target, ModelInstance * pModelInst);
     static void model_remove(task_id source, task_id target, u32 uid);
+    static void model_set_visibility(task_id source, task_id target, u32 uid, bool isVisible);
 
     vec3 position() { return gaen::position(mTransform); }
     f32 zdepth() { return gaen::position(mTransform).z; }
@@ -113,6 +119,7 @@ private:
     u32 mStageHash;
     RenderPass mPass;
     u32 mRenderFlags;
+    bool mIsVisible;
 
     bool mHasBody;
     bool mIsRenderable;

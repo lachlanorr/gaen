@@ -67,6 +67,10 @@ public:
     RenderItemStatus status() const { return mStatus; }
     void setStatus(RenderItemStatus status) { mStatus = status; }
 
+    bool isVisible() const { return mpModelInstance->isVisible(); }
+    void hide() { mpModelInstance->hide(); }
+    void show() { mpModelInstance->show(); }
+
     bool hasNormal() const { return true; }
 
     u32 frameOffset() const { return mFrameOffset; }

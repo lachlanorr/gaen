@@ -87,6 +87,10 @@ PropertyVec3:
   property: u32
   value: vec3
 
+PropertyBool:
+  property: u32
+  value: bool
+
 # Property watchers and notification
 RegisterWatcher:
   message: u32

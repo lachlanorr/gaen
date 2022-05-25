@@ -1279,6 +1279,19 @@ Ast * ast_create_parent_init(Ast * pVal, ParseData * pParseData)
     return pAst;
 }
 
+Ast* ast_create_visible_init(Ast* pVal, ParseData* pParseData)
+{
+    const SymDataType* pSdt = ast_data_type(pVal);
+    if (pSdt->typeDesc.dataType != kDT_bool)
+    {
+        COMP_ERROR(pParseData, "'visible' initialization only valid with bool");
+        return nullptr;
+    }
+    Ast* pAst = ast_create(kAST_VisibleInit, pParseData);
+    ast_set_rhs(pAst, pVal);
+    return pAst;
+}
+
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData)
 {
     ASSERT(pParseData);
@@ -1650,6 +1663,43 @@ Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData)
     return pAst;
 }
 
+Ast * ast_create_mat3_init(Ast * pParams, ParseData * pParseData)
+{
+    Ast * pAst = ast_create(kAST_Mat3Init, pParseData);
+    ast_set_rhs(pAst, pParams);
+
+    switch (pParams->pChildren->nodes.size())
+    {
+    case 1:
+    {
+        Ast * pParam = pParams->pChildren->nodes.front();
+        const SymDataType * pSdt = ast_data_type(pParam);
+        if (pSdt->typeDesc.dataType != kDT_float &&
+            pSdt->typeDesc.dataType != kDT_vec3 && // rotation
+            pSdt->typeDesc.dataType != kDT_quat &&
+            pSdt->typeDesc.dataType != kDT_mat3 &&
+            pSdt->typeDesc.dataType != kDT_mat43)
+            COMP_ERROR(pParseData, "Invalid data type in mat3 initialization");
+        break;
+    }
+    case 9:
+    {
+        for (Ast * pParam : pParams->pChildren->nodes)
+        {
+            const SymDataType * pSdt = ast_data_type(pParam);
+            if (pSdt->typeDesc.dataType != kDT_float)
+                COMP_ERROR(pParseData, "Invalid data type in mat3 initialization");
+        }
+        break;
+    }
+    default:
+        COMP_ERROR(pParseData, "Invalid parameters for mat3 initialization");
+        break;
+    }
+
+    return pAst;
+}
+
 Ast * ast_create_mat43_init(Ast * pParams, ParseData * pParseData)
 {
     Ast * pAst = ast_create(kAST_Mat43Init, pParseData);
@@ -1892,6 +1942,8 @@ Ast * ast_create_type_init(DataType dataType, Ast * pParams, ParseData * pParseD
         return ast_create_ivec4_init(pParams, pParseData);
     case kDT_quat:
         return ast_create_quat_init(pParams, pParseData);
+    case kDT_mat3:
+        return ast_create_mat3_init(pParams, pParseData);
     case kDT_mat43:
         return ast_create_mat43_init(pParams, pParseData);
     case kDT_string:

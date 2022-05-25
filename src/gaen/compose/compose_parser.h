@@ -119,19 +119,20 @@ extern int yydebug;
     TRANSFORM = 320,               /* TRANSFORM  */
     READY = 321,                   /* READY  */
     PARENT = 322,                  /* PARENT  */
-    OR = 323,                      /* OR  */
-    AND = 324,                     /* AND  */
-    EQ = 325,                      /* EQ  */
-    NEQ = 326,                     /* NEQ  */
-    LTE = 327,                     /* LTE  */
-    GTE = 328,                     /* GTE  */
-    LSHIFT = 329,                  /* LSHIFT  */
-    RSHIFT = 330,                  /* RSHIFT  */
-    INC = 331,                     /* INC  */
-    DEC = 332,                     /* DEC  */
-    UMINUS = 333,                  /* UMINUS  */
-    POSTINC = 334,                 /* POSTINC  */
-    POSTDEC = 335                  /* POSTDEC  */
+    VISIBLE = 323,                 /* VISIBLE  */
+    OR = 324,                      /* OR  */
+    AND = 325,                     /* AND  */
+    EQ = 326,                      /* EQ  */
+    NEQ = 327,                     /* NEQ  */
+    LTE = 328,                     /* LTE  */
+    GTE = 329,                     /* GTE  */
+    LSHIFT = 330,                  /* LSHIFT  */
+    RSHIFT = 331,                  /* RSHIFT  */
+    INC = 332,                     /* INC  */
+    DEC = 333,                     /* DEC  */
+    UMINUS = 334,                  /* UMINUS  */
+    POSTINC = 335,                 /* POSTINC  */
+    POSTDEC = 336                  /* POSTDEC  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -150,7 +151,7 @@ union YYSTYPE
     SymTab*             pSymTab;
     const SymDataType*  pSymDataType;
 
-#line 154 "compose_parser.h"
+#line 155 "compose_parser.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

@@ -53,6 +53,7 @@ public:
            u32 blocksMax,
            task_id initParentTask,
            task_id creatorTask,
+           bool isVisible,
            u32 readyMessage);
     ~Entity();
 
@@ -93,6 +94,9 @@ public:
 
     void setRotation(task_id source, const mat3 & rot);
     void rotate(task_id source, const mat3 & rot);
+
+    bool isVisible() const { return mIsVisible; }
+    void setVisibility(bool isVisible);
 
     void constrainPosition(const vec3 & min, const vec3 & max);
     mat43 applyPositionConstraint(const mat43 & mat) const;
@@ -204,6 +208,7 @@ protected:
 
     bool mIsFinSelfSent;
     bool mIsDead;
+    bool mIsVisible;
 
     mat43 mTransform;
     mat43 mLocalTransform;

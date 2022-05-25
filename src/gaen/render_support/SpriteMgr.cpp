@@ -104,7 +104,7 @@ MessageResult SpriteMgr::message(const T & msgAcc)
 
         // Send a copy to the renderer
         Sprite * pSpriteRenderer = GNEW(kMEM_Renderer, Sprite, pSpriteInst->sprite());
-        SpriteInstance * pSpriteInstRenderer = GNEW(kMEM_Renderer, SpriteInstance, pSpriteRenderer, pSpriteInst->stageHash(), pSpriteInst->pass(), pSpriteInst->mTransform);
+        SpriteInstance * pSpriteInstRenderer = GNEW(kMEM_Renderer, SpriteInstance, pSpriteRenderer, pSpriteInst->stageHash(), pSpriteInst->pass(), pSpriteInst->isVisible(), pSpriteInst->mTransform);
         SpriteInstance::sprite_insert(kSpriteMgrTaskId, kRendererTaskId, pSpriteInstRenderer);
 
         return MessageResult::Consumed;
@@ -224,7 +224,7 @@ i32 sprite_create(AssetHandleP pAssetHandle, i32 stageHash, i32 passHash, const 
     const Asset * pAsset = pAssetHandle->data<Asset>();
 
     Sprite * pSprite = GNEW(kMEM_Engine, Sprite, pCaller->task().id(), pAsset);
-    SpriteInstance * pSpriteInst = GNEW(kMEM_Engine, SpriteInstance, pSprite, stageHash, pass_from_hash(passHash), transform);
+    SpriteInstance * pSpriteInst = GNEW(kMEM_Engine, SpriteInstance, pSprite, stageHash, pass_from_hash(passHash), pCaller->isVisible(), transform);
 
     SpriteInstance::sprite_insert(pCaller->task().id(), kSpriteMgrTaskId, pSpriteInst);
 

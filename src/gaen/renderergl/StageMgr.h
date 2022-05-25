@@ -153,6 +153,26 @@ public:
         pInst->registerTransformWatcher(kRendererTaskId);
     }
 
+    void itemShow(u32 uid)
+    {
+        for (auto & stage : mStages)
+        {
+            if (stage->itemShow(uid))
+                return;
+        }
+        ERR("StageMgr::itemShow unknown item, uid: %u", uid);
+    }
+
+    void itemHide(u32 uid)
+    {
+        for (auto & stage : mStages)
+        {
+            if (stage->itemHide(uid))
+                return;
+        }
+        ERR("StageMgr::itemHide unknown item, uid: %u", uid);
+    }
+
     void itemRemove(u32 uid)
     {
         for (auto & stage : mStages)

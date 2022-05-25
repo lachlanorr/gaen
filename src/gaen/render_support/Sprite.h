@@ -89,7 +89,7 @@ class SpriteInstance
     friend class SpriteMotionState;
     friend class SpritePhysics;
 public:
-    SpriteInstance(Sprite * pSprite, u32 stageHash, RenderPass pass, const mat43 & transform);
+    SpriteInstance(Sprite * pSprite, u32 stageHash, RenderPass pass, bool isVisible, const mat43 & transform);
 
     const Sprite & sprite() { return *mpSprite; }
     u32 stageHash() { return mStageHash; }
@@ -98,6 +98,10 @@ public:
     ouid uid() const { return mpSprite->uid(); }
 
     u32 renderFlags() const { return mRenderFlags; }
+
+    bool isVisible() const { return mIsVisible; }
+    void hide() { mIsVisible = false; }
+    void show() { mIsVisible = true; }
 
     void registerTransformWatcher(task_id taskId);
 
@@ -131,6 +135,7 @@ private:
     u32 mStageHash;
     RenderPass mPass;
     u32 mRenderFlags;
+    bool mIsVisible;
 
     bool mHasBody;
 

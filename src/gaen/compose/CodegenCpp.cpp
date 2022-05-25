@@ -869,6 +869,10 @@ S CodegenCpp::codegenInitProperties(Ast * pAst, SymTab * pPropsSymTab, const cha
             {
                 // This is a no-op. Calling codegen_ready_message utilizes the ready initializer
             }
+            else if (pPropInit->type == kAST_VisibleInit)
+            {
+                // This is a no-op. Calling codegen_ready_message utilizes the ready initializer
+            }
             else
             {
                 // Ensure the property is valid
@@ -997,6 +1001,22 @@ S CodegenCpp::codegenInitParentTask(const Ast * pAst)
         for (const Ast * pPropInit : pAst->pChildren->nodes)
         {
             if (pPropInit->type == kAST_ParentInit)
+            {
+                code = codegenRecurse(pPropInit->pRhs, 0);
+            }
+        }
+    }
+    return code;
+}
+
+S CodegenCpp::codegenInitVisible(const Ast* pAst)
+{
+    S code = S("true"); // default to 0 if no parent
+    if (pAst && pAst->pChildren)
+    {
+        for (const Ast* pPropInit : pAst->pChildren->nodes)
+        {
+            if (pPropInit->type == kAST_VisibleInit)
             {
                 code = codegenRecurse(pPropInit->pRhs, 0);
             }
@@ -1256,7 +1276,7 @@ S CodegenCpp::codegenHelperFuncsRecurse(const Ast * pAst)
         code += I + S("task_id ") + entityInitFunc(pAst->str) + S("(") + clParams + S(")") + LF;
         code += I + S("{") + LF;
         code += I + S("    auto pThis = this;") + LF;
-        code += I + S("    Entity * pEntity = get_registry().constructEntity(") + hashLiteral(pAst->pSymRecRef->fullName) + S(", 8, ") + codegenInitParentTask(pAst->pRhs) + S(", self().task().id(), ") + codegenReadyMessage(pAst->pRhs) + S(");") + LF;
+        code += I + S("    Entity * pEntity = get_registry().constructEntity(") + hashLiteral(pAst->pSymRecRef->fullName) + S(", 8, ") + codegenInitParentTask(pAst->pRhs) + S(", self().task().id(), ") + codegenInitVisible(pAst->pRhs) + ", " + codegenReadyMessage(pAst->pRhs) + S(");") + LF;
         code += I + S("    ") + entityInitClass(pAst->str) + S(" * pEntityInit = GNEW(kMEM_Engine, ") + entityInitClass(pAst->str) + S(", this, pEntity");
         S clArgs = closureArgs(pClosure);
         if (clArgs.size() > 0)
@@ -1664,13 +1684,13 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
         code += codegenHelperFuncs(pAst);
 
         code += I + S("public:\n");
-        code += I + S("    static Entity * construct(u32 childCount, task_id initParentTask, task_id creatorTask, u32 readyMessage)\n");
+        code += I + S("    static Entity * construct(u32 childCount, task_id initParentTask, task_id creatorTask, bool isVisible, u32 readyMessage)\n");
         code += I + S("    {\n");
         code += I + S("#if HAS(TRACK_HASHES)\n");
         snprintf(scratch, kScratchSize, "        static bool hashRegistration = register_compose_hashes_%s();\n", entName.c_str());
         code += scratch;
         code += I + S("#endif // HAS(TRACK_HASHES)\n");
-        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount, initParentTask, creatorTask, readyMessage);\n");
+        code += I + S("        return GNEW(kMEM_Engine, ") + entName + S(", childCount, initParentTask, creatorTask, isVisible, readyMessage);\n");
         code += I + S("    }\n");
         code += I + S("\n");
 
@@ -1766,8 +1786,8 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
         code += I + S("private:\n");
 
         // Constructor
-        code += I + S("    ") + entName + S("(u32 childCount, task_id initParentTask, task_id creatorTask, u32 readyMessage)\n");
-        code += I + S("      : Entity(") + hashLiteral(entName.c_str()) + S(", childCount, 36, 36, initParentTask, creatorTask, readyMessage) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
+        code += I + S("    ") + entName + S("(u32 childCount, task_id initParentTask, task_id creatorTask, bool isVisible, u32 readyMessage)\n");
+        code += I + S("      : Entity(") + hashLiteral(entName.c_str()) + S(", childCount, 36, 36, initParentTask, creatorTask, isVisible, readyMessage) // LORRTODO use more intelligent defaults for componentsMax and blocksMax\n");
         code += I + S("    {\n");
 
         // Initialize mBlockSize
@@ -2165,6 +2185,18 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
     case kAST_QuatInit:
     {
         S code = S("quat(");
+        for (Ast * pParam : pAst->pRhs->pChildren->nodes)
+        {
+            code += codegenRecurse(pParam, indentLevel);
+            if (pParam != pAst->pRhs->pChildren->nodes.back())
+                code += S(", ");
+        }
+        code += S(")");
+        return code;
+    }
+    case kAST_Mat3Init:
+    {
+        S code = S("mat3a(");
         for (Ast * pParam : pAst->pRhs->pChildren->nodes)
         {
             code += codegenRecurse(pParam, indentLevel);

@@ -688,6 +688,18 @@ MessageResult RendererMesh::message(const T & msgAcc)
         mModelStages.itemFrameOffset(msgr.uid(), msgr.integer());
         break;
     }
+    case HASH::model_show:
+    {
+        u32 uid = msg.payload.u;
+        mModelStages.itemShow(uid);
+        break;
+    }
+    case HASH::model_hide:
+    {
+        u32 uid = msg.payload.u;
+        mModelStages.itemHide(uid);
+        break;
+    }
     case HASH::model_remove:
     {
         u32 uid = msg.payload.u;

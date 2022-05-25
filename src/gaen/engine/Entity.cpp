@@ -43,6 +43,7 @@
 #include "gaen/engine/messages/PropertyMat43.h"
 #include "gaen/engine/messages/PropertyMat3.h"
 #include "gaen/engine/messages/PropertyVec3.h"
+#include "gaen/engine/messages/PropertyBool.h"
 #include "gaen/engine/messages/RegisterWatcher.h"
 #include "gaen/engine/messages/TaskEntity.h"
 #include "gaen/engine/messages/TaskStatus.h"
@@ -60,11 +61,13 @@ Entity::Entity(u32 nameHash,
                u32 blocksMax,
                task_id initParentTask,
                task_id creatorTask,
+               bool isVisible,
                u32 readyMessage)
   : mpParent(nullptr)
   , mpBlockMemory(nullptr)
   , mInitParentTask(initParentTask)
   , mCreatorTask(creatorTask)
+  , mIsVisible(isVisible)
   , mReadyMessage(readyMessage)
 {
     mTransform = mat43(1.0f);
@@ -164,7 +167,7 @@ void Entity::finSelf()
 
 Entity * Entity::activate_start_entity(u32 entityHash)
 {
-    Entity * pEntity = get_registry().constructEntity(entityHash, 32, 0, 0, 0);
+    Entity * pEntity = get_registry().constructEntity(entityHash, 32, 0, 0, true, 0);
 
     if (pEntity)
     {
@@ -280,7 +283,7 @@ MessageResult Entity::message(const T & msgAcc)
             else // msgAcc.message().source == task().id()
             {
                 // queue the fin back to ourselves, not from ourself this time
-                MessageQueueWriter finMsgW(HASH::fin, kMessageFlag_None, TaskMaster::task_master_for_active_thread().threadId(), task().id(), to_cell(0), 0);               
+                MessageQueueWriter finMsgW(HASH::fin, kMessageFlag_None, TaskMaster::task_master_for_active_thread().threadId(), task().id(), to_cell(0), 0);
             }
 
             return MessageResult::Consumed;
@@ -310,6 +313,12 @@ MessageResult Entity::message(const T & msgAcc)
             {
                 messages::PropertyMat3R<T> msgr(msgAcc);
                 setRotation(msgAcc.message().source, mat3(msgr.value()));
+                return MessageResult::Consumed;
+            }
+            else if (msgAcc.message().payload.u == HASH::visible)
+            {
+                messages::PropertyBoolR<T> msgr(msgAcc);
+                setVisibility(msgr.value());
                 return MessageResult::Consumed;
             }
             else
@@ -398,6 +407,11 @@ MessageResult Entity::message(const T & msgAcc)
                 messages::ComponentIndexR<T> msgr(msgAcc);
                 u32 index = msgr.index() == (u32)-1 ? mComponentCount : msgr.index();
                 insertComponent(msgr.nameHash(), index);
+                return MessageResult::Consumed;
+            }
+            case HASH::remove_child:
+            {
+                removeChild(msgAcc.message().payload.u);
                 return MessageResult::Consumed;
             }
             case HASH::transform:
@@ -745,6 +759,27 @@ void Entity::rotate(task_id source, const mat3 & rot)
     mat3 r(mTransform);
     r = rot * r;
     setRotation(source, r);
+}
+
+void Entity::setVisibility(bool isVisible)
+{
+    if (is_target_on_same_taskmaster(task().id(), kModelMgrTaskId))
+    {
+        ImmediateMessageWriter<0> mgsw(HASH::set_visibility,
+                                       kMessageFlag_None,
+                                       task().id(),
+                                       kModelMgrTaskId,
+                                       to_cell(isVisible));
+    }
+    else
+    {
+        MessageQueueWriter msgw(HASH::set_visibility,
+                                kMessageFlag_None,
+                                task().id(),
+                                kModelMgrTaskId,
+                                to_cell(isVisible),
+                                0);
+    }
 }
 
 void Entity::constrainPosition(const vec3 & posMin, const vec3 & posMax)

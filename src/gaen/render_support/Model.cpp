@@ -142,13 +142,14 @@ const char * Model::gaimAssetPath() const
 
 // ModelInstance methods
 
-ModelInstance::ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, u32 renderFlags, const mat43 & transform, bool isRenderable, bool isStatic)
+ModelInstance::ModelInstance(Model * pModel, u32 stageHash, RenderPass pass, u32 renderFlags, bool isVisible, const mat43 & transform, bool isRenderable, bool isStatic)
   : mTransform(transform)
   , mDirection(0.0f)
   , mpModel(pModel)
   , mStageHash(stageHash)
   , mPass(pass)
   , mRenderFlags(renderFlags)
+  , mIsVisible(isVisible)
   , mHasBody(false)
   , mIsRenderable(isRenderable)
   , mIsStatic(isStatic)
@@ -186,6 +187,11 @@ void ModelInstance::model_remove(task_id source, task_id target, u32 uid)
     ImmediateMessageWriter<0> msgw(HASH::model_remove, kMessageFlag_None, source, target, to_cell(uid));
 }
 
+void ModelInstance::model_set_visibility(task_id source, task_id target, u32 uid, bool isVisible)
+{
+    u32 showOrHide = isVisible ? HASH::model_show : HASH::model_hide;
+    ImmediateMessageWriter<0> msgw(showOrHide, kMessageFlag_None, source, target, to_cell(uid));
+}
 
 } // namespace gaen
 

@@ -105,6 +105,7 @@ MessageResult ModelMgr::message(const T & msgAcc)
                                                       pModelInst->stageHash(),
                                                       pModelInst->pass(),
                                                       pModelInst->renderFlags(),
+                                                      pModelInst->isVisible(),
                                                       pModelInst->mTransform,
                                                       pModelInst->mIsRenderable,
                                                       pModelInst->mIsStatic);
@@ -270,8 +271,8 @@ MessageResult ModelMgr::message(const T & msgAcc)
 
         return MessageResult::Consumed;
     }
-	case HASH::remove_task__:
-	{
+    case HASH::remove_task__:
+    {
         task_id taskIdToRemove = msg.payload.u;
         auto itL = mModelOwners.find(taskIdToRemove);
         // It's ok if we don't find it, it just means this task had no models
@@ -299,7 +300,35 @@ MessageResult ModelMgr::message(const T & msgAcc)
             mModelOwners.erase(itL);
         }
         return MessageResult::Consumed;
-	}
+    }
+    case HASH::set_visibility:
+    {
+        task_id taskId = msg.source;
+        bool isVisible = msg.payload.u;
+        auto itL = mModelOwners.find(taskId);
+        // It's ok if we don't find it, it just means this task had no models
+        if (itL != mModelOwners.end())
+        {
+            for (u32 uid : itL->second)
+            {
+                auto modelPair = mModelMap.find(uid);
+                if (modelPair != mModelMap.end())
+                {
+                    if (isVisible != modelPair->second->isVisible())
+                    {
+                        modelPair->second->setVisibility(isVisible);
+                        ModelInstance::model_set_visibility(kModelMgrTaskId, kRendererTaskId, uid, isVisible);
+                    }
+                }
+                else
+                {
+                    ERR("set_visibility for task_id: %u has non-existent model uid: %u", taskId, uid);
+                }
+            }
+            mModelOwners.erase(itL);
+        }
+        return MessageResult::Consumed;
+    }
     case HASH::model_remove:
     {
         u32 uid = msg.payload.u;
@@ -375,7 +404,7 @@ i32 model_anim_create(AssetHandleP pAssetHandleGmdl,
     RenderPass pass = pass_from_hash(passHash);
 
     Model * pModel = GNEW(kMEM_Engine, Model, pCaller->task().id(), pAssetGmdl, pAssetGaim);
-    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass, kRF_Normal, transform, true, false);
+    ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, stageHash, pass, kRF_Normal, pCaller->isVisible(), transform, true, false);
 
     ModelInstance::model_insert(pCaller->task().id(), kModelMgrTaskId, pModelInst);
 
@@ -430,6 +459,16 @@ void model_init_body(i32 modelUid,
     msgw.setMask03(mask03);
     msgw.setMask47(mask47);
     send_message(msgw);
+}
+
+void model_show(i32 modelUid, Entity * pCaller)
+{
+    ImmediateMessageWriter<0> msgw(HASH::model_show, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(modelUid));
+}
+
+void model_hide(i32 modelUid, Entity * pCaller)
+{
+    ImmediateMessageWriter<0> msgw(HASH::model_hide, kMessageFlag_None, pCaller->task().id(), kRendererTaskId, to_cell(modelUid));
 }
 
 void model_remove_body(i32 modelUid, Entity * pCaller)

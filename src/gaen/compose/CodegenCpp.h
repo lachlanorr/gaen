@@ -82,6 +82,7 @@ private:
     S messageDef(const Ast * pAst, int indentLevel);
     S codegenInitProperties(Ast * pAst, SymTab * pPropsSymTab, const char * taskName, const char * scriptTaskName, ScriptDataCategory dataCategory, int indentLevel);
     S codegenInitParentTask(const Ast * pAst);
+    S codegenInitVisible(const Ast* pAst);
     S codegenReadyMessage(const Ast * pAst);
     S entityInitClass(const char * str);
     S entityInitFunc(const char * str);

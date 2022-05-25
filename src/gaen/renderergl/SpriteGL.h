@@ -69,12 +69,16 @@ public:
     u32 shaderHash() const { return HASH::sprite; }
 
     void reportDestruction();
-    
+
     const mat43 & transform() { return mpSpriteInstance->mTransform; }
     void setTransform(const mat43 & transform) { mpSpriteInstance->mTransform = transform; }
 
     RenderItemStatus status() { return mStatus; }
     void setStatus(RenderItemStatus status) { mStatus = status; }
+
+    bool isVisible() const { return mpSpriteInstance->isVisible(); }
+    void hide() { mpSpriteInstance->hide(); }
+    void show() { mpSpriteInstance->show(); }
 
     bool hasNormal() { return false; }
 

@@ -102,6 +102,7 @@ typedef enum
     kAST_TransformInit,
     kAST_ReadyInit,
     kAST_ParentInit,
+    kAST_VisibleInit,
     kAST_TypeId,
 
     kAST_Block,
@@ -179,6 +180,7 @@ typedef enum
     kAST_Ivec3Init,
     kAST_Ivec4Init,
     kAST_QuatInit,
+    kAST_Mat3Init,
     kAST_Mat43Init,
     kAST_StringInit,
     kAST_StringFormat,
@@ -371,6 +373,7 @@ Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData
 Ast * ast_create_transform_init(Ast * pVal, ParseData * pParseData);
 Ast * ast_create_ready_init(Ast * pVal, ParseData * pParseData);
 Ast * ast_create_parent_init(Ast * pVal, ParseData * pParseData);
+Ast * ast_create_visible_init(Ast* pVal, ParseData* pParseData);
 
 Ast * ast_create_simple_stmt(Ast * pExpr, ParseData * pParseData);
 
@@ -389,6 +392,7 @@ Ast * ast_create_ivec2_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_ivec3_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_ivec4_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_quat_init(Ast * pParams, ParseData * pParseData);
+Ast * ast_create_mat3_init(Ast* pParams, ParseData* pParseData);
 Ast * ast_create_mat43_init(Ast * pParams, ParseData * pParseData);
 Ast * ast_create_string_init(Ast * pParams, ParseData * pParseData);
 

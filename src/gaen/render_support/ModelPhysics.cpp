@@ -249,7 +249,7 @@ void PhysicsDebugDraw::render()
         mLines.clear();
 
         Model * pModel = GNEW(kMEM_Engine, Model, kModelMgrTaskId, pGmdl, true);
-        ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, HASH::main, kRP_Opaque, kRF_Collision, mat43{1.0f}, true, true);
+        ModelInstance * pModelInst = GNEW(kMEM_Engine, ModelInstance, pModel, HASH::main, kRP_Opaque, kRF_Collision, true, mat43{1.0f}, true, true);
         mLinesUid = pModel->uid();
         ModelInstance::model_insert(kModelMgrTaskId, kModelMgrTaskId, pModelInst);
     }

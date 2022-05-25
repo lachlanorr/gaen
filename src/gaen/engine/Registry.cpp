@@ -79,7 +79,7 @@ bool Registry::registerEntityConstructor(u32 nameHash, EntityConstructor constru
     return true;
 }
     
-Entity * Registry::constructEntity(u32 nameHash, u32 childCount, task_id initParentTask, task_id creatorTask, u32 readyMessage)
+Entity * Registry::constructEntity(u32 nameHash, u32 childCount, task_id initParentTask, task_id creatorTask, bool isVisible, u32 readyMessage)
 {
     auto it = mEntityConstructors.find(nameHash);
 
@@ -89,7 +89,7 @@ Entity * Registry::constructEntity(u32 nameHash, u32 childCount, task_id initPar
         return nullptr;
     }
     
-    Entity * pEntity = it->second(childCount, initParentTask, creatorTask, readyMessage);
+    Entity * pEntity = it->second(childCount, initParentTask, creatorTask, isVisible, readyMessage);
 
     return pEntity;
 }
