@@ -38,29 +38,29 @@ namespace gaen
 
 struct FrameInfo
 {
-    f32 last10;
-    f32 last100;
-    f32 last1000;
-    f32 last10000;
+    f64 last10;
+    f64 last100;
+    f64 last1000;
+    f64 last10000;
 };
 
-template <u32 count>
+template <u64 count>
 class FrameStats
 {
 public:
     void init()
     {
-        for (u32 i = 0; i < count; ++i)
+        for (u64 i = 0; i < count; ++i)
         {
-            mDeltas[i] = 0.0f;
+            mDeltas[i] = 0.0;
         }
-        mSum = 0.0f;
+        mSum = 0.0;
         mFrameCount = 0;
     }
 
-    void addFrame(f32 delta)
+    void addFrame(f64 delta)
     {
-        u32 index = mFrameCount % count;
+        u64 index = mFrameCount % count;
 
         mSum -= mDeltas[index];
         mDeltas[index] = delta;
@@ -69,7 +69,7 @@ public:
         mFrameCount++;
     }
 
-    f32 deltaMean() const
+    f64 deltaMean() const
     {
         if (mFrameCount >= count)
             return mSum / count;
@@ -77,15 +77,15 @@ public:
             return mSum / mFrameCount;
     }
 
-    f32 fps() const
+    f64 fps() const
     {
-        return 1.0f / deltaMean();
+        return 1.0 / deltaMean();
     }
 
 private:
-    f32 mDeltas[count];
-    f32 mSum = 0.0f;
-    u32 mFrameCount = 0;
+    f64 mDeltas[count];
+    f64 mSum = 0.0;
+    u64 mFrameCount = 0;
 };
 
 
@@ -96,7 +96,7 @@ public:
     void init()
     {
         mFrameCount = 0;
-        mLastFrameTime = now();
+        mLastTickCount = now_ticks();
 
         mFrameStats10.init();
         mFrameStats100.init();
@@ -106,20 +106,21 @@ public:
         mIsInit = true;
     }
 
-    u32 frameCount() { return mFrameCount; }
+    u64 frameCount() { return mFrameCount; }
 
     void resetLastFrameTime()
     {
-        mLastFrameTime = now();
+        mLastTickCount = now_ticks();
     }
 
-    f32 calcDelta()
+    f64 calcDelta()
     {
         ASSERT(mIsInit);
 
-        f64 startFrameTime = now();
-        f32 delta = (f32)(startFrameTime - mLastFrameTime);
-        mLastFrameTime = startFrameTime;
+        TickCount tickCount = now_ticks();
+        TickCount tickCountDelta = tickCount - mLastTickCount;
+        mLastTickCount = tickCount;
+        f64 delta = ticks_to_secs(tickCountDelta);
 
         mFrameStats10.addFrame(delta);
         mFrameStats100.addFrame(delta);
@@ -131,22 +132,22 @@ public:
         return delta;
     }
 
-    f32 deltaMeanLast10()
+    f64 deltaMeanLast10()
     {
         return mFrameStats10.deltaMean();
     }
 
-    f32 deltaMeanLast100()
+    f64 deltaMeanLast100()
     {
         return mFrameStats100.deltaMean();
     }
 
-    f32 deltaMeanLast1000()
+    f64 deltaMeanLast1000()
     {
         return mFrameStats1000.deltaMean();
     }
 
-    f32 deltaMeanLast10000()
+    f64 deltaMeanLast10000()
     {
         return mFrameStats10000.deltaMean();
     }
@@ -159,22 +160,22 @@ public:
         pDeltas->last10000 = mFrameStats10000.deltaMean();
     }
 
-    f32 fpsLast10() const
+    f64 fpsLast10() const
     {
         return mFrameStats10.fps();
     }
 
-    f32 fpsLast100() const
+    f64 fpsLast100() const
     {
         return mFrameStats100.fps();
     }
 
-    f32 fpsLast1000() const
+    f64 fpsLast1000() const
     {
         return mFrameStats1000.fps();
     }
 
-    f32 fpsLast10000() const
+    f64 fpsLast10000() const
     {
         return mFrameStats10000.fps();
     }
@@ -190,8 +191,8 @@ public:
 private:
     bool mIsInit = false;
 
-    u32 mFrameCount = 0;
-    f64 mLastFrameTime;
+    u64 mFrameCount = 0;
+    TickCount mLastTickCount = 0;
 
     FrameStats<10>    mFrameStats10;
     FrameStats<100>   mFrameStats100;

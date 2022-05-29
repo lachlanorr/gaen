@@ -330,7 +330,7 @@ void ModelPhysics::update(f32 delta)
 
     updateKinematics(delta);
 
-    mpDynamicsWorld->stepSimulation((f32)delta, 0);
+    mpDynamicsWorld->stepSimulation(delta, 0);
 
     // Check for collisions
     int numManifolds = mpDynamicsWorld->getDispatcher()->getNumManifolds();

@@ -45,12 +45,12 @@ TL(f64, sFrequencyRatio) = 0.0;
 
 bool is_time_init()
 {
-    return sStartTimeTicks != 0 && sFrequencyRatio != 0.0f;
+    return sStartTimeTicks != 0 && sFrequencyRatio != 0.0;
 }
 
 void init_time()
 {
-    ASSERT(sStartTimeTicks == 0 && sFrequencyRatio == 0.0f);
+    ASSERT(sStartTimeTicks == 0 && sFrequencyRatio == 0.0);
 
     LARGE_INTEGER freq;
     BOOL ret = QueryPerformanceFrequency(&freq);
@@ -66,7 +66,7 @@ void init_time()
 
 f64 now()
 {
-    ASSERT_MSG(sStartTimeTicks != 0 && sFrequencyRatio != 0.0f, "init_time must be called first");
+    ASSERT_MSG(sStartTimeTicks != 0 && sFrequencyRatio != 0.0, "init_time must be called first");
 
     LARGE_INTEGER nowTicks;
     BOOL ret = QueryPerformanceCounter(&nowTicks);
@@ -77,6 +77,20 @@ f64 now()
     u64 delta = nowTicks.QuadPart - sStartTimeTicks;
 
     return delta * sFrequencyRatio;
+}
+
+TickCount now_ticks()
+{
+    LARGE_INTEGER ticks;
+    BOOL ret = QueryPerformanceCounter(&ticks);
+    ASSERT(ret);
+    return ticks.QuadPart;
+}
+
+f64 ticks_to_secs(TickCount ticks)
+{
+    ASSERT_MSG(sStartTimeTicks != 0 && sFrequencyRatio != 0.0, "init_time must be called first");
+    return ticks * sFrequencyRatio;
 }
 
 void sleep(u32 milliSecs)

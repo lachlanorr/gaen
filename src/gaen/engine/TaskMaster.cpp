@@ -564,7 +564,7 @@ void TaskMaster::runPrimaryGameLoop()
     mIsRunning = true;
     mFrameTime.init();
 
-    f32 timeSinceRender = 0.0f;
+    f64 timeSinceRender = 0.0;
     bool didRender = false;
 
     while(mIsRunning)
@@ -591,7 +591,7 @@ void TaskMaster::runPrimaryGameLoop()
                      fi.last10000);
         }
 #endif
-        mPlatformTask.update(0.0f);
+        mPlatformTask.update(0.0);
         poll_pad_input();
 
         // messages from other TaskMasters or ourself
@@ -603,7 +603,7 @@ void TaskMaster::runPrimaryGameLoop()
         // Get delta since the last time we ran.
         // Use a min value to avoid issues when we are debugging for several seconds
         // within a frame, 0.5s should be a reasonable max for a frame.
-        f32 delta = mFrameTime.calcDelta(); // glm::min(0.5f, mFrameTime.calcDelta());
+        f64 delta = mFrameTime.calcDelta(); // glm::min(0.5f, mFrameTime.calcDelta());
         timeSinceRender += delta;
         if (mStatus == kTMS_Initialized)
         {

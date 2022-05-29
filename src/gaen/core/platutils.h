@@ -48,6 +48,10 @@ void init_time();
 // Get time in secs since init_time was called
 f64 now();
 
+typedef i64 TickCount;
+TickCount now_ticks();
+f64 ticks_to_secs(TickCount ticks);
+
 // Converts time to string.
 // E.g.  2:15:30.123456   is 2 hours, 15 minutes, 30 secs, 123456 microsecs
 bool time_to_str(char * str, size_t strLen, f32 timeSecs);

@@ -230,12 +230,12 @@ public:
         // update stub we do a little pointer arithmetic to get the
         // actual address.
 
-        if (mUpdateStubOffset != 0 && // some tasks are not updatable
+        if (mUpdateStubOffset != 0 && // some tasks are not updateable
             status() == TaskStatus::Running) // only running tasks are updated
         {
             std::intptr_t iptrMessageQueueStub = reinterpret_cast<std::intptr_t>(mpMessageQueueStub);
             std::intptr_t iptrUpdateStub = iptrMessageQueueStub + mUpdateStubOffset;
-        
+
             UpdateStub pUpdateStub = reinterpret_cast<UpdateStub>(iptrUpdateStub);
             (*pUpdateStub)(mpThat, delta);
         }

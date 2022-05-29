@@ -109,9 +109,9 @@ MessageResult Editor::message(const T& msgAcc)
 void Editor::update(const FrameTime & frameTime)
 {
     static f32 fps = frameTime.fpsLast10();
-    static f64 lastFpsTime = now();
-    f64 nowFpsTime = now();
-    if (nowFpsTime - lastFpsTime > 1.0)
+    static TickCount lastFpsTime = now_ticks();
+    TickCount nowFpsTime = now_ticks();
+    if (ticks_to_secs(nowFpsTime - lastFpsTime) > 1.0)
     {
         fps = frameTime.fpsLast10();
         lastFpsTime = nowFpsTime;
