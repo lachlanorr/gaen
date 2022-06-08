@@ -239,6 +239,72 @@ VoxSkel::VoxSkel(const VoxObj* pVoxObj, VoxSkelCenter skelCenter)
         PANIC("Invalid value for skelCenter: %d", skelCenter);
     };
 
+    // duplicate any L* nulls into R* versions
+    RawNullMap addtlNulls;
+    for (const auto & nullPair : rawNulls)
+    {
+        const ChefString & rawName = nullPair.first;
+        const RawNull & rawNull = nullPair.second;
+
+        ChefString rhs = "";
+        if (rawName.find("BL_") == 0)
+        {
+            rhs = "BR_" + rawName.substr(3);
+        }
+        else if (rawName.find("EL_") == 0)
+        {
+            rhs = "ER_" + rawName.substr(3);
+        }
+        else if (rawName.find("NL_") == 0)
+        {
+            rhs = "NR_" + rawName.substr(3);
+        }
+        else if (rawName.find("HL_") == 0)
+        {
+            rhs = "HR_" + rawName.substr(3);
+        }
+
+        if (!rhs.empty())
+        {
+            // check to see if rhs already exists
+            if (rawNulls.find(rhs) == rawNulls.end())
+            {
+                ChefString rhsParent;
+                if (rawNull.parent.find("BL_") == 0)
+                {
+                    rhsParent = "BR_" + rawNull.parent.substr(3);
+                }
+                else if (rawNull.parent.find("EL_") == 0)
+                {
+                    rhsParent = "ER_" + rawNull.parent.substr(3);
+                }
+                else if (rawNull.parent.find("NL_") == 0)
+                {
+                    rhsParent = "NR_" + rawNull.parent.substr(3);
+                }
+                else if (rawNull.parent.find("HL_") == 0)
+                {
+                    rhsParent = "HR_" + rawNull.parent.substr(3);
+                }
+                else
+                {
+                    rhsParent = rawNull.parent;
+                }
+
+                RawNull rhsNull;
+                rhsNull.pos = vec3(rawNulls[root].pos.x - (rawNull.pos.x - rawNulls[root].pos.x), rawNull.pos.y, rawNull.pos.z);
+                rhsNull.parent = rhsParent;
+                rhsNull.group = rawNull.group;
+                addtlNulls[rhs] = rhsNull;
+            }
+        }
+    }
+    // Add our additional rhs nulls to rawNulls
+    for (const auto & addtlNullPair : addtlNulls)
+    {
+        rawNulls[addtlNullPair.first] = addtlNullPair.second;
+    }
+
     // Make pass through raw nulls and add to mNulls
     for (const auto & nullPair : rawNulls)
     {
