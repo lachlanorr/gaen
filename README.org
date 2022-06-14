@@ -25,7 +25,7 @@ The CSD approach, introduced with the Gaen engine, solves these
 problems with:
 
 - A custom, non-pre-emptive, cooperative task runtime
-- Mutable data segratation by physical core
+- Segregation of mutable data by physical core
 
 This may not be an appropriate general purpose concurrency strategy,
 but the structure of games, whereby there is a game loop polling for
@@ -39,7 +39,7 @@ syntactic sugar around components, entities and message passing. It
 eliminates the boiler plate verbosity that comes with forcing C++ into
 a message passing, component based model.
 
-The compiler code generates into C++. There are several nice
+The compiler's code generation targets C++. There are several nice
 advantages to this, including taking advantage of modern C++
 optimizing compilers, and being able to use a debugger on generated
 code.
@@ -79,12 +79,11 @@ Compose scripts and asset cookers specific to the project.
 ** Platforms
 Active development is for Windows, and that platform will generally
 always be functional. The engine is designed for 64 bit, but a 32 bit
-builds work as well.  OSX, Linux, and iOS support is periodically
+build works as well. OSX, Linux, and iOS support is periodically
 tested and updated, but may not be working at a particular time as
 they are not my priority right now.
 
-[[http://en.wikipedia.org/wiki/C++11][C++11]] features are used extensively, so you must have a recent
-compiler.  On Windows this means VC 2015 or above. On OSX, the most
+Modern C++ features are used extensively, so you must have a recent
+compiler.  On Windows this means VC 2019 or above. On OSX, the most
 recent Xcode will serve you well. On Linux, this will mean at least
-GCC 4.8.
-
+GCC 6.1.
