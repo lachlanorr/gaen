@@ -40,6 +40,10 @@ OwnerTask:
       - gaen/core/threading.h
   task: Task
 
+TaskIdIndex:
+  taskId: i32
+  index: i32
+
 TaskStatus:
   status:
     type: i32
