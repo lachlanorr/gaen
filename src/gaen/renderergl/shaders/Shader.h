@@ -88,6 +88,7 @@ protected:
     };
 
     Shader(u32 nameHash);
+    void processProgram();
     VariableInfo * findUniform(u32 nameHash, u32 type);
     VariableInfo * findTexture(u32 nameHash);
 

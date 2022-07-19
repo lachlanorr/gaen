@@ -173,22 +173,14 @@ Shader * voxel27::construct()
     pShader->mCodes[1].filename = "voxel27.shf";
     pShader->mCodes[1].code = kShaderCode_shf;
 
-
     // Uniforms
-    pShader->mUniforms[0].nameHash = 0x29618670; /* HASH::un_MVP */
-    pShader->mUniforms[0].index = 0;
-    pShader->mUniforms[0].location = 0;
-    pShader->mUniforms[0].type = GL_FLOAT_MAT4;
-
+    //  These are computed at runtime in Shader::processProgram()
 
     // Attributes
-    pShader->mAttributes[0].nameHash = 0xc9f0e16f; /* HASH::va_VoxelPoint */
-    pShader->mAttributes[0].index = 0;
-    pShader->mAttributes[0].location = 0;
-    pShader->mAttributes[0].type = GL_UNSIGNED_INT;
-
+    //  These are computed at runtime in Shader::processProgram()
 
     // Textures
+    //  These are computed at runtime in Shader::processProgram()
 
     // Set base Shader members to our arrays and counts
     pShader->mCodeCount = kCodeCount;

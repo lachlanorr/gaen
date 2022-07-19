@@ -415,7 +415,7 @@ void process_shader_program(ShaderInfo & si)
         glAttachShader(programId, shader);
     }
 
-    
+
     // link program
     GLint status;
     glLinkProgram(programId);
@@ -437,7 +437,7 @@ void process_shader_program(ShaderInfo & si)
     GLint size;
     GLenum type;
     char name[kMaxPath+1];
-    
+
     // Extract goodness
     GLint attribCount = 0;
     glGetProgramiv(programId, GL_ACTIVE_ATTRIBUTES, &attribCount);
@@ -630,62 +630,18 @@ S generate_shader_cpp(const ShaderInfo & si)
         ++i;
     }
 
-    code += LF;
-
     code += S("    // Uniforms\n");
-    i = 0;
-    for (const ShaderVarInfo & svi : si.uniforms)
-    {
-        snprintf(scratch, kMaxPath, "    pShader->mUniforms[%u].nameHash = 0x%08x; /* HASH::%s */\n", i, gaen_hash(svi.name.c_str()), svi.name.c_str());
-        code += scratch;
-        snprintf(scratch, kMaxPath, "    pShader->mUniforms[%u].index = %u;\n", i, svi.index);
-        code += scratch;
-        snprintf(scratch, kMaxPath, "    pShader->mUniforms[%u].location = %u;\n", i, svi.location);
-        code += scratch;
-        snprintf(scratch, kMaxPath, "    pShader->mUniforms[%u].type = %s;\n", i, get_type_name(svi.type));
-        code += scratch;
-        code += LF;
-
-        ++i;
-    }
+    code += S("    //  These are computed at runtime in Shader::processProgram()\n");
 
     code += LF;
 
     code += S("    // Attributes\n");
-    i = 0;
-    for (const ShaderVarInfo & svi : si.attributes)
-    {
-        snprintf(scratch, kMaxPath, "    pShader->mAttributes[%u].nameHash = 0x%08x; /* HASH::%s */\n", i, gaen_hash(svi.name.c_str()), svi.name.c_str());
-        code += scratch;
-        snprintf(scratch, kMaxPath, "    pShader->mAttributes[%u].index = %u;\n", i, svi.index);
-        code += scratch;
-        snprintf(scratch, kMaxPath, "    pShader->mAttributes[%u].location = %u;\n", i, svi.location);
-        code += scratch;
-        snprintf(scratch, kMaxPath, "    pShader->mAttributes[%u].type = %s;\n", i, get_type_name(svi.type));
-        code += scratch;
-        code += LF;
-
-        ++i;
-    }
+    code += S("    //  These are computed at runtime in Shader::processProgram()\n");
 
     code += LF;
 
     code += S("    // Textures\n");
-    i = 0;
-    for (const ShaderVarInfo & svi : si.textures)
-    {
-        snprintf(scratch, kMaxPath, "    pShader->mTextures[%u].nameHash = 0x%08x; /* HASH::%s */\n", i, gaen_hash(svi.name.c_str()), svi.name.c_str());
-        code += scratch;
-        snprintf(scratch, kMaxPath, "    pShader->mTextures[%u].index = %u;\n", i, i);
-        code += scratch;
-        snprintf(scratch, kMaxPath, "    pShader->mTextures[%u].location = %u;\n", i, svi.location);
-        code += scratch;
-        snprintf(scratch, kMaxPath, "    pShader->mTextures[%u].type = %s;\n", i, get_type_name(svi.type));
-        code += scratch;
-        code += LF;
-
-        ++i;
-    }
+    code += S("    //  These are computed at runtime in Shader::processProgram()\n");
 
     code += LF;
 

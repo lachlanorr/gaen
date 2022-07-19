@@ -71,27 +71,14 @@ Shader * debug_lines::construct()
     pShader->mCodes[1].filename = "debug_lines.shf";
     pShader->mCodes[1].code = kShaderCode_shf;
 
-
     // Uniforms
-    pShader->mUniforms[0].nameHash = 0xdd88a90e; /* HASH::mvp */
-    pShader->mUniforms[0].index = 0;
-    pShader->mUniforms[0].location = 0;
-    pShader->mUniforms[0].type = GL_FLOAT_MAT4;
-
+    //  These are computed at runtime in Shader::processProgram()
 
     // Attributes
-    pShader->mAttributes[0].nameHash = 0x3d7e6258; /* HASH::color */
-    pShader->mAttributes[0].index = 0;
-    pShader->mAttributes[0].location = 2;
-    pShader->mAttributes[0].type = GL_FLOAT_VEC4;
-
-    pShader->mAttributes[1].nameHash = 0x934f4e0a; /* HASH::position */
-    pShader->mAttributes[1].index = 1;
-    pShader->mAttributes[1].location = 0;
-    pShader->mAttributes[1].type = GL_FLOAT_VEC4;
-
+    //  These are computed at runtime in Shader::processProgram()
 
     // Textures
+    //  These are computed at runtime in Shader::processProgram()
 
     // Set base Shader members to our arrays and counts
     pShader->mCodeCount = kCodeCount;

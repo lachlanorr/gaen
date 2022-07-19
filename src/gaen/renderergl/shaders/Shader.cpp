@@ -83,6 +83,8 @@ void Shader::load()
             glDeleteShader(shaderIds[i]);
         }
 
+        processProgram();
+
         mIsLoaded = true;
     }
 }
@@ -108,6 +110,59 @@ void Shader::use()
     if (!mIsLoaded)
         load();
     glUseProgram(mProgramId);
+}
+
+void Shader::processProgram()
+{
+    PANIC_IF(mIsLoaded, "Shader already loaded!!!");
+
+    static const u32 kMaxPath = 255;
+
+    GLsizei nameLen;
+    GLint size;
+    GLenum type;
+    char name[kMaxPath+1];
+
+    GLint attribCount = 0;
+    glGetProgramiv(mProgramId, GL_ACTIVE_ATTRIBUTES, &attribCount);
+    PANIC_IF(attribCount != mAttributeCount, "mAttributeCount mismatch %d != %d", attribCount, mAttributeCount);
+
+    for (i32 i = 0; i < attribCount; ++i)
+    {
+        glGetActiveAttrib(mProgramId, i, kMaxPath, &nameLen, &size, &type, name);
+        name[nameLen] = '\0';
+
+        mpAttributes[i].nameHash = gaen_hash(name);
+        mpAttributes[i].index = i;
+        mpAttributes[i].location = glGetAttribLocation(mProgramId, name);
+        mpAttributes[i].type = type;
+    }
+
+    GLint uniformCount = 0;
+    glGetProgramiv(mProgramId, GL_ACTIVE_UNIFORMS, &uniformCount);
+    PANIC_IF(uniformCount != mUniformCount, "mUniformCount mismatch %d != %d", uniformCount, mUniformCount);
+
+    GLint currTexture = 0;
+    for (i32 i = 0; i < uniformCount; ++i)
+    {
+        glGetActiveUniform(mProgramId, i, kMaxPath, &nameLen, &size, &type, name);
+        name[nameLen] = '\0';
+
+        mpUniforms[i].nameHash = gaen_hash(name);
+        mpUniforms[i].index = i;
+        mpUniforms[i].location = glGetUniformLocation(mProgramId, name);
+        mpUniforms[i].type = type;
+
+        if (type == GL_SAMPLER_2D)
+        {
+            PANIC_IF(currTexture >= mTextureCount, "mTextureCount mismatch %d", mTextureCount);
+            mpTextures[currTexture].nameHash = mpUniforms[i].nameHash;
+            mpTextures[currTexture].index = currTexture;
+            mpTextures[currTexture].location = mpUniforms[i].location;
+            mpTextures[currTexture].type = mpUniforms[i].type;
+            currTexture++;
+        }
+    }
 }
 
 Shader::VariableInfo * Shader::findUniform(u32 nameHash, u32 type)

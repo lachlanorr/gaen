@@ -72,32 +72,14 @@ Shader * sprite::construct()
     pShader->mCodes[1].filename = "sprite.shf";
     pShader->mCodes[1].code = kShaderCode_shf;
 
-
     // Uniforms
-    pShader->mUniforms[0].nameHash = 0x546e2a3d; /* HASH::diffuse */
-    pShader->mUniforms[0].index = 0;
-    pShader->mUniforms[0].location = 0;
-    pShader->mUniforms[0].type = GL_SAMPLER_2D;
-
-    pShader->mUniforms[1].nameHash = 0xdd88a90e; /* HASH::mvp */
-    pShader->mUniforms[1].index = 1;
-    pShader->mUniforms[1].location = 1;
-    pShader->mUniforms[1].type = GL_FLOAT_MAT4;
-
+    //  These are computed at runtime in Shader::processProgram()
 
     // Attributes
-    pShader->mAttributes[0].nameHash = 0x54336489; /* HASH::pos */
-    pShader->mAttributes[0].index = 0;
-    pShader->mAttributes[0].location = 0;
-    pShader->mAttributes[0].type = GL_FLOAT_VEC4;
-
+    //  These are computed at runtime in Shader::processProgram()
 
     // Textures
-    pShader->mTextures[0].nameHash = 0x546e2a3d; /* HASH::diffuse */
-    pShader->mTextures[0].index = 0;
-    pShader->mTextures[0].location = 0;
-    pShader->mTextures[0].type = GL_SAMPLER_2D;
-
+    //  These are computed at runtime in Shader::processProgram()
 
     // Set base Shader members to our arrays and counts
     pShader->mCodeCount = kCodeCount;

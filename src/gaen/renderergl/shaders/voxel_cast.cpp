@@ -969,42 +969,14 @@ Shader * voxel_cast::construct()
     pShader->mCodes[0].filename = "voxel_cast.shc";
     pShader->mCodes[0].code = kShaderCode_shc;
 
-
     // Uniforms
-    pShader->mUniforms[0].nameHash = 0x58bc2a47; /* HASH::un_CameraDir */
-    pShader->mUniforms[0].index = 0;
-    pShader->mUniforms[0].location = 4;
-    pShader->mUniforms[0].type = GL_FLOAT_VEC4;
-
-    pShader->mUniforms[1].nameHash = 0xd7c7e9ca; /* HASH::un_CameraPos */
-    pShader->mUniforms[1].index = 1;
-    pShader->mUniforms[1].location = 5;
-    pShader->mUniforms[1].type = GL_FLOAT_VEC3;
-
-    pShader->mUniforms[2].nameHash = 0x0aa42180; /* HASH::un_CameraProjectionInv */
-    pShader->mUniforms[2].index = 2;
-    pShader->mUniforms[2].location = 6;
-    pShader->mUniforms[2].type = GL_FLOAT_MAT4;
-
-    pShader->mUniforms[3].nameHash = 0x7b669d1e; /* HASH::un_FrameBuffer */
-    pShader->mUniforms[3].index = 3;
-    pShader->mUniforms[3].location = 0;
-    pShader->mUniforms[3].type = GL_IMAGE_2D;
-
-    pShader->mUniforms[4].nameHash = 0x65b189d5; /* HASH::un_VoxelData */
-    pShader->mUniforms[4].index = 4;
-    pShader->mUniforms[4].location = 2;
-    pShader->mUniforms[4].type = GL_UNSIGNED_INT_IMAGE_BUFFER;
-
-    pShader->mUniforms[5].nameHash = 0xaa2d6892; /* HASH::un_VoxelRoots */
-    pShader->mUniforms[5].index = 5;
-    pShader->mUniforms[5].location = 1;
-    pShader->mUniforms[5].type = GL_UNSIGNED_INT_IMAGE_BUFFER;
-
+    //  These are computed at runtime in Shader::processProgram()
 
     // Attributes
+    //  These are computed at runtime in Shader::processProgram()
 
     // Textures
+    //  These are computed at runtime in Shader::processProgram()
 
     // Set base Shader members to our arrays and counts
     pShader->mCodeCount = kCodeCount;

@@ -61,17 +61,14 @@ Shader * compute_test::construct()
     pShader->mCodes[0].filename = "compute_test.shc";
     pShader->mCodes[0].code = kShaderCode_shc;
 
-
     // Uniforms
-    pShader->mUniforms[0].nameHash = 0xd872e2a5; /* HASH::data */
-    pShader->mUniforms[0].index = 0;
-    pShader->mUniforms[0].location = 0;
-    pShader->mUniforms[0].type = GL_IMAGE_2D;
-
+    //  These are computed at runtime in Shader::processProgram()
 
     // Attributes
+    //  These are computed at runtime in Shader::processProgram()
 
     // Textures
+    //  These are computed at runtime in Shader::processProgram()
 
     // Set base Shader members to our arrays and counts
     pShader->mCodeCount = kCodeCount;

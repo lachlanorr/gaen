@@ -140,67 +140,14 @@ Shader * faceted::construct()
     pShader->mCodes[1].filename = "faceted.shf";
     pShader->mCodes[1].code = kShaderCode_shf;
 
-
     // Uniforms
-    pShader->mUniforms[0].nameHash = 0x9d3cf50a; /* HASH::light0_ambient */
-    pShader->mUniforms[0].index = 0;
-    pShader->mUniforms[0].location = 0;
-    pShader->mUniforms[0].type = GL_FLOAT;
-
-    pShader->mUniforms[1].nameHash = 0x52ed2439; /* HASH::light0_color */
-    pShader->mUniforms[1].index = 1;
-    pShader->mUniforms[1].location = 1;
-    pShader->mUniforms[1].type = GL_FLOAT_VEC3;
-
-    pShader->mUniforms[2].nameHash = 0x4baa3a20; /* HASH::light0_incidence */
-    pShader->mUniforms[2].index = 2;
-    pShader->mUniforms[2].location = 2;
-    pShader->mUniforms[2].type = GL_FLOAT_VEC3;
-
-    pShader->mUniforms[3].nameHash = 0xad18d3f9; /* HASH::light1_ambient */
-    pShader->mUniforms[3].index = 3;
-    pShader->mUniforms[3].location = 3;
-    pShader->mUniforms[3].type = GL_FLOAT;
-
-    pShader->mUniforms[4].nameHash = 0x385be18e; /* HASH::light1_color */
-    pShader->mUniforms[4].index = 4;
-    pShader->mUniforms[4].location = 4;
-    pShader->mUniforms[4].type = GL_FLOAT_VEC3;
-
-    pShader->mUniforms[5].nameHash = 0x74b64d3f; /* HASH::light1_incidence */
-    pShader->mUniforms[5].index = 5;
-    pShader->mUniforms[5].location = 5;
-    pShader->mUniforms[5].type = GL_FLOAT_VEC3;
-
-    pShader->mUniforms[6].nameHash = 0xdd88a90e; /* HASH::mvp */
-    pShader->mUniforms[6].index = 6;
-    pShader->mUniforms[6].location = 6;
-    pShader->mUniforms[6].type = GL_FLOAT_MAT4;
-
-    pShader->mUniforms[7].nameHash = 0x450e1f0e; /* HASH::rot */
-    pShader->mUniforms[7].index = 7;
-    pShader->mUniforms[7].location = 7;
-    pShader->mUniforms[7].type = GL_FLOAT_MAT3;
-
+    //  These are computed at runtime in Shader::processProgram()
 
     // Attributes
-    pShader->mAttributes[0].nameHash = 0x3d7e6258; /* HASH::color */
-    pShader->mAttributes[0].index = 0;
-    pShader->mAttributes[0].location = 2;
-    pShader->mAttributes[0].type = GL_FLOAT_VEC4;
-
-    pShader->mAttributes[1].nameHash = 0xe68b9c52; /* HASH::normal */
-    pShader->mAttributes[1].index = 1;
-    pShader->mAttributes[1].location = 1;
-    pShader->mAttributes[1].type = GL_FLOAT_VEC3;
-
-    pShader->mAttributes[2].nameHash = 0x934f4e0a; /* HASH::position */
-    pShader->mAttributes[2].index = 2;
-    pShader->mAttributes[2].location = 0;
-    pShader->mAttributes[2].type = GL_FLOAT_VEC4;
-
+    //  These are computed at runtime in Shader::processProgram()
 
     // Textures
+    //  These are computed at runtime in Shader::processProgram()
 
     // Set base Shader members to our arrays and counts
     pShader->mCodeCount = kCodeCount;
