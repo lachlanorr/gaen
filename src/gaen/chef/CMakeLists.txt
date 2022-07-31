@@ -57,6 +57,21 @@ set(chef_SOURCES
   ${cooker_SOURCES}
   )
 
+if(WIN32)
+  set(VER_PRODUCTNAME "chef")
+  set(VER_FILEDESCRIPTION "Chef Asset Cooker")
+  set(VER_ORIGINALFILENAME "chef.exe")
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/src/version.rc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+    @ONLY
+    )
+  set(chef_SOURCES
+    ${chef_SOURCES}
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+    )
+endif()
+
 source_group("" FILES ${chef_SOURCES})
 source_group("cookers" FILES ${cooker_SOURCES})
 

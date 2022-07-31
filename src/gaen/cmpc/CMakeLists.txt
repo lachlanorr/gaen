@@ -28,6 +28,21 @@ set(cmpc_SOURCES
   main_cmpc.cpp
   )
 
+if(WIN32)
+  set(VER_PRODUCTNAME "cmpc")
+  set(VER_FILEDESCRIPTION "Compose Compiler")
+  set(VER_ORIGINALFILENAME "cmpc.exe")
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/src/version.rc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+    @ONLY
+    )
+  set(cmpc_SOURCES
+    ${cmpc_SOURCES}
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+    )
+endif()
+
 source_group("" FILES ${cmpc_SOURCES})
 
 add_executable(cmpc

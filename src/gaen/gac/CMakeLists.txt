@@ -28,6 +28,21 @@ set(gac_SOURCES
   main_gac.cpp
   )
 
+if(WIN32)
+  set(VER_PRODUCTNAME "Gac")
+  set(VER_FILEDESCRIPTION "Game Afar Console")
+  set(VER_ORIGINALFILENAME "gac.exe")
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/src/version.rc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+    @ONLY
+    )
+  set(gac_SOURCES
+    ${gac_SOURCES}
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+    )
+endif()
+
 source_group("" FILES ${gac_SOURCES})
 
 add_executable(gac

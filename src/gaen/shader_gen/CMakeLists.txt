@@ -29,6 +29,22 @@ set(shader_gen_SOURCES
   glutils.h
   glutils_${platform}.${platform_ext}
   )
+
+if(WIN32)
+  set(VER_PRODUCTNAME "shader_gen")
+  set(VER_FILEDESCRIPTION "Shader Code Generator")
+  set(VER_ORIGINALFILENAME "shader_gen.exe")
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/src/version.rc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+    @ONLY
+    )
+  set(shader_gen_SOURCES
+    ${shader_gen_SOURCES}
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+    )
+endif()
+
 source_group("" FILES ${shader_gen_SOURCES})
 
 add_executable(shader_gen

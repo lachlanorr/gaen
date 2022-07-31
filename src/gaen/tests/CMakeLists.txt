@@ -36,6 +36,21 @@ set(gaen_test_SOURCES
   test_task.cpp
   )
 
+if(WIN32)
+  set(VER_PRODUCTNAME "gaen_tests")
+  set(VER_FILEDESCRIPTION "Gaen Unit Tests")
+  set(VER_ORIGINALFILENAME "gaen_tests.exe")
+  configure_file(
+    ${CMAKE_SOURCE_DIR}/src/version.rc.in
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+    @ONLY
+    )
+  set(gaen_test_SOURCES
+    ${gaen_test_SOURCES}
+    ${CMAKE_CURRENT_BINARY_DIR}/version.rc
+    )
+endif()
+
 source_group("" FILES ${gaen_test_SOURCES})
 
 add_executable(gaen_tests
