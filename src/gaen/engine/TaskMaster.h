@@ -265,8 +265,11 @@ MessageResult send_message(const T& msg)
     return TaskMaster::task_master_for_active_thread().message(msg.accessor());
 }
 
+namespace system_api
+{
+void exit(Entity * pCaller);
+} // namespace system_api
+
 } // namespace gaen
-
-
 
 #endif // #ifndef GAEN_ENGINE_TASKMASTER_H

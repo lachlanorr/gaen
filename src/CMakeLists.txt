@@ -38,7 +38,7 @@ macro(package target)
     TARGET ${target}
     POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${target}> ${packaged_dir}/
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PDB_FILE:${target}> ${packaged_dir}/
+    #COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PDB_FILE:${target}> ${packaged_dir}/
     )
 endmacro()
 

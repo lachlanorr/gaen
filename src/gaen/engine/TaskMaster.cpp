@@ -614,6 +614,9 @@ void TaskMaster::runPrimaryGameLoop()
                 {
                     // LORRTODO: remove dead tasks from the list
 
+                    if (mStatus != kTMS_Initialized)
+                        return;
+
                     task.update(delta);
                 }
             }
@@ -698,10 +701,19 @@ void TaskMaster::runAuxiliaryGameLoop()
         // Get delta since the last time we ran
         f32 delta = mFrameTime.calcDelta();
 
-        // call update on each task owned by this TaskMaster
-        for(Task & task : mOwnedTasks)
+        if (mStatus == kTMS_Initialized)
         {
-            task.update(delta);
+            if (!mIsPaused)
+            {
+                // call update on each task owned by this TaskMaster
+                for(Task & task : mOwnedTasks)
+                {
+                    if (mStatus != kTMS_Initialized)
+                        return;
+
+                    task.update(delta);
+                }
+            }
         }
 
         // messages from other TaskMasters or ourself
@@ -1159,5 +1171,13 @@ template MessageResult TaskMaster::message<MessageQueueAccessor>(const MessageQu
 template MessageResult TaskMaster::message<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
 template void TaskMaster::fin<MessageQueueAccessor>(const MessageQueueAccessor & msgAcc);
 template void TaskMaster::fin<MessageBlockAccessor>(const MessageBlockAccessor & msgAcc);
+
+namespace system_api
+{
+void exit(Entity *pCaller)
+{
+    fin_task_masters();
+}
+} // namespace system_api
 
 } // namespace gaen

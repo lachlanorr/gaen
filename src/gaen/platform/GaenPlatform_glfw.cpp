@@ -126,7 +126,18 @@ void GaenPlatform::init(int argc, char ** argv)
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
     }
 
-    mpContext = glfwCreateWindow(kScreenWidth, kScreenHeight, "Gaen", NULL, NULL);
+    GLFWmonitor * pPrimaryMonitor = glfwGetPrimaryMonitor();
+    i32 monitorCount;
+    GLFWmonitor ** pMonitors = glfwGetMonitors(&monitorCount);
+
+    const GLFWvidmode * pMode = glfwGetVideoMode(pPrimaryMonitor);
+    glfwWindowHint(GLFW_RED_BITS, pMode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, pMode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, pMode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, pMode->refreshRate);
+
+    //mpContext = glfwCreateWindow(kScreenWidth, kScreenHeight, "Gaen", NULL, NULL);
+    mpContext = glfwCreateWindow(pMode->width, pMode->height, "Gaen", pPrimaryMonitor, NULL);
     PANIC_IF(!mpContext, "glfwCreateWindow failed");
 
     start_gaen();
@@ -136,7 +147,7 @@ void GaenPlatform::init(int argc, char ** argv)
 
     glfwSetJoystickCallback(glfw_joystick_callback);
 
-    mRenderer.init((GLFWwindow*)mpContext, kScreenWidth, kScreenHeight);
+    mRenderer.init((GLFWwindow*)mpContext, pMode->width, pMode->height);
     Task rendererTask = Task::create(&mRenderer, HASH::renderer);
     set_renderer(rendererTask);
 
