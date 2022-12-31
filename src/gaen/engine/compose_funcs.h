@@ -52,12 +52,7 @@ inline void print(CmpString str)
     LOG_INFO(str.c_str());
 }
 
-inline void set_input_mode(i32 modeHash)
-{
-    TaskMaster::task_master_for_active_thread().inputMgr().setMode(modeHash);
-}
-
-inline f32 random(Entity * pCaller)
+inline f32 rand()
 {
     return TaskMaster::task_master_for_active_thread().rand();
 }
