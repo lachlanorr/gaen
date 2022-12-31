@@ -79,7 +79,9 @@ InputMgr::InputMgr(bool isPrimary)
 
     zeroState();
 
-    mpActiveMode = 0;
+    mpKeyboardMode = nullptr;
+    // 16 is arbitrary, but should be sufficient for most cases
+    mActiveModes.resize(16, nullptr);
 
     char inputConfPath[kMaxPath+1];
     find_input_conf(inputConfPath);
@@ -150,9 +152,6 @@ InputMgr::InputMgr(bool isPrimary)
                     }
                 }
             }
-
-            if (mpActiveMode == nullptr)
-                mpActiveMode = &mModes[secHash];
         }
     }
 }
@@ -210,14 +209,14 @@ void InputMgr::notifyKeyPressListeners(u32 mode, const ivec4 & keys)
 
 void InputMgr::notifyKeyPressListeners(const ivec4 & keys)
 {
-    if (mpActiveMode)
+    if (mpKeyboardMode)
     {
-        notifyKeyPressListeners(mpActiveMode->nameHash, keys);
+        notifyKeyPressListeners(mpKeyboardMode->nameHash, keys);
     }
 
-    // Always send to the editor task, but only if mpActiveMode is not
+    // Always send to the editor task, but only if mpKeyboardMode is not
     // HASH::editor__.
-    if (!mpActiveMode || mpActiveMode->nameHash != HASH::editor__)
+    if (!mpKeyboardMode || mpKeyboardMode->nameHash != HASH::editor__)
     {
         notifyKeyPressListeners(HASH::editor__, keys);
     }
@@ -241,14 +240,80 @@ void InputMgr::deregister_key_press_listener(u32 mode, task_id target)
                                to_cell(mode));
 }
 
-void InputMgr::setMode(u32 modeHash)
+void InputMgr::disableMode(u32 modeHash)
+{
+    for (auto it = mActiveModes.begin();
+         it != mActiveModes.end();
+         ++it)
+    {
+        auto pActiveMode = *it;
+        if (pActiveMode && pActiveMode->nameHash == modeHash)
+        {
+            *it = nullptr;
+            LOG_INFO("Input mode disabled: %x", modeHash);
+        }
+    }
+    LOG_ERROR("Input mode failed to disabled: %x", modeHash);
+}
+
+void InputMgr::enableMode(u32 modeHash)
+{
+    // find mode in our hashmap
+    auto modeIt = mModes.find(modeHash);
+
+    if (modeIt != mModes.end())
+    {
+        auto pMode = &modeIt->second;
+
+        // make sure it's not already enabled
+        for (auto it = mActiveModes.begin();
+             it != mActiveModes.end();
+             ++it)
+        {
+            auto pActiveMode = *it;
+            if (pActiveMode == pMode)
+                return;
+        }
+
+        // find an empty spot for it
+        for (auto it = mActiveModes.begin();
+             it != mActiveModes.end();
+             ++it)
+        {
+            auto pActiveMode = *it;
+            if (!pActiveMode)
+            {
+                *it = pMode;
+                LOG_INFO("Input mode enabled: %x", modeHash);
+                return;
+            }
+        }
+    }
+    LOG_ERROR("Input mode failed to enable: %x", modeHash);
+}
+
+bool InputMgr::isModeEnabled(u32 modeHash)
+{
+    for (auto it = mActiveModes.begin();
+         it != mActiveModes.end();
+         ++it)
+    {
+        auto pActiveMode = *it;
+        if (pActiveMode && pActiveMode->nameHash == modeHash) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void InputMgr::setKeyboardMode(u32 modeHash)
 {
     auto it = mModes.find(modeHash);
 
-    if (it != mModes.end() && &it->second != mpActiveMode)
+    if (it != mModes.end() && &it->second != mpKeyboardMode)
     {
         mMouseState.zeroState();
-        mpActiveMode = &it->second;
+        mpKeyboardMode = &it->second;
     }
 }
 
@@ -257,7 +322,7 @@ u32 InputMgr::queryState(u32 player, u32 modeHash, u32 stateHash, vec4 * pMeasur
     u32 ret = 0;
 
     auto it = mModes.find(modeHash);
-    if (it != mModes.end())
+    if (it != mModes.end() && isModeEnabled(modeHash))
     {
         const InputMode & mode = it->second;
 
@@ -584,12 +649,27 @@ template MessageResult InputMgr::message<MessageBlockAccessor>(const MessageBloc
 
 namespace system_api
 {
-void register_key_press_listener(i32 modeHash, Entity * pCaller)
+void input_enable_mode(i32 modeHash, Entity * pCaller)
+{
+    TaskMaster::task_master_for_active_thread().inputMgr().enableMode(modeHash);
+}
+
+void input_disable_mode(i32 modeHash, Entity * pCaller)
+{
+    TaskMaster::task_master_for_active_thread().inputMgr().disableMode(modeHash);
+}
+
+void input_set_keyboard_mode(i32 modeHash, Entity * pCaller)
+{
+    TaskMaster::task_master_for_active_thread().inputMgr().setKeyboardMode(modeHash);
+}
+
+void input_register_key_press_listener(i32 modeHash, Entity * pCaller)
 {
     InputMgr::register_key_press_listener(modeHash, pCaller->task().id());
 }
 
-void deregister_key_press_listener(i32 modeHash, Entity * pCaller)
+void input_deregister_key_press_listener(i32 modeHash, Entity * pCaller)
 {
     InputMgr::deregister_key_press_listener(modeHash, pCaller->task().id());
 }

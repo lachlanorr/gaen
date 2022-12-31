@@ -46,8 +46,12 @@ public:
     template <typename T>
     MessageResult message(const T& msgAcc);
 
-    u32 mode() { return mpActiveMode ? mpActiveMode->nameHash : 0; }
-    void setMode(u32 modeHash);
+    void disableMode(u32 modeHash);
+    void enableMode(u32 modeHash);
+    bool isModeEnabled(u32 modeHash);
+
+    u32 keyboardMode() { return mpKeyboardMode ? mpKeyboardMode->nameHash : 0; }
+    void setKeyboardMode(u32 modeHash);
 
     static const u32 kPadInputDetected = 0xffFFffFF;
     u32 queryState(u32 player, u32 modeHash, u32 stateHash, vec4 * pMeasure);
@@ -120,7 +124,8 @@ private:
 
     MouseState mMouseState;
 
-    InputMode * mpActiveMode;
+    InputMode * mpKeyboardMode;
+    Vector<kMEM_Engine, InputMode*> mActiveModes;
     HashMap<kMEM_Engine, u32, InputMode> mModes;
 
     HashMap<kMEM_Engine, u32, Vector<kMEM_Engine, task_id>> mKeyPressListeners;
@@ -130,8 +135,12 @@ private:
 class Entity;
 namespace system_api
 {
-void register_key_press_listener(i32 modeHash, Entity * pCaller);
-void deregister_key_press_listener(i32 modeHash, Entity * pCaller);
+void input_enable_mode(i32 modeHash, Entity * pCaller);
+void input_disable_mode(i32 modeHash, Entity * pCaller);
+void input_set_keyboard_mode(i32 modeHash, Entity * pCaller);
+
+void input_register_key_press_listener(i32 modeHash, Entity * pCaller);
+void input_deregister_key_press_listener(i32 modeHash, Entity * pCaller);
 } // namespace system_api
 
 } // namespace gaen
