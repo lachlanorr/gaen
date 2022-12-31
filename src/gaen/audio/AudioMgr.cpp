@@ -323,7 +323,8 @@ AudioMgr::~AudioMgr()
     if (pStream != nullptr)
     {
         err = Pa_AbortStream(pStream);
-        LOG_ERROR("PortAudio Pa_AbortStream error: %s", Pa_GetErrorText(err));
+        if (err != paNoError)
+            LOG_ERROR("PortAudio Pa_AbortStream error: %s", Pa_GetErrorText(err));
     }
 
     err = Pa_Terminate();
