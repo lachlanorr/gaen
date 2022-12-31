@@ -50,7 +50,8 @@ private:
     bool mIsActive;
     bool mIsPaused;
 
-    bool mCollisionDebug;
+    bool mShowCollision;
+    bool mDebugCamera;
 }; // class Engine
 
 } // namespace gaen

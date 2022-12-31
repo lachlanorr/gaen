@@ -40,7 +40,7 @@
 namespace gaen
 {
 
-GAMEVAR_DECL_BOOL(collision_debug, false);
+GAMEVAR_DECL_BOOL(show_collision, false);
 
 
 void gaen_to_bullet_transform(btTransform & bT, const mat43 & gT)
@@ -214,7 +214,7 @@ void PhysicsDebugDraw::update()
          ModelInstance::model_remove(kModelMgrTaskId, kRendererTaskId, mLinesUid);
          mLinesUid = 0;
     }
-    if (collision_debug)
+    if (show_collision)
     {
         ASSERT(mLines.size() == 0);
         mpDynamicsWorld->debugDrawWorld();

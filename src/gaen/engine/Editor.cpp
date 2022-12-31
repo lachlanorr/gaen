@@ -44,7 +44,8 @@
 namespace gaen
 {
 
-GAMEVAR_REF_BOOL(collision_debug);
+GAMEVAR_REF_BOOL(show_collision);
+GAMEVAR_DECL_BOOL(debug_camera, false);
 
 static const ivec4 kTogglePause = key_vec(kKEY_Space);
 static const ivec4 kToggleEditor = key_vec(kKEY_GraveAccent);
@@ -53,7 +54,8 @@ Editor::Editor()
   : mIsActive(false)
   , mIsPaused(false)
 {
-    mCollisionDebug = collision_debug;
+    mShowCollision = show_collision;
+    mDebugCamera = debug_camera;
     InputMgr::register_key_press_listener(HASH::editor__, kEditorTaskId);
 }
 
@@ -126,13 +128,14 @@ void Editor::update(const FrameTime & frameTime)
         ImGui::Begin("Editor", nullptr);
         ImGui::Text("FPS: %0.2f", fps);
         ImGui::Text("Game State: %s", mIsPaused ? "PAUSED" : "RUNNING");
-        ImGui::Checkbox("Collision Debug", &mCollisionDebug);
+        ImGui::Checkbox("Show Collision", &mShowCollision);
+        ImGui::Checkbox("Debug Camera", &mDebugCamera);
         ImGui::End();
     }
 
     ImGui::Render();
 
-    collision_debug = mCollisionDebug;
+    show_collision = mShowCollision;
 }
 
 // Template decls so we can define message func here in the .cpp
