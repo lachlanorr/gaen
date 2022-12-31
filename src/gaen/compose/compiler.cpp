@@ -3315,16 +3315,6 @@ void register_builtin_functions(ParseData * pParseData)
                                   pParseData);
     }
 
-    // void set_input_mode(i32)
-    {
-        Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
-        ast_add_child(pFuncArgs, ast_create_function_arg("modeHash", parsedata_find_type_symbol(pParseData, "int", 0, 0), pParseData));
-        register_builtin_function("set_input_mode",
-                                  parsedata_find_type_symbol(pParseData, "void", 0, 0),
-                                  pFuncArgs,
-                                  pParseData);
-    }
-
     // f32 rand()
     {
         Ast * pFuncArgs = ast_create(kAST_FunctionDecl, pParseData);
