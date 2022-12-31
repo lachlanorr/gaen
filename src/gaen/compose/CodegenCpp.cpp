@@ -1433,7 +1433,7 @@ S CodegenCpp::inputBlock(const Ast * pRoot, u32 indentLevel)
             procCode += I1;
             if (compiledCount++ > 0)
                 procCode += ("else ");
-            procCode += I1 + S("{") + LF;
+            procCode += S("{") + LF;
 
             const Ast * pAnyDef = nullptr;
             const Ast * pNoneDef = nullptr;
