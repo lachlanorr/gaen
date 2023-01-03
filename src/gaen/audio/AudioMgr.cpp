@@ -417,6 +417,7 @@ MessageResult AudioMgr::message(const T & msgAcc)
             break;
         case HASH::music:
             priority = 3;
+            break;
         default:
             LOG_ERROR("Invalid priorityHash: %d, defaulting to %d", msgr.priorityHash(), kMaxPriority);
             priority = kMaxPriority;
