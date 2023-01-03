@@ -63,6 +63,8 @@ set(gaen_engine_SOURCES
   MessageQueue.h
   MessageWriter.cpp
   MessageWriter.h
+  Randomizer.cpp
+  Randomizer.h
   Registry.cpp
   Registry.h
   Task.cpp
