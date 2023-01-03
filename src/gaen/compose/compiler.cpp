@@ -1231,7 +1231,7 @@ Ast * ast_create_component_member(Ast * pDottedId, Ast * pPropInitList, ParseDat
 
 Ast * ast_create_prop_init(const char * name, Ast * pVal, ParseData * pParseData)
 {
-    if (pVal->type == kAST_SymbolRef && pVal->pSymRecRef->pAst->pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
+    if (pVal->type == kAST_SymbolRef && pVal->pSymRecRef && pVal->pSymRecRef->pAst && pVal->pSymRecRef->pAst->pSymRec->pSymDataType->typeDesc.dataType == kDT_asset_handle)
     {
         // If we set a property equal to one of our own assets, rather
         // set the property to the asset path so the target can load
