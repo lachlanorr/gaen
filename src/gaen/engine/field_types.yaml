@@ -46,9 +46,22 @@ vec2:
   includes:
     - gaen/math/vec2.h
 
+ivec2:
+  cell_count: 2
+  type_name: ivec2
+  union_type: ivec2
+  includes:
+    - gaen/math/vec2.h
+
 vec3:
   cell_count: 3
   type_name: vec3
+  includes:
+    - gaen/math/vec3.h
+
+ivec3:
+  cell_count: 3
+  type_name: ivec3
   includes:
     - gaen/math/vec3.h
 

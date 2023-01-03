@@ -232,7 +232,7 @@ def gen_reader_getters(message):
             lines.append('    %s %s() const { return (%s)mMsgAcc.message().payload.%s; }' % (f.type_name, f.name, f.type_name, f.union_type))
         elif f.type == 'pointer':
             lines.append('    %s %s() const { return static_cast<%s>(mMsgAcc[%d].%s.p); }' % (f.type_name, f.getter_name, f.type_name, f.block_index, f.block_accessor))
-        elif f.type == 'vec3':
+        elif f.type in ['vec3', 'ivec3']:
             lines.append('    const %s & %s() const { return *reinterpret_cast<const %s*>(&mMsgAcc[%d].%s); }' % (f.type_name, f.name, f.type_name, f.block_index, f.block_accessor))
         elif f.block_count <= 1:
             lines.append('    %s %s() const { return mMsgAcc[%d].%s.%s; }' % (f.type_name, f.name, f.block_index, f.block_accessor, f.union_type))
@@ -276,7 +276,7 @@ def gen_writer_setters(message):
             lines.append('    void %s(%s val) { mMsgAcc.message().payload.%s = (%s)val; }' % (f.setter_name, f.type_name, f.union_type, f.type))
         elif f.type == 'pointer':
             lines.append('    void %s(%s pVal) { mMsgAcc[%d].%s.p = (void*)pVal; }' % (f.setter_name, f.type_name, f.block_index, f.block_accessor))
-        elif f.type == 'vec3':
+        elif f.type in ['vec3', 'ivec3']:
             lines.append('    void %s(const %s & val) { mMsgAcc[%d].%s = *reinterpret_cast<const tcell*>(&val); }' % (f.setter_name, f.type_name, f.block_index, f.block_accessor))
         elif f.block_count <= 1:
             lines.append('    void %s(%s val) { mMsgAcc[%d].%s.%s = val; }' % (f.setter_name, f.type_name, f.block_index, f.block_accessor, f.union_type))
