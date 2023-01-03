@@ -97,6 +97,7 @@ ParseData * pParseData = yyextra;
 "self"     { return SELF; }
 "creator"  { return CREATOR; }
 "renderer" { return RENDERER; }
+"source"   { return SOURCE; }
 
 "if"       { return IF;     }
 "else"     { return ELSE;   }

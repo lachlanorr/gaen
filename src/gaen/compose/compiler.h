@@ -122,6 +122,7 @@ typedef enum
     kAST_Renderer,
     kAST_Parent,
     kAST_Transform,
+    kAST_Source,
 
     kAST_If,
     kAST_While,

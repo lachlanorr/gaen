@@ -635,7 +635,7 @@ extern int yylex \
 #undef yyTABLES_NAME
 #endif
 
-#line 207 "compose.l"
+#line 208 "compose.l"
 
 
 #line 641 "compose_scanner.h"

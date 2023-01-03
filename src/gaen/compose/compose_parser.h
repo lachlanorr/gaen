@@ -104,35 +104,36 @@ extern int yydebug;
     POST = 305,                    /* POST  */
     VALUE = 306,                   /* VALUE  */
     RENDERER = 307,                /* RENDERER  */
-    ELSE = 308,                    /* ELSE  */
-    THEN = 309,                    /* THEN  */
-    ADD_ASSIGN = 310,              /* ADD_ASSIGN  */
-    SUB_ASSIGN = 311,              /* SUB_ASSIGN  */
-    MUL_ASSIGN = 312,              /* MUL_ASSIGN  */
-    DIV_ASSIGN = 313,              /* DIV_ASSIGN  */
-    MOD_ASSIGN = 314,              /* MOD_ASSIGN  */
-    LSHIFT_ASSIGN = 315,           /* LSHIFT_ASSIGN  */
-    RSHIFT_ASSIGN = 316,           /* RSHIFT_ASSIGN  */
-    AND_ASSIGN = 317,              /* AND_ASSIGN  */
-    XOR_ASSIGN = 318,              /* XOR_ASSIGN  */
-    OR_ASSIGN = 319,               /* OR_ASSIGN  */
-    TRANSFORM = 320,               /* TRANSFORM  */
-    READY = 321,                   /* READY  */
-    PARENT = 322,                  /* PARENT  */
-    VISIBLE = 323,                 /* VISIBLE  */
-    OR = 324,                      /* OR  */
-    AND = 325,                     /* AND  */
-    EQ = 326,                      /* EQ  */
-    NEQ = 327,                     /* NEQ  */
-    LTE = 328,                     /* LTE  */
-    GTE = 329,                     /* GTE  */
-    LSHIFT = 330,                  /* LSHIFT  */
-    RSHIFT = 331,                  /* RSHIFT  */
-    INC = 332,                     /* INC  */
-    DEC = 333,                     /* DEC  */
-    UMINUS = 334,                  /* UMINUS  */
-    POSTINC = 335,                 /* POSTINC  */
-    POSTDEC = 336                  /* POSTDEC  */
+    SOURCE = 308,                  /* SOURCE  */
+    ELSE = 309,                    /* ELSE  */
+    THEN = 310,                    /* THEN  */
+    ADD_ASSIGN = 311,              /* ADD_ASSIGN  */
+    SUB_ASSIGN = 312,              /* SUB_ASSIGN  */
+    MUL_ASSIGN = 313,              /* MUL_ASSIGN  */
+    DIV_ASSIGN = 314,              /* DIV_ASSIGN  */
+    MOD_ASSIGN = 315,              /* MOD_ASSIGN  */
+    LSHIFT_ASSIGN = 316,           /* LSHIFT_ASSIGN  */
+    RSHIFT_ASSIGN = 317,           /* RSHIFT_ASSIGN  */
+    AND_ASSIGN = 318,              /* AND_ASSIGN  */
+    XOR_ASSIGN = 319,              /* XOR_ASSIGN  */
+    OR_ASSIGN = 320,               /* OR_ASSIGN  */
+    TRANSFORM = 321,               /* TRANSFORM  */
+    READY = 322,                   /* READY  */
+    PARENT = 323,                  /* PARENT  */
+    VISIBLE = 324,                 /* VISIBLE  */
+    OR = 325,                      /* OR  */
+    AND = 326,                     /* AND  */
+    EQ = 327,                      /* EQ  */
+    NEQ = 328,                     /* NEQ  */
+    LTE = 329,                     /* LTE  */
+    GTE = 330,                     /* GTE  */
+    LSHIFT = 331,                  /* LSHIFT  */
+    RSHIFT = 332,                  /* RSHIFT  */
+    INC = 333,                     /* INC  */
+    DEC = 334,                     /* DEC  */
+    UMINUS = 335,                  /* UMINUS  */
+    POSTINC = 336,                 /* POSTINC  */
+    POSTDEC = 337                  /* POSTDEC  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -151,7 +152,7 @@ union YYSTYPE
     SymTab*             pSymTab;
     const SymDataType*  pSymDataType;
 
-#line 155 "compose_parser.h"
+#line 156 "compose_parser.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

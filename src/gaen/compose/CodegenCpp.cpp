@@ -1622,6 +1622,8 @@ S CodegenCpp::codegenMessageParams(const Ast * pAst, int indentLevel)
     return code;
 }
 
+
+
 S CodegenCpp::codegenRecurse(const Ast * pAst,
                                     int indentLevel)
 {
@@ -2536,6 +2538,11 @@ S CodegenCpp::codegenRecurse(const Ast * pAst,
     case kAST_Renderer:
     {
         return S("kRendererTaskId");
+    }
+
+    case kAST_Source:
+    {
+        return S("msgAcc.message().source");
     }
 
     case kAST_Parent:
