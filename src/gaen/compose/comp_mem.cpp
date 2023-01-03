@@ -35,7 +35,7 @@
 
 using namespace gaen;
 
-const size_t kCompMemSize = 5 * 1024 * 1024;
+const size_t kCompMemSize = 10 * 1024 * 1024;
 
 struct CompMemInfo
 {
