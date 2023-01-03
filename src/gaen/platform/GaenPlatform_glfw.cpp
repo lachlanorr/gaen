@@ -44,6 +44,7 @@ namespace gaen
 {
 
 GAMEVAR_DECL_BOOL(gldebug, false);
+GAMEVAR_DECL_BOOL(full_screen, true);
 
 void glfw_error_callback(int error, const char * description)
 {
@@ -136,8 +137,14 @@ void GaenPlatform::init(int argc, char ** argv)
     glfwWindowHint(GLFW_BLUE_BITS, pMode->blueBits);
     glfwWindowHint(GLFW_REFRESH_RATE, pMode->refreshRate);
 
-    //mpContext = glfwCreateWindow(kScreenWidth, kScreenHeight, "Gaen", NULL, NULL);
-    mpContext = glfwCreateWindow(pMode->width, pMode->height, "Gaen", pPrimaryMonitor, NULL);
+    if (full_screen)
+    {
+        mpContext = glfwCreateWindow(pMode->width, pMode->height, "Gaen", pPrimaryMonitor, NULL);
+    }
+    else
+    {
+        mpContext = glfwCreateWindow(kScreenWidth, kScreenHeight, "Gaen", NULL, NULL);
+    }
     PANIC_IF(!mpContext, "glfwCreateWindow failed");
 
     start_gaen();
