@@ -144,7 +144,7 @@ const Ast * find_property_dependency(const Ast * pAst)
             if (pCheck)
                 return pCheck;
         }
-    }    
+    }
     return nullptr;
 }
 
@@ -156,7 +156,7 @@ ScriptDataCategory data_category(const Ast * pAst)
     {
         if (is_asset_prop_or_field(pSymRec))
             return kSDC_Asset;
-        else if (is_prop(pSymRec)) 
+        else if (is_prop(pSymRec))
             return kSDC_Independent;
         else if (is_field(pSymRec))
         {
@@ -185,7 +185,7 @@ static BlockInfo * find_next_fit(CompVector<BlockInfo> & items,
                                  bool packForMessage)
 {
     ASSERT(currCell < kCellsPerBlock);
-    
+
     for (BlockInfo & item : items)
     {
         if (item.isAssigned)
