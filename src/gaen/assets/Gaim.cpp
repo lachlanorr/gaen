@@ -26,6 +26,7 @@
 
 #include <cmath>
 
+#include "gaen/core/logging.h"
 #include "gaen/core/Vector.h"
 #include "gaen/hashes/hashes.h"
 
@@ -172,8 +173,8 @@ const AnimInfo * Gaim::anim(u32 nameHash) const
             return pAi;
         pAi++;
     }
-    PANIC("Anim not found: %u, 0x%x", nameHash, nameHash);
-    return nullptr;
+    LOG_ERROR("Anim not found, using index 0: %u, 0x%x", nameHash, nameHash);
+    return animByIndex(0);
 }
 
 const AnimInfo * Gaim::animByIndex(u32 animIndex) const
