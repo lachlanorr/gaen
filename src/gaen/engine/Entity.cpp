@@ -99,9 +99,14 @@ Entity::Entity(u32 nameHash,
     mBlocksMax = blocksMax;
     mBlockCount = 0;
     if (mBlocksMax > 0)
+    {
         mpBlocks = (Block*)GALLOC(kMEM_Engine, sizeof(Block) * mBlocksMax);
+        memset(mpBlocks, 0, sizeof(Block) * mBlocksMax);
+    }
     else
+    {
         mpBlocks = nullptr;
+    }
 
     mAssetsRequested = 0;
     mAssetsLoaded = 0;
@@ -383,6 +388,12 @@ MessageResult Entity::message(const T & msgAcc)
             insertChild(pChild);
             return MessageResult::Consumed;
         }
+        else if (msgId == HASH::transform)
+        {
+            messages::TransformR<T> msgr(msgAcc);
+            applyTransform(msgAcc.message().source, msgr.isLocal(), msgr.transform());
+            return MessageResult::Consumed;
+        }
 
         // Interesting messages are handled here, initialization
         // messages are below
@@ -412,12 +423,6 @@ MessageResult Entity::message(const T & msgAcc)
             case HASH::remove_child:
             {
                 removeChild(msgAcc.message().payload.u);
-                return MessageResult::Consumed;
-            }
-            case HASH::transform:
-            {
-                messages::TransformR<T> msgr(msgAcc);
-                applyTransform(msgAcc.message().source, msgr.isLocal(), msgr.transform());
                 return MessageResult::Consumed;
             }
             case HASH::move:
