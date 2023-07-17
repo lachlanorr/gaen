@@ -30,11 +30,13 @@
 #include "gaen/core/base_defines.h"
 #include "gaen/engine/Task.h"
 
+#ifndef IS_HEADLESS
 #if IS_PLATFORM_WIN32
 // A little crufty, but we can accommodate alternate renderers more elegantly later
 #include "gaen/renderergl/RendererMesh.h"
 typedef gaen::RendererMesh RendererType;
 #endif
+#endif // IS_HEADLESS
 
 namespace gaen
 {
@@ -56,7 +58,9 @@ private:
     void init(int argc, char ** argv);
     void fin();
 
+#ifndef IS_HEADLESS
     RendererType mRenderer;
+#endif
     void * mpContext;
 };
 

@@ -34,7 +34,9 @@
 #include "gaen/engine/Entity.h"
 #include "gaen/engine/BlockMemory.h"
 #include "gaen/engine/TaskMaster.h"
+#ifndef IS_HEADLESS
 #include "gaen/engine/InputMgr.h"
+#endif
 
 namespace gaen
 {

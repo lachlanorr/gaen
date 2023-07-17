@@ -31,7 +31,9 @@ set(gaen_platform_SOURCES
   GaenPlatform.h
   )
 
-if(USE_GLFW)
+if(DEFINED IS_HEADLESS)
+  list(APPEND gaen_platform_SOURCES GaenPlatform_headless.cpp)
+elseif(USE_GLFW)
   list(APPEND gaen_platform_SOURCES GaenPlatform_glfw.cpp)
 endif()
 
@@ -45,16 +47,37 @@ set_target_properties(gaen_platform PROPERTIES
   FOLDER lib
   )
 
+
+set(PLATFORM_LIB_LINK_LIBS
+  gaen_render_support
+  )
+
+if (NOT DEFINED IS_HEADLESS)
+  list(APPEND PLATFORM_LIB_LINK_LIBS
+	gaen_renderergl
+	)
+endif()
+
+list(APPEND PLATFORM_LIB_LINK_LIBS
+  gaen_assets
+  gaen_engine
+  )
+
+if (NOT DEFINED IS_HEADLESS)
+  list(APPEND PLATFORM_LIB_LINK_LIBS
+	gaen_audio
+	gaen_cara
+	)
+endif()
+
+list(APPEND PLATFORM_LIB_LINK_LIBS
+  gaen_scripts
+  ${PLATFORM_LINK_LIBS}
+  )
+
 target_link_libraries(gaen_platform
-    gaen_render_support
-    gaen_renderergl
-    gaen_assets
-    gaen_engine
-    gaen_audio
-    gaen_cara
-    gaen_scripts
-    ${PLATFORM_LINK_LIBS}
-    )
+  ${PLATFORM_LIB_LINK_LIBS}
+  )
 
 add_dependencies(gaen_platform
   CODEGEN_MESSAGES

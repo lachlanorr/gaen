@@ -36,10 +36,12 @@
 #include "gaen/engine/messages/OwnerTask.h"
 #include "gaen/engine/messages/TaskStatus.h"
 #include "gaen/engine/messages/TaskEntity.h"
-#include "gaen/engine/InputMgr.h"
 #include "gaen/engine/AssetMgr.h"
+#ifndef IS_HEADLESS
+#include "gaen/engine/InputMgr.h"
 #include "gaen/engine/Editor.h"
 #include "gaen/audio/AudioMgr.h"
+#endif // IS_HEADLESS
 #include "gaen/render_support/ModelMgr.h"
 #include "gaen/render_support/SpriteMgr.h"
 #include "gaen/render_support/renderer_api.h"
@@ -381,8 +383,10 @@ void TaskMaster::init(thread_id tid)
     mThreadId = tid;
     mIsPrimary = tid == kPrimaryThreadId;
 
+#ifndef IS_HEADLESS
     // initialize mRenderTask to be blank for now
     mRendererTask = Task::blank();
+#endif
     mPlatformTask = Task::blank();
 
     for (size_t i = 0; i < num_threads(); ++i)
@@ -412,16 +416,18 @@ void TaskMaster::fin(const T& msgAcc)
     ASSERT(msgAcc.message().msgId == HASH::fin);
 
     // Cleanup managers in reverse order they were initialized
+#ifndef IS_HEADLESS
 #if HAS(ENABLE_EDITOR)
     mpEditor.reset(nullptr);
 #endif
 
     mpSpriteMgr.reset(nullptr);
     mpModelMgr.reset(nullptr);
-
     mpAudioMgr.reset(nullptr);
-    mpAssetMgr.reset(nullptr);
     mpInputMgr.reset(nullptr);
+#endif // IS_HEADLESS
+
+    mpAssetMgr.reset(nullptr);
 
     for (Task & task : mOwnedTasks)
     {
@@ -451,8 +457,10 @@ void TaskMaster::cleanup()
 
     ASSERT(mStatus == kTMS_Finalizing);
 
+#ifndef IS_HEADLESS
     if (mRendererTask.id() != 0)
         renderer_fin(mRendererTask);
+#endif
 
     for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
     {
@@ -532,11 +540,14 @@ void TaskMaster::waitForNextFrame()
 void TaskMaster::runPrimaryGameLoop()
 {
     ASSERT(mStatus == kTMS_Initialized);
-    ASSERT(mIsPrimary && mRendererTask.id() != 0 && mPlatformTask.id() != 0);
+    ASSERT(mIsPrimary && mPlatformTask.id() != 0);
     ASSERT(!mIsRunning);
 
-    mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr, isPrimary()));
     mpAssetMgr.reset(GNEW(kMEM_Engine, AssetMgr, 4));
+
+#ifndef IS_HEADLESS
+    ASSERT(mRendererTask.id() != 0);
+    mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr, isPrimary()));
     mpAudioMgr.reset(GNEW(kMEM_Engine, AudioMgr));
 
     // LORRNOTE: SpriteMgr should be started on all TaskMasters and
@@ -551,6 +562,7 @@ void TaskMaster::runPrimaryGameLoop()
 
     renderer_init_device(mRendererTask);
     renderer_init_viewport(mRendererTask);
+#endif // IS_HEADLESS
 
     // LORRTODO - make start entity name dynamic based on command line args
     // Init the start entity now that we have a TaskMaster running.
@@ -564,11 +576,14 @@ void TaskMaster::runPrimaryGameLoop()
     mIsRunning = true;
     mFrameTime.init();
 
+#ifndef IS_HEADLESS
     f64 timeSinceRender = 0.0;
     bool didRender = false;
+#endif
 
     while(mIsRunning)
     {
+#ifndef IS_HEADLESS
         // Render through the render adapter
         if (timeSinceRender > min_render_interval)
         {
@@ -576,6 +591,7 @@ void TaskMaster::runPrimaryGameLoop()
             didRender = true;
             timeSinceRender = 0;
         }
+#endif
 
 #if HAS(LOG_FPS)
         if (mFrameTime.frameCount() % 100 == 0)
@@ -592,7 +608,9 @@ void TaskMaster::runPrimaryGameLoop()
         }
 #endif
         mPlatformTask.update(0.0);
+#ifndef IS_HEADLESS
         poll_pad_input();
+#endif
 
         // messages from other TaskMasters or ourself
         for (MessageQueue * pMessageQueue : mTaskMasterMessageQueues)
@@ -604,7 +622,9 @@ void TaskMaster::runPrimaryGameLoop()
         // Use a min value to avoid issues when we are debugging for several seconds
         // within a frame, 0.5s should be a reasonable max for a frame.
         f64 delta = mFrameTime.calcDelta(); // glm::min(0.5f, mFrameTime.calcDelta());
+#ifndef IS_HEADLESS
         timeSinceRender += delta;
+#endif
         if (mStatus == kTMS_Initialized)
         {
             if (!mIsPaused)
@@ -634,6 +654,7 @@ void TaskMaster::runPrimaryGameLoop()
         // Update physics (inside the Mgrs)
         if (mStatus == kTMS_Initialized)
         {
+#ifndef IS_HEADLESS
             if (!mIsPaused)
             {
                 mpModelMgr->update(delta);
@@ -643,6 +664,7 @@ void TaskMaster::runPrimaryGameLoop()
 #if HAS(ENABLE_EDITOR)
             mpEditor->update(mFrameTime);
 #endif
+#endif // IS_HEADLESS
         }
 
         // messages from other TaskMasters or ourself
@@ -655,11 +677,13 @@ void TaskMaster::runPrimaryGameLoop()
         // messages and update tasks while we render.
         notify_next_frame();
 
+#ifndef IS_HEADLESS
         if (didRender)
         {
             renderer_end_frame(mRendererTask);
             didRender = false;
         }
+#endif // IS_HEADLESS
     };
     join_all_threads();
 }
@@ -667,10 +691,13 @@ void TaskMaster::runPrimaryGameLoop()
 void TaskMaster::runAuxiliaryGameLoop()
 {
     ASSERT(mStatus == kTMS_Initialized);
-    ASSERT(!mIsPrimary && mRendererTask.id() == 0 && mPlatformTask.id() == 0);
+    ASSERT(!mIsPrimary && mPlatformTask.id() == 0);
     ASSERT(!mIsRunning);
 
+#ifndef IS_HEADLESS
+    ASSERT(mRendererTask.id() == 0);
     mpInputMgr.reset(GNEW(kMEM_Engine, InputMgr, isPrimary()));
+#endif
 
     mIsRunning = true;
     mFrameTime.init();
@@ -859,6 +886,7 @@ MessageResult TaskMaster::message(const T& msgAcc)
                     mOwnedTasks[ownedIt->second].message(finw.accessor());
                 }
 
+#ifndef IS_HEADLESS
                 if (mpModelMgr)
                     mpModelMgr->message(msgAcc);
 
@@ -867,6 +895,7 @@ MessageResult TaskMaster::message(const T& msgAcc)
 
                 // Let renderer know so it can clean up image assets loaded directly to the renderer.
                 mRendererTask.message(msgAcc);
+#endif // IS_HEADLESS
 
                 removeTask(taskIdToRemove);
 
@@ -962,6 +991,7 @@ MessageResult TaskMaster::message(const T& msgAcc)
             }
             }
         }
+#ifndef IS_HEADLESS
         else if (msg.target == kRendererTaskId)
         {
             ASSERT(mRendererTask.id() != 0);
@@ -971,11 +1001,6 @@ MessageResult TaskMaster::message(const T& msgAcc)
         {
             ASSERT(mpInputMgr.get() != nullptr);
             mpInputMgr->message(msgAcc);
-        }
-        else if (msg.target == kAssetMgrTaskId)
-        {
-            ASSERT(mpAssetMgr.get() != nullptr);
-            mpAssetMgr->message(msgAcc);
         }
         else if (msg.target == kModelMgrTaskId)
         {
@@ -999,6 +1024,12 @@ MessageResult TaskMaster::message(const T& msgAcc)
             mpEditor->message(msgAcc);
         }
 #endif
+#endif // IS_HEADLESS
+        else if (msg.target == kAssetMgrTaskId)
+        {
+            ASSERT(mpAssetMgr.get() != nullptr);
+            mpAssetMgr->message(msgAcc);
+        }
         else
         {
             // Message is for a specific task

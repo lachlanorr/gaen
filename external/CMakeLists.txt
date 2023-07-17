@@ -38,16 +38,20 @@ include(bzip2.cmake)
 include(brotli.cmake)
 
 # audio
-include(portaudio.cmake)
+if (NOT DEFINED IS_HEADLESS)
+  include(portaudio.cmake)
+endif()
 
 # math
 include(glm.cmake)
 
 # rendering
-include(glad.cmake)
-include(glfw.cmake)
-include(imgui.cmake)
-include(nanovg.cmake)
+if (NOT DEFINED IS_HEADLESS)
+  include(glad.cmake)
+  include(glfw.cmake)
+  include(imgui.cmake)
+  include(nanovg.cmake)
+endif()
 
 # physics
 include(bullet3.cmake)

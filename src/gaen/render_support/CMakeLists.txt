@@ -71,13 +71,22 @@ set_target_properties(gaen_render_support PROPERTIES
   FOLDER lib
   )
 
-target_link_libraries(gaen_render_support PUBLIC
+set(RENDER_SUPPORT_LINK_LIBS
   gaen_math
   gaen_hashes
   BulletCollision
   BulletDynamics
   LinearMath
-  glfw
+  )
+
+if (NOT DEFINED IS_HEADLESS)
+  list(APPEND RENDER_SUPPORT_LINK_LIBS
+	glfw
+	)
+endif()
+
+target_link_libraries(gaen_render_support PUBLIC
+  ${RENDER_SUPPORT_LINK_LIBS}
   )
 
 add_dependencies(gaen_render_support

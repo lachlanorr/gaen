@@ -56,6 +56,8 @@
 #include <btBulletDynamicsCommon.h>
 #include <BulletCollision/CollisionShapes/btBox2dShape.h>
 
+#ifndef IS_HEADLESS
 #include <GLFW/glfw3.h>
+#endif
 
 #endif // #ifndef GAEN_ENGINE_STDAFX_H

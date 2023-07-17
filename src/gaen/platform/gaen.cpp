@@ -238,11 +238,13 @@ void start_gaen()
     init_task_masters();
 }
 
+#ifndef IS_HEADLESS
 void set_renderer(const Task & rendererTask)
 {
     TaskMaster & tm = TaskMaster::primary_task_master();
     tm.setRenderer(rendererTask);
 }
+#endif // IS_HEADLESS
 
 void fin_gaen()
 {

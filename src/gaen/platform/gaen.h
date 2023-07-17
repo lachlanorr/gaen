@@ -40,8 +40,10 @@ void init_gaen(int argc, char ** argv);
 // is reserved for OS specific stuff, like event handling.
 void start_gaen();
 
+#ifndef IS_HEADLESS
 // Set the renderer for the primary taskmaster
 void set_renderer(const Task & rendererTask);
+#endif // IS_HEADLESS
 
 // Call this to shutdown TaskMasters when app wants to close
 void fin_gaen();

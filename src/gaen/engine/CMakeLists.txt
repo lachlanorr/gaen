@@ -45,8 +45,6 @@ set(gaen_engine_SOURCES
   CmpString.h
   Component.h
   compose_funcs.h
-  Editor.cpp
-  Editor.h
   Entity.cpp
   Entity.h
   EntityInit.h
@@ -54,10 +52,6 @@ set(gaen_engine_SOURCES
   glm_ext.h
   Handle.cpp
   Handle.h
-  input.cpp
-  input.h
-  InputMgr.cpp
-  InputMgr.h
   Message.h
   MessageAccessor.h
   MessageQueue.h
@@ -78,6 +72,17 @@ set(gaen_engine_SOURCES
   ${gaen_engine_messages_SOURCES}
   )
 
+if (NOT DEFINED IS_HEADLESS)
+list(APPEND gaen_engine_SOURCES
+  Editor.cpp
+  Editor.h
+  input.cpp
+  input.h
+  InputMgr.cpp
+  InputMgr.h
+  )
+endif()
+
 source_group("" FILES ${gaen_engine_SOURCES})
 source_group("messages" FILES ${gaen_engine_messages_SOURCES})
 
@@ -89,15 +94,24 @@ set_target_properties(gaen_engine PROPERTIES
   FOLDER lib
   )
 
-target_link_libraries(gaen_engine PUBLIC
+set(ENGINE_LINK_LIBS
   gaen_math
   gaen_hashes
   BulletCollision
   BulletDynamics
   LinearMath
-  imgui
-  glfw
-  glad
+  )
+
+if (NOT DEFINED IS_HEADLESS)
+  list(APPEND ENGINE_LINK_LIBS
+	imgui
+	glfw
+	glad
+	)
+endif()
+
+target_link_libraries(gaen_engine PUBLIC
+  ${ENGINE_LINK_LIBS}
   )
 
 # Run each time we build.

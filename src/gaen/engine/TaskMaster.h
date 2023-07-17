@@ -46,12 +46,14 @@
 namespace gaen
 {
 
-class InputMgr;
 class AssetMgr;
+#ifndef IS_HEADLESS
 class ModelMgr;
 class SpriteMgr;
 class AudioMgr;
+class InputMgr;
 class Editor;
+#endif
 
 class MessageQueue;
 class Entity;
@@ -154,12 +156,14 @@ public:
     // De-register a task from a mutable data dependency
     void deregisterMutableDependency(task_id taskId, u32 path);
 
+#ifndef IS_HEADLESS
     void setRenderer(const Task & rendererTask)
     {
         ASSERT(mStatus == kTMS_Initialized);
         ASSERT(mIsPrimary);
         mRendererTask = rendererTask;
     }
+#endif
 
     void setPlatformTask(const Task & platformTask)
     {
@@ -168,7 +172,9 @@ public:
         mPlatformTask = platformTask;
     }
 
+#ifndef IS_HEADLESS
     InputMgr & inputMgr() { return *mpInputMgr; }
+#endif
 
     thread_id threadId() { return mThreadId; }
     bool isPrimary() { return mIsPrimary; }
@@ -214,17 +220,19 @@ private:
     typedef HashMap<kMEM_Engine, task_id, thread_id> TaskOwnerMap;
     TaskOwnerMap mTaskOwnerMap;
 
-    UniquePtr<InputMgr> mpInputMgr;
     UniquePtr<AssetMgr> mpAssetMgr;
-    UniquePtr<ModelMgr> mpModelMgr;
+
+#ifndef IS_HEADLESS
+	UniquePtr<ModelMgr> mpModelMgr;
     UniquePtr<SpriteMgr> mpSpriteMgr;
     UniquePtr<AudioMgr> mpAudioMgr;
-
+    UniquePtr<InputMgr> mpInputMgr;
 #if HAS(ENABLE_EDITOR)
     UniquePtr<Editor> mpEditor;
 #endif
-
     Task mRendererTask;
+#endif // IS_HEADLESS
+
     Task mPlatformTask;
 
     FrameTime mFrameTime;

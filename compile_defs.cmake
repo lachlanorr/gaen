@@ -74,12 +74,17 @@ if(WIN32)
   set(platform "win32")
   set(platform_ext "cpp")
   set(net_platform "win32")
-  set(USE_GLFW ON)
 
   set(PLATFORM_LINK_LIBS
     Ws2_32
-    opengl32.lib
-  )
+	)
+
+  if (NOT DEFINED IS_HEADLESS)
+	set(USE_GLFW ON)
+	list(APPEND PLATFORM_LINK_LIBS
+	  opengl32.lib
+	  )
+  endif()
 
   option(USE_MSVC_FAST_FLOATINGPOINT "Use MSVC /fp:fast option" ON)
   if(USE_MSVC_FAST_FLOATINGPOINT)

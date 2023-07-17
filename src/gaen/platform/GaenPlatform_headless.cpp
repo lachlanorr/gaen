@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// stdafx.h - Precompiled headers
+// GaenPlatform_headless.cpp - Gaen headless platform
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,39 +24,33 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_RENDER_SUPPORT_STDAFX_H
-#define GAEN_RENDER_SUPPORT_STDAFX_H
+#include "gaen/core/logging.h"
+#include "gaen/core/gamevars.h"
+#include "gaen/core/HashMap.h"
+#include "gaen/core/String.h"
+#include "gaen/core/platutils.h"
+#include "gaen/platform/gaen.h"
 
-#include <cfloat>
-#include <csignal>
-#include <cstdarg>
-#include <cstddef>
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include "gaen/platform/GaenPlatform.h"
 
-#include <algorithm>
-#include <atomic>
-#include <list>
-#include <limits>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <new>
-#include <string>
-#include <thread>
-#include <type_traits>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
-#include <vector>
+namespace gaen
+{
 
-#include <btBulletDynamicsCommon.h>
-#include <BulletCollision/CollisionShapes/btBox2dShape.h>
+void GaenPlatform::update(f32 delta)
+{
+	// no-op on headless
+}
 
-#ifndef IS_HEADLESS
-#include <GLFW/glfw3.h>
-#endif
+void GaenPlatform::init(int argc, char ** argv)
+{
+    init_gaen(__argc, __argv);
+    start_gaen();
+}
 
-#endif // #ifndef GAEN_RENDER_SUPPORT_STDAFX_H
+void GaenPlatform::fin()
+{
+	// no-op on headless
+}
+
+
+} // namespace gaen

@@ -2875,7 +2875,9 @@ CodeCpp CodegenCpp::codegen(ParseData * pParseData)
     codeCpp.code += S("#include \"gaen/engine/compose_funcs.h\"\n");
     codeCpp.code += S("#include \"gaen/engine/MessageWriter.h\"\n");
     codeCpp.code += S("#include \"gaen/engine/TaskMaster.h\"\n");
+#ifndef IS_HEADLESS
     codeCpp.code += S("#include \"gaen/engine/InputMgr.h\"\n");
+#endif
     codeCpp.code += S("#include \"gaen/engine/Task.h\"\n");
     codeCpp.code += S("#include \"gaen/engine/Handle.h\"\n");
     codeCpp.code += S("#include \"gaen/engine/Registry.h\"\n");
