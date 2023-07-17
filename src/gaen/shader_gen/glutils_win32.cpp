@@ -68,7 +68,7 @@ void init_opengl()
     // Register windows class
     if (!RegisterClass(&wc))
         PANIC("Failed to register WNDCLASS");
-        
+
     // Create The Window
     sHwnd = CreateWindowEx(exStyle,
                            kClassName,
@@ -89,7 +89,7 @@ void init_opengl()
 
     PIXELFORMATDESCRIPTOR pfd;
     memset(&pfd, 0, sizeof(PIXELFORMATDESCRIPTOR));
-    
+
     // Set what's important, all else left 0
     pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
     pfd.nVersion = 1;
@@ -99,7 +99,7 @@ void init_opengl()
     pfd.cDepthBits = 16;
     pfd.iLayerType = PFD_MAIN_PLANE;
 
-        
+
     if (!(sHdc = GetDC(sHwnd)))
         PANIC("Cannnot create GL device context");
 

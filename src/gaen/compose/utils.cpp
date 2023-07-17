@@ -81,7 +81,7 @@ const char * path_join(const char * rootDir,
 {
     ASSERT(rootDir);
     ASSERT(filename);
-    
+
     TLARRAY(char, fullPath, FILENAME_MAX);
 
     size_t rootLen = strlen(rootDir);
@@ -155,7 +155,7 @@ const char * full_path(const char * path,
 
     return parsedata_add_string(pParseData, fullPath);
 #endif
-        
+
 }
 
 void make_posix_path(char * path)
