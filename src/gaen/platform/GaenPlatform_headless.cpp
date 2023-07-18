@@ -38,7 +38,7 @@ namespace gaen
 
 void GaenPlatform::update(f32 delta)
 {
-	// no-op on headless
+    // no-op on headless
 }
 
 void GaenPlatform::init(int argc, char ** argv)
@@ -49,7 +49,7 @@ void GaenPlatform::init(int argc, char ** argv)
 
 void GaenPlatform::fin()
 {
-	// no-op on headless
+    // no-op on headless
 }
 
 

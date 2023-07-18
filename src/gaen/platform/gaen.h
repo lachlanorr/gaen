@@ -47,6 +47,7 @@ void set_renderer(const Task & rendererTask);
 
 // Call this to shutdown TaskMasters when app wants to close
 void fin_gaen();
+void initiate_fin_gaen();
 
 void shutdown();
 

@@ -42,11 +42,27 @@
 
 #include "gaen/platform/gaen.h"
 
+#ifndef IS_HEADLESS
+#if IS_PLATFORM_WIN32
 // Force Optimus enabled systems to use Nvidia adapter
 extern "C"
 {
     __declspec(dllexport) gaen::u32 NvOptimusEnablement = 0x00000001;
 }
+#endif
+#else  // IS_HEADLESS
+#include <windows.h>
+#include <stdio.h>
+BOOL WINAPI console_handler(DWORD signal) {
+    if (signal == CTRL_C_EVENT)
+    {
+        LOG(gaen::kLS_Info, "CTRL-C captured, initiating fin");
+        gaen::initiate_fin_gaen();
+        return TRUE;
+    }
+    return FALSE;
+}
+#endif // IS_HEADLESS
 
 namespace gaen
 {
@@ -63,7 +79,11 @@ static char sStartEntity[kMaxEntityName+1] = "init.Start";
 
 static const size_t kMaxIpLen = 16;
 static char sLoggingServerIp[kMaxIpLen] = {0};
+#ifndef IS_HEADLESS
 static bool sIsLoggingEnabled = false;
+#else  // IS_HEADLESS
+static bool sIsLoggingEnabled = true;
+#endif // IS_HEADLESS
 
 #if HAS(DEV_BUILD)
 static bool sIsEditorActive = true;
@@ -212,7 +232,15 @@ static void parse_args(int argc,
 //------------------------------------------------------------------------------
 void init_gaen(int argc, char ** argv)
 {
-    parse_args(argc,
+#ifdef IS_HEADLESS
+#if IS_PLATFORM_WIN32
+	if (!SetConsoleCtrlHandler(console_handler, TRUE)) {
+		printf("ERROR: could not set control handler\n");
+	}
+#endif // IS_PLATFORM_WIN32
+#endif // IS_HEADLESS
+
+	parse_args(argc,
                argv);
 
     init_time();
@@ -250,6 +278,12 @@ void set_renderer(const Task & rendererTask)
 void fin_gaen()
 {
     fin_task_masters();
+}
+
+void initiate_fin_gaen()
+{
+    TaskMaster & tm = TaskMaster::primary_task_master();
+	tm.initiateFin();
 }
 
 void shutdown()

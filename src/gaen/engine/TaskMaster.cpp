@@ -447,6 +447,12 @@ void TaskMaster::fin(const T& msgAcc)
         notify_next_frame();
 }
 
+// Allow uninitialized thread to start the fin process safely
+void TaskMaster::initiateFin()
+{
+	ASSERT(mIsPrimary);
+	mIsFinInitiated = true;
+}
 
 void TaskMaster::cleanup()
 {
@@ -583,6 +589,11 @@ void TaskMaster::runPrimaryGameLoop()
 
     while(mIsRunning)
     {
+		if (mIsFinInitiated) {
+			fin_task_masters();
+			mIsFinInitiated = false;
+		}
+
 #ifndef IS_HEADLESS
         // Render through the render adapter
         if (timeSinceRender > min_render_interval)

@@ -118,6 +118,7 @@ public:
 
     template <typename T>
     void fin(const T& msgAcc);
+    void initiateFin();
 
     void cleanup();
 
@@ -257,6 +258,7 @@ private:
     bool mIsPrimary = false; // primary task master has GPU, handles rendering/physics
     bool mIsRunning = false;
     bool mIsPaused = false;
+	bool mIsFinInitiated = false;
 
     TaskMasterStatus mStatus = kTMS_Uninitialized;
     u32 mShutdownCount = 0; // used when shutting down to count how many peer TaskMasters have finalized
