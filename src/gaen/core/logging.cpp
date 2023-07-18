@@ -64,26 +64,34 @@ void log_failure(const char * msg)
 
 void Logger::init(u32 serverIp)
 {
+#ifndef IS_HEADLESS
     ASSERT(!mIsInit);
     bool ret = sock_create(&mSock);
     ASSERT(ret);
     mServerIp = serverIp;
     set_report_failure_cb(log_failure);
+#endif // IS_HEADLESS
     mIsInit = true;
 }
 
 void Logger::init(const char * serverIp)
 {
+#ifndef IS_HEADLESS
     ASSERT(is_valid_ip(serverIp));
     u32 ip = str_to_ip(serverIp);
     init(ip);
+#else  // IS_HEADLESS
+	mIsInit = true;
+#endif // IS_HEADLESS
 }
 
 void Logger::fin()
 {
+#ifndef IS_HEADLESS
     ASSERT(mIsInit);
     sock_close(mSock);
-    mIsInit = false;
+#endif // IS_HEADLESS
+	mIsInit = false;
 }
 
 void Logger::log(LogSeverity severity, const char * message)
@@ -109,11 +117,15 @@ void Logger::log(LogSeverity severity, const char * message)
     strncpy(lm.msg, message, msgLen);
     lm.msg[msgLen] = '\0';
 
+#ifndef IS_HEADLESS
     sock_sendto(mSock,
                 reinterpret_cast<u8*>(&lm),
                 sizeof(LogMessageHeader) + msgLen+1,
                 mServerIp,
                 kLoggingPort);
+#else  // IS_HEADLESS
+    puts(lm.msg);
+#endif // IS_HEADLESS
 }
 
 void logf(LogSeverity severity, const char * format, ...)

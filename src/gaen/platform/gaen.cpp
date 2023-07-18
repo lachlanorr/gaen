@@ -34,6 +34,7 @@
 #include "gaen/core/logging.h"
 #include "gaen/core/threading.h"
 #include "gaen/core/mem.h"
+#include "gaen/core/sockets.h"
 
 #include "gaen/engine/TaskMaster.h"
 #include "gaen/engine/Entity.h"

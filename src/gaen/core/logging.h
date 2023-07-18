@@ -28,7 +28,9 @@
 #define GAEN_CORE_LOGGING_H
 
 #include "gaen/core/base_defines.h"
+#ifndef IS_HEADLESS
 #include "gaen/core/sockets.h"
+#endif // IS_HEADLESS
 #include "gaen/core/log_message.h"
 
 namespace gaen
@@ -60,8 +62,10 @@ public:
     bool isInit() { return mIsInit; }
 
 private:
+#ifndef IS_HEADLESS
     Sock mSock;
     u32 mServerIp;
+#endif // IS_HEADLESS
     bool mIsInit = false;
 };
 
