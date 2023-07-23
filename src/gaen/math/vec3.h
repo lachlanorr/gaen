@@ -263,7 +263,7 @@ inline vec3 degrees(vec3 radians)
 namespace std
 {
 template <>
-struct hash<gaen::vec3> : public unary_function<gaen::vec3, size_t>
+struct hash<gaen::vec3>
 {
     size_t operator()(const gaen::vec3& value) const
     {
@@ -272,7 +272,7 @@ struct hash<gaen::vec3> : public unary_function<gaen::vec3, size_t>
 };
 
 template <>
-struct hash<gaen::ivec3> : public unary_function<gaen::ivec3, size_t>
+struct hash<gaen::ivec3>
 {
     size_t operator()(const gaen::ivec3& value) const
     {

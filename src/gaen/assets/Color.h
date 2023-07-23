@@ -138,7 +138,7 @@ static_assert(sizeof(Color)==4,"");
 namespace std
 {
     template <>
-    struct hash<gaen::Color> : public unary_function<gaen::Color, size_t>
+    struct hash<gaen::Color>
     {
         size_t operator()(const gaen::Color& value) const
         {

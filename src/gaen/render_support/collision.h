@@ -226,7 +226,7 @@ namespace std
 {
 
 template <>
-struct hash<gaen::HitBox> : public unary_function<gaen::HitBox, size_t>
+struct hash<gaen::HitBox>
 {
     size_t operator()(const gaen::HitBox& value) const
     {
@@ -235,7 +235,7 @@ struct hash<gaen::HitBox> : public unary_function<gaen::HitBox, size_t>
 };
 
 template <>
-struct hash<gaen::Capsule> : public unary_function<gaen::Capsule, size_t>
+struct hash<gaen::Capsule>
 {
     size_t operator()(const gaen::Capsule& value) const
     {
