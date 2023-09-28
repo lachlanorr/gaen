@@ -24,11 +24,11 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#include "gaen/chef/Chef.h"
-#include "gaen/chef/Cooker.h"
+#include "gaen/cheflib/Chef.h"
+#include "gaen/cheflib/Cooker.h"
 
-#include "gaen/chef/CookerRegistry.h"
-#include "gaen/chef/CookInfo.h"
+#include "gaen/cheflib/CookerRegistry.h"
+#include "gaen/cheflib/CookInfo.h"
 
 namespace gaen
 {

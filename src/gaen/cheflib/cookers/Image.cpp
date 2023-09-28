@@ -33,9 +33,9 @@
 #include "gaen/image/Png.h"
 #include "gaen/image/Tga.h"
 
-#include "gaen/chef/CookInfo.h"
-#include "gaen/chef/Chef.h"
-#include "gaen/chef/cookers/Image.h"
+#include "gaen/cheflib/CookInfo.h"
+#include "gaen/cheflib/Chef.h"
+#include "gaen/cheflib/cookers/Image.h"
 
 namespace gaen
 {

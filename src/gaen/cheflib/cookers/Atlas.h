@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Qubicle.h - Qubicle binary file cooker
+// Atlas.h - Texture atlas cooker
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,27 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKERS_QUBICLE_H
-#define GAEN_CHEF_COOKERS_QUBICLE_H
+#ifndef GAEN_CHEF_COOKERS_ATLAS_H
+#define GAEN_CHEF_COOKERS_ATLAS_H
 
-#include "gaen/chef/Cooker.h"
+#include "gaen/cheflib/Cooker.h"
 
 namespace gaen
 {
 namespace cookers
 {
 
-static const char * kExtQbt = "qbt";
-static const char * kExtGqbt = "gqbt";
+static const char * kExtAtl = "atl";
+static const char * kExtGatl = "gatl";
 
-class Qubicle : public Cooker
+class Atlas : public Cooker
 {
 public:
-    Qubicle();
+    Atlas();
     virtual void cook(CookInfo * pCookInfo) const;
 };
 
 }
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKERS_QUBICLE_H
+#endif // #ifndef GAEN_CHEF_COOKERS_ATLAS_H

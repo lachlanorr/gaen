@@ -27,8 +27,8 @@
 #include "gaen/assets/file_utils.h"
 #include "gaen/assets/Gaud.h"
 
-#include "gaen/chef/CookInfo.h"
-#include "gaen/chef/cookers/Audio.h"
+#include "gaen/cheflib/CookInfo.h"
+#include "gaen/cheflib/cookers/Audio.h"
 
 namespace gaen
 {

@@ -24,37 +24,8 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(cooker_SOURCES
-  cookers/AnimImage.cpp
-  cookers/AnimImage.h
-  cookers/Atlas.cpp
-  cookers/Atlas.h
-  cookers/Audio.cpp
-  cookers/Audio.h
-  cookers/Font.cpp
-  cookers/Font.h
-  cookers/Image.cpp
-  cookers/Image.h
-  cookers/Model.cpp
-  cookers/Model.h
-  cookers/Qubicle.cpp
-  cookers/Qubicle.h
-  cookers/Sprite.cpp
-  cookers/Sprite.h
-  )
-
 set(chef_SOURCES
-  Chef.cpp
-  Chef.h
-  CookerRegistry.cpp
-  CookerRegistry.h
-  Cooker.h
-  cookers.cpp
-  cookers.h
-  CookInfo.cpp
-  CookInfo.h
   main_chef.cpp
-  ${cooker_SOURCES}
   )
 
 if(WIN32)
@@ -73,7 +44,6 @@ if(WIN32)
 endif()
 
 source_group("" FILES ${chef_SOURCES})
-source_group("cookers" FILES ${cooker_SOURCES})
 
 add_compile_definitions(IS_BUILD_Tool=1)
 
@@ -82,17 +52,7 @@ add_executable(chef
   )
 
 target_link_libraries(chef
-  ${PROJECT_LINK_LIBS}
-  gaen_voxel
-  assimp
-  freetype
-  #harfbuzz
-  #harfbuzz-subset
-  rapidjson
-  zlibstatic
-  brotlidec-static
-  brotlicommon-static
-  ${PLATFORM_LINK_LIBS}
+  gaen_cheflib
   )
 
 package (chef)

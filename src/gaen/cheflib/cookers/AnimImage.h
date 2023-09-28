@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Model.h - Model cooker
+// AnimImage.h - Gimg wrapper for storing animation bone transforms
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,47 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKERS_MODEL_H
-#define GAEN_CHEF_COOKERS_MODEL_H
+#ifndef GAEN_CHEF_COOKERS_ANIM_IMAGE_H
+#define GAEN_CHEF_COOKERS_ANIM_IMAGE_H
 
-#include <rapidjson/document.h>
-
-#include "gaen/assets/Gmdl.h"
-#include "gaen/chef/Cooker.h"
+#include "gaen/cheflib/Cooker.h"
 
 namespace gaen
 {
 namespace cookers
 {
 
-static const char * kExtObj = "obj";
-static const char * kExtPly = "ply";
-static const char * kExtOgex = "ogex";
-static const char * kExtGltf = "gltf";
-static const char * kExtGmdl = "gmdl";
+static const char * kExtAim = "aim";
+static const char * kExtGaim = "gaim";
 
-class Model : public Cooker
+class AnimImage : public Cooker
 {
 public:
-    struct Skeleton
-    {
-        bool hasCenter = false;
-        vec3 center = vec3(0.0f);
-        bool hasHalfExtents = false;
-        vec3 halfExtents = vec3(0.0f);
-        Vector<kMEM_Chef, Bone> bones;
-        Vector<kMEM_Chef, Bone> hardpoints;
-        rapidjson::Document jsonDoc;
-    };
-
-    Model();
+    AnimImage();
     virtual void cook(CookInfo * pCookInfo) const;
-
-    static void read_skl(Skeleton & skel, const char * path);
-    static u32 bone_id(const Vector<kMEM_Chef, Bone> & bones, const char * name);
 };
 
 }
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKERS_MODEL_H
+#endif // #ifndef GAEN_CHEF_COOKERS_ANIM_IMAGE_H

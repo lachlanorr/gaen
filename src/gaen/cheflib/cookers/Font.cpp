@@ -38,12 +38,12 @@
 #include "gaen/assets/Gatl.h"
 #include "gaen/assets/Gimg.h"
 
-#include "gaen/chef/CookInfo.h"
-#include "gaen/chef/Chef.h"
+#include "gaen/cheflib/CookInfo.h"
+#include "gaen/cheflib/Chef.h"
 #include "gaen/image/Png.h"
-#include "gaen/chef/cookers/Atlas.h"
-#include "gaen/chef/cookers/Image.h"
-#include "gaen/chef/cookers/Font.h"
+#include "gaen/cheflib/cookers/Atlas.h"
+#include "gaen/cheflib/cookers/Image.h"
+#include "gaen/cheflib/cookers/Font.h"
 
 
 namespace gaen

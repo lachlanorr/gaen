@@ -31,8 +31,8 @@
 #include "gaen/assets/Gatl.h"
 
 #include "gaen/image/ImageInfo.h"
-#include "gaen/chef/CookInfo.h"
-#include "gaen/chef/cookers/Atlas.h"
+#include "gaen/cheflib/CookInfo.h"
+#include "gaen/cheflib/cookers/Atlas.h"
 
 
 namespace gaen

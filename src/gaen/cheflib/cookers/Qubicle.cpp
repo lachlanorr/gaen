@@ -32,12 +32,12 @@
 
 #include "gaen/voxel/Qbt.h"
 
-#include "gaen/chef/chef.h"
+#include "gaen/cheflib/chef.h"
 #include "gaen/voxel/VoxObj.h"
 
-#include "gaen/chef/cookers/Model.h"
-#include "gaen/chef/cookers/Image.h"
-#include "gaen/chef/cookers/Qubicle.h"
+#include "gaen/cheflib/cookers/Model.h"
+#include "gaen/cheflib/cookers/Image.h"
+#include "gaen/cheflib/cookers/Qubicle.h"
 
 namespace gaen
 {

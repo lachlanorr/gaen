@@ -30,7 +30,7 @@
 #include "gaen/core/mem.h"
 #include "gaen/core/String.h"
 #include "gaen/assets/Config.h"
-#include "gaen/chef/CookInfo.h"
+#include "gaen/cheflib/CookInfo.h"
 
 namespace gaen
 {

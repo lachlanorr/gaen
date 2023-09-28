@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Image.h - Image cooker
+// CookerRegistry.h - Registration for cookers
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,37 +24,40 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKERS_IMAGE_H
-#define GAEN_CHEF_COOKERS_IMAGE_H
+#ifndef GAEN_CHEF_COOKER_REGISTRY_H
+#define GAEN_CHEF_COOKER_REGISTRY_H
 
-#include "gaen/assets/Gimg.h"
-#include "gaen/chef/Cooker.h"
+#include "gaen/core/mem.h"
+#include "gaen/core/HashMap.h"
+#include "gaen/core/List.h"
+#include "gaen/core/String.h"
+#include "gaen/assets/Config.h"
+#include "gaen/cheflib/CookInfo.h"
+#include "gaen/cheflib/Cooker.h"
 
 namespace gaen
 {
-namespace cookers
-{
-
-static const char * kExtPng = "png";
-static const char * kExtTga = "tga";
-static const char * kExtGimg = "gimg";
-
-class Image : public Cooker
+class CookerRegistry
 {
 public:
-    Image();
-    virtual void cook(CookInfo * pCookInfo) const;
+    static void register_cooker(UniquePtr<Cooker> pCooker);
 
-    static Gimg * load_png(const char * path, u32 referencePathHash, PixelFormat pixFmt = kPXL_RGBA8);
+    static const Cooker * find_cooker_from_raw(const ChefString & rawPath);
+    static const Cooker * find_cooker_from_cooked(const ChefString & cookedPath);
 
-    static u32 reference_path_hash(const Chef & chef, const ChefString & rawPath);
-    static u32 reference_path_hash(const CookInfo *pCookInfo);
 private:
-    void cookPng(CookInfo * pCookInfo) const;
-    void cookTga(CookInfo * pCookInfo) const;
+    static List<kMEM_Chef, UniquePtr<Cooker>> sCookers;
+
+    // map for raw extension to cooker
+    static HashMap<kMEM_Chef, ChefString, const Cooker*> sRawExtToCooker;
+
+    // map for cooked extension to cooker
+    static HashMap<kMEM_Chef, ChefString, const Cooker*> sCookedExtToCooker;
 };
 
-}
+
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKERS_IMAGE_H
+#endif // #ifndef GAEN_CHEF_COOKER_REGISTRY_H
+
+

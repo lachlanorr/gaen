@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Sprite.h - Sprite cooker
+// Font.h - Font cooker
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,28 +24,27 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKERS_SPRITE_H
-#define GAEN_CHEF_COOKERS_SPRITE_H
+#ifndef GAEN_CHEF_COOKERS_FONT_H
+#define GAEN_CHEF_COOKERS_FONT_H
 
-#include "gaen/chef/Cooker.h"
+#include "gaen/cheflib/Cooker.h"
 
 namespace gaen
 {
 namespace cookers
 {
 
-static const char * kExtSpr = "spr";
-static const char * kExtGspr = "gspr";
+static const char * kExtFnt = "fnt";
+static const char * kExtGfnt = "gfnt";
 
-class Sprite : public Cooker
+class Font : public Cooker
 {
 public:
-    Sprite();
+    Font();
     virtual void cook(CookInfo * pCookInfo) const;
 };
 
 }
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKERS_SPRITE_H
-
+#endif // #ifndef GAEN_CHEF_COOKERS_FONT_H

@@ -36,9 +36,9 @@
 
 #include "gaen/assets/file_utils.h"
 
-#include "gaen/chef/Chef.h"
-#include "gaen/chef/CookerRegistry.h"
-#include "gaen/chef/cookers.h"
+#include "gaen/cheflib/Chef.h"
+#include "gaen/cheflib/CookerRegistry.h"
+#include "gaen/cheflib/cookers.h"
 
 namespace gaen
 {

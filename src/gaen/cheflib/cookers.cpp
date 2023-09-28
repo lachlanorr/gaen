@@ -33,18 +33,18 @@
 #include "gaen/assets/Gatl.h"
 #include "gaen/assets/Gspr.h"
 
-#include "gaen/chef/Chef.h"
-#include "gaen/chef/CookerRegistry.h"
-#include "gaen/chef/cookers.h"
+#include "gaen/cheflib/Chef.h"
+#include "gaen/cheflib/CookerRegistry.h"
+#include "gaen/cheflib/cookers.h"
 
-#include "gaen/chef/cookers/AnimImage.h"
-#include "gaen/chef/cookers/Atlas.h"
-#include "gaen/chef/cookers/Audio.h"
-#include "gaen/chef/cookers/Font.h"
-#include "gaen/chef/cookers/Image.h"
-#include "gaen/chef/cookers/Model.h"
-#include "gaen/chef/cookers/Sprite.h"
-#include "gaen/chef/cookers/Qubicle.h"
+#include "gaen/cheflib/cookers/AnimImage.h"
+#include "gaen/cheflib/cookers/Atlas.h"
+#include "gaen/cheflib/cookers/Audio.h"
+#include "gaen/cheflib/cookers/Font.h"
+#include "gaen/cheflib/cookers/Image.h"
+#include "gaen/cheflib/cookers/Model.h"
+#include "gaen/cheflib/cookers/Sprite.h"
+#include "gaen/cheflib/cookers/Qubicle.h"
 
 namespace gaen
 {

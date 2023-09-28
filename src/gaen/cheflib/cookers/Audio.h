@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// CookerRegistry.h - Registration for cookers
+// Audio.h - Audio cooker
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,40 +24,35 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKER_REGISTRY_H
-#define GAEN_CHEF_COOKER_REGISTRY_H
+#ifndef GAEN_CHEF_COOKERS_AUDIO_H
+#define GAEN_CHEF_COOKERS_AUDIO_H
 
-#include "gaen/core/mem.h"
-#include "gaen/core/HashMap.h"
-#include "gaen/core/List.h"
-#include "gaen/core/String.h"
-#include "gaen/assets/Config.h"
-#include "gaen/chef/CookInfo.h"
-#include "gaen/chef/Cooker.h"
+#include "gaen/assets/Gimg.h"
+#include "gaen/cheflib/Cooker.h"
 
 namespace gaen
 {
-class CookerRegistry
+namespace cookers
+{
+
+static const char * kExtWav = "wav";
+static const char * kExtGaud = "gaud";
+
+class Audio : public Cooker
 {
 public:
-    static void register_cooker(UniquePtr<Cooker> pCooker);
+    Audio();
+    virtual void cook(CookInfo * pCookInfo) const;
 
-    static const Cooker * find_cooker_from_raw(const ChefString & rawPath);
-    static const Cooker * find_cooker_from_cooked(const ChefString & cookedPath);
+    static Gimg * load_png(const char * path, u32 referencePathHash, PixelFormat pixFmt = kPXL_RGBA8);
 
+    static u32 reference_path_hash(const Chef & chef, const ChefString & rawPath);
+    static u32 reference_path_hash(const CookInfo *pCookInfo);
 private:
-    static List<kMEM_Chef, UniquePtr<Cooker>> sCookers;
-    
-    // map for raw extension to cooker
-    static HashMap<kMEM_Chef, ChefString, const Cooker*> sRawExtToCooker;
-
-    // map for cooked extension to cooker
-    static HashMap<kMEM_Chef, ChefString, const Cooker*> sCookedExtToCooker;
+    void cookWav(CookInfo * pCookInfo) const;
 };
 
-
+}
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKER_REGISTRY_H
-
-
+#endif // #ifndef GAEN_CHEF_COOKERS_AUDIO_H

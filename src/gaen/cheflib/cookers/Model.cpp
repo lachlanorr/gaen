@@ -43,10 +43,10 @@
 #include "gaen/assets/Gmdl.h"
 #include "gaen/assets/Gmat.h"
 
-#include "gaen/chef/CookInfo.h"
-#include "gaen/chef/Chef.h"
-#include "gaen/chef/cookers/Image.h"
-#include "gaen/chef/cookers/Model.h"
+#include "gaen/cheflib/CookInfo.h"
+#include "gaen/cheflib/Chef.h"
+#include "gaen/cheflib/cookers/Image.h"
+#include "gaen/cheflib/cookers/Model.h"
 
 namespace gaen
 {

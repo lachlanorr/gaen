@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Font.h - Font cooker
+// Image.h - Image cooker
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,27 +24,37 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKERS_FONT_H
-#define GAEN_CHEF_COOKERS_FONT_H
+#ifndef GAEN_CHEF_COOKERS_IMAGE_H
+#define GAEN_CHEF_COOKERS_IMAGE_H
 
-#include "gaen/chef/Cooker.h"
+#include "gaen/assets/Gimg.h"
+#include "gaen/cheflib/Cooker.h"
 
 namespace gaen
 {
 namespace cookers
 {
 
-static const char * kExtFnt = "fnt";
-static const char * kExtGfnt = "gfnt";
+static const char * kExtPng = "png";
+static const char * kExtTga = "tga";
+static const char * kExtGimg = "gimg";
 
-class Font : public Cooker
+class Image : public Cooker
 {
 public:
-    Font();
+    Image();
     virtual void cook(CookInfo * pCookInfo) const;
+
+    static Gimg * load_png(const char * path, u32 referencePathHash, PixelFormat pixFmt = kPXL_RGBA8);
+
+    static u32 reference_path_hash(const Chef & chef, const ChefString & rawPath);
+    static u32 reference_path_hash(const CookInfo *pCookInfo);
+private:
+    void cookPng(CookInfo * pCookInfo) const;
+    void cookTga(CookInfo * pCookInfo) const;
 };
 
 }
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKERS_FONT_H
+#endif // #ifndef GAEN_CHEF_COOKERS_IMAGE_H

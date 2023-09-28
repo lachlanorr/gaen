@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// AnimImage.h - Gimg wrapper for storing animation bone transforms
+// Sprite.h - Sprite cooker
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,27 +24,28 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKERS_ANIM_IMAGE_H
-#define GAEN_CHEF_COOKERS_ANIM_IMAGE_H
+#ifndef GAEN_CHEF_COOKERS_SPRITE_H
+#define GAEN_CHEF_COOKERS_SPRITE_H
 
-#include "gaen/chef/Cooker.h"
+#include "gaen/cheflib/Cooker.h"
 
 namespace gaen
 {
 namespace cookers
 {
 
-static const char * kExtAim = "aim";
-static const char * kExtGaim = "gaim";
+static const char * kExtSpr = "spr";
+static const char * kExtGspr = "gspr";
 
-class AnimImage : public Cooker
+class Sprite : public Cooker
 {
 public:
-    AnimImage();
+    Sprite();
     virtual void cook(CookInfo * pCookInfo) const;
 };
 
 }
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKERS_ANIM_IMAGE_H
+#endif // #ifndef GAEN_CHEF_COOKERS_SPRITE_H
+

@@ -47,6 +47,7 @@ add_subdirectory(platform)
 
 #exes
 if(NOT IOS)
+  add_subdirectory(cheflib)
   add_subdirectory(chef)
   add_subdirectory(cmpc)
   add_subdirectory(gac)

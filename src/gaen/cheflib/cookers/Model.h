@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// Audio.h - Audio cooker
+// Model.h - Model cooker
 //
 // Gaen Concurrency Engine - http://gaen.org
 // Copyright (c) 2014-2022 Lachlan Orr
@@ -24,35 +24,47 @@
 //   distribution.
 //------------------------------------------------------------------------------
 
-#ifndef GAEN_CHEF_COOKERS_AUDIO_H
-#define GAEN_CHEF_COOKERS_AUDIO_H
+#ifndef GAEN_CHEF_COOKERS_MODEL_H
+#define GAEN_CHEF_COOKERS_MODEL_H
 
-#include "gaen/assets/Gimg.h"
-#include "gaen/chef/Cooker.h"
+#include <rapidjson/document.h>
+
+#include "gaen/assets/Gmdl.h"
+#include "gaen/cheflib/Cooker.h"
 
 namespace gaen
 {
 namespace cookers
 {
 
-static const char * kExtWav = "wav";
-static const char * kExtGaud = "gaud";
+static const char * kExtObj = "obj";
+static const char * kExtPly = "ply";
+static const char * kExtOgex = "ogex";
+static const char * kExtGltf = "gltf";
+static const char * kExtGmdl = "gmdl";
 
-class Audio : public Cooker
+class Model : public Cooker
 {
 public:
-    Audio();
+    struct Skeleton
+    {
+        bool hasCenter = false;
+        vec3 center = vec3(0.0f);
+        bool hasHalfExtents = false;
+        vec3 halfExtents = vec3(0.0f);
+        Vector<kMEM_Chef, Bone> bones;
+        Vector<kMEM_Chef, Bone> hardpoints;
+        rapidjson::Document jsonDoc;
+    };
+
+    Model();
     virtual void cook(CookInfo * pCookInfo) const;
 
-    static Gimg * load_png(const char * path, u32 referencePathHash, PixelFormat pixFmt = kPXL_RGBA8);
-
-    static u32 reference_path_hash(const Chef & chef, const ChefString & rawPath);
-    static u32 reference_path_hash(const CookInfo *pCookInfo);
-private:
-    void cookWav(CookInfo * pCookInfo) const;
+    static void read_skl(Skeleton & skel, const char * path);
+    static u32 bone_id(const Vector<kMEM_Chef, Bone> & bones, const char * name);
 };
 
 }
 } // namespace gaen
 
-#endif // #ifndef GAEN_CHEF_COOKERS_AUDIO_H
+#endif // #ifndef GAEN_CHEF_COOKERS_MODEL_H
