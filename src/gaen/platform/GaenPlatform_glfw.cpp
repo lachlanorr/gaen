@@ -44,7 +44,7 @@ namespace gaen
 {
 
 GAMEVAR_DECL_BOOL(gldebug, false);
-GAMEVAR_DECL_BOOL(full_screen, true);
+GAMEVAR_DECL_BOOL(full_screen, false);
 
 void glfw_error_callback(int error, const char * description)
 {
