@@ -99,3 +99,7 @@ elseif(UNIX)
   set(net_platform "posix")
   include(${cmake_dir}/posix.cmake)
 endif()
+
+if ("${CMAKE_PROJECT_NAME}" MATCHES "gaen")
+  add_compile_definitions(IS_GAEN_PROJECT=1)
+endif()

@@ -106,7 +106,7 @@ class ScriptInfo:
 
 
     def _compile(self, paths):
-        rel_scr_inc = paths.script_includes_h.relative_to(paths.binary_dir/'gaen'/'src').as_posix()
+        rel_scr_inc = paths.script_includes_h.relative_to(paths.binary_gaen_dir/'src').as_posix()
         args = [paths.cmpc, '-i', rel_scr_inc, self.cmp_full_path]
 
         # LORRNOTE: Printing these always isn't useful, but keeping

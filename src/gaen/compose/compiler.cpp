@@ -48,7 +48,11 @@ using namespace gaen;
 
 static_assert(kDT_COUNT == 21, "Make sure DataType enum ids look right... seems they have changed");
 
+#ifdef IS_GAEN_PROJECT
+static const char * kScriptsPath = "/scripts/cmp/";
+#else
 static const char * kScriptsPath = "/src/scripts/cmp/";
+#endif // IS_GAEN_PROJECT
 
 static char sEmptyStr[] = { '\0' };
 
