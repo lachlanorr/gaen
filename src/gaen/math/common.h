@@ -27,6 +27,7 @@
 #ifndef GAEN_MATH_COMMON_H
 #define GAEN_MATH_COMMON_H
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/common.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/compatibility.hpp>

@@ -27,6 +27,7 @@
 #ifndef GAEN_MATH_VEC3_H
 #define GAEN_MATH_VEC3_H
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/vec3.hpp>
 #include <glm/geometric.hpp>// glm::cross, glm::normalize
 

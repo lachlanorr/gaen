@@ -27,6 +27,7 @@
 #ifndef GAEN_MATH_MAT3_H
 #define GAEN_MATH_MAT3_H
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/mat3x3.hpp>
 
 #include "gaen/math/vec3.h"

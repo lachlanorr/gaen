@@ -29,6 +29,7 @@
 
 #include <cmath>
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 
 #include "gaen/core/base_defines.h"

@@ -55,5 +55,5 @@ set_target_properties(gaen_math PROPERTIES
 
 target_link_libraries(gaen_math PUBLIC
   gaen_core
-  glm
+  glm-header-only
   )

@@ -27,6 +27,7 @@
 #ifndef GAEN_MATH_QUAT_H
 #define GAEN_MATH_QUAT_H
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
 #include "gaen/core/base_defines.h"

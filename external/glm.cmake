@@ -24,7 +24,6 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(BUILD_STATIC_LIBS OFF)
-set(BUILD_SHARED_LIBS OFF)
-add_subdirectory("glm/glm")
+option(GLM_BUILD_LIBRARY "" OFF)
+add_subdirectory("glm")
 configure_target_folders("glm" FALSE)

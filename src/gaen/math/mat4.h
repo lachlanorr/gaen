@@ -27,6 +27,7 @@
 #ifndef GAEN_MATH_MAT4_H
 #define GAEN_MATH_MAT4_H
 
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/mat4x4.hpp>
 
 #include "gaen/core/base_defines.h"
