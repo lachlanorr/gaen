@@ -36,20 +36,22 @@ set(python_dir ${CMAKE_CURRENT_SOURCE_DIR}/python)
 add_subdirectory(external)
 add_subdirectory(src)
 
-# Set gaen as startup project
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${CMAKE_PROJECT_NAME})
+if (NOT "${CMAKE_PROJECT_NAME}" MATCHES "gaen")
+  # Set gaen as startup project
+  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${CMAKE_PROJECT_NAME})
 
-set(publish_dir "${CMAKE_BINARY_DIR}/publish")
-add_custom_target(
-  PUBLISH
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${publish_dir}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${publish_dir}
-  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${publish_dir}
-  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:gac> ${publish_dir}
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/cooked_win ${publish_dir}/assets
-  DEPENDS COOK_ASSETS ${CMAKE_PROJECT_NAME}
-  )
+  set(publish_dir "${CMAKE_BINARY_DIR}/publish")
+  add_custom_target(
+    PUBLISH
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${publish_dir}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${publish_dir}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${publish_dir}
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:gac> ${publish_dir}
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/cooked_win ${publish_dir}/assets
+    DEPENDS COOK_ASSETS ${CMAKE_PROJECT_NAME}
+    )
 
-set_target_properties(PUBLISH PROPERTIES
-  FOLDER CMakePredefinedTargets
-  )
+  set_target_properties(PUBLISH PROPERTIES
+    FOLDER CMakePredefinedTargets
+    )
+endif()
