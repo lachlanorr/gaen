@@ -24,6 +24,14 @@
 #   distribution.
 #-------------------------------------------------------------------------------
 
-set(BUILD_SHARED_LIBS OFF)
+
+option(BUILD_SHARED_LIBS "" OFF)
+option(tiff-tools "" OFF)
+option(tiff-tests "" OFF)
+option(tiff-contrib "" OFF)
+option(tiff-docs "" OFF)
+option(tiff-deprecated "" OFF)
+option(tiff-install "" OFF)
+
 add_subdirectory(libtiff)
 configure_target_folders("libtiff" FALSE)
