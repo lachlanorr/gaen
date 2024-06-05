@@ -58,6 +58,7 @@ class Paths:
             self.binary_gaen_dir = self.binary_dir
             self.scripts_dir = self.gaen_src_dir/'gaen'/'scripts'
             self.scripts_cmp_dir = self.scripts_dir/'cmp'
+            self.project_LICENSE = self.gaen_LICENSE
             self.source_dir = self.gaen_dir
 
         # codegen_hashes
