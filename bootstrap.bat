@@ -37,11 +37,11 @@ if not exist "%BUILD_DIR%" (
 :: Issue cmake command
 cd %BUILD_DIR%
 if "%PLAT%"=="win64" (
-    cmake -G "Visual Studio 17 2022" -A x64  %GAEN_ROOT%
+    cmake -G "Visual Studio 16 2019" -A x64  %GAEN_ROOT%
     if %errorlevel% neq 0 exit /b %errorlevel%
 )
 if "%PLAT%"=="win32" (
-    cmake -G "Visual Studio 17 2022" -A Win32 %GAEN_ROOT%
+    cmake -G "Visual Studio 16 2019" -A Win32 %GAEN_ROOT%
     if %errorlevel% neq 0 exit /b %errorlevel%
 )
 
