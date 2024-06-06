@@ -38,3 +38,15 @@ option(INSTALL_LIBS "" OFF)
 option(INSTALL_CMAKE_FILES "" OFF)
 add_subdirectory(bullet3)
 configure_target_folders("bullet3" FALSE)
+
+target_include_directories(BulletCollision INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/bullet3/src
+  )
+
+target_include_directories(BulletDynamics INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/bullet3/src
+  )
+
+target_include_directories(LinearMath INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/bullet3/src
+  )
