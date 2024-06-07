@@ -27,8 +27,14 @@
 option(PNG_SHARED "" OFF)
 option(PNG_TESTS "" OFF)
 set(SKIP_INSTALL_ALL TRUE)
+
+set(ZLIB_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/zlib CACHE STRING "" FORCE)
+set(ZLIB_USE_STATIC_LIBS TRUE CACHE STRING "" FORCE)
+
 add_subdirectory(libpng)
 configure_target_folders("libpng" FALSE)
 
-set(PNG_PNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libpng ${CMAKE_CURRENT_BINARY_DIR}/libpng CACHE STRING "" FORCE)
-set(PNG_LIBRARY $<TARGET_FILE:png_static> CACHE STRING "" FORCE)
+target_include_directories(png_static INTERFACE
+  ${CMAKE_CURRENT_SOURCE_DIR}/libpng
+  ${CMAKE_CURRENT_BINARY_DIR}/libpng
+  )

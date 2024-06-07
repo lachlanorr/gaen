@@ -57,8 +57,8 @@ endif()
 include(bullet3.cmake)
 
 # image cooking
-include(libpng.cmake)
 include(libtiff.cmake)
+include(libpng.cmake)
 
 # fonts
 include(freetype.cmake)
