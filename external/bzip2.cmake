@@ -73,6 +73,3 @@ target_include_directories(bzip2static SYSTEM INTERFACE
 set_target_properties(bzip2static PROPERTIES
   FOLDER external/bzip2
   )
-
-set(BZIP2_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bzip2 CACHE STRING "" FORCE)
-set(BZIP2_LIBRARIES $<TARGET_FILE:bzip2static> CACHE STRING "" FORCE)
