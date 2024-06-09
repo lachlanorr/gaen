@@ -117,7 +117,7 @@ target_link_libraries(gaen_engine PUBLIC
 # Run each time we build.
 add_custom_target(
   CODEGEN_MESSAGES ALL
-  C:/python310/python ${python_dir}/codegen_messages.py "${CMAKE_BINARY_DIR}"
+  ${Python_EXECUTABLE} ${python_dir}/codegen_messages.py "${CMAKE_BINARY_DIR}"
   COMMENT "Generating message classes"
   )
 

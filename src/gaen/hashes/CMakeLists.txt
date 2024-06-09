@@ -26,7 +26,7 @@
 
 # Run during configure so we have hashes.h/cpp existing for .sln creation
 execute_process(
-  COMMAND C:/python310/python ${python_dir}/codegen_hashes.py "${CMAKE_BINARY_DIR}"
+  COMMAND ${Python_EXECUTABLE} ${python_dir}/codegen_hashes.py "${CMAKE_BINARY_DIR}"
   )
 
 set(gaen_hashes_SOURCES
@@ -38,7 +38,7 @@ source_group("" FILES ${gaen_hashes_SOURCES})
 
 add_custom_target(
   CODEGEN_HASHES ALL
-  C:/python310/python ${python_dir}/codegen_hashes.py "${CMAKE_BINARY_DIR}"
+  python ${python_dir}/codegen_hashes.py "${CMAKE_BINARY_DIR}"
   COMMENT "Generating hashes.h/cpp"
   )
 

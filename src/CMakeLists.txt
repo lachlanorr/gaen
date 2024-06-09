@@ -42,4 +42,6 @@ macro(package target)
     )
 endmacro()
 
+find_package(Python COMPONENTS Interpreter)
+
 add_subdirectory(gaen)

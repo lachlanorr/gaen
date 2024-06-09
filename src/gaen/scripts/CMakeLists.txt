@@ -50,10 +50,10 @@ source_group("" FILES "DUMMY.cpp")
 
 add_custom_target(
   CODEGEN_SCRIPTS ALL
-  C:/python310/python ${python_dir}/codegen_scripts.py "${CMAKE_BINARY_DIR}"
+  ${Python_EXECUTABLE} ${python_dir}/codegen_scripts.py "${CMAKE_BINARY_DIR}"
   # re-run codegen_hashes.py since generated .cpp files will likely
   # have new hashes to consider.
-  COMMAND C:/python310/python ${python_dir}/codegen_hashes.py "${CMAKE_BINARY_DIR}"
+  COMMAND ${Python_EXECUTABLE} ${python_dir}/codegen_hashes.py "${CMAKE_BINARY_DIR}"
   DEPENDS cmpc
   COMMENT "Generating scripts"
   )
