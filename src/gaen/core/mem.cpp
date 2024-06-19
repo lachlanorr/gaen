@@ -258,7 +258,7 @@ size_t parse_mem_init_str(const char * memInitStr,
                 return 0;
             ++start;
         }
-            
+
         // Ok, we have a valid allocSize and count
         // If we were passed in null, don't set.
         if (pMemPoolInits)

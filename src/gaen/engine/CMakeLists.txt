@@ -107,24 +107,24 @@ if (NOT DEFINED IS_HEADLESS)
 	imgui
 	glfw
 	glad
-	)
+  )
 endif()
 
 target_link_libraries(gaen_engine PUBLIC
   ${ENGINE_LINK_LIBS}
-  )
+)
 
 # Run each time we build.
 add_custom_target(
   CODEGEN_MESSAGES ALL
   ${Python_EXECUTABLE} ${python_dir}/codegen_messages.py "${CMAKE_BINARY_DIR}"
   COMMENT "Generating message classes"
-  )
+)
 
 set_target_properties(CODEGEN_MESSAGES PROPERTIES
   FOLDER CMakePredefinedTargets
-  )
+)
 
 add_dependencies(gaen_engine
   CODEGEN_MESSAGES
-  )
+)
